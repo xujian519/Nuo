@@ -3,6 +3,22 @@
 See `~/AGENTS.md` for the global Codex environment, wiki protocol, hard rules,
 machine context, and useful commands.
 
+## Brand layer (this fork ships as Nuo)
+
+User-visible branding is `Nuo` / `nuo`. Swift module names, the plugin ABI,
+`OSAURUS_*` env vars, tool names, HTTP headers and `ai.osaurus.*` keys are
+frozen — see `docs/brand/INTERNAL-IDENTIFIERS.md`.
+
+Never hand-edit a brand string and never run a repo-wide `sed`:
+
+- `scripts/brand/apply.sh` replays every rewrite (run after each upstream merge).
+- `scripts/brand/verify.sh` is the CI guard (`brand-guard` job). `make test`
+  does not cover it.
+- New user-visible brand surface needs a rule in `scripts/brand/rules/`, not a
+  literal in the code.
+- Plan, phases and risks: `docs/brand/NUO-REBRAND-PLAN.md`.
+- Upstream merge procedure: `docs/brand/UPSTREAM-SYNC.md`.
+
 ## Build & Test
 
 Running tests and builds is encouraged — they're how we keep quality high. The

@@ -806,6 +806,19 @@ jobs:
         if: always()
         run: echo "::notice title=test-evals duration::$SECONDS seconds"
 
+  brand-guard:
+    # Cheap (<5s) and deterministic: replays the brand rules and enforces the
+    # frozen-identifier contracts. Fails when upstream or PR code reintroduces a
+    # legacy brand string outside the frozen allowlist.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Run brand guard
+        run: bash scripts/brand/verify.sh
+
   swiftlint:
     # Pinned (was `macos-latest`).
     runs-on: macos-26

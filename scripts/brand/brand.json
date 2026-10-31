@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "generated_for": "nuo rebrand (see docs/brand/NUO-REBRAND-PLAN.md)",
+  "brand": {
+    "display": "Nuo",
+    "slug": "nuo",
+    "upper": "NUO",
+    "bundle_id": "com.nuo.app",
+    "bundle_id_tests": "com.nuo.app.tests",
+    "bundle_id_uitests": "com.nuo.app.uitests",
+    "app_bundle": "Nuo.app",
+    "executable": "Nuo",
+    "cli_command": "nuo",
+    "url_scheme": "nuo",
+    "bonjour_services": [
+      "_nuo._tcp",
+      "_nuo-mobile._tcp"
+    ],
+    "data_root": ".nuo",
+    "app_support_dir": "com.nuo.app",
+    "feed_url": "https://nuo.app/appcast.xml"
+  },
+  "legacy": {
+    "display": "Osaurus",
+    "slug": "osaurus",
+    "upper": "OSAURUS",
+    "bundle_id": "com.dinoki.osaurus",
+    "bundle_id_tests": "com.dinoki.osaurusTests",
+    "bundle_id_uitests": "com.dinoki.osaurusUITests",
+    "app_bundle": "Osaurus.app",
+    "cli_command": "osaurus",
+    "url_scheme": "osaurus",
+    "bonjour_services": [
+      "_osaurus._tcp",
+      "_osaurus-mobile._tcp"
+    ],
+    "data_root": ".osaurus",
+    "app_support_dir": "com.dinoki.osaurus"
+  },
+  "paths": {
+    "exclude": [
+      "scripts/brand/**",
+      "docs/brand/**",
+      "docs/evidence/**",
+      "results/**",
+      "reports/**",
+      "build/**",
+      "**/Brand/**",
+      "**/*.xcresult/**",
+      "scripts/live-proof/**",
+      "docs/appcast.xml"
+    ],
+    "strict": [
+      "App/osaurus.xcodeproj/**",
+      "App/osaurus/Info.plist",
+      "Makefile",
+      ".github/workflows/**",
+      "scripts/**"
+    ],
+    "strict_pending": [
+      "App/osaurus/*.swift",
+      "App/osaurus/AppIntents/**",
+      "App/osaurus/InfoPlist.xcstrings",
+      "Packages/OsaurusCore/AppDelegate.swift",
+      "Packages/OsaurusCore/Utils/OsaurusPaths.swift",
+      "Packages/OsaurusCore/Services/Keychain/**",
+      "Packages/OsaurusCore/Resources/Localizable.xcstrings",
+      "Packages/OsaurusCore/Resources/Guide/**",
+      "Packages/OsaurusCLI/Sources/**"
+    ]
+  },
+  "frozen": {
+    "why": "Identifiers that are external contracts or that would only add risk if renamed. See docs/brand/INTERNAL-IDENTIFIERS.md.",
+    "literals": [
+      "OsaurusCore",
+      "OsaurusCLI",
+      "OsaurusCLICore",
+      "OsaurusRepository",
+      "OsaurusNetworking",
+      "OsaurusPlugins",
+      "OsaurusPluginTestKit",
+      "OsaurusEvals",
+      "OsaurusEvalsKit",
+      "OsaurusAI",
+      "osaurus_plugin_entry",
+      "osaurus_help",
+      "osaurus_inspect",
+      "osaurus_config",
+      "mcp__osaurus__",
+      "X-Osaurus-",
+      "window.__osaurus",
+      "__osaurus_abi_probe__",
+      "osr_",
+      "ai.osaurus.",
+      "OSAURUS_",
+      "OSU_",
+      "_osaurus._tcp",
+      "_osaurus-mobile._tcp",
+      "github.com/osaurus-ai/",
+      "osaurus-bundle.json",
+      "osaurus-evals",
+      "osaurus-id",
+      "osk-v1.",
+      "group.com.osaurus.shared"
+    ],
+    "contracts": [
+      {
+        "literal": "import OsaurusCore",
+        "min": 1100,
+        "why": "Swift module name; renaming would touch 1228 import lines"
+      },
+      {
+        "literal": "osaurus_plugin_entry_v2",
+        "min": 30,
+        "why": "native plugin ABI symbol"
+      },
+      {
+        "literal": "ai.osaurus.",
+        "min": 150,
+        "why": "UserDefaults keys + Keychain service namespace (frozen)"
+      },
+      {
+        "literal": "OSAURUS_TEST_ROOT",
+        "min": 60,
+        "why": "test harness env contract used by CI and docs"
+      },
+      {
+        "literal": "_osaurus._tcp",
+        "min": 5,
+        "why": "legacy Bonjour service kept registered during the transition"
+      },
+      {
+        "literal": "OsaurusAI",
+        "min": 600,
+        "why": "HF org + model id prefix; external data contract"
+      }
+    ]
+  }
+}
