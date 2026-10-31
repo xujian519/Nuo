@@ -31,14 +31,14 @@ public struct DoctorCommand: Command {
             case .invalid(let message):
                 detail = message
             }
-            fputs("osaurus doctor: \(detail)\n", stderr)
+            fputs("nuo doctor: \(detail)\n", stderr)
             fputs(
-                "Usage: osaurus doctor [--port 1...65535] [--json] [--redact] [--verify-signatures]\n",
+                "Usage: nuo doctor [--port 1...65535] [--json] [--redact] [--verify-signatures]\n",
                 stderr
             )
             exit(EXIT_FAILURE)
         } catch {
-            fputs("osaurus doctor: invalid arguments\n", stderr)
+            fputs("nuo doctor: invalid arguments\n", stderr)
             exit(EXIT_FAILURE)
         }
 
@@ -61,7 +61,7 @@ public struct DoctorCommand: Command {
                 }
                 print(text)
             } catch {
-                fputs("osaurus doctor: could not encode diagnostic JSON\n", stderr)
+                fputs("nuo doctor: could not encode diagnostic JSON\n", stderr)
                 exit(EXIT_FAILURE)
             }
         } else {
@@ -110,7 +110,7 @@ public struct DoctorCommand: Command {
 
     public static func render(_ report: InstallationDiagnosticReport) -> String {
         var lines = [
-            "Osaurus installation doctor",
+            "Nuo installation doctor",
             "Diagnosis: \(report.diagnosis.rawValue)",
             "CLI: \(report.cliPath) (\(versionLabel(report.cliVersion, build: report.cliBuild)))",
             "Server: http://127.0.0.1:\(report.requestedPort) — \(report.serverHealthy ? "healthy" : "unavailable")",

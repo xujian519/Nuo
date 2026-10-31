@@ -118,76 +118,76 @@ struct OsaurusCLI {
 
     private static func printUsage() {
         let usage = """
-            osaurus - CLI for Osaurus
+            nuo - CLI for Nuo
 
             Usage:
-              osaurus serve [--port N] [--expose] [--yes|-y] [--supervise] [--interval N]
+              nuo serve [--port N] [--expose] [--yes|-y] [--supervise] [--interval N]
                                       Start the server (default: localhost only). If --expose
                                       is set, a warning prompt will appear unless --yes is provided.
                                       With --supervise, run a long-lived keep-alive loop that
                                       relaunches the server whenever it goes down (probe every
                                       --interval seconds, default 15) — intended to run under a
                                       launchd KeepAlive LaunchAgent so the server survives quit.
-              osaurus stop            Stop the server
-              osaurus mcp [--access-key KEY]
+              nuo stop                Stop the server
+              nuo mcp [--access-key KEY]
                                       Run MCP stdio server proxying to local HTTP. When
                                       server network exposure is enabled, provide an
                                       access key here or via OSAURUS_MCP_ACCESS_KEY.
-              osaurus version         Show version (also: --version or -v)
-              osaurus status          Check if the Osaurus server is running
-              osaurus doctor [--port N] [--json] [--redact] [--verify-signatures]
+              nuo version             Show version (also: --version or -v)
+              nuo status              Check if the Nuo server is running
+              nuo doctor [--port N] [--json] [--redact] [--verify-signatures]
                                       Diagnose CLI/app version skew, duplicate app
                                       bundles, server startup, and model storage.
                                       Signature checks are explicit because they can
                                       be slow when many app bundles are installed.
-              osaurus list            List available model IDs
-              osaurus show <model_id> Show metadata for a model
-              osaurus pull <model_id> Download a model from Hugging Face
-              osaurus run <model_id>  Chat with a downloaded model (interactive)
-              osaurus bench [--model <id>] [--prompt-tokens 1024,8192] [--runs 3] [--json <path>]
+              nuo list                List available model IDs
+              nuo show <model_id>     Show metadata for a model
+              nuo pull <model_id>     Download a model from Hugging Face
+              nuo run <model_id>      Chat with a downloaded model (interactive)
+              nuo bench [--model <id>] [--prompt-tokens 1024,8192] [--runs 3] [--json <path>]
                                       Benchmark TTFT / prefill / decode against the
                                       running server; emits JSON tagged with hardware info
-              osaurus ui              Show the Osaurus menu popover in the menu bar
-              osaurus tools list      List installed tools
-              osaurus tools install <plugin_id|url-or-path>
+              nuo ui                  Show the Nuo menu popover in the menu bar
+              nuo tools list          List installed tools
+              nuo tools install <plugin_id|url-or-path>
                                       Install a tool from registry or local/URL
-              osaurus tools search <query>
+              nuo tools search <query>
                                       Search for tools in the registry
-              osaurus tools outdated  Check for outdated tools
-              osaurus tools upgrade   Upgrade installed tools
-              osaurus tools uninstall <tool_name>
+              nuo tools outdated      Check for outdated tools
+              nuo tools upgrade       Upgrade installed tools
+              nuo tools uninstall <tool_name>
                                       Uninstall a tool
-              osaurus tools verify    Verify dylib integrity of installed tools
-              osaurus tools create <name> [--language swift|rust]
+              nuo tools verify        Verify dylib integrity of installed tools
+              nuo tools create <name> [--language swift|rust]
                                       Scaffold a v2 plugin project
-              osaurus tools package <plugin_id> <version> [dylib_path]
+              nuo tools package <plugin_id> <version> [dylib_path]
                                       Package plugin into a zip (includes web/, docs)
-              osaurus tools reload    Ask the app to rescan tools
-              osaurus tools rollback <plugin_id>
+              nuo tools reload        Ask the app to rescan tools
+              nuo tools rollback <plugin_id>
                                       Roll back a tool to its previous version
-              osaurus tools dev <plugin_id> [--web-proxy <url>]
+              nuo tools dev <plugin_id> [--web-proxy <url>]
                                       Dev mode with hot reload and optional web proxy
-              osaurus manifest extract <dylib>
+              nuo manifest extract <dylib>
                                       Extract manifest JSON from built plugin
-              osaurus manifest validate <manifest.json>
+              nuo manifest validate <manifest.json>
                                       Validate a plugin manifest's structure (run before packaging)
-              osaurus bundle load <path.mcpb> [--name "Display Name"]
+              nuo bundle load <path.mcpb> [--name "Display Name"]
                                       Load and run an MCP Bundle (.mcpb file)
-              osaurus coord <subcommand>
+              nuo coord <subcommand>
                                       Local coordinator orchestration foundation
-              osaurus config export [-o file.yaml]
-                                      Export the current Osaurus configuration as YAML
-              osaurus config plan <file.yaml> [--prune]
+              nuo config export [-o file.yaml]
+                                      Export the current Nuo configuration as YAML
+              nuo config plan <file.yaml> [--prune]
                                       Dry-run a declarative YAML document (show the diff)
-              osaurus config apply <file.yaml> [--prune] [--yes]
+              nuo config apply <file.yaml> [--prune] [--yes]
                                       Apply a declarative YAML document (--yes confirms
                                       high-risk changes)
-              osaurus import validate|install|update --from <bundle> [agent|skill|mcp] [name ...]
-                                      Install agents, skills and MCP servers from an Osaurus
-                                      bundle folder (see `osaurus import help`)
-              osaurus import remove --bundle <id> [name ...] / osaurus import list
+              nuo import validate|install|update --from <bundle> [agent|skill|mcp] [name ...]
+                                      Install agents, skills and MCP servers from a Nuo
+                                      bundle folder (see `nuo import help`)
+              nuo import remove --bundle <id> [name ...] / nuo import list
                                       Remove or list what a bundle installed
-              osaurus help            Show this help
+              nuo help                Show this help
 
             Bundle author guide: docs/OSAURUS_BUNDLES.md
 

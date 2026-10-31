@@ -11,6 +11,7 @@
 import CryptoKit
 import Foundation
 import LocalAuthentication
+import OsaurusRepository
 
 // MARK: - Public types
 
@@ -74,8 +75,9 @@ public final class ThemeShareService {
 
     public static let shared = ThemeShareService()
 
-    /// Deep link constants. Mirrors `osaurus://plugins-install?tool=…`.
-    public nonisolated static let deepLinkScheme = "osaurus"
+    /// Deep link constants. Mirrors `nuo://plugins-install?tool=…`. Links
+    /// minted before the rename (`osaurus://`) still parse.
+    public nonisolated static let deepLinkScheme = Brand.urlScheme
     public nonisolated static let deepLinkHost = "themes-install"
     public nonisolated static let deepLinkHashParam = "hash"
 
@@ -220,7 +222,7 @@ public final class ThemeShareService {
 
     // MARK: - Helpers
 
-    /// Build the Osaurus deep link for a content hash.
+    /// Build the app deep link for a content hash.
     public nonisolated static func deepLink(for hash: String) -> URL {
         var components = URLComponents()
         components.scheme = deepLinkScheme
@@ -230,8 +232,9 @@ public final class ThemeShareService {
         return components.url ?? URL(string: "\(deepLinkScheme)://\(deepLinkHost)?\(deepLinkHashParam)=\(hash)")!
     }
 
-    /// Accepts a 64-char hex hash, an `osaurus://themes-install?hash=…` deep
-    /// link, or the public web URL `https://themes.osaurus.ai/themes/<hash>`.
+    /// Accepts a 64-char hex hash, a `nuo://themes-install?hash=…` deep link
+    /// (or its pre-rename `osaurus://` form), or the public web URL
+    /// `https://themes.osaurus.ai/themes/<hash>`.
     public nonisolated static func parseHash(from input: String) -> String? {
         let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
@@ -246,7 +249,7 @@ public final class ThemeShareService {
 
         let scheme = url.scheme?.lowercased()
 
-        if scheme == deepLinkScheme, url.host?.lowercased() == deepLinkHost {
+        if Brand.ownsURLScheme(scheme), url.host?.lowercased() == deepLinkHost {
             if let value = comps.queryItems?
                 .first(where: { $0.name.lowercased() == deepLinkHashParam })?.value,
                 isValidHash(value)

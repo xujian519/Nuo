@@ -7,7 +7,9 @@
 //
 
 import AppKit
+import Darwin
 import Foundation
+import OsaurusRepository
 
 /// Centralized path management for all Osaurus app data.
 /// All stores and services should use this module for path resolution.
@@ -20,22 +22,38 @@ public enum OsaurusPaths {
 
     private static let defaultRoot: URL = {
         let fm = FileManager.default
-        let newRoot = fm.homeDirectoryForCurrentUser.appendingPathComponent(".osaurus", isDirectory: true)
+        let home = fm.homeDirectoryForCurrentUser
+        let newRoot = home.appendingPathComponent(Brand.dataRootName, isDirectory: true)
+        let renamedRoot = home.appendingPathComponent(Brand.Legacy.dataRootName, isDirectory: true)
         let supportDir = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let oldRoot = supportDir.appendingPathComponent("com.dinoki.osaurus", isDirectory: true)
 
+        // Two hops, oldest first, so a single launch walks even a pre-`~/.osaurus`
+        // install all the way to the current root:
+        //   Application Support/com.dinoki.osaurus -> ~/.osaurus   (upstream)
+        //   ~/.osaurus                            -> ~/.nuo        (this rename)
+        // Each hop copies (never moves, never deletes the source) and records a
+        // marker in its active root, so an interrupted hop retries on the next
+        // launch and a completed one never re-merges stale legacy files.
         _ = migrateLegacyApplicationSupportRootIfNeeded(
             fileManager: fm,
-            legacyRoot: oldRoot,
+            legacyRoot: supportDir.appendingPathComponent(
+                Brand.Legacy.appSupportDirectoryName,
+                isDirectory: true
+            ),
+            activeRoot: renamedRoot
+        )
+        _ = migrateLegacyApplicationSupportRootIfNeeded(
+            fileManager: fm,
+            legacyRoot: renamedRoot,
             activeRoot: newRoot
         )
 
         return newRoot
     }()
 
-    /// Marker written after the legacy Application Support root has been
-    /// copied/merged into `~/.osaurus`. The legacy root is intentionally never
-    /// deleted, so this marker prevents every future launch from re-merging it.
+    /// Marker written after a legacy root has been copied/merged into the
+    /// active root. The legacy root is intentionally never deleted, so this
+    /// marker prevents every future launch from re-merging it.
     public static let legacyApplicationSupportMergeMarkerName =
         ".legacy-application-support-merge.done"
 
@@ -46,7 +64,10 @@ public enum OsaurusPaths {
         case merged(URL)
     }
 
-    /// The root data directory for Osaurus: `~/.osaurus/`
+    /// The active root data directory: `~/.nuo/`.
+    ///
+    /// Resolution order: test override, `OSAURUS_TEST_ROOT`, then the default
+    /// root (which performs the one-time legacy-root migration on first use).
     public static func root() -> URL {
         if let override = overrideRoot {
             return override
@@ -322,7 +343,7 @@ public enum OsaurusPaths {
     }
 
     /// Declarative configuration templates directory
-    /// (`~/.osaurus/templates/`). The only place `osaurus_config` reads
+    /// (`~/.nuo/templates/`). The only place `osaurus_config` reads
     /// or writes YAML documents by name — never arbitrary paths.
     public static func configTemplates() -> URL {
         root().appendingPathComponent("templates", isDirectory: true)
@@ -353,7 +374,7 @@ public enum OsaurusPaths {
         root().appendingPathComponent("methods", isDirectory: true)
     }
 
-    /// Knowledge system data directory (`~/.osaurus/knowledge/`)
+    /// Knowledge system data directory (`~/.nuo/knowledge/`)
     public static func knowledge() -> URL {
         root().appendingPathComponent("knowledge", isDirectory: true)
     }
@@ -363,13 +384,13 @@ public enum OsaurusPaths {
         knowledge().appendingPathComponent("collections", isDirectory: true)
     }
 
-    /// Derived knowledge index database: `~/.osaurus/knowledge/knowledge.sqlite`.
+    /// Derived knowledge index database: `~/.nuo/knowledge/knowledge.sqlite`.
     /// Rebuildable from the collection folders (the markdown source of truth).
     public static func knowledgeDatabaseFile() -> URL {
         knowledge().appendingPathComponent("knowledge.sqlite")
     }
 
-    /// Knowledge write log: `~/.osaurus/knowledge/write_log.sqlite`.
+    /// Knowledge write log: `~/.nuo/knowledge/write_log.sqlite`.
     ///
     /// Deliberately NOT in `knowledge.sqlite`. That file is a derived index —
     /// deleting it is the supported recovery for a corrupt or stale index,
@@ -392,7 +413,7 @@ public enum OsaurusPaths {
     }
 
     /// Managed content directory for a collection cloned from a git
-    /// remote: `~/.osaurus/knowledge/<uuid>/content/`. Collections that
+    /// remote: `~/.nuo/knowledge/<uuid>/content/`. Collections that
     /// point at a user-chosen folder never use this.
     public static func knowledgeManagedContentDirectory(for id: UUID) -> URL {
         knowledge()
@@ -400,12 +421,12 @@ public enum OsaurusPaths {
             .appendingPathComponent("content", isDirectory: true)
     }
 
-    /// On-device Osaurus Router billing ledger directory (`~/.osaurus/billing/`).
+    /// On-device Osaurus Router billing ledger directory (`~/.nuo/billing/`).
     public static func billing() -> URL {
         root().appendingPathComponent("billing", isDirectory: true)
     }
 
-    /// Persisted Insights activity / audit log directory (`~/.osaurus/activity/`).
+    /// Persisted Insights activity / audit log directory (`~/.nuo/activity/`).
     public static func activity() -> URL {
         root().appendingPathComponent("activity", isDirectory: true)
     }
@@ -417,13 +438,13 @@ public enum OsaurusPaths {
 
     // MARK: - Agent DB + Self-Scheduling (Agent DB feature)
 
-    /// Per-agent feature directory: `~/.osaurus/agents/<uuid>/`.
+    /// Per-agent feature directory: `~/.nuo/agents/<uuid>/`.
     /// Sibling to the agent's JSON file (which lives directly under `agents()`).
     public static func agentDirectory(for id: UUID) -> URL {
         agents().appendingPathComponent(id.uuidString, isDirectory: true)
     }
 
-    /// Per-agent SQLite database file: `~/.osaurus/agents/<uuid>/db.sqlite`.
+    /// Per-agent SQLite database file: `~/.nuo/agents/<uuid>/db.sqlite`.
     /// Encrypted via `EncryptedSQLiteOpener` with the shared storage key.
     public static func agentDatabaseFile(for id: UUID) -> URL {
         agentDirectory(for: id).appendingPathComponent("db.sqlite")
@@ -435,20 +456,20 @@ public enum OsaurusPaths {
         agentDirectory(for: id).appendingPathComponent("schema.sql")
     }
 
-    /// Per-agent migrations directory: `~/.osaurus/agents/<uuid>/migrations/`.
+    /// Per-agent migrations directory: `~/.nuo/agents/<uuid>/migrations/`.
     /// Each `db.create_table`/`db.alter_table`/`db.migrate` call writes a
     /// numbered up + down SQL pair here.
     public static func agentMigrationsDirectory(for id: UUID) -> URL {
         agentDirectory(for: id).appendingPathComponent("migrations", isDirectory: true)
     }
 
-    /// Per-agent saved-views directory: `~/.osaurus/agents/<uuid>/views/`.
+    /// Per-agent saved-views directory: `~/.nuo/agents/<uuid>/views/`.
     /// Auto-synced with the `_views` system table for portability.
     public static func agentViewsDirectory(for id: UUID) -> URL {
         agentDirectory(for: id).appendingPathComponent("views", isDirectory: true)
     }
 
-    /// Per-agent run-trace directory: `~/.osaurus/agents/<uuid>/runs/`.
+    /// Per-agent run-trace directory: `~/.nuo/agents/<uuid>/runs/`.
     /// One JSON file per run with the full prompt, tool calls, and output.
     public static func agentRunsDirectory(for id: UUID) -> URL {
         agentDirectory(for: id).appendingPathComponent("runs", isDirectory: true)
@@ -460,42 +481,42 @@ public enum OsaurusPaths {
     }
 
     /// Host-side record of which sandbox packages have been installed for
-    /// an agent: `~/.osaurus/agents/<uuid>/installed-packages.json`. Seeded
+    /// an agent: `~/.nuo/agents/<uuid>/installed-packages.json`. Seeded
     /// by `SandboxAgentProvisioner` (lazy reconcile) and appended to by
     /// `sandbox_install`; surfaced as a compact line in the system prompt.
     public static func agentPackageManifestFile(for id: UUID) -> URL {
         agentDirectory(for: id).appendingPathComponent("installed-packages.json")
     }
 
-    /// Cross-agent scheduler database: `~/.osaurus/scheduler.sqlite`.
+    /// Cross-agent scheduler database: `~/.nuo/scheduler.sqlite`.
     /// Owns `agent_next_run`, `agent_runs`, `agent_pause`. Encrypted.
     public static func schedulerDatabaseFile() -> URL {
         root().appendingPathComponent("scheduler.sqlite")
     }
 
-    /// Plugin binaries directory (`~/.osaurus/Tools/`)
+    /// Plugin binaries directory (`~/.nuo/Tools/`)
     public static func tools() -> URL {
         root().appendingPathComponent("Tools", isDirectory: true)
     }
 
-    /// Plugin specifications directory (`~/.osaurus/PluginSpecs/`)
+    /// Plugin specifications directory (`~/.nuo/PluginSpecs/`)
     public static func toolSpecs() -> URL {
         root().appendingPathComponent("PluginSpecs", isDirectory: true)
     }
 
-    /// Central sandbox plugin library (`~/.osaurus/sandbox-plugins/`)
+    /// Central sandbox plugin library (`~/.nuo/sandbox-plugins/`)
     public static func sandboxPluginLibrary() -> URL {
         root().appendingPathComponent("sandbox-plugins", isDirectory: true)
     }
 
     // MARK: - Container / Sandbox Paths
 
-    /// Container root: `~/.osaurus/container/`
+    /// Container root: `~/.nuo/container/`
     public static func container() -> URL {
         root().appendingPathComponent("container", isDirectory: true)
     }
 
-    /// Kernel binary directory: `~/.osaurus/container/kernel/`
+    /// Kernel binary directory: `~/.nuo/container/kernel/`
     public static func containerKernelDir() -> URL {
         container().appendingPathComponent("kernel", isDirectory: true)
     }
@@ -505,7 +526,7 @@ public enum OsaurusPaths {
         containerKernelDir().appendingPathComponent("vmlinux")
     }
 
-    /// Path to the init filesystem image: `~/.osaurus/container/initfs.ext4`
+    /// Path to the init filesystem image: `~/.nuo/container/initfs.ext4`
     public static func containerInitFSFile() -> URL {
         container().appendingPathComponent("initfs.ext4")
     }
@@ -532,12 +553,12 @@ public enum OsaurusPaths {
 
     // MARK: - Shared Artifacts
 
-    /// Root directory for all shared artifacts: `~/.osaurus/artifacts/`
+    /// Root directory for all shared artifacts: `~/.nuo/artifacts/`
     public static func artifactsDir() -> URL {
         root().appendingPathComponent("artifacts", isDirectory: true)
     }
 
-    /// Per-context artifacts directory: `~/.osaurus/artifacts/{contextId}/`
+    /// Per-context artifacts directory: `~/.nuo/artifacts/{contextId}/`
     public static func contextArtifactsDir(contextId: String) -> URL {
         artifactsDir().appendingPathComponent(contextId, isDirectory: true)
     }
@@ -610,13 +631,13 @@ public enum OsaurusPaths {
         agentChannels().appendingPathComponent("messages.sqlite")
     }
     public static func methodsDatabaseFile() -> URL { methods().appendingPathComponent("methods.sqlite") }
-    /// Encrypted on-device Osaurus Router billing ledger: `~/.osaurus/billing/ledger.sqlite`.
+    /// Encrypted on-device Osaurus Router billing ledger: `~/.nuo/billing/ledger.sqlite`.
     public static func billingLedgerDatabaseFile() -> URL { billing().appendingPathComponent("ledger.sqlite") }
-    /// Hash-chained Insights activity log: `~/.osaurus/activity/activity.sqlite`
+    /// Hash-chained Insights activity log: `~/.nuo/activity/activity.sqlite`
     /// plus an `activity.head` sidecar holding the last `seq:hash`.
     public static func activityLogDatabaseFile() -> URL { activity().appendingPathComponent("activity.sqlite") }
     public static func activityLogHeadFile() -> URL { activity().appendingPathComponent("activity.head") }
-    /// Activity log retention / content policy: `~/.osaurus/config/activity-log.json`.
+    /// Activity log retention / content policy: `~/.nuo/config/activity-log.json`.
     public static func activityLogConfigFile() -> URL { config().appendingPathComponent("activity-log.json") }
     public static func toolIndexDatabaseFile() -> URL { toolIndex().appendingPathComponent("tool_index.sqlite") }
     public static func memoryConfigFile() -> URL { config().appendingPathComponent("memory.json") }
@@ -656,31 +677,31 @@ public enum OsaurusPaths {
     // MARK: - Claude plugins (imported via GitHub)
 
     /// Root directory for Claude-plugin metadata and per-plugin storage:
-    /// `~/.osaurus/claude-plugins/`.
+    /// `~/.nuo/claude-plugins/`.
     public static func claudePluginsRoot() -> URL {
         root().appendingPathComponent("claude-plugins", isDirectory: true)
     }
 
     /// Per-plugin manifest snapshot directory:
-    /// `~/.osaurus/claude-plugins/manifests/`.
+    /// `~/.nuo/claude-plugins/manifests/`.
     public static func claudePluginsManifestsDir() -> URL {
         claudePluginsRoot().appendingPathComponent("manifests", isDirectory: true)
     }
 
     /// Per-plugin user-config (non-sensitive) JSON directory:
-    /// `~/.osaurus/claude-plugins/userconfig/`.
+    /// `~/.nuo/claude-plugins/userconfig/`.
     public static func claudePluginsUserConfigDir() -> URL {
         claudePluginsRoot().appendingPathComponent("userconfig", isDirectory: true)
     }
 
     /// Per-plugin data directory parent (`CLAUDE_PLUGIN_DATA` root):
-    /// `~/.osaurus/claude-plugins/data/`.
+    /// `~/.nuo/claude-plugins/data/`.
     public static func claudePluginsDataDir() -> URL {
         claudePluginsRoot().appendingPathComponent("data", isDirectory: true)
     }
 
     /// Per-plugin synthesised source cache (`CLAUDE_PLUGIN_ROOT` target):
-    /// `~/.osaurus/claude-plugins/cache/`. Currently a placeholder so the
+    /// `~/.nuo/claude-plugins/cache/`. Currently a placeholder so the
     /// variable expander can hand out a stable path even though we don't
     /// keep a full plugin checkout.
     public static func claudePluginsCacheDir() -> URL {
@@ -688,21 +709,21 @@ public enum OsaurusPaths {
     }
 
     /// Per-plugin manifest snapshot file:
-    /// `~/.osaurus/claude-plugins/manifests/<safeId>.json`.
+    /// `~/.nuo/claude-plugins/manifests/<safeId>.json`.
     public static func claudePluginManifestFile(for pluginId: String) -> URL {
         claudePluginsManifestsDir()
             .appendingPathComponent("\(claudePluginSafeId(pluginId)).json")
     }
 
     /// Per-plugin user-config JSON file:
-    /// `~/.osaurus/claude-plugins/userconfig/<safeId>.json`.
+    /// `~/.nuo/claude-plugins/userconfig/<safeId>.json`.
     public static func claudePluginUserConfigFile(for pluginId: String) -> URL {
         claudePluginsUserConfigDir()
             .appendingPathComponent("\(claudePluginSafeId(pluginId)).json")
     }
 
     /// Per-plugin data directory:
-    /// `~/.osaurus/claude-plugins/data/<safeId>/`. Created lazily on first
+    /// `~/.nuo/claude-plugins/data/<safeId>/`. Created lazily on first
     /// reference by `ClaudePluginVariableExpander`.
     public static func claudePluginDataDir(for pluginId: String) -> URL {
         claudePluginsDataDir()
@@ -710,7 +731,7 @@ public enum OsaurusPaths {
     }
 
     /// Per-plugin synthesised source cache directory:
-    /// `~/.osaurus/claude-plugins/cache/<safeId>/`.
+    /// `~/.nuo/claude-plugins/cache/<safeId>/`.
     public static func claudePluginCacheDir(for pluginId: String) -> URL {
         claudePluginsCacheDir()
             .appendingPathComponent(claudePluginSafeId(pluginId), isDirectory: true)
@@ -806,9 +827,12 @@ public enum OsaurusPaths {
 
     // MARK: - Migration
 
-    /// Copies or merges the retired Application Support root into the active
-    /// root once, then writes a marker in the active root. The legacy root is
-    /// left untouched so users can inspect or delete it manually.
+    /// Copies or merges a retired root into the active root once, then writes a
+    /// marker in the active root. The legacy root is left untouched so users can
+    /// inspect or delete it manually.
+    ///
+    /// Called twice on first launch: Application Support -> `~/.nuo` (the
+    /// upstream relocation) and `~/.nuo` -> `~/.nuo` (this fork's rename).
     @discardableResult
     static func migrateLegacyApplicationSupportRootIfNeeded(
         fileManager fm: FileManager = .default,
@@ -824,22 +848,22 @@ public enum OsaurusPaths {
 
         let marker = legacyApplicationSupportMergeMarker(for: newRoot)
         if fm.fileExists(atPath: marker.path) {
-            print("[Osaurus] Legacy data migration already marked at \(marker.path); skipping")
+            print("[Nuo] Legacy data migration already marked at \(marker.path); skipping")
             return .alreadyMarked(marker)
         }
 
         if !fm.fileExists(atPath: newRoot.path) {
             do {
-                try fm.copyItem(at: oldRoot, to: newRoot)
+                try cloneOrCopyTree(from: oldRoot, to: newRoot, fileManager: fm)
                 writeLegacyApplicationSupportMergeMarker(
                     marker,
                     legacyRoot: oldRoot,
                     activeRoot: newRoot
                 )
-                print("[Osaurus] Copied data from \(oldRoot.path) to \(newRoot.path)")
+                print("[Nuo] Copied data from \(oldRoot.path) to \(newRoot.path)")
                 return .copied(marker)
             } catch {
-                print("[Osaurus] Copy failed, falling back to merge: \(error)")
+                print("[Nuo] Copy failed, falling back to merge: \(error)")
             }
         }
 
@@ -849,8 +873,26 @@ public enum OsaurusPaths {
             legacyRoot: oldRoot,
             activeRoot: newRoot
         )
-        print("[Osaurus] Merged data from \(oldRoot.path) into \(newRoot.path)")
+        print("[Nuo] Merged data from \(oldRoot.path) into \(newRoot.path)")
         return .merged(marker)
+    }
+
+    /// Clones `src` to `dest` copy-on-write when the volume supports it.
+    ///
+    /// The data root is frequently multi-gigabyte (plugin trees, the sandbox
+    /// container, container images). `clonefile` finishes in milliseconds and
+    /// costs no extra disk on APFS, which keeps the first launch after the
+    /// rename from looking like a hang and from doubling the user's usage.
+    /// Non-APFS volumes (external/home-on-HFS setups) fall back to a real copy.
+    private static func cloneOrCopyTree(
+        from src: URL,
+        to dest: URL,
+        fileManager fm: FileManager
+    ) throws {
+        if clonefile(src.path, dest.path, 0) == 0 {
+            return
+        }
+        try fm.copyItem(at: src, to: dest)
     }
 
     private static func writeLegacyApplicationSupportMergeMarker(
@@ -868,7 +910,7 @@ public enum OsaurusPaths {
             try ensureExists(marker.deletingLastPathComponent())
             try Data(payload.utf8).write(to: marker, options: .atomic)
         } catch {
-            print("[Osaurus] Failed to write legacy data migration marker \(marker.path): \(error)")
+            print("[Nuo] Failed to write legacy data migration marker \(marker.path): \(error)")
         }
     }
 
@@ -969,7 +1011,7 @@ public enum OsaurusPaths {
                         conflicts += 1
                     } catch {
                         print(
-                            "[Osaurus] Personas migration: failed to back up "
+                            "[Nuo] Personas migration: failed to back up "
                                 + "\(entry.lastPathComponent): \(error)"
                         )
                     }
@@ -979,7 +1021,7 @@ public enum OsaurusPaths {
                         moved += 1
                     } catch {
                         print(
-                            "[Osaurus] Personas migration: failed to move "
+                            "[Nuo] Personas migration: failed to move "
                                 + "\(entry.lastPathComponent): \(error)"
                         )
                     }
@@ -997,7 +1039,7 @@ public enum OsaurusPaths {
 
         if moved > 0 || conflicts > 0 {
             print(
-                "[Osaurus] Migrated \(moved) agent file(s) from \(legacy.path) into "
+                "[Nuo] Migrated \(moved) agent file(s) from \(legacy.path) into "
                     + "\(agentsDir.path) (\(conflicts) conflict backup(s) kept)"
             )
         }

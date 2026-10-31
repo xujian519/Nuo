@@ -46,7 +46,7 @@ public struct ToolsPackage {
 
     public static func execute(args: [String]) {
         guard args.count >= 2 else {
-            fputs("Usage: osaurus tools package <plugin_id> <version> [dylib_path]\n", stderr)
+            fputs("Usage: nuo tools package <plugin_id> <version> [dylib_path]\n", stderr)
             fputs("  If dylib_path is omitted, auto-detects .dylib files in current directory.\n", stderr)
             fputs("  Also includes web/, SKILL.md, README.md, CHANGELOG.md if present.\n", stderr)
             exit(EXIT_FAILURE)
@@ -114,7 +114,7 @@ public struct ToolsPackage {
         } else {
             print("Created \(name)")
         }
-        print("Install with: osaurus tools install ./\(name)")
+        print("Install with: nuo tools install ./\(name)")
         exit(EXIT_SUCCESS)
     }
 }

@@ -45,7 +45,7 @@ public struct MCPOAuthTokens: Codable, Sendable, Equatable {
 
 /// Keychain wrapper for secure MCP provider token storage.
 public enum MCPProviderKeychain {
-    private static let service = "ai.osaurus.mcp"
+    private static let service = OsaurusKeychainServices.mcpProviders
 
     // MARK: - Static token (legacy / explicit bearer)
 

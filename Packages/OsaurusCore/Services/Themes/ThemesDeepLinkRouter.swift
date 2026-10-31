@@ -2,21 +2,23 @@
 //  ThemesDeepLinkRouter.swift
 //  osaurus
 //
-//  Parses `osaurus://themes-install?hash=<sha256>` deep links and stages
+//  Parses `nuo://themes-install?hash=<sha256>` (and the pre-rename
+//  `osaurus://` form) deep links and stages
 //  the requested install on the management UI for ThemesView to pick up.
 //
 
 import Foundation
+import OsaurusRepository
 
 @MainActor
 public enum ThemesDeepLinkRouter {
 
     /// Returns true when the URL was claimed by this router. Returns false
-    /// for any URL not in the `osaurus://themes-install` shape so the
-    /// caller can keep dispatching to other handlers.
+    /// for any URL not in the `.../themes-install` shape so the caller can
+    /// keep dispatching to other handlers.
     @discardableResult
     public static func handle(_ url: URL) -> Bool {
-        guard url.scheme?.lowercased() == ThemeShareService.deepLinkScheme,
+        guard Brand.ownsURLScheme(url.scheme),
             url.host?.lowercased() == ThemeShareService.deepLinkHost
         else { return false }
 

@@ -68,6 +68,11 @@ public struct DiscoveredAgent: Identifiable, Equatable, Sendable {
     /// Internal key that matches the NetService name for lookup/removal.
     internal let serviceName: String
 
+    /// The Bonjour service type that produced this result (`_nuo._tcp.` or the
+    /// pre-rename type). One peer can be announced under both during the
+    /// compatibility release; removals are tracked per type.
+    internal let serviceType: String
+
     /// Best connectable host: the stable `.local` name when present,
     /// otherwise the resolved numeric IP. `nil` only when neither resolved.
     public var connectHost: String? {
@@ -100,9 +105,16 @@ public struct DiscoveredAgent: Identifiable, Equatable, Sendable {
 
 // MARK: - BonjourBrowser
 
-/// Browses the local network for `_osaurus._tcp.` services and surfaces them
-/// as `DiscoveredAgent` values.  Agents that belong to this device are
+/// Browses the local network for the agent Bonjour service types and surfaces
+/// them as `DiscoveredAgent` values. Agents that belong to this device are
 /// automatically filtered out by comparing UUIDs against `AgentManager`.
+///
+/// Two service types are browsed for one release: the renamed type and the
+/// pre-rename type still published by older builds (see
+/// `BonjourAdvertiser.serviceType` / `.legacyServiceType`). A peer that
+/// advertises both is one agent, so results are deduplicated by agent id, and
+/// a `didRemove` for one type only drops the agent once *every* type that
+/// announced it has gone away.
 ///
 /// The actual `NetServiceBrowser`/`NetService` work runs on a dedicated
 /// background run-loop thread (`BonjourBrowserCore`). `searchForServices` and
@@ -128,7 +140,14 @@ public final class BonjourBrowser: NSObject, ObservableObject {
     /// ephemeral provider — and the active chat using it — on the first remove
     /// is needlessly destructive.
     private static let removalGracePeriod: Duration = .seconds(12)
-    private var pendingRemovals: [String: Task<Void, Never>] = [:]
+    /// Pending debounced removals, keyed by agent id.
+    private var pendingRemovals: [UUID: Task<Void, Never>] = [:]
+    /// Service keys (`type|name`) currently announcing each agent. During the
+    /// compatibility release one peer is announced under two service types;
+    /// the agent only disappears once this set empties.
+    private var announcementKeys: [UUID: Set<String>] = [:]
+    /// Reverse map of `announcementKeys`, so a `didRemove` key finds its agent.
+    private var keyOwner: [String: UUID] = [:]
 
     private override init() {
         super.init()
@@ -138,12 +157,12 @@ public final class BonjourBrowser: NSObject, ObservableObject {
         // permission prompt for users who never use peer discovery. The browse
         // starts the first time a discovery surface appears (`startIfNeeded`).
         self.core = BonjourBrowserCore(
-            serviceType: BonjourAdvertiser.serviceType,
+            serviceTypes: [BonjourAdvertiser.serviceType, BonjourAdvertiser.legacyServiceType],
             onResolved: { agent in
                 Task { @MainActor [weak self] in self?.upsert(agent) }
             },
-            onRemoved: { serviceName in
-                Task { @MainActor [weak self] in self?.remove(serviceName: serviceName) }
+            onRemoved: { serviceKey in
+                Task { @MainActor [weak self] in self?.remove(serviceKey: serviceKey) }
             }
         )
     }
@@ -165,52 +184,75 @@ public final class BonjourBrowser: NSObject, ObservableObject {
 
     private func upsert(_ agent: DiscoveredAgent) {
         // A re-discovered service cancels any in-flight debounced removal.
-        pendingRemovals[agent.serviceName]?.cancel()
-        pendingRemovals[agent.serviceName] = nil
+        pendingRemovals[agent.id]?.cancel()
+        pendingRemovals[agent.id] = nil
 
         // Skip agents that belong to this device.
         let localIds = Set(AgentManager.shared.agents.map(\.id))
         guard !localIds.contains(agent.id) else { return }
 
-        if let idx = discoveredAgents.firstIndex(where: { $0.serviceName == agent.serviceName }) {
+        let key = BonjourBrowserCore.serviceKey(type: agent.serviceType, name: agent.serviceName)
+        announcementKeys[agent.id, default: []].insert(key)
+        keyOwner[key] = agent.id
+
+        if let idx = discoveredAgents.firstIndex(where: { $0.id == agent.id }) {
             discoveredAgents[idx] = agent
         } else {
             discoveredAgents.append(agent)
         }
     }
 
-    private func remove(serviceName: String) {
-        pendingRemovals[serviceName]?.cancel()
-        pendingRemovals[serviceName] = Task { [weak self] in
+    private func remove(serviceKey key: String) {
+        guard let agentId = keyOwner.removeValue(forKey: key) else { return }
+        announcementKeys[agentId]?.remove(key)
+
+        // Another service type still announces this agent, so it is alive:
+        // dropping it here would tear down a working ephemeral provider (and
+        // the chat using it) while the peer is still reachable.
+        guard announcementKeys[agentId]?.isEmpty ?? true else { return }
+
+        pendingRemovals[agentId]?.cancel()
+        pendingRemovals[agentId] = Task { [weak self] in
             try? await Task.sleep(for: Self.removalGracePeriod)
             guard !Task.isCancelled, let self else { return }
-            self.pendingRemovals[serviceName] = nil
-            self.discoveredAgents.removeAll { $0.serviceName == serviceName }
+            self.pendingRemovals[agentId] = nil
+            for key in self.announcementKeys.removeValue(forKey: agentId) ?? [] {
+                self.keyOwner[key] = nil
+            }
+            self.discoveredAgents.removeAll { $0.id == agentId }
         }
     }
 }
 
 // MARK: - BonjourBrowserCore
 
-/// Owns the `NetServiceBrowser` and runs it, plus all `NetService` resolves, on
-/// a private background thread with its own run loop. All mutable state is
+/// Owns the `NetServiceBrowser`s and runs them, plus all `NetService` resolves,
+/// on a private background thread with its own run loop. All mutable state is
 /// touched only on that thread; resolved agents are delivered through the
-/// `@Sendable` callbacks. The browser lives for the process lifetime, so the
+/// `@Sendable` callbacks. The browsers live for the process lifetime, so the
 /// thread and its run loop are never torn down.
 ///
 /// Module-internal (not `private`) so its pure static helpers
-/// (`firstResolvedIP`, `searchRetryDelay`) can be unit-tested via
+/// (`firstResolvedIP`, `searchRetryDelay`, `serviceKey`) can be unit-tested via
 /// `@testable import`.
 final class BonjourBrowserCore: NSObject, @unchecked Sendable {
-    private let serviceType: String
+    /// Service types to browse, e.g. the renamed agent type plus the pre-rename
+    /// one older peers still publish. One `NetServiceBrowser` per type.
+    private let serviceTypes: [String]
     private let onResolved: @Sendable (DiscoveredAgent) -> Void
+    /// Called with the removed service's key (`type|name`).
     private let onRemoved: @Sendable (String) -> Void
 
-    private var browser: NetServiceBrowser?
-    /// Retains services while they resolve (a dropped reference cancels the
-    /// resolve), keyed by NetService name.
-    private var resolvingServices: [String: NetService] = [:]
-    /// Service names whose first resolve failed and have one retry in flight.
+    private var browsers: [NetServiceBrowser] = []
+    /// One entry per discovered service awaiting resolution, keyed by object
+    /// identity so the same instance name under two service types stays
+    /// distinct. Retaining the service keeps its resolve alive.
+    private struct PendingResolve {
+        let type: String
+        let service: NetService
+    }
+    private var pendingResolves: [ObjectIdentifier: PendingResolve] = [:]
+    /// Service keys whose first resolve failed and have one retry in flight.
     private var retriedResolves: Set<String> = []
     /// Consecutive failed/aborted browse starts, reset by a successful
     /// `willSearch`. Bounds the re-`searchForServices` backoff. Touched only on
@@ -221,26 +263,36 @@ final class BonjourBrowserCore: NSObject, @unchecked Sendable {
     static let logger = Logger(subsystem: "com.osaurus", category: "bonjour")
 
     init(
-        serviceType: String,
+        serviceTypes: [String],
         onResolved: @escaping @Sendable (DiscoveredAgent) -> Void,
         onRemoved: @escaping @Sendable (String) -> Void
     ) {
-        self.serviceType = serviceType
+        self.serviceTypes = serviceTypes
         self.onResolved = onResolved
         self.onRemoved = onRemoved
         super.init()
+    }
+
+    /// Stable key for one announcement: the same peer is a distinct NetService
+    /// per service type, so the type has to be part of the key.
+    static func serviceKey(type: String, name: String) -> String {
+        "\(type)|\(name)"
     }
 
     func start() {
         let thread = Thread { [weak self] in
             guard let self else { return }
             let runLoop = RunLoop.current
-            let browser = NetServiceBrowser()
-            browser.delegate = self
-            browser.schedule(in: runLoop, forMode: .default)
-            browser.searchForServices(ofType: self.serviceType, inDomain: "")
-            self.browser = browser
-            // The scheduled browser installs a run-loop source, so `run()`
+            var started: [NetServiceBrowser] = []
+            for serviceType in self.serviceTypes {
+                let browser = NetServiceBrowser()
+                browser.delegate = self
+                browser.schedule(in: runLoop, forMode: .default)
+                browser.searchForServices(ofType: serviceType, inDomain: "")
+                started.append(browser)
+            }
+            self.browsers = started
+            // The scheduled browsers install run-loop sources, so `run()`
             // blocks here for the process lifetime instead of returning.
             runLoop.run()
         }
@@ -249,11 +301,21 @@ final class BonjourBrowserCore: NSObject, @unchecked Sendable {
         thread.start()
     }
 
-    private func handleResolved(service: NetService) {
-        defer {
-            resolvingServices.removeValue(forKey: service.name)
-            retriedResolves.remove(service.name)
+    /// The browse type that owns `browser`, so delegate callbacks can key
+    /// services by `type|name`.
+    private func serviceType(for browser: NetServiceBrowser) -> String? {
+        if let index = browsers.firstIndex(where: { $0 === browser }) {
+            return serviceTypes[index]
         }
+        // Only reachable if a callback fires for a browser we did not start.
+        return nil
+    }
+
+    private func handleResolved(service: NetService) {
+        let pending = pendingResolves.removeValue(forKey: ObjectIdentifier(service))
+        let type = pending?.type ?? service.type
+        let key = Self.serviceKey(type: type, name: service.name)
+        retriedResolves.remove(key)
 
         guard let txtData = service.txtRecordData() else { return }
         let fields = NetService.dictionary(fromTXTRecord: txtData)
@@ -278,7 +340,8 @@ final class BonjourBrowserCore: NSObject, @unchecked Sendable {
             resolvedIP: Self.firstResolvedIP(from: service.addresses),
             port: Int(service.port),
             supportsSecureChannel: osc,
-            serviceName: service.name
+            serviceName: service.name,
+            serviceType: type
         )
         onResolved(agent)
     }
@@ -339,8 +402,10 @@ final class BonjourBrowserCore: NSObject, @unchecked Sendable {
         }
         searchRetryCount += 1
         let timer = Timer(timeInterval: delay, repeats: false) { [weak self] _ in
-            guard let self, let browser = self.browser else { return }
-            browser.searchForServices(ofType: self.serviceType, inDomain: "")
+            guard let self else { return }
+            for (index, browser) in self.browsers.enumerated() where index < self.serviceTypes.count {
+                browser.searchForServices(ofType: self.serviceTypes[index], inDomain: "")
+            }
         }
         RunLoop.current.add(timer, forMode: .default)
     }
@@ -350,7 +415,7 @@ final class BonjourBrowserCore: NSObject, @unchecked Sendable {
 
 // Callbacks arrive on the background browser thread's run loop. `BonjourBrowserCore`
 // is not actor-isolated, so the delegate methods run there directly and mutate
-// `resolvingServices` only on that thread.
+// `pendingResolves` only on that thread.
 
 extension BonjourBrowserCore: NetServiceBrowserDelegate {
     func netServiceBrowserWillSearch(_ browser: NetServiceBrowser) {
@@ -366,7 +431,7 @@ extension BonjourBrowserCore: NetServiceBrowserDelegate {
         // permission or mDNSResponder not yet ready. Surface it (silent
         // zero-discovery is the worst outcome) and retry with bounded backoff.
         Self.logger.error(
-            "Bonjour browse failed to start: \(errorDict, privacy: .public)"
+            "Bonjour browse (\(self.serviceType(for: browser) ?? "?", privacy: .public)) failed to start: \(errorDict, privacy: .public)"
         )
         scheduleSearchRetry()
     }
@@ -387,7 +452,10 @@ extension BonjourBrowserCore: NetServiceBrowserDelegate {
         // Finding a service proves the browse is healthy; re-arm the budget.
         searchRetryCount = 0
         service.delegate = self
-        resolvingServices[service.name] = service
+        pendingResolves[ObjectIdentifier(service)] = PendingResolve(
+            type: serviceType(for: browser) ?? service.type,
+            service: service
+        )
         service.resolve(withTimeout: 5.0)
     }
 
@@ -396,8 +464,9 @@ extension BonjourBrowserCore: NetServiceBrowserDelegate {
         didRemove service: NetService,
         moreComing: Bool
     ) {
-        resolvingServices.removeValue(forKey: service.name)
-        onRemoved(service.name)
+        let pending = pendingResolves.removeValue(forKey: ObjectIdentifier(service))
+        let type = pending?.type ?? serviceType(for: browser) ?? service.type
+        onRemoved(Self.serviceKey(type: type, name: service.name))
     }
 }
 
@@ -407,18 +476,20 @@ extension BonjourBrowserCore: NetServiceDelegate {
     }
 
     func netService(_ sender: NetService, didNotResolve errorDict: [String: NSNumber]) {
+        let type = pendingResolves[ObjectIdentifier(sender)]?.type ?? sender.type
+        let key = Self.serviceKey(type: type, name: sender.name)
         // mDNS resolves regularly fail transiently right after wake / network
         // change; one retry recovers most of them without UI impact.
-        if !retriedResolves.contains(sender.name) {
-            retriedResolves.insert(sender.name)
+        if !retriedResolves.contains(key) {
+            retriedResolves.insert(key)
             Self.logger.debug(
                 "Retrying resolve for '\(sender.name, privacy: .public)' after failure: \(errorDict, privacy: .public)"
             )
             sender.resolve(withTimeout: 5.0)
             return
         }
-        retriedResolves.remove(sender.name)
-        resolvingServices.removeValue(forKey: sender.name)
+        retriedResolves.remove(key)
+        pendingResolves.removeValue(forKey: ObjectIdentifier(sender))
         Self.logger.error(
             "Failed to resolve '\(sender.name, privacy: .public)': \(errorDict, privacy: .public)"
         )

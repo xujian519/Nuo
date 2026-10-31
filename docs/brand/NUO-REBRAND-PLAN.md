@@ -60,11 +60,11 @@
 | 可执行名 | `osaurus` | `Nuo` | `PRODUCT_NAME = Nuo`，产物 `Nuo.app` |
 | CLI 命令 | `osaurus` | `nuo` | 构建产物仍是 `osaurus-cli`（内部名，不改） |
 | 内嵌 helper | `Contents/Helpers/osaurus` | `Contents/Helpers/nuo` | 旧名保留为相对软链一个版本 |
-| URL scheme | `osaurus://` | `nuo://` | 一个版本内双注册 |
+| URL scheme | `osaurus://` | `nuo://` | 一个版本内双注册 + 双解析；新链接一律生成 `nuo://` |
 | Bonjour | `_osaurus._tcp` / `_osaurus-mobile._tcp` | `_nuo._tcp` / `_nuo-mobile._tcp` | 一个版本内双注册 + 双浏览 |
 | 数据根 | `~/.osaurus` | `~/.nuo` | 迁移期读旧写新 |
 | App Support | `~/Library/Application Support/com.dinoki.osaurus` | `~/Library/Application Support/com.nuo.app` | 旧路径继续参与迁移链 |
-| Keychain | `com.osaurus.*` / `ai.osaurus.*` / `com.dinoki.osaurus.*` | `com.nuo.*` / `ai.nuo.*` | 15 个 service，逐个映射迁移 |
+| Keychain | `com.osaurus.*` / `ai.osaurus.*` / `com.dinoki.osaurus.*` | `com.nuo.*` / `ai.nuo.*` | 14 个 service 改名 + 懒迁移；`ai.osaurus.id` 冻结不动（令牌归上游 `*.osaurus.ai` 身份服务） |
 | UserDefaults 键 | `ai.osaurus.*` | 不变 | 键名是内部标识；bundle id 变了，域本身是新的，只需从旧域搬值 |
 | Sparkle feed | `osaurus-ai.github.io/…` | `https://nuo.app/appcast.xml` | 自动检查关闭，等 feed 真发布 |
 | DMG / 产物 | `Osaurus-<v>.dmg` | `Nuo-<v>.dmg` | `build-and-release.yml` |
@@ -91,7 +91,9 @@
 ```
 scripts/brand/
   brand.json          唯一真源：新旧名字、冻结字面量、路径分类
-  rules/10-app-identity.json    Phase 1
+  rules/10-app-identity.json    Phase 1：产物名、bundle id、Info.plist 与它的 6 语言本地化
+  rules/11-artifact-chain.json  Phase 1：签名 / 打包 / dSYM / Sentry / appcast 链路
+  rules/12-cli-surface.json     Phase 1：CLI 命令名、help 文案、安装软链
   rules/20-runtime.json         Phase 2（待加）
   rules/30-ui-text.json         Phase 3（待加）
   rules/40-docs.json            Phase 5（待加）
@@ -113,6 +115,11 @@ scripts/brand/
 | `insert-after` | 在锚点字面量后插入一行（plist 数组项） | 插入内容已存在则跳过 |
 | `block` | 锚定多行原文的整块替换（脚本逻辑补丁） | 锚点消失且替换内容已在则跳过；两者都不在 → 退出码 3 报冲突 |
 
+`block` 的两个修饰：
+
+- `raw: true`：锚点与替换内容不做 `{placeholder}` 替换。Shell 里满屏 `${VAR}`/`${arr[@]}`，不豁免会被占位符表判成未知占位符。
+- `template: scripts/brand/templates/…`：替换内容从独立文件读，不写进 JSON。fork 自有的整文件脚本（`scripts/osaurus`、`scripts/release/install_cli_symlink.sh`）用这个形式：模板可正常 diff/编辑，`find` 仍是上游原文，上游改了这个文件就 exit 3。
+
 设计要点：
 
 - **不做 before-count 断言，只做 post-condition（0 匹配）**。上游 merge 把某行带回来，规则自然重新命中；merge 带来新写法，规则立刻失效可见。
@@ -130,7 +137,7 @@ scripts/brand/
    还没改造的面放在 `paths.strict_pending`，只统计不拦截 —— 每个阶段落地时把对应 glob 从 pending 挪到 strict，闸门跟着阶段走，不会一上来就红。
 3. **契约存在**：`frozen.contracts` 里的字符串必须仍在（例如 `import OsaurusCore` ≥ 1200 次、`osaurus_plugin_entry_v2` 存在）。上游合进来把插件 ABI 弄丢会立刻被抓到。
 
-当前实测（Phase 0 完成时）：strict 42 个文件 / 401 处遗留，pending 73 个文件 / 2657 处，`verify.sh` 约 0.5s。
+当前实测（Phase 2 源码落地、Phase 3 未开始时）：strict 34 个文件 / 278 处遗留，pending 55 个文件 / 2375 处，58 条规则全部 `enforced`，`verify.sh` 约 0.5s。
 
 > `scripts/live-proof/**`、`docs/evidence/**`、`results/**`、`reports/**` 是对历史证据的归档，不参与棘轮 —— 改写已归档的证明等于伪造证据。
 
@@ -157,11 +164,12 @@ scripts/brand/snapshot.sh --write                  # 阶段推进后重测基线
 - `AGENTS.md` 增加一条硬规则引用。
 - 验收：`apply.sh` 对当前树实际产生 65 处变更、再跑一次 0 处（幂等）、`verify.sh` 退出 0 且 <1s；人为往 `Makefile` 写一行 `Osaurus` 后 `verify.sh` 退出 1；把任一规则翻成 `enforced: true` 后 `verify.sh` 退出 1。三条均已实测。
 
-### Phase 1 — 身份与产物（规则已就绪，待执行）
+### Phase 1 — 身份与产物（已落地，待编译验收）
 
-范围（`rules/10-app-identity.json` + 2 个手写补丁）：
+范围（`rules/10-app-identity.json` + `11-artifact-chain.json` + `12-cli-surface.json` + 手写补丁）：
 
 - pbxproj：`PRODUCT_NAME = Nuo`、3 个 bundle id、`TEST_HOST`、`CFBundleDisplayName`、`SU_FEED_URL`、`SUEnableAutomaticChecks = NO`；删除 `INFOPLIST_KEY_NSMicrophoneUsageDescription`（见 7.1）。
+- `App/osaurus/InfoPlist.xcstrings`：13 个 key × 6 语言（`CFBundleDisplayName`、`CFBundleName`、11 条权限文案）。**这是最容易漏的一处**——Xcode 把它编译成 `<lang>.lproj/InfoPlist.strings`，运行时盖掉 Info.plist，所以 pbxproj 改名后 Dock / Cmd-Tab / Finder / TCC 弹窗仍然显示 Osaurus。规则 `info-plist-l10n.display-name` + `info-plist-l10n.bundle-name`，文件已从 `strict_pending` 挪进 `strict`，遗留计数棘轮在 0。
 - xcscheme：3 处 `BuildableName = "Nuo.app"`。
 - `Makefile`、`scripts/build/build_arm64.sh`：产物路径 `Nuo.app`，内嵌 helper 改名 `nuo` 并留 `osaurus` 相对软链。
 - `.github/workflows/build-and-release.yml`、`deploy-appcast.yml`：产物名与 artifact 名。
@@ -179,35 +187,52 @@ xcodebuild -workspace osaurus.xcworkspace -scheme OsaurusCoreTests test  # 既�
 
 ### Phase 2 — 运行时身份与数据迁移
 
-新增 `Packages/OsaurusCore/Brand/Brand.swift`：唯一运行时真源。
+**状态：源码层已落地（2026-11-01）**，等 Xcode 到位后跑 `make cli` / `make app` / `OsaurusCoreTests` 收尾。
+
+**本机（无 Xcode，仅 CLT）已做的替代验证（2026-11-01）**：
+
+- `swift build --package-path Packages/OsaurusRepository` **通过**（含 `Brand.swift`、`ToolsPaths.swift` 真编译）。
+- `swift build --package-path Packages/OsaurusCLI` **通过**。过程中抓到并修复一个真 bug：`InstallationDiagnostics.swift` 用 `Brand.Legacy.dataRootName` 但漏 `import OsaurusRepository`。
+- OsaurusCore 全部 21 个 Phase 2 改动文件用 SwiftPM 生成的 frontend 命令改 `-typecheck` 重放，**0 error**（整条模块级类型检查，不是逐文件 parse）。
+- 仍然做不到、必须等 Xcode 的：含 `@State` 的 SwiftUI 批次（CLT 无 `SwiftUIMacros` 插件）、`actool`/`xcstringstool` 资源编译、`swift test`（CLT 无 XCTest）。`vmlx-swift` checkout 里有一个本地排除 `.metal` 的补丁（`swift package update` 即还原，不进入仓库）。
+- 本地 hack 已全部还原：`Packages/OsaurusCore/Package.swift` 恢复原样，无遗留 stub 文件。
+
+运行时真源是 `Packages/OsaurusRepository/Brand.swift`：app（`OsaurusCore`）与 CLI（`OsaurusCLICore`）唯一共同依赖的包，所以常量只写一份，不新建包（避免 pbxproj / `Package.swift` churn）。
 
 ```swift
-public enum Brand {
-    public static let display = "Nuo"
-    public static let slug = "nuo"
-    public static let bundleID = "com.nuo.app"
-    public static let urlScheme = "nuo"
-    public static let dataRootName = ".nuo"
-    public enum Legacy {                 // 只给迁移用，规则引擎整目录跳过
-        public static let dataRootName = ".osaurus"
-        public static let appSupportDir = "com.dinoki.osaurus"
-        public static let urlScheme = "osaurus"
-        public static let keychainServices = [...15 个旧名...]
+public enum Brand {                      // 用户可见身份
+    static let display = "Nuo"
+    static let slug = "nuo"
+    static let bundleID = "com.nuo.app"
+    static let urlScheme = "nuo"
+    static let urlSchemes: Set<String>   // nuo + osaurus（兼容期双解析）
+    static let dataRootName = ".nuo"
+    static let bonjourServiceTypes = ["_nuo._tcp", "_nuo-mobile._tcp"]
+    static let controlNotificationPrefix = "com.nuo.control"
+    static let defaultsDomain = bundleID
+    enum Keychain { static let all: [KeychainService] }   // current + legacy 成对
+    enum Legacy {                        // 只给升级读取用，谁都不许往里写
+        static let display/slug/bundleID/urlScheme/dataRootName
+        static let appSupportDirectoryName = "com.dinoki.osaurus"
+        static let bonjourServiceTypes = ["_osaurus._tcp", "_osaurus-mobile._tcp"]
+        static let controlNotificationPrefix = "com.dinoki.osaurus.control"
+        static let defaultsDomain = bundleID
     }
 }
 ```
 
-改动点：
+改动点（均已落地）：
 
-1. `OsaurusPaths.defaultRoot` → `~/.nuo`；`OSAURUS_TEST_ROOT` 语义不变。
-2. Keychain：15 个 service 名换成 `com.nuo.*` / `ai.nuo.*`；`Brand.Legacy.keychainServices` 保留旧名。
-3. Bonjour：注册 `_nuo._tcp` + `_osaurus._tcp`，浏览两者，按最近一次发现去重。
-4. URL scheme：处理 `nuo://` 与 `osaurus://`（Info.plist 已双注册）。
-5. 分布式通知：`com.nuo.control.*` 新发 + `com.dinoki.osaurus.control.*` 双发一个版本。
-6. 迁移器 `BrandMigration.swift`（见第 8 节）。
+1. 数据根：`OsaurusPaths.defaultRoot` → `~/.nuo`，复用上游既有的 `migrateLegacyApplicationSupportRootIfNeeded` 走两跳（App Support → `~/.osaurus` → `~/.nuo`），新增 `clonefile` 快路径（APFS COW，模型几十 GB 也不拷数据）。CLI 侧 `ToolsPaths.root()` 在 `~/.nuo` 不存在时回退读 `~/.osaurus`，所以 CLI 先于 app 启动也看得到数据。
+2. Keychain：14 个 service 名换成 `com.nuo.*` / `ai.nuo.*`，采用**懒迁移**（read-through）而不是启动全量扫描：读新名 → `.notFound` 才读旧名 → 命中则 best-effort 前向复制。旧名读到的 `unavailable` / `accessDenied` **原样返回**，绝不降级成 `notFound`（`StorageKeyManager` 会把 `notFound` 当成"没有 DEK"从而铸新密钥覆盖已加密数据）。`MasterKey` 只读旧名、不前向复制（master key 是身份/ACL 根，改由新身份写入新名）。`ai.osaurus.id` 冻结不改。
+3. Bonjour：advertiser 以**旧类型为 primary** 保留 publish/retry 状态机，新类型作为无 delegate 的静默 companion 双注册；browser 同时浏览两种类型，按 agent id 去重，只有两种公告都消失才走 12s 宽限期下线。
+4. URL scheme：Info.plist 双注册；解析统一走 `Brand.ownsURLScheme(_:)`（`AppDelegate`、`PairingDeepLinkRouter`、`WorkspacesDeepLinkRouter`、`ThemesDeepLinkRouter`、`ThemeShareService`、`ThemeLibraryManagementService`、`HuggingFaceModelDeepLink`、公告 CTA）；新链接（邀请、主题分享、workspaces 归一化）一律生成 `nuo://`。签名 payload（`osaurus-agent-invite-v1:`）不动，否则旧邀请全部验签失败。
+5. 分布式通知：`com.nuo.control.*` 新发 + `com.dinoki.osaurus.control.*` 双发一个版本；app 侧 `observeControlAction` 同时观察两个名字。
+6. 迁移不在单独的 `BrandMigration.swift`：数据根复用 `OsaurusPaths` 的一次性迁移，Keychain 用读穿迁移，两者都以"旧数据整版保留"为前提。
 7. CLI 侧 app defaults 域名跟随：`com.nuo.app` 优先、`com.dinoki.osaurus` 兜底（一个版本）。
+8. `StorageLocationStandards` 不再声称"迁移未决"：它照实报告 `~/.nuo` 是 home dot-directory、`~/.osaurus` 与 App Support 旧根是否还在、各自的一次性 marker 是否已写。
 
-验收：迁移证明（旧目录/旧 defaults/旧 keychain 造数据 → 新装启动 → 数据齐、旧数据仍在）、双注册证明（`open osaurus://…` 仍可达）、测试隔离证明（`OSAURUS_TEST_ROOT` 下不触发迁移）。
+验收：迁移证明（旧目录/旧 defaults/旧 keychain 造数据 → 新装启动 → 数据齐、旧数据仍在）、双注册证明（`open osaurus://…` 仍可达、`dns-sd -B _nuo._tcp` 与 `_osaurus._tcp` 都能看到）、测试隔离证明（`OSAURUS_TEST_ROOT` 下不触发迁移）。
 
 ### Phase 3 — 界面与文案
 
@@ -215,7 +240,7 @@ public enum Brand {
   - A 类「产品自称」→ 直接换 `Nuo`（约 70%）。
   - B 类「外部事实」→ 人工改写：`osaurus.ai` 定价/Cloud 计划、Discord、X、GitHub issue 链接、上游文档链接。**直接改名会变成假承诺，必须逐条处理。**
   - C 类「路径/标识」→ 用 `~/.nuo`、`nuo://` 等新值。
-- `App/osaurus/InfoPlist.xcstrings`：13 个 key × 6 语言（显示名、11 条权限文案）。
+- `App/osaurus/InfoPlist.xcstrings`：**已在 Phase 1 完成**（`info-plist-l10n.*`，13 个 key × 6 语言）。Phase 3 只做抽查：德/俄/韩/简繁里 `Nuo-Plugins`、`Плагины Nuo`、`Nuo 插件` 的语序是否仍然通顺。
 - Swift 字面量：`AppDelegate`（菜单栏标题、tooltip、分析同意弹窗）、`osaurusApp.swift`（关于面板、Help 菜单、外链）、`AppIntents`、CLI help。
 - 5 种非英文语言需要抽查：机械替换后检查语序与冠词（德/俄/韩/简繁）。
 
@@ -248,7 +273,7 @@ public enum Brand {
 
 ### 8.1 触发条件
 
-只在 `OSAURUS_TEST_ROOT` 未设置时执行（否则测试会动真实家目录）。用标记文件 `.brand-migration.json` 保证只跑一次、可重入、可诊断。
+只在 `OSAURUS_TEST_ROOT` 未设置时执行（否则测试会动真实家目录）。数据根用 `OsaurusPaths` 既有的 `.legacy-application-support-merge.done` 标记（写在**目标根**里，两跳各一份）保证只跑一次、可重入、可诊断；Keychain 用读穿迁移，没有全局标记文件。
 
 ### 8.2 五类数据
 
@@ -257,12 +282,12 @@ public enum Brand {
 | 数据根 | `~/.osaurus` → `~/.nuo` | `cp -cR`（APFS clonefile，模型几十 GB 也是秒级、不占额外空间）；非 APFS 回退 `ditto` |
 | 旧 App Support | `~/Library/Application Support/com.dinoki.osaurus` | 现有迁移链继续并入新根（保持两段兼容） |
 | UserDefaults | 域 `com.dinoki.osaurus` → `com.nuo.app` | 枚举旧域 key 写进新域；**键名不变**（`ai.osaurus.*` 冻结）。CLI 侧按域名字面量读取（`Pull.swift:183`、`Configuration.swift:98`），必须同步；`group.com.osaurus.shared` 冻结（涉及 App Group entitlement，不改） |
-| Keychain | 15 个 service | 逐个读旧名 → 写新名；读失败不静默 |
+| Keychain | 14 个 service（`ai.osaurus.id` 除外） | 读新名 → `.notFound` 时读旧名 → 命中则 best-effort 前向复制；`unavailable`/`accessDenied` 原样上报 |
 | 配置/端口 | `~/.nuo/config/server.json` | 随数据根整体搬迁 |
 
 ### 8.3 失败语义
 
-- Keychain 读被 ACL 拒绝（`errSecAuthFailed` / `errSecInteractionNotAllowed`）：记录到标记文件，启动后弹一次「有 N 个密钥需要你重新授权」，点击重试带用户交互；**绝不表现为"密钥不存在"**。
+- Keychain 读被 ACL 拒绝（`errSecAuthFailed` / `errSecInteractionNotAllowed`）：错误原样返回给调用方，由既有 UI 路径提示；**绝不降级成 `.notFound`**（否则 `StorageKeyManager` 会铸新 DEK 覆盖已加密数据）。
 - 迁移中途失败：标记文件写 `partial`，下次启动重试；旧根从不删除，删掉 `~/.nuo` 即回滚。
 - 两边都存在：以新根为准，不合并（避免每次启动重扫）。
 
@@ -289,7 +314,7 @@ public enum Brand {
 
 | # | 风险 | 影响 | 缓解 |
 |---|---|---|---|
-| R1 | bundle id 变更后 Keychain ACL 视为另一 app，读旧条目弹窗或被拒 | 密钥看似"消失" | 读旧写新 + 显式失败 UI + 退化方案（冻结 15 个 service 名） |
+| R1 | bundle id 变更后 Keychain ACL 视为另一 app，读旧条目弹窗或被拒 | 密钥看似"消失" | 读旧写新 + 显式失败 UI + 退化方案（冻结 14 个 service 名，`ai.osaurus.id` 本来就不动） |
 | R2 | TCC 权限全部重弹（麦克风/通讯录/日历/位置/屏幕录制/自动化） | 首启体验 | 已知行为，文案里说明；不假装保留 |
 | R3 | 新旧 App 同时存在抢 1337 端口 | 服务起不来 | 旧 App 提示退出；新 App 端口冲突时明确报错而非静默换端口 |
 | R4 | Sparkle feed 不存在 | 手动检查更新失败 | 自动检查关闭；菜单项在 feed 未配置时隐藏 |

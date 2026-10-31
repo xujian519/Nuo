@@ -9,6 +9,7 @@ import AVFoundation
 import AppKit
 import Combine
 import CoreServices
+import OsaurusRepository
 import QuartzCore
 import SwiftUI
 import os.log
@@ -2114,54 +2115,38 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
 
 // MARK: - Distributed Control (Local Only)
 extension AppDelegate {
-    fileprivate static let controlToolsReloadNotification = Notification.Name(
-        "com.dinoki.osaurus.control.toolsReload"
-    )
+    /// Distributed notification name for the CLI `models reload` action.
     static let controlModelsReloadNotification = Notification.Name(
-        "com.dinoki.osaurus.control.modelsReload"
-    )
-    fileprivate static let controlServeNotification = Notification.Name(
-        "com.dinoki.osaurus.control.serve"
-    )
-    fileprivate static let controlStopNotification = Notification.Name(
-        "com.dinoki.osaurus.control.stop"
-    )
-    fileprivate static let controlShowUINotification = Notification.Name(
-        "com.dinoki.osaurus.control.ui"
+        Brand.controlNotification("modelsReload")
     )
 
-    private func setupControlNotifications() {
+    /// Subscribe `selector` to `action`.
+    ///
+    /// Both the current and the pre-rename name are observed for one release:
+    /// a CLI and an app built from adjacent commits must still drive each
+    /// other after an update that lands in either order.
+    private func observeControlAction(_ action: String, selector: Selector) {
         let center = DistributedNotificationCenter.default()
         center.addObserver(
             self,
-            selector: #selector(handleServeCommand(_:)),
-            name: Self.controlServeNotification,
+            selector: selector,
+            name: Notification.Name(Brand.controlNotification(action)),
             object: nil
         )
         center.addObserver(
             self,
-            selector: #selector(handleStopCommand(_:)),
-            name: Self.controlStopNotification,
+            selector: selector,
+            name: Notification.Name(Brand.Legacy.controlNotification(action)),
             object: nil
         )
-        center.addObserver(
-            self,
-            selector: #selector(handleShowUICommand(_:)),
-            name: Self.controlShowUINotification,
-            object: nil
-        )
-        center.addObserver(
-            self,
-            selector: #selector(handleToolsReloadCommand(_:)),
-            name: Self.controlToolsReloadNotification,
-            object: nil
-        )
-        center.addObserver(
-            self,
-            selector: #selector(handleModelsReloadCommand(_:)),
-            name: Self.controlModelsReloadNotification,
-            object: nil
-        )
+    }
+
+    private func setupControlNotifications() {
+        observeControlAction("serve", selector: #selector(handleServeCommand(_:)))
+        observeControlAction("stop", selector: #selector(handleStopCommand(_:)))
+        observeControlAction("ui", selector: #selector(handleShowUICommand(_:)))
+        observeControlAction("toolsReload", selector: #selector(handleToolsReloadCommand(_:)))
+        observeControlAction("modelsReload", selector: #selector(handleModelsReloadCommand(_:)))
     }
 
     private func setupSafeModeRecovery() {
@@ -2305,28 +2290,29 @@ extension AppDelegate {
     fileprivate func handleDeepLink(_ url: URL) {
         let scheme = url.scheme?.lowercased() ?? ""
         switch scheme {
-        case "osaurus":
-            handleOsaurusDeepLink(url)
         case "huggingface":
             handleHuggingFaceDeepLink(url)
         default:
-            return
+            // Both the current and the pre-rename app scheme: links already in
+            // the wild (invites, shares) were minted with the old one.
+            guard Brand.ownsURLScheme(scheme) else { return }
+            handleAppDeepLink(url)
         }
     }
 
-    /// `osaurus://<addr>?pair=<base64url(invite)>` — incoming agent share link.
-    /// `osaurus://plugins-install?tool=<plugin_id>` — open Plugins tab on a plugin's detail page.
-    /// `osaurus://themes-install?hash=<sha256>` — open Themes tab and install a shared theme.
-    /// `osaurus://workspaces/activate?code=<code>` — activate a Workspaces subscription purchased on osaurus.ai.
-    /// `osaurus://workspaces/join?code=<code>` — join a workspace through an invite link.
-    /// (`osaurus://teams/...` is the pre-rename host and is still routed to Workspaces.)
-    /// `osaurus://settings?tab=<tab>` — open the management window on a tab
+    /// `nuo://<addr>?pair=<base64url(invite)>` — incoming agent share link.
+    /// `nuo://plugins-install?tool=<plugin_id>` — open Plugins tab on a plugin's detail page.
+    /// `nuo://themes-install?hash=<sha256>` — open Themes tab and install a shared theme.
+    /// `nuo://workspaces/activate?code=<code>` — activate a Workspaces subscription purchased on osaurus.ai.
+    /// `nuo://workspaces/join?code=<code>` — join a workspace through an invite link.
+    /// (`...://teams/...` is the pre-rename host and is still routed to Workspaces.)
+    /// `nuo://settings?tab=<tab>` — open the management window on a tab
     /// (used by the in-chat osaurus_config result card's "Open in Settings"
     /// links for rows the user must finish by hand).
-    /// `osaurus://open_from_hf?model=<org/repo>[&file=<path>]` — the link
-    /// Hugging Face's "Use this model" menu generates for Osaurus; same
-    /// handling as `huggingface://?model=…` (see `HuggingFaceModelDeepLink`).
-    func handleOsaurusDeepLink(_ url: URL) {
+    /// `nuo://open_from_hf?model=<org/repo>[&file=<path>]` — the link
+    /// Hugging Face's "Use this model" menu generates for Nuo; same handling
+    /// as `huggingface://?model=…` (see `HuggingFaceModelDeepLink`).
+    func handleAppDeepLink(_ url: URL) {
         if HuggingFaceModelDeepLink.matches(url) {
             handleHuggingFaceDeepLink(url)
             return
@@ -2977,7 +2963,7 @@ extension AppDelegate {
                     FeatureTelemetry.announcementClicked(
                         slug: slug, action: "cta", ctaKind: cta.kind, ctaIndex: index)
                     if cta.isDeepLink {
-                        self?.handleOsaurusDeepLink(url)
+                        self?.handleAppDeepLink(url)
                     } else {
                         // `open` makes a synchronous XPC round-trip to
                         // LaunchServices that can block for seconds while

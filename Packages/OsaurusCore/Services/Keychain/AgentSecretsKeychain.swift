@@ -13,7 +13,7 @@ import Security
 /// Keychain wrapper for agent-scoped secret storage.
 /// Account format: `"{agentId}.{key}"` — no plugin scoping.
 public enum AgentSecretsKeychain {
-    private static let service = "ai.osaurus.agent-secrets"
+    private static let service = OsaurusKeychainServices.agentSecrets
 
     // MARK: - In-Memory Store (tests + hermetic harnesses)
 

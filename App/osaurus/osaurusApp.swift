@@ -31,6 +31,11 @@ enum OsaurusMain {
         // by default. Ignore it so those writes fail with EPIPE and
         // surface as ordinary errors on the write path instead.
         signal(SIGPIPE, SIG_IGN)
+        // Copy the pre-rename preferences domain before anything reads a
+        // setting. The bundle id change gives this app a fresh defaults
+        // domain, so without this every preference would look newly default
+        // on the first launch after the rename.
+        AppDefaultsMigration.migrateIfNeeded()
         osaurusApp.main()
     }
 }

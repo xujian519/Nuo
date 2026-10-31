@@ -11,7 +11,7 @@ import OsaurusRepository
 public struct ToolsRollback {
     public static func execute(args: [String]) {
         guard let pluginId = args.first, !pluginId.isEmpty else {
-            fputs("Usage: osaurus tools rollback <plugin_id>\n", stderr)
+            fputs("Usage: nuo tools rollback <plugin_id>\n", stderr)
             exit(EXIT_FAILURE)
         }
         let versions = InstalledPluginsStore.shared.installedVersions(pluginId: pluginId)

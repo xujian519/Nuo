@@ -11,7 +11,7 @@ import Security
 /// Keychain wrapper for secure plugin secret storage.
 /// All config is agent-scoped: account format is `"{agentId}.{pluginId}.{key}"`.
 public enum ToolSecretsKeychain {
-    private static let service = "ai.osaurus.tools"
+    private static let service = OsaurusKeychainServices.toolSecrets
     private static let testStoreLock = NSLock()
     private nonisolated(unsafe) static var testStore: [String: String] = [:]
 

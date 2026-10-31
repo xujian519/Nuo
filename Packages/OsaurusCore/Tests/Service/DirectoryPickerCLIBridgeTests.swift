@@ -224,7 +224,9 @@ struct DirectoryPickerCLIBridgeTests {
             invalidateCache: { events.append("invalidate") }, notifications: center
         )
         #expect(events.snapshot() == ["invalidate", "changed"])
-        #expect(AppDelegate.controlModelsReloadNotification.rawValue == "com.dinoki.osaurus.control.modelsReload")
+        #expect(AppDelegate.controlModelsReloadNotification.rawValue == "com.nuo.control.modelsReload")
+        // The pre-rename name stays reachable for one release.
+        #expect(Brand.Legacy.controlNotification("modelsReload") == "com.dinoki.osaurus.control.modelsReload")
     }
 
     @Test func nativeControlObserverRoutesModelsReloadWithoutHTTP() throws {
@@ -233,7 +235,11 @@ struct DirectoryPickerCLIBridgeTests {
         root.deleteLastPathComponent()
         let source = try String(contentsOf: root.appendingPathComponent("AppDelegate.swift"), encoding: .utf8)
         #expect(source.contains("selector: #selector(handleModelsReloadCommand(_:))"))
-        #expect(source.contains("name: Self.controlModelsReloadNotification"))
+        #expect(source.contains("observeControlAction(\"modelsReload\""))
+        // Both the current and the pre-rename name must be observed, or an
+        // app update that lands before the CLI update (or after) goes deaf.
+        #expect(source.contains("Notification.Name(Brand.controlNotification(action))"))
+        #expect(source.contains("Notification.Name(Brand.Legacy.controlNotification(action))"))
         let start = try #require(source.range(of: "@objc private func handleModelsReloadCommand"))
         let end = try #require(source.range(of: "/// Local process notification only", range: start.upperBound..<source.endIndex))
         let handler = String(source[start.lowerBound..<end.lowerBound])

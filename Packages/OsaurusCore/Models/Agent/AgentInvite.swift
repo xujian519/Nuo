@@ -9,6 +9,7 @@
 //
 
 import Foundation
+import OsaurusRepository
 
 // MARK: - Errors
 
@@ -119,7 +120,8 @@ public struct AgentInvite: Codable, Sendable, Equatable {
 
     // MARK: Deeplink
 
-    /// `osaurus://<addr>?pair=<base64url(json)>`
+    /// `nuo://<addr>?pair=<base64url(json)>`. The pre-rename `osaurus://`
+    /// form still decodes — links already shared keep working.
     public func deeplinkURL() throws -> URL {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
@@ -127,7 +129,7 @@ public struct AgentInvite: Codable, Sendable, Equatable {
         let token = json.base64urlEncoded
 
         var components = URLComponents()
-        components.scheme = "osaurus"
+        components.scheme = Brand.urlScheme
         components.host = addr.lowercased()
         components.queryItems = [URLQueryItem(name: "pair", value: token)]
         guard let url = components.url else {
@@ -136,9 +138,9 @@ public struct AgentInvite: Codable, Sendable, Equatable {
         return url
     }
 
-    /// Decode an invite from an `osaurus://` deeplink.
+    /// Decode an invite from a `nuo://` (or pre-rename `osaurus://`) deeplink.
     public static func decode(from url: URL) throws -> AgentInvite {
-        guard url.scheme?.lowercased() == "osaurus",
+        guard Brand.ownsURLScheme(url.scheme),
             let comps = URLComponents(url: url, resolvingAgainstBaseURL: false),
             let token = comps.queryItems?.first(where: { $0.name == "pair" })?.value,
             let data = Data(base64urlEncoded: token)

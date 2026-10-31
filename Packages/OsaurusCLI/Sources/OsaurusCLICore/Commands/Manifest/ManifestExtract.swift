@@ -10,7 +10,7 @@ import Foundation
 public struct ManifestExtract {
     public static func execute(args: [String]) {
         guard let dylibPath = args.first, !dylibPath.isEmpty else {
-            fputs("Usage: osaurus manifest extract <dylib-path>\n", stderr)
+            fputs("Usage: nuo manifest extract <dylib-path>\n", stderr)
             exit(EXIT_FAILURE)
         }
 

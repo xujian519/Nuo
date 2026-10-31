@@ -19,7 +19,7 @@
 //
 //  Design notes:
 //  - We never write the master key out, only the derived DEK.
-//  - The HKDF salt is stored alongside in plaintext (`~/.osaurus/.storage-key.salt`);
+//  - The HKDF salt is stored alongside in plaintext (`~/.nuo/.storage-key.salt`);
 //    by itself it leaks nothing because HKDF without the master key is
 //    not invertible.
 //  - Once retrieved, the DEK is cached in-process; `wipeCache()` zeroes
@@ -28,6 +28,7 @@
 
 import CryptoKit
 import Foundation
+import OsaurusRepository
 import LocalAuthentication
 import Security
 import os
@@ -66,7 +67,7 @@ public enum StorageKeyError: LocalizedError {
 public final class StorageKeyManager: @unchecked Sendable {
     public static let shared = StorageKeyManager()
 
-    static let service = "com.osaurus.storage"
+    static let service = OsaurusKeychainServices.storage
     static let keyAccount = "data-encryption-key"
     static let saltAccount = "data-encryption-salt"
 
@@ -93,6 +94,13 @@ public final class StorageKeyManager: @unchecked Sendable {
     /// a key already exists, so a failed key read must *never* mint a fresh key
     /// over data the old key still protects. Cleared by `resetForWipe()`.
     private static let provisionedMarkerFilename = ".storage-key.provisioned"
+
+    /// Written by `resetForWipe()`. While present, the pre-rename Keychain item
+    /// is **not** consulted: the user asked this install to start over, and
+    /// re-adopting the old DEK through the migration fallback would silently
+    /// undo the reset. The legacy item itself is never deleted, so an Osaurus
+    /// install on the same Mac can still open its own copy of the data.
+    private static let resetMarkerFilename = ".storage-key.reset"
 
     private let log = Logger(subsystem: "ai.osaurus", category: "storage.key")
 
@@ -225,18 +233,15 @@ public final class StorageKeyManager: @unchecked Sendable {
 
     /// Returns true when a persisted key exists in Keychain. Cheap; no
     /// Touch ID prompt.
+    ///
+    /// Consults the pre-rename service too, exactly like `readItem`: a key
+    /// still filed under the old name is a live DEK, and reporting "no key"
+    /// here would make Settings offer to provision one over data it protects.
     public func keyExists() -> Bool {
         if Self.disablesKeychainForProcess {
             return hasCachedKey
         }
-        let base: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: Self.service,
-            kSecAttrAccount as String: Self.keyAccount,
-            kSecReturnData as String: false,
-            kSecUseAuthenticationUI as String: kSecUseAuthenticationUISkip,
-        ]
-        return SecItemCopyMatching(base as CFDictionary, nil) == errSecSuccess
+        return itemExists(account: Self.keyAccount)
     }
 
     /// Generate a new key, replacing the existing one. Caller is
@@ -313,6 +318,11 @@ public final class StorageKeyManager: @unchecked Sendable {
     /// for "Reset encrypted storage" in Settings or onboarding wipe.
     /// **Irreversible.** Caller is responsible for moving any encrypted
     /// data out first if it should be preserved.
+    ///
+    /// The pre-rename Keychain item is deliberately left in place: it belongs
+    /// to the user's old Osaurus install, which keeps its own copy of the data.
+    /// A reset marker in the data root stops this install from reading it back
+    /// through the migration fallback (see `resetMarkerFilename`).
     public func resetForWipe() {
         if Self.disablesKeychainForProcess {
             try? FileManager.default.removeItem(at: saltFile())
@@ -320,6 +330,11 @@ public final class StorageKeyManager: @unchecked Sendable {
             wipeCache()
             return
         }
+        // Stamp the marker before deleting anything: if this process dies
+        // mid-wipe, the next launch must still refuse to re-adopt the legacy
+        // DEK over a half-reset root.
+        OsaurusPaths.ensureExistsSilent(OsaurusPaths.root())
+        try? Data([0x01]).write(to: resetMarkerFile(), options: [.atomic])
         let queries: [[String: Any]] = [
             [
                 kSecClass as String: kSecClassGenericPassword,
@@ -359,6 +374,34 @@ public final class StorageKeyManager: @unchecked Sendable {
 
     private func provisionedMarkerFile() -> URL {
         OsaurusPaths.root().appendingPathComponent(Self.provisionedMarkerFilename)
+    }
+
+    private func resetMarkerFile() -> URL {
+        OsaurusPaths.root().appendingPathComponent(Self.resetMarkerFilename)
+    }
+
+    /// Pre-rename service to consult when the current name misses, or `nil`
+    /// when the read must not fall back (see `resetMarkerFilename`).
+    private var legacyServiceForRead: String? {
+        guard !FileManager.default.fileExists(atPath: resetMarkerFile().path) else { return nil }
+        return Brand.Keychain.legacyService(forCurrent: Self.service)
+    }
+
+    /// Existence-only probe for `account`, with the same pre-rename fallback as
+    /// `readItem`. Attribute-only (no data), so it never raises an ACL prompt.
+    private func itemExists(account: String) -> Bool {
+        let base: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: Self.service,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: false,
+            kSecUseAuthenticationUI as String: kSecUseAuthenticationUISkip,
+        ]
+        if SecItemCopyMatching(base as CFDictionary, nil) == errSecSuccess { return true }
+        guard let legacyService = legacyServiceForRead else { return false }
+        var legacy = base
+        legacy[kSecAttrService as String] = legacyService
+        return SecItemCopyMatching(legacy as CFDictionary, nil) == errSecSuccess
     }
 
     /// Record that a DEK exists for this install. Best-effort and idempotent;
@@ -471,7 +514,7 @@ public final class StorageKeyManager: @unchecked Sendable {
 
     private func persistKeychain(data: Data) throws {
         if Self.disablesKeychainForProcess { return }
-        try persistItem(account: Self.keyAccount, data: data, label: "Osaurus Storage Encryption Key")
+        try persistItem(account: Self.keyAccount, data: data, label: "Nuo Storage Encryption Key")
     }
 
     private func readKeychainKey() throws -> Data? {
@@ -483,7 +526,7 @@ public final class StorageKeyManager: @unchecked Sendable {
 
     private func persistKeychainSalt(_ data: Data) throws {
         if Self.disablesKeychainForProcess { return }
-        try persistItem(account: Self.saltAccount, data: data, label: "Osaurus Storage Key Derivation Salt")
+        try persistItem(account: Self.saltAccount, data: data, label: "Nuo Storage Key Derivation Salt")
     }
 
     private func readKeychainSalt() throws -> Data? {
@@ -498,17 +541,17 @@ public final class StorageKeyManager: @unchecked Sendable {
     // items the previous build wrote without an ACL password prompt.
 
     /// Write `attributes` for `account` to the keychain (update-or-add).
-    private func persistItem(account: String, data: Data, label: String) throws {
+    private func persistItem(account: String, data: Data, label: String?) throws {
         let baseQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: Self.service,
             kSecAttrAccount as String: account,
         ]
-        let attributes: [String: Any] = [
+        var attributes: [String: Any] = [
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-            kSecAttrLabel as String: label,
         ]
+        if let label { attributes[kSecAttrLabel as String] = label }
 
         let update = SecItemUpdate(baseQuery as CFDictionary, attributes as CFDictionary)
         if update == errSecSuccess { return }
@@ -524,8 +567,15 @@ public final class StorageKeyManager: @unchecked Sendable {
     }
 
     /// Read `account` from the keychain.
+    ///
+    /// Falls back to the pre-rename service so a data root carried over from
+    /// Osaurus still opens: the DEK never changed, only the service name it is
+    /// filed under. Anything other than `errSecItemNotFound` from either query
+    /// stays an error, so an unreachable key can never be mistaken for "no key
+    /// yet" (which `currentKey()` would answer by minting a fresh one over
+    /// existing encrypted data).
     private func readItem(account: String) throws -> Data? {
-        let base: [String: Any] = [
+        var base: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: Self.service,
             kSecAttrAccount as String: account,
@@ -535,7 +585,22 @@ public final class StorageKeyManager: @unchecked Sendable {
         ]
 
         var result: AnyObject?
-        let status = SecItemCopyMatching(base as CFDictionary, &result)
+        var status = SecItemCopyMatching(base as CFDictionary, &result)
+        if status == errSecItemNotFound,
+            let legacyService = legacyServiceForRead
+        {
+            base[kSecAttrService as String] = legacyService
+            status = SecItemCopyMatching(base as CFDictionary, &result)
+            if status == errSecSuccess {
+                // Copy forward so the next launch reads the current service.
+                // A failure here is not fatal: the value is already in hand and
+                // the legacy item stays readable.
+                if let data = result as? Data {
+                    try? persistItem(account: account, data: data, label: nil)
+                }
+                return result as? Data
+            }
+        }
         if status == errSecItemNotFound { return nil }
         if status != errSecSuccess {
             cacheReadFailureIfNonInteractiveBlocked(status)

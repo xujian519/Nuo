@@ -13,7 +13,7 @@ import Foundation
 import os
 
 enum GitHubAuth {
-    private static let keychainService = "com.dinoki.osaurus.github"
+    private static let keychainService = OsaurusKeychainServices.github
     private static let keychainAccount = "api-token"
 
     /// Two-level optional: outer `nil` means "not read from the keychain

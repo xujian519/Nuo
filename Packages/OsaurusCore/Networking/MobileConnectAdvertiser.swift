@@ -15,16 +15,29 @@
 //
 
 import Foundation
+import OsaurusRepository
 import os
 
 @MainActor
 final class MobileConnectAdvertiser: NSObject {
     static let shared = MobileConnectAdvertiser()
-    static let serviceType = "_osaurus-mobile._tcp."
+    /// The renamed pairing type.
+    static let serviceType = "\(Brand.bonjourServiceTypes[1])."
+    /// Pre-rename pairing type, still primary for one release: it is what the
+    /// shipping phone app browses.
+    static let legacyServiceType = "\(Brand.Legacy.bonjourServiceTypes[1])."
     private static let maxPublishRetries = 3
+    /// Instance name of the throwaway probe published to tell "local network
+    /// permission denied" apart from other publish failures. Diagnostic only,
+    /// but it is visible on the LAN for the ~3s it lives, so it carries the
+    /// product name too.
+    private nonisolated static let probeName = "\(Brand.slug)-probe"
     private nonisolated static let logger = Logger(subsystem: "com.osaurus", category: "bonjour")
 
     private var service: NetService?
+    /// Second registration under the renamed type, delegate-less so a refused
+    /// publish costs nothing (see `BonjourAdvertiser.companionServices`).
+    private var companion: NetService?
     private var port: Int = 0
     private var retries = 0
     /// Bumped on every start and stop, so a retry still asleep from an
@@ -56,11 +69,16 @@ final class MobileConnectAdvertiser: NSObject {
     private func probeAgentType() {
         guard !hasProbed else { return }
         hasProbed = true
-        let service = NetService(domain: "", type: BonjourAdvertiser.serviceType, name: "osaurus-probe", port: Int32(port))
+        let service = NetService(
+            domain: "",
+            type: BonjourAdvertiser.serviceType,
+            name: Self.probeName,
+            port: Int32(port)
+        )
         service.delegate = self
         service.publish()
         probe = service
-        MobileConnectLog.write("bonjour: probing \(BonjourAdvertiser.serviceType) as 'osaurus-probe'")
+        MobileConnectLog.write("bonjour: probing \(BonjourAdvertiser.serviceType) as '\(Self.probeName)'")
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
             self?.probe?.stop()
             self?.probe = nil
@@ -72,15 +90,18 @@ final class MobileConnectAdvertiser: NSObject {
         if service != nil { MobileConnectLog.write("bonjour: stopped advertising") }
         service?.stop()
         service = nil
+        companion?.stop()
+        companion = nil
     }
 
     private func publish() {
         // An mDNS instance name is at most 63 bytes; a long Mac name would be
         // refused outright.
         let name = BonjourAdvertiser.truncateUTF8(
-            Host.current().localizedName ?? "Osaurus", maxBytes: BonjourAdvertiser.maxInstanceNameBytes
+            Host.current().localizedName ?? Brand.display,
+            maxBytes: BonjourAdvertiser.maxInstanceNameBytes
         )
-        let service = NetService(domain: "", type: Self.serviceType, name: name, port: Int32(port))
+        let service = NetService(domain: "", type: Self.legacyServiceType, name: name, port: Int32(port))
         service.setTXTRecord(
             NetService.data(fromTXTRecord: [
                 "name": Data(name.utf8),
@@ -90,7 +111,21 @@ final class MobileConnectAdvertiser: NSObject {
         service.delegate = self
         service.publish()
         self.service = service
-        MobileConnectLog.write("bonjour: publishing \(Self.serviceType) as '\(name)' on port \(port)")
+
+        companion?.stop()
+        let companion = NetService(domain: "", type: Self.serviceType, name: name, port: Int32(port))
+        companion.setTXTRecord(
+            NetService.data(fromTXTRecord: [
+                "name": Data(name.utf8),
+                "v": Data("\(MobilePairingService.wireVersion)".utf8),
+            ])
+        )
+        companion.publish()
+        self.companion = companion
+
+        MobileConnectLog.write(
+            "bonjour: publishing \(Self.legacyServiceType) + \(Self.serviceType) as '\(name)' on port \(port)"
+        )
         Self.logger.info("Publishing pairing service '\(name, privacy: .public)' on port \(self.port)")
     }
 
@@ -117,13 +152,13 @@ extension MobileConnectAdvertiser: NetServiceDelegate {
 
     nonisolated func netServiceDidPublish(_ sender: NetService) {
         MobileConnectLog.write("bonjour: advertised '\(sender.name)' (\(sender.type)) on port \(sender.port)")
-        if sender.name == "osaurus-probe" { return }
+        if sender.name == Self.probeName { return }
         Self.logger.info("Advertised pairing service '\(sender.name, privacy: .public)' on port \(sender.port)")
     }
 
     nonisolated func netService(_ sender: NetService, didNotPublish errorDict: [String: NSNumber]) {
         MobileConnectLog.write("bonjour: FAILED to advertise '\(sender.name)' (\(sender.type)): \(errorDict)")
-        if sender.name == "osaurus-probe" { return }
+        if sender.name == Self.probeName { return }
         Task { @MainActor [weak self] in self?.probeAgentType() }
         Self.logger.error(
             "Failed to advertise pairing service '\(sender.name, privacy: .public)': \(errorDict, privacy: .public)"

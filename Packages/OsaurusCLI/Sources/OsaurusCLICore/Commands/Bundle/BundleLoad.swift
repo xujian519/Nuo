@@ -21,7 +21,7 @@ enum BundleLoadError: Error, CustomStringConvertible {
     var description: String {
         switch self {
         case .missingPath:
-            return "Error: Bundle path required\n  Usage: osaurus bundle load <path.mcpb>"
+            return "Error: Bundle path required\n  Usage: nuo bundle load <path.mcpb>"
         case let .fileNotFound(path):
             return "Error: File not found: \(path)"
         case .invalidExtension:

@@ -8,10 +8,11 @@
 
 import Foundation
 import LocalAuthentication
+import OsaurusRepository
 import Security
 
 public struct MasterKey: Sendable {
-    static let service = "com.osaurus.account"
+    static let service = OsaurusKeychainServices.account
     static let account = "master-key"
 
     // MARK: - Generate
@@ -79,7 +80,9 @@ public struct MasterKey: Sendable {
         return osaurusId
     }
 
-    static let label = "Osaurus Master Key"
+    /// Keychain Access display label. Not part of the item's identity
+    /// (`service` + `account` are), so re-branding it never strands a read.
+    static let label = "\(Brand.display) Master Key"
 
     // MARK: - Dual-write (shared with `MasterMnemonicStore`)
 
@@ -281,7 +284,7 @@ public struct MasterKey: Sendable {
         // confidential information" ACL prompt in a headless/differently-signed
         // process (the eval CLI).
         if KeychainQueryHelpers.disablesKeychainForProcess { return false }
-        let query: [String: Any] = [
+        var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
@@ -289,6 +292,14 @@ public struct MasterKey: Sendable {
             kSecReturnData as String: false,
             kSecUseAuthenticationUI as String: kSecUseAuthenticationUISkip,
         ]
+        if SecItemCopyMatching(query as CFDictionary, nil) == errSecSuccess { return true }
+
+        // Identity minted before the Nuo rename lives under the previous
+        // service name. Attribute-only probe: no data, so no ACL prompt.
+        guard let legacyService = Brand.Keychain.legacyService(forCurrent: service) else {
+            return false
+        }
+        query[kSecAttrService as String] = legacyService
         return SecItemCopyMatching(query as CFDictionary, nil) == errSecSuccess
     }
 
@@ -413,7 +424,19 @@ public struct MasterKey: Sendable {
         }
 
         var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        var status = SecItemCopyMatching(query as CFDictionary, &result)
+        if status == errSecItemNotFound,
+            let legacyService = Brand.Keychain.legacyService(forCurrent: service)
+        {
+            // Identity minted before the Nuo rename. Deliberately read-only:
+            // the master key is the sync/ACL root of the user's identity, so a
+            // copy forward would have to re-derive the mirrored-key plan (see
+            // `mirrorGenericPassword`) for a second service name. The legacy
+            // item stays authoritative for identities that predate the rename;
+            // new identities are minted under the current service.
+            query[kSecAttrService as String] = legacyService
+            status = SecItemCopyMatching(query as CFDictionary, &result)
+        }
         guard status == errSecSuccess, let data = result as? Data else {
             throw OsaurusIdentityError.keychainReadFailed
         }
@@ -441,14 +464,27 @@ public struct MasterKey: Sendable {
             setCachedExists(false)
             return true
         }
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
-        ]
-        let status = SecItemDelete(query as CFDictionary)
-        let gone = status == errSecSuccess || status == errSecItemNotFound
+        // Identity minted before the Nuo rename lives under the previous
+        // service name, and both `exists()` and `getPrivateKey()` read it
+        // there. A reset that only deleted the current name would leave that
+        // item in place, so the "deleted" identity would reappear on the next
+        // launch. This is the one place the legacy copy is destroyed: the user
+        // asked for the identity to be gone.
+        var services = [service]
+        if let legacyService = Brand.Keychain.legacyService(forCurrent: service) {
+            services.append(legacyService)
+        }
+        var gone = true
+        for name in services {
+            let query: [String: Any] = [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: name,
+                kSecAttrAccount as String: account,
+                kSecAttrSynchronizable as String: kSecAttrSynchronizableAny,
+            ]
+            let status = SecItemDelete(query as CFDictionary)
+            if status != errSecSuccess, status != errSecItemNotFound { gone = false }
+        }
         if gone {
             setCachedExists(false)
         }

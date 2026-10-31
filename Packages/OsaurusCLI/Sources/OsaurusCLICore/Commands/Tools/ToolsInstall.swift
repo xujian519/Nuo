@@ -13,7 +13,7 @@ public struct ToolsInstall {
     public static func execute(args: [String]) async {
         guard let src = args.first, !src.isEmpty else {
             fputs(
-                "Usage: osaurus tools install <plugin_id|url-or-path> [--version <semver>] [--consent]\n",
+                "Usage: nuo tools install <plugin_id|url-or-path> [--version <semver>] [--consent]\n",
                 stderr
             )
             exit(EXIT_FAILURE)
@@ -61,7 +61,7 @@ public struct ToolsInstall {
                 "Installed \(result.receipt.plugin_id) @ \(result.receipt.version) to \(result.installDirectory.path)"
             )
             // Notify app to reload tools
-            AppControl.postDistributedNotification(name: "com.dinoki.osaurus.control.toolsReload", userInfo: [:])
+            AppControl.postControlNotification(action: "toolsReload", userInfo: [:])
             exit(EXIT_SUCCESS)
         } catch {
             fputs("Install failed: \(error)\n", stderr)
@@ -200,12 +200,12 @@ public struct ToolsInstall {
             print("Installed \(pluginId) @ \(semver) to \(installDir.path)")
             if !grantConsent {
                 print(
-                    "Consent NOT granted. Approve in Osaurus settings before the plugin will load, or reinstall with --consent."
+                    "Consent NOT granted. Approve in Nuo settings before the plugin will load, or reinstall with --consent."
                 )
             }
 
             // Notify app
-            AppControl.postDistributedNotification(name: "com.dinoki.osaurus.control.toolsReload", userInfo: [:])
+            AppControl.postControlNotification(action: "toolsReload", userInfo: [:])
             exit(EXIT_SUCCESS)
 
         } catch {
@@ -472,7 +472,7 @@ public struct ToolsInstall {
                     "Invalid naming format. Expected <plugin_id>-<version>.zip, or install a project directory containing osaurus-plugin.json with plugin_id and version."
             case .noDylibFound:
                 return
-                    "No .dylib found in the plugin payload. Build the plugin first (e.g. `osaurus tools build`) — an install without a binary would produce a broken receipt-less tree."
+                    "No .dylib found in the plugin payload. Build the plugin first (e.g. `nuo tools build`) — an install without a binary would produce a broken receipt-less tree."
             case .invalidManifestField(let filename, let field):
                 return "`\(filename)` must include a non-empty `\(field)` for directory installs."
             case .invalidManifestVersion(let filename, let value):

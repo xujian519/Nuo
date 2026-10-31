@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import OsaurusRepository
 
 public struct PullCommand: Command {
     public static let name = "pull"
@@ -43,8 +44,8 @@ public struct PullCommand: Command {
     public static func execute(args: [String]) async {
         guard let modelId = args.first, !modelId.isEmpty else {
             fputs("Missing required <model_id>\n", stderr)
-            fputs("Usage: osaurus pull <model_id>\n", stderr)
-            fputs("Example: osaurus pull mlx-community/Llama-3.2-1B-4bit\n", stderr)
+            fputs("Usage: nuo pull <model_id>\n", stderr)
+            fputs("Example: nuo pull mlx-community/Llama-3.2-1B-4bit\n", stderr)
             exit(EXIT_FAILURE)
         }
 
@@ -156,8 +157,8 @@ public struct PullCommand: Command {
     static func notifyAppIfPullComplete(
         files: [(path: String, size: Int64)],
         destination: URL,
-        postNotification: (String, [AnyHashable: Any]) -> Void = { name, payload in
-            AppControl.postDistributedNotification(name: name, userInfo: payload)
+        postNotification: (String, [AnyHashable: Any]) -> Void = { action, payload in
+            AppControl.postControlNotification(action: action, userInfo: payload)
         }
     ) -> Bool {
         guard !files.isEmpty else { return false }
@@ -169,7 +170,7 @@ public struct PullCommand: Command {
                 (attributes[.size] as? NSNumber)?.int64Value == file.size
             else { return false }
         }
-        postNotification("com.dinoki.osaurus.control.modelsReload", [:])
+        postNotification("modelsReload", [:])
         return true
     }
 
@@ -180,13 +181,15 @@ public struct PullCommand: Command {
     static func resolveLocalDirectory(
         for modelId: String,
         environment: [String: String] = ProcessInfo.processInfo.environment,
-        appDefaults: UserDefaults? = UserDefaults(suiteName: "com.dinoki.osaurus"),
+        appDefaults: UserDefaults? = UserDefaults(suiteName: Brand.defaultsDomain),
+        legacyAppDefaults: UserDefaults? = UserDefaults(suiteName: Brand.Legacy.defaultsDomain),
         sharedDefaults: UserDefaults? = UserDefaults(suiteName: "group.com.osaurus.shared"),
         home: URL = FileManager.default.homeDirectoryForCurrentUser
     ) -> URL? {
         let base = Configuration.resolveModelsDirectoryWithSource(
             environment: environment,
             appDefaults: appDefaults,
+            legacyAppDefaults: legacyAppDefaults,
             sharedDefaults: sharedDefaults,
             home: home
         ).url

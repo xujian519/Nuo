@@ -11,7 +11,7 @@
 import Foundation
 
 public enum SearchProviderKeychain {
-    private static let service = "ai.osaurus.search"
+    private static let service = OsaurusKeychainServices.searchProviders
 
     @discardableResult
     public static func saveSecret(_ value: String, field: String, for definitionId: String) -> Bool {

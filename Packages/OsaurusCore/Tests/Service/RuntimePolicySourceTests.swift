@@ -2963,10 +2963,15 @@ struct RuntimePolicySourceTests {
         // absence of any filesystem mutation in the audit module.
         #expect(standards.contains("case homeDotDirectory = \"home_dot_directory\""))
         #expect(standards.contains("\"root_home_dot_directory_not_apple_spec\""))
+        #expect(standards.contains("\"legacy_home_dot_root_present\""))
         #expect(standards.contains("\"legacy_application_support_root_present\""))
-        #expect(standards.contains("\"migration_decision_pending\""))
+        #expect(standards.contains("\"root_relocation_deferred\""))
         #expect(standards.contains("\"spec_compliant\""))
-        #expect(standards.contains("legacyApplicationSupportFolderName = \"com.dinoki.osaurus\""))
+        #expect(
+            standards.contains(
+                "legacyApplicationSupportFolderName = Brand.Legacy.appSupportDirectoryName"
+            )
+        )
         #expect(!standards.contains("copyItem"))
         #expect(!standards.contains("moveItem"))
         #expect(!standards.contains("removeItem"))

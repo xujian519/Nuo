@@ -18,7 +18,7 @@ public struct ManifestValidate {
 
     public static func execute(args: [String]) {
         guard let path = args.first, !path.isEmpty else {
-            fputs("Usage: osaurus manifest validate <manifest.json>\n", stderr)
+            fputs("Usage: nuo manifest validate <manifest.json>\n", stderr)
             exit(EXIT_FAILURE)
         }
 

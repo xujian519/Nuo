@@ -9,13 +9,15 @@
 //    huggingface://?model=<org/repo>&file=<path>
 //        The original Osaurus link. Kept for existing callers.
 //
-//    osaurus://open_from_hf?model=<org/repo>&file=<path>
-//        The shape Hugging Face generates for the "Use this model" → Osaurus
+//    nuo://open_from_hf?model=<org/repo>&file=<path>
+//        The shape Hugging Face generates for the "Use this model" → Nuo
 //        entry on huggingface.co (`packages/tasks/src/local-apps.ts` in
 //        huggingface/huggingface.js). Hugging Face's convention is that every
 //        local app owns its scheme and exposes an `open_from_hf` host, so the
 //        Hub can't accidentally launch a different app that also registered
-//        the generic `huggingface` scheme.
+//        the generic `huggingface` scheme. The pre-rename `osaurus://` form is
+//        still accepted: registry entries and links already published point
+//        at it.
 //
 //  `model` is required. `file` is optional and only set by the Hub for
 //  repositories that carry per-file variants; MLX repos are opened as a whole.
@@ -24,13 +26,14 @@
 //
 
 import Foundation
+import OsaurusRepository
 
 public struct HuggingFaceModelDeepLink: Equatable, Sendable {
     /// Scheme of the original Osaurus link (`huggingface://?model=…`).
     public static let legacyScheme = "huggingface"
-    /// Host under the `osaurus://` scheme that Hugging Face's local-app
-    /// registry points at (`osaurus://open_from_hf?model=…`).
-    public static let osaurusHost = "open_from_hf"
+    /// Host under the app's own scheme that Hugging Face's local-app registry
+    /// points at (`nuo://open_from_hf?model=…`).
+    public static let appHost = "open_from_hf"
 
     public let modelId: String
     public let file: String?
@@ -58,11 +61,11 @@ public struct HuggingFaceModelDeepLink: Equatable, Sendable {
         return HuggingFaceModelDeepLink(modelId: modelId, file: value("file"))
     }
 
-    /// True when the scheme/host pair is one of the two model deep-link
-    /// shapes, regardless of whether the query is well formed.
+    /// True when the scheme/host pair is one of the model deep-link shapes,
+    /// regardless of whether the query is well formed.
     public static func matches(_ url: URL) -> Bool {
         let scheme = url.scheme?.lowercased()
         if scheme == legacyScheme { return true }
-        return scheme == "osaurus" && url.host?.lowercased() == osaurusHost
+        return Brand.ownsURLScheme(scheme) && url.host?.lowercased() == appHost
     }
 }

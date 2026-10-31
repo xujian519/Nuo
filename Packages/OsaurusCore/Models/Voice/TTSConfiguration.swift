@@ -100,7 +100,7 @@ public struct TTSConfiguration: Codable, Equatable, Sendable {
 /// which on the main thread shows up as Sentry app-hang events. The serial
 /// queue also orders a save against a following load.
 public enum TTSRemoteAPIKeyStore {
-    private static let service = "ai.osaurus.tts.remote"
+    private static let service = OsaurusKeychainServices.ttsRemote
     private static let account = "apiKey"
     private static let queue = DispatchQueue(label: "ai.osaurus.tts.keychain", qos: .utility)
 

@@ -187,7 +187,7 @@ public struct CoordCommand: Command {
 
     private static func printUsage() {
         let usage = """
-            osaurus coord <subcommand> [--root PATH]
+            nuo coord <subcommand> [--root PATH]
 
             Foundation subcommands:
               init                         Create coordinator directories and seed state
@@ -213,10 +213,10 @@ enum CoordCommandError: LocalizedError, Equatable {
         case .missingRootValue:
             return "--root requires a path."
         case .invalidFeatureFlagsUsage:
-            return "Usage: osaurus coord feature-flags [list|get <name>|set <name> <true|false>]"
+            return "Usage: nuo coord feature-flags [list|get <name>|set <name> <true|false>]"
         case .invalidLockUsage:
             return
-                "Usage: osaurus coord lock [list|acquire <resource> --owner <owner> [--ttl seconds]|release <resource> --owner <owner> [--force]|reap]"
+                "Usage: nuo coord lock [list|acquire <resource> --owner <owner> [--ttl seconds]|release <resource> --owner <owner> [--force]|reap]"
         }
     }
 }

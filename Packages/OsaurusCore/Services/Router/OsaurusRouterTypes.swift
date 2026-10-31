@@ -1,4 +1,5 @@
 import Foundation
+import OsaurusRepository
 
 enum OsaurusRouter {
     static let productionBaseURL = URL(string: "https://router.osaurus.ai")!
@@ -424,7 +425,7 @@ struct OsaurusRouterAnnouncement: Decodable, Identifiable, Equatable, Sendable {
 
         /// `https://` page opened in the default browser.
         var isExternalURL: Bool { kind == "external_url" }
-        /// `osaurus://` link routed through the app's own URL handler.
+        /// App-scheme link routed through the app's own URL handler.
         var isDeepLink: Bool { kind == "deeplink" }
         var isPrimary: Bool { (style ?? "").lowercased() == "primary" }
 
@@ -433,7 +434,7 @@ struct OsaurusRouterAnnouncement: Decodable, Identifiable, Equatable, Sendable {
         var resolvedURL: URL? {
             guard let url = URL(string: url), let scheme = url.scheme?.lowercased() else { return nil }
             if isExternalURL { return scheme == "https" ? url : nil }
-            if isDeepLink { return scheme == "osaurus" ? url : nil }
+            if isDeepLink { return Brand.ownsURLScheme(scheme) ? url : nil }
             return nil
         }
     }

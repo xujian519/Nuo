@@ -20,6 +20,7 @@
 //
 
 import Foundation
+import OsaurusRepository
 
 @MainActor
 enum WorkspacesDeepLinkRouter {
@@ -31,19 +32,21 @@ enum WorkspacesDeepLinkRouter {
     nonisolated static let activatePath = "/activate"
     nonisolated static let joinPath = "/join"
 
-    /// True when `url` is an `osaurus://` link on the current or legacy host.
+    /// True when `url` is an app-scheme link (current or pre-rename scheme) on
+    /// the current or legacy host.
     nonisolated static func claims(_ url: URL) -> Bool {
-        url.scheme?.lowercased() == "osaurus"
+        Brand.ownsURLScheme(url.scheme)
             && hosts.contains(url.host?.lowercased() ?? "")
     }
 
-    /// Rewrites a legacy `osaurus://teams/...` link to the current host so
-    /// links the router still mints under the old name are displayed and
-    /// copied in the new form. Anything else is returned untouched.
+    /// Rewrites a pre-rename-scheme `...://teams/...` link to the current
+    /// scheme and host, so links the router still mints under the old names
+    /// are displayed and copied in the new form. Anything else is returned
+    /// untouched.
     nonisolated static func normalized(_ link: String) -> String {
-        let prefix = "osaurus://\(legacyHost)/"
+        let prefix = "\(Brand.Legacy.urlScheme)://\(legacyHost)/"
         guard link.lowercased().hasPrefix(prefix) else { return link }
-        return "osaurus://\(host)/" + link.dropFirst(prefix.count)
+        return "\(Brand.urlScheme)://\(host)/" + link.dropFirst(prefix.count)
     }
 
     /// Pure parse so the shape can be unit-tested without the main-actor

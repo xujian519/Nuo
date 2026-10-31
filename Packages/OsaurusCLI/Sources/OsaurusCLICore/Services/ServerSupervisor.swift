@@ -59,7 +59,7 @@ public struct ServerSupervisor: Sendable {
     /// Run the supervise loop. Returns only after `maxIterations` iterations;
     /// in production (`maxIterations == nil`) it never returns.
     public func run() async {
-        log("supervising osaurus server on port \(port) (probe every \(Int(probeInterval))s)")
+        log("supervising nuo server on port \(port) (probe every \(Int(probeInterval))s)")
         var wasHealthy = true
         var iteration = 0
         while maxIterations.map({ iteration < $0 }) ?? true {

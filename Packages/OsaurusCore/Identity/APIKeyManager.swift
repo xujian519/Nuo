@@ -17,7 +17,7 @@ public final class APIKeyManager: @unchecked Sendable {
     private var keys: [AccessKeyInfo] = []
     private var didLoadFromKeychain = false
 
-    private static let keychainService = "com.osaurus.access-keys"
+    private static let keychainService = OsaurusKeychainServices.accessKeys
     private static let keychainAccount = "key-metadata"
 
     private init() {}

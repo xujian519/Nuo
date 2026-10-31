@@ -16,7 +16,7 @@ public final class WhitelistStore: @unchecked Sendable {
     private var masterAddresses: Set<String> = []
     private var agentAddresses: [String: Set<String>] = [:]
 
-    private static let keychainService = "com.osaurus.whitelist"
+    private static let keychainService = OsaurusKeychainServices.addressAllowlist
     private static let keychainAccount = "whitelist-data"
 
     private init() {

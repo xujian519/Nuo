@@ -47,7 +47,7 @@ public struct ServeCommand: Command {
         if expose && !assumeYes {
             // Security warning prompt
             let warning = """
-                WARNING: Exposing Osaurus to the local network will allow other devices on your LAN
+                WARNING: Exposing Nuo to the local network will allow other devices on your LAN
                 to connect to your server. Make sure you trust your network and understand the risks.
                 Proceed with exposure? [y/N]: 
                 """
@@ -87,10 +87,7 @@ public struct ServeCommand: Command {
                     var info: [AnyHashable: Any] = [:]
                     if let p = serveDesiredPort { info["port"] = p }
                     if serveExpose { info["expose"] = true }
-                    AppControl.postDistributedNotification(
-                        name: "com.dinoki.osaurus.control.serve",
-                        userInfo: info
-                    )
+                    AppControl.postControlNotification(action: "serve", userInfo: info)
                 }
             )
             await supervisor.run()
@@ -99,10 +96,7 @@ public struct ServeCommand: Command {
 
         // Launch the app if not running, then post local-only distributed notification to start
         await AppControl.launchAppIfNeeded()
-        AppControl.postDistributedNotification(
-            name: "com.dinoki.osaurus.control.serve",
-            userInfo: buildInfo()
-        )
+        AppControl.postControlNotification(action: "serve", userInfo: buildInfo())
 
         // Poll health until running or timeout
         let portToCheck = desiredPort ?? (Configuration.resolveConfiguredPort() ?? 1337)
@@ -122,10 +116,7 @@ public struct ServeCommand: Command {
                     await AppControl.launchAppIfNeeded()
                     relaunched = true
                 }
-                AppControl.postDistributedNotification(
-                    name: "com.dinoki.osaurus.control.serve",
-                    userInfo: buildInfo()
-                )
+                AppControl.postControlNotification(action: "serve", userInfo: buildInfo())
                 retried = true
             }
             try? await Task.sleep(nanoseconds: 200_000_000)  // 200ms
@@ -146,7 +137,7 @@ public struct ServeCommand: Command {
             Failed to start server on port \(portToCheck)
             Diagnosis: \(diagnostic.diagnosis.rawValue)
             Next step: \(diagnostic.recommendation)
-            Run `osaurus doctor --redact` for a shareable installation report.
+            Run `nuo doctor --redact` for a shareable installation report.
             """.appending("\n"),
             stderr
         )

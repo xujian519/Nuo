@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import OsaurusRepository
 import Security
 import os.log
 
@@ -326,7 +327,37 @@ enum Keychain {
 
     /// Read (`service`, `account`) with a typed outcome distinguishing
     /// absence from transient unavailability and access denial.
+    ///
+    /// Services that were renamed by the Nuo rebrand also consult their
+    /// pre-rename name (see `Brand.Keychain`): the values did not move, only
+    /// the label they are filed under did. A legacy hit is copied forward so
+    /// the next read is a plain hit.
     static func readItem(service: String, account: String) -> KeychainReadOutcome {
+        let outcome = readItemRaw(service: service, account: account)
+        guard case .notFound = outcome,
+            let legacyService = Brand.Keychain.legacyService(forCurrent: service)
+        else { return outcome }
+
+        let legacyOutcome = readItemRaw(service: legacyService, account: account)
+        switch legacyOutcome {
+        case .found(let data):
+            // Best effort: the value is returned either way, and the keys are
+            // serialized off the caller's thread so a lazy migration cannot
+            // stall the main thread the way a synchronous SecItemAdd can.
+            writeInBackground(service: service, account: account, data: data)
+            return .found(data)
+        case .notFound:
+            return .notFound
+        case .unavailable, .accessDenied, .failure, .disabled:
+            // Never downgrade a legacy read failure to "not found": callers
+            // treat absence as "mint a new secret", which would silently
+            // overwrite data that is still there.
+            return legacyOutcome
+        }
+    }
+
+    /// Single-service read, without the legacy read-through.
+    private static func readItemRaw(service: String, account: String) -> KeychainReadOutcome {
         let (backend, bypassesGate) = currentBackend()
         if !bypassesGate, KeychainQueryHelpers.disablesKeychainForProcess { return .disabled }
         var query = baseQuery(service: service, account: account)
@@ -357,7 +388,22 @@ enum Keychain {
 
     /// Delete (`service`, `account`) with a typed outcome. A missing item
     /// counts as success (the desired end state holds).
+    ///
+    /// Also deletes the pre-rename copy, when one exists: a credential the
+    /// user asked to remove must not survive under the old label.
     static func deleteItem(service: String, account: String) -> KeychainMutationOutcome {
+        let outcome = deleteItemRaw(service: service, account: account)
+        guard outcome == .success,
+            let legacyService = Brand.Keychain.legacyService(forCurrent: service)
+        else { return outcome }
+        // Best effort. A legacy item owned by a differently signed build can
+        // refuse the delete; that residue must not fail the user's delete.
+        _ = deleteItemRaw(service: legacyService, account: account)
+        return outcome
+    }
+
+    /// Single-service delete, without the legacy sweep.
+    private static func deleteItemRaw(service: String, account: String) -> KeychainMutationOutcome {
         let (backend, bypassesGate) = currentBackend()
         if !bypassesGate, KeychainQueryHelpers.disablesKeychainForProcess { return .disabled }
         return onWriteQueueSync {
@@ -370,7 +416,47 @@ enum Keychain {
 
     /// Every attribute dictionary stored under `service`, de-duplicated on
     /// account name, with an authoritative flag for cache decisions.
+    ///
+    /// Pre-rename items are merged in (current name wins on an account
+    /// collision), so listing a store after the rename does not look empty
+    /// until each value is read.
     static func fetchAllItems(service: String, returnData: Bool) -> KeychainEnumerationOutcome {
+        let current = fetchAllItemsRaw(service: service, returnData: returnData)
+        guard let legacyService = Brand.Keychain.legacyService(forCurrent: service) else {
+            return current
+        }
+        let legacy = fetchAllItemsRaw(service: legacyService, returnData: returnData)
+        guard !legacy.items.isEmpty else {
+            guard !legacy.isDefinitive else { return current }
+            // A transient legacy failure must not let a caller cache "empty".
+            return KeychainEnumerationOutcome(
+                items: current.items,
+                status: legacy.status,
+                isDefinitive: false
+            )
+        }
+
+        var byAccount: [String: [String: Any]] = [:]
+        for item in legacy.items {
+            guard let account = item[kSecAttrAccount as String] as? String else { continue }
+            byAccount[account] = item
+        }
+        for item in current.items {
+            guard let account = item[kSecAttrAccount as String] as? String else { continue }
+            byAccount[account] = item
+        }
+        return KeychainEnumerationOutcome(
+            items: Array(byAccount.values),
+            status: current.status,
+            isDefinitive: current.isDefinitive && legacy.isDefinitive
+        )
+    }
+
+    /// Single-service enumeration, without the legacy merge.
+    private static func fetchAllItemsRaw(
+        service: String,
+        returnData: Bool
+    ) -> KeychainEnumerationOutcome {
         let (backend, bypassesGate) = currentBackend()
         if !bypassesGate, KeychainQueryHelpers.disablesKeychainForProcess {
             return KeychainEnumerationOutcome(items: [], status: errSecSuccess, isDefinitive: true)

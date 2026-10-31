@@ -45,7 +45,7 @@ public struct MCPCommand: Command {
 
         // Build MCP server
         let server = MCP.Server(
-            name: "Osaurus MCP Proxy",
+            name: "Nuo MCP Proxy",
             version: version,
             capabilities: .init(tools: .init(listChanged: false))
         )
@@ -223,10 +223,10 @@ public struct MCPCommand: Command {
     private static func printUsage() {
         let usage = """
             Usage:
-              osaurus mcp [--access-key KEY] [--tools PATTERNS]
+              nuo mcp [--access-key KEY] [--tools PATTERNS]
 
             Runs an MCP stdio server that proxies tool discovery and calls to
-            the local Osaurus HTTP server. Local-only servers can rely on
+            the local Nuo HTTP server. Local-only servers can rely on
             loopback trust. If Server > Network exposure or Require Access Key
             for Local Admin Routes is enabled, provide an access key with
             --access-key or OSAURUS_MCP_ACCESS_KEY.
@@ -236,8 +236,8 @@ public struct MCPCommand: Command {
             proxied — which is 170+ definitions once plugins are loaded, so
             clients with a narrow purpose should scope this down:
 
-              osaurus mcp --tools "osaurus_inspect,osaurus_help"
-              osaurus mcp --tools "osaurus_*"
+              nuo mcp --tools "osaurus_inspect,osaurus_help"
+              nuo mcp --tools "osaurus_*"
 
             Excluded tools are hidden from tools/list and refused on call.
 

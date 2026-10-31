@@ -52,7 +52,7 @@ public struct BenchCommand: Command {
         let base = URL(string: "http://127.0.0.1:\(options.port)")!
 
         guard let health = await fetchJSON(base.appendingPathComponent("health")) else {
-            fputs("Server is not running on port \(options.port). Start it with `osaurus serve`.\n", stderr)
+            fputs("Server is not running on port \(options.port). Start it with `nuo serve`.\n", stderr)
             exit(EXIT_FAILURE)
         }
 
@@ -553,12 +553,12 @@ public struct BenchCommand: Command {
     private static func printUsage() {
         fputs(
             """
-            Usage: osaurus bench [--model <id>] [--prompt-tokens 1024,8192]
+            Usage: nuo bench [--model <id>] [--prompt-tokens 1024,8192]
                                  [--max-tokens 128] [--runs 3] [--json <path>] [--port N]
-                   osaurus bench --tune-prefill [--model <id>] [--candidates 512,1024,2048,4096]
+                   nuo bench --tune-prefill [--model <id>] [--candidates 512,1024,2048,4096]
                                  [--prompt-tokens 8192] [--runs 3]
 
-            Requires a running server (`osaurus serve`). Reports uncached/cached
+            Requires a running server (`nuo serve`). Reports uncached/cached
             TTFT, prefill tok/s, and decode tok/s per prompt size as JSON.
 
             --tune-prefill measures the model's TTFT at each candidate prefill

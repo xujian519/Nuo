@@ -171,7 +171,7 @@ public struct ConfigCommand: Command {
             index += 1
         }
         guard let filePath else {
-            fputs("Usage: osaurus config \(apply ? "apply" : "plan") <file.yaml> [--prune]\n", stderr)
+            fputs("Usage: nuo config \(apply ? "apply" : "plan") <file.yaml> [--prune]\n", stderr)
             exit(EXIT_FAILURE)
         }
         // Server-side documents are capped at 512 KB (`OsaurusConfigTool
@@ -317,7 +317,7 @@ public struct ConfigCommand: Command {
             }
             return object
         } catch {
-            fputs("Could not reach the Osaurus server: \(error.localizedDescription)\n", stderr)
+            fputs("Could not reach the Nuo server: \(error.localizedDescription)\n", stderr)
             exit(EXIT_FAILURE)
         }
     }
@@ -336,19 +336,19 @@ public struct ConfigCommand: Command {
     private static func printUsage() {
         print(
             """
-            osaurus config - declarative Osaurus configuration
+            nuo config - declarative Nuo configuration
 
             Usage:
-              osaurus config export [-o file] [--format yaml|json]
+              nuo config export [-o file] [--format yaml|json]
                                       Print (or save) the current configuration.
                                       Secrets are never included.
-              osaurus config schema [--format yaml|json]
+              nuo config schema [--format yaml|json]
                                       Print the document schema (YAML reference or
                                       machine-readable JSON Schema).
-              osaurus config plan <file> [--prune]
+              nuo config plan <file> [--prune]
                                       Dry-run: show what applying the document would change.
                                       The file may be YAML or JSON.
-              osaurus config apply <file> [--prune] [--yes]
+              nuo config apply <file> [--prune] [--yes]
                                       Apply the document. --prune deletes entries not listed
                                       in the document's declared sections (destructive).
                                       High-risk changes (prune deletions, screen/browser
@@ -364,7 +364,7 @@ public struct ConfigCommand: Command {
             OSAURUS_API_KEY (also OSAURUS_ACCESS_KEY, OSAURUS_MCP_ACCESS_KEY).
 
             Exit codes (apply): 0 = fully applied; 1 = a change failed or was
-            cancelled; 3 = applied, but a step must be finished in the Osaurus
+            cancelled; 3 = applied, but a step must be finished in the Nuo
             app (e.g. credentials — secrets never travel through documents).
             """
         )

@@ -10,7 +10,7 @@ import Foundation
 public struct ToolsUninstall {
     public static func execute(args: [String]) {
         guard let target = args.first, !target.isEmpty else {
-            fputs("Usage: osaurus tools uninstall <plugin_id|folder|path>\n", stderr)
+            fputs("Usage: nuo tools uninstall <plugin_id|folder|path>\n", stderr)
             exit(EXIT_FAILURE)
         }
         let fm = FileManager.default
@@ -27,7 +27,7 @@ public struct ToolsUninstall {
             exit(EXIT_FAILURE)
         }
         // Notify app to reload
-        AppControl.postDistributedNotification(name: "com.dinoki.osaurus.control.toolsReload", userInfo: [:])
+        AppControl.postControlNotification(action: "toolsReload", userInfo: [:])
         exit(EXIT_SUCCESS)
     }
 

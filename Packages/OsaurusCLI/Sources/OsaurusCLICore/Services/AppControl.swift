@@ -8,8 +8,14 @@
 import Foundation
 import AppKit
 import Darwin
+import OsaurusRepository
 
 public struct AppControl {
+    /// Bundle identifiers this CLI can drive, newest first. The app shipped as
+    /// `com.dinoki.osaurus` before the Nuo rename; keeping it second lets a CLI
+    /// and an app from adjacent builds find each other for one release.
+    public static let appBundleIdentifiers = [Brand.bundleID, Brand.Legacy.bundleID]
+
     public static func postDistributedNotification(name: String, userInfo: [AnyHashable: Any]) {
         // Use DistributedNotificationCenter to reach the app; restrict to local machine by default
         DistributedNotificationCenter.default().postNotificationName(
@@ -17,6 +23,20 @@ public struct AppControl {
             object: nil,
             userInfo: userInfo,
             deliverImmediately: true
+        )
+    }
+
+    /// Post a control action (`serve`, `stop`, `ui`, `modelsReload`,
+    /// `toolsReload`) to the running app.
+    ///
+    /// Sent under both the current and the pre-rename notification name for
+    /// one release, so a CLI and an app from adjacent builds still drive each
+    /// other; the app observes both for the same window.
+    public static func postControlNotification(action: String, userInfo: [AnyHashable: Any]) {
+        postDistributedNotification(name: Brand.controlNotification(action), userInfo: userInfo)
+        postDistributedNotification(
+            name: Brand.Legacy.controlNotification(action),
+            userInfo: userInfo
         )
     }
 
@@ -28,13 +48,16 @@ public struct AppControl {
 
         // Launch the app via `open -b` by bundle id, with fallback to explicit app path search
         var launched = false
-        do {
+        for bundleID in appBundleIdentifiers {
             let openByBundle = Process()
             openByBundle.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-            openByBundle.arguments = ["-n", "-b", "com.dinoki.osaurus", "--args", "--launched-by-cli"]
+            openByBundle.arguments = ["-n", "-b", bundleID, "--args", "--launched-by-cli"]
             try? openByBundle.run()
             openByBundle.waitUntilExit()
-            launched = (openByBundle.terminationStatus == 0)
+            if openByBundle.terminationStatus == 0 {
+                launched = true
+                break
+            }
         }
         // Even if `open -b` returned success, verify the app process actually
         // came up (LaunchServices can fail to resolve the bundle id for some
@@ -45,9 +68,7 @@ public struct AppControl {
         var appIsRunning = false
         if launched {
             for _ in 0..<20 {  // up to ~2s
-                if !NSRunningApplication.runningApplications(
-                    withBundleIdentifier: "com.dinoki.osaurus"
-                ).isEmpty {
+                if runningAppBundlePath() != nil {
                     appIsRunning = true
                     break
                 }
@@ -66,7 +87,7 @@ public struct AppControl {
         }
         if !launched {
             fputs(
-                "Could not launch Osaurus.app. Install it with Homebrew: brew install --cask osaurus\n",
+                "Could not launch Nuo.app. Install it into /Applications and run this command again.\n",
                 stderr
             )
             return
@@ -94,18 +115,22 @@ public struct AppControl {
         let home = NSHomeDirectory()
         let candidates = commonAppBundlePaths()
         var paths = candidates.filter { fm.fileExists(atPath: $0) }
-        if let launchServicesSelection = NSWorkspace.shared.urlForApplication(
-            withBundleIdentifier: "com.dinoki.osaurus"
-        ) {
-            paths.append(launchServicesSelection.path)
+        for bundleID in appBundleIdentifiers {
+            if let launchServicesSelection = NSWorkspace.shared.urlForApplication(
+                withBundleIdentifier: bundleID
+            ) {
+                paths.append(launchServicesSelection.path)
+            }
         }
         if includeSpotlightSearch {
-            let query = "kMDItemCFBundleIdentifier == 'com.dinoki.osaurus'"
-            paths.append(contentsOf: spotlightFindAll(queryArgs: ["-onlyin", "/Applications", query]))
-            paths.append(contentsOf: spotlightFindAll(queryArgs: ["-onlyin", "\(home)/Applications", query]))
-            // Preserve discovery of side-loaded and development bundles that
-            // are indexed but not currently registered with LaunchServices.
-            paths.append(contentsOf: spotlightFindAll(queryArgs: [query]))
+            for bundleID in appBundleIdentifiers {
+                let query = "kMDItemCFBundleIdentifier == '\(bundleID)'"
+                paths.append(contentsOf: spotlightFindAll(queryArgs: ["-onlyin", "/Applications", query]))
+                paths.append(contentsOf: spotlightFindAll(queryArgs: ["-onlyin", "\(home)/Applications", query]))
+                // Preserve discovery of side-loaded and development bundles that
+                // are indexed but not currently registered with LaunchServices.
+                paths.append(contentsOf: spotlightFindAll(queryArgs: [query]))
+            }
         }
         return deduplicatedBundlePaths(paths.filter {
             fm.fileExists(atPath: $0) && URL(fileURLWithPath: $0).pathExtension.lowercased() == "app"
@@ -114,6 +139,8 @@ public struct AppControl {
 
     private static func commonAppBundlePaths() -> [String] {
         [
+            "/Applications/Nuo.app",
+            "\(NSHomeDirectory())/Applications/Nuo.app",
             "/Applications/Osaurus.app",
             "\(NSHomeDirectory())/Applications/Osaurus.app",
             "/Applications/osaurus.app",
@@ -136,8 +163,14 @@ public struct AppControl {
 
     @MainActor
     public static func runningAppBundlePath() -> String? {
-        NSRunningApplication.runningApplications(withBundleIdentifier: "com.dinoki.osaurus")
-            .first?.bundleURL?.path
+        for bundleID in appBundleIdentifiers {
+            if let path = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+                .first?.bundleURL?.path
+            {
+                return path
+            }
+        }
+        return nil
     }
 
     /// Runs mdfind with the provided arguments and returns existing result paths.

@@ -9,7 +9,7 @@ import Foundation
 
 public struct ToolsReload {
     public static func execute(args: [String]) {
-        AppControl.postDistributedNotification(name: "com.dinoki.osaurus.control.toolsReload", userInfo: [:])
+        AppControl.postControlNotification(action: "toolsReload", userInfo: [:])
         print("Reload signal sent.")
         exit(EXIT_SUCCESS)
     }

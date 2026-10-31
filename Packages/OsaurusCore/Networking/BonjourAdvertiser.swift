@@ -8,17 +8,24 @@
 
 import Combine
 import Foundation
+import OsaurusRepository
 import os
 
-/// Manages Bonjour advertisement of Osaurus agents.
-/// Each agent is published as a `_osaurus._tcp` service carrying the agent's
+/// Manages Bonjour advertisement of agents.
+/// Each agent is published as a `_nuo._tcp` service carrying the agent's
 /// id, description, and crypto address in its TXT record.
 @MainActor
 public final class BonjourAdvertiser: NSObject {
     public static let shared = BonjourAdvertiser()
 
-    /// Bonjour service type for Osaurus agents.
-    public static let serviceType = "_osaurus._tcp."
+    /// Bonjour service type for agents, as the renamed app advertises it.
+    public static let serviceType = "\(Brand.bonjourServiceTypes[0])."
+
+    /// The pre-rename service type. It stays the *primary* registration for
+    /// one release: it is what every shipping client browses, and it owns the
+    /// publish/retry state machine below. The renamed type rides along as a
+    /// silent companion.
+    public static let legacyServiceType = "\(Brand.Legacy.bonjourServiceTypes[0])."
 
     /// DNS-SD instance names are limited to 63 bytes. The UUID suffix
     /// (`@<uuid>` = 37 bytes) must stay intact for identity, so the display
@@ -30,6 +37,11 @@ public final class BonjourAdvertiser: NSObject {
     static let maxTXTDescriptionBytes = 200
 
     private var services: [UUID: NetService] = [:]
+    /// Second registration of the same agent under the renamed service type,
+    /// with no delegate: a refused publish is simply absent from the LAN
+    /// rather than a retry loop or a user-visible failure. Promoted to
+    /// primary (and the legacy type dropped) once clients browse the new type.
+    private var companionServices: [UUID: NetService] = [:]
     /// The instance name we asked mDNS to publish per agent. mDNS may rename
     /// the live service on conflict ("Name (2)"); comparing against what we
     /// REQUESTED (instead of `service.name`) prevents an endless
@@ -76,7 +88,9 @@ public final class BonjourAdvertiser: NSObject {
     func stopAdvertising() {
         isAdvertising = false
         for service in services.values { service.stop() }
+        for service in companionServices.values { service.stop() }
         services.removeAll()
+        companionServices.removeAll()
         requestedNames.removeAll()
         publishedTXT.removeAll()
         publishRetryCounts.removeAll()
@@ -93,6 +107,8 @@ public final class BonjourAdvertiser: NSObject {
         for id in services.keys where !bonjourEnabledIds.contains(id) {
             services[id]?.stop()
             services.removeValue(forKey: id)
+            companionServices[id]?.stop()
+            companionServices.removeValue(forKey: id)
             requestedNames.removeValue(forKey: id)
             publishedTXT.removeValue(forKey: id)
             publishRetryCounts.removeValue(forKey: id)
@@ -119,6 +135,10 @@ public final class BonjourAdvertiser: NSObject {
                 publish(agent: agent, name: expectedName, txt: txt)
             case .updateTXT:
                 services[agent.id]?.setTXTRecord(txt)
+                // The renamed-type companion is a second registration of the
+                // same advertisement, so it must carry the same payload; it has
+                // no delegate to receive anything on its own.
+                companionServices[agent.id]?.setTXTRecord(txt)
                 publishedTXT[agent.id] = txt
             case .none:
                 break
@@ -179,7 +199,7 @@ public final class BonjourAdvertiser: NSObject {
     private func publish(agent: Agent, name: String, txt: Data) {
         let service = NetService(
             domain: "",  // empty = local. domain
-            type: Self.serviceType,
+            type: Self.legacyServiceType,
             name: name,
             port: Int32(currentPort)
         )
@@ -189,6 +209,19 @@ public final class BonjourAdvertiser: NSObject {
         services[agent.id] = service
         requestedNames[agent.id] = name
         publishedTXT[agent.id] = txt
+
+        // Companion registration under the renamed type. Delegate-less on
+        // purpose: its lifecycle is driven by the primary above.
+        companionServices[agent.id]?.stop()
+        let companion = NetService(
+            domain: "",
+            type: Self.serviceType,
+            name: name,
+            port: Int32(currentPort)
+        )
+        companion.setTXTRecord(txt)
+        companion.publish()
+        companionServices[agent.id] = companion
     }
 
     /// Build the TXT record advertised for an agent. `static` (a pure function
@@ -250,6 +283,7 @@ public final class BonjourAdvertiser: NSObject {
             agent.bonjourEnabled
         else { return }
         services[id]?.stop()
+        companionServices[id]?.stop()
         publish(agent: agent, name: Self.instanceName(for: agent), txt: Self.txtRecord(for: agent))
     }
 

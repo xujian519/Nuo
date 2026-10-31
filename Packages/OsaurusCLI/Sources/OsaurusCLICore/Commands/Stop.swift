@@ -11,7 +11,7 @@ public struct StopCommand: Command {
     public static let name = "stop"
 
     public static func execute(args: [String]) async {
-        AppControl.postDistributedNotification(name: "com.dinoki.osaurus.control.stop", userInfo: [:])
+        AppControl.postControlNotification(action: "stop", userInfo: [:])
         // Verify stopped within a short timeout
         let port = Configuration.resolveConfiguredPort() ?? 1337
         let deadline = Date().addingTimeInterval(3.0)

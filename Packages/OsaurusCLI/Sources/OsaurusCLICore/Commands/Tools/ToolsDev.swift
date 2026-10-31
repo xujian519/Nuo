@@ -64,9 +64,9 @@ public struct ToolsDev {
         guard fm.fileExists(atPath: configURL.path) else {
             fputs("No osaurus-plugin.json found in current directory.\n", stderr)
             fputs("Run this command from a plugin project root, or pass a plugin_id:\n", stderr)
-            fputs("  osaurus tools dev <plugin_id>\n\n", stderr)
+            fputs("  nuo tools dev <plugin_id>\n\n", stderr)
             fputs("To create a new plugin project:\n", stderr)
-            fputs("  osaurus tools create MyPlugin\n", stderr)
+            fputs("  nuo tools create MyPlugin\n", stderr)
             exit(EXIT_FAILURE)
         }
 
@@ -400,10 +400,7 @@ public struct ToolsDev {
     // MARK: - Shared Helpers
 
     private static func sendReload() {
-        AppControl.postDistributedNotification(
-            name: "com.dinoki.osaurus.control.toolsReload",
-            userInfo: [:]
-        )
+        AppControl.postControlNotification(action: "toolsReload", userInfo: [:])
     }
 
     private static func setupWebProxy(pluginId: String, webProxyURL: String?) {

@@ -106,7 +106,7 @@ public struct ShowCommand: Command {
     public static func execute(args: [String]) async {
         guard let modelArg = args.first, !modelArg.isEmpty else {
             fputs("Missing required <model_id>\n", stderr)
-            fputs("Usage: osaurus show <model_id>\n", stderr)
+            fputs("Usage: nuo show <model_id>\n", stderr)
             exit(EXIT_FAILURE)
         }
 

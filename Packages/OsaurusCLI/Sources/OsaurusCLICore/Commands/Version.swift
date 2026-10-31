@@ -25,9 +25,9 @@ public struct VersionCommand: Command {
             executablePath: executablePath
         )
         if let version = resolved.version, let build = resolved.build {
-            return "Osaurus \(version) (\(build))"
+            return "Nuo \(version) (\(build))"
         }
-        if let version = resolved.version { return "Osaurus \(version)" }
-        return "Osaurus dev"
+        if let version = resolved.version { return "Nuo \(version)" }
+        return "Nuo dev"
     }
 }

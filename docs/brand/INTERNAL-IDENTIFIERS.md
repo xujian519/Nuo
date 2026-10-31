@@ -52,9 +52,10 @@ rg -o --no-filename -F '<字面量>' | wc -l     # 单个字面量的出现次�
 | `ai.osaurus.*`（97 个不同键） | 191 处 | UserDefaults 键名 + Keychain 命名空间；bundle id 变了但键名不需要变 |
 | 日志 subsystem `ai.osaurus` | — | 与 `log stream --subsystem ai.osaurus` 的既有用法绑定 |
 | `group.com.osaurus.shared` | — | App Group id，改动会使既有共享容器失联 |
-| `ai.osaurus.id` / `osk-v1.` | — | Osaurus ID 会话令牌与密钥编码前缀 |
+| `ai.osaurus.id` / `osk-v1.` | — | Osaurus ID 会话令牌与密钥编码前缀。`ai.osaurus.id` 是 Keychain service 名，令牌由上游 `*.osaurus.ai` 身份服务签发，改名只会把已登录会话弄丢——它是唯一一个**不改名**的 Keychain service（`Brand.Keychain.identitySession.legacy = nil`） |
 | `com.dinoki.osaurus.control.*` | — | 分布式通知名；CLI 侧双发一个版本 |
-| dispatch queue label `ai.osaurus.*` | — | 只在调试器里可见，改无收益 |
+| dispatch queue label `ai.osaurus.*` / `com.dinoki.osaurus.*` | — | 只在调试器与 `log stream` 过滤里可见，改无收益 |
+| `com.dinoki.osaurus` 日志 subsystem | — | 同上；日志口径不是品牌面 |
 
 ## 5. 上游地址与产物
 
@@ -63,18 +64,44 @@ rg -o --no-filename -F '<字面量>' | wc -l     # 单个字面量的出现次�
 | `github.com/osaurus-ai/vmlx-swift` 等上游仓库地址 | 包依赖来源，改了拉不到代码 |
 | `www.osaurus.ai` API 域名 | 上游云服务端点，改名不会让服务出现在 nuo 域名下 |
 | `osaurus-cli` / `osaurus-plugin-host` / `osaurus-evals` | SwiftPM product 名与 CI 二进制名（用户看到的是 `nuo`，内部名不变） |
-| CI artifact 内部名、Sentry release 名 | 只影响流水线与仪表盘，改名会让历史断档 |
+| CI artifact 内部名（`nuo-app-*` / `nuo-release-*`） | 只在 Actions 页面里可见；同一 workflow 内成对使用，上游没有跨 run 按名下载，跟着品牌走 |
+| Sentry release 名 | **不冻结**：Cocoa SDK 用 `<CFBundleIdentifier>@<version>` 作为 release 名，bundle id 变了就必须跟着变，否则 dSYM 传到没人上报的 release 下 |
 | `docs/evidence/**`、`results/**`、`reports/**` | 历史证据。改写已归档的证明等于伪造证据 |
 
 ---
 
-## 6. 明确**不**冻结的东西
+## 6. 加密域分隔串与签名 payload（改一位就丢数据/验签失败）
+
+这些字符串是**密码学契约**：它们分隔不同用途的密钥派生与签名输入。改名不会带来任何用户可见收益，
+只会让已加密数据无法解密、已发出的邀请/配对/隧道握手全部验签失败。因此即使它们的字面量带着
+`osaurus`，也必须原样保留。
+
+| 标识符 | 位置 | 后果 |
+|---|---|---|
+| `osaurus-storage-v1` | `StorageKeyManager.hkdfInfo` | SQLCipher DEK 的 HKDF info。改了 → 已加密会话库打不开 |
+| `osaurus-agent-v1` / `osaurus-agent-v2` | `AgentKey` | 代理主密钥/地址派生域 |
+| `osaurus-pair-v1` / `osaurus-pair-v2` / `osaurus-pair-key-v1` | `PairingKey`、`PairingSPAKE2`、`PairingKeyEnvelope` | 设备配对与密钥信封 |
+| `osaurus-pairing-server-v1` | `CryptoHelpers` | 配对服务端签名 |
+| `osaurus-sc1` | `SecureChannel` | Secure Channel 握手 transcript 域 |
+| `osaurus-id` | `IdentityModels`（`typ`） | 身份令牌类型 |
+| `osaurus-agent-invite-v1:` | `AgentInvite.signingPayload` | 邀请链接签名；改了旧链接一律签名不匹配 |
+| `osaurus-credits:` / `osaurus-owner:redeem:` / `osaurus-workspaces:redeem:` / `osaurus-teams:redeem:` | 钱包签名 payload | 服务端按旧串验签，改了兑换全部失败 |
+| `osaurus-tunnel:` | `RelayTunnelManager` | 中继隧道鉴权串 |
+| `osaurus-bundle.json` / `osaurus-manifest.json` / `osaurus-plugin.json` | 清单文件名 | 仓库外已有实例；改名读不到已发布插件/模型包 |
+| `group.com.osaurus.shared` | App Group | 既有共享容器 |
+
+> 取证：`rg -n '"osaurus-[a-z0-9]+' -g '*.swift' Packages/OsaurusCore | grep -v /Tests/`
+
+---
+
+## 7. 明确**不**冻结的东西
 
 下面这些看起来像标识符，但属于品牌面，必须改：
 
-- `~/.osaurus` → `~/.nuo`（数据根，随迁移一起换）
+- `~/.osaurus` → `~/.nuo`（数据根，随迁移一起换；旧树整版保留）
 - `com.dinoki.osaurus`（bundle id；构建配置里改，迁移代码里作为 legacy 常量保留）
-- `_osaurus._tcp` / `_osaurus-mobile._tcp`（兼容期双注册，但新服务名以 `_nuo` 为主）
-- 15 个 Keychain service 名（改名 + 迁移，失败要有明确 UI）
+- `_osaurus._tcp` / `_osaurus-mobile._tcp`（兼容期双注册 + **双浏览**：`BonjourBrowserCore` 同时浏览 `_nuo._tcp.` 与旧类型，按 agent id 去重，只有两种类型都消失才在宽限期后下线）
+- `osaurus://`（兼容期双注册 + **双解析**：`Brand.ownsURLScheme(_:)` 同时接受 `nuo://` 与 `osaurus://`；新链接一律按 `nuo://` 生成）
+- 14 个 Keychain service 名（改名 + 懒迁移；`ai.osaurus.id` 不动，见第 4 节；失败必须原样上报，绝不降级成 `notFound`）
 - `Contents/Helpers/osaurus`（改名 `nuo`，旧名留软链）
 - `LICENSE` 里的版权行（等书面指示，不在本轮范围）

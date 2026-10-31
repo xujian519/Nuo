@@ -27,7 +27,7 @@ public struct RemoteProviderOAuthTokens: Codable, Sendable, Equatable {
 
 /// Keychain wrapper for secure remote provider credential storage
 public enum RemoteProviderKeychain {
-    private static let service = "ai.osaurus.remote"
+    private static let service = OsaurusKeychainServices.remoteProviders
 
     public static func runOffCooperativeExecutor<T: Sendable>(
         _ operation: @escaping @Sendable () -> T

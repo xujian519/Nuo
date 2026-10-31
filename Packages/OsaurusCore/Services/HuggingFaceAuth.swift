@@ -12,7 +12,7 @@ import Foundation
 import os
 
 enum HuggingFaceAuth {
-    private static let keychainService = "com.dinoki.osaurus.huggingface"
+    private static let keychainService = OsaurusKeychainServices.huggingFace
     private static let keychainAccount = "access-token"
 
     /// Two-level optional: outer `nil` means "not read from the keychain

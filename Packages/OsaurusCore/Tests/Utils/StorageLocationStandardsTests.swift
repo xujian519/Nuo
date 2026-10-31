@@ -2,10 +2,10 @@
 //  StorageLocationStandardsTests.swift
 //
 //  Pin the #1422 storage-location audit: classification of the active
-//  app-data root, the legacy Application Support root, the models root, and
-//  the stable reason-code / JSON diagnostic surface. The classifier is a
-//  pure function over `Inputs`, so every case here is hermetic — no real
-//  home directory, no filesystem mutation, no `OsaurusPaths` global state.
+//  app-data root, both legacy roots, the models root, and the stable
+//  reason-code / JSON diagnostic surface. The classifier is a pure function
+//  over `Inputs`, so every case here is hermetic — no real home directory, no
+//  filesystem mutation, no `OsaurusPaths` global state.
 //
 
 import Foundation
@@ -17,26 +17,33 @@ import Testing
 struct StorageLocationStandardsTests {
 
     private func makeInputs(
-        activeRootPath: String = "/Users/sam/.osaurus",
+        activeRootPath: String = "/Users/sam/.nuo",
         rootSource: StorageLocationStandards.RootSource = .standard,
         home: String = "/Users/sam",
         support: String? = "/Users/sam/Library/Application Support",
-        legacyPresent: Bool = false,
-        legacyMergeMarked: Bool = false,
+        legacyHomePresent: Bool = false,
+        legacyHomeMergeMarked: Bool = false,
+        legacySupportPresent: Bool = false,
+        legacySupportMergeMarked: Bool = false,
         candidatePresent: Bool = false,
         modelsRootPath: String = "/Users/sam/MLXModels"
     ) -> StorageLocationStandards.Inputs {
-        let markerPath = "\(activeRootPath)/\(OsaurusPaths.legacyApplicationSupportMergeMarkerName)"
+        let markerName = OsaurusPaths.legacyApplicationSupportMergeMarkerName
+        let legacyHomeRoot = "\(home)/.osaurus"
         return StorageLocationStandards.Inputs(
             activeRootPath: activeRootPath,
             rootSource: rootSource,
             homeDirectoryPath: home,
             applicationSupportPath: support,
+            legacyHomeDotRootPath: legacyHomeRoot,
+            legacyHomeDotRootPresent: legacyHomePresent,
+            legacyHomeDotRootMergeMarkerPath: "\(activeRootPath)/\(markerName)",
+            legacyHomeDotRootMergeMarked: legacyHomeMergeMarked,
             legacyApplicationSupportRootPath: support.map { "\($0)/com.dinoki.osaurus" },
-            legacyApplicationSupportRootPresent: legacyPresent,
-            legacyApplicationSupportMergeMarkerPath: markerPath,
-            legacyApplicationSupportMergeMarked: legacyMergeMarked,
-            appleSpecCandidateRootPath: support.map { "\($0)/Osaurus" },
+            legacyApplicationSupportRootPresent: legacySupportPresent,
+            legacyApplicationSupportMergeMarkerPath: "\(legacyHomeRoot)/\(markerName)",
+            legacyApplicationSupportMergeMarked: legacySupportMergeMarked,
+            appleSpecCandidateRootPath: support.map { "\($0)/Nuo" },
             appleSpecCandidateRootPresent: candidatePresent,
             modelsRootPath: modelsRootPath
         )
@@ -44,7 +51,7 @@ struct StorageLocationStandardsTests {
 
     // MARK: - Root classification
 
-    @Test("Default ~/.osaurus root classifies as home dot-directory, not spec-compliant")
+    @Test("Default ~/.nuo root classifies as home dot-directory, not spec-compliant")
     func homeDotDirectoryRoot() {
         let report = StorageLocationStandards.audit(makeInputs())
 
@@ -53,7 +60,7 @@ struct StorageLocationStandardsTests {
         #expect(
             report.reasonCodes == [
                 "root_home_dot_directory_not_apple_spec",
-                "migration_decision_pending",
+                "root_relocation_deferred",
                 "models_root_home_visible_by_design",
             ]
         )
@@ -62,12 +69,23 @@ struct StorageLocationStandardsTests {
         #expect(report.findings[0].message.contains("~/.local/share"))
     }
 
+    @Test("Relocation finding states the decision is made, not pending")
+    func relocationDeferredIsNotPending() {
+        let report = StorageLocationStandards.audit(makeInputs())
+        let finding = report.findings.first { $0.code == .rootRelocationDeferred }
+
+        #expect(finding?.severity == .info)
+        #expect(finding?.message.contains("deliberately deferred") == true)
+        #expect(finding?.message.contains("pending") == false)
+        #expect(finding?.message.contains(".nuo") == true)
+    }
+
     @Test("Application Support root classifies as Apple-spec compliant with no findings")
     func applicationSupportRoot() {
         let report = StorageLocationStandards.audit(
             makeInputs(
-                activeRootPath: "/Users/sam/Library/Application Support/Osaurus",
-                modelsRootPath: "/Users/sam/Library/Application Support/Osaurus/models"
+                activeRootPath: "/Users/sam/Library/Application Support/Nuo",
+                modelsRootPath: "/Users/sam/Library/Application Support/Nuo/models"
             )
         )
 
@@ -91,19 +109,19 @@ struct StorageLocationStandardsTests {
     @Test("Dot-directory below a subfolder of home is custom, not home dot-directory")
     func nestedDotDirectoryIsCustom() {
         let report = StorageLocationStandards.audit(
-            makeInputs(activeRootPath: "/Users/sam/Documents/.osaurus")
+            makeInputs(activeRootPath: "/Users/sam/Documents/.nuo")
         )
 
         #expect(report.classification == .custom)
         #expect(!report.specCompliant)
-        #expect(report.reasonCodes.contains("root_custom_location"))
+        #expect(report.reasonCodes == ["root_custom_location"])
     }
 
     @Test("External-volume root is custom and models on the same volume are external")
     func externalVolumeRoot() {
         let report = StorageLocationStandards.audit(
             makeInputs(
-                activeRootPath: "/Volumes/External/osaurus-data",
+                activeRootPath: "/Volumes/External/nuo-data",
                 modelsRootPath: "/Volumes/External/MLXModels"
             )
         )
@@ -117,8 +135,8 @@ struct StorageLocationStandardsTests {
     func pathNormalization() {
         let report = StorageLocationStandards.audit(
             makeInputs(
-                activeRootPath: "/Users/sam/Library/Application Support/./Osaurus/",
-                modelsRootPath: "/Users/sam/Library/Application Support/Osaurus/models"
+                activeRootPath: "/Users/sam/Library/Application Support/./Nuo/",
+                modelsRootPath: "/Users/sam/Library/Application Support/Nuo/models"
             )
         )
 
@@ -132,7 +150,7 @@ struct StorageLocationStandardsTests {
     func testOverrideClassification() {
         let report = StorageLocationStandards.audit(
             makeInputs(
-                activeRootPath: "/tmp/osaurus-test",
+                activeRootPath: "/tmp/nuo-test",
                 rootSource: .testOverride
             )
         )
@@ -147,7 +165,7 @@ struct StorageLocationStandardsTests {
     func environmentOverrideClassification() {
         let report = StorageLocationStandards.audit(
             makeInputs(
-                activeRootPath: "/tmp/osaurus-test-env",
+                activeRootPath: "/tmp/nuo-test-env",
                 rootSource: .environmentOverride
             )
         )
@@ -156,18 +174,57 @@ struct StorageLocationStandardsTests {
         #expect(report.reasonCodes == ["root_environment_override"])
     }
 
-    // MARK: - Legacy root
+    // MARK: - Legacy ~/.osaurus root
+
+    @Test("Legacy ~/.osaurus root present adds a warning and the re-clone caveat")
+    func legacyHomeDotRootPresent() {
+        let report = StorageLocationStandards.audit(makeInputs(legacyHomePresent: true))
+
+        #expect(report.legacyHomeDotRootPresent)
+        #expect(
+            report.reasonCodes == [
+                "root_home_dot_directory_not_apple_spec",
+                "legacy_home_dot_root_present",
+                "root_relocation_deferred",
+                "models_root_home_visible_by_design",
+            ]
+        )
+        let legacy = report.findings.first {
+            $0.code == .legacyHomeDotRootPresent
+        }
+        #expect(legacy?.severity == .warning)
+        #expect(legacy?.message.contains(".osaurus") == true)
+        #expect(legacy?.message.contains("marker") == true)
+        #expect(legacy?.message.contains("missing") == true)
+        #expect(legacy?.message.contains("not deleted") == true)
+    }
+
+    @Test("Legacy ~/.osaurus with merge marker reports as consumed, not repeatedly re-cloned")
+    func legacyHomeDotRootWithMergeMarker() {
+        let report = StorageLocationStandards.audit(
+            makeInputs(legacyHomePresent: true, legacyHomeMergeMarked: true)
+        )
+
+        #expect(report.legacyHomeDotRootMergeMarked)
+        let legacy = report.findings.first {
+            $0.code == .legacyHomeDotRootPresent
+        }
+        #expect(legacy?.severity == .info)
+        #expect(legacy?.message.contains("will not re-merge") == true)
+    }
+
+    // MARK: - Legacy Application Support root
 
     @Test("Legacy com.dinoki.osaurus root present adds a warning and the re-merge caveat")
-    func legacyRootPresent() {
-        let report = StorageLocationStandards.audit(makeInputs(legacyPresent: true))
+    func legacySupportRootPresent() {
+        let report = StorageLocationStandards.audit(makeInputs(legacySupportPresent: true))
 
         #expect(report.legacyApplicationSupportRootPresent)
         #expect(
             report.reasonCodes == [
                 "root_home_dot_directory_not_apple_spec",
                 "legacy_application_support_root_present",
-                "migration_decision_pending",
+                "root_relocation_deferred",
                 "models_root_home_visible_by_design",
             ]
         )
@@ -178,12 +235,13 @@ struct StorageLocationStandardsTests {
         #expect(legacy?.message.contains("marker") == true)
         #expect(legacy?.message.contains("missing") == true)
         #expect(legacy?.message.contains("com.dinoki.osaurus") == true)
+        #expect(legacy?.message.contains(".osaurus") == true)
     }
 
-    @Test("Legacy root with merge marker reports as consumed, not repeatedly merged")
-    func legacyRootWithMergeMarker() {
+    @Test("Legacy Application Support root with merge marker reports as consumed")
+    func legacySupportRootWithMergeMarker() {
         let report = StorageLocationStandards.audit(
-            makeInputs(legacyPresent: true, legacyMergeMarked: true)
+            makeInputs(legacySupportPresent: true, legacySupportMergeMarked: true)
         )
 
         #expect(report.legacyApplicationSupportMergeMarked)
@@ -194,12 +252,29 @@ struct StorageLocationStandardsTests {
         #expect(legacy?.message.contains("will not re-merge") == true)
     }
 
-    @Test("Legacy root present alongside a compliant root still pends the migration decision")
+    @Test("Both legacy roots present report one finding each, oldest last")
+    func bothLegacyRootsPresent() {
+        let report = StorageLocationStandards.audit(
+            makeInputs(legacyHomePresent: true, legacySupportPresent: true)
+        )
+
+        #expect(
+            report.findings.map(\.code) == [
+                .rootHomeDotDirectoryNotAppleSpec,
+                .legacyHomeDotRootPresent,
+                .legacyApplicationSupportRootPresent,
+                .rootRelocationDeferred,
+                .modelsRootHomeVisibleByDesign,
+            ]
+        )
+    }
+
+    @Test("Legacy root present alongside a compliant root still reports the deferred relocation")
     func legacyRootWithCompliantActive() {
         let report = StorageLocationStandards.audit(
             makeInputs(
-                activeRootPath: "/Users/sam/Library/Application Support/Osaurus",
-                legacyPresent: true,
+                activeRootPath: "/Users/sam/Library/Application Support/Nuo",
+                legacySupportPresent: true,
                 modelsRootPath: "/Volumes/External/MLXModels"
             )
         )
@@ -208,7 +283,7 @@ struct StorageLocationStandardsTests {
         #expect(
             report.reasonCodes == [
                 "legacy_application_support_root_present",
-                "migration_decision_pending",
+                "root_relocation_deferred",
             ]
         )
     }
@@ -245,8 +320,9 @@ struct StorageLocationStandardsTests {
             .rootOverriddenForTests: "root_overridden_for_tests",
             .rootEnvironmentOverride: "root_environment_override",
             .rootCustomLocation: "root_custom_location",
+            .legacyHomeDotRootPresent: "legacy_home_dot_root_present",
             .legacyApplicationSupportRootPresent: "legacy_application_support_root_present",
-            .migrationDecisionPending: "migration_decision_pending",
+            .rootRelocationDeferred: "root_relocation_deferred",
             .modelsRootHomeVisibleByDesign: "models_root_home_visible_by_design",
         ]
 
@@ -258,7 +334,9 @@ struct StorageLocationStandardsTests {
 
     @Test("JSON object carries the full snake_case diagnostic surface")
     func jsonObjectShape() throws {
-        let report = StorageLocationStandards.audit(makeInputs(legacyPresent: true))
+        let report = StorageLocationStandards.audit(
+            makeInputs(legacyHomePresent: true, legacySupportPresent: true)
+        )
         let json = StorageLocationStandards.jsonObject(for: report)
 
         #expect(
@@ -268,6 +346,10 @@ struct StorageLocationStandardsTests {
                 "active_root",
                 "apple_spec_candidate_root",
                 "apple_spec_candidate_root_present",
+                "legacy_home_dot_root",
+                "legacy_home_dot_root_present",
+                "legacy_home_dot_root_merge_marker",
+                "legacy_home_dot_root_merge_marked",
                 "legacy_application_support_root",
                 "legacy_application_support_root_present",
                 "legacy_application_support_merge_marker",
@@ -281,6 +363,8 @@ struct StorageLocationStandardsTests {
         )
         #expect(json["classification"] as? String == "home_dot_directory")
         #expect(json["spec_compliant"] as? Bool == false)
+        #expect(json["legacy_home_dot_root_present"] as? Bool == true)
+        #expect(json["legacy_home_dot_root_merge_marked"] as? Bool == false)
         #expect(json["legacy_application_support_root_present"] as? Bool == true)
         #expect(json["legacy_application_support_merge_marked"] as? Bool == false)
         #expect(json["models_root_classification"] as? String == "home_visible")
@@ -305,6 +389,7 @@ struct StorageLocationStandardsTests {
 
         #expect(json["apple_spec_candidate_root"] is NSNull)
         #expect(json["legacy_application_support_root"] is NSNull)
+        #expect(json["legacy_home_dot_root"] as? String == "/Users/sam/.osaurus")
     }
 
     // MARK: - Legacy Application Support merge marker
@@ -392,12 +477,14 @@ struct StorageLocationStandardsTests {
 
     @Test("Summary stays one stable line")
     func summaryShape() {
-        let report = StorageLocationStandards.audit(makeInputs(legacyPresent: true))
+        let report = StorageLocationStandards.audit(
+            makeInputs(legacyHomePresent: true, legacySupportPresent: true)
+        )
 
         #expect(
             report.summary
-                == "root=home_dot_directory (non-compliant); legacy_root=present; "
-                + "models_root=home_visible"
+                == "root=home_dot_directory (non-compliant); legacy_home_root=present; "
+                + "legacy_root=present; models_root=home_visible"
         )
         #expect(!report.summary.contains("\n"))
     }

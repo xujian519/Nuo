@@ -13,7 +13,7 @@ public enum ToolsPaths {
     /// Note: nonisolated(unsafe) since this is only set during test setup before any concurrent access
     public nonisolated(unsafe) static var overrideRoot: URL?
 
-    /// The root data directory for Osaurus: `~/.osaurus/`
+    /// The root data directory: `~/.nuo/`
     public static func root() -> URL {
         if let override = overrideRoot {
             return override
@@ -21,7 +21,7 @@ public enum ToolsPaths {
         // Honor the same test-root redirect as `OsaurusPaths.root()` (this
         // type's documented contract is to mirror it). Without this, CLI
         // verbs that WRITE config (e.g. `bench --tune-prefill`) target the
-        // real `~/.osaurus` while a test-rooted server process reads its
+        // real `~/.nuo` while a test-rooted server process reads its
         // hermetic root — the sweep then measures the default value for
         // every candidate.
         if let envRoot = ProcessInfo.processInfo.environment["OSAURUS_TEST_ROOT"],
@@ -30,17 +30,29 @@ public enum ToolsPaths {
             return URL(fileURLWithPath: envRoot, isDirectory: true)
         }
         let fm = FileManager.default
-        return fm.homeDirectoryForCurrentUser.appendingPathComponent(".osaurus", isDirectory: true)
+        let home = fm.homeDirectoryForCurrentUser
+        let current = home.appendingPathComponent(Brand.dataRootName, isDirectory: true)
+        // The app owns the one-time legacy-root migration (`OsaurusPaths.root()`).
+        // The CLI can run on a machine that has not launched the renamed app yet,
+        // so read the pre-rename root until the new one exists instead of
+        // reporting an empty install.
+        if !fm.fileExists(atPath: current.path) {
+            let legacy = home.appendingPathComponent(Brand.Legacy.dataRootName, isDirectory: true)
+            if fm.fileExists(atPath: legacy.path) {
+                return legacy
+            }
+        }
+        return current
     }
 
     /// Tools directory (plugins)
-    /// `~/.osaurus/Tools/`
+    /// `~/.nuo/Tools/`
     public static func toolsRootDirectory() -> URL {
         root().appendingPathComponent("Tools", isDirectory: true)
     }
 
     /// Plugin specifications directory
-    /// `~/.osaurus/PluginSpecs/`
+    /// `~/.nuo/PluginSpecs/`
     public static func pluginSpecsRoot() -> URL {
         root().appendingPathComponent("PluginSpecs", isDirectory: true)
     }

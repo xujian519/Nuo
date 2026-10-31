@@ -14,7 +14,8 @@ public struct Configuration {
         ToolsPaths.root()
     }
 
-    /// The previous root directory before migration to `~/.osaurus/`.
+    /// The retired Application Support root, consulted only when the active
+    /// root has no config (installs that never ran a migration).
     private static func legacyRoot() -> URL {
         let fm = FileManager.default
         let supportDir = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
@@ -95,7 +96,8 @@ public struct Configuration {
 
     static func resolveModelsDirectoryWithSource(
         environment: [String: String] = ProcessInfo.processInfo.environment,
-        appDefaults: UserDefaults? = UserDefaults(suiteName: "com.dinoki.osaurus"),
+        appDefaults: UserDefaults? = UserDefaults(suiteName: Brand.defaultsDomain),
+        legacyAppDefaults: UserDefaults? = UserDefaults(suiteName: Brand.Legacy.defaultsDomain),
         sharedDefaults: UserDefaults? = UserDefaults(suiteName: "group.com.osaurus.shared"),
         home: URL = FileManager.default.homeDirectoryForCurrentUser
     ) -> ModelsDirectoryResolution {
@@ -106,10 +108,15 @@ public struct Configuration {
                 source: "environment"
             )
         }
-        if let bookmarkData = appDefaults?.data(forKey: "ModelDirectoryBookmark"),
-            let bookmarked = resolveModelDirectoryBookmark(bookmarkData)
-        {
-            return .init(url: bookmarked, source: "app_bookmark")
+        // The app's defaults live in its bundle-id domain, which changed with
+        // the rename. Reading the pre-rename domain as a fallback keeps a
+        // custom model directory working until the app rewrites the bookmark.
+        for defaults in [appDefaults, legacyAppDefaults] {
+            if let bookmarkData = defaults?.data(forKey: "ModelDirectoryBookmark"),
+                let bookmarked = resolveModelDirectoryBookmark(bookmarkData)
+            {
+                return .init(url: bookmarked, source: "app_bookmark")
+            }
         }
         if let stored = sharedDefaults?.string(forKey: "modelsDirectoryPath"), !stored.isEmpty {
             return .init(

@@ -10,7 +10,7 @@ import Foundation
 public struct ToolsCreate {
     public static func execute(args: [String]) {
         guard let name = args.first, !name.isEmpty else {
-            fputs("Usage: osaurus tools create <name> [--language swift|rust]\n", stderr)
+            fputs("Usage: nuo tools create <name> [--language swift|rust]\n", stderr)
             exit(EXIT_FAILURE)
         }
         var language = "swift"
@@ -534,7 +534,7 @@ public struct ToolsCreate {
             into Osaurus, and watches for source changes with automatic rebuild + reload:
 
             ```bash
-            osaurus tools dev
+            nuo tools dev
             ```
 
             With frontend hot module replacement (HMR):
@@ -544,7 +544,7 @@ public struct ToolsCreate {
             cd web && npm run dev
 
             # Terminal 2: start plugin dev mode with web proxy
-            osaurus tools dev --web-proxy http://localhost:5173
+            nuo tools dev --web-proxy http://localhost:5173
             ```
 
             ## Publishing
@@ -562,8 +562,8 @@ public struct ToolsCreate {
 
             ```bash
             swift build -c release
-            osaurus tools package dev.example.\(name) 0.1.0
-            osaurus tools install ./dev.example.\(name)-0.1.0.zip
+            nuo tools package dev.example.\(name) 0.1.0
+            nuo tools install ./dev.example.\(name)-0.1.0.zip
             ```
 
             ## Plugin Structure
@@ -582,7 +582,7 @@ public struct ToolsCreate {
 
             Plugin metadata is defined in `get_manifest()` in Plugin.swift.
             The `osaurus-plugin.json` file at the project root stores the plugin_id
-            and version used by `osaurus tools dev`.
+            and version used by `nuo tools dev`.
             """
         try? readme.write(to: dir.appendingPathComponent("README.md"), atomically: true, encoding: .utf8)
 
@@ -916,13 +916,13 @@ public struct ToolsCreate {
             into Osaurus, and watches for source changes with automatic rebuild + reload:
 
             ```bash
-            osaurus tools dev
+            nuo tools dev
             ```
 
             With frontend hot module replacement (HMR):
 
             ```bash
-            osaurus tools dev --web-proxy http://localhost:5173
+            nuo tools dev --web-proxy http://localhost:5173
             ```
 
             ## Publishing
@@ -940,8 +940,8 @@ public struct ToolsCreate {
 
             ```bash
             cargo build --release
-            osaurus tools package dev.example.\(name) 0.1.0
-            osaurus tools install ./dev.example.\(name)-0.1.0.zip
+            nuo tools package dev.example.\(name) 0.1.0
+            nuo tools install ./dev.example.\(name)-0.1.0.zip
             ```
 
             ## Plugin Structure
@@ -960,7 +960,7 @@ public struct ToolsCreate {
 
             Plugin metadata is defined in `plugin_get_manifest()` in `src/lib.rs`.
             The `osaurus-plugin.json` file at the project root stores the plugin_id
-            and version used by `osaurus tools dev`.
+            and version used by `nuo tools dev`.
             """
         try? readme.write(to: dir.appendingPathComponent("README.md"), atomically: true, encoding: .utf8)
 
@@ -1917,7 +1917,7 @@ public struct ToolsCreate {
             From the project root, run:
 
             ```bash
-            osaurus tools dev
+            nuo tools dev
             ```
 
             This builds the plugin, installs it into Osaurus, and watches for source changes.
@@ -1932,7 +1932,7 @@ public struct ToolsCreate {
 
             ### 3. Iterate
 
-            Edit source files and save. `osaurus tools dev` automatically rebuilds and reloads.
+            Edit source files and save. `nuo tools dev` automatically rebuilds and reloads.
 
             ## Best Practices
 
@@ -2014,7 +2014,7 @@ public struct ToolsCreate {
             Before submitting to the Osaurus plugin registry:
 
             - [ ] Plugin builds without warnings
-            - [ ] `osaurus manifest extract` returns valid JSON
+            - [ ] `nuo manifest extract` returns valid JSON
             - [ ] All tools have clear descriptions
             - [ ] Parameters use proper JSON Schema
             - [ ] Error cases return valid JSON errors
@@ -2041,7 +2041,7 @@ public struct ToolsCreate {
 
             ### Plugin not loading
 
-            - Check `osaurus manifest extract` for errors
+            - Check `nuo manifest extract` for errors
             - Verify the dylib is properly signed
             - Check Console.app for loading errors
 
@@ -2055,7 +2055,7 @@ public struct ToolsCreate {
 
             - Validate JSON escaping in strings
             - Use proper encoding for special characters
-            - Test with `echo '{"param":"value"}' | osaurus manifest extract ...`
+            - Test with `echo '{"param":"value"}' | nuo manifest extract ...`
             """
         try? claudeMd.write(to: dir.appendingPathComponent("CLAUDE.md"), atomically: true, encoding: .utf8)
     }

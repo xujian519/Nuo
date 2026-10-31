@@ -57,8 +57,8 @@ public struct ToolsReset {
             print("Reset crash recovery state")
         }
 
-        AppControl.postDistributedNotification(name: "com.dinoki.osaurus.control.toolsReload", userInfo: [:])
-        print("Done. Restart Osaurus to apply changes.")
+        AppControl.postControlNotification(action: "toolsReload", userInfo: [:])
+        print("Done. Restart Nuo to apply changes.")
         exit(EXIT_SUCCESS)
     }
 }

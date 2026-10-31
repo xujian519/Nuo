@@ -286,11 +286,14 @@ public final class OnboardingService: ObservableObject {
         return lines.joined(separator: "\n\n")
     }
 
-    /// Clear all known Osaurus Keychain services. The list lives in
+    /// Clear all known Keychain services. The list lives in
     /// `OsaurusKeychainServices` next to the wrappers so a newly added
     /// secret store can't be silently missed by factory reset.
+    ///
+    /// Pre-rename services are wiped too: a reset that left the old copies
+    /// behind would hand the next install the secrets the user just destroyed.
     private func wipeKeychain() {
-        for service in OsaurusKeychainServices.all {
+        for service in OsaurusKeychainServices.all + OsaurusKeychainServices.allLegacy {
             let query: [String: Any] = [
                 kSecClass as String: kSecClassGenericPassword,
                 kSecAttrService as String: service,

@@ -68,7 +68,8 @@ struct ChatWindowStateIdentityTests {
                 resolvedIP: nil,
                 port: 1234,
                 supportsSecureChannel: true,
-                serviceName: "coco._osaurus._tcp."
+                serviceName: "coco._nuo._tcp.",
+                serviceType: "_nuo._tcp."
             )
             window.selectedDiscoveredAgent = discovered
             window.selectedDiscoveredAgentProviderId = UUID()

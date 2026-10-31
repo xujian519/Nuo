@@ -112,7 +112,8 @@ struct DiscoveredAgentTrustTests {
             resolvedIP: resolvedIP,
             port: 1234,
             supportsSecureChannel: osc,
-            serviceName: "peer._osaurus._tcp."
+            serviceName: "peer._nuo._tcp.",
+            serviceType: "_nuo._tcp."
         )
     }
 

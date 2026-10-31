@@ -59,7 +59,7 @@ final class InMemoryChannelCredentialVaultBackingStore: ChannelCredentialVaultBa
 final class ChannelCredentialVault: @unchecked Sendable {
     static let shared = ChannelCredentialVault()
 
-    private static let service = "ai.osaurus.channels"
+    private static let service = OsaurusKeychainServices.channels
 
     private let backingStore: any ChannelCredentialVaultBackingStore
     private let keychainDisabled: @Sendable () -> Bool

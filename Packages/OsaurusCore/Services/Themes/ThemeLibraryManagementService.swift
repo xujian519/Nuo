@@ -9,6 +9,7 @@
 import AppKit
 import CryptoKit
 import Foundation
+import OsaurusRepository
 
 public enum ThemeValidationSeverity: String, Codable, Hashable, Sendable {
     case warning
@@ -480,7 +481,7 @@ public enum ThemeLibraryManagementService {
         }
 
         let scheme = url.scheme?.lowercased()
-        if scheme == ThemeShareService.deepLinkScheme,
+        if Brand.ownsURLScheme(scheme),
             url.host?.lowercased() == ThemeShareService.deepLinkHost
         {
             let value = components.queryItems?

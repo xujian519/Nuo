@@ -291,13 +291,13 @@ public struct ImportCommand: Command {
     static func rootRefusal(uid: uid_t) -> String? {
         guard uid == 0 else { return nil }
         return """
-            osaurus import must run as the logged-in user, not root. Osaurus keeps its data \
+            nuo import must run as the logged-in user, not root. Nuo keeps its data \
             in the user's home folder and its secrets in the user's login Keychain, so running \
             as root would provision /var/root instead. From a .pkg postinstall or another root \
             context, run it as the console user:
               CONSOLE_USER=$(stat -f %Su /dev/console)
               launchctl asuser "$(id -u "$CONSOLE_USER")" sudo -u "$CONSOLE_USER" \\
-                /Applications/Osaurus.app/Contents/Helpers/osaurus import install --from <bundle> --yes
+                /Applications/Nuo.app/Contents/Helpers/nuo import install --from <bundle> --yes
             """
     }
 
@@ -329,12 +329,12 @@ public struct ImportCommand: Command {
             if let installedText = environment.appVersion(), let installed = lenientVersion(installedText) {
                 if installed < required {
                     report.issues.append(
-                        "This bundle needs Osaurus \(required) or newer; Osaurus \(installedText) is installed.")
+                        "This bundle needs Nuo \(required) or newer; Nuo \(installedText) is installed.")
                 }
             } else {
                 report.warnings.append(
-                    "Could not find the installed Osaurus version to check min_osaurus_version "
-                        + "(\(required)). Run the osaurus binary inside Osaurus.app/Contents/Helpers/.")
+                    "Could not find the installed Nuo version to check min_osaurus_version "
+                        + "(\(required)). Run the nuo binary inside Nuo.app/Contents/Helpers/.")
             }
         }
 
@@ -359,7 +359,7 @@ public struct ImportCommand: Command {
                 let message =
                     "\(label): no Keychain item \(ref.display). Store it first, as this user: "
                     + "security add-generic-password -U -s '\(ref.service)' -a '\(ref.account)' "
-                    + "-w \"$SECRET\" -T /Applications/Osaurus.app"
+                    + "-w \"$SECRET\" -T /Applications/Nuo.app"
                 if secretsAreErrors { report.issues.append(message) } else { report.warnings.append(message) }
             case .none:
                 skippedKeychain = true
@@ -377,7 +377,7 @@ public struct ImportCommand: Command {
             if environment.executableOnPath(program) == false {
                 report.warnings.append(
                     "harness_runtimes[\(runtime.name)].executable: \(program) was not found on PATH. Install it "
-                        + "before an agent runs on this runtime; Osaurus looks it up on the login shell's PATH.")
+                        + "before an agent runs on this runtime; Nuo looks it up on the login shell's PATH.")
             }
         }
 
@@ -427,13 +427,13 @@ public struct ImportCommand: Command {
                 }
             } else {
                 report.warnings.append(
-                    "The running Osaurus could not check the agent and server entries; they are checked "
+                    "The running Nuo could not check the agent and server entries; they are checked "
                         + "again when the bundle is applied.")
             }
         } else {
             report.warnings.append(
-                "Osaurus is not running, so agent and MCP server entries were only checked for shape. "
-                    + "Open Osaurus and re-run validate for the full schema check.")
+                "Nuo is not running, so agent and MCP server entries were only checked for shape. "
+                    + "Open Nuo and re-run validate for the full schema check.")
         }
 
         report.state = report.issues.isEmpty ? "validated" : "failed"
@@ -519,7 +519,7 @@ public struct ImportCommand: Command {
                 default:
                     report.issues.append(
                         "\"\(name)\" names more than one installed item. Say which: "
-                            + "osaurus import remove --bundle \(bundleId) agent|skill|mcp|runtime|setting \"\(name)\".")
+                            + "nuo import remove --bundle \(bundleId) agent|skill|mcp|runtime|setting \"\(name)\".")
                 }
             }
         }
@@ -593,7 +593,7 @@ public struct ImportCommand: Command {
             report.items = queued
             report.state = "queued"
             report.exitCode = 0
-            report.warnings.append("Osaurus did not answer; the import applies the next time it opens.")
+            report.warnings.append("Nuo did not answer; the import applies the next time it opens.")
             return report
         }
         if let result = try? ImportQueue.decoder().decode(ImportResult.self, from: response.body),
@@ -614,7 +614,7 @@ public struct ImportCommand: Command {
             report.state = "queued"
             report.exitCode = 0
             report.warnings.append(
-                "The running Osaurus is too old to apply imports live; the import applies after it is "
+                "The running Nuo is too old to apply imports live; the import applies after it is "
                     + "updated and reopened.")
             return report
         }
@@ -623,14 +623,14 @@ public struct ImportCommand: Command {
             report.state = "queued"
             report.exitCode = 0
             report.warnings.append(
-                "\(refusal) The import applies the next time Osaurus opens; to apply it now, pass "
+                "\(refusal) The import applies the next time Nuo opens; to apply it now, pass "
                     + "--access-key KEY or set OSAURUS_API_KEY.")
             return report
         }
         let object = (try? JSONSerialization.jsonObject(with: response.body)) as? [String: Any]
         let error = object?["error"] as? [String: Any]
         report.items = queued
-        report.issues.append(error?["message"] as? String ?? "Osaurus could not apply the import (HTTP \(response.status)).")
+        report.issues.append(error?["message"] as? String ?? "Nuo could not apply the import (HTTP \(response.status)).")
         report.issues += (error?["issues"] as? [String]) ?? []
         report.state = "failed"
         report.exitCode = 1
@@ -645,7 +645,7 @@ public struct ImportCommand: Command {
         guard response.status == 401 || response.status == 403 else { return nil }
         let object = (try? JSONSerialization.jsonObject(with: response.body)) as? [String: Any]
         let message = (object?["error"] as? [String: Any])?["message"] as? String
-        return "Osaurus did not accept the access key for /admin/import (HTTP \(response.status)"
+        return "Nuo did not accept the access key for /admin/import (HTTP \(response.status)"
             + (message.map { ": \($0)" } ?? "") + ")."
     }
 
@@ -732,11 +732,11 @@ public struct ImportCommand: Command {
         }
         switch report.state {
         case "queued":
-            print("Queued (\(report.requestId ?? "?")); applies the next time Osaurus opens.")
+            print("Queued (\(report.requestId ?? "?")); applies the next time Nuo opens.")
         case "validated":
             print("Bundle is valid.")
         case "partial" where report.exitCode == 3:
-            print("Applied. Finish the steps marked … in Osaurus (see docs/OSAURUS_BUNDLES.md).")
+            print("Applied. Finish the steps marked … in Nuo (see docs/OSAURUS_BUNDLES.md).")
         default:
             break
         }
@@ -756,39 +756,39 @@ public struct ImportCommand: Command {
     public static func printUsage() {
         print(
             """
-            osaurus import - install agents, skills, MCP servers, harness runtimes and settings from an Osaurus bundle
+            nuo import - install agents, skills, MCP servers, harness runtimes and settings from a Nuo bundle
 
             Usage:
-              osaurus import validate --from <bundle> [--json]
+              nuo import validate --from <bundle> [--json]
                                       Check a bundle without installing anything.
-              osaurus import install  --from <bundle> [agent|skill|mcp|runtime|setting] [<name> ...] [--yes] [--json]
+              nuo import install  --from <bundle> [agent|skill|mcp|runtime|setting] [<name> ...] [--yes] [--json]
                                       Install items (all of them when no names are given).
                                       Installing an agent also installs the skills, MCP
                                       servers and harness runtime it uses from the same bundle.
-              osaurus import update   --from <bundle> [agent|skill|mcp|runtime|setting] [<name> ...] [--yes] [--json]
+              nuo import update   --from <bundle> [agent|skill|mcp|runtime|setting] [<name> ...] [--yes] [--json]
                                       Update items this bundle installed to the bundle's version.
                                       A setting the user changed since is left as it is.
-              osaurus import remove   --bundle <id> [agent|skill|mcp|runtime|setting] [<name> ...] [--json]
+              nuo import remove   --bundle <id> [agent|skill|mcp|runtime|setting] [<name> ...] [--json]
                                       Remove items this bundle installed (all when no names).
                                       Settings stay as they are.
-              osaurus import list     [--bundle <id>] [--json]
+              nuo import list     [--bundle <id>] [--json]
                                       Show what bundles installed and what is still queued.
 
             Options:
-              --access-key <key>      Access key for a running Osaurus that has Require Access
+              --access-key <key>      Access key for a running Nuo that has Require Access
                                       Key for Local Admin Routes on (or set OSAURUS_API_KEY).
                                       Without one the import is queued for the next launch.
 
             A bundle is a folder with osaurus-bundle.json. Changes are queued in
-            ~/.osaurus/import/ and applied the next time Osaurus opens, or right away
+            ~/.osaurus/import/ and applied the next time Nuo opens, or right away
             when it is running. MCP servers, harness runtimes, risky agent switches
             and settings that loosen security need --yes.
             Secrets are keychain:SERVICE/ACCOUNT references to items your installer
-            stores with `security add-generic-password ... -T /Applications/Osaurus.app`.
+            stores with `security add-generic-password ... -T /Applications/Nuo.app`.
             Run as the logged-in user, never as root.
 
             Exit codes: 0 = applied or queued; 1 = a check or change failed;
-            3 = applied, but a step must be finished in Osaurus (a secret, a sign-in).
+            3 = applied, but a step must be finished in Nuo (a secret, a sign-in).
 
             Guide: https://github.com/osaurus-ai/osaurus/blob/main/docs/OSAURUS_BUNDLES.md
             """

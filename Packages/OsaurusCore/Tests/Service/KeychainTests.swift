@@ -1,6 +1,7 @@
 // Copyright © 2026 osaurus.
 
 import Foundation
+import OsaurusRepository
 import Security
 import Testing
 
@@ -19,6 +20,10 @@ private final class FakeKeychainBackend: KeychainBackend, @unchecked Sendable {
     var addStatus: OSStatus?
     var copyStatus: OSStatus?
     var deleteStatus: OSStatus?
+    /// Per-service forced read status, so a test can fail the pre-rename
+    /// service only (the read-through path needs "current misses, legacy
+    /// errors").
+    var copyStatusByService: [String: OSStatus] = [:]
 
     private var recordedOperations: [String] = []
     var operations: [String] {
@@ -49,6 +54,9 @@ private final class FakeKeychainBackend: KeychainBackend, @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
         recordedOperations.append("copy")
+        if let forced = copyStatusByService[query[kSecAttrService as String] as? String ?? ""] {
+            return (forced, nil)
+        }
         if let forced = copyStatus { return (forced, nil) }
 
         let matchAll =
@@ -414,5 +422,147 @@ struct KeychainTests {
             #expect(Keychain.write(service: Self.service, account: "a", data: Data("v".utf8)))
             #expect(Keychain.read(service: Self.service, account: "a") == Data("v".utf8))
         }
+    }
+
+    // MARK: - Pre-rename read-through
+
+    // `Brand.Keychain` pairs every renamed service with its pre-rename name.
+    // The migration contract is: read new, fall back to old, copy forward on a
+    // hit, and **never** turn a legacy failure into "not found" (callers treat
+    // absence as "mint a fresh secret", which would overwrite live data).
+
+    @Test("a read that misses the current service reads the pre-rename one and copies forward")
+    func readFallsBackToLegacyService() throws {
+        let current = Brand.Keychain.storage.current
+        let legacy = try #require(Brand.Keychain.storage.legacy)
+        let account = "data-encryption-key"
+        let payload = Data("dek-bytes".utf8)
+
+        let backend = FakeKeychainBackend()
+        backend.seed(service: legacy, account: account, data: payload)
+
+        let outcome = withFakeBackend(backend) {
+            let outcome = Keychain.readItem(service: current, account: account)
+            // The forward copy is queued; drain it while the fake is installed.
+            Keychain.flushPendingWrites()
+            return outcome
+        }
+
+        #expect(outcome == .found(payload))
+        #expect(backend.value(service: current, account: account) == payload)
+        // The legacy item is read, never moved or overwritten.
+        #expect(backend.value(service: legacy, account: account) == payload)
+    }
+
+    @Test("a legacy hit that the caller then rewrites leaves the legacy copy intact")
+    func writeAfterLegacyReadKeepsLegacyCopy() throws {
+        let current = Brand.Keychain.storage.current
+        let legacy = try #require(Brand.Keychain.storage.legacy)
+        let account = "data-encryption-key"
+
+        let backend = FakeKeychainBackend()
+        backend.seed(service: legacy, account: account, data: Data("old".utf8))
+
+        withFakeBackend(backend) {
+            _ = Keychain.readItem(service: current, account: account)
+            Keychain.flushPendingWrites()
+            _ = Keychain.writeItem(service: current, account: account, data: Data("new".utf8))
+        }
+
+        #expect(backend.value(service: current, account: account) == Data("new".utf8))
+        #expect(backend.value(service: legacy, account: account) == Data("old".utf8))
+    }
+
+    @Test("an unavailable legacy read is surfaced, not downgraded to not-found")
+    func legacyUnavailableIsNotNotFound() throws {
+        let current = Brand.Keychain.storage.current
+        let legacy = try #require(Brand.Keychain.storage.legacy)
+
+        let backend = FakeKeychainBackend()
+        backend.copyStatusByService[legacy] = errSecInteractionNotAllowed
+
+        let outcome = withFakeBackend(backend) {
+            Keychain.readItem(service: current, account: "data-encryption-key")
+        }
+
+        #expect(outcome == .unavailable(errSecInteractionNotAllowed))
+        #expect(backend.value(service: current, account: "data-encryption-key") == nil)
+    }
+
+    @Test("an access-denied legacy read is surfaced, not downgraded to not-found")
+    func legacyAccessDeniedIsNotNotFound() throws {
+        let current = Brand.Keychain.storage.current
+        let legacy = try #require(Brand.Keychain.storage.legacy)
+
+        let backend = FakeKeychainBackend()
+        backend.copyStatusByService[legacy] = errSecAuthFailed
+
+        let outcome = withFakeBackend(backend) {
+            Keychain.readItem(service: current, account: "data-encryption-key")
+        }
+
+        #expect(outcome == .accessDenied(errSecAuthFailed))
+    }
+
+    @Test("a service with no pre-rename name never queries a second time")
+    func frozenServiceDoesNotProbeLegacy() {
+        // `ai.osaurus.id` is frozen on the upstream name: there is no legacy
+        // alias, so the read must be a single miss.
+        let service = Brand.Keychain.identitySession.current
+        let backend = FakeKeychainBackend()
+
+        let outcome = withFakeBackend(backend) {
+            Keychain.readItem(service: service, account: "session")
+        }
+
+        #expect(outcome == .notFound)
+        #expect(backend.operations.filter { $0 == "copy" }.count == 1)
+    }
+
+    @Test("delete removes both the current and the pre-rename copy")
+    func deleteSweepsLegacyCopy() throws {
+        let current = Brand.Keychain.storage.current
+        let legacy = try #require(Brand.Keychain.storage.legacy)
+        let account = "data-encryption-key"
+
+        let backend = FakeKeychainBackend()
+        backend.seed(service: current, account: account, data: Data("new".utf8))
+        backend.seed(service: legacy, account: account, data: Data("old".utf8))
+
+        let outcome = withFakeBackend(backend) {
+            Keychain.deleteItem(service: current, account: account)
+        }
+
+        #expect(outcome == .success)
+        #expect(backend.value(service: current, account: account) == nil)
+        #expect(backend.value(service: legacy, account: account) == nil)
+    }
+
+    @Test("enumeration merges pre-rename items and the current copy wins a collision")
+    func enumerationMergesLegacyItems() throws {
+        let current = Brand.Keychain.storage.current
+        let legacy = try #require(Brand.Keychain.storage.legacy)
+
+        let backend = FakeKeychainBackend()
+        backend.seed(service: legacy, account: "same", data: Data("old".utf8))
+        backend.seed(service: legacy, account: "legacy-only", data: Data("only-old".utf8))
+        backend.seed(service: current, account: "same", data: Data("new".utf8))
+
+        let outcome = withFakeBackend(backend) {
+            Keychain.fetchAllItems(service: current, returnData: true)
+        }
+
+        #expect(outcome.items.count == 2)
+        #expect(outcome.isDefinitive)
+        let byAccount = Dictionary(
+            uniqueKeysWithValues: outcome.items.compactMap { item -> (String, Data)? in
+                guard let account = item[kSecAttrAccount as String] as? String,
+                    let data = item[kSecValueData as String] as? Data
+                else { return nil }
+                return (account, data)
+            }
+        )
+        #expect(byAccount["same"] == Data("new".utf8))
+        #expect(byAccount["legacy-only"] == Data("only-old".utf8))
     }
 }

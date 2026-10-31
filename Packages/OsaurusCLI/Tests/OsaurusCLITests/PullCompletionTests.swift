@@ -12,12 +12,14 @@ final class PullCompletionTests: XCTestCase {
             var payloads: [[AnyHashable: Any]] = []
             let result = PullCommand.notifyAppIfPullComplete(
                 files: [("config.json", 3), ("model.safetensors", 7)], destination: root
-            ) { name, payload in
-                names.append(name)
+            ) { action, payload in
+                names.append(action)
                 payloads.append(payload)
             }
             XCTAssertTrue(result)
-            XCTAssertEqual(names, ["com.dinoki.osaurus.control.modelsReload"])
+            // The seam carries the control *action*; `AppControl` maps it to the
+            // current and pre-rename wire names (pinned in Brand tests).
+            XCTAssertEqual(names, ["modelsReload"])
             XCTAssertEqual(payloads.count, 1)
             XCTAssertTrue(payloads[0].isEmpty)
         }

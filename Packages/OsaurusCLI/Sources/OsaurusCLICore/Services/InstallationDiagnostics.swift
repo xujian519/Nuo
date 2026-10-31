@@ -10,6 +10,7 @@
 
 import Foundation
 import Darwin
+import OsaurusRepository
 
 public enum StartupDiagnosticKind: String, Codable, Sendable {
     case healthy
@@ -328,21 +329,21 @@ public enum InstallationDiagnostics {
         case .healthy:
             return "No installation problem detected."
         case .appAbsent:
-            return "Install Osaurus.app, then run `osaurus serve --port \(port)` again."
+            return "Install Nuo.app, then run `nuo serve --port \(port)` again."
         case .appStale:
-            return "Update the installed Osaurus app so it matches the CLI, then retry."
+            return "Update the installed Nuo app so it matches the CLI, then retry."
         case .appNewer:
-            return "Update the CLI or invoke the helper bundled with the installed Osaurus app."
+            return "Update the CLI or invoke the helper bundled with the installed Nuo app."
         case .duplicateBundles:
-            return "Quit Osaurus and remove or archive duplicate registered app bundles, then launch the intended app explicitly."
+            return "Quit Nuo and remove or archive duplicate registered app bundles, then launch the intended app explicitly."
         case .portBusy:
-            return "Choose another port or stop the non-Osaurus process using port \(port)."
+            return "Choose another port or stop the non-Nuo process using port \(port)."
         case .serverUnhealthy:
-            return "The Osaurus process owns port \(port) but is unhealthy. Quit it, relaunch the intended app, and inspect `osaurus doctor`."
+            return "The Nuo process owns port \(port) but is unhealthy. Quit it, relaunch the intended app, and inspect `nuo doctor`."
         case .serverNotRunning:
-            return "The installation looks usable, but the server is not running. Launch Osaurus or run `osaurus serve --port \(port)`."
+            return "The installation looks usable, but the server is not running. Launch Nuo or run `nuo serve --port \(port)`."
         case .startupTimeout:
-            return "Launch the intended Osaurus app explicitly, then retry `osaurus serve --port \(port)`."
+            return "Launch the intended Nuo app explicitly, then retry `nuo serve --port \(port)`."
         }
     }
 
@@ -428,17 +429,24 @@ public enum InstallationDiagnostics {
 
     nonisolated private static func isOsaurusPortOwner(_ owner: String) -> Bool {
         let command = owner.split(separator: " ").first.map(String.init)?.lowercased()
-        return command == "osaurus"
+        // The app executable is `Nuo` after the rename. `osaurus` still counts so a
+        // port held by the previous build is not reported as a foreign squatter.
+        return command == "nuo" || command == "osaurus"
     }
 
     /// Old CLI downloads are not part of the app's automatic model roots.
     /// Report them without moving files or changing the selected directory.
+    ///
+    /// Probes the pre-rename home root only: the current root's own `models/`
+    /// folder is a copy of it after the data-root migration, so reporting that
+    /// one would tell the user to rescue files that are already in place.
     nonisolated static func strandedLegacyModelDirectories(
         activeRoot: URL,
         home: URL = FileManager.default.homeDirectoryForCurrentUser,
         maximumEntries: Int = 100_000
     ) -> LegacyModelDirectoryDiagnostic? {
-        let legacy = home.appendingPathComponent(".osaurus/models", isDirectory: true)
+        let legacy = home.appendingPathComponent(Brand.Legacy.dataRootName, isDirectory: true)
+            .appendingPathComponent("models", isDirectory: true)
         guard legacy.resolvingSymlinksInPath().standardizedFileURL
             != activeRoot.resolvingSymlinksInPath().standardizedFileURL
         else { return nil }

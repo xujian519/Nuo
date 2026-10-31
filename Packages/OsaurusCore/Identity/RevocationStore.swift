@@ -15,7 +15,7 @@ public final class RevocationStore: @unchecked Sendable {
     private var revokedKeys: Set<String> = []
     private var counterThresholds: [String: UInt64] = [:]
 
-    private static let keychainService = "com.osaurus.revocations"
+    private static let keychainService = OsaurusKeychainServices.revocations
     private static let keychainAccount = "revocation-data"
 
     private init() {
