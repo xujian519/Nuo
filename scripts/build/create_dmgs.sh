@@ -3,11 +3,11 @@ set -euo pipefail
 
 # Build a signed DMG for one distribution variant.
 #
-#   DMG_VARIANT=light (default)  build_output/Osaurus.app
-#                                -> build_output/Osaurus-${VERSION}.dmg (+ Osaurus.dmg copy)
+#   DMG_VARIANT=light (default)  build_output/Nuo.app
+#                                -> build_output/Nuo-${VERSION}.dmg (+ Nuo.dmg copy)
 #                                UDZO (zlib): the ~70 MB app compresses well.
-#   DMG_VARIANT=full             build_output/full/Osaurus.app
-#                                -> build_output/Osaurus-${VERSION}-full.dmg
+#   DMG_VARIANT=full             build_output/full/Nuo.app
+#                                -> build_output/Nuo-${VERSION}-full.dmg
 #                                ULFO (lzfse): the bundled JANG_6M weights are
 #                                incompressible, so zlib would spend minutes
 #                                for no size gain; lzfse is the fast path.
@@ -22,13 +22,13 @@ WORKSPACE="${GITHUB_WORKSPACE:-$(pwd)}"
 
 case "$DMG_VARIANT" in
   light)
-    APP_PATH="build_output/Osaurus.app"
-    DMG_PATH="build_output/Osaurus-${VERSION}.dmg"
+    APP_PATH="build_output/Nuo.app"
+    DMG_PATH="build_output/Nuo-${VERSION}.dmg"
     DMG_FORMAT="UDZO"
     ;;
   full)
-    APP_PATH="build_output/full/Osaurus.app"
-    DMG_PATH="build_output/Osaurus-${VERSION}-full.dmg"
+    APP_PATH="build_output/full/Nuo.app"
+    DMG_PATH="build_output/Nuo-${VERSION}-full.dmg"
     DMG_FORMAT="ULFO"
     ;;
   *)
@@ -50,17 +50,17 @@ fi
 # root does not pick up sibling build artifacts.
 STAGING="$(mktemp -d)"
 trap 'rm -rf "$STAGING"' EXIT
-ditto "$APP_PATH" "${STAGING}/Osaurus.app"
+ditto "$APP_PATH" "${STAGING}/Nuo.app"
 
 rm -f "$DMG_PATH"
 create-dmg \
   --background "${WORKSPACE}/assets/dmg-bg.tiff" \
-  --volname "Osaurus" \
+  --volname "Nuo" \
   --window-pos 200 120 \
   --window-size 600 400 \
   --icon-size 100 \
-  --icon "Osaurus.app" 150 185 \
-  --hide-extension "Osaurus.app" \
+  --icon "Nuo.app" 150 185 \
+  --hide-extension "Nuo.app" \
   --app-drop-link 450 185 \
   --format "$DMG_FORMAT" \
   "$DMG_PATH" \
@@ -68,7 +68,7 @@ create-dmg \
 
 if [[ ! -f "$DMG_PATH" ]]; then
   echo "create-dmg failed, using basic DMG creation"
-  hdiutil create -volname "Osaurus" \
+  hdiutil create -volname "Nuo" \
     -srcfolder "$STAGING" \
     -ov -format "$DMG_FORMAT" \
     "$DMG_PATH"
@@ -83,7 +83,7 @@ fi
 codesign --force --sign "${CODE_SIGN_IDENTITY_VALUE}" "$DMG_PATH"
 
 if [[ "$DMG_VARIANT" == "light" ]]; then
-  cp "$DMG_PATH" "build_output/Osaurus.dmg"
+  cp "$DMG_PATH" "build_output/Nuo.dmg"
 fi
 
 echo "Created ${DMG_VARIANT} DMG at ${DMG_PATH} ($(stat -f %z "$DMG_PATH") bytes, ${DMG_FORMAT})"

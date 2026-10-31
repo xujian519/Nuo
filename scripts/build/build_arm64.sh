@@ -83,17 +83,20 @@ xcodebuild -workspace osaurus.xcworkspace \
 # 3. Manually Embed the CLI into the Archive
 echo "Embedding CLI into Archive (Helpers)..."
 CLI_SRC="build/Build/Products/Release/osaurus-cli"
-ARCHIVE_APP="build/osaurus.xcarchive/Products/Applications/Osaurus.app"
+ARCHIVE_APP="build/osaurus.xcarchive/Products/Applications/Nuo.app"
 
 if [[ ! -f "$CLI_SRC" ]]; then
   echo "Error: CLI binary not found at $CLI_SRC"
   exit 1
 fi
 
-# Copy to Helpers folder as 'osaurus'
+# Copy to Helpers folder as 'nuo'. `osaurus` stays as a relative symlink so any
+# existing launcher, script, or login item that resolves the old helper name
+# keeps working through the transition.
 mkdir -p "$ARCHIVE_APP/Contents/Helpers"
-cp "$CLI_SRC" "$ARCHIVE_APP/Contents/Helpers/osaurus"
-chmod +x "$ARCHIVE_APP/Contents/Helpers/osaurus"
+cp "$CLI_SRC" "$ARCHIVE_APP/Contents/Helpers/nuo"
+chmod +x "$ARCHIVE_APP/Contents/Helpers/nuo"
+ln -sfn nuo "$ARCHIVE_APP/Contents/Helpers/osaurus"
 
 # 3b. Bundle the sandbox guest kernel (digest-verified, with provenance
 # sidecar) so first-run sandbox setup installs it from the signed app
@@ -104,7 +107,7 @@ echo "Bundling sandbox kernel into Resources/SandboxRuntime..."
 
 # Re-sign the archived app (now carrying the embedded CLI) with the same
 # entitlements used for the archive. `--deep` also signs the nested CLI binary
-# so Helpers/osaurus carries the hardened runtime before export seals the
+# so Helpers/nuo carries the hardened runtime before export seals the
 # bundle. The entitlements file has no profile-managed keys, so export succeeds
 # without a provisioning profile and no post-export re-sign is needed.
 echo "Re-signing modified app bundle..."
@@ -132,7 +135,7 @@ xcodebuild -exportArchive \
   -exportPath build_output \
   -exportOptionsPlist ExportOptions.plist
 
-EXPORTED_APP="build_output/Osaurus.app"
+EXPORTED_APP="build_output/Nuo.app"
 if [[ ! -d "$EXPORTED_APP" ]]; then
   echo "Error: exported app not found at $EXPORTED_APP" >&2
   exit 1

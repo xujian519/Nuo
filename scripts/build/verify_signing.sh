@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Defaults to the light export; build_full_app.sh points APP at the full app.
-APP="${APP:-build_output/Osaurus.app}"
+APP="${APP:-build_output/Nuo.app}"
 
 echo "Verifying ARM64 app at ${APP}..."
 codesign -vvv --deep --strict "$APP"

@@ -9,9 +9,9 @@
 	<key>SentryDSN</key>
 	<string>$(SENTRY_DSN)</string>
 	<key>SUEnableAutomaticChecks</key>
-	<true/>
+	<false/>
 	<key>SUFeedURL</key>
-	<string>https://osaurus-ai.github.io/osaurus/appcast.xml</string>
+	<string>https://nuo.app/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>HBRBQ8QQOhmvMKnSxQxqb3upTjyirdx0xkHSSRqn7aI=</string>
 	<key>NSAppleEventsUsageDescription</key>
@@ -39,7 +39,9 @@
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_osaurus._tcp</string>
+		<string>_nuo._tcp</string>
 		<string>_osaurus-mobile._tcp</string>
+		<string>_nuo-mobile._tcp</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
@@ -61,6 +63,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>osaurus</string>
+				<string>nuo</string>
 			</array>
 		</dict>
 	</array>

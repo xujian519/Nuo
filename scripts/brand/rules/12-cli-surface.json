@@ -1,0 +1,186 @@
+{
+  "phase": 1,
+  "title": "CLI surface: command name, version banner, app discovery",
+  "notes": [
+    "The CLI binary stays `osaurus-cli` (internal), but the command users type is",
+    "`nuo`. Help text, the version banner and app discovery must agree, and the",
+    "legacy bundle id stays reachable for one release.",
+    "`scripts/osaurus` stays at its path — old docs and launchers reference it —",
+    "while resolving the renamed app/helper first.",
+    "`Osaurus.app` needs no blanket rule: the API-text rule covers it in literals and AppControl has an explicit block."
+  ],
+  "rules": [
+    {
+      "id": "cli.help-layout",
+      "op": "block",
+      "path": "Packages/OsaurusCLI/Sources/OsaurusCLI/OsaurusCLI.swift",
+      "find": "        let usage = \"\"\"\n            osaurus - CLI for Osaurus\n\n            Usage:\n              osaurus serve [--port N] [--expose] [--yes|-y] [--supervise] [--interval N]\n                                      Start the server (default: localhost only). If --expose\n                                      is set, a warning prompt will appear unless --yes is provided.\n                                      With --supervise, run a long-lived keep-alive loop that\n                                      relaunches the server whenever it goes down (probe every\n                                      --interval seconds, default 15) — intended to run under a\n                                      launchd KeepAlive LaunchAgent so the server survives quit.\n              osaurus stop            Stop the server\n              osaurus mcp [--access-key KEY]\n                                      Run MCP stdio server proxying to local HTTP. When\n                                      server network exposure is enabled, provide an\n                                      access key here or via OSAURUS_MCP_ACCESS_KEY.\n              osaurus version         Show version (also: --version or -v)\n              osaurus status          Check if the Osaurus server is running\n              osaurus doctor [--port N] [--json] [--redact] [--verify-signatures]\n                                      Diagnose CLI/app version skew, duplicate app\n                                      bundles, server startup, and model storage.\n                                      Signature checks are explicit because they can\n                                      be slow when many app bundles are installed.\n              osaurus list            List available model IDs\n              osaurus show <model_id> Show metadata for a model\n              osaurus pull <model_id> Download a model from Hugging Face\n              osaurus run <model_id>  Chat with a downloaded model (interactive)\n              osaurus bench [--model <id>] [--prompt-tokens 1024,8192] [--runs 3] [--json <path>]\n                                      Benchmark TTFT / prefill / decode against the\n                                      running server; emits JSON tagged with hardware info\n              osaurus ui              Show the Osaurus menu popover in the menu bar\n              osaurus tools list      List installed tools\n              osaurus tools install <plugin_id|url-or-path>\n                                      Install a tool from registry or local/URL\n              osaurus tools search <query>\n                                      Search for tools in the registry\n              osaurus tools outdated  Check for outdated tools\n              osaurus tools upgrade   Upgrade installed tools\n              osaurus tools uninstall <tool_name>\n                                      Uninstall a tool\n              osaurus tools verify    Verify dylib integrity of installed tools\n              osaurus tools create <name> [--language swift|rust]\n                                      Scaffold a v2 plugin project\n              osaurus tools package <plugin_id> <version> [dylib_path]\n                                      Package plugin into a zip (includes web/, docs)\n              osaurus tools reload    Ask the app to rescan tools\n              osaurus tools rollback <plugin_id>\n                                      Roll back a tool to its previous version\n              osaurus tools dev <plugin_id> [--web-proxy <url>]\n                                      Dev mode with hot reload and optional web proxy\n              osaurus manifest extract <dylib>\n                                      Extract manifest JSON from built plugin\n              osaurus manifest validate <manifest.json>\n                                      Validate a plugin manifest's structure (run before packaging)\n              osaurus bundle load <path.mcpb> [--name \"Display Name\"]\n                                      Load and run an MCP Bundle (.mcpb file)\n              osaurus coord <subcommand>\n                                      Local coordinator orchestration foundation\n              osaurus config export [-o file.yaml]\n                                      Export the current Osaurus configuration as YAML\n              osaurus config plan <file.yaml> [--prune]\n                                      Dry-run a declarative YAML document (show the diff)\n              osaurus config apply <file.yaml> [--prune] [--yes]\n                                      Apply a declarative YAML document (--yes confirms\n                                      high-risk changes)\n              osaurus import validate|install|update --from <bundle> [agent|skill|mcp] [name ...]\n                                      Install agents, skills and MCP servers from an Osaurus\n                                      bundle folder (see `osaurus import help`)\n              osaurus import remove --bundle <id> [name ...] / osaurus import list\n                                      Remove or list what a bundle installed\n              osaurus help            Show this help\n\n            Bundle author guide: docs/OSAURUS_BUNDLES.md\n\n            \"\"\"\n",
+      "replace": "        let usage = \"\"\"\n            nuo - CLI for Nuo\n\n            Usage:\n              nuo serve [--port N] [--expose] [--yes|-y] [--supervise] [--interval N]\n                                      Start the server (default: localhost only). If --expose\n                                      is set, a warning prompt will appear unless --yes is provided.\n                                      With --supervise, run a long-lived keep-alive loop that\n                                      relaunches the server whenever it goes down (probe every\n                                      --interval seconds, default 15) — intended to run under a\n                                      launchd KeepAlive LaunchAgent so the server survives quit.\n              nuo stop                Stop the server\n              nuo mcp [--access-key KEY]\n                                      Run MCP stdio server proxying to local HTTP. When\n                                      server network exposure is enabled, provide an\n                                      access key here or via OSAURUS_MCP_ACCESS_KEY.\n              nuo version             Show version (also: --version or -v)\n              nuo status              Check if the Nuo server is running\n              nuo doctor [--port N] [--json] [--redact] [--verify-signatures]\n                                      Diagnose CLI/app version skew, duplicate app\n                                      bundles, server startup, and model storage.\n                                      Signature checks are explicit because they can\n                                      be slow when many app bundles are installed.\n              nuo list                List available model IDs\n              nuo show <model_id>     Show metadata for a model\n              nuo pull <model_id>     Download a model from Hugging Face\n              nuo run <model_id>      Chat with a downloaded model (interactive)\n              nuo bench [--model <id>] [--prompt-tokens 1024,8192] [--runs 3] [--json <path>]\n                                      Benchmark TTFT / prefill / decode against the\n                                      running server; emits JSON tagged with hardware info\n              nuo ui                  Show the Nuo menu popover in the menu bar\n              nuo tools list          List installed tools\n              nuo tools install <plugin_id|url-or-path>\n                                      Install a tool from registry or local/URL\n              nuo tools search <query>\n                                      Search for tools in the registry\n              nuo tools outdated      Check for outdated tools\n              nuo tools upgrade       Upgrade installed tools\n              nuo tools uninstall <tool_name>\n                                      Uninstall a tool\n              nuo tools verify        Verify dylib integrity of installed tools\n              nuo tools create <name> [--language swift|rust]\n                                      Scaffold a v2 plugin project\n              nuo tools package <plugin_id> <version> [dylib_path]\n                                      Package plugin into a zip (includes web/, docs)\n              nuo tools reload        Ask the app to rescan tools\n              nuo tools rollback <plugin_id>\n                                      Roll back a tool to its previous version\n              nuo tools dev <plugin_id> [--web-proxy <url>]\n                                      Dev mode with hot reload and optional web proxy\n              nuo manifest extract <dylib>\n                                      Extract manifest JSON from built plugin\n              nuo manifest validate <manifest.json>\n                                      Validate a plugin manifest's structure (run before packaging)\n              nuo bundle load <path.mcpb> [--name \"Display Name\"]\n                                      Load and run an MCP Bundle (.mcpb file)\n              nuo coord <subcommand>\n                                      Local coordinator orchestration foundation\n              nuo config export [-o file.yaml]\n                                      Export the current Nuo configuration as YAML\n              nuo config plan <file.yaml> [--prune]\n                                      Dry-run a declarative YAML document (show the diff)\n              nuo config apply <file.yaml> [--prune] [--yes]\n                                      Apply a declarative YAML document (--yes confirms\n                                      high-risk changes)\n              nuo import validate|install|update --from <bundle> [agent|skill|mcp] [name ...]\n                                      Install agents, skills and MCP servers from a Nuo\n                                      bundle folder (see `nuo import help`)\n              nuo import remove --bundle <id> [name ...] / nuo import list\n                                      Remove or list what a bundle installed\n              nuo help                Show this help\n\n            Bundle author guide: docs/OSAURUS_BUNDLES.md\n\n            \"\"\"\n",
+      "enforced": true,
+      "why": "The usage block is column-aligned against the old 7-character command name; after `nuo` the descriptions need re-padding or the help output is visibly ragged."
+    },
+    {
+      "id": "cli.usage-command-name",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCLI/Sources/**/*.swift"
+      ],
+      "mode": "swift-literals",
+      "pattern": "(?<![\\w./-])osaurus(?=[ \\n`])",
+      "replace": "nuo",
+      "enforced": true,
+      "why": "`Usage: osaurus ...`, `Run osaurus doctor`, `Install with: osaurus tools install`. Frozen literals (osaurus_help, com.dinoki.osaurus.*, ~/.osaurus/) are spliced out first."
+    },
+    {
+      "id": "cli.prose-name",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCLI/Sources/OsaurusCLI/OsaurusCLI.swift",
+        "Packages/OsaurusCLI/Sources/OsaurusCLICore/Commands/Config.swift",
+        "Packages/OsaurusCLI/Sources/OsaurusCLICore/Commands/Doctor.swift",
+        "Packages/OsaurusCLI/Sources/OsaurusCLICore/Commands/Import/ImportCommand.swift",
+        "Packages/OsaurusCLI/Sources/OsaurusCLICore/Commands/MCPCommand.swift",
+        "Packages/OsaurusCLI/Sources/OsaurusCLICore/Commands/Serve.swift",
+        "Packages/OsaurusCLI/Sources/OsaurusCLICore/Commands/Tools/ToolsInstall.swift",
+        "Packages/OsaurusCLI/Sources/OsaurusCLICore/Commands/Tools/ToolsReset.swift",
+        "Packages/OsaurusCLI/Sources/OsaurusCLICore/Commands/Version.swift",
+        "Packages/OsaurusCLI/Sources/OsaurusCLICore/Services/InstallationDiagnostics.swift"
+      ],
+      "mode": "swift-literals",
+      "pattern": "\\bOsaurus\\b",
+      "replace": "Nuo",
+      "enforced": true,
+      "why": "Help text, version banner and diagnostics that name the product. ToolsCreate.swift is excluded on purpose: its generated plugin docs also name the upstream registry, which is an external fact for Phase 3 to rewrite by hand."
+    },
+    {
+      "id": "cli.help-helper-path",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCLI/Sources/**/*.swift"
+      ],
+      "mode": "swift-literals",
+      "pattern": "Helpers/osaurus",
+      "replace": "Helpers/nuo",
+      "enforced": true,
+      "why": "Documented helper path; the legacy name survives as a symlink, but docs should show the shipped name."
+    },
+    {
+      "id": "cli.article-an",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCLI/Sources/**/*.swift"
+      ],
+      "mode": "swift-literals",
+      "pattern": "\\ban Nuo\\b",
+      "replace": "a Nuo",
+      "enforced": true,
+      "why": "`an Osaurus bundle` becomes `an Nuo` after the rename; fix the article the copy carried."
+    },
+    {
+      "id": "cli.app-control-launch",
+      "op": "block",
+      "path": "Packages/OsaurusCLI/Sources/OsaurusCLICore/Services/AppControl.swift",
+      "find": "        // Launch the app via `open -b` by bundle id, with fallback to explicit app path search\n        var launched = false\n        do {\n            let openByBundle = Process()\n            openByBundle.executableURL = URL(fileURLWithPath: \"/usr/bin/open\")\n            openByBundle.arguments = [\"-n\", \"-b\", \"com.dinoki.osaurus\", \"--args\", \"--launched-by-cli\"]\n            try? openByBundle.run()\n            openByBundle.waitUntilExit()\n            launched = (openByBundle.terminationStatus == 0)\n        }\n",
+      "replace": "        // Launch the app via `open -b` by bundle id, with fallback to explicit app path search\n        var launched = false\n        for bundleID in appBundleIdentifiers {\n            let openByBundle = Process()\n            openByBundle.executableURL = URL(fileURLWithPath: \"/usr/bin/open\")\n            openByBundle.arguments = [\"-n\", \"-b\", bundleID, \"--args\", \"--launched-by-cli\"]\n            try? openByBundle.run()\n            openByBundle.waitUntilExit()\n            if openByBundle.terminationStatus == 0 {\n                launched = true\n                break\n            }\n        }\n",
+      "enforced": true,
+      "why": "`nuo serve` must be able to launch Nuo.app after the bundle id changed."
+    },
+    {
+      "id": "cli.app-control-identifiers",
+      "op": "block",
+      "path": "Packages/OsaurusCLI/Sources/OsaurusCLICore/Services/AppControl.swift",
+      "find": "public struct AppControl {\n    public static func postDistributedNotification",
+      "replace": "public struct AppControl {\n    /// Bundle identifiers this CLI can drive, newest first. The app shipped as\n    /// `com.dinoki.osaurus` before the Nuo rename; keeping it second lets a CLI\n    /// and an app from adjacent builds find each other for one release.\n    public static let appBundleIdentifiers = [Brand.bundleID, Brand.Legacy.bundleID]\n\n    public static func postDistributedNotification",
+      "enforced": true
+    },
+    {
+      "id": "cli.app-control-running-check",
+      "op": "block",
+      "path": "Packages/OsaurusCLI/Sources/OsaurusCLICore/Services/AppControl.swift",
+      "find": "        var appIsRunning = false\n        if launched {\n            for _ in 0..<20 {  // up to ~2s\n                if !NSRunningApplication.runningApplications(\n                    withBundleIdentifier: \"com.dinoki.osaurus\"\n                ).isEmpty {\n                    appIsRunning = true\n                    break\n                }\n                try? await Task.sleep(nanoseconds: 100_000_000)\n            }\n        }\n",
+      "replace": "        var appIsRunning = false\n        if launched {\n            for _ in 0..<20 {  // up to ~2s\n                if runningAppBundlePath() != nil {\n                    appIsRunning = true\n                    break\n                }\n                try? await Task.sleep(nanoseconds: 100_000_000)\n            }\n        }\n",
+      "enforced": true
+    },
+    {
+      "id": "cli.app-control-launch-failure",
+      "op": "block",
+      "path": "Packages/OsaurusCLI/Sources/OsaurusCLICore/Services/AppControl.swift",
+      "find": "            fputs(\n                \"Could not launch Osaurus.app. Install it with Homebrew: brew install --cask osaurus\\n\",\n                stderr\n            )",
+      "replace": "            fputs(\n                \"Could not launch Nuo.app. Install it into /Applications and run this command again.\\n\",\n                stderr\n            )",
+      "enforced": true
+    },
+    {
+      "id": "cli.app-control-discovery",
+      "op": "block",
+      "path": "Packages/OsaurusCLI/Sources/OsaurusCLICore/Services/AppControl.swift",
+      "find": "        if let launchServicesSelection = NSWorkspace.shared.urlForApplication(\n            withBundleIdentifier: \"com.dinoki.osaurus\"\n        ) {\n            paths.append(launchServicesSelection.path)\n        }\n        if includeSpotlightSearch {\n            let query = \"kMDItemCFBundleIdentifier == 'com.dinoki.osaurus'\"\n            paths.append(contentsOf: spotlightFindAll(queryArgs: [\"-onlyin\", \"/Applications\", query]))\n            paths.append(contentsOf: spotlightFindAll(queryArgs: [\"-onlyin\", \"\\(home)/Applications\", query]))\n            // Preserve discovery of side-loaded and development bundles that\n            // are indexed but not currently registered with LaunchServices.\n            paths.append(contentsOf: spotlightFindAll(queryArgs: [query]))\n        }\n",
+      "replace": "        for bundleID in appBundleIdentifiers {\n            if let launchServicesSelection = NSWorkspace.shared.urlForApplication(\n                withBundleIdentifier: bundleID\n            ) {\n                paths.append(launchServicesSelection.path)\n            }\n        }\n        if includeSpotlightSearch {\n            for bundleID in appBundleIdentifiers {\n                let query = \"kMDItemCFBundleIdentifier == '\\(bundleID)'\"\n                paths.append(contentsOf: spotlightFindAll(queryArgs: [\"-onlyin\", \"/Applications\", query]))\n                paths.append(contentsOf: spotlightFindAll(queryArgs: [\"-onlyin\", \"\\(home)/Applications\", query]))\n                // Preserve discovery of side-loaded and development bundles that\n                // are indexed but not currently registered with LaunchServices.\n                paths.append(contentsOf: spotlightFindAll(queryArgs: [query]))\n            }\n        }\n",
+      "enforced": true
+    },
+    {
+      "id": "cli.app-control-common-paths",
+      "op": "block",
+      "path": "Packages/OsaurusCLI/Sources/OsaurusCLICore/Services/AppControl.swift",
+      "find": "        [\n            \"/Applications/Osaurus.app\",\n            \"\\(NSHomeDirectory())/Applications/Osaurus.app\",\n            \"/Applications/osaurus.app\",\n            \"\\(NSHomeDirectory())/Applications/osaurus.app\",\n        ]\n",
+      "replace": "        [\n            \"/Applications/Nuo.app\",\n            \"\\(NSHomeDirectory())/Applications/Nuo.app\",\n            \"/Applications/Osaurus.app\",\n            \"\\(NSHomeDirectory())/Applications/Osaurus.app\",\n            \"/Applications/osaurus.app\",\n            \"\\(NSHomeDirectory())/Applications/osaurus.app\",\n        ]\n",
+      "enforced": true
+    },
+    {
+      "id": "cli.app-control-running-path",
+      "op": "block",
+      "path": "Packages/OsaurusCLI/Sources/OsaurusCLICore/Services/AppControl.swift",
+      "find": "    @MainActor\n    public static func runningAppBundlePath() -> String? {\n        NSRunningApplication.runningApplications(withBundleIdentifier: \"com.dinoki.osaurus\")\n            .first?.bundleURL?.path\n    }\n",
+      "replace": "    @MainActor\n    public static func runningAppBundlePath() -> String? {\n        for bundleID in appBundleIdentifiers {\n            if let path = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)\n                .first?.bundleURL?.path\n            {\n                return path\n            }\n        }\n        return nil\n    }\n",
+      "enforced": true
+    },
+    {
+      "id": "cli.port-owner-name",
+      "op": "block",
+      "path": "Packages/OsaurusCLI/Sources/OsaurusCLICore/Services/InstallationDiagnostics.swift",
+      "find": "        let command = owner.split(separator: \" \").first.map(String.init)?.lowercased()\n        return command == \"osaurus\"\n",
+      "replace": "        let command = owner.split(separator: \" \").first.map(String.init)?.lowercased()\n        // The app executable is `Nuo` after the rename. `osaurus` still counts so a\n        // port held by the previous build is not reported as a foreign squatter.\n        return command == \"nuo\" || command == \"osaurus\"\n",
+      "enforced": true
+    },
+    {
+      "id": "cli.shim-script",
+      "op": "block",
+      "path": "scripts/osaurus",
+      "raw": true,
+      "find": "#!/usr/bin/env bash\nset -euo pipefail\n\n# osaurus shim\n# Finds the installed Osaurus.app and execs its embedded CLI helper.\n# Useful for packaging or environments where the cask does not expose the CLI binary.\n\nREPO_ROOT=\"$(cd \"$(dirname \"$0\")/..\" && pwd)\"\n\nlog_debug() {\n  if [[ \"${OSU_DEBUG_SHIM:-}\" == \"1\" ]]; then\n    echo \"[osaurus-shim] $*\" >&2\n  fi\n}\n\nfind_app_by_bundle_id() {\n  local bundle_id=\"com.dinoki.osaurus\"\n  if command -v mdfind >/dev/null 2>&1; then\n    # Search in common locations first to avoid noise\n    local result\n    result=$(mdfind \"kMDItemCFBundleIdentifier == '$bundle_id'\" -onlyin \\\n      \"/Applications\" -onlyin \"$HOME/Applications\" | head -n1 || true)\n    if [[ -n \"$result\" && -d \"$result\" ]]; then\n      echo \"$result\"\n      return 0\n    fi\n  fi\n  return 1\n}\n\nresolve_app_path() {\n  if [[ -n \"${OSU_APP_PATH:-}\" && -d \"${OSU_APP_PATH}\" ]]; then\n    echo \"${OSU_APP_PATH}\"\n    return 0\n  fi\n  local candidates=(\n    \"/Applications/Osaurus.app\"\n    \"$HOME/Applications/Osaurus.app\"\n    \"/Applications/osaurus.app\"\n    \"$HOME/Applications/osaurus.app\"\n  )\n  for c in \"${candidates[@]}\"; do\n    if [[ -d \"$c\" ]]; then\n      echo \"$c\"\n      return 0\n    fi\n  done\n  if app=\"$(find_app_by_bundle_id)\"; then\n    echo \"$app\"\n    return 0\n  fi\n  return 1\n}\n\nresolve_cli_from_app() {\n  local app_path=\"$1\"\n  local candidate\n  for candidate in \\\n    \"$app_path/Contents/Helpers/osaurus\" \\\n    \"$app_path/Contents/MacOS/osaurus\"\n  do\n    if [[ -x \"$candidate\" ]]; then\n      echo \"$candidate\"\n      return 0\n    fi\n  done\n  return 1\n}\n\nresolve_cli_from_dev() {\n  local base=\"$REPO_ROOT/build/DerivedData/Build/Products\"\n  local candidates=(\n    \"$base/Release/osaurus\"\n    \"$base/Release/osaurus-cli\"\n    \"$base/Release/osaurus.app/Contents/Helpers/osaurus\"\n    \"$base/Release/osaurus.app/Contents/MacOS/osaurus\"\n    \"$base/Debug/osaurus\"\n    \"$base/Debug/osaurus-cli\"\n  )\n  for c in \"${candidates[@]}\"; do\n    if [[ -x \"$c\" ]]; then\n      echo \"$c\"\n      return 0\n    fi\n  done\n  return 1\n}\n\nmain() {\n  local cli_path=\"\"\n\n  if [[ \"${OSU_DEV:-}\" == \"1\" ]]; then\n    log_debug \"Trying dev CLI in DerivedData\"\n    if cli_path=\"$(resolve_cli_from_dev)\"; then\n      exec \"$cli_path\" \"$@\"\n    fi\n  fi\n\n  if app_path=\"$(resolve_app_path)\"; then\n    log_debug \"Found app at: $app_path\"\n    if cli_path=\"$(resolve_cli_from_app \"$app_path\")\"; then\n      exec \"$cli_path\" \"$@\"\n    fi\n  fi\n\n  # Last resort: try dev even if OSU_DEV != 1\n  if cli_path=\"$(resolve_cli_from_dev)\"; then\n    exec \"$cli_path\" \"$@\"\n  fi\n\n  cat >&2 <<'EOF'\nOsaurus CLI not found.\n\nTry one of the following:\n  1) Install the app:  brew install --cask osaurus\n  2) Create a CLI symlink:  scripts/install_cli_symlink.sh\n  3) For development, build the CLI:  make cli && OSU_DEV=1 scripts/osaurus --help\nEOF\n  exit 127\n}\n\nmain \"$@\"\n",
+      "enforced": true,
+      "why": "Fork-owned entry script: rewrite the whole file, newest identity first with legacy fallbacks.",
+      "template": "scripts/brand/templates/scripts/osaurus"
+    },
+    {
+      "id": "cli.install-symlink-script",
+      "op": "block",
+      "path": "scripts/release/install_cli_symlink.sh",
+      "raw": true,
+      "find": "#!/bin/bash\nset -euo pipefail\n\n# install_cli_symlink.sh\n# Creates/updates a convenient `osaurus` symlink to either:\n#   1) the app's embedded CLI at Osaurus.app/Contents/MacOS/osaurus, or\n#   2) a locally built CLI binary in DerivedData (dev mode).\n#\n# Usage:\n#   scripts/install_cli_symlink.sh [--dev] [--prefix <dir>] [<path-to-Osaurus.app>]\n#\n# Notes:\n# - When no path is provided, common install locations are checked.\n# - Default target is /usr/local/bin, falling back to ~/.local/bin. Homebrew's\n#   prefix is never used automatically (see resolve_target_bin_dir below) —\n#   use --prefix to target it explicitly if that's what you want.\n\nREPO_ROOT=\"$(cd \"$(dirname \"$0\")/..\" && pwd)\"\n\nDEV_MODE=0\nPREFIX_OVERRIDE=\"\"\nAPP_PATH=\"\"\n\nwhile [[ $# -gt 0 ]]; do\n  case \"$1\" in\n    --dev)\n      DEV_MODE=1\n      shift\n      ;;\n    --prefix)\n      PREFIX_OVERRIDE=\"${2:-}\"\n      if [[ -z \"$PREFIX_OVERRIDE\" ]]; then\n        echo \"--prefix requires a value\" >&2\n        exit 1\n      fi\n      shift 2\n      ;;\n    *)\n      # Positional: optional path to .app\n      APP_PATH=\"$1\"\n      shift\n      ;;\n  esac\ndone\n\nresolve_cli_from_app() {\n  local app_path=\"$1\"\n  local candidate\n  for candidate in \\\n    \"$app_path/Contents/Helpers/osaurus\" \\\n    \"$app_path/Contents/MacOS/osaurus\"\n  do\n    if [[ -x \"$candidate\" ]]; then\n      echo \"$candidate\"\n      return 0\n    fi\n  done\n  return 1\n}\n\nresolve_cli_from_dev() {\n  # Try common DerivedData product locations\n  local base=\"$REPO_ROOT/build/DerivedData/Build/Products/Release\"\n  for candidate in \\\n    \"$base/osaurus\" \\\n    \"$base/osaurus-cli\" \\\n    \"$base/osaurus.app/Contents/Helpers/osaurus\" \\\n    \"$base/osaurus.app/Contents/MacOS/osaurus\" \\\n    \"$REPO_ROOT/build/DerivedData/Build/Products/Debug/osaurus\" \\\n    \"$REPO_ROOT/build/DerivedData/Build/Products/Debug/osaurus-cli\" \\\n    \"$REPO_ROOT/build/DerivedData/Build/Products/Debug/osaurus.app/Contents/Helpers/osaurus\" \\\n    \"$REPO_ROOT/build/DerivedData/Build/Products/Debug/osaurus.app/Contents/MacOS/osaurus\"\n  do\n    if [[ -x \"$candidate\" ]]; then\n      echo \"$candidate\"\n      return 0\n    fi\n  done\n  return 1\n}\n\nresolve_target_bin_dir() {\n  # Priority: explicit --prefix, /usr/local/bin, ~/.local/bin.\n  #\n  # Homebrew's prefix is intentionally NOT used as a default: it's a\n  # directory Homebrew owns and manages, and Osaurus isn't distributed via\n  # a Homebrew formula — brew being present on a user's machine for\n  # unrelated packages isn't a reason for this app to write into it.\n  # See osaurus-ai/osaurus#2137.\n  if [[ -n \"$PREFIX_OVERRIDE\" ]]; then\n    echo \"$PREFIX_OVERRIDE/bin\"\n    return 0\n  fi\n\n  if [[ -d \"/usr/local/bin\" ]]; then\n    echo \"/usr/local/bin\"\n    return 0\n  fi\n\n  echo \"$HOME/.local/bin\"\n}\n\n# Determine CLI source\nCLI_SRC=\"\"\nif [[ \"$DEV_MODE\" == \"1\" ]]; then\n  if CLI_SRC=\"$(resolve_cli_from_dev)\"; then :; else\n    echo \"Could not locate a built CLI in DerivedData. Build it first: 'make cli'\" >&2\n    exit 1\n  fi\nelse\n  if [[ -z \"$APP_PATH\" ]]; then\n    CANDIDATES=(\n      \"/Applications/Osaurus.app\"\n      \"$HOME/Applications/Osaurus.app\"\n      \"/Applications/osaurus.app\"\n      \"$HOME/Applications/osaurus.app\"\n    )\n    for c in \"${CANDIDATES[@]}\"; do\n      if CLI_SRC=\"$(resolve_cli_from_app \"$c\")\"; then\n        APP_PATH=\"$c\"\n        break\n      fi\n    done\n  else\n    if CLI_SRC=\"$(resolve_cli_from_app \"$APP_PATH\")\"; then :; else\n      echo \"CLI binary not found in: $APP_PATH\" >&2\n      echo \"Expected at: $APP_PATH/Contents/MacOS/osaurus\" >&2\n      exit 1\n    fi\n  fi\n\n  if [[ -z \"$CLI_SRC\" ]]; then\n    echo \"Could not locate Osaurus.app automatically. Provide the path explicitly.\" >&2\n    echo \"Example: scripts/install_cli_symlink.sh '/Applications/Osaurus.app'\" >&2\n    exit 1\n  fi\nfi\n\nTARGET_DIR=\"$(resolve_target_bin_dir)\"\nTARGET_LINK=\"$TARGET_DIR/osaurus\"\n\nmkdir -p \"$TARGET_DIR\"\n\nif [[ -w \"$TARGET_DIR\" ]]; then\n  ln -sf \"$CLI_SRC\" \"$TARGET_LINK\"\n  echo \"Installed symlink: $TARGET_LINK -> $CLI_SRC\"\nelse\n  # Fallback to user-local, avoid sudo prompts\n  TARGET_DIR=\"$HOME/.local/bin\"\n  mkdir -p \"$TARGET_DIR\"\n  TARGET_LINK=\"$TARGET_DIR/osaurus\"\n  ln -sf \"$CLI_SRC\" \"$TARGET_LINK\"\n  echo \"Installed symlink (user): $TARGET_LINK -> $CLI_SRC\"\n  echo \"Make sure $TARGET_DIR is on your PATH (e.g., add to your shell profile).\"\nfi\n",
+      "enforced": true,
+      "why": "Installs `nuo`; legacy `osaurus` only fills a gap. Also fixes REPO_ROOT, which pointed at scripts/ after the file moved into scripts/release/.",
+      "template": "scripts/brand/templates/scripts/install_cli_symlink.sh"
+    },
+    {
+      "id": "makefile.commands",
+      "op": "replace",
+      "files": [
+        "Makefile"
+      ],
+      "pattern": "(?m)^\\tosaurus (serve|status|bench)\\b",
+      "replace": "\\tnuo \\1",
+      "enforced": true,
+      "why": "These targets shell out to the installed CLI symlink, which is now `nuo`."
+    },
+    {
+      "id": "makefile.install-help",
+      "op": "replace",
+      "files": [
+        "Makefile"
+      ],
+      "pattern": "/usr/local/bin/osaurus symlink",
+      "replace": "/usr/local/bin/nuo symlink",
+      "enforced": true
+    }
+  ]
+}

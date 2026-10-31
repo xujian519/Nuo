@@ -1,21 +1,34 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# osaurus shim
-# Finds the installed Osaurus.app and execs its embedded CLI helper.
-# Useful for packaging or environments where the cask does not expose the CLI binary.
+# nuo shim (kept at scripts/osaurus so old docs, login items and muscle memory
+# keep resolving; the command it exposes is `nuo`).
+#
+# Finds the installed Nuo.app — or a legacy Osaurus.app from before the rename —
+# and execs its embedded CLI helper. Useful for packaging or environments where
+# the cask does not expose the CLI binary on PATH.
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
+# New identity first, legacy second: a machine can carry both apps during the
+# transition and the rebranded one must win.
+BUNDLE_IDS=(
+  "com.nuo.app"
+  "com.dinoki.osaurus"
+)
+
 log_debug() {
   if [[ "${OSU_DEBUG_SHIM:-}" == "1" ]]; then
-    echo "[osaurus-shim] $*" >&2
+    echo "[nuo-shim] $*" >&2
   fi
 }
 
 find_app_by_bundle_id() {
-  local bundle_id="com.dinoki.osaurus"
-  if command -v mdfind >/dev/null 2>&1; then
+  if ! command -v mdfind >/dev/null 2>&1; then
+    return 1
+  fi
+  local bundle_id
+  for bundle_id in "${BUNDLE_IDS[@]}"; do
     # Search in common locations first to avoid noise
     local result
     result=$(mdfind "kMDItemCFBundleIdentifier == '$bundle_id'" -onlyin \
@@ -24,7 +37,7 @@ find_app_by_bundle_id() {
       echo "$result"
       return 0
     fi
-  fi
+  done
   return 1
 }
 
@@ -34,6 +47,8 @@ resolve_app_path() {
     return 0
   fi
   local candidates=(
+    "/Applications/Nuo.app"
+    "$HOME/Applications/Nuo.app"
     "/Applications/Osaurus.app"
     "$HOME/Applications/Osaurus.app"
     "/Applications/osaurus.app"
@@ -56,7 +71,9 @@ resolve_cli_from_app() {
   local app_path="$1"
   local candidate
   for candidate in \
+    "$app_path/Contents/Helpers/nuo" \
     "$app_path/Contents/Helpers/osaurus" \
+    "$app_path/Contents/MacOS/Nuo" \
     "$app_path/Contents/MacOS/osaurus"
   do
     if [[ -x "$candidate" ]]; then
@@ -70,11 +87,16 @@ resolve_cli_from_app() {
 resolve_cli_from_dev() {
   local base="$REPO_ROOT/build/DerivedData/Build/Products"
   local candidates=(
-    "$base/Release/osaurus"
+    "$base/Release/Nuo.app/Contents/Helpers/nuo"
+    "$base/Release/Nuo.app/Contents/MacOS/Nuo"
+    "$base/Release/Nuo"
     "$base/Release/osaurus-cli"
     "$base/Release/osaurus.app/Contents/Helpers/osaurus"
     "$base/Release/osaurus.app/Contents/MacOS/osaurus"
-    "$base/Debug/osaurus"
+    "$base/Release/osaurus"
+    "$base/Debug/Nuo.app/Contents/Helpers/nuo"
+    "$base/Debug/Nuo.app/Contents/MacOS/Nuo"
+    "$base/Debug/Nuo"
     "$base/Debug/osaurus-cli"
   )
   for c in "${candidates[@]}"; do
@@ -109,11 +131,12 @@ main() {
   fi
 
   cat >&2 <<'EOF'
-Osaurus CLI not found.
+nuo CLI not found.
 
 Try one of the following:
-  1) Install the app:  brew install --cask osaurus
-  2) Create a CLI symlink:  scripts/install_cli_symlink.sh
+  1) Install Nuo.app, or point this shim at it:
+       OSU_APP_PATH=/Applications/Nuo.app scripts/osaurus --help
+  2) Create a CLI symlink:  scripts/release/install_cli_symlink.sh
   3) For development, build the CLI:  make cli && OSU_DEV=1 scripts/osaurus --help
 EOF
   exit 127

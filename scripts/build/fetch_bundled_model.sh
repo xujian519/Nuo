@@ -33,7 +33,7 @@ WEIGHTS_SHA256="4b99612854c5f0a4c6c7e0098a0c1dfda98e90880f983bd8254feae09cabf43d
 INCLUDE_GLOBS=("*.json" "*.jinja" "*.txt" "*.model" "*.safetensors")
 EXCLUDE_FILES=("README.md" ".gitattributes")
 
-OUT_DIR="${1:?output directory required (e.g. Osaurus.app/Contents/Resources/BundledModels)}"
+OUT_DIR="${1:?output directory required (e.g. Nuo.app/Contents/Resources/BundledModels)}"
 CACHE_DIR="${BUNDLED_MODEL_CACHE_DIR:-${HOME}/.cache/osaurus-bundled-model}"
 SOURCE_DIR="${BUNDLED_MODEL_SOURCE_DIR:-}"
 

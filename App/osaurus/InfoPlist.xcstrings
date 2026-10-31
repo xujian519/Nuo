@@ -8,37 +8,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus"
+            "value" : "Nuo"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Osaurus"
+            "value" : "Nuo"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus"
+            "value" : "Nuo"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus"
+            "value" : "Nuo"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus"
+            "value" : "Nuo"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus"
+            "value" : "Nuo"
           }
         }
       }
@@ -50,37 +50,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "osaurus"
+            "value" : "nuo"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "osaurus"
+            "value" : "nuo"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "osaurus"
+            "value" : "nuo"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "osaurus"
+            "value" : "nuo"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "osaurus"
+            "value" : "nuo"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "osaurus"
+            "value" : "nuo"
           }
         }
       }
@@ -92,37 +92,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus-Plugins können Automatisierung nutzen, um andere Anwendungen in deinem Auftrag zu steuern."
+            "value" : "Nuo-Plugins können Automatisierung nutzen, um andere Anwendungen in deinem Auftrag zu steuern."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Osaurus uses automation to control other apps on your behalf — the built-in Notes, Mail, Messages, and Music tools you enable per agent, agents that write and run AppleScript, and plugins that use automation."
+            "value" : "Nuo uses automation to control other apps on your behalf — the built-in Notes, Mail, Messages, and Music tools you enable per agent, agents that write and run AppleScript, and plugins that use automation."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 플러그인이 사용자를 대신하여 다른 응용 프로그램을 제어하기 위해 자동화를 사용할 수 있습니다."
+            "value" : "Nuo 플러그인이 사용자를 대신하여 다른 응용 프로그램을 제어하기 위해 자동화를 사용할 수 있습니다."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus использует автоматизацию, чтобы управлять другими приложениями от вашего имени: в том числе агенты могут писать и запускать AppleScript для автоматизации задач на этом Mac, а плагины могут использовать автоматизацию."
+            "value" : "Nuo использует автоматизацию, чтобы управлять другими приложениями от вашего имени: в том числе агенты могут писать и запускать AppleScript для автоматизации задач на этом Mac, а плагины могут использовать автоматизацию."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能会使用自动化代表你控制其他应用。"
+            "value" : "Nuo 插件可能会使用自动化代表你控制其他应用。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能會用自動化來代表你控制其他應用。"
+            "value" : "Nuo 插件可能會用自動化來代表你控制其他應用。"
           }
         }
       }
@@ -134,37 +134,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus-Plugins können auf deinen Kalender zugreifen, um Termine zu lesen und zu erstellen."
+            "value" : "Nuo-Plugins können auf deinen Kalender zugreifen, um Termine zu lesen und zu erstellen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Osaurus reads, creates, and updates Calendar events only for agents you have given Calendar access to."
+            "value" : "Nuo reads, creates, and updates Calendar events only for agents you have given Calendar access to."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 플러그인이 이벤트를 읽고 생성하기 위해 캘린더에 접근할 수 있습니다."
+            "value" : "Nuo 플러그인이 이벤트를 읽고 생성하기 위해 캘린더에 접근할 수 있습니다."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Плагины Osaurus могут получать доступ к календарю, чтобы читать и создавать события."
+            "value" : "Плагины Nuo могут получать доступ к календарю, чтобы читать и создавать события."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能会访问你的日历，以读取和创建日程。"
+            "value" : "Nuo 插件可能会访问你的日历，以读取和创建日程。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能會讀取你的行事曆，用來讀取和建立行事曆。"
+            "value" : "Nuo 插件可能會讀取你的行事曆，用來讀取和建立行事曆。"
           }
         }
       }
@@ -176,37 +176,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus-Plugins können auf deinen Kalender zugreifen, um Termine zu lesen und zu erstellen."
+            "value" : "Nuo-Plugins können auf deinen Kalender zugreifen, um Termine zu lesen und zu erstellen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Osaurus reads, creates, and updates Calendar events only for agents you have given Calendar access to."
+            "value" : "Nuo reads, creates, and updates Calendar events only for agents you have given Calendar access to."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 플러그인이 이벤트를 읽고 생성하기 위해 캘린더에 접근할 수 있습니다."
+            "value" : "Nuo 플러그인이 이벤트를 읽고 생성하기 위해 캘린더에 접근할 수 있습니다."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Плагины Osaurus могут получать доступ к календарю, чтобы читать и создавать события."
+            "value" : "Плагины Nuo могут получать доступ к календарю, чтобы читать и создавать события."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能会访问你的日历，以读取和创建日程。"
+            "value" : "Nuo 插件可能会访问你的日历，以读取和创建日程。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能會讀取你的行事曆，用來讀取和建立行事曆。"
+            "value" : "Nuo 插件可能會讀取你的行事曆，用來讀取和建立行事曆。"
           }
         }
       }
@@ -218,37 +218,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus-Plugins können auf deine Kontakte zugreifen, um Kontaktinformationen zu suchen und zu lesen."
+            "value" : "Nuo-Plugins können auf deine Kontakte zugreifen, um Kontaktinformationen zu suchen und zu lesen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Osaurus looks up, creates, and updates contacts only for agents you have given Contacts access to."
+            "value" : "Nuo looks up, creates, and updates contacts only for agents you have given Contacts access to."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 플러그인이 연락처 정보를 검색하고 읽기 위해 연락처에 접근할 수 있습니다."
+            "value" : "Nuo 플러그인이 연락처 정보를 검색하고 읽기 위해 연락처에 접근할 수 있습니다."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Плагины Osaurus могут получать доступ к контактам, чтобы искать и читать контактную информацию."
+            "value" : "Плагины Nuo могут получать доступ к контактам, чтобы искать и читать контактную информацию."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能会访问你的联系人，以搜索和读取联系人信息。"
+            "value" : "Nuo 插件可能会访问你的联系人，以搜索和读取联系人信息。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能會存取你的聯絡人，以搜尋和讀取聯絡人資訊。"
+            "value" : "Nuo 插件可能會存取你的聯絡人，以搜尋和讀取聯絡人資訊。"
           }
         }
       }
@@ -272,37 +272,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus nutzt das lokale Netzwerk, um Agenten auf anderen Geräten zu finden und zu verbinden."
+            "value" : "Nuo nutzt das lokale Netzwerk, um Agenten auf anderen Geräten zu finden und zu verbinden."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Osaurus uses the local network to discover and connect to agents running on other devices."
+            "value" : "Nuo uses the local network to discover and connect to agents running on other devices."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus가 다른 기기에서 실행 중인 에이전트를 검색하고 연결하기 위해 로컬 네트워크를 사용합니다."
+            "value" : "Nuo가 다른 기기에서 실행 중인 에이전트를 검색하고 연결하기 위해 로컬 네트워크를 사용합니다."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus использует локальную сеть, чтобы находить агентов на других устройствах и подключаться к ним."
+            "value" : "Nuo использует локальную сеть, чтобы находить агентов на других устройствах и подключаться к ним."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus 使用本地网络来发现并连接运行在其他设备上的智能体。"
+            "value" : "Nuo 使用本地网络来发现并连接运行在其他设备上的智能体。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus 使用本地網路來發現並連接執行在其他裝置上的智慧代理。"
+            "value" : "Nuo 使用本地網路來發現並連接執行在其他裝置上的智慧代理。"
           }
         }
       }
@@ -314,37 +314,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus-Plugins können auf deinen Standort zugreifen, um standortbasierte Dienste bereitzustellen."
+            "value" : "Nuo-Plugins können auf deinen Standort zugreifen, um standortbasierte Dienste bereitzustellen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Osaurus uses your location for nearby places and directions only for agents you have given Maps & Location access to."
+            "value" : "Nuo uses your location for nearby places and directions only for agents you have given Maps & Location access to."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 플러그인이 위치 기반 서비스를 제공하기 위해 위치 정보에 접근할 수 있습니다."
+            "value" : "Nuo 플러그인이 위치 기반 서비스를 제공하기 위해 위치 정보에 접근할 수 있습니다."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Плагины Osaurus могут получать доступ к вашей геопозиции, чтобы предоставлять сервисы с учётом местоположения."
+            "value" : "Плагины Nuo могут получать доступ к вашей геопозиции, чтобы предоставлять сервисы с учётом местоположения."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能会访问你的位置，以提供基于位置的服务。"
+            "value" : "Nuo 插件可能会访问你的位置，以提供基于位置的服务。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能會存取你的位置，以提供基於位置的服務。"
+            "value" : "Nuo 插件可能會存取你的位置，以提供基於位置的服務。"
           }
         }
       }
@@ -356,37 +356,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus-Plugins können auf deinen Standort zugreifen, um standortbasierte Dienste bereitzustellen."
+            "value" : "Nuo-Plugins können auf deinen Standort zugreifen, um standortbasierte Dienste bereitzustellen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Osaurus uses your location for nearby places and directions only for agents you have given Maps & Location access to."
+            "value" : "Nuo uses your location for nearby places and directions only for agents you have given Maps & Location access to."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 플러그인이 위치 기반 서비스를 제공하기 위해 위치 정보에 접근할 수 있습니다."
+            "value" : "Nuo 플러그인이 위치 기반 서비스를 제공하기 위해 위치 정보에 접근할 수 있습니다."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Плагины Osaurus могут получать доступ к вашей геопозиции, чтобы предоставлять сервисы с учётом местоположения."
+            "value" : "Плагины Nuo могут получать доступ к вашей геопозиции, чтобы предоставлять сервисы с учётом местоположения."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能会访问你的位置，以提供基于位置的服务。"
+            "value" : "Nuo 插件可能会访问你的位置，以提供基于位置的服务。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能會存取你的位置，以提供基於位置的服務。"
+            "value" : "Nuo 插件可能會存取你的位置，以提供基於位置的服務。"
           }
         }
       }
@@ -398,37 +398,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus verwendet das Mikrofon für die Spracherkennung auf dem Gerät mit FluidAudio."
+            "value" : "Nuo verwendet das Mikrofon für die Spracherkennung auf dem Gerät mit FluidAudio."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Osaurus uses the microphone for on-device voice transcription with FluidAudio."
+            "value" : "Nuo uses the microphone for on-device voice transcription with FluidAudio."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus가 FluidAudio를 사용한 온디바이스 음성 텍스트 변환을 위해 마이크를 사용합니다."
+            "value" : "Nuo가 FluidAudio를 사용한 온디바이스 음성 텍스트 변환을 위해 마이크를 사용합니다."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus использует микрофон для локальной расшифровки речи с помощью FluidAudio."
+            "value" : "Nuo использует микрофон для локальной расшифровки речи с помощью FluidAudio."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus 使用麦克风通过 FluidAudio 进行设备端语音转写。"
+            "value" : "Nuo 使用麦克风通过 FluidAudio 进行设备端语音转写。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus 使用麥克風透過 FluidAudio 進行裝置端語音轉寫。"
+            "value" : "Nuo 使用麥克風透過 FluidAudio 進行裝置端語音轉寫。"
           }
         }
       }
@@ -440,7 +440,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Osaurus reads, creates, and completes reminders only for agents you have given Reminders access to."
+            "value" : "Nuo reads, creates, and completes reminders only for agents you have given Reminders access to."
           }
         }
       }
@@ -452,37 +452,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus-Plugins können auf deine Erinnerungen zugreifen, um Aufgaben zu lesen und zu erstellen."
+            "value" : "Nuo-Plugins können auf deine Erinnerungen zugreifen, um Aufgaben zu lesen und zu erstellen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Osaurus reads, creates, and completes reminders only for agents you have given Reminders access to."
+            "value" : "Nuo reads, creates, and completes reminders only for agents you have given Reminders access to."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 플러그인이 작업을 읽고 생성하기 위해 미리 알림에 접근할 수 있습니다."
+            "value" : "Nuo 플러그인이 작업을 읽고 생성하기 위해 미리 알림에 접근할 수 있습니다."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Плагины Osaurus могут получать доступ к напоминаниям, чтобы читать и создавать задачи."
+            "value" : "Плагины Nuo могут получать доступ к напоминаниям, чтобы читать и создавать задачи."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能会访问你的提醒事项，以读取和创建任务。"
+            "value" : "Nuo 插件可能会访问你的提醒事项，以读取和创建任务。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "needs_review",
-            "value" : "Osaurus 插件可能會存取你的提醒事項，以讀取和建立任務。"
+            "value" : "Nuo 插件可能會存取你的提醒事項，以讀取和建立任務。"
           }
         }
       }
@@ -494,37 +494,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus kann Screenshots und Systemaudio nur erfassen, wenn du den Zugriff auf Bildschirmaufnahme erlaubst."
+            "value" : "Nuo kann Screenshots und Systemaudio nur erfassen, wenn du den Zugriff auf Bildschirmaufnahme erlaubst."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Osaurus can capture screenshots and system audio only when you grant Screen Recording access."
+            "value" : "Nuo can capture screenshots and system audio only when you grant Screen Recording access."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus는 화면 기록 접근 권한을 부여한 경우에만 스크린샷 및 시스템 오디오를 캡처할 수 있습니다."
+            "value" : "Nuo는 화면 기록 접근 권한을 부여한 경우에만 스크린샷 및 시스템 오디오를 캡처할 수 있습니다."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osaurus может записывать снимки экрана и системный звук только после предоставления доступа к записи экрана."
+            "value" : "Nuo может записывать снимки экрана и системный звук только после предоставления доступа к записи экрана."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "只有在你授予屏幕录制访问权限时，Osaurus 才能捕获屏幕截图和系统音频。"
+            "value" : "只有在你授予屏幕录制访问权限时，Nuo 才能捕获屏幕截图和系统音频。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "只有在你授予螢幕錄製存取權限時，Osaurus 才能擷取螢幕截圖和系統音訊。"
+            "value" : "只有在你授予螢幕錄製存取權限時，Nuo 才能擷取螢幕截圖和系統音訊。"
           }
         }
       }

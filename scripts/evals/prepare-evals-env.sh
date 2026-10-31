@@ -56,7 +56,7 @@ find_metallib_source() {
     [[ -f "${d}/mlx.metallib" ]] && { printf '%s' "${d}/mlx.metallib"; return 0; }
   done
   # Build products. The `mlx-swift_Cmlx.bundle` copy is the MLX KERNEL
-  # library (~3.6 MB); the one inside `osaurus.app/Contents/Resources` is the
+  # library (~3.6 MB); the one inside `Nuo.app/Contents/Resources` is the
   # app's own small metallib and does NOT contain the MLX kernels — a local
   # MLX eval colocated with it dies at first decode with
   # "[metal::Device] Unable to load kernel rmsbfloat16". Always prefer the
@@ -66,8 +66,8 @@ find_metallib_source() {
   local cands=(
     "${REPO_ROOT}"/build/*/Build/Products/*/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib
     "${HOME}"/Library/Developer/Xcode/DerivedData/osaurus-*/Build/Products/*/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib
-    "${REPO_ROOT}"/build/*/Build/Products/*/osaurus.app/Contents/Resources/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib
-    "${HOME}"/Library/Developer/Xcode/DerivedData/osaurus-*/Build/Products/*/osaurus.app/Contents/Resources/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib
+    "${REPO_ROOT}"/build/*/Build/Products/*/Nuo.app/Contents/Resources/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib
+    "${HOME}"/Library/Developer/Xcode/DerivedData/osaurus-*/Build/Products/*/Nuo.app/Contents/Resources/mlx-swift_Cmlx.bundle/Contents/Resources/default.metallib
   )
   local c
   for c in "${cands[@]-}"; do

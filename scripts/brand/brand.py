@@ -93,6 +93,15 @@ def fmt(text: str) -> str:
     return PLACEHOLDER_RE.sub(sub, text)
 
 
+def lit(rule: dict, key: str) -> str:
+    """Rule text, optionally exempt from placeholder substitution.
+
+    Shell rules are full of `${var}`/`${arr[@]}`; a rule that anchors on shell
+    source sets `"raw": true` so those braces stay literal.
+    """
+    return rule[key] if rule.get("raw") else fmt(rule[key])
+
+
 def glob_to_regex(pattern: str) -> re.Pattern:
     out = ["^"]
     i = 0
@@ -316,15 +325,15 @@ def count_rule(rule: dict, dry: bool) -> tuple[int, list[str]]:
         return _apply_single(rule, dry)
     if op != "replace":
         die(f"unknown op {op!r} in rule {rule['id']}")
-    regex = re.compile(fmt(rule["pattern"]), re.MULTILINE)
+    regex = re.compile(lit(rule, "pattern"), re.MULTILINE)
     total = 0
     touched: list[str] = []
     for rel in rule_files(rule):
         text = read_text(rel)
         if rule.get("mode") == "swift-literals":
-            new, count = substitute_in_literals(text, regex, fmt(rule["replace"]))
+            new, count = substitute_in_literals(text, regex, lit(rule, "replace"))
         else:
-            new, count = substitute(text, regex, fmt(rule["replace"]))
+            new, count = substitute(text, regex, lit(rule, "replace"))
         if count:
             total += count
             touched.append(f"{rel} ({count})")
@@ -401,8 +410,8 @@ def _insert_after(rule: dict, rel: str, dry: bool) -> tuple[int, list[str]]:
     barely change.
     """
     text = read_text(rel)
-    find = fmt(rule["find"])
-    insert = fmt(rule["insert"])
+    find = lit(rule, "find")
+    insert = lit(rule, "insert")
     if insert in text:
         return 0, []
     if find not in text:
@@ -420,8 +429,10 @@ def _block(rule: dict, rel: str, dry: bool) -> tuple[int, list[str]]:
     is present the upstream merge changed the code under us -> hard conflict.
     """
     text = read_text(rel)
-    find = fmt(rule["find"])
-    replace = fmt(rule["replace"])
+    find = lit(rule, "find")
+    # Fork-owned files live in templates/ so the real content is editable and
+    # diffable as a file instead of a JSON string.
+    replace = read_text(rule["template"]) if rule.get("template") else lit(rule, "replace")
     if find not in text:
         if replace in text:
             return 0, []

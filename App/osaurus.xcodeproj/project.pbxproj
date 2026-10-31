@@ -41,7 +41,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		F0BB3C262E51FBCC00895593 /* osaurus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = osaurus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F0BB3C262E51FBCC00895593 /* Nuo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Nuo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F0BB3C342E51FBCD00895593 /* osaurusTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = osaurusTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F0BB3C3E2E51FBCD00895593 /* osaurusUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = osaurusUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -112,7 +112,7 @@
 		F0BB3C272E51FBCC00895593 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F0BB3C262E51FBCC00895593 /* osaurus.app */,
+				F0BB3C262E51FBCC00895593 /* Nuo.app */,
 				F0BB3C342E51FBCD00895593 /* osaurusTests.xctest */,
 				F0BB3C3E2E51FBCD00895593 /* osaurusUITests.xctest */,
 			);
@@ -149,8 +149,8 @@
 			packageProductDependencies = (
 				05576F742F72E7D800EF3CD3 /* OsaurusCore */,
 			);
-			productName = osaurus;
-			productReference = F0BB3C262E51FBCC00895593 /* osaurus.app */;
+			productName = Nuo;
+			productReference = F0BB3C262E51FBCC00895593 /* Nuo.app */;
 			productType = "com.apple.product-type.application";
 		};
 		F0BB3C332E51FBCD00895593 /* osaurusTests */ = {
@@ -465,13 +465,12 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = osaurus/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Osaurus;
+				INFOPLIST_KEY_CFBundleDisplayName = Nuo;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Osaurus needs access to your microphone to test speech recognition with Whisper.";
-				INFOPLIST_KEY_SUEnableAutomaticChecks = YES;
+				INFOPLIST_KEY_SUEnableAutomaticChecks = NO;
 				INFOPLIST_KEY_SUFeedURL = "$(SU_FEED_URL)";
 				INFOPLIST_KEY_SUPublicEDKey = "$(SPARKLE_PUBLIC_ED_KEY)";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -480,8 +479,8 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.dinoki.osaurus;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.nuo.app;
+				PRODUCT_NAME = "Nuo";
 				REGISTER_APP_GROUPS = YES;
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
 				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
@@ -490,7 +489,7 @@
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
 				SPARKLE_PUBLIC_ED_KEY = REPLACE_WITH_PUBLIC_ED_KEY;
-				SU_FEED_URL = "https://dinoki.github.io/osaurus/appcast.xml";
+				SU_FEED_URL = "https://nuo.app/appcast.xml";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.2;
@@ -522,13 +521,12 @@
 				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = osaurus/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Osaurus;
+				INFOPLIST_KEY_CFBundleDisplayName = Nuo;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Osaurus needs access to your microphone to test speech recognition with Whisper.";
-				INFOPLIST_KEY_SUEnableAutomaticChecks = YES;
+				INFOPLIST_KEY_SUEnableAutomaticChecks = NO;
 				INFOPLIST_KEY_SUFeedURL = "$(SU_FEED_URL)";
 				INFOPLIST_KEY_SUPublicEDKey = "$(SPARKLE_PUBLIC_ED_KEY)";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -537,8 +535,8 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.dinoki.osaurus;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.nuo.app;
+				PRODUCT_NAME = "Nuo";
 				REGISTER_APP_GROUPS = YES;
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = NO;
 				RUNTIME_EXCEPTION_ALLOW_JIT = NO;
@@ -547,7 +545,7 @@
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = NO;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
 				SPARKLE_PUBLIC_ED_KEY = REPLACE_WITH_PUBLIC_ED_KEY;
-				SU_FEED_URL = "https://dinoki.github.io/osaurus/appcast.xml";
+				SU_FEED_URL = "https://nuo.app/appcast.xml";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.2;
@@ -565,12 +563,12 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.dinoki.osaurusTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nuo.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.2;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/osaurus.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/osaurus";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Nuo.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Nuo";
 			};
 			name = Debug;
 		};
@@ -585,12 +583,12 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.dinoki.osaurusTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nuo.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.2;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/osaurus.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/osaurus";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Nuo.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Nuo";
 			};
 			name = Release;
 		};
@@ -603,7 +601,7 @@
 				DEVELOPMENT_TEAM = 4W8QF9VR2F;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.dinoki.osaurusUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nuo.app.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -621,7 +619,7 @@
 				DEVELOPMENT_TEAM = 4W8QF9VR2F;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.dinoki.osaurusUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nuo.app.uitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_STRICT_CONCURRENCY = complete;

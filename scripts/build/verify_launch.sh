@@ -8,9 +8,10 @@ set -euo pipefail
 # sentinel and exits nonzero, so this script fails the build before notarize/
 # publish instead of shipping a brick.
 
-APP="${1:-build_output/Osaurus.app}"
-APP_BIN="$APP/Contents/MacOS/osaurus"
-CLI_BIN="$APP/Contents/Helpers/osaurus"
+APP="${1:-build_output/Nuo.app}"
+APP_BIN="$APP/Contents/MacOS/Nuo"
+CLI_BIN="$APP/Contents/Helpers/nuo"
+
 WATCHDOG_SECONDS=10
 
 if [[ ! -x "$APP_BIN" ]]; then
@@ -18,7 +19,7 @@ if [[ ! -x "$APP_BIN" ]]; then
   exit 1
 fi
 
-OUT="$(mktemp -t osaurus-spawn-out)"
+OUT="$(mktemp -t nuo-spawn-out)"
 trap 'rm -f "$OUT"' EXIT
 
 echo "Spawn-checking app binary: $APP_BIN"

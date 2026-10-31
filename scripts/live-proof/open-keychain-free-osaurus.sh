@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ $# -lt 3 || $# -gt 4 ]]; then
-  echo "usage: $0 /path/to/osaurus.app com.dinoki.osaurus.uniqueproofid /absolute/models-dir [fresh-test-root]" >&2
+  echo "usage: $0 /path/to/Nuo.app com.nuo.proof.uniqueproofid /absolute/models-dir [fresh-test-root]" >&2
   exit 64
 fi
 
@@ -10,10 +10,10 @@ APP="$1"
 BUNDLE_ID="$2"
 MODELS_DIR="$3"
 REQUESTED_TEST_ROOT="${4:-}"
-BIN="$APP/Contents/MacOS/osaurus"
+BIN="$APP/Contents/MacOS/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Contents/Info.plist")"
 
-if [[ ! "$BUNDLE_ID" =~ ^com\.dinoki\.osaurus\.[A-Za-z0-9][A-Za-z0-9.-]*$ ]]; then
-  echo "proof bundle id must be a unique com.dinoki.osaurus.* domain: $BUNDLE_ID" >&2
+if [[ ! "$BUNDLE_ID" =~ ^com\.nuo\.proof\.[A-Za-z0-9][A-Za-z0-9.-]*$ ]]; then
+  echo "proof bundle id must be a unique com.nuo.proof.* domain: $BUNDLE_ID" >&2
   exit 64
 fi
 if [[ ! -x "$BIN" ]]; then

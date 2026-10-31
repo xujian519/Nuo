@@ -11,7 +11,7 @@ set -euo pipefail
 # which is its default "<bundle id>@<marketing version>+<build>". Our build
 # sets MARKETING_VERSION and CURRENT_PROJECT_VERSION to the same ${VERSION}
 # (see build_arm64.sh), so the runtime release is:
-#   com.dinoki.osaurus@${VERSION}+${VERSION}
+#   com.nuo.app@${VERSION}+${VERSION}
 #
 # Best-effort by design, same contract as upload_dsyms_sentry.sh: missing
 # secrets (forks, local runs) log a warning and exit 0 rather than failing
@@ -40,7 +40,7 @@ if [[ -z "${VERSION:-}" ]]; then
   exit 0
 fi
 
-BUNDLE_ID="com.dinoki.osaurus"
+BUNDLE_ID="com.nuo.app"
 RELEASE="${BUNDLE_ID}@${VERSION}+${VERSION}"
 
 # Reuse the pinned sentry-cli the dSYM step installed, or install one (no

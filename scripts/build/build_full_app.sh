@@ -7,8 +7,8 @@ set -euo pipefail
 # the bundle signature. The light app is never modified in place.
 #
 # Inputs:
-#   $1  source app (default build_output/Osaurus.app — the light export)
-#   $2  destination app (default build_output/full/Osaurus.app)
+#   $1  source app (default build_output/Nuo.app — the light export)
+#   $2  destination app (default build_output/full/Nuo.app)
 #
 # Environment:
 #   DEVELOPER_ID_NAME   Developer ID Application identity (with or without prefix).
@@ -16,8 +16,8 @@ set -euo pipefail
 
 : "${DEVELOPER_ID_NAME:?DEVELOPER_ID_NAME is required}"
 
-SRC_APP="${1:-build_output/Osaurus.app}"
-DEST_APP="${2:-build_output/full/Osaurus.app}"
+SRC_APP="${1:-build_output/Nuo.app}"
+DEST_APP="${2:-build_output/full/Nuo.app}"
 ENTITLEMENTS="App/osaurus/osaurus.entitlements"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

@@ -18,7 +18,7 @@ set -euo pipefail
 ARCHIVE_DSYMS_DIR="build/osaurus.xcarchive/dSYMs"
 CLI_BUILD_DIR="build/Build/Products/Release"
 STAGE_DIR="build_output/dsyms-stage"
-OUT_ZIP="build_output/Osaurus-${VERSION}-dSYMs.zip"
+OUT_ZIP="build_output/Nuo-${VERSION}-dSYMs.zip"
 
 mkdir -p "${STAGE_DIR}"
 

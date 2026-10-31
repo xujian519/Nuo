@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Notarize and staple one DMG.
 #
-#   notarize.sh                          -> build_output/Osaurus-${VERSION}.dmg (light, default)
+#   notarize.sh                          -> build_output/Nuo-${VERSION}.dmg (light, default)
 #   notarize.sh <path/to.dmg> [timeout]  -> that DMG (the full variant passes 45m:
 #                                           a ~4 GB upload plus Apple's processing
 #                                           of a 3.7 GB payload regularly exceeds 30m)
@@ -13,7 +13,7 @@ set -euo pipefail
 : "${APPLE_TEAM_ID:?APPLE_TEAM_ID is required}"
 : "${VERSION:?VERSION is required}"
 
-LIGHT_DMG="build_output/Osaurus-${VERSION}.dmg"
+LIGHT_DMG="build_output/Nuo-${VERSION}.dmg"
 DMG_PATH="${1:-$LIGHT_DMG}"
 TIMEOUT="${2:-30m}"
 
@@ -36,8 +36,8 @@ xcrun notarytool submit "$DMG_PATH" \
 xcrun stapler staple "$DMG_PATH"
 xcrun stapler validate "$DMG_PATH"
 
-# The unversioned Osaurus.dmg alias only tracks the light build (Homebrew
+# The unversioned Nuo.dmg alias only tracks the light build (Homebrew
 # cask + README "latest" link).
 if [[ "$DMG_PATH" == "$LIGHT_DMG" ]]; then
-  cp "$DMG_PATH" "build_output/Osaurus.dmg"
+  cp "$DMG_PATH" "build_output/Nuo.dmg"
 fi

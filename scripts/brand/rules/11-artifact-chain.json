@@ -1,0 +1,136 @@
+{
+  "phase": 1,
+  "title": "Build and release artifact chain: app bundle, DMG, dSYM, Sentry identity",
+  "notes": [
+    "Every script downstream of PRODUCT_NAME resolves the exported bundle by name.",
+    "Renaming the product without these rules leaves the DMG/notarize/release lane",
+    "looking for build_output/Osaurus.app, which no longer exists.",
+    "Matching is whole-word `Osaurus`; `osaurus-cli`, `osaurus.xcarchive` and",
+    "`App/osaurus/...` are internal names and stay untouched."
+  ],
+  "rules": [
+    {
+      "id": "build.create-dmgs",
+      "op": "replace",
+      "files": [
+        "scripts/build/create_dmgs.sh"
+      ],
+      "pattern": "Osaurus",
+      "replace": "Nuo",
+      "enforced": true,
+      "why": "DMG volume name, staged bundle and light/full DMG filenames."
+    },
+    {
+      "id": "build.full-app",
+      "op": "replace",
+      "files": [
+        "scripts/build/build_full_app.sh"
+      ],
+      "pattern": "Osaurus",
+      "replace": "Nuo",
+      "enforced": true
+    },
+    {
+      "id": "build.verify-signing",
+      "op": "replace",
+      "files": [
+        "scripts/build/verify_signing.sh"
+      ],
+      "pattern": "Osaurus",
+      "replace": "Nuo",
+      "enforced": true
+    },
+    {
+      "id": "build.notarize",
+      "op": "replace",
+      "files": [
+        "scripts/build/notarize.sh"
+      ],
+      "pattern": "Osaurus",
+      "replace": "Nuo",
+      "enforced": true
+    },
+    {
+      "id": "build.create-release",
+      "op": "replace",
+      "files": [
+        "scripts/build/create_release.sh"
+      ],
+      "pattern": "Osaurus",
+      "replace": "Nuo",
+      "enforced": true
+    },
+    {
+      "id": "build.package-dsyms",
+      "op": "replace",
+      "files": [
+        "scripts/build/package_dsyms.sh"
+      ],
+      "pattern": "Osaurus",
+      "replace": "Nuo",
+      "enforced": true
+    },
+    {
+      "id": "build.fetch-bundled-model",
+      "op": "replace",
+      "files": [
+        "scripts/build/fetch_bundled_model.sh"
+      ],
+      "pattern": "Osaurus",
+      "replace": "Nuo",
+      "enforced": true
+    },
+    {
+      "id": "build.fetch-sandbox-kernel",
+      "op": "replace",
+      "files": [
+        "scripts/build/fetch_sandbox_kernel.sh"
+      ],
+      "pattern": "Osaurus",
+      "replace": "Nuo",
+      "enforced": true
+    },
+    {
+      "id": "build.verify-launch",
+      "op": "replace",
+      "files": [
+        "scripts/build/verify_launch.sh"
+      ],
+      "pattern": "Osaurus",
+      "replace": "Nuo",
+      "enforced": true,
+      "why": "Default app path; the executable/helper names are patched by verify-launch-bins below."
+    },
+    {
+      "id": "build.verify-launch-bins",
+      "op": "block",
+      "path": "scripts/build/verify_launch.sh",
+      "find": "APP=\"${1:-build_output/Osaurus.app}\"\nAPP_BIN=\"$APP/Contents/MacOS/osaurus\"\nCLI_BIN=\"$APP/Contents/Helpers/osaurus\"\n",
+      "replace": "APP=\"${1:-build_output/Nuo.app}\"\nAPP_BIN=\"$APP/Contents/MacOS/Nuo\"\nCLI_BIN=\"$APP/Contents/Helpers/nuo\"\n",
+      "raw": true,
+      "enforced": true
+    },
+    {
+      "id": "build.sentry-bundle-id",
+      "op": "replace",
+      "files": [
+        "scripts/build/sentry_release.sh"
+      ],
+      "pattern": "com\\.dinoki\\.osaurus",
+      "replace": "com.nuo.app",
+      "enforced": true,
+      "why": "Sentry's Cocoa SDK names the release `<CFBundleIdentifier>@<version>`; a stale id registers a release no runtime event ever lands in."
+    },
+    {
+      "id": "evals.metallib-glob",
+      "op": "replace",
+      "files": [
+        "scripts/evals/prepare-evals-env.sh"
+      ],
+      "pattern": "osaurus\\.app",
+      "replace": "Nuo.app",
+      "enforced": true,
+      "why": "The DerivedData metallib probe walks the built product by name."
+    }
+  ]
+}

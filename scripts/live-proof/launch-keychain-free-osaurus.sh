@@ -2,13 +2,13 @@
 set -euo pipefail
 
 if [[ $# -lt 1 ]]; then
-  echo "usage: $0 /path/to/osaurus.app [test-root]" >&2
+  echo "usage: $0 /path/to/Nuo.app [test-root]" >&2
   exit 64
 fi
 
 APP="$1"
 TEST_ROOT="${2:-/tmp/osaurus-keychain-free-live-proof-$(date +%Y%m%d-%H%M%S)}"
-BIN="$APP/Contents/MacOS/osaurus"
+BIN="$APP/Contents/MacOS/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Contents/Info.plist")"
 
 if [[ ! -x "$BIN" ]]; then
   echo "missing executable: $BIN" >&2

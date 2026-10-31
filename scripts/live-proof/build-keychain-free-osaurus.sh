@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 if [[ $# -ne 2 ]]; then
-  echo "usage: $0 /absolute/DerivedData com.dinoki.osaurus.uniqueproofid" >&2
+  echo "usage: $0 /absolute/DerivedData com.nuo.proof.uniqueproofid" >&2
   exit 64
 fi
 
@@ -15,8 +15,8 @@ if [[ "$DERIVED_DATA" != /* ]]; then
   echo "DerivedData path must be absolute: $DERIVED_DATA" >&2
   exit 64
 fi
-if [[ ! "$BUNDLE_ID" =~ ^com\.dinoki\.osaurus\.[A-Za-z0-9][A-Za-z0-9.-]*$ ]]; then
-  echo "proof bundle id must be a unique com.dinoki.osaurus.* domain: $BUNDLE_ID" >&2
+if [[ ! "$BUNDLE_ID" =~ ^com\.nuo\.proof\.[A-Za-z0-9][A-Za-z0-9.-]*$ ]]; then
+  echo "proof bundle id must be a unique com.nuo.proof.* domain: $BUNDLE_ID" >&2
   exit 64
 fi
 
@@ -66,8 +66,13 @@ env \
     PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
     build
 
-APP="$DERIVED_DATA/Build/Products/Release/osaurus.app"
-BIN="$APP/Contents/MacOS/osaurus"
+APP="$DERIVED_DATA/Build/Products/Release/Nuo.app"
+# The product was renamed from osaurus.app; keep the proof lane usable against a
+# DerivedData tree built before the rename.
+if [[ ! -d "$APP" ]]; then
+  APP="$DERIVED_DATA/Build/Products/Release/osaurus.app"
+fi
+BIN="$APP/Contents/MacOS/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Contents/Info.plist")"
 
 if [[ ! -x "$BIN" ]]; then
   echo "missing built app executable: $BIN" >&2
@@ -88,7 +93,8 @@ if [[ ! -x "$CLI" ]]; then
   exit 66
 fi
 mkdir -p "$APP/Contents/Helpers"
-cp "$CLI" "$APP/Contents/Helpers/osaurus"
+cp "$CLI" "$APP/Contents/Helpers/nuo"
+ln -sfn nuo "$APP/Contents/Helpers/osaurus"
 
 # macOS 26 rejects the raw CODE_SIGNING_ALLOWED=NO bundle for UI launch
 # because app resources are not sealed. This ad-hoc seal uses no identity,

@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "F0BB3C252E51FBCC00895593"
-               BuildableName = "osaurus.app"
+               BuildableName = "Nuo.app"
                BlueprintName = "osaurus"
                ReferencedContainer = "container:osaurus.xcodeproj">
             </BuildableReference>
@@ -94,7 +94,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F0BB3C252E51FBCC00895593"
-            BuildableName = "osaurus.app"
+            BuildableName = "Nuo.app"
             BlueprintName = "osaurus"
             ReferencedContainer = "container:osaurus.xcodeproj">
          </BuildableReference>
@@ -111,7 +111,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F0BB3C252E51FBCC00895593"
-            BuildableName = "osaurus.app"
+            BuildableName = "Nuo.app"
             BlueprintName = "osaurus"
             ReferencedContainer = "container:osaurus.xcodeproj">
          </BuildableReference>

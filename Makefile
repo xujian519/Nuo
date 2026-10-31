@@ -16,7 +16,7 @@ help:
 	@echo "Targets:"
 	@echo "  cli            Build CLI ($(SCHEME_CLI)) into $(DERIVED)"
 	@echo "  app            Build app ($(SCHEME_APP)) and embed CLI"
-	@echo "  install-cli    Install/update /usr/local/bin/osaurus symlink"
+	@echo "  install-cli    Install/update /usr/local/bin/nuo symlink"
 	@echo "  serve          Build CLI and start server (use PORT=XXXX, EXPOSE=1)"
 	@echo "  status         Check if server is running"
 	@echo "  bench-setup         Clone EasyLocomo + apply patches + install deps"
@@ -57,18 +57,20 @@ app: cli
 	@echo "Building app ($(SCHEME_APP))…"
 	xcodebuild -workspace $(WORKSPACE) -scheme $(SCHEME_APP) -configuration $(CONFIG) -derivedDataPath $(DERIVED) build -quiet $(XCODEBUILD_FLAGS)
 	@echo "Embedding CLI into App Bundle (Helpers)…"
-	# Copy osaurus-cli to osaurus.app/Contents/Helpers/osaurus
-	mkdir -p "$(DERIVED)/Build/Products/$(CONFIG)/osaurus.app/Contents/Helpers"
-	cp "$(DERIVED)/Build/Products/$(CONFIG)/osaurus-cli" "$(DERIVED)/Build/Products/$(CONFIG)/osaurus.app/Contents/Helpers/osaurus"
-	chmod +x "$(DERIVED)/Build/Products/$(CONFIG)/osaurus.app/Contents/Helpers/osaurus"
+	# Copy osaurus-cli to Nuo.app/Contents/Helpers/nuo. The `osaurus` name stays as
+	# a relative symlink so launchers that still resolve the old helper keep working.
+	mkdir -p "$(DERIVED)/Build/Products/$(CONFIG)/Nuo.app/Contents/Helpers"
+	cp "$(DERIVED)/Build/Products/$(CONFIG)/osaurus-cli" "$(DERIVED)/Build/Products/$(CONFIG)/Nuo.app/Contents/Helpers/nuo"
+	chmod +x "$(DERIVED)/Build/Products/$(CONFIG)/Nuo.app/Contents/Helpers/nuo"
+	ln -sfn nuo "$(DERIVED)/Build/Products/$(CONFIG)/Nuo.app/Contents/Helpers/osaurus"
 	@echo "Building plugin host helper (osaurus-plugin-host)…"
 	xcodebuild -workspace $(WORKSPACE) -scheme osaurus-plugin-host -configuration $(CONFIG) -derivedDataPath $(DERIVED) build -quiet $(XCODEBUILD_FLAGS)
 	@echo "Embedding plugin host helper into App Bundle (Helpers)…"
 	# Killable out-of-process native plugin host (see PluginProcessHost.swift).
-	cp "$(DERIVED)/Build/Products/$(CONFIG)/osaurus-plugin-host" "$(DERIVED)/Build/Products/$(CONFIG)/osaurus.app/Contents/Helpers/osaurus-plugin-host"
-	chmod +x "$(DERIVED)/Build/Products/$(CONFIG)/osaurus.app/Contents/Helpers/osaurus-plugin-host"
+	cp "$(DERIVED)/Build/Products/$(CONFIG)/osaurus-plugin-host" "$(DERIVED)/Build/Products/$(CONFIG)/Nuo.app/Contents/Helpers/osaurus-plugin-host"
+	chmod +x "$(DERIVED)/Build/Products/$(CONFIG)/Nuo.app/Contents/Helpers/osaurus-plugin-host"
 	@echo "Bundling sandbox kernel (Resources/SandboxRuntime)…"
-	./scripts/build/fetch_sandbox_kernel.sh "$(DERIVED)/Build/Products/$(CONFIG)/osaurus.app/Contents/Resources/SandboxRuntime"
+	./scripts/build/fetch_sandbox_kernel.sh "$(DERIVED)/Build/Products/$(CONFIG)/Nuo.app/Contents/Resources/SandboxRuntime"
 
 install-cli: cli
 	@echo "Installing CLI symlink…"
@@ -82,10 +84,10 @@ serve: install-cli
 	if [[ "$(EXPOSE)" == "1" ]]; then \
 		ARGS="$$ARGS --expose"; \
 	fi; \
-	osaurus serve $$ARGS
+	nuo serve $$ARGS
 
 status:
-	osaurus status
+	nuo status
 
 # WhatsApp Web bridge helper (whatsmeow). Dev lane: build locally and point
 # the app at it with OSAURUS_WA_PATH (DEBUG builds only), mirroring the imsg
@@ -178,7 +180,7 @@ BENCH_PYTHON := $(EASYLOCOMO_DIR)/.venv/bin/python
 BENCH_MLX_ARGS ?=
 bench-mlx: install-cli
 	@echo "Running osaurus bench…"
-	osaurus bench $(BENCH_MLX_ARGS)
+	nuo bench $(BENCH_MLX_ARGS)
 
 bench-setup:
 	@echo "Setting up EasyLocomo benchmark…"

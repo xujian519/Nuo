@@ -21,7 +21,7 @@
       },
       "setting": "PRODUCT_BUNDLE_IDENTIFIER",
       "value": "com.nuo.app",
-      "enforced": false,
+      "enforced": true,
       "why": "New app identity. Drives TCC, UserDefaults domain, Keychain ACL, Sparkle."
     },
     {
@@ -36,7 +36,7 @@
       },
       "setting": "PRODUCT_BUNDLE_IDENTIFIER",
       "value": "com.nuo.app.tests",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "pbx.bundle-id-uitests",
@@ -50,7 +50,7 @@
       },
       "setting": "PRODUCT_BUNDLE_IDENTIFIER",
       "value": "com.nuo.app.uitests",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "pbx.product-name",
@@ -64,7 +64,7 @@
       },
       "setting": "PRODUCT_NAME",
       "value": "\"Nuo\"",
-      "enforced": false,
+      "enforced": true,
       "why": "Makes the built product Nuo.app with a Nuo executable; target name is untouched."
     },
     {
@@ -79,7 +79,7 @@
       },
       "setting": "INFOPLIST_KEY_CFBundleDisplayName",
       "value": "Nuo",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "pbx.test-host",
@@ -93,7 +93,7 @@
       },
       "setting": "TEST_HOST",
       "value": "\"$(BUILT_PRODUCTS_DIR)/Nuo.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Nuo\"",
-      "enforced": false,
+      "enforced": true,
       "why": "Must follow PRODUCT_NAME or the unit-test bundle cannot be loaded."
     },
     {
@@ -108,7 +108,7 @@
       },
       "setting": "TEST_HOST",
       "value": "\"$(BUILT_PRODUCTS_DIR)/Nuo.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Nuo\"",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "pbx.drop-microphone-usage-key",
@@ -122,7 +122,7 @@
       },
       "setting": "INFOPLIST_KEY_NSMicrophoneUsageDescription",
       "remove": true,
-      "enforced": false,
+      "enforced": true,
       "why": "Pre-existing bug: this build setting disagreed with Info.plist:34 and both disagreed with InfoPlist.xcstrings. Info.plist becomes the single source."
     },
     {
@@ -137,7 +137,7 @@
       },
       "setting": "INFOPLIST_KEY_SUEnableAutomaticChecks",
       "value": "NO",
-      "enforced": false,
+      "enforced": true,
       "why": "No nuo appcast feed exists yet; silent auto-update against a dead feed is worse than none."
     },
     {
@@ -152,7 +152,7 @@
       },
       "setting": "SU_FEED_URL",
       "value": "\"https://nuo.app/appcast.xml\"",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "pbx.product-file-ref",
@@ -162,7 +162,7 @@
       ],
       "pattern": "path = osaurus\\.app;",
       "replace": "path = Nuo.app;",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "pbx.product-name-field",
@@ -172,7 +172,7 @@
       ],
       "pattern": "productName = osaurus;",
       "replace": "productName = Nuo;",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "pbx.product-comment",
@@ -182,7 +182,7 @@
       ],
       "pattern": "/\\* osaurus\\.app \\*/",
       "replace": "/* Nuo.app */",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "scheme.buildable-name",
@@ -192,7 +192,7 @@
       ],
       "pattern": "BuildableName = \"osaurus\\.app\"",
       "replace": "BuildableName = \"Nuo.app\"",
-      "enforced": false,
+      "enforced": true,
       "why": "Xcode resolves the buildable by name; left stale the scheme fails to run."
     },
     {
@@ -203,7 +203,7 @@
       ],
       "pattern": "osaurus\\.app",
       "replace": "Nuo.app",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "makefile.embedded-cli-helpers",
@@ -211,7 +211,7 @@
       "path": "Makefile",
       "find": "\t# Copy osaurus-cli to osaurus.app/Contents/Helpers/osaurus\n\tmkdir -p \"$(DERIVED)/Build/Products/$(CONFIG)/osaurus.app/Contents/Helpers\"\n\tcp \"$(DERIVED)/Build/Products/$(CONFIG)/osaurus-cli\" \"$(DERIVED)/Build/Products/$(CONFIG)/osaurus.app/Contents/Helpers/osaurus\"\n\tchmod +x \"$(DERIVED)/Build/Products/$(CONFIG)/osaurus.app/Contents/Helpers/osaurus\"\n",
       "replace": "\t# Copy osaurus-cli to Nuo.app/Contents/Helpers/nuo. The `osaurus` name stays as\n\t# a relative symlink so launchers that still resolve the old helper keep working.\n\tmkdir -p \"$(DERIVED)/Build/Products/$(CONFIG)/Nuo.app/Contents/Helpers\"\n\tcp \"$(DERIVED)/Build/Products/$(CONFIG)/osaurus-cli\" \"$(DERIVED)/Build/Products/$(CONFIG)/Nuo.app/Contents/Helpers/nuo\"\n\tchmod +x \"$(DERIVED)/Build/Products/$(CONFIG)/Nuo.app/Contents/Helpers/nuo\"\n\tln -sfn nuo \"$(DERIVED)/Build/Products/$(CONFIG)/Nuo.app/Contents/Helpers/osaurus\"\n",
-      "enforced": false,
+      "enforced": true,
       "why": "Embedded helper is the user-facing CLI; the legacy name is kept as a symlink for one release."
     },
     {
@@ -220,7 +220,7 @@
       "path": "scripts/build/build_arm64.sh",
       "find": "# Copy to Helpers folder as 'osaurus'\nmkdir -p \"$ARCHIVE_APP/Contents/Helpers\"\ncp \"$CLI_SRC\" \"$ARCHIVE_APP/Contents/Helpers/osaurus\"\nchmod +x \"$ARCHIVE_APP/Contents/Helpers/osaurus\"\n",
       "replace": "# Copy to Helpers folder as 'nuo'. `osaurus` stays as a relative symlink so any\n# existing launcher, script, or login item that resolves the old helper name\n# keeps working through the transition.\nmkdir -p \"$ARCHIVE_APP/Contents/Helpers\"\ncp \"$CLI_SRC\" \"$ARCHIVE_APP/Contents/Helpers/nuo\"\nchmod +x \"$ARCHIVE_APP/Contents/Helpers/nuo\"\nln -sfn nuo \"$ARCHIVE_APP/Contents/Helpers/osaurus\"\n",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "build.helper-comment",
@@ -230,7 +230,7 @@
       ],
       "pattern": "Helpers/osaurus carries",
       "replace": "Helpers/nuo carries",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "build.app-bundle",
@@ -240,7 +240,7 @@
       ],
       "pattern": "Osaurus\\.app",
       "replace": "Nuo.app",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "release.app-and-labels",
@@ -251,7 +251,7 @@
       ],
       "pattern": "Osaurus",
       "replace": "Nuo",
-      "enforced": false,
+      "enforced": true,
       "why": "Safe as a blanket rule: every `Osaurus*` module name in these files is protected by brand.json -> frozen.literals and is spliced out first."
     },
     {
@@ -262,7 +262,7 @@
       ],
       "pattern": "osaurus-app-",
       "replace": "nuo-app-",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "info-plist.feed-url",
@@ -272,7 +272,7 @@
       ],
       "pattern": "(<key>SUFeedURL</key>\\s*<string>)[^<]*(</string>)",
       "replace": "\\g<1>https://nuo.app/appcast.xml\\g<2>",
-      "enforced": false,
+      "enforced": true,
       "why": "Info.plist and SU_FEED_URL disagreed upstream (osaurus-ai.github.io vs dinoki.github.io); text replace keeps key order intact for merges."
     },
     {
@@ -283,7 +283,7 @@
       ],
       "pattern": "(<key>SUEnableAutomaticChecks</key>\\s*)<true/>",
       "replace": "\\g<1><false/>",
-      "enforced": false,
+      "enforced": true,
       "why": "No nuo appcast feed exists yet."
     },
     {
@@ -292,7 +292,7 @@
       "path": "App/osaurus/Info.plist",
       "find": "\t\t\t\t<string>osaurus</string>\n",
       "insert": "\t\t\t\t<string>nuo</string>\n",
-      "enforced": false,
+      "enforced": true,
       "why": "Both schemes registered for one release so old links keep working."
     },
     {
@@ -301,7 +301,7 @@
       "path": "App/osaurus/Info.plist",
       "find": "\t\t<string>_osaurus._tcp</string>\n",
       "insert": "\t\t<string>_nuo._tcp</string>\n",
-      "enforced": false
+      "enforced": true
     },
     {
       "id": "info-plist.bonjour-mobile",
@@ -309,7 +309,41 @@
       "path": "App/osaurus/Info.plist",
       "find": "\t\t<string>_osaurus-mobile._tcp</string>\n",
       "insert": "\t\t<string>_nuo-mobile._tcp</string>\n",
-      "enforced": false
+      "enforced": true
+    },
+    {
+      "id": "info-plist-l10n.display-name",
+      "op": "replace",
+      "files": [
+        "App/osaurus/InfoPlist.xcstrings"
+      ],
+      "pattern": "Osaurus",
+      "replace": "Nuo",
+      "enforced": true,
+      "why": "Xcode compiles InfoPlist.xcstrings into <lang>.lproj/InfoPlist.strings, and those values win over Info.plist at launch. Left alone, the pbxproj rename to Nuo.app is invisible: Dock, Cmd-Tab, Finder and every TCC prompt still say Osaurus in all 6 shipped languages."
+    },
+    {
+      "id": "info-plist-l10n.bundle-name",
+      "op": "replace",
+      "files": [
+        "App/osaurus/InfoPlist.xcstrings"
+      ],
+      "pattern": "osaurus",
+      "replace": "nuo",
+      "enforced": true,
+      "why": "CFBundleName is the short name macOS falls back to in alerts and some menu contexts. Case-sensitive on purpose: the display-name rule above already replaced the capitalized form, so this can only hit the bundle name."
+    },
+    {
+      "id": "release.internal-artifact-names",
+      "op": "replace",
+      "files": [
+        ".github/workflows/build-and-release.yml",
+        ".github/workflows/deploy-appcast.yml"
+      ],
+      "pattern": "osaurus-(release|full-dmg-checksum)-",
+      "replace": "nuo-\\1-",
+      "enforced": true,
+      "why": "Artifact names are what a fork's Actions UI shows; they are not consumed across runs in-repo, so they follow the new brand."
     }
   ]
 }

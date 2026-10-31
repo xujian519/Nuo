@@ -27,7 +27,7 @@ TARBALL_SHA256="8736c054d9223974735394f822000823baef509e1c33405ec798240fa9b6e4b5
 UPSTREAM_RELEASE="kata-containers 3.32.0"
 KERNEL_SOURCE_OFFER="https://github.com/kata-containers/kata-containers/tree/3.32.0/tools/packaging/kernel"
 
-OUT_DIR="${1:?output directory required (e.g. Osaurus.app/Contents/Resources/SandboxRuntime)}"
+OUT_DIR="${1:?output directory required (e.g. Nuo.app/Contents/Resources/SandboxRuntime)}"
 CACHE_DIR="${SANDBOX_KERNEL_CACHE_DIR:-${HOME}/.cache/osaurus-sandbox-kernel}"
 CACHED_KERNEL="${CACHE_DIR}/vmlinux-${KERNEL_VERSION}"
 

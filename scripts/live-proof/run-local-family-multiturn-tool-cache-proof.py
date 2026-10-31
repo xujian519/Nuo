@@ -57,7 +57,7 @@ def save(path: pathlib.Path, value: Any) -> None:
 def process_snapshot() -> str:
     cmd = (
         "ps -axo pid,ppid,stat,etime,rss,command | "
-        "rg -i 'CodeSigningHelper|/Contents/MacOS/osaurus|RunBench|vmlx_engine\\.cli' | "
+        "rg -i 'CodeSigningHelper|/Contents/MacOS/(Nuo|osaurus)|RunBench|vmlx_engine\\.cli' | "
         "rg -v 'rg -i|codex|zsh -lc' || true"
     )
     return subprocess.run(cmd, shell=True, text=True, capture_output=True).stdout

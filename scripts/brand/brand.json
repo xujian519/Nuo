@@ -53,6 +53,7 @@
     "strict": [
       "App/osaurus.xcodeproj/**",
       "App/osaurus/Info.plist",
+      "App/osaurus/InfoPlist.xcstrings",
       "Makefile",
       ".github/workflows/**",
       "scripts/**"
@@ -60,7 +61,6 @@
     "strict_pending": [
       "App/osaurus/*.swift",
       "App/osaurus/AppIntents/**",
-      "App/osaurus/InfoPlist.xcstrings",
       "Packages/OsaurusCore/AppDelegate.swift",
       "Packages/OsaurusCore/Utils/OsaurusPaths.swift",
       "Packages/OsaurusCore/Services/Keychain/**",
