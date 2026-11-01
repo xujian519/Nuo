@@ -58,7 +58,7 @@ public enum ChatSessionImporter {
                 return L("The file is not valid JSON.")
             case .unrecognizedFormat:
                 return L(
-                    "Unrecognized export format. Supported: ChatGPT conversations.json, Claude export JSON, Grok account export, Gemini Takeout MyActivity.json, Open WebUI chat export, or Osaurus generic import JSON."
+                    "Unrecognized export format. Supported: ChatGPT conversations.json, Claude export JSON, Grok account export, Gemini Takeout MyActivity.json, Open WebUI chat export, or Nuo generic import JSON."
                 )
             case .claudeExportIndex(let files):
                 var text = L(

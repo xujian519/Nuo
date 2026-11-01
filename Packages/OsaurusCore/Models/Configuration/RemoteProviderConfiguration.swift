@@ -120,8 +120,8 @@ public enum RemoteProviderType: String, Codable, Sendable, CaseIterable {
         case .openResponses: return L("Open Responses")
         case .openAICodex: return L("OpenAI Codex")
         case .gemini: return L("Google Gemini")
-        case .osaurus: return L("Osaurus Agent")
-        case .osaurusRouter: return L("Osaurus")
+        case .osaurus: return L("Nuo Agent")
+        case .osaurusRouter: return L("Nuo")
         }
     }
 

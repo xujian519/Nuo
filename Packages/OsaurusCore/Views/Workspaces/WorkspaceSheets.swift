@@ -215,7 +215,7 @@ struct CreateWorkspaceSheet: View {
 
     private var subtitle: String {
         if checkoutOpened {
-            return L("Finish the payment in your browser. The workspace appears in Osaurus as soon as Stripe confirms it.")
+            return L("Finish the payment in your browser. The workspace appears in Nuo as soon as Stripe confirms it.")
         }
         if !needsCheckout {
             return L("Give it a name. It's added to your subscription and ready right away.")
@@ -405,7 +405,7 @@ struct CreateWorkspaceSheet: View {
                     .foregroundColor(theme.primaryText)
                 Text(
                     L(
-                        "Nothing is charged until you complete the checkout. Osaurus checks for the new workspace each time you come back to it; you can also close this and refresh the list."
+                        "Nothing is charged until you complete the checkout. Nuo checks for the new workspace each time you come back to it; you can also close this and refresh the list."
                     )
                 )
                 .font(.system(size: 11.5))
@@ -711,7 +711,7 @@ struct CreateInviteLinkSheet: View {
             icon: "link.badge.plus",
             title: "Create invite link",
             subtitle: String(
-                format: L("Anyone who opens this link in Osaurus joins as %@. Links expire in 14 days."),
+                format: L("Anyone who opens this link in Nuo joins as %@. Links expire in 14 days."),
                 role.displayName.lowercased()
             ),
             confirmTitle: "Create link",
@@ -779,7 +779,7 @@ struct CreateInviteLinkSheet: View {
             icon: "checkmark.circle.fill",
             title: "Invite link ready",
             subtitle: String(
-                format: L("Share it with your teammate. Anyone who opens it in Osaurus joins as %@."),
+                format: L("Share it with your teammate. Anyone who opens it in Nuo joins as %@."),
                 (invite.role.flatMap(OsaurusRouterWorkspaceRole.init(rawValue:)) ?? role)
                     .displayName.lowercased()
             ),
@@ -930,7 +930,7 @@ struct WorkspaceShareAgentSheet: View {
             icon: "person.2.fill",
             title: "Share agent",
             subtitle: L(
-                "Teammates chat with it from their own Osaurus while it keeps running on this Mac. Its billing stays yours unless you enable workspace billing."
+                "Teammates chat with it from their own Nuo while it keeps running on this Mac. Its billing stays yours unless you enable workspace billing."
             ),
             confirmTitle: "Share agent",
             isBusy: service.isBusy("agent.share") || isPreparing,

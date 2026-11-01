@@ -233,7 +233,7 @@ public enum ClaudeCodeConfiguration {
             switch reason {
             case .serverNotRunning:
                 cause = L(
-                    "the Osaurus server is not running — tell the user to start it from the Osaurus app"
+                    "the Nuo server is not running — tell the user to start it from the Nuo app"
                 )
             case .textOnlyMode:
                 cause = L("this agent runs Claude Code in text-only mode, which disables all tools")
@@ -255,14 +255,14 @@ public enum ClaudeCodeConfiguration {
             .joined(separator: ", ")
         var note = String(
             format: L(
-                "You can inspect this Osaurus install through these tools: %@. They are the only Osaurus tools available — others named in your instructions are not present on this run."
+                "You can inspect this Nuo install through these tools: %@. They are the only Nuo tools available — others named in your instructions are not present on this run."
             ),
             names
         )
         if !allowConfigWrites {
             note += " "
             note += L(
-                "They are read-only. You cannot change Osaurus's configuration; describe the change the user should make instead."
+                "They are read-only. You cannot change Nuo's configuration; describe the change the user should make instead."
             )
         }
         return note

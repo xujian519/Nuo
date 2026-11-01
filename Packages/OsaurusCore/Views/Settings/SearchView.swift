@@ -246,7 +246,7 @@ struct SearchView: View {
             return "Off — searches use the providers and built-in sources below."
         }
         return
-            "Searches go through Osaurus first — search credits, then your wallet — and fall back to the sources below."
+            "Searches go through Nuo first — search credits, then your wallet — and fall back to the sources below."
     }
 
     private func relativeTime(_ date: Date) -> String {

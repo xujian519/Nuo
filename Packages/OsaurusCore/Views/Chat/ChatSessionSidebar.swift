@@ -704,7 +704,7 @@ struct ChatSessionSidebar: View {
             sidebarSectionHeader(
                 icon: "antenna.radiowaves.left.and.right",
                 title: L("On This Network"),
-                help: L("Osaurus agents discovered on your local network")
+                help: L("Nuo agents discovered on your local network")
             )
 
             ForEach(agents) { agent in

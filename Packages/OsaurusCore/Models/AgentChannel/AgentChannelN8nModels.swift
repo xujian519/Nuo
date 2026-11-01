@@ -52,7 +52,7 @@ enum AgentChannelN8nCallerLocation: String, Codable, CaseIterable, Equatable, Ha
         case .lan:
             return L("n8n calls this Mac's LAN address. The server must be exposed to the network.")
         case .remote:
-            return L("n8n reaches this Mac through the Osaurus relay, end-to-end encrypted. No ports to open.")
+            return L("n8n reaches this Mac through the Nuo relay, end-to-end encrypted. No ports to open.")
         }
     }
 

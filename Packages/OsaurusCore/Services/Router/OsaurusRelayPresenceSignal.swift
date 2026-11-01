@@ -59,7 +59,7 @@ enum OsaurusRelayPresenceSignal {
     /// User-facing copy for a relay unreachable verdict; nil for other bodies.
     static func unreachableMessage(statusCode: Int, body: Data?) -> String? {
         guard indicatesHostUnreachable(statusCode: statusCode, body: body) else { return nil }
-        return L("The agent's host is offline. Ask its owner to open Osaurus.")
+        return L("The agent's host is offline. Ask its owner to open Nuo.")
     }
 
     /// Feed an HTTP response from a relay-routed request into workspace

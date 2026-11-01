@@ -172,7 +172,7 @@ struct OsaurusHelpToolTests {
         let result = try #require(dict["result"] as? [String: Any])
         #expect(result["id"] as? String == "getting-started")
         let content = try #require(result["content"] as? String)
-        #expect(content.contains("Osaurus"))
+        #expect(content.contains("Nuo"))
     }
 
     @Test

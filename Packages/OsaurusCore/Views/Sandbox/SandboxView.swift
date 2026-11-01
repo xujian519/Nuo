@@ -1033,7 +1033,7 @@ private extension SandboxView {
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                         .textSelection(.enabled)
-                        .help(L("From ~/.osaurus/container/startup-failures.json"))
+                        .help(L("From ~/.nuo/container/startup-failures.json"))
                 }
 
                 if let results = diagResults {
@@ -1097,8 +1097,8 @@ private extension SandboxView {
             VStack(alignment: .leading, spacing: 12) {
                 Text(
                     isSeatbelt
-                        ? "Sandboxed commands see ~/.osaurus/container/workspace/ as /workspace — the only directory they can write to. Open it in Finder to browse or edit files directly."
-                        : "The container's /workspace directory is bind-mounted from ~/.osaurus/container/workspace/. Open it in Finder to browse or edit files directly on the host.",
+                        ? "Sandboxed commands see ~/.nuo/container/workspace/ as /workspace — the only directory they can write to. Open it in Finder to browse or edit files directly."
+                        : "The container's /workspace directory is bind-mounted from ~/.nuo/container/workspace/. Open it in Finder to browse or edit files directly on the host.",
                     bundle: .module
                 )
                 .font(.system(size: 11))
@@ -1161,7 +1161,7 @@ private extension SandboxView {
 
                 toggleRow(
                     title: L("Auto-Start"),
-                    description: L("Start the sandbox when Osaurus launches"),
+                    description: L("Start the sandbox when Nuo launches"),
                     isOn: $pendingConfig.autoStart
                 )
                 .onChange(of: pendingConfig.autoStart) { _, _ in

@@ -88,7 +88,7 @@ struct SettingsSearchSelfFindProbe {
             ("Claude effort", "agents.claudeCode.effort"),
             ("Allow file changes", "agents.claudeCode"),
             ("Allow shell commands", "agents.claudeCode"),
-            ("Allow Osaurus read tools", "agents.claudeCode"),
+            ("Allow Nuo read tools", "agents.claudeCode"),
             ("Agent Runtimes", "agentRuntimes.overview"),
             ("Add Runtime", "agentRuntimes.add"),
             ("Sign In", "agentRuntimes.list"),

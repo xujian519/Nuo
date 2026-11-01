@@ -126,7 +126,7 @@ struct StreamingDrainThroughputTests {
             let blocks = memoizer.blocks(
                 from: [user, turn],
                 streamingTurnId: turn.id,
-                agentName: "Osaurus"
+                agentName: "Nuo"
             )
             if renderAppKit {
                 // MessageTableRepresentable.applyBlocks path 2 → configureCell →

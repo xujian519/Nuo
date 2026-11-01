@@ -444,9 +444,9 @@ struct ClaudeMarketplaceDetailView: View {
     /// safety net rather than a common state.
     private var notImportablePanel: some View {
         infoPanel(
-            title: "Nothing to import into Osaurus",
+            title: "Nothing to import into Nuo",
             message:
-                "Osaurus imports skills, agents, commands, and MCP servers. This plugin ships none of those."
+                "Nuo imports skills, agents, commands, and MCP servers. This plugin ships none of those."
         )
     }
 

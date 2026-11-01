@@ -1693,7 +1693,7 @@ private struct ProviderEditSheet: View {
             oauthSignInButton(template: template, enabled: true)
 
             Text(
-                "We'll open your browser to sign in. After approving, you'll be redirected back to Osaurus.",
+                "We'll open your browser to sign in. After approving, you'll be redirected back to Nuo.",
                 bundle: .module
             )
             .font(.system(size: 11))

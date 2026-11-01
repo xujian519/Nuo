@@ -170,7 +170,7 @@ final class ScreenContextDistillerTests: XCTestCase {
                 CUAppListing(pid: 100, bundleId: "com.apple.Safari", name: "Safari", active: false, hidden: false)
             ],
             // Osaurus itself is frontmost (its pid == selfPid).
-            active: CUActiveWindow(pid: selfPid, app: "Osaurus", title: "Chat", x: 0, y: 0, w: 600, h: 800),
+            active: CUActiveWindow(pid: selfPid, app: "Nuo", title: "Chat", x: 0, y: 0, w: 600, h: 800),
             windowsByPid: [
                 100: [
                     CUWindowInfo(
@@ -206,7 +206,7 @@ final class ScreenContextDistillerTests: XCTestCase {
                 CUAppListing(pid: 200, bundleId: "com.apple.mail", name: "Mail", active: false, hidden: false),
                 CUAppListing(pid: 100, bundleId: "com.apple.Safari", name: "Safari", active: false, hidden: false),
             ],
-            active: CUActiveWindow(pid: selfPid, app: "Osaurus", title: "Chat", x: 0, y: 0, w: 600, h: 800),
+            active: CUActiveWindow(pid: selfPid, app: "Nuo", title: "Chat", x: 0, y: 0, w: 600, h: 800),
             windowsByPid: [
                 200: [
                     CUWindowInfo(
@@ -238,7 +238,7 @@ final class ScreenContextDistillerTests: XCTestCase {
             apps: [
                 CUAppListing(pid: 100, bundleId: "com.apple.Safari", name: "Safari", active: true, hidden: false),
                 // Osaurus shows up in the app list (dock-icon / .regular mode).
-                CUAppListing(pid: selfPid, bundleId: selfBundleId, name: "Osaurus", active: false, hidden: false),
+                CUAppListing(pid: selfPid, bundleId: selfBundleId, name: "Nuo", active: false, hidden: false),
             ],
             active: CUActiveWindow(pid: 100, app: "Safari", title: "Weather — Safari", x: 0, y: 0, w: 1200, h: 800),
             windowsByPid: [
@@ -277,7 +277,7 @@ final class ScreenContextDistillerTests: XCTestCase {
             preferredPid: nil
         )
 
-        XCTAssertTrue(snap.windows.allSatisfy { $0.app != "Osaurus" })
+        XCTAssertTrue(snap.windows.allSatisfy { $0.app != "Nuo" })
     }
 
     func testWindowListIsCapped() async {

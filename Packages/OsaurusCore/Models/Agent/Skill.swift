@@ -119,7 +119,7 @@ public struct Skill: Codable, Identifiable, Sendable, Equatable {
                 name: L("Web Researcher"),
                 description: L("Live web research with source retrieval, cross-checking, and cited reports"),
                 version: "1.0.0",
-                author: "Osaurus",
+                author: "Nuo",
                 category: L("research"),
                 keywords: [
                     "research", "web", "search", "sources", "fact-check", "citations",
@@ -163,7 +163,7 @@ public struct Skill: Codable, Identifiable, Sendable, Equatable {
                 name: L("Content Summarizer"),
                 description: L("Extract key points and create structured summaries"),
                 version: "1.1.0",
-                author: "Osaurus",
+                author: "Nuo",
                 category: L("productivity"),
                 keywords: [
                     "summarize", "summary", "tldr", "key-points", "digest", "condense",
@@ -209,7 +209,7 @@ public struct Skill: Codable, Identifiable, Sendable, Equatable {
                 name: L("Mac Automator"),
                 description: L("Control and query Mac apps with AppleScript automation"),
                 version: "1.0.0",
-                author: "Osaurus",
+                author: "Nuo",
                 category: L("automation"),
                 keywords: [
                     "mac", "automate", "applescript", "automation", "app", "safari",
@@ -247,7 +247,7 @@ public struct Skill: Codable, Identifiable, Sendable, Equatable {
                 name: L("Personal Organizer"),
                 description: L("Manage calendar events, reminders, email, and messages"),
                 version: "1.0.0",
-                author: "Osaurus",
+                author: "Nuo",
                 category: L("productivity"),
                 keywords: [
                     "calendar", "events", "reminders", "schedule", "email", "mail",
@@ -285,7 +285,7 @@ public struct Skill: Codable, Identifiable, Sendable, Equatable {
                 name: L("Document Builder"),
                 description: L("Create spreadsheets and presentations, delivered as downloadable files"),
                 version: "1.0.0",
-                author: "Osaurus",
+                author: "Nuo",
                 category: L("productivity"),
                 keywords: [
                     "spreadsheet", "excel", "xlsx", "csv", "presentation", "powerpoint",
@@ -329,7 +329,7 @@ public struct Skill: Codable, Identifiable, Sendable, Equatable {
                 name: L("Workspace Assistant"),
                 description: L("Work on files in the mounted folder: read, edit, search, run commands, commit"),
                 version: "1.0.0",
-                author: "Osaurus",
+                author: "Nuo",
                 category: L("development"),
                 keywords: [
                     "files", "folder", "workspace", "code", "edit", "shell",
@@ -374,7 +374,7 @@ public struct Skill: Codable, Identifiable, Sendable, Equatable {
                 name: L("Data Keeper"),
                 description: L("Keep structured records across chats in the agent's private database"),
                 version: "1.0.0",
-                author: "Osaurus",
+                author: "Nuo",
                 category: L("productivity"),
                 keywords: [
                     "track", "log", "record", "database", "expenses", "habits",
@@ -418,7 +418,7 @@ public struct Skill: Codable, Identifiable, Sendable, Equatable {
                 name: L("Autonomous Scheduler"),
                 description: L("Set up recurring or delayed self-running tasks with notifications"),
                 version: "1.0.0",
-                author: "Osaurus",
+                author: "Nuo",
                 category: L("automation"),
                 keywords: [
                     "schedule", "recurring", "automate", "later", "daily", "weekly",
@@ -456,7 +456,7 @@ public struct Skill: Codable, Identifiable, Sendable, Equatable {
                 name: L("Data Visualizer"),
                 description: L("Render charts and graphs from attached, retrieved, or computed data"),
                 version: "1.0.0",
-                author: "Osaurus",
+                author: "Nuo",
                 category: L("productivity"),
                 keywords: ["chart", "graph", "plot", "visualize", "bar", "line", "pie", "data", "table", "csv"],
                 instructions: """

@@ -94,7 +94,7 @@ struct MessageTableHeightNoteCascadeTests {
         func context(isStreaming: Bool) -> CellRenderingContext {
             CellRenderingContext(
                 width: 680,
-                agentName: "Osaurus",
+                agentName: "Nuo",
                 agentAvatar: nil,
                 agentCustomAvatarPath: nil,
                 isStreaming: isStreaming,
@@ -109,7 +109,7 @@ struct MessageTableHeightNoteCascadeTests {
         }
 
         func blocks(streamingTurnId: UUID? = nil) -> [ContentBlock] {
-            memoizer.blocks(from: turns, streamingTurnId: streamingTurnId, agentName: "Osaurus")
+            memoizer.blocks(from: turns, streamingTurnId: streamingTurnId, agentName: "Nuo")
         }
 
         @discardableResult

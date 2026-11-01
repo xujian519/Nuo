@@ -283,10 +283,10 @@ public enum ProviderCredentialInstructionsCatalog {
     public static func osaurusAgentEntry() -> ProviderCredentialInstructions {
         ProviderCredentialInstructions(
             providerType: .osaurus,
-            displayName: L("Osaurus Agent"),
+            displayName: L("Nuo Agent"),
             authMethod: .apiKey,
             getKeyURL: nil,
-            keyFormatHint: L("Paste the pairing API key from the remote Osaurus."),
+            keyFormatHint: L("Paste the pairing API key from the remote Nuo."),
             storageAuthType: .apiKey,
             presetId: ""
         )

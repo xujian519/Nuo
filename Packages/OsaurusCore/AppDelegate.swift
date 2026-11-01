@@ -936,9 +936,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
             ThemedAlertCenter.shared.present(
                 ThemedAlertRequest(
                     id: requestId,
-                    title: "Help improve Osaurus",
+                    title: "Help improve Nuo",
                     message: L(
-                        "Osaurus can send anonymous usage data to help us understand how it's used and improve it."
+                        "Nuo can send anonymous usage data to help us understand how it's used and improve it."
                     ),
                     accessory: AnyView(TelemetryConsentDetails()),
                     buttons: [
@@ -1722,9 +1722,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
                 image.isTemplate = true
                 button.image = image
             } else {
-                button.title = "Osaurus"
+                button.title = "Nuo"
             }
-            button.toolTip = L("Osaurus Server")
+            button.toolTip = L("Nuo Server")
             button.target = self
             button.action = #selector(togglePopover(_:))
 

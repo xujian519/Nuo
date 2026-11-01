@@ -1,11 +1,11 @@
 {
-  "commit": "18c41a66",
+  "commit": "b0168003",
   "contracts": {
-    "OSAURUS_TEST_ROOT": 114,
-    "OsaurusAI": 761,
-    "_osaurus._tcp": 16,
-    "ai.osaurus.": 196,
-    "import OsaurusCore": 1229,
+    "OSAURUS_TEST_ROOT": 115,
+    "OsaurusAI": 764,
+    "_osaurus._tcp": 12,
+    "ai.osaurus.": 207,
+    "import OsaurusCore": 1230,
     "osaurus_plugin_entry_v2": 43
   },
   "strict": {
@@ -14,7 +14,9 @@
     "App/osaurus.xcodeproj/project.pbxproj": 53,
     "App/osaurus.xcodeproj/xcshareddata/xcschemes/osaurus.xcscheme": 12,
     "App/osaurus/Info.plist": 13,
+    "App/osaurus/osaurusApp.swift": 8,
     "Makefile": 37,
+    "Packages/OsaurusCore/Resources/Localizable.xcstrings": 550,
     "scripts/benchmark/ingest_locomo.py": 5,
     "scripts/benchmark/run_bench.sh": 3,
     "scripts/build/build_arm64.sh": 16,

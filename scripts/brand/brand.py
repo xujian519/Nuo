@@ -286,6 +286,155 @@ def substitute_in_literals(text: str, regex: re.Pattern, replacement: str) -> tu
     return text, total
 
 
+# --------------------------------------------------------------- xcstrings edits
+
+
+def iter_string_units(node):
+    """Yield every stringUnit dict in an xcstrings localizations subtree."""
+    if isinstance(node, dict):
+        su = node.get("stringUnit")
+        if isinstance(su, dict):
+            yield su
+        for key, value in node.items():
+            if key != "stringUnit":
+                yield from iter_string_units(value)
+    elif isinstance(node, list):
+        for value in node:
+            yield from iter_string_units(value)
+
+
+def _sync_key_refs(rule: dict, key_edits: list[tuple[str, str]], dry: bool) -> tuple[int, list[str]]:
+    """Rewrite Swift string literals that reference a renamed xcstrings key.
+
+    Only whole-literal-body matches are rewritten, so ordinary copy that merely
+    mentions a key is left alone. Bodies with escaped quotes are also looked up
+    unescaped; anything still unmatched is reported by the verification step.
+    """
+    globs = rule.get("sync_refs")
+    if not globs or not key_edits:
+        return 0, []
+    skip = set(rule.get("sync_refs_exclude", []))
+    old_to_new = dict(key_edits)
+    total = 0
+    touched: list[str] = []
+    for rel in select(globs):
+        if not rel.endswith(".swift") or rel in skip:
+            continue
+        try:
+            text = read_text(rel)
+        except (UnicodeDecodeError, IsADirectoryError):
+            continue
+        hits: list[tuple[int, int, str]] = []
+        for start, end in swift_literal_spans(text):
+            body = text[start:end]
+            new_body = old_to_new.get(body)
+            if new_body is None and '\\"' in body:
+                new_body = old_to_new.get(body.replace('\\"', '"'))
+            if new_body is not None:
+                hits.append((start, end, new_body))
+        if not hits:
+            continue
+        for start, end, new_body in reversed(hits):
+            text = text[:start] + new_body + text[end:]
+        if not dry:
+            write_text(rel, text)
+        total += len(hits)
+        touched.append(f"{rel} ({len(hits)} key refs)")
+    return total, touched
+
+
+def _xcstrings(rule: dict, rel: str, dry: bool) -> tuple[int, list[str]]:
+    """Structured key/value renames inside one .xcstrings file.
+
+    Unlike text-level `replace`, this parses the JSON document, so stringUnit
+    values (including ones nested in variations) and keys are renamed without
+    touching the JSON structure, and Xcode's `"key" : value` formatting stays
+    byte-identical everywhere else. Renamed keys then sync their string-literal
+    references in Swift sources listed by `sync_refs`.
+
+    Protection model (see docs/brand/NUO-REBRAND-PLAN.md R7):
+    * A key or value carrying any `exclude_substrings` entry (external
+      services and frozen product names: Osaurus Cloud, Osaurus Router,
+      Osaurus ID, OsaurusAI, ...) is left untouched, and a blocked key shields
+      every localization it owns, so translations of e.g. "Osaurus Cloud"
+      survive in all languages.
+    * Lowercase `osaurus` (plugin ids, config keys, domains, env vars) and
+      uppercase `OSAURUS` never match the case-sensitive brand pair, so they
+      stay unchanged by construction.
+    """
+    text = read_text(rel)
+    try:
+        doc = json.loads(text)
+    except json.JSONDecodeError as exc:
+        die(f"{rule['id']}: {rel} is not valid JSON: {exc}")
+    strings = doc.get("strings")
+    if not isinstance(strings, dict):
+        die(f'{rule["id"]}: {rel} has no top-level "strings" object')
+
+    raw_pairs = rule.get("replace", [["{legacy_display}", "{brand_display}"]])
+    pairs = [(fmt(str(old)), fmt(str(new))) for old, new in raw_pairs]
+    excludes = [fmt(str(x)) for x in rule.get("exclude_substrings", [])]
+
+    def blocked(s: str) -> bool:
+        return any(x in s for x in excludes)
+
+    def renamed(s: str) -> str:
+        for old, new in pairs:
+            s = s.replace(old, new)
+        return s
+
+    key_map: dict[str, str] = {}
+    val_map: dict[str, str] = {}
+    old_fragments = [old for old, _ in pairs]
+    for key, entry in strings.items():
+        entry_blocked = blocked(key)
+        if not entry_blocked and any(f in key for f in old_fragments):
+            new_key = renamed(key)
+            if new_key != key:
+                key_map[key] = new_key
+        if entry_blocked:
+            continue
+        localizations = entry.get("localizations")
+        if not isinstance(localizations, dict):
+            continue
+        for loc in localizations.values():
+            for su in iter_string_units(loc):
+                value = su.get("value")
+                if (
+                    isinstance(value, str)
+                    and not blocked(value)
+                    and any(f in value for f in old_fragments)
+                ):
+                    new_value = renamed(value)
+                    if new_value != value:
+                        val_map[value] = new_value
+
+    total = len(key_map) + len(val_map)
+    touched: list[str] = []
+    if total:
+        touched.append(f"{rel} ({len(key_map)} keys, {len(val_map)} values)")
+    if dry:
+        refs, ref_files = _sync_key_refs(rule, list(key_map.items()), dry=True)
+        return total + refs, touched + ref_files
+    if total == 0:
+        return 0, []
+
+    for old, new in key_map.items():
+        needle = f"{json.dumps(old, ensure_ascii=False)} :"
+        if needle not in text:
+            die(f'{rule["id"]}: key anchor missing in {rel}: {needle[:80]}', code=3)
+        text = text.replace(needle, f"{json.dumps(new, ensure_ascii=False)} :")
+    for old, new in val_map.items():
+        needle = f'"value" : {json.dumps(old, ensure_ascii=False)}'
+        if needle not in text:
+            die(f'{rule["id"]}: value anchor missing in {rel}: {needle[:80]}', code=3)
+        text = text.replace(needle, f'"value" : {json.dumps(new, ensure_ascii=False)}')
+    write_text(rel, text)
+
+    refs, ref_files = _sync_key_refs(rule, list(key_map.items()), dry=False)
+    return total + refs, touched + ref_files
+
+
 # ------------------------------------------------------------------------- rules
 
 
@@ -323,6 +472,8 @@ def count_rule(rule: dict, dry: bool) -> tuple[int, list[str]]:
     op = rule["op"]
     if op in {"pbx-setting", "insert-after", "block"}:
         return _apply_single(rule, dry)
+    if op == "xcstrings":
+        return _xcstrings(rule, rule["path"], dry)
     if op != "replace":
         die(f"unknown op {op!r} in rule {rule['id']}")
     regex = re.compile(lit(rule, "pattern"), re.MULTILINE)

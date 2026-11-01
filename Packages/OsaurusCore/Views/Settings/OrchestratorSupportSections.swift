@@ -53,7 +53,7 @@ struct OrchestratorModelReadinessRow: View {
                     contextLength: info.contextLength,
                     tools: .off,
                     hint: L(
-                        "This model's context window is too small for tools, so the Orchestrator cannot configure Osaurus or delegate. Choose a model with at least a 16K context (a 7B+ instruct model works well)."
+                        "This model's context window is too small for tools, so the Orchestrator cannot configure Nuo or delegate. Choose a model with at least a 16K context (a 7B+ instruct model works well)."
                     )
                 )
             }
@@ -327,7 +327,7 @@ struct OrchestratorDelegationsSection: View {
                 Text(
                     direction == .sent
                         ? "Every task the Orchestrator (or a custom agent) handed to a subagent. Open a chat to read the full worker transcript."
-                        : "Runs of your shared agents that teammates' Osaurus instances dispatched to this Mac over a workspace relay.",
+                        : "Runs of your shared agents that teammates' Nuo instances dispatched to this Mac over a workspace relay.",
                     bundle: .module
                 )
                 .font(.system(size: 11))

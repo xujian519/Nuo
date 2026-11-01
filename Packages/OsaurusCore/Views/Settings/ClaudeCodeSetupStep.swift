@@ -132,7 +132,7 @@ struct ClaudeCodeSetupStep: View {
                     tint: theme.warningColor,
                     title: Text("Claude Code isn't installed", bundle: .module),
                     detail: Text(
-                        "Osaurus runs your local `claude` command, so Claude Code has to be installed first.",
+                        "Nuo runs your local `claude` command, so Claude Code has to be installed first.",
                         bundle: .module
                     )
                 )
@@ -160,7 +160,7 @@ struct ClaudeCodeSetupStep: View {
                     .textSelection(.enabled)
                     .padding(.top, 6)
             } label: {
-                Text("Already installed? Show where Osaurus looked", bundle: .module)
+                Text("Already installed? Show where Nuo looked", bundle: .module)
                     .font(.system(size: 12))
                     .foregroundColor(theme.secondaryText)
             }
@@ -246,7 +246,7 @@ struct ClaudeCodeSetupStep: View {
                     tint: theme.warningColor,
                     title: Text("Sign-in status needs a terminal check", bundle: .module),
                     detail: Text(
-                        "This Claude Code version doesn't provide machine-readable sign-in status. Osaurus won't guess or inspect its credentials.",
+                        "This Claude Code version doesn't provide machine-readable sign-in status. Nuo won't guess or inspect its credentials.",
                         bundle: .module
                     )
                 )

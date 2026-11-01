@@ -247,7 +247,7 @@ struct WorkspacesView: View {
         ManagerHeaderWithActions(
             title: L("Workspaces"),
             subtitle: L(
-                "Invite your team and share agents. Teammates chat with shared agents from their own Osaurus."
+                "Invite your team and share agents. Teammates chat with shared agents from their own Nuo."
             ),
             count: service.workspaces.isEmpty ? nil : service.workspaces.count
         ) {
@@ -341,7 +341,7 @@ struct WorkspacesView: View {
                 kind: .info,
                 title: String(format: L("Finishing checkout for “%@”"), name),
                 caption: L(
-                    "Complete the payment in your browser. The workspace appears here as soon as Stripe confirms — usually within a few seconds of returning to Osaurus."
+                    "Complete the payment in your browser. The workspace appears here as soon as Stripe confirms — usually within a few seconds of returning to Nuo."
                 ),
                 icon: "creditcard",
                 action: .init(title: L("Check now"), icon: "arrow.clockwise") {
@@ -499,7 +499,7 @@ struct WorkspacesView: View {
             icon: "rectangle.3.group.fill",
             title: L("Bring your team in"),
             subtitle: L(
-                "Create a workspace, share your agents, and invite teammates with a link. They chat with your agents from their own Osaurus."
+                "Create a workspace, share your agents, and invite teammates with a link. They chat with your agents from their own Nuo."
             ),
             examples: [],
             primaryAction: .init(

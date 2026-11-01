@@ -53,7 +53,7 @@ enum RichTextPDFRenderer {
             throw RenderError.contextUnavailable
         }
         var mediaBox = CGRect(origin: .zero, size: page.size)
-        var auxiliary: [CFString: Any] = [kCGPDFContextCreator: "Osaurus"]
+        var auxiliary: [CFString: Any] = [kCGPDFContextCreator: "Nuo"]
         if let title, !title.isEmpty { auxiliary[kCGPDFContextTitle] = title }
         guard let context = CGContext(consumer: consumer, mediaBox: &mediaBox, auxiliary as CFDictionary) else {
             throw RenderError.contextUnavailable

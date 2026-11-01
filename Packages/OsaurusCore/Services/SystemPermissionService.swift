@@ -856,7 +856,7 @@ final class SystemPermissionService: NSObject, ObservableObject, CLLocationManag
         }
         return .denied(
             L(
-                "ERROR: Process is NOT trusted for Accessibility. If enabled in System Settings, try removing and re-adding Osaurus to the list."
+                "ERROR: Process is NOT trusted for Accessibility. If enabled in System Settings, try removing and re-adding Nuo to the list."
             )
         )
     }
@@ -1019,7 +1019,7 @@ final class SystemPermissionService: NSObject, ObservableObject, CLLocationManag
         }
         return .denied(
             L(
-                "ERROR: Full Disk Access is not granted. Add Osaurus under System Settings → Privacy & Security → Full Disk Access."
+                "ERROR: Full Disk Access is not granted. Add Nuo under System Settings → Privacy & Security → Full Disk Access."
             )
         )
     }
@@ -1048,7 +1048,7 @@ final class SystemPermissionService: NSObject, ObservableObject, CLLocationManag
         }
         return .denied(
             L(
-                "ERROR: Screen Recording is not granted. Add Osaurus under System Settings → Privacy & Security → Screen Recording."
+                "ERROR: Screen Recording is not granted. Add Nuo under System Settings → Privacy & Security → Screen Recording."
             )
         )
     }

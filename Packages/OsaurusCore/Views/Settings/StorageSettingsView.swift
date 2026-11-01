@@ -100,7 +100,7 @@ public struct StorageSettingsView: View {
             Button(localized: "Enable encryption") { applyEncryption(true) }
         } message: {
             Text(
-                "Osaurus will re-encrypt your databases and attachments with SQLCipher using a key stored in your macOS Keychain. If that key is ever lost — wiping the Keychain, re-signing the app, or migrating Macs without iCloud Keychain — the encrypted data becomes unrecoverable. Keep a plaintext backup if you rely on this data.",
+                "Nuo will re-encrypt your databases and attachments with SQLCipher using a key stored in your macOS Keychain. If that key is ever lost — wiping the Keychain, re-signing the app, or migrating Macs without iCloud Keychain — the encrypted data becomes unrecoverable. Keep a plaintext backup if you rely on this data.",
                 bundle: .module
             )
         }
@@ -133,7 +133,7 @@ public struct StorageSettingsView: View {
     private var headerView: some View {
         ManagerHeader(
             title: L("Storage"),
-            subtitle: L("Where Osaurus stores data on disk — and how it's protected")
+            subtitle: L("Where Nuo stores data on disk — and how it's protected")
         )
     }
 
@@ -358,7 +358,7 @@ public struct StorageSettingsView: View {
             // user's data, it was just written by a newer build. Resetting on
             // this advice is the data loss, not the refusal.
             return
-                "This store was written by a newer version of Osaurus, so this build won't open it. Update Osaurus to read it again. Do not Reset, your data is intact."
+                "This store was written by a newer version of Nuo, so this build won't open it. Update Nuo to read it again. Do not Reset, your data is intact."
         case .unknown:
             return "The store failed to open for an unrecognized reason. Retry, or Reset if it persists."
         }
@@ -388,7 +388,7 @@ public struct StorageSettingsView: View {
                     title: "Export plaintext backup…",
                     buttonLabel: "Export…",
                     subtitle:
-                        "Writes a plaintext copy of every database, attachment, and config under ~/.osaurus to a folder you choose. Recommended before reinstalling macOS or moving Macs.",
+                        "Writes a plaintext copy of every database, attachment, and config under ~/.nuo to a folder you choose. Recommended before reinstalling macOS or moving Macs.",
                     isPrimary: true,
                     isDisabled: isWorking
                 ) {
@@ -552,12 +552,12 @@ public struct StorageSettingsView: View {
         if hasExportedBackupThisSession {
             return
                 L(
-                    "A new 256-bit key will be generated and every encrypted database + file under ~/.osaurus will be re-encrypted against it. The old key is destroyed — backups made under the old key will no longer be readable on this Mac."
+                    "A new 256-bit key will be generated and every encrypted database + file under ~/.nuo will be re-encrypted against it. The old key is destroyed — backups made under the old key will no longer be readable on this Mac."
                 )
         }
         return
             L(
-                "A new 256-bit key will be generated and every encrypted database + file under ~/.osaurus will be re-encrypted against it. The old key is destroyed — backups made under the old key will no longer be readable on this Mac. We strongly recommend exporting a plaintext backup first."
+                "A new 256-bit key will be generated and every encrypted database + file under ~/.nuo will be re-encrypted against it. The old key is destroyed — backups made under the old key will no longer be readable on this Mac. We strongly recommend exporting a plaintext backup first."
             )
     }
 
@@ -577,7 +577,7 @@ public struct StorageSettingsView: View {
                 ? L("New data will be encrypted with SQLCipher.")
                 : L("New data will be stored as plaintext, protected by FileVault.")
         case .plaintext:
-            return L("Your databases are not encrypted by Osaurus. macOS FileVault protects them at rest.")
+            return L("Your databases are not encrypted by Nuo. macOS FileVault protects them at rest.")
         case .encrypted:
             return L("Your databases are encrypted with a 256-bit key in your macOS Keychain.")
         case .mixed:

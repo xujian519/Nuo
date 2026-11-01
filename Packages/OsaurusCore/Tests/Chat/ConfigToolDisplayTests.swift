@@ -34,17 +34,17 @@ struct ConfigToolDisplayTests {
         #expect(
             ToolDisplayName.friendly(
                 for: "osaurus_config", running: false, arguments: #"{"action": "export"}"#)
-                == L("Exported Osaurus configuration"))
+                == L("Exported Nuo configuration"))
     }
 
     @Test("osaurus_config chip label degrades cleanly without arguments")
     func configLabelWithoutAction() {
         #expect(
             ToolDisplayName.friendly(for: "osaurus_config", running: true)
-                == L("Configuring Osaurus"))
+                == L("Configuring Nuo"))
         #expect(
             ToolDisplayName.friendly(for: "osaurus_config", running: false, arguments: "not json")
-                == L("Configured Osaurus"))
+                == L("Configured Nuo"))
     }
 
     @Test("osaurus_inspect chip label follows the action argument")
@@ -52,18 +52,18 @@ struct ConfigToolDisplayTests {
         #expect(
             ToolDisplayName.friendly(
                 for: "osaurus_inspect", running: true, arguments: #"{"action": "status"}"#)
-                == L("Checking Osaurus status"))
+                == L("Checking Nuo status"))
         #expect(
             ToolDisplayName.friendly(
                 for: "osaurus_inspect", running: false, arguments: #"{"action": "list"}"#)
-                == L("Listed Osaurus items"))
+                == L("Listed Nuo items"))
         #expect(
             ToolDisplayName.friendly(
                 for: "osaurus_inspect", running: false, arguments: #"{"action": "describe"}"#)
-                == L("Inspected an Osaurus item"))
+                == L("Inspected an Nuo item"))
         #expect(
             ToolDisplayName.friendly(for: "osaurus_inspect", running: true)
-                == L("Inspecting Osaurus"))
+                == L("Inspecting Nuo"))
     }
 
     @Test("failed completed config call still reads as a failure")

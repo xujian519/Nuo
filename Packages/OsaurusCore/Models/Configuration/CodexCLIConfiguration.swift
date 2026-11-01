@@ -276,7 +276,7 @@ public enum CodexCLIConfiguration {
             case .conflict(let url):
                 return String(
                     format: L(
-                        "%@ already defines model_providers.osaurus outside the Osaurus-managed block. Remove that definition (or move it between the markers) and try again."
+                        "%@ already defines model_providers.osaurus outside the Nuo-managed block. Remove that definition (or move it between the markers) and try again."
                     ),
                     displayPath(url)
                 )

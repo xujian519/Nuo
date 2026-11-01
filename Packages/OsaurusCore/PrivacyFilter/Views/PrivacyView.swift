@@ -198,7 +198,7 @@ struct PrivacyView: View {
     private var headerView: some View {
         ManagerHeaderWithTabs(
             title: L("Privacy"),
-            subtitle: L("What leaves your Mac and what Osaurus collects.")
+            subtitle: L("What leaves your Mac and what Nuo collects.")
         ) {
             EmptyView()
         } tabsRow: {
@@ -799,7 +799,7 @@ private struct PrivacyOverviewTab: View {
             SettingsToggle(
                 title: L("Share Anonymous Usage Data"),
                 description:
-                    "Send anonymous, aggregated usage analytics to help improve Osaurus. Never includes your chats, prompts, files, or keys. Turn off any time.",
+                    "Send anonymous, aggregated usage analytics to help improve Nuo. Never includes your chats, prompts, files, or keys. Turn off any time.",
                 anchorId: "settings.privacy.usage",
                 isOn: $telemetryEnabled
             )
@@ -999,7 +999,7 @@ private struct PrivacyRulesTab: View {
         SettingsSection(title: L("Detection Patterns"), icon: "ruler", anchorId: "privacy.rules.detectionPatterns") {
             VStack(alignment: .leading, spacing: 10) {
                 Text(
-                    "Built-in deterministic detectors run alongside the on-device model. Turning a category off stops Osaurus from flagging it AND from blocking sends when it leaks past redaction.",
+                    "Built-in deterministic detectors run alongside the on-device model. Turning a category off stops Nuo from flagging it AND from blocking sends when it leaks past redaction.",
                     bundle: .module
                 )
                 .font(.system(size: 11))
@@ -1197,7 +1197,7 @@ private struct PrivacyDryRunTester: View {
         SettingsSection(title: L("Test Your Rules"), icon: "play.circle.fill", anchorId: "privacy.rules.test") {
             VStack(alignment: .leading, spacing: 10) {
                 Text(
-                    "Paste sample text to preview exactly what Osaurus would redact with your current rules — before anything reaches a provider.",
+                    "Paste sample text to preview exactly what Nuo would redact with your current rules — before anything reaches a provider.",
                     bundle: .module
                 )
                 .font(.system(size: 11))

@@ -56,7 +56,7 @@ struct OsaurusRouterProviderTests {
         let providerId = UUID()
         let item = ModelPickerItem.fromOsaurusRouterModel(
             prefixedId: "osaurus/venice/model-b",
-            providerName: "Osaurus",
+            providerName: "Nuo",
             providerId: providerId,
             metadata: model
         )
@@ -69,7 +69,7 @@ struct OsaurusRouterProviderTests {
             Issue.record("Expected a remote source, got \(item.source)")
             return
         }
-        #expect(name == "Osaurus")
+        #expect(name == "Nuo")
         #expect(pid == providerId)
     }
 

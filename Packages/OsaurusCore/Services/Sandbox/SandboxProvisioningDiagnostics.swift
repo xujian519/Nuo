@@ -278,7 +278,7 @@ public enum SandboxProvisioningDiagnostics {
                     title: L("Custom sandbox root is active"),
                     detail: L("Diagnostics are using \(OsaurusPaths.root().standardizedFileURL.path)."),
                     repairSuggestion:
-                        L("Unset OSAURUS_TEST_ROOT or clear OsaurusPaths.overrideRoot to return to the default root."),
+                        L("Unset OSAURUS_TEST_ROOT or clear NuoPaths.overrideRoot to return to the default root."),
                     locationID: .root,
                     path: OsaurusPaths.root().standardizedFileURL.path
                 )
@@ -300,7 +300,7 @@ public enum SandboxProvisioningDiagnostics {
                         L(
                             "The sandbox requires macOS 26 or later; this host reports macOS \(operatingSystemMajorVersion)."
                         ),
-                    repairSuggestion: L("Run Osaurus sandbox provisioning on macOS 26 or later."),
+                    repairSuggestion: L("Run Nuo sandbox provisioning on macOS 26 or later."),
                     locationID: nil,
                     path: nil
                 )
@@ -335,7 +335,7 @@ public enum SandboxProvisioningDiagnostics {
                     severity: .info,
                     status: .missing,
                     title: L("Sandbox configuration file is missing"),
-                    detail: L("Osaurus will use default sandbox settings until a config file is saved."),
+                    detail: L("Nuo will use default sandbox settings until a config file is saved."),
                     repairSuggestion: L("Open Sandbox settings or run setup to write \(configuration.path)."),
                     locationID: .configFile,
                     path: configuration.path
@@ -481,7 +481,7 @@ public enum SandboxProvisioningDiagnostics {
         let specs: [LocationSpec] = [
             LocationSpec(
                 id: .root,
-                title: L("Osaurus root"),
+                title: L("Nuo root"),
                 url: OsaurusPaths.root(),
                 kind: .directory,
                 stage: .hostStorage,

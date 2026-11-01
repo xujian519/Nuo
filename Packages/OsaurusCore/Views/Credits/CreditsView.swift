@@ -119,7 +119,7 @@ struct CreditsView: View {
             }
         } message: {
             Text(
-                "Osaurus will run fully local and free. Cloud models routed through Osaurus will be hidden, and any chat using one will switch to a local model. You can turn it back on anytime. Thanks for supporting Osaurus.",
+                "Nuo will run fully local and free. Cloud models routed through Nuo will be hidden, and any chat using one will switch to a local model. You can turn it back on anytime. Thanks for supporting Nuo.",
                 bundle: .module
             )
         }
@@ -128,7 +128,7 @@ struct CreditsView: View {
     private var headerView: some View {
         ManagerHeaderWithActions(
             title: L("Credits"),
-            subtitle: L("Your wallet for Osaurus-routed services - add credits and track every request and top-up.")
+            subtitle: L("Your wallet for Nuo-routed services - add credits and track every request and top-up.")
         ) {
             HeaderIconButton(
                 "arrow.clockwise",
@@ -168,7 +168,7 @@ struct CreditsView: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(theme.primaryText)
                     Text(
-                        "The router uses your identity master key as your billing account. Create or restore an identity before adding credits or calling Osaurus models.",
+                        "The router uses your identity master key as your billing account. Create or restore an identity before adding credits or calling Nuo models.",
                         bundle: .module
                     )
                     .font(.system(size: 12))
@@ -202,7 +202,7 @@ struct CreditsView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(theme.secondaryText)
                 Text(
-                    "Lets Osaurus transact on your behalf - cloud models, provider load-balancing, and future routed services; requests spend credits. Keeping it on helps support Osaurus development - thank you.",
+                    "Lets Nuo transact on your behalf - cloud models, provider load-balancing, and future routed services; requests spend credits. Keeping it on helps support Nuo development - thank you.",
                     bundle: .module
                 )
                 .font(.system(size: 11))
@@ -289,7 +289,7 @@ struct CreditsView: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(theme.primaryText)
                     Text(
-                        "Osaurus is running fully local and free. Cloud models routed through Osaurus are hidden, and no requests are sent to Osaurus servers. Turn it back on below whenever you like.",
+                        "Nuo is running fully local and free. Cloud models routed through Nuo are hidden, and no requests are sent to Nuo servers. Turn it back on below whenever you like.",
                         bundle: .module
                     )
                     .font(.system(size: 12))
@@ -364,7 +364,7 @@ struct CreditsView: View {
             }
 
             Text(
-                "Credits let Osaurus transact on your behalf - cloud model access today, with more routed services to come.",
+                "Credits let Nuo transact on your behalf - cloud model access today, with more routed services to come.",
                 bundle: .module
             )
             .font(.system(size: 12))
@@ -453,7 +453,7 @@ struct CreditsView: View {
                             }
                         }
                         Text(
-                            "Premium search runs the `web_search` tool through Osaurus - better results with zero setup. Search credits cover requests first; after that, requests bill this wallet. If credits run out, search continues on the built-in sources automatically.",
+                            "Premium search runs the `web_search` tool through Nuo - better results with zero setup. Search credits cover requests first; after that, requests bill this wallet. If credits run out, search continues on the built-in sources automatically.",
                             bundle: .module
                         )
                         .font(.system(size: 12))
@@ -544,7 +544,7 @@ struct CreditsView: View {
                         HStack(alignment: .center, spacing: 12) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(
-                                    "Use Osaurus balance when search credits run out",
+                                    "Use Nuo balance when search credits run out",
                                     bundle: .module
                                 )
                                 .font(.system(size: 12, weight: .semibold))

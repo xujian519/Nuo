@@ -155,7 +155,7 @@ struct OrchestratorSettingsView: View {
     private var headerView: some View {
         ManagerHeaderWithActions(
             title: L("Orchestrator"),
-            subtitle: L("Configure the built-in agent that sets up Osaurus and delegates work")
+            subtitle: L("Configure the built-in agent that sets up Nuo and delegates work")
         ) {
             HeaderSecondaryButton("Restore Defaults", icon: "arrow.counterclockwise") {
                 resetToDefaults()
@@ -189,7 +189,7 @@ struct OrchestratorSettingsView: View {
         HStack(alignment: .top, spacing: 12) {
             capabilityTile(
                 icon: "slider.horizontal.3",
-                title: "Configures Osaurus",
+                title: "Configures Nuo",
                 caption: "Changes settings, downloads models, and connects providers for you."
             )
             capabilityTile(
@@ -250,7 +250,7 @@ struct OrchestratorSettingsView: View {
     /// text, falling back to the built-in name while blank.
     private var previewName: String {
         let trimmed = tempDisplayName.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Osaurus" : trimmed
+        return trimmed.isEmpty ? "Nuo" : trimmed
     }
 
     @ViewBuilder private var identitySection: some View {
@@ -274,8 +274,8 @@ struct OrchestratorSettingsView: View {
                     StyledSettingsTextField(
                         label: "Name",
                         text: $tempDisplayName,
-                        placeholder: "Osaurus",
-                        help: "Optional. Shown in the agent picker and chat header. Leave blank to keep \"Osaurus\".",
+                        placeholder: "Nuo",
+                        help: "Optional. Shown in the agent picker and chat header. Leave blank to keep "Nuo".",
                         anchorId: "settings.orchestrator.name"
                     )
                     .frame(maxWidth: 320)

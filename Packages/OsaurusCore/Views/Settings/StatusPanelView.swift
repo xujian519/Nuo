@@ -27,7 +27,7 @@ struct StatusPanelView: View {
 
             VStack(spacing: 12) {
                 TopStatusHeader(
-                    appName: "Osaurus",
+                    appName: "Nuo",
                     serverURL: "http://\(server.localNetworkAddress):\(String(server.port))",
                     statusLineText: statusText,
                     onRetry: toggleServer,

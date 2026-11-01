@@ -2099,7 +2099,7 @@ final class ChatSession: ObservableObject {
 
     private func rebuildVisibleBlocksImpl() {
         let agent = AgentManager.shared.agent(for: agentId ?? Agent.defaultId)
-        let localName = agent?.displayName ?? L("Osaurus")
+        let localName = agent?.displayName ?? L("Nuo")
         // In Mode 2 the remote agent owns the conversation, so its name heads
         // the thread; otherwise fall back to the local agent's name.
         let displayName = threadAgentDisplayName ?? localName
@@ -9941,7 +9941,7 @@ struct ChatView: View {
         let _ = ChatPerfTrace.shared.count("body.ChatView")
         chatModeContent
             .themedAlert(
-                L("Do you want Osaurus to auto speak every reply in this chat?"),
+                L("Do you want Nuo to auto speak every reply in this chat?"),
                 isPresented: $showAutoSpeakPrompt,
                 message: L("This only applies to this chat."),
                 primaryButton: .primary(L("Yes")) { session.autoSpeakAssistant = true },
@@ -12224,7 +12224,7 @@ private struct UnverifiablePeerSheet: View {
                 }
 
                 Text(
-                    "This agent advertised that it supports encryption but didn't include a verifiable identity, so it can't be paired securely. It may be impersonating another device, or the other device may need to update Osaurus.",
+                    "This agent advertised that it supports encryption but didn't include a verifiable identity, so it can't be paired securely. It may be impersonating another device, or the other device may need to update Nuo.",
                     bundle: .module
                 )
                 .font(theme.font(size: 13))

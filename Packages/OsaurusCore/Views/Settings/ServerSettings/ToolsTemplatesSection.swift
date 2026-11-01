@@ -29,7 +29,7 @@ struct ToolsTemplatesSection: View {
             )
             ServerSettingsPlannedBanner(
                 blurb:
-                    "Implicit tool-choice policy is persisted only; OpenAI-compatible requests still use the request's explicit tool choice and Osaurus chat-agent policy."
+                    "Implicit tool-choice policy is persisted only; OpenAI-compatible requests still use the request's explicit tool choice and Nuo chat-agent policy."
             )
 
             OptionalStringField(

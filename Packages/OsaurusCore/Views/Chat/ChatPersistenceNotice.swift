@@ -8,7 +8,7 @@ struct ChatPersistenceNotice: View {
         if let sessionId, status.unsaved.contains(sessionId) {
             HStack(spacing: 8) {
                 Image(systemName: "externaldrive.badge.exclamationmark")
-                Text("History isn't saved yet. Retrying automatically; keep Osaurus open.", bundle: .module)
+                Text("History isn't saved yet. Retrying automatically; keep Nuo open.", bundle: .module)
                     .font(.caption)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Button(action: { ChatSessionStore.retryUnsaved() }) { Text("Retry", bundle: .module) }

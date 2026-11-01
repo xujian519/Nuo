@@ -406,7 +406,7 @@ public final class TTSService: ObservableObject {
                         crashed.osBuild
                     )
                     service.modelState = .failed(
-                        L("The voice model stopped Osaurus while it was loading last time. Load it again from here.")
+                        L("The voice model stopped Nuo while it was loading last time. Load it again from here.")
                     )
                 } else if exists {
                     service.ensureModelLoaded()

@@ -77,11 +77,11 @@ struct ModelPickerTabTests {
             .fromRemoteModel(modelId: "openai/gpt-4o", providerName: "OpenAI", providerId: openAIId),
             .fromRemoteModel(modelId: "anthropic/claude-opus-4", providerName: "Anthropic", providerId: anthropicId),
             .foundation(),
-            .fromRemoteModel(modelId: "osaurus/llama-3.3", providerName: "Osaurus", providerId: osaurusId),
+            .fromRemoteModel(modelId: "osaurus/llama-3.3", providerName: "Nuo", providerId: osaurusId),
         ]
 
         let tabs = items.groupedByTab()
-        #expect(tabs.map(\.title) == ["Local", "Osaurus", "OpenAI", "Anthropic"])
+        #expect(tabs.map(\.title) == ["Local", "Nuo", "OpenAI", "Anthropic"])
     }
 
     @Test func providerTab_modelsSortedByDisplayName() {
@@ -165,7 +165,7 @@ struct ModelPickerTabTests {
         let osaurusModel = ModelPickerItem(
             id: "osaurus/llama-3.3",
             displayName: "llama-3.3",
-            source: .remote(providerName: "Osaurus", providerId: osaurusId)
+            source: .remote(providerName: "Nuo", providerId: osaurusId)
         )
         // Mid-refresh snapshot: local discovery briefly returned nothing, so
         // only the Osaurus tab is present.
@@ -186,7 +186,7 @@ struct ModelPickerTabTests {
         let osaurus = ModelPickerItem(
             id: "osaurus/llama-3.3",
             displayName: "llama-3.3",
-            source: .remote(providerName: "Osaurus", providerId: osaurusId)
+            source: .remote(providerName: "Nuo", providerId: osaurusId)
         )
         let tabs = [local, osaurus].groupedByTab()
 

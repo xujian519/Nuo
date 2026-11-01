@@ -155,7 +155,7 @@ public final class RemoteProviderManager: ObservableObject {
     private static func makeManagedOsaurusRouterProvider() -> RemoteProvider {
         RemoteProvider(
             id: osaurusRouterProviderId,
-            name: "Osaurus",
+            name: "Nuo",
             host: OsaurusRouter.defaultBaseURL.host ?? "router.osaurus.ai",
             providerProtocol: OsaurusRouter.defaultBaseURL.scheme == "http" ? .http : .https,
             port: OsaurusRouter.defaultBaseURL.port,

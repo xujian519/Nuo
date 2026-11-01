@@ -69,7 +69,7 @@ struct WorkspacePoolTopUpSheet: View {
 
     private var subtitle: String {
         if checkoutOpened {
-            return L("Finish the payment in your browser. The pool updates in Osaurus as soon as Stripe confirms it.")
+            return L("Finish the payment in your browser. The pool updates in Nuo as soon as Stripe confirms it.")
         }
         return String(format: L("Purchased credits go to “%@”'s shared pool and never expire."), workspaceName)
     }
@@ -126,7 +126,7 @@ struct WorkspacePoolTopUpSheet: View {
                 Text(String(format: L("Waiting for Stripe to confirm %@"), currentMicro.map { OsaurusRouter.formatMicroUSD(String($0)) } ?? ""))
                     .font(.system(size: 12.5, weight: .semibold))
                     .foregroundColor(theme.primaryText)
-                Text(L("Nothing is charged until you complete the checkout. Osaurus checks the pool each time you come back to it."))
+                Text(L("Nothing is charged until you complete the checkout. Nuo checks the pool each time you come back to it."))
                     .font(.system(size: 11.5))
                     .foregroundColor(theme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)

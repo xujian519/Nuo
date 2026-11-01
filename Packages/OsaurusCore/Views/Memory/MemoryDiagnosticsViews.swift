@@ -50,7 +50,7 @@ extension MemoryView {
             isPresented: $showMemoryResetConfirm,
             message:
                 L(
-                    "The unreadable database is moved to ~/.osaurus/quarantine/ (never deleted) and a fresh, empty memory store is created so memory and search work again. Distilled facts and episodes in the old file stay in quarantine — export a plaintext backup first if you might recover the key."
+                    "The unreadable database is moved to ~/.nuo/quarantine/ (never deleted) and a fresh, empty memory store is created so memory and search work again. Distilled facts and episodes in the old file stay in quarantine — export a plaintext backup first if you might recover the key."
                 ),
             primaryButton: .destructive(L("Reset store")) { runMemoryRecovery(reset: true) },
             secondaryButton: .cancel(L("Cancel"))
@@ -370,7 +370,7 @@ extension MemoryView {
             // a fault and the offered remedy was Reset, which would have
             // destroyed exactly the data the user came here worried about.
             cause = L(
-                "Your memories are intact. This database was written by a newer version of Osaurus, and this build is older than the format it uses. Update Osaurus to open it again, and don't reset the store."
+                "Your memories are intact. This database was written by a newer version of Nuo, and this build is older than the format it uses. Update Nuo to open it again, and don't reset the store."
             )
         case .unknown:
             cause = L("The memory database failed to open for an unrecognized reason.")

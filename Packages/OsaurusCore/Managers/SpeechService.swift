@@ -808,7 +808,7 @@ public final class SpeechService: ObservableObject {
     public func loadModelAutomatically(_ modelId: String) async throws -> Bool {
         if !isLoadingModel, let crashed = CoreMLLoadSentinel.crashedLoad(.speech) {
             lastError = L(
-                "The speech model stopped Osaurus while it was loading last time, so it is no longer loaded automatically. Use the microphone button to load it again."
+                "The speech model stopped Nuo while it was loading last time, so it is no longer loaded automatically. Use the microphone button to load it again."
             )
             NSLog(
                 "[SpeechService] Skipping automatic load of %@: the previous launch died while loading speech model %@ on %@",

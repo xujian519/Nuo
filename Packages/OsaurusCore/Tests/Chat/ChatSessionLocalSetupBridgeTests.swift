@@ -37,7 +37,7 @@ struct ChatSessionLocalSetupBridgeTests {
         ModelPickerItem(
             id: id,
             displayName: "Test Cloud Model",
-            source: .remote(providerName: "Osaurus", providerId: Self.routerProviderId),
+            source: .remote(providerName: "Nuo", providerId: Self.routerProviderId),
             inputPriceMicroPerMTok: inputPrice,
             outputPriceMicroPerMTok: outputPrice,
             contextLength: contextLength,

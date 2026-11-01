@@ -782,7 +782,7 @@ private struct IdentitySetupCard: View {
 
             VStack(spacing: 4) {
                 Text(
-                    "Already using Osaurus on another device? With iCloud Keychain enabled on both, your identity restores here automatically — it can take a few minutes to sync.",
+                    "Already using Nuo on another device? With iCloud Keychain enabled on both, your identity restores here automatically — it can take a few minutes to sync.",
                     bundle: .module
                 )
                 .font(.system(size: 11))

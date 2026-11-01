@@ -285,7 +285,7 @@ struct PluginCompatibilityEnforcementTests {
             osVersion: os(14, 0, 0)
         )
         let err = try #require(result)
-        #expect(err.message.contains("Osaurus"))
+        #expect(err.message.contains("Nuo"))
         #expect(!err.message.contains("macOS"))
     }
 }

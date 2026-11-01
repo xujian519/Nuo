@@ -320,7 +320,7 @@ struct BonjourAdvertiserNameTests {
     }
 
     @Test func instanceName_shortNameUnchanged() {
-        let agent = Agent(name: "Osaurus", autonomousExec: AutonomousExecConfig(enabled: false))
+        let agent = Agent(name: "Nuo", autonomousExec: AutonomousExecConfig(enabled: false))
         let name = BonjourAdvertiser.instanceName(for: agent)
         #expect(name == "Osaurus@\(agent.id.uuidString)")
     }

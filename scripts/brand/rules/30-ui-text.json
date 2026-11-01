@@ -1,0 +1,37 @@
+{
+  "phase": 3,
+  "rules": [
+    {
+      "id": "ui-text.localizable",
+      "op": "xcstrings",
+      "path": "Packages/OsaurusCore/Resources/Localizable.xcstrings",
+      "enforced": true,
+      "comment": "A/C-class product self-references and the legacy data-root path. B-class rows (Osaurus Cloud/Router/ID/Identity/Secure/Premium/Connect, OsaurusAI HF org, osaurus.ai domains, plugin/config identifiers, OSAURUS_* env vars) stay untouched by design — see docs/brand/NUO-REBRAND-PLAN.md R7.",
+      "exclude_substrings": [
+        "Osaurus Cloud",
+        "Osaurus Router",
+        "Osaurus ID",
+        "OsaurusID",
+        "Osaurus Identity",
+        "Osaurus Secure",
+        "Osaurus Premium",
+        "Osaurus Connect",
+        "OsaurusAI"
+      ],
+      "replace": [
+        ["~/{legacy_data_root}", "~/{brand_data_root}"],
+        ["{legacy_display}", "{brand_display}"]
+      ],
+      "sync_refs": [
+        "App/osaurus/**/*.swift",
+        "Packages/OsaurusCore/**/*.swift",
+        "Packages/OsaurusCLI/Sources/**/*.swift"
+      ],
+      "sync_refs_exclude": [
+        "Packages/OsaurusCore/Services/MediaGeneration/OsaurusCloudMediaClient.swift",
+        "Packages/OsaurusCore/Services/MCP/OAuth/MCPOAuthClientMetadata.swift",
+        "Packages/OsaurusCore/Services/Provider/OpenRouterOAuthService.swift"
+      ]
+    }
+  ]
+}

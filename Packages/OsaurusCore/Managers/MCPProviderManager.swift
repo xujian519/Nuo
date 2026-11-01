@@ -279,7 +279,7 @@ public final class MCPProviderManager: ObservableObject {
 
             // Create MCP client
             let client = MCP.Client(
-                name: "Osaurus",
+                name: "Nuo",
                 version: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
                 capabilities: Self.clientCapabilities
             )
@@ -1091,7 +1091,7 @@ public final class MCPProviderManager: ObservableObject {
             throw error
         }
 
-        let client = MCP.Client(name: "Osaurus", version: "1.0.0")
+        let client = MCP.Client(name: "Nuo", version: "1.0.0")
 
         do {
             try await withTimeout(seconds: 10) {
@@ -1141,7 +1141,7 @@ public final class MCPProviderManager: ObservableObject {
         )
 
         let client = MCP.Client(
-            name: "Osaurus",
+            name: "Nuo",
             version: "1.0.0"
         )
 

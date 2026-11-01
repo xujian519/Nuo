@@ -31,7 +31,7 @@ struct ChatSessionOfflineFallbackTests {
             id: "osaurus/deepseek-ai/deepseek-v4-flash",
             displayName: "Cloud Model",
             source: .remote(
-                providerName: "Osaurus",
+                providerName: "Nuo",
                 providerId: RemoteProviderManager.osaurusRouterProviderId
             )
         )

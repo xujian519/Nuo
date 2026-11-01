@@ -467,7 +467,7 @@ enum SharedAgentStatus: Equatable {
         case .ready, .connecting:
             return nil
         case .offline(let lastSeen):
-            let host = hostName.map { String(format: L("%@'s Osaurus"), $0) } ?? L("its host")
+            let host = hostName.map { String(format: L("%@'s Nuo"), $0) } ?? L("its host")
             var text = String(
                 format: L("You can read this conversation; new messages send once %@ is back online."),
                 host

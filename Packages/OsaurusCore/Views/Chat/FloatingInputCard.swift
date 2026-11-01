@@ -4314,7 +4314,7 @@ extension FloatingInputCard {
         .buttonStyle(.plain)
         .help(
             Text(
-                "The Orchestrator configures Osaurus and delegates work to your agents. It doesn't use the sandbox or a working folder. Click to open its settings.",
+                "The Orchestrator configures Nuo and delegates work to your agents. It doesn't use the sandbox or a working folder. Click to open its settings.",
                 bundle: .module
             )
         )

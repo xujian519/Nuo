@@ -1121,7 +1121,7 @@ struct ThemesView: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(theme.primaryText)
 
-                    Text("Discover and install more themes shared by the Osaurus community", bundle: .module)
+                    Text("Discover and install more themes shared by the Nuo community", bundle: .module)
                         .font(.system(size: 12))
                         .foregroundColor(theme.secondaryText)
                         .lineLimit(2)

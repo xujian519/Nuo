@@ -2222,7 +2222,7 @@ final class NativeMessageCellView: NSTableCellView {
         }
         nativeHeaderHeightConstraint?.constant = NativeCellHeightEstimator.headerInnerHeight(for: context.theme)
 
-        let displayName = role == .user ? "You" : (name.isEmpty ? L("Osaurus") : name)
+        let displayName = role == .user ? "You" : (name.isEmpty ? L("Nuo") : name)
         nativeHeaderView?.configure(
             turnId: block.turnId,
             role: role,

@@ -494,7 +494,7 @@ final class WorkspaceAgentConnectService: ObservableObject {
         else {
             throw ConnectFailure(
                 message: L(
-                    "The agent's host didn't recognize the workspace handshake. It may be running an older Osaurus."
+                    "The agent's host didn't recognize the workspace handshake. It may be running an older Nuo."
                 )
             )
         }
@@ -582,7 +582,7 @@ final class WorkspaceAgentConnectService: ObservableObject {
         } catch {
             throw ConnectFailure(
                 message: L(
-                    "Couldn't reach the agent's host. It may be offline — ask the owner to open Osaurus."
+                    "Couldn't reach the agent's host. It may be offline — ask the owner to open Nuo."
                 )
             )
         }

@@ -464,7 +464,7 @@ struct ChatEmptyState: View {
         case .encrypted:
             return Text("End-to-end encrypted", bundle: .module)
         case .peerNeedsUpgrade:
-            return Text("Peer needs an Osaurus upgrade for encrypted chat", bundle: .module)
+            return Text("Peer needs an Nuo upgrade for encrypted chat", bundle: .module)
         case .offline:
             return Text(verbatim: sharedAgentStatus?.shortLabel ?? L("Offline"))
         case .notConnected:
@@ -488,7 +488,7 @@ struct ChatEmptyState: View {
             )
         case .peerNeedsUpgrade:
             return L(
-                "This peer runs an older Osaurus without the Secure Channel. Agent chat is refused until it upgrades — no plaintext fallback."
+                "This peer runs an older Nuo without the Secure Channel. Agent chat is refused until it upgrades — no plaintext fallback."
             )
         case .offline, .notConnected, .unavailable, .readOnly:
             guard let status = sharedAgentStatus else { return "" }
@@ -964,7 +964,7 @@ private struct ChatEmptyStateLocalSetup: View {
         case .failed, .paused:
             return "You can keep chatting with Osaurus Cloud."
         case .downloading, .completed, .notStarted:
-            return "Start chatting now while Osaurus finishes setting up local AI."
+            return "Start chatting now while Nuo finishes setting up local AI."
         }
     }
 }
@@ -1043,7 +1043,7 @@ private struct ChatEmptyStateNoModels: View {
                     .offset(y: hasAppeared ? 0 : 20)
                     .animation(theme.springAnimation().delay(0.1), value: hasAppeared)
 
-                Text("Osaurus needs an AI to work — either a cloud provider or a local model.", bundle: .module)
+                Text("Nuo needs an AI to work — either a cloud provider or a local model.", bundle: .module)
                     .font(theme.font(size: CGFloat(theme.bodySize) + 2))
                     .foregroundColor(theme.secondaryText)
                     .multilineTextAlignment(.center)
@@ -1082,7 +1082,7 @@ private struct ChatEmptyStateNoModels: View {
                     .animation(theme.springAnimation().delay(0.1), value: hasAppeared)
 
                 Text(
-                    "Osaurus couldn't connect to a model just now. Retry the connection, run a private model on this Mac, or use your own provider.",
+                    "Nuo couldn't connect to a model just now. Retry the connection, run a private model on this Mac, or use your own provider.",
                     bundle: .module
                 )
                 .font(theme.font(size: CGFloat(theme.bodySize) + 2))

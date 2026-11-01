@@ -365,7 +365,7 @@ public enum MCPProviderProbeService {
         startedAt: Date,
         cleanup: (@Sendable () async -> Void)? = nil
     ) async -> MCPProviderProbeResult {
-        let client = MCP.Client(name: "Osaurus", version: "1.0.0")
+        let client = MCP.Client(name: "Nuo", version: "1.0.0")
         do {
             try await withTimeout(seconds: provider.discoveryTimeout) {
                 _ = try await client.connect(transport: transport)

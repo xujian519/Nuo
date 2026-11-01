@@ -69,7 +69,7 @@ struct OsaurusConnectView: View {
     private var pairingIntro: AttributedString {
         var text = AttributedString(
             localized:
-                "Open [Osaurus](https://testflight.apple.com/join/yTF86bVb) (in TestFlight currently) on your iPhone, then generate a code here and type it in. Your iPhone must be on the same network as this Mac while pairing.",
+                "Open [Nuo](https://testflight.apple.com/join/yTF86bVb) (in TestFlight currently) on your iPhone, then generate a code here and type it in. Your iPhone must be on the same network as this Mac while pairing.",
             bundle: .module
         )
         for run in text.runs where run.link != nil {
@@ -223,7 +223,7 @@ struct OsaurusConnectView: View {
                 SettingsToggle(
                     title: L("Reach From Anywhere"),
                     description: L(
-                        "Use your agents from your iPhone away from this network, through the Osaurus relay. Traffic stays end-to-end encrypted between your iPhone and this Mac."
+                        "Use your agents from your iPhone away from this network, through the Nuo relay. Traffic stays end-to-end encrypted between your iPhone and this Mac."
                     ),
                     isOn: $reachFromAnywhere
                 )

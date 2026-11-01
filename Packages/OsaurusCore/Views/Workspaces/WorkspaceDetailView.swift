@@ -1307,7 +1307,7 @@ struct WorkspaceDetailView: View {
                     AgentSectionEmptyState(
                         icon: "antenna.radiowaves.left.and.right",
                         title: "No shared agents yet",
-                        hint: "Share one so teammates can chat with it from their own Osaurus.",
+                        hint: "Share one so teammates can chat with it from their own Nuo.",
                         actionLabel: workspaceActive && !isAtSharedAgentCap ? "Share agent" : nil,
                         action: workspaceActive && !isAtSharedAgentCap ? { showShareSheet = true } : nil
                     )
@@ -1633,7 +1633,7 @@ private struct WorkspaceSharedAgentRow: View {
             if let lastSeen {
                 return String(format: L("Offline · last seen %@"), SharedAgentStatus.relative(lastSeen))
             }
-            return L("Offline — the host's Osaurus isn't reachable")
+            return L("Offline — the host's Nuo isn't reachable")
         case .notConnected(let reason, let attempted):
             if isMine {
                 return L("Relay off — teammates can't reach it")
@@ -1716,7 +1716,7 @@ private struct WorkspaceSharedAgentRow: View {
         SettingsToggle(
             title: L("Bill the workspace pool"),
             description: L(
-                "On by default for agents you share: this agent's Osaurus cloud calls — yours and your teammates' — draw from the workspace's shared credits. Off, your own chats bill your personal balance."
+                "On by default for agents you share: this agent's Nuo cloud calls — yours and your teammates' — draw from the workspace's shared credits. Off, your own chats bill your personal balance."
             ),
             isOn: Binding(get: { billsThisWorkspace }, set: onSetBilling)
         )

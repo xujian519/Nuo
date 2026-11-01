@@ -129,7 +129,7 @@ struct AppleScriptModelsView: View {
         SettingsSection(title: "Automation permission", icon: "lock.shield") {
             VStack(alignment: .leading, spacing: 12) {
                 Text(
-                    "Running AppleScript that controls another app needs macOS Automation permission. The first time an agent controls an app, macOS asks you to allow it for Osaurus. You can prime the System Events grant now.",
+                    "Running AppleScript that controls another app needs macOS Automation permission. The first time an agent controls an app, macOS asks you to allow it for Nuo. You can prime the System Events grant now.",
                     bundle: .module
                 )
                 .font(.system(size: 12))

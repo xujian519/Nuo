@@ -167,7 +167,7 @@ struct OsaurusIDSection: View {
     private func unreachableRow(_ message: String) -> some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Couldn't reach Osaurus", bundle: .module)
+                Text("Couldn't reach Nuo", bundle: .module)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(theme.primaryText)
                 Text(message)
@@ -199,7 +199,7 @@ struct OsaurusIDSection: View {
     private var claimContent: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(
-                "Your public handle across Osaurus. Workspaces, invites, and usage show it instead of your master address.",
+                "Your public handle across Nuo. Workspaces, invites, and usage show it instead of your master address.",
                 bundle: .module
             )
             .font(.system(size: 12))

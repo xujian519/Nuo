@@ -81,13 +81,13 @@ enum SystemPermission: String, CaseIterable, Codable, Sendable {
     var description: String {
         switch self {
         case .automation:
-            return L("Allows Osaurus to control other applications using AppleScript and Apple Events.")
+            return L("Allows Nuo to control other applications using AppleScript and Apple Events.")
         case .automationCalendar:
-            return L("Allows Osaurus to read and create events in Calendar.app via AppleScript.")
+            return L("Allows Nuo to read and create events in Calendar.app via AppleScript.")
         case .automationMail:
             return L("Allows the Mail tools to read, search, and send email through Mail.app via Apple Events.")
         case .automationMessages:
-            return L("Allows Osaurus to send messages through Messages.app via Apple Events.")
+            return L("Allows Nuo to send messages through Messages.app via Apple Events.")
         case .automationMusic:
             return L("Allows the Music tools to control playback and browse your library in Music.app via Apple Events.")
         case .calendar:
@@ -99,13 +99,13 @@ enum SystemPermission: String, CaseIterable, Codable, Sendable {
         case .notes:
             return L("Allows the Notes tools to read and create notes in the Notes app via Apple Events.")
         case .maps:
-            return L("Allows Osaurus to control the Maps app via Apple Events.")
+            return L("Allows Nuo to control the Maps app via Apple Events.")
         case .accessibility:
-            return L("Allows Osaurus to interact with UI elements, simulate input, and control the computer.")
+            return L("Allows Nuo to interact with UI elements, simulate input, and control the computer.")
         case .contacts:
             return L("Allows the Contacts tools to look up, create, and update contacts.")
         case .disk:
-            return L("Allows Osaurus to read protected files such as the Messages database and other app data.")
+            return L("Allows Nuo to read protected files such as the Messages database and other app data.")
         case .microphone:
             return L("Allows voice transcription using the microphone for speech-to-text.")
         case .screenRecording:

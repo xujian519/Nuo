@@ -18,7 +18,7 @@ struct ChatModelPickerProviderTests {
     }
 
     private func cloud(_ id: String) -> ModelPickerItem {
-        remote(id, providerID: RemoteProviderManager.osaurusRouterProviderId, name: "Osaurus")
+        remote(id, providerID: RemoteProviderManager.osaurusRouterProviderId, name: "Nuo")
     }
 
     @Test func emptyCacheRetainsOnlyInactiveDiscoveryEntries() {
@@ -59,7 +59,7 @@ struct ChatModelPickerProviderTests {
         let realCloud = remote(
             "renamed/model", providerID: RemoteProviderManager.osaurusRouterProviderId, name: "My Cloud"
         )
-        let sameTitle = remote("another/model", providerID: providerA, name: "Osaurus")
+        let sameTitle = remote("another/model", providerID: providerA, name: "Nuo")
         let groups = ChatModelPickerProvider.groups(from: [sameTitle, realCloud])
         #expect(groups.first?.kind == .osaurusCloud)
         #expect(groups.first?.models == [realCloud])

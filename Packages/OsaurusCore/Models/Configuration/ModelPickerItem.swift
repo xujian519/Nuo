@@ -766,7 +766,7 @@ enum ModelPickerLocalSourceFilter: Identifiable, Hashable {
     var label: String {
         switch self {
         case .any: return "Any"
-        case .osaurus: return "Osaurus"
+        case .osaurus: return "Nuo"
         case .external(let source): return source
         }
     }
@@ -873,7 +873,7 @@ struct ModelPickerTab: Identifiable, Equatable {
     /// The Osaurus Router tab, identified by provider title (matching how
     /// `groupedByTab()` pins it). This is the only tab whose models carry
     /// pricing, so it's the only one offering the price-sort control.
-    var isOsaurus: Bool { title == "Osaurus" }
+    var isOsaurus: Bool { title == "Nuo" }
 
     /// The Local tab (Foundation + on-device models), identified by its
     /// stable key. The only tab whose models carry an external provenance,
@@ -1015,8 +1015,8 @@ extension Array where Element == ModelPickerItem {
             )
         }
 
-        let osaurusTabs = remoteOrder.filter { $0.title == "Osaurus" }
-        let otherRemoteTabs = remoteOrder.filter { $0.title != "Osaurus" }
+        let osaurusTabs = remoteOrder.filter { $0.title == "Nuo" }
+        let otherRemoteTabs = remoteOrder.filter { $0.title != "Nuo" }
         let orderedRemoteTabs = osaurusTabs + otherRemoteTabs
 
         for entry in orderedRemoteTabs {

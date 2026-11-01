@@ -41,7 +41,7 @@ enum HarnessTurnDriver {
             runtime: runtime,
             chatId: chatId,
             agentId: agentId,
-            agentName: manager.agent(for: agentId)?.name ?? L("Osaurus"),
+            agentName: manager.agent(for: agentId)?.name ?? L("Nuo"),
             workingDirectory: workingDirectory,
             isUserFolder: folderRoot != nil,
             systemPrompt: systemPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : systemPrompt,

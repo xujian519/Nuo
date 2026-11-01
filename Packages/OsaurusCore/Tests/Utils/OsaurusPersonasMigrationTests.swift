@@ -409,7 +409,7 @@ struct OsaurusPersonasMigrationTests {
 
                 let builtIn = Agent(
                     id: Agent.defaultId,
-                    name: "Osaurus",
+                    name: "Nuo",
                     isBuiltIn: true,
                     createdAt: Date(timeIntervalSince1970: 0),
                     updatedAt: Date(timeIntervalSince1970: 0),
@@ -424,7 +424,7 @@ struct OsaurusPersonasMigrationTests {
                     }
                     Issue.record("expected built-in backup restore to fail")
                 } catch let error as AgentStore.RecoveryError {
-                    #expect(error == .builtInAgent("Osaurus"))
+                    #expect(error == .builtInAgent("Nuo"))
                 } catch {
                     Issue.record("unexpected restore error: \(error)")
                 }

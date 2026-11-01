@@ -58,7 +58,7 @@ enum WorkspacesIntroStage: Int, CaseIterable, Identifiable {
         switch self {
         case .agents: return "Start with the agents your company relies on, grouped into a Workspace."
         case .setUp: return "Set them up once and wire them into the tools your company already uses."
-        case .handOut: return "Hand them to your teams. Everyone opens Osaurus and their agent is already there, wired in."
+        case .handOut: return "Hand them to your teams. Everyone opens Nuo and their agent is already there, wired in."
         case .yourRules: return "Runs on your own Macs, over a private network, under rules you write."
         case .oneBill: return "Cloud models, if you want them, from one shared credit pool."
         }

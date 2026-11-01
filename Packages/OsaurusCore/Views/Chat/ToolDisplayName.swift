@@ -150,7 +150,7 @@ enum ToolDisplayName {
         case "schema":
             return running ? L("Reading the config schema") : L("Read the config schema")
         case "export":
-            return running ? L("Exporting Osaurus configuration") : L("Exported Osaurus configuration")
+            return running ? L("Exporting Nuo configuration") : L("Exported Nuo configuration")
         case "plan":
             return running ? L("Planning configuration changes") : L("Planned configuration changes")
         case "apply":
@@ -158,7 +158,7 @@ enum ToolDisplayName {
         case "templates":
             return running ? L("Reading config templates") : L("Read config templates")
         default:
-            return running ? L("Configuring Osaurus") : L("Configured Osaurus")
+            return running ? L("Configuring Nuo") : L("Configured Nuo")
         }
     }
 
@@ -166,13 +166,13 @@ enum ToolDisplayName {
     private static func inspectLabel(running: Bool, arguments: String?) -> String {
         switch actionArgument(from: arguments) {
         case "status":
-            return running ? L("Checking Osaurus status") : L("Checked Osaurus status")
+            return running ? L("Checking Nuo status") : L("Checked Nuo status")
         case "list":
-            return running ? L("Listing Osaurus items") : L("Listed Osaurus items")
+            return running ? L("Listing Nuo items") : L("Listed Nuo items")
         case "describe":
-            return running ? L("Inspecting an Osaurus item") : L("Inspected an Osaurus item")
+            return running ? L("Inspecting an Nuo item") : L("Inspected an Nuo item")
         default:
-            return running ? L("Inspecting Osaurus") : L("Inspected Osaurus")
+            return running ? L("Inspecting Nuo") : L("Inspected Nuo")
         }
     }
 
@@ -295,7 +295,7 @@ enum ToolDisplayName {
 
         // Osaurus self-management. `osaurus_config` / `osaurus_inspect` are
         // action-aware (see configLabel / inspectLabel); these cover the rest.
-        "osaurus_help": ToolLabel(L("Reading the Osaurus guide"), L("Read the Osaurus guide")),
+        "osaurus_help": ToolLabel(L("Reading the Nuo guide"), L("Read the Nuo guide")),
 
         // General built-ins
         "capabilities_discover": ToolLabel(L("Searching capabilities"), L("Searched capabilities")),

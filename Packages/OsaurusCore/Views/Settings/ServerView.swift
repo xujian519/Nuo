@@ -739,7 +739,7 @@ private struct CodexCLISetupSection: View {
             .foregroundColor(theme.primaryText)
 
             Text(
-                "Run OpenAI's Codex CLI against your local models. Osaurus registers itself as a Codex model provider and adds an `osaurus` profile; nothing else in your Codex config is touched.",
+                "Run OpenAI's Codex CLI against your local models. Nuo registers itself as a Codex model provider and adds an `osaurus` profile; nothing else in your Codex config is touched.",
                 bundle: .module
             )
             .font(.system(size: 12))
@@ -1341,7 +1341,7 @@ private struct APIReferenceTabContent: View {
             .font(.system(size: 14, weight: .semibold))
             .foregroundColor(theme.primaryText)
 
-            Text("Available endpoints on your Osaurus server. Expand to test directly.", bundle: .module)
+            Text("Available endpoints on your Nuo server. Expand to test directly.", bundle: .module)
                 .font(.system(size: 12))
                 .foregroundColor(theme.secondaryText)
 
@@ -1439,7 +1439,7 @@ private struct APIReferenceTabContent: View {
             .font(.system(size: 14, weight: .semibold))
             .foregroundColor(theme.primaryText)
 
-            Text("Learn how to integrate Osaurus into your applications.", bundle: .module)
+            Text("Learn how to integrate Nuo into your applications.", bundle: .module)
                 .font(.system(size: 12))
                 .foregroundColor(theme.secondaryText)
 
@@ -1805,7 +1805,7 @@ struct APIEndpoint {
                 method: "GET",
                 path: "/agents",
                 description: L("List all agents with memory counts"),
-                compatibility: "Osaurus",
+                compatibility: "Nuo",
                 category: .memory,
                 examplePayload: nil
             ),
@@ -1813,7 +1813,7 @@ struct APIEndpoint {
                 method: "GET",
                 path: "/agents/{id}",
                 description: L("Return info for a single agent"),
-                compatibility: "Osaurus",
+                compatibility: "Nuo",
                 category: .agents,
                 examplePayload: nil
             ),
@@ -1821,7 +1821,7 @@ struct APIEndpoint {
                 method: "POST",
                 path: "/memory/ingest",
                 description: L("Bulk-ingest conversation turns into memory"),
-                compatibility: "Osaurus",
+                compatibility: "Nuo",
                 category: .memory,
                 examplePayload: """
                     {
@@ -1861,7 +1861,7 @@ struct APIEndpoint {
                 method: "POST",
                 path: "/agents/{id}/run",
                 description: L("Run the full agent chat loop server-side, streaming SSE text deltas"),
-                compatibility: "Osaurus",
+                compatibility: "Nuo",
                 category: .agents,
                 examplePayload: """
                     {
@@ -1877,7 +1877,7 @@ struct APIEndpoint {
                 method: "POST",
                 path: "/agents/{identifier}/dispatch",
                 description: L("Dispatch a work or chat task to an agent"),
-                compatibility: "Osaurus",
+                compatibility: "Nuo",
                 category: .agents,
                 examplePayload: """
                     {
@@ -1891,7 +1891,7 @@ struct APIEndpoint {
                 method: "GET",
                 path: "/tasks/{task_id}",
                 description: L("Poll task status and activity"),
-                compatibility: "Osaurus",
+                compatibility: "Nuo",
                 category: .agents,
                 examplePayload: nil
             ),
@@ -1899,7 +1899,7 @@ struct APIEndpoint {
                 method: "DELETE",
                 path: "/tasks/{task_id}",
                 description: L("Cancel a running task"),
-                compatibility: "Osaurus",
+                compatibility: "Nuo",
                 category: .agents,
                 examplePayload: nil
             ),
@@ -1907,7 +1907,7 @@ struct APIEndpoint {
                 method: "POST",
                 path: "/tasks/{task_id}/clarify",
                 description: L("Submit a clarification response to a waiting task"),
-                compatibility: "Osaurus",
+                compatibility: "Nuo",
                 category: .agents,
                 examplePayload: "{\n  \"response\": \"Yes, proceed with the changes\"\n}"
             ),

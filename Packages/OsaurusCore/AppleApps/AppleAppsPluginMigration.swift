@@ -260,7 +260,7 @@ public enum AppleAppsPluginMigration {
         guard !config.supersededPluginNoticeShown else { return nil }
         let apps = AppleApp.sorted(Set(installedPluginIds.compactMap(AppleApp.app(forSupersededPlugin:))))
         guard !apps.isEmpty else { return nil }
-        let title = L("Apple apps are now built into Osaurus")
+        let title = L("Apple apps are now built into Nuo")
         let list = apps.map(\.displayName).joined(separator: ", ")
         let message: String
         if migratedAgents.isEmpty {

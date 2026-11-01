@@ -5086,7 +5086,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         runRequestTask(priority: .userInitiated) {
             let (name, pairing, version) = await MainActor.run {
                 (
-                    Host.current().localizedName ?? "Osaurus",
+                    Host.current().localizedName ?? "Nuo",
                     MobilePairingService.shared.activeCode != nil,
                     MobilePairingService.wireVersion
                 )

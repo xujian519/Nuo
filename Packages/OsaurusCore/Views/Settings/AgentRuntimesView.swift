@@ -580,7 +580,7 @@ struct HarnessRuntimeEditorSheet: View {
                 continue
             }
             if key.uppercased().hasPrefix("OSAURUS_") {
-                errors.append(String(format: L("%@ is set by Osaurus and can't be overridden."), key))
+                errors.append(String(format: L("%@ is set by Nuo and can't be overridden."), key))
                 continue
             }
             values[key] = value

@@ -81,7 +81,7 @@ struct KnowledgeView: View {
                         icon: "books.vertical.fill",
                         title: L("Add Your First Knowledge Collection"),
                         subtitle: L(
-                            "Point Osaurus at a folder of guides, templates, and standards and grant it to agents so they can consult it on demand. Markdown, plain text, code, PDF, Word, Excel, PowerPoint, and CSV files are supported."
+                            "Point Nuo at a folder of guides, templates, and standards and grant it to agents so they can consult it on demand. Markdown, plain text, code, PDF, Word, Excel, PowerPoint, and CSV files are supported."
                         ),
                         examples: [
                             .init(
@@ -1799,7 +1799,7 @@ private struct KnowledgeCollectionDetailSheet: View {
                 }
             } message: {
                 Text(
-                    "This removes the collection and its search index from Osaurus. The folder and its files on disk are not touched.",
+                    "This removes the collection and its search index from Nuo. The folder and its files on disk are not touched.",
                     bundle: .module
                 )
             }

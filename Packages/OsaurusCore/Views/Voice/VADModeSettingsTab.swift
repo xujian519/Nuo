@@ -274,7 +274,7 @@ struct VADModeSettingsTab: View {
             StyledSettingsTextField(
                 label: "Custom Wake Phrase (Optional)",
                 text: $customWakePhrase,
-                placeholder: "e.g., Hey Osaurus",
+                placeholder: "e.g., Hey Nuo",
                 help: "Leave empty to only use agent names as wake words"
             )
             .onChange(of: customWakePhrase) { _, _ in

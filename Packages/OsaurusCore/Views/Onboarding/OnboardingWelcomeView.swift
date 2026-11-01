@@ -86,7 +86,7 @@ struct WelcomeStepView: View {
 
             OnboardingCheckboxRow(
                 isOn: $state.shareUsageData,
-                label: "Share anonymous usage data to help improve Osaurus"
+                label: "Share anonymous usage data to help improve Nuo"
             )
             .onboardingEntrance(4)
         }

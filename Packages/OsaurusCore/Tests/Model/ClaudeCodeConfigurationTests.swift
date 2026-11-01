@@ -342,7 +342,7 @@ struct ClaudeCodeConfigurationTests {
 
         #expect(note.contains("NOT"))
         #expect(note.contains("osaurus_inspect"))
-        #expect(note.contains("Allow Osaurus read tools"))
+        #expect(note.contains("Allow Nuo read tools"))
         // Must steer away from the exact failure mode observed in the wild.
         #expect(note.lowercased().contains("permission"))
     }

@@ -95,7 +95,7 @@ scripts/brand/
   rules/11-artifact-chain.json  Phase 1：签名 / 打包 / dSYM / Sentry / appcast 链路
   rules/12-cli-surface.json     Phase 1：CLI 命令名、help 文案、安装软链
   rules/20-runtime.json         Phase 2（待加）
-  rules/30-ui-text.json         Phase 3（待加）
+  rules/30-ui-text.json         Phase 3：Localizable.xcstrings key/value（xcstrings op）+ Swift key 引用同步
   rules/40-docs.json            Phase 5（待加）
   brand.py            引擎：apply / verify / snapshot / inventory
   apply.sh            重放（每次 upstream merge 后跑）
@@ -236,15 +236,41 @@ public enum Brand {                      // 用户可见身份
 
 ### Phase 3 — 界面与文案
 
-- `Localizable.xcstrings`：386 个品牌 key / 1511 条本地化，按键类别分桶：
-  - A 类「产品自称」→ 直接换 `Nuo`（约 70%）。
-  - B 类「外部事实」→ 人工改写：`osaurus.ai` 定价/Cloud 计划、Discord、X、GitHub issue 链接、上游文档链接。**直接改名会变成假承诺，必须逐条处理。**
-  - C 类「路径/标识」→ 用 `~/.nuo`、`nuo://` 等新值。
+**状态：Localizable.xcstrings A/C 类机械替换已落地（2026-11-01）**，B 类外部事实保留待人工定夺；Swift 硬编码字面量面（AppDelegate/AppIntents/CLI help/日志前缀）待下一批。
+
+已落地（`rules/30-ui-text.json`，新增 `xcstrings` op，见 `brand.py`）：
+
+- 新增 `xcstrings` op：JSON 结构化改 key + stringUnit value（含 variations 嵌套），文本级原位写回保持 Xcode `"key" : value` 格式不变；key 改名后经 `sync_refs` 按整字面量匹配同步 Swift 引用（`sync_refs_exclude` 跳过 3 个外部契约文件）；幂等，verify 按"应改未改"计数。
+- **283 个 key 改名**（342 个含 Osaurus key 中 59 个被排除组保护）+ **1007 条 value 替换** + **~320 处 Swift key 引用同步**（127 个 Swift 文件）。
+- C 类数据根：值与 key 中的 `~/.osaurus` → `~/.nuo`（57 处纯路径值 + Swift 硬编码路径文案）。
+- 排除组（key 命中即整组多语言跳过，R7 假承诺保护）：`Osaurus Cloud`、`Osaurus Router`、`Osaurus ID`、`OsaurusID`、`Osaurus Identity`、`Osaurus Secure`、`Osaurus Premium`、`Osaurus Connect`、`OsaurusAI`；小写 `osaurus`（插件/配置键/域名）与大写 `OSAURUS`（环境变量）经大小写敏感匹配自然保留。
+- `sync_refs_exclude`：`OsaurusCloudMediaClient.swift`（上游 Cloud 媒体 providerName）、`MCPOAuthClientMetadata.swift`（注册到上游的 OAuth clientName）、`OpenRouterOAuthService.swift`（OpenRouter HTTP-Referer/appTitle）。
+- 棘轮：`Localizable.xcstrings` 与 `App/osaurus/*.swift` 从 `strict_pending` 挪入 `strict`，基线重测（strict 36 文件 / 836 处，其中大部分是受保护的 B 类与 frozen 标识）。
+- 验证：diff 纯洁性（删行全含 legacy、增行全含 Nuo，1364+1364 一一对应）、JSON 合法性（9995 keys 不变）、幂等（二次 apply 为 0）、排除项保留计数、5 语言语序抽查（德/俄/韩/简/繁无语病，"the Nuo agent"/"die Nuo-Sandbox"/"Nuo's" 均合法）。测试文件 hardcode 翻译断言风险已排查（仅 5 处上游 API mock/fixture，正确保留）。
+
+剩余（下一批/人工）：
+
+- **B 类人工清单**（见下）；Swift 硬编码 UI 文案（`FloatingInputCard`、`SlackSettingsView` manifest 模板、`ConfigurationTools` 工具描述等，日志 `[Osaurus]` 前缀需决策）。
+- `AppIntents`（22 处 Siri 快捷指令文案）、`AppDelegate`（NSLog/UI 混合）、`OsaurusCLI` help——仍在 `strict_pending`。
+
+B 类人工清单（保留计数见 baseline）：
+
+| 项 | 性质 |
+|---|---|
+| Osaurus Cloud（~60 值） | 上游云服务，Nuo 无对应物 |
+| Osaurus Router（~92 值） | 上游路由/中继 + 计费 |
+| Osaurus ID / Identity（~27 值） | 上游身份服务（`ai.osaurus.id` 令牌已冻结） |
+| OsaurusAI（40 值 + Swift 字面量） | Hugging Face org / 模型 id 前缀（frozen） |
+| osaurus.ai / agent.osaurus.ai（12 值） | 上游域名 |
+| OSAURUS_*（16 值） | 环境变量 frozen 文案 |
+| model_providers.osaurus（6 值） | Codex config 键名 frozen |
+| osaurus.messages（12 值） | 旧插件 bundle id frozen |
+| osaurus.config.toml（6 值） | Codex profile 文件名——改文案需同步决策 profileName 默认值 |
+| 3 个 sync_refs_exclude Swift 文件 | 上游 OAuth / OpenRouter / Cloud provider 外部契约 |
+
 - `App/osaurus/InfoPlist.xcstrings`：**已在 Phase 1 完成**（`info-plist-l10n.*`，13 个 key × 6 语言）。Phase 3 只做抽查：德/俄/韩/简繁里 `Nuo-Plugins`、`Плагины Nuo`、`Nuo 插件` 的语序是否仍然通顺。
 - Swift 字面量：`AppDelegate`（菜单栏标题、tooltip、分析同意弹窗）、`osaurusApp.swift`（关于面板、Help 菜单、外链）、`AppIntents`、CLI help。
-- 5 种非英文语言需要抽查：机械替换后检查语序与冠词（德/俄/韩/简繁）。
-
-验收：6 语言 `Nuo` 全覆盖；`grep -i osaurus Resources/` 只剩冻结项；实机走查每个改动过的菜单与面板。
+- 5 种非英文语言需要抽查：机械替换后检查语序与冠词（德/俄/韩/简繁）——**A/C 类已抽查通过（2026-11-01）**。
 
 ### Phase 4 — 资产
 

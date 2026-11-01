@@ -51,7 +51,7 @@ enum AgentTemplatesIntroStage: Int, CaseIterable, Identifiable {
         case .share:
             return L("Send the template as a JSON file, or keep it in your library so the Orchestrator can use it.")
         case .reuse:
-            return L("Anyone can turn it back into an agent. Osaurus asks only for what their Mac is missing.")
+            return L("Anyone can turn it back into an agent. Nuo asks only for what their Mac is missing.")
         }
     }
 }

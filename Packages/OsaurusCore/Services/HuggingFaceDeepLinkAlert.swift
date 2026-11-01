@@ -67,13 +67,13 @@ enum HuggingFaceDeepLinkAlert {
         case .unsupported(.notMLX):
             alert.messageText = L("Unsupported model")
             alert.informativeText = L(
-                "Osaurus supports MLX-compatible Hugging Face repositories, including MLX, MXFP, JANG, JANGTQ, and TurboQuant artifacts when required files are present."
+                "Nuo supports MLX-compatible Hugging Face repositories, including MLX, MXFP, JANG, JANGTQ, and TurboQuant artifacts when required files are present."
             )
             alert.alertStyle = .warning
             alert.addButton(withTitle: "OK")
 
         case .registryGated:
-            alert.messageText = L("Not in the Osaurus catalog")
+            alert.messageText = L("Not in the Nuo catalog")
             alert.informativeText = L(
                 "\(modelId) is an OsaurusAI repository that is not part of the language-model catalog, so it cannot be opened here."
             )

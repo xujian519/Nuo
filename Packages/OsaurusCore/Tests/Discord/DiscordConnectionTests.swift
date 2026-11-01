@@ -2326,7 +2326,7 @@ private actor FakeDiscordAPIClient: DiscordAPIClientProtocol {
         return DiscordBotIdentity(
             id: "444444444444444444",
             username: "osaurus-bot",
-            globalName: "Osaurus",
+            globalName: "Nuo",
             bot: true
         )
     }
@@ -2391,7 +2391,7 @@ private actor FakeDiscordAPIClient: DiscordAPIClientProtocol {
             author: DiscordMessageAuthor(
                 id: "444444444444444444",
                 username: "osaurus-bot",
-                globalName: "Osaurus",
+                globalName: "Nuo",
                 bot: true
             )
         )

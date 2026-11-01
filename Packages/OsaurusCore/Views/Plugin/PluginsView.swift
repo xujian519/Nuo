@@ -1244,7 +1244,7 @@ private struct PluginCard: View {
         if PluginManager.supersededPluginIds.contains(plugin.pluginId) && plugin.isInstalled {
             StatusCapsuleBadge(
                 icon: "checkmark.seal.fill",
-                text: L("Built into Osaurus"),
+                text: L("Built into Nuo"),
                 color: theme.accentColor
             )
         } else if plugin.hasLoadError {
@@ -1914,7 +1914,7 @@ private struct PluginDetailView: View {
                 if let appleApp {
                     "\(appleApp.displayName) tools are now built into Osaurus. This plugin's tools are no longer loaded — turn \(appleApp.displayName) on for a custom agent under Agents → Abilities → Tools (off by default). You can uninstall this plugin."
                 } else {
-                    "This plugin's functionality is now built into Osaurus. Its tools are no longer loaded. You can uninstall this plugin."
+                    "This plugin's functionality is now built into Nuo. Its tools are no longer loaded. You can uninstall this plugin."
                 }
             }
         return detailCard {
@@ -1924,7 +1924,7 @@ private struct PluginDetailView: View {
                     .foregroundColor(theme.accentColor)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Built into Osaurus", bundle: .module)
+                    Text("Built into Nuo", bundle: .module)
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(theme.primaryText)
                     Text(detail, bundle: .module)

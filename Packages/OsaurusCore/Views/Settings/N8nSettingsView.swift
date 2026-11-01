@@ -402,7 +402,7 @@ struct N8nSettingsView: View {
                 .foregroundColor(theme.accentColor)
                 .padding(.top, 1)
             Text(
-                "n8n connects to Osaurus, not the other way around. At the end you copy one pairing code into n8n — that is the whole hand-off. You only enter an n8n URL if you want Osaurus to push replies to a workflow.",
+                "n8n connects to Nuo, not the other way around. At the end you copy one pairing code into n8n — that is the whole hand-off. You only enter an n8n URL if you want Nuo to push replies to a workflow.",
                 bundle: .module
             )
             .font(.system(size: 12))
@@ -460,7 +460,7 @@ struct N8nSettingsView: View {
                         icon: "questionmark.circle.fill",
                         tone: .warning,
                         text: L(
-                            "This channel was saved before Osaurus asked where n8n runs. Pick it once so the pairing code carries the right URL; your existing n8n credential keeps working meanwhile."
+                            "This channel was saved before Nuo asked where n8n runs. Pick it once so the pairing code carries the right URL; your existing n8n credential keeps working meanwhile."
                         )
                     )
                 }
@@ -562,7 +562,7 @@ struct N8nSettingsView: View {
                 consequenceRow(
                     icon: "globe",
                     tone: .neutral,
-                    text: L("n8n reaches this Mac through the Osaurus relay. No ports to open, no plaintext from the internet.")
+                    text: L("n8n reaches this Mac through the Nuo relay. No ports to open, no plaintext from the internet.")
                 )
                 consequenceRow(
                     icon: "lock.shield",
@@ -793,7 +793,7 @@ struct N8nSettingsView: View {
             AgentChannelSectionHeading(
                 L("Push replies to n8n (optional)"),
                 detail: L(
-                    "The only place an n8n URL belongs. Also POST the reply as a signed envelope to an Osaurus Trigger or Webhook node. Needs a public https:// URL; loopback, private ranges and plain http are refused. Polling already returns every reply."
+                    "The only place an n8n URL belongs. Also POST the reply as a signed envelope to an Nuo Trigger or Webhook node. Needs a public https:// URL; loopback, private ranges and plain http are refused. Polling already returns every reply."
                 )
             )
 
@@ -809,7 +809,7 @@ struct N8nSettingsView: View {
                 SettingsToggle(
                     title: L("Sign Outbound Bodies"),
                     description: L(
-                        "Adds X-Osaurus-Channel-Signature: sha256=<HMAC of the body> using the channel secret so the workflow can verify Osaurus."
+                        "Adds X-Nuo-Channel-Signature: sha256=<HMAC of the body> using the channel secret so the workflow can verify Nuo."
                     ),
                     isOn: $draft.outboundSignBodies
                 )
@@ -832,7 +832,7 @@ struct N8nSettingsView: View {
     private var connectSectionContent: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text(
-                "Install the @osaurus/n8n-nodes-osaurus community node in n8n, then paste this one pairing code into its Osaurus Channel credential and press Test.",
+                "Install the @osaurus/n8n-nodes-osaurus community node in n8n, then paste this one pairing code into its Nuo Channel credential and press Test.",
                 bundle: .module
             )
             .font(.system(size: 12))
@@ -1047,7 +1047,7 @@ struct N8nSettingsView: View {
         VStack(alignment: .leading, spacing: 20) {
             VStack(alignment: .leading, spacing: 12) {
                 AgentChannelSectionHeading(
-                    L("Without the Osaurus node"),
+                    L("Without the Nuo node"),
                     detail: L(
                         "For a plain HTTP Request node: POST the envelope to the inbound URL, then GET the poll_url from the 202 until status is completed. URLs follow Where is your n8n?."
                     )
@@ -1098,7 +1098,7 @@ struct N8nSettingsView: View {
                     onCopied: { showStatus(L("Example copied"), isError: false) }
                 )
                 Text(
-                    "Attachments in the envelope are metadata-only; Osaurus does not fetch the file bytes.",
+                    "Attachments in the envelope are metadata-only; Nuo does not fetch the file bytes.",
                     bundle: .module
                 )
                 .font(.system(size: 11))
@@ -1122,7 +1122,7 @@ struct N8nSettingsView: View {
                 : L("Expose the server to the network in Server settings first.")
         case .remote:
             return L(
-                "Plain HTTP Request nodes cannot speak Secure Channel, so from the internet they are refused with 426. Use the Osaurus node with the pairing code."
+                "Plain HTTP Request nodes cannot speak Secure Channel, so from the internet they are refused with 426. Use the Nuo node with the pairing code."
             )
         }
     }
@@ -1780,7 +1780,7 @@ struct N8nSettingsView: View {
     ) {
         if event.stage == .rejected, event.reason == AgentChannelWebhookIngress.pendingApprovalReason {
             showStatus(
-                L("The workflow reached Osaurus and is asking for approval. Press Allow above, then run it again."),
+                L("The workflow reached Nuo and is asking for approval. Press Allow above, then run it again."),
                 isError: false
             )
             return

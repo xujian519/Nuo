@@ -160,13 +160,13 @@ private extension osaurusApp {
         CommandGroup(replacing: .appInfo) {
             Button {
                 NSApp.orderFrontStandardAboutPanel(options: [
-                    .applicationName: "Osaurus",
+                    .applicationName: "Nuo",
                     .applicationVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
                         ?? "1.0",
                     .version: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1",
                 ])
             } label: {
-                Text(verbatim: LCached("About Osaurus"))
+                Text(verbatim: LCached("About Nuo"))
             }
         }
     }
@@ -229,7 +229,7 @@ private extension osaurusApp {
             Button {
                 openURL("https://docs.osaurus.ai/")
             } label: {
-                Text(verbatim: LCached("Osaurus Help"))
+                Text(verbatim: LCached("Nuo Help"))
             }
             .keyboardShortcut("?", modifiers: .command)
 

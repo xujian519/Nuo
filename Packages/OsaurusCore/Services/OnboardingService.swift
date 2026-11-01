@@ -281,7 +281,7 @@ public final class OnboardingService: ObservableObject {
             }
         }
         lines.append(
-            L("Osaurus will now quit. You can delete the listed items manually in Finder.")
+            L("Nuo will now quit. You can delete the listed items manually in Finder.")
         )
         return lines.joined(separator: "\n\n")
     }

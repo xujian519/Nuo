@@ -75,7 +75,7 @@ struct RouterSpendGateTests {
 
     private func makeRouterService() -> RemoteProviderService {
         let provider = RemoteProvider(
-            name: "Osaurus",
+            name: "Nuo",
             host: "127.0.0.1",
             providerProtocol: .http,
             port: 1,  // Unroutable port: reaching the network at all is a bug.

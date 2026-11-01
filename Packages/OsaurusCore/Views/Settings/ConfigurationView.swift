@@ -154,7 +154,7 @@ struct ConfigurationView: View {
 
             SettingsToggle(
                 title: LCached("Start at Login"),
-                description: "Launch Osaurus when you sign in",
+                description: "Launch Nuo when you sign in",
                 anchorId: "settings.general.login",
                 isOn: $tempStartAtLogin
             )
@@ -238,7 +238,7 @@ struct ConfigurationView: View {
         SettingsAdvancedDisclosure(anchorIds: Self.advancedAnchorIds) {
             SettingsSubsection(label: "Models Directory", anchorId: "storage.location") {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Where Osaurus downloads and stores its own models.", bundle: .module)
+                    Text("Where Nuo downloads and stores its own models.", bundle: .module)
                         .font(.system(size: 11))
                         .foregroundColor(theme.tertiaryText)
                     DirectoryPickerView()
@@ -311,7 +311,7 @@ struct ConfigurationView: View {
 
             VStack(spacing: 24) {
                 VStack(spacing: 8) {
-                    Text("Resetting Osaurus", bundle: .module)
+                    Text("Resetting Nuo", bundle: .module)
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(theme.primaryText)
 
@@ -447,7 +447,7 @@ struct ConfigurationView: View {
 
     private func showFactoryResetConfirmation() {
         let alert = NSAlert()
-        alert.messageText = L("Factory Reset Osaurus?")
+        alert.messageText = L("Factory Reset Nuo?")
         alert.informativeText =
             L(
                 "This will permanently delete all your data, including chat history, agents, memory, and your identity keys. This action cannot be undone and the application will close."
@@ -751,7 +751,7 @@ private struct FactoryResetStepRow: View {
         case .keychain: return L("Removing Keychain secrets")
         case .preferences: return L("Clearing preferences")
         case .data: return L("Deleting app data")
-        case .quit: return L("Quitting Osaurus")
+        case .quit: return L("Quitting Nuo")
         }
     }
 

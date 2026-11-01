@@ -198,7 +198,7 @@ final class MobilePairingService: ObservableObject {
         cancelCode()
         lastError = nil
         guard OsaurusIdentity.exists() else {
-            lastError = L("Set up your Osaurus identity first (Settings → Identity).")
+            lastError = L("Set up your Nuo identity first (Settings → Identity).")
             return
         }
         isGeneratingCode = true

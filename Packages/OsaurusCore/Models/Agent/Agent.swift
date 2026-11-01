@@ -63,13 +63,13 @@ public struct AgentQuickAction: Codable, Identifiable, Sendable, Equatable {
         [
             AgentQuickAction(
                 icon: "questionmark.circle",
-                text: L("What can Osaurus do?"),
-                prompt: L("What can Osaurus do? Give me a quick tour of its features.")
+                text: L("What can Nuo do?"),
+                prompt: L("What can Nuo do? Give me a quick tour of its features.")
             ),
             AgentQuickAction(
                 icon: "checklist",
                 text: L("What's configured?"),
-                prompt: L("What's currently configured in Osaurus?")
+                prompt: L("What's currently configured in Nuo?")
             ),
             AgentQuickAction(
                 icon: "arrow.down.circle",
@@ -504,8 +504,8 @@ public struct Agent: Codable, Identifiable, Sendable, Equatable {
     public static var `default`: Agent {
         Agent(
             id: defaultId,
-            name: defaultAgentNameOverride ?? "Osaurus",
-            description: L("Configures Osaurus settings and manages agents. Use for app setup; general tasks can stay in the current chat."),
+            name: defaultAgentNameOverride ?? "Nuo",
+            description: L("Configures Nuo settings and manages agents. Use for app setup; general tasks can stay in the current chat."),
             systemPrompt: "",
             themeId: nil,
             defaultModel: nil,

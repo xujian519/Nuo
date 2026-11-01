@@ -1117,7 +1117,7 @@ private struct ConfigureAILeftColumn: View {
 
     private var subtitle: LocalizedStringKey {
         state.screen == .claudeCode
-            ? "Osaurus delegates sign-in and requests to Anthropic's Claude Code CLI. Credentials stay with the CLI; model requests run in the cloud."
+            ? "Nuo delegates sign-in and requests to Anthropic's Claude Code CLI. Credentials stay with the CLI; model requests run in the cloud."
             : "We've picked the best fit for your Mac and the specialty you chose, so your Dino can work locally — even offline."
     }
 
@@ -1148,7 +1148,7 @@ private struct ConfigureAILeftColumn: View {
     private var cta: some View {
         if state.isAPISuccess {
             OnboardingPillButton(
-                title: "Continue to Osaurus",
+                title: "Continue to Nuo",
                 style: .primary,
                 size: .large,
                 isEnabled: !state.isSaving,
@@ -1156,7 +1156,7 @@ private struct ConfigureAILeftColumn: View {
             )
         } else if state.hasCommittedLocal {
             OnboardingPillButton(
-                title: "Continue to Osaurus",
+                title: "Continue to Nuo",
                 style: .primary,
                 size: .large,
                 action: onComplete

@@ -3334,7 +3334,7 @@ struct AgentDetailView: View {
                     )
                 ) {
                     claudeCodePermissionLabel(
-                        title: "Allow Osaurus read tools",
+                        title: "Allow Nuo read tools",
                         detail: "Attach osaurus_inspect and osaurus_help over an MCP bridge scoped to this agent. Needs the Osaurus server running."
                     )
                 }
@@ -3349,7 +3349,7 @@ struct AgentDetailView: View {
                     )
                 ) {
                     claudeCodePermissionLabel(
-                        title: "Allow Osaurus configuration changes",
+                        title: "Allow Nuo configuration changes",
                         detail: agent.id == Agent.defaultId
                             ? "Also attach osaurus_config, which changes agents, providers, models, plugins, and MCP servers."
                             : "Only the Default agent can change Osaurus configuration."
@@ -3425,7 +3425,7 @@ struct AgentDetailView: View {
         switch selectedHarness {
         case nil:
             runtimeNote(
-                L("Osaurus runs this agent itself, on its model, with its tools, memory, and sandbox.")
+                L("Nuo runs this agent itself, on its model, with its tools, memory, and sandbox.")
             )
         case .missing:
             runtimeNote(
@@ -3444,7 +3444,7 @@ struct AgentDetailView: View {
                 )
                 if runtime.kind == .piRPC {
                     runtimeNote(
-                        L("Osaurus can't confine this runtime's tools. Narrow them with --tools in the runtime's arguments.")
+                        L("Nuo can't confine this runtime's tools. Narrow them with --tools in the runtime's arguments.")
                     )
                     if !runtime.wantsSystemPromptFile {
                         runtimeNote(
@@ -3710,7 +3710,7 @@ struct AgentDetailView: View {
         Group {
             if agentRuntime != .builtIn {
                 AgentDetailSection(title: L("Generation Overrides"), icon: "slider.horizontal.3") {
-                    Text("These generation defaults apply to Osaurus (built-in). The selected external runtime owns its generation settings.", bundle: .module)
+                    Text("These generation defaults apply to Nuo (built-in). The selected external runtime owns its generation settings.", bundle: .module)
                         .font(.system(size: 11)).foregroundColor(theme.tertiaryText)
                 }
             } else {
@@ -4376,7 +4376,7 @@ struct AgentDetailView: View {
                 }
             }
             Text(
-                "Activate copies the agent into ~/.osaurus/agents/<id>/, rekeys its database to your local key, and registers the agent for use. Discard wipes the unpacked scratch directory and changes nothing on disk.",
+                "Activate copies the agent into ~/.nuo/agents/<id>/, rekeys its database to your local key, and registers the agent for use. Discard wipes the unpacked scratch directory and changes nothing on disk.",
                 bundle: .module
             )
             .font(.system(size: 11))
@@ -5010,7 +5010,7 @@ struct AgentDetailView: View {
             subagentPanelDivider
             appleScriptExecutionModeRow
             subagentFootnote(
-                "AppleScript runs on this Mac. The first time the agent controls an app, macOS asks you to allow Automation for Osaurus. Download AppleScript models in Settings → Computer Use → Models."
+                "AppleScript runs on this Mac. The first time the agent controls an app, macOS asks you to allow Automation for Nuo. Download AppleScript models in Settings → Computer Use → Models."
             )
         case .browserUse:
             // The model-override row is rendered generically above (registry

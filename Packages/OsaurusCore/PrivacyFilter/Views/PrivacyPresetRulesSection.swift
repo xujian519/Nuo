@@ -34,7 +34,7 @@ struct PrivacyRegionsSection: View {
         SettingsSection(title: L("My Regions"), icon: "globe", anchorId: "privacy.rules.regions") {
             VStack(alignment: .leading, spacing: 10) {
                 Text(
-                    "Countries whose national ID, tax, health and bank number formats Osaurus should look for. The first region is detected from your Mac's locale; add or remove any region.",
+                    "Countries whose national ID, tax, health and bank number formats Nuo should look for. The first region is detected from your Mac's locale; add or remove any region.",
                     bundle: .module
                 )
                 .font(.system(size: 11))
@@ -333,7 +333,7 @@ struct PrivacyPresetRulesSection: View {
         SettingsSection(title: L("Preset Rules"), icon: "books.vertical.fill", anchorId: "privacy.rules.presets") {
             VStack(alignment: .leading, spacing: 12) {
                 Text(
-                    "Country-specific ID, tax, health and bank number formats plus global finance, network and secret patterns. Presets for your regions are on by default; everything else is opt-in. Osaurus redacts matches and blocks sends that leak them.",
+                    "Country-specific ID, tax, health and bank number formats plus global finance, network and secret patterns. Presets for your regions are on by default; everything else is opt-in. Nuo redacts matches and blocks sends that leak them.",
                     bundle: .module
                 )
                 .font(.system(size: 11))

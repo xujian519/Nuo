@@ -681,7 +681,7 @@ struct AgentChannelAutoReplyOffNotice: View {
     var body: some View {
         Label {
             Text(
-                "Replies will stay in Osaurus. Incoming messages still run the agent, but its responses are not posted back until Reply Automatically is on.",
+                "Replies will stay in Nuo. Incoming messages still run the agent, but its responses are not posted back until Reply Automatically is on.",
                 bundle: .module
             )
             .font(.system(size: 11))

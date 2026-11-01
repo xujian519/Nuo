@@ -28,7 +28,7 @@ struct RemoteProviderResolvedHeadersTests {
 
         let headers = provider.resolvedHeaders()
         #expect(headers["HTTP-Referer"] == "https://osaurus.ai")
-        #expect(headers["X-OpenRouter-Title"] == "Osaurus")
+        #expect(headers["X-OpenRouter-Title"] == "Nuo")
     }
 
     @Test func nonOpenRouterHost_doesNotInjectAttributionHeaders() {
@@ -74,6 +74,6 @@ struct RemoteProviderResolvedHeadersTests {
 
         let headers = provider.resolvedHeaders()
         #expect(headers["HTTP-Referer"] == "https://osaurus.ai")
-        #expect(headers["X-OpenRouter-Title"] == "Osaurus")
+        #expect(headers["X-OpenRouter-Title"] == "Nuo")
     }
 }

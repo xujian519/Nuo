@@ -67,7 +67,7 @@ struct MessageTableSnapshotApplyTests {
         {
             CellRenderingContext(
                 width: 680,
-                agentName: "Osaurus",
+                agentName: "Nuo",
                 agentAvatar: nil,
                 agentCustomAvatarPath: nil,
                 isStreaming: isStreaming,
@@ -90,7 +90,7 @@ struct MessageTableSnapshotApplyTests {
             let blocks = memoizer.blocks(
                 from: turns,
                 streamingTurnId: streamingTurnId,
-                agentName: "Osaurus"
+                agentName: "Nuo"
             )
             coordinator.applyBlocks(
                 blocks,

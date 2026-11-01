@@ -597,7 +597,7 @@ final class AccessibilityManager: @unchecked Sendable {
             return TraversalResult(
                 snapshotId: beginNewSnapshot(pid: filter.pid),
                 pid: filter.pid,
-                app: getAppName(for: filter.pid) ?? "Osaurus",
+                app: getAppName(for: filter.pid) ?? "Nuo",
                 focusedWindow: nil,
                 elementCount: 0,
                 truncated: false,
