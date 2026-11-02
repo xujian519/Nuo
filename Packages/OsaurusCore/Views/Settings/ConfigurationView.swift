@@ -146,7 +146,7 @@ struct ConfigurationView: View {
         SettingsSection(title: "General", icon: "gear") {
             SettingsRow(
                 title: LCached("Global Hotkey"),
-                description: "Open Osaurus from anywhere",
+                description: "Open Nuo from anywhere",
                 anchorId: "settings.general.hotkey"
             ) {
                 HotkeyRecorder(value: $tempChatHotkey)
@@ -295,7 +295,7 @@ struct ConfigurationView: View {
             SettingsDestructiveRow(
                 title: "Factory Reset",
                 description:
-                    "Permanently deletes all data and settings — chat history, agents, memory, and your identity keys — then quits Osaurus. This cannot be undone.",
+                    "Permanently deletes all data and settings — chat history, agents, memory, and your identity keys — then quits Nuo. This cannot be undone.",
                 actionTitle: "Factory Reset…"
             ) {
                 showFactoryResetConfirmation()

@@ -88,7 +88,7 @@ enum AppleScriptBridge {
             }
             throw AppleToolError.permissionDenied(
                 permission,
-                detail: "macOS shows the \"Osaurus wants access to control \(appName)\" dialog on the first attempt; if it was dismissed, re-enable it under Automation → Osaurus → \(appName)."
+                detail: "macOS shows the \"Nuo wants access to control \(appName)\" dialog on the first attempt; if it was dismissed, re-enable it under Automation → Nuo → \(appName)."
             )
         case .timedOut:
             if isWrite {

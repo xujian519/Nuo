@@ -128,7 +128,7 @@ public struct ClaudeMarketplaceImportabilityCatalog: Sendable {
         } else if summary == nil {
             status = .requiresReview
             reason =
-                "This entry is not in the bundled importability catalog yet, so Osaurus cannot preview what would be installed."
+                "This entry is not in the bundled importability catalog yet, so Nuo cannot preview what would be installed."
         } else {
             status = .importable
             reason = "The bundled catalog found importable plugin components."

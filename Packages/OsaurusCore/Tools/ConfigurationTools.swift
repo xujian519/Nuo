@@ -158,7 +158,7 @@ enum ConfigurationReadNextStep {
         + "and change it with osaurus_config {action: 'apply', yaml: ...}. "
         + "Server runtime, chat behavior, and app settings are managed in the Settings UI, "
         + "not with these tools. "
-        + "For questions about what Osaurus is or how a feature works, read the matching "
+        + "For questions about what Nuo is or how a feature works, read the matching "
         + "osaurus_help topic instead of answering from this snapshot."
 
     /// Short semantics header prepended to every embedded `yaml_shape`.
@@ -352,7 +352,7 @@ private enum PluginRepositoryDiagnosticProjection {
 public final class OsaurusInspectTool: OsaurusTool, @unchecked Sendable {
     public let name = "osaurus_inspect"
     public let description =
-        "Read Osaurus configuration. `action`: status (one-shot snapshot of everything — default "
+        "Read Nuo configuration. `action`: status (one-shot snapshot of everything — default "
         + "agent, server, models, providers, plugins, schedules, watchers, skills, knowledge, "
         + "channels, memory, sandbox — plus `suggestions`; call it first when the user asks "
         + "what's configured), list (rows in one `scope`), describe (full detail for one item; "
@@ -1137,13 +1137,13 @@ public final class OsaurusInspectTool: OsaurusTool, @unchecked Sendable {
 public final class OsaurusHelpTool: OsaurusTool, @unchecked Sendable {
     public let name = "osaurus_help"
     public let description =
-        "Bundled Osaurus user guide and settings catalog — answers questions about what Osaurus is "
+        "Bundled Nuo user guide and settings catalog — answers questions about what Nuo is "
         + "and how its features work, and where a setting lives. "
         + "`action`: topics (index of topic ids with summaries), read (needs `topic` id; returns the "
         + "full topic text), find (needs `query`; returns Management breadcrumbs from the same "
         + "catalog as in-app settings search). Answer from the topic or find results — for the "
         + "user's CURRENT configuration use osaurus_inspect instead. Never spawn an agent or use "
-        + "Computer Use to hunt Osaurus Settings."
+        + "Computer Use to hunt Nuo Settings."
     public let parameters: JSONValue? = .object([
         "type": .string("object"),
         "additionalProperties": .bool(false),
@@ -1621,7 +1621,7 @@ extension OsaurusInspectTool {
                 case .local(let localName):
                     return ToolEnvelope.failure(
                         kind: .invalidArgs,
-                        message: "`\(idStr)` is one of this Osaurus's own agents (`\(localName)`), not a "
+                        message: "`\(idStr)` is one of this Nuo's own agents (`\(localName)`), not a "
                             + "teammate's shared agent. Use {action: \"describe\", scope: \"agents\"}.",
                         field: "id",
                         tool: name

@@ -461,7 +461,7 @@ public enum SearchProviderConfigurationStore {
             do {
                 return try JSONDecoder().decode(SearchProviderConfiguration.self, from: Data(contentsOf: url))
             } catch {
-                print("[Osaurus] Failed to load SearchProviderConfiguration: \(error)")
+                print("[Nuo] Failed to load SearchProviderConfiguration: \(error)")
             }
         }
         // Never auto-save the default here (see MCPProviderConfigurationStore.load);
@@ -477,7 +477,7 @@ public enum SearchProviderConfigurationStore {
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
             try encoder.encode(configuration).write(to: url, options: [.atomic])
         } catch {
-            print("[Osaurus] Failed to save SearchProviderConfiguration: \(error)")
+            print("[Nuo] Failed to save SearchProviderConfiguration: \(error)")
         }
     }
 }

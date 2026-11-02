@@ -121,7 +121,7 @@ public final class AppConfiguration: ObservableObject {
         do {
             config = try JSONDecoder().decode(ChatConfiguration.self, from: data)
         } catch {
-            print("[Osaurus] Failed to load ChatConfiguration: \(error)")
+            print("[Nuo] Failed to load ChatConfiguration: \(error)")
             return ChatConfiguration.default
         }
 
@@ -200,7 +200,7 @@ public final class AppConfiguration: ObservableObject {
         updated.coreModelName = nil
         updated.coreModelProvider = nil
         print(
-            "[Osaurus] Cleared persisted core model 'foundation' "
+            "[Nuo] Cleared persisted core model 'foundation' "
                 + "(Foundation Models unavailable on this Mac); "
                 + "preflight will fall back to the active chat model"
         )
@@ -243,10 +243,10 @@ public final class AppConfiguration: ObservableObject {
                 data,
                 to: url,
                 synchronous: OsaurusPaths.overrideRoot != nil,
-                onError: { print("[Osaurus] Failed to save ChatConfiguration: \($0)") }
+                onError: { print("[Nuo] Failed to save ChatConfiguration: \($0)") }
             )
         } catch {
-            print("[Osaurus] Failed to save ChatConfiguration: \(error)")
+            print("[Nuo] Failed to save ChatConfiguration: \(error)")
         }
     }
 
@@ -279,7 +279,7 @@ public final class AppConfiguration: ObservableObject {
         updated.coreModelProvider = nil
         updated.coreModelName = ChatConfiguration.defaultCoreModelName
         print(
-            "[Osaurus] Backfilled core model to "
+            "[Nuo] Backfilled core model to "
                 + "'\(ChatConfiguration.defaultCoreModelName)' (legacy install)"
         )
         return updated
@@ -312,7 +312,7 @@ public final class AppConfiguration: ObservableObject {
             migrated.coreModelProvider = provider
         }
         print(
-            "[Osaurus] Migrated core model from memory.json: "
+            "[Nuo] Migrated core model from memory.json: "
                 + "\(migrated.coreModelIdentifier ?? "none")"
         )
         return migrated
@@ -344,9 +344,9 @@ public final class AppConfiguration: ObservableObject {
                 options: [.prettyPrinted, .sortedKeys]
             )
             try cleaned.write(to: memoryURL, options: .atomic)
-            print("[Osaurus] Removed legacy core-model keys from memory.json")
+            print("[Nuo] Removed legacy core-model keys from memory.json")
         } catch {
-            print("[Osaurus] Failed to scrub memory.json legacy keys: \(error)")
+            print("[Nuo] Failed to scrub memory.json legacy keys: \(error)")
         }
     }
 

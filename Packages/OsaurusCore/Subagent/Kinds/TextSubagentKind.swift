@@ -533,7 +533,7 @@ final class TextSubagentKind:
         // it over the relay would loop back through our own host.
         guard !isOwn else {
             throw SubagentError.denied(
-                "'\(name)' is one of this Osaurus's own agents; spawn it as a local agent instead."
+                "'\(name)' is one of this Nuo's own agents; spawn it as a local agent instead."
             )
         }
         self.resolvedAgentName = name

@@ -46,7 +46,7 @@ enum WorkspaceAgentRunError: Error, Equatable, Sendable {
         case .routerDisabled:
             return L("Osaurus Router is turned off, so \(agentName) (a workspace agent) can't be reached. Turn it on in Settings → Osaurus Router.")
         case .noIdentity:
-            return L("This Mac has no Osaurus identity yet, so it can't sign in to the workspace to reach \(agentName).")
+            return L("This Mac has no Nuo identity yet, so it can't sign in to the workspace to reach \(agentName).")
         case .notShared:
             return L("\(agentName) is no longer shared with a workspace you belong to.")
         case .ownAgent:

@@ -141,7 +141,7 @@ public struct ToolsCreate {
         let pluginSwift = """
             import Foundation
 
-            // MARK: - Osaurus Injected Context
+            // MARK: - Nuo Injected Context
 
             private struct FolderContext: Decodable {
                 let working_directory: String
@@ -526,12 +526,12 @@ public struct ToolsCreate {
         let readme = """
             # \(name)
 
-            An Osaurus plugin (v2 ABI).
+            An Nuo plugin (v2 ABI).
 
             ## Development
 
             Start dev mode from the project root. This builds the plugin, installs it
-            into Osaurus, and watches for source changes with automatic rebuild + reload:
+            into Nuo, and watches for source changes with automatic rebuild + reload:
 
             ```bash
             nuo tools dev
@@ -621,7 +621,7 @@ public struct ToolsCreate {
             use std::ffi::{c_char, c_void, CStr, CString};
             use std::ptr;
 
-            // ── Host API (provided by Osaurus at init) ──
+            // ── Host API (provided by Nuo at init) ──
             //
             // This Rust mirror MUST stay byte-compatible with `osr_host_api`
             // in `osaurus_plugin.h`. Field order, count, and types are FROZEN
@@ -709,7 +709,7 @@ public struct ToolsCreate {
                 complete_cancel: Option<OsrCompleteCancelFn>,
             }
 
-            // ── Plugin API (returned to Osaurus) ──
+            // ── Plugin API (returned to Nuo) ──
 
             #[repr(C)]
             struct OsrPluginApi {
@@ -908,12 +908,12 @@ public struct ToolsCreate {
         let readme = """
             # \(name)
 
-            An Osaurus plugin (v2 ABI) written in Rust.
+            An Nuo plugin (v2 ABI) written in Rust.
 
             ## Development
 
             Start dev mode from the project root. This builds the plugin, installs it
-            into Osaurus, and watches for source changes with automatic rebuild + reload:
+            into Nuo, and watches for source changes with automatic rebuild + reload:
 
             ```bash
             nuo tools dev
@@ -974,9 +974,9 @@ public struct ToolsCreate {
         let isSwift = language == "swift"
 
         let claudeMd = """
-            # \(displayName) - Osaurus Plugin
+            # \(displayName) - Nuo Plugin
 
-            This is an Osaurus plugin project. Use this guide to develop, test, and submit the plugin.
+            This is a Nuo plugin project. Use this guide to develop, test, and submit the plugin.
 
             ## Project Structure
 
@@ -1003,7 +1003,7 @@ public struct ToolsCreate {
 
             ## Architecture Overview
 
-            Osaurus plugins use a C ABI interface. New plugins target the **v3 documented surface** by
+            Nuo plugins use a C ABI interface. New plugins target the **v3 documented surface** by
             exporting `osaurus_plugin_entry_v2(host)` and reading host callbacks from the
             `osr_host_api*` pointer. The host's `version` field is `3` in current builds; the struct
             layout is frozen across versions for ABI compatibility, so older v1 and v2 plugins
@@ -1628,7 +1628,7 @@ public struct ToolsCreate {
 
             ## Using Folder Context (Working Directory)
 
-            When a user has a working folder selected in chat, Osaurus automatically injects the folder context into tool payloads. This allows your plugin to resolve relative file paths.
+            When a user has a working folder selected in chat, Nuo automatically injects the folder context into tool payloads. This allows your plugin to resolve relative file paths.
 
             ### Automatic Injection
 
@@ -1746,9 +1746,9 @@ public struct ToolsCreate {
 
             ### From MCP (Model Context Protocol)
 
-            MCP tools map directly to Osaurus tools:
+            MCP tools map directly to Nuo tools:
 
-            | MCP Concept | Osaurus Equivalent |
+            | MCP Concept | Nuo Equivalent |
             |-------------|-------------------|
             | Tool name | `id` in manifest |
             | Input schema | `parameters` (JSON Schema) |
@@ -1771,7 +1771,7 @@ public struct ToolsCreate {
             }
             ```
 
-            Becomes this Osaurus manifest entry:
+            Becomes this Nuo manifest entry:
             ```json
             {
               "id": "get_weather",
@@ -1920,12 +1920,12 @@ public struct ToolsCreate {
             nuo tools dev
             ```
 
-            This builds the plugin, installs it into Osaurus, and watches for source changes.
+            This builds the plugin, installs it into Nuo, and watches for source changes.
             Any edits to source files trigger an automatic rebuild and hot-reload.
 
-            ### 2. Test in Osaurus
+            ### 2. Test in Nuo
 
-            1. Open Osaurus app
+            1. Open Nuo app
             2. Go to Tools settings (Settings… (⌘,) → Tools → Native Plugins)
             3. Verify your plugin appears
             4. Test each tool by asking the AI to use it
@@ -2011,7 +2011,7 @@ public struct ToolsCreate {
 
             ## Submission Checklist
 
-            Before submitting to the Osaurus plugin registry:
+            Before submitting to the Nuo plugin registry:
 
             - [ ] Plugin builds without warnings
             - [ ] `nuo manifest extract` returns valid JSON

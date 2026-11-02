@@ -429,9 +429,9 @@ public enum TemplateError: Error, LocalizedError, Equatable {
         case .malformed(let detail):
             return L("Could not read the template: \(detail)")
         case .notATemplate(let detail):
-            return L("This is not an Osaurus template. \(detail)")
+            return L("This is not an Nuo template. \(detail)")
         case .unsupportedVersion(let v):
-            return L("Template format \(v) is newer than this Osaurus understands. Update Osaurus to import it.")
+            return L("Template format \(v) is newer than this Nuo understands. Update Nuo to import it.")
         case .invalidAgent(let issues):
             return L("The template's agent is invalid:") + "\n" + issues.map { "• \($0)" }.joined(separator: "\n")
         case .wrongAgentCount(let n):

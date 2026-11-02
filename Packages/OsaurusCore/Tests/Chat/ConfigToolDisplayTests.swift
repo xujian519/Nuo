@@ -71,7 +71,7 @@ struct ConfigToolDisplayTests {
         let title = ToolDisplayName.friendly(
             for: "osaurus_config", running: false,
             arguments: #"{"action": "apply"}"#, failed: true)
-        #expect(title == String(format: L("Failed: %@"), "Osaurus config"))
+        #expect(title == String(format: L("Failed: %@"), "Nuo config"))
     }
 
     // MARK: - Structured result rendering

@@ -440,7 +440,7 @@ public enum MCPProviderConfigurationStore {
             do {
                 return try JSONDecoder().decode(MCPProviderConfiguration.self, from: Data(contentsOf: url))
             } catch {
-                print("[Osaurus] Failed to load MCPProviderConfiguration: \(error)")
+                print("[Nuo] Failed to load MCPProviderConfiguration: \(error)")
             }
         }
         // CRITICAL: see RemoteProviderConfigurationStore.load — never
@@ -458,7 +458,7 @@ public enum MCPProviderConfigurationStore {
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
             try encoder.encode(configuration).write(to: url, options: [.atomic])
         } catch {
-            print("[Osaurus] Failed to save MCPProviderConfiguration: \(error)")
+            print("[Nuo] Failed to save MCPProviderConfiguration: \(error)")
         }
     }
 

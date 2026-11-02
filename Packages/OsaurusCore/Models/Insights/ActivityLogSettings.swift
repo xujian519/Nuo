@@ -88,7 +88,7 @@ public enum ActivityLogSettingsStore {
             lock.unlock()
             return decoded
         } catch {
-            print("[Osaurus] Failed to load ActivityLogSettings: \(error)")
+            print("[Nuo] Failed to load ActivityLogSettings: \(error)")
             return nil
         }
     }
@@ -107,7 +107,7 @@ public enum ActivityLogSettingsStore {
                 NotificationCenter.default.post(name: .activityLogSettingsChanged, object: settings)
             }
         } catch {
-            print("[Osaurus] Failed to save ActivityLogSettings: \(error)")
+            print("[Nuo] Failed to save ActivityLogSettings: \(error)")
         }
     }
 

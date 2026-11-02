@@ -1163,7 +1163,7 @@ struct FloatingInputCard: View {
                 "Microphone access is off",
                 isPresented: $showMicPermissionAlert,
                 message:
-                    "Osaurus needs microphone access to transcribe speech. Enable it in System Settings → Privacy & Security → Microphone, then try again.",
+                    "Nuo needs microphone access to transcribe speech. Enable it in System Settings → Privacy & Security → Microphone, then try again.",
                 primaryButton: .primary("Open System Settings") {
                     if let url = URL(
                         string:
@@ -1185,7 +1185,7 @@ struct FloatingInputCard: View {
                 isPresented: $showHarnessFolderWarning,
                 message: String(
                     format: L(
-                        "%@ restarts in the new folder without its earlier context, because this runtime's arguments don't resume sessions (add --session-id {chat_id}). The Osaurus transcript is kept."
+                        "%@ restarts in the new folder without its earlier context, because this runtime's arguments don't resume sessions (add --session-id {chat_id}). The Nuo transcript is kept."
                     ),
                     harnessRuntime?.displayName ?? L("The harness")
                 ),
@@ -1569,7 +1569,7 @@ extension FloatingInputCard {
                 sampleRate: sampleRate
             )
             print(
-                "[Osaurus][LiveVoice] preencode_status=\(result.status.rawValue) samples=\(result.sampleCount) sample_rate=\(result.sampleRate) encode_ms=\(result.encodeMs) message=\(result.message ?? "")"
+                "[Nuo][LiveVoice] preencode_status=\(result.status.rawValue) samples=\(result.sampleCount) sample_rate=\(result.sampleRate) encode_ms=\(result.encodeMs) message=\(result.message ?? "")"
             )
         }
         liveVoicePreencodeTask = task
@@ -1761,7 +1761,7 @@ extension FloatingInputCard {
             let wavBytes = voiceAudioData?.count ?? 0
             let durationMs = Int((voiceSnapshot?.durationSeconds ?? 0) * 1000)
             print(
-                "[Osaurus][LiveVoice] snapshot_ms=\(snapshotMs) wav_encode_ms=\(wavEncodeMs) wav_bytes=\(wavBytes) sample_rate=\(voiceSnapshot?.sampleRate ?? 0) duration_ms=\(durationMs)"
+                "[Nuo][LiveVoice] snapshot_ms=\(snapshotMs) wav_encode_ms=\(wavEncodeMs) wav_bytes=\(wavBytes) sample_rate=\(voiceSnapshot?.sampleRate ?? 0) duration_ms=\(durationMs)"
             )
         }
 
@@ -4767,7 +4767,7 @@ extension FloatingInputCard {
                 .foregroundColor(.orange)
 
             Text(
-                "\(modelName)\(ctxBlurb) is too small to configure Osaurus.",
+                "\(modelName)\(ctxBlurb) is too small to configure Nuo.",
                 bundle: .module
             )
             .font(theme.font(size: CGFloat(theme.captionSize), weight: .medium))

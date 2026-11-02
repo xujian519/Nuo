@@ -275,7 +275,7 @@ struct OrchestratorSettingsView: View {
                         label: "Name",
                         text: $tempDisplayName,
                         placeholder: "Nuo",
-                        help: "Optional. Shown in the agent picker and chat header. Leave blank to keep "Nuo".",
+                        help: "Optional. Shown in the agent picker and chat header. Leave blank to keep \"Nuo\".",
                         anchorId: "settings.orchestrator.name"
                     )
                     .frame(maxWidth: 320)

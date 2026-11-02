@@ -1216,7 +1216,7 @@ struct IMessageConnectionServiceTests {
             #expect(diagnostics.notes.contains { $0.contains("sign-in state cannot be probed") })
             // Advanced-on + bridge-off must be called out, and the note must
             // state that Osaurus never disables the protections itself.
-            #expect(diagnostics.notes.contains { $0.contains("Osaurus never changes") })
+            #expect(diagnostics.notes.contains { $0.contains("Nuo never changes") })
             let home = FileManager.default.homeDirectoryForCurrentUser.path
             #expect(!diagnostics.failures.joined().contains(home))
 

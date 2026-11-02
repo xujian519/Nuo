@@ -77,7 +77,7 @@ public final class WatcherManager {
         Task { @MainActor [weak self] in
             await self?.startAllEnabledWatchers()
         }
-        print("[Osaurus] WatcherManager initialized with \(watchers.count) watchers")
+        print("[Nuo] WatcherManager initialized with \(watchers.count) watchers")
     }
 
     deinit {
@@ -149,7 +149,7 @@ public final class WatcherManager {
         rebuildEventStream()
 
         NotificationCenter.default.post(name: .watchersChanged, object: nil)
-        print("[Osaurus] Created watcher: \(watcher.name)")
+        print("[Nuo] Created watcher: \(watcher.name)")
 
         return watcher
     }
@@ -163,7 +163,7 @@ public final class WatcherManager {
         rebuildEventStream()
 
         NotificationCenter.default.post(name: .watchersChanged, object: nil)
-        print("[Osaurus] Updated watcher: \(watcher.name)")
+        print("[Nuo] Updated watcher: \(watcher.name)")
     }
 
     /// Delete a watcher
@@ -184,7 +184,7 @@ public final class WatcherManager {
         rebuildEventStream()
 
         NotificationCenter.default.post(name: .watchersChanged, object: nil)
-        print("[Osaurus] Deleted watcher: \(id)")
+        print("[Nuo] Deleted watcher: \(id)")
 
         return true
     }
@@ -235,7 +235,7 @@ public final class WatcherManager {
 
         let currentPhase = phases[watcherId] ?? .idle
         guard currentPhase == .idle else {
-            print("[Osaurus] runNow skipped for \(watcher.name): phase is \(currentPhase.rawValue)")
+            print("[Nuo] runNow skipped for \(watcher.name): phase is \(currentPhase.rawValue)")
             return
         }
 
@@ -302,7 +302,7 @@ public final class WatcherManager {
 
         let enabledWatchers = watchers.filter { $0.isEnabled }
         guard !enabledWatchers.isEmpty else {
-            print("[Osaurus] No enabled watchers, FSEvent stream stopped")
+            print("[Nuo] No enabled watchers, FSEvent stream stopped")
             return
         }
 
@@ -315,7 +315,7 @@ public final class WatcherManager {
         }
 
         guard !paths.isEmpty else {
-            print("[Osaurus] No valid watch paths found")
+            print("[Nuo] No valid watch paths found")
             return
         }
 
@@ -348,7 +348,7 @@ public final class WatcherManager {
                 flags
             )
         else {
-            print("[Osaurus] Failed to create FSEvent stream")
+            print("[Nuo] Failed to create FSEvent stream")
             return
         }
 
@@ -356,7 +356,7 @@ public final class WatcherManager {
         FSEventStreamSetDispatchQueue(stream, DispatchQueue.main)
         FSEventStreamStart(stream)
 
-        print("[Osaurus] FSEvent stream started for \(paths.count) path(s)")
+        print("[Nuo] FSEvent stream started for \(paths.count) path(s)")
     }
 
     /// Stop and clean up the FSEvent stream
@@ -395,13 +395,13 @@ public final class WatcherManager {
                 bookmarkDataIsStale: &isStale
             )
             guard !isStale else {
-                print("[Osaurus] Watch bookmark is stale for: \(watcher.name)")
+                print("[Nuo] Watch bookmark is stale for: \(watcher.name)")
                 return watcher.watchPath
             }
             _ = url.startAccessingSecurityScopedResource()
             return url.path
         } catch {
-            print("[Osaurus] Failed to resolve watch bookmark for \(watcher.name): \(error)")
+            print("[Nuo] Failed to resolve watch bookmark for \(watcher.name): \(error)")
             return watcher.watchPath
         }
     }
@@ -506,7 +506,7 @@ public final class WatcherManager {
                 source: "watcher/processCurrentState"
             )
         {
-            print("[Osaurus] [\(watcher.name)] watcher skipped: \(rejection.message)")
+            print("[Nuo] [\(watcher.name)] watcher skipped: \(rejection.message)")
             phases[watcher.id] = .idle
             return
         }
@@ -515,13 +515,13 @@ public final class WatcherManager {
 
         // Only enter from debouncing (normal FSEvent path) or idle (runNow path)
         guard currentPhase == .debouncing || currentPhase == .idle else {
-            print("[Osaurus] [\(watcher.name)] dispatch skipped: phase is \(currentPhase.rawValue)")
+            print("[Nuo] [\(watcher.name)] dispatch skipped: phase is \(currentPhase.rawValue)")
             return
         }
 
         // Belt-and-suspenders: reject if an execution task already exists
         if executionTasks[watcher.id] != nil {
-            print("[Osaurus] [\(watcher.name)] dispatch skipped: execution task exists")
+            print("[Nuo] [\(watcher.name)] dispatch skipped: execution task exists")
             phases[watcher.id] = .idle
             return
         }
@@ -549,7 +549,7 @@ public final class WatcherManager {
                 self.executionTasks.removeValue(forKey: watcherId)
                 self.runningTasks.removeValue(forKey: watcherId)
                 self.phases[watcherId] = .idle
-                print("[Osaurus] [\(watcher.name)] phase → idle")
+                print("[Nuo] [\(watcher.name)] phase → idle")
             }
 
             // ── Convergence loop ──
@@ -564,7 +564,7 @@ public final class WatcherManager {
                 iteration += 1
 
                 if iteration > maxIterations {
-                    print("[Osaurus] [\(watcher.name)] hit max iterations (\(maxIterations)), forcing idle")
+                    print("[Nuo] [\(watcher.name)] hit max iterations (\(maxIterations)), forcing idle")
                     if let current = await Self.captureFingerprint(at: watchURL, excluding: excluded) {
                         self.lastKnownFingerprints[watcherId] = current
                     }
@@ -573,17 +573,17 @@ public final class WatcherManager {
 
                 // Fingerprint current state
                 guard let fingerprint = await Self.captureFingerprint(at: watchURL, excluding: excluded) else {
-                    print("[Osaurus] [\(watcher.name)] fingerprint capture failed (iteration \(iteration))")
+                    print("[Nuo] [\(watcher.name)] fingerprint capture failed (iteration \(iteration))")
                     break
                 }
 
                 // Convergence check: does directory match last known state?
                 if let known = self.lastKnownFingerprints[watcherId], !fingerprint.changed(from: known) {
                     if iteration > 1 {
-                        print("[Osaurus] [\(watcher.name)] converged after \(iteration - 1) iteration(s)")
+                        print("[Nuo] [\(watcher.name)] converged after \(iteration - 1) iteration(s)")
                     } else {
                         // Phantom event slipped through (race between initial check and task start)
-                        print("[Osaurus] [\(watcher.name)] phantom event, skipping")
+                        print("[Nuo] [\(watcher.name)] phantom event, skipping")
                     }
                     break
                 }
@@ -622,7 +622,7 @@ public final class WatcherManager {
                 // Dispatch the work
                 self.phases[watcherId] = .processing
 
-                print("[Osaurus] [\(watcher.name)] phase → processing (iteration \(iteration), \(changeCount) changes)")
+                print("[Nuo] [\(watcher.name)] phase → processing (iteration \(iteration), \(changeCount) changes)")
 
                 let prompt = self.buildDispatchPrompt(
                     for: watcher,
@@ -644,9 +644,9 @@ public final class WatcherManager {
                     if let ref = watcher.workspaceTarget,
                         let reason = BackgroundTaskManager.shared.consumeWorkspaceDispatchRefusal(for: ref)
                     {
-                        print("[Osaurus] [\(watcher.name)] dispatch refused (iteration \(iteration)): \(reason)")
+                        print("[Nuo] [\(watcher.name)] dispatch refused (iteration \(iteration)): \(reason)")
                     } else {
-                        print("[Osaurus] [\(watcher.name)] dispatch failed (iteration \(iteration))")
+                        print("[Nuo] [\(watcher.name)] dispatch failed (iteration \(iteration))")
                     }
                     break
                 }
@@ -668,7 +668,7 @@ public final class WatcherManager {
 
                 // Settle: wait for self-caused FSEvents to flush
                 self.phases[watcherId] = .settling
-                print("[Osaurus] [\(watcher.name)] phase → settling (\(watcher.settleSeconds)s)")
+                print("[Nuo] [\(watcher.name)] phase → settling (\(watcher.settleSeconds)s)")
 
                 try? await Task.sleep(nanoseconds: UInt64(watcher.settleSeconds * 1_000_000_000))
                 guard !Task.isCancelled else { break }
@@ -716,13 +716,13 @@ public final class WatcherManager {
                 object: nil,
                 userInfo: userInfo
             )
-            print("[Osaurus] Watcher completed: \(watcher.name)")
+            print("[Nuo] Watcher completed: \(watcher.name)")
 
         case .cancelled:
-            print("[Osaurus] Watcher cancelled: \(watcher.name)")
+            print("[Nuo] Watcher cancelled: \(watcher.name)")
 
         case .failed(let error):
-            print("[Osaurus] Watcher failed: \(watcher.name) - \(error)")
+            print("[Nuo] Watcher failed: \(watcher.name) - \(error)")
         }
     }
 

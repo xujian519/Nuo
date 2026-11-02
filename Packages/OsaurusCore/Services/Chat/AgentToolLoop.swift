@@ -2057,7 +2057,7 @@ enum AgentToolLoop {
             guard !authorized.contains(raw) else { return invocation }
             let canonical = AgentTaskState.canonicalToolName(raw)
             guard canonical != raw, authorized.contains(canonical) else { return invocation }
-            print("[Osaurus][Loop] canonicalized tool name raw=\(raw) -> \(canonical)")
+            print("[Nuo][Loop] canonicalized tool name raw=\(raw) -> \(canonical)")
             return ServiceToolInvocation(
                 toolName: canonical,
                 jsonArguments: invocation.jsonArguments,
@@ -2557,7 +2557,7 @@ enum AgentToolLoop {
                 {
                     groundedClaimRetries += 1
                     print(
-                        "[Osaurus] Grounded-claim guard tripped "
+                        "[Nuo] Grounded-claim guard tripped "
                             + "(retry \(groundedClaimRetries)/\(Self.maxGroundedClaimRetries), "
                             + "groundedApply=\(hasGroundedConfigApply)): "
                             + String(notice.prefix(140))
@@ -2583,7 +2583,7 @@ enum AgentToolLoop {
                 {
                     groundedClaimRetries += 1
                     print(
-                        "[Osaurus] Ungrounded file side-effect claim in final answer "
+                        "[Nuo] Ungrounded file side-effect claim in final answer "
                             + "(retry \(groundedClaimRetries)/\(Self.maxGroundedClaimRetries)); "
                             + "no file-writing tool succeeded this run"
                     )
@@ -2609,7 +2609,7 @@ enum AgentToolLoop {
                 {
                     groundedClaimRetries += 1
                     print(
-                        "[Osaurus] Ungrounded knowledge-content claim in final answer "
+                        "[Nuo] Ungrounded knowledge-content claim in final answer "
                             + "(retry \(groundedClaimRetries)/\(Self.maxGroundedClaimRetries)); "
                             + "\(failed.tool) failed and no knowledge read succeeded this run"
                     )
@@ -3429,7 +3429,7 @@ enum AgentToolLoop {
                 {
                     ungroundedFileClaimNotices += 1
                     print(
-                        "[Osaurus] Ungrounded file side-effect claim in a tool-calling turn "
+                        "[Nuo] Ungrounded file side-effect claim in a tool-calling turn "
                             + "(notice \(ungroundedFileClaimNotices)/\(Self.maxUngroundedFileClaimNotices)); "
                             + "no file-writing tool succeeded this run"
                     )

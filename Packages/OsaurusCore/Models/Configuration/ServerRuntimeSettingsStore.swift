@@ -122,7 +122,7 @@ public enum ServerRuntimeSettingsStore {
                     from: Data(contentsOf: url)
                 )
             } catch {
-                print("[Osaurus] Failed to load ServerRuntimeSettings: \(error)")
+                print("[Nuo] Failed to load ServerRuntimeSettings: \(error)")
                 settings = nil
             }
         } else {
@@ -288,7 +288,7 @@ public enum ServerRuntimeSettingsStore {
             storageRevision &+= 1
             return true
         } catch {
-            print("[Osaurus] Failed to save ServerRuntimeSettings: \(error)")
+            print("[Nuo] Failed to save ServerRuntimeSettings: \(error)")
             return false
         }
     }
@@ -386,7 +386,7 @@ public enum ServerRuntimeSettingsStore {
                 plan.concurrency.maxConcurrentSequences = nil
             }
             plan.warnings.append(
-                "No automatic Osaurus memory caps, load refusals, or percentage-based evictions are applied. Explicit advanced/cache/concurrency overrides remain in force; physical and Metal working-set guidance stays visible, and engine/platform allocations can still fail."
+                "No automatic Nuo memory caps, load refusals, or percentage-based evictions are applied. Explicit advanced/cache/concurrency overrides remain in force; physical and Metal working-set guidance stays visible, and engine/platform allocations can still fail."
             )
         } else {
             plan.resolvedLoadBudgetBytes = plan.loadConfiguration.memoryLimit.resolve(

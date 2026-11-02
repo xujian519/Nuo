@@ -4961,7 +4961,7 @@ public actor ModelRuntime {
                 code: 422,
                 userInfo: [
                     NSLocalizedDescriptionKey:
-                        "Ornith 1.5 35B requires a local MTP safety update, but Osaurus could not update its bundle metadata. \(error.localizedDescription)"
+                        "Ornith 1.5 35B requires a local MTP safety update, but Nuo could not update its bundle metadata. \(error.localizedDescription)"
                 ]
             )
         }
@@ -4993,7 +4993,7 @@ public actor ModelRuntime {
                 code: 422,
                 userInfo: [
                     NSLocalizedDescriptionKey:
-                        "Laguna XS 2.1 requires top_k 20, but Osaurus could not update its generation metadata. \(error.localizedDescription)"
+                        "Laguna XS 2.1 requires top_k 20, but Nuo could not update its generation metadata. \(error.localizedDescription)"
                 ]
             )
         }

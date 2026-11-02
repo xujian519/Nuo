@@ -22,15 +22,15 @@ public enum OsaurusLocalClientError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .serverUnreachable:
-            return "Osaurus isn't reachable. Open Osaurus and make sure its local server is running."
+            return "Nuo isn't reachable. Open Nuo and make sure its local server is running."
         case .badResponse(let status, let body):
             let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
             if trimmed.isEmpty {
-                return "Osaurus returned an unexpected response (HTTP \(status))."
+                return "Nuo returned an unexpected response (HTTP \(status))."
             }
-            return "Osaurus returned an error (HTTP \(status)): \(trimmed)"
+            return "Nuo returned an error (HTTP \(status)): \(trimmed)"
         case .emptyReply:
-            return "Osaurus didn't return a response."
+            return "Nuo didn't return a response."
         }
     }
 }

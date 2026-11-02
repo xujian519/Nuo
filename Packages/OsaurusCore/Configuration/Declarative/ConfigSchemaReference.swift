@@ -25,7 +25,7 @@ enum ConfigSchemaReference {
     }
 
     private static let preamble = """
-        Osaurus declarative configuration (YAML), schema version \(ConfigManifest.version).
+        Nuo declarative configuration (YAML), schema version \(ConfigManifest.version).
 
         Semantics
         - Merge-by-default: a key ABSENT from the document is left unchanged.

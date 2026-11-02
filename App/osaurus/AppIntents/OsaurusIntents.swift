@@ -15,8 +15,8 @@ import OsaurusCore
 /// well within the intent time budget; an ask that triggers heavy tool use can
 /// exceed it (the run is connection-bound and would be cancelled).
 struct AskOsaurusIntent: AppIntent {
-    static let title: LocalizedStringResource = "Ask Osaurus"
-    static let description = IntentDescription("Ask the active Osaurus agent.")
+    static let title: LocalizedStringResource = "Ask Nuo"
+    static let description = IntentDescription("Ask the active Nuo agent.")
 
     @Parameter(title: "Prompt") var prompt: String
 
@@ -33,8 +33,8 @@ struct AskOsaurusIntent: AppIntent {
 /// intent returning; progress and results surface through the app's Work Mode
 /// and toasts.
 struct RunAgentIntent: AppIntent {
-    static let title: LocalizedStringResource = "Run Osaurus Agent"
-    static let description = IntentDescription("Start an Osaurus agent in the background.")
+    static let title: LocalizedStringResource = "Run Nuo Agent"
+    static let description = IntentDescription("Start an Nuo agent in the background.")
 
     @Parameter(title: "Agent") var agent: AgentEntity
     @Parameter(title: "Input") var input: String?

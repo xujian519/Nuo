@@ -548,7 +548,7 @@ actor OwnerDeviceAccessHost {
             try encoder.encode(keyRecords).write(to: url, options: [.atomic])
             try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
         } catch {
-            NSLog("[Osaurus][Identity] Failed to persist owner-device key records: %@", "\(error)")
+            NSLog("[Nuo][Identity] Failed to persist owner-device key records: %@", "\(error)")
         }
     }
 }

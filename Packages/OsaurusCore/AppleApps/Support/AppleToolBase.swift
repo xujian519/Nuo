@@ -57,7 +57,7 @@ enum AppleToolError: Error, Sendable, Equatable {
         case .notFound(let m): return m
         case .permissionDenied(let permission, let detail):
             var text =
-                "\(permission.displayName) access is not granted to Osaurus. "
+                "\(permission.displayName) access is not granted to Nuo. "
                 + "Ask the user to allow it in System Settings → Privacy & Security → \(permission.displayName)"
             if let pane = permission.systemSettingsURL?.absoluteString { text += " (\(pane))" }
             text += ", then try again."

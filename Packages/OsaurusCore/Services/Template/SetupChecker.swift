@@ -110,7 +110,7 @@ public enum SetupChecker {
                     SetupItem(
                         kind: .workingFolder, severity: .blocking,
                         title: L("Working Folder"),
-                        detail: L("The agent points at \(path) but Osaurus has no access to it. Pick the folder to grant access."),
+                        detail: L("The agent points at \(path) but Nuo has no access to it. Pick the folder to grant access."),
                         value: path))
             }
         }

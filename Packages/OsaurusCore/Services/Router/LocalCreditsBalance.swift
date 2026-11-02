@@ -36,7 +36,7 @@ enum LocalCreditsBalance {
     }
 
     static let unauthorizedMessage =
-        "The credit balance is account data. Include a valid master Osaurus access key (Authorization: Bearer <key>), or enable 'Allow local API access without a key' for the Router in Osaurus Credits settings. Browser requests always need a key."
+        "The credit balance is account data. Include a valid master Nuo access key (Authorization: Bearer <key>), or enable 'Allow local API access without a key' for the Router in Nuo Credits settings. Browser requests always need a key."
 
     /// Machine-readable credits ("1234.56") from a micro-USD string; nil when
     /// the router value does not parse.
@@ -78,7 +78,7 @@ enum LocalCreditsBalance {
         case .routerDisabled:
             return (409, error(code: "router_disabled", message: "The Osaurus Router is turned off."))
         case .noIdentity:
-            return (409, error(code: "no_account", message: "No Osaurus account is set up on this Mac."))
+            return (409, error(code: "no_account", message: "No Nuo account is set up on this Mac."))
         case .unavailable(let message):
             return (503, error(code: "router_unavailable", message: message))
         case .routerRejected(let message):

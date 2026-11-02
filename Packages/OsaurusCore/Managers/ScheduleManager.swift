@@ -69,7 +69,7 @@ public final class ScheduleManager {
             self?.checkForMissedSchedules()
             if let self {
                 print(
-                    "[Osaurus] ScheduleManager initialized with \(self.schedules.count) schedules")
+                    "[Nuo] ScheduleManager initialized with \(self.schedules.count) schedules")
             }
         }
 
@@ -181,7 +181,7 @@ public final class ScheduleManager {
         scheduleNextTimer()
 
         NotificationCenter.default.post(name: .schedulesChanged, object: nil)
-        print("[Osaurus] Created schedule: \(schedule.name)")
+        print("[Nuo] Created schedule: \(schedule.name)")
 
         return schedule
     }
@@ -198,7 +198,7 @@ public final class ScheduleManager {
         scheduleNextTimer()
 
         NotificationCenter.default.post(name: .schedulesChanged, object: nil)
-        print("[Osaurus] Updated schedule: \(schedule.name)")
+        print("[Nuo] Updated schedule: \(schedule.name)")
     }
 
     /// Delete a schedule
@@ -218,7 +218,7 @@ public final class ScheduleManager {
         scheduleNextTimer()
 
         NotificationCenter.default.post(name: .schedulesChanged, object: nil)
-        print("[Osaurus] Deleted schedule: \(id)")
+        print("[Nuo] Deleted schedule: \(id)")
 
         return true
     }
@@ -333,7 +333,7 @@ public final class ScheduleManager {
         // Find the next schedule to run
         let enabledSchedules = schedules.filter { $0.isEnabled }
         guard !enabledSchedules.isEmpty else {
-            print("[Osaurus] No enabled schedules, timer cancelled")
+            print("[Nuo] No enabled schedules, timer cancelled")
             return
         }
 
@@ -355,13 +355,13 @@ public final class ScheduleManager {
         }
 
         guard let fireDate = soonestDate else {
-            print("[Osaurus] No upcoming schedule runs")
+            print("[Nuo] No upcoming schedule runs")
             return
         }
 
         let delay = max(0, fireDate.timeIntervalSince(now))
         print(
-            "[Osaurus] Next schedule timer in \(String(format: "%.1f", delay)) seconds (\(schedulesToRun.count) schedule(s))"
+            "[Nuo] Next schedule timer in \(String(format: "%.1f", delay)) seconds (\(schedulesToRun.count) schedule(s))"
         )
 
         // Use Task with sleep - clean async/await approach that works with @MainActor
@@ -408,13 +408,13 @@ public final class ScheduleManager {
 
             if case .once(let date) = schedule.frequency {
                 if date <= now && schedule.executionAnchor == nil {
-                    print("[Osaurus] Found missed once schedule: \(schedule.name)")
+                    print("[Nuo] Found missed once schedule: \(schedule.name)")
                     executeSchedule(schedule, loadIntent: .background, scheduledFireTime: date)
                 }
             } else if schedule.executionAnchor != nil,
                 let slot = schedule.latestDueSlot(asOf: now)
             {
-                print("[Osaurus] Found missed recurring schedule: \(schedule.name)")
+                print("[Nuo] Found missed recurring schedule: \(schedule.name)")
                 executeSchedule(schedule, loadIntent: .background, scheduledFireTime: slot)
             }
         }
@@ -448,7 +448,7 @@ public final class ScheduleManager {
                 source: "schedule/executeSchedule"
             )
         {
-            print("[Osaurus] Skipping schedule '\(schedule.name)': \(rejection.message)")
+            print("[Nuo] Skipping schedule '\(schedule.name)': \(rejection.message)")
             return false
         }
 
@@ -480,7 +480,7 @@ public final class ScheduleManager {
             loadIntent: loadIntent
         )
 
-        print("[Osaurus] Executing schedule: \(triggeredSchedule.name)")
+        print("[Nuo] Executing schedule: \(triggeredSchedule.name)")
 
         let task = Task { @MainActor in
             guard let handle = await TaskDispatcher.shared.dispatch(request) else {
@@ -490,9 +490,9 @@ public final class ScheduleManager {
                 if let ref = triggeredSchedule.workspaceTarget,
                     let reason = BackgroundTaskManager.shared.consumeWorkspaceDispatchRefusal(for: ref)
                 {
-                    print("[Osaurus] Schedule '\(triggeredSchedule.name)' refused: \(reason)")
+                    print("[Nuo] Schedule '\(triggeredSchedule.name)' refused: \(reason)")
                 } else {
-                    print("[Osaurus] Failed to dispatch schedule: \(triggeredSchedule.name)")
+                    print("[Nuo] Failed to dispatch schedule: \(triggeredSchedule.name)")
                 }
                 self.executionTasks.removeValue(forKey: triggeredSchedule.id)
                 self.runningTasks.removeValue(forKey: triggeredSchedule.id)
@@ -547,13 +547,13 @@ public final class ScheduleManager {
                 object: nil,
                 userInfo: userInfo
             )
-            print("[Osaurus] Schedule completed: \(schedule.name)")
+            print("[Nuo] Schedule completed: \(schedule.name)")
 
         case .cancelled:
-            print("[Osaurus] Schedule cancelled: \(schedule.name)")
+            print("[Nuo] Schedule cancelled: \(schedule.name)")
 
         case .failed(let error):
-            print("[Osaurus] Schedule failed: \(schedule.name) - \(error)")
+            print("[Nuo] Schedule failed: \(schedule.name) - \(error)")
         }
     }
 }

@@ -30,7 +30,7 @@ enum MobileConnectLog {
             url = root.appendingPathComponent("tmp", isDirectory: true).appendingPathComponent("mobile-connect.log")
         #else
             let logs = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0]
-                .appendingPathComponent("Logs/Osaurus", isDirectory: true)
+                .appendingPathComponent("Logs/Nuo", isDirectory: true)
             url = logs.appendingPathComponent("mobile-connect.log")
         #endif
         try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)

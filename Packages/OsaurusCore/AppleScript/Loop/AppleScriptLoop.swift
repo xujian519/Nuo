@@ -1357,7 +1357,7 @@ public enum AppleScriptLoop {
             if AppleScriptAccessibility.requiresAccessibility(script), !axGranted() {
                 accessibilityBlocked += 1
                 let detail =
-                    "System Events UI scripting needs the Accessibility permission for Osaurus "
+                    "System Events UI scripting needs the Accessibility permission for Nuo "
                     + "(System Settings → Privacy & Security → Accessibility)."
                 feed.emit(
                     SubagentActivityEvent(
@@ -1378,17 +1378,17 @@ public enum AppleScriptLoop {
                         .failed(
                             reason:
                                 "The task needs System Events UI scripting, but the Accessibility "
-                                + "permission for Osaurus isn't granted. Enable Osaurus under System "
+                                + "permission for Nuo isn't granted. Enable Nuo under System "
                                 + "Settings → Privacy & Security → Accessibility, then try again."
                         )
                     )
                 }
                 let toolResult =
                     "The script was NOT run: it uses System Events UI scripting, which needs the "
-                    + "user's Accessibility permission for Osaurus, and that permission is not "
+                    + "user's Accessibility permission for Nuo, and that permission is not "
                     + "granted. macOS is showing the grant request now. If the task can be done "
                     + "through the app's own scripting dictionary instead, do that; otherwise finish "
-                    + "with a short explanation that the user must enable Osaurus under System "
+                    + "with a short explanation that the user must enable Nuo under System "
                     + "Settings → Privacy & Security → Accessibility and retry."
                 messages.append(
                     ChatMessage(role: "tool", content: toolResult, tool_calls: nil, tool_call_id: call.id)
@@ -2153,8 +2153,8 @@ public enum AppleScriptLoop {
                 )
                 return
                     "macOS blocked the script because it uses System Events UI scripting and the "
-                    + "Accessibility permission for Osaurus isn't granted (\(message)). macOS is showing "
-                    + "the grant request — once the user enables Osaurus under System Settings → Privacy "
+                    + "Accessibility permission for Nuo isn't granted (\(message)). macOS is showing "
+                    + "the grant request — once the user enables Nuo under System Settings → Privacy "
                     + "& Security → Accessibility, call run_applescript again. If the task can be done "
                     + "through the app's own scripting dictionary instead, do that."
             }
@@ -2171,7 +2171,7 @@ public enum AppleScriptLoop {
             return
                 "macOS blocked the script because Automation permission for that app isn't granted yet "
                 + "(\(message)). A system permission dialog should have appeared — once the user approves "
-                + "it, call run_applescript again. If it keeps failing, ask the user to enable Osaurus under "
+                + "it, call run_applescript again. If it keeps failing, ask the user to enable Nuo under "
                 + "System Settings → Privacy & Security → Automation."
         case .timedOut:
             let message = result.errorMessage ?? "The script timed out."
@@ -2522,7 +2522,7 @@ public enum AppleScriptLoop {
         switch mode {
         case .automate:
             intro =
-                "You are Osaurus's AppleScript agent. You accomplish the user's task on this Mac by "
+                "You are Nuo's AppleScript agent. You accomplish the user's task on this Mac by "
                 + "writing a complete, executable AppleScript and running it."
             modeRules =
                 "- After you change something, run ONE more read-only script that gets and `return`s "
@@ -2555,7 +2555,7 @@ public enum AppleScriptLoop {
                 + "sending, purchasing) unless the user explicitly requested them."
         case .query:
             intro =
-                "You are Osaurus's AppleScript query agent. You answer questions about this Mac by "
+                "You are Nuo's AppleScript query agent. You answer questions about this Mac by "
                 + "writing a READ-ONLY AppleScript that gets information and `return`s it. Never change "
                 + "anything — no setting properties, creating, deleting, sending, or clicking."
             modeRules =
@@ -2599,7 +2599,7 @@ public enum AppleScriptLoop {
         switch mode {
         case .automate:
             intro =
-                "You are Osaurus's AppleScript agent: accomplish the Mac task by writing and running "
+                "You are Nuo's AppleScript agent: accomplish the Mac task by writing and running "
                 + "one complete AppleScript at a time."
             modeRule =
                 "- Resolve `the file`/`the document` only from the named Frontmost app in Current "
@@ -2614,7 +2614,7 @@ public enum AppleScriptLoop {
                 + "run shortcut \"Name\"` (optional `with input`)."
         case .query:
             intro =
-                "You are Osaurus's AppleScript query agent: answer by writing a READ-ONLY AppleScript "
+                "You are Nuo's AppleScript query agent: answer by writing a READ-ONLY AppleScript "
                 + "that `return`s the information. Never change anything."
             modeRule =
                 "- Reads only (`get`/`return`/`count`) — make even the FIRST script a read, never "

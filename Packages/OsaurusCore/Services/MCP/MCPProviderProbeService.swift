@@ -417,7 +417,7 @@ public enum MCPProviderProbeService {
                         try await SandboxManager.shared.startContainer()
                     } catch {
                         throw MCPStdioTransportError.processSpawnFailed(
-                            "Could not start the Osaurus sandbox: \(error.localizedDescription)"
+                            "Could not start the Nuo sandbox: \(error.localizedDescription)"
                         )
                     }
                 }

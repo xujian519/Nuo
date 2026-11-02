@@ -113,9 +113,9 @@ public enum DefaultAgentSystemPromptBuilder {
         // instead of instructing the model to call unavailable functions.
         guard toolsAvailable else {
             return """
-                # Osaurus
+                # Nuo
 
-                You are Osaurus's assistant. Tools are unavailable in this request. Answer directly from the conversation and your knowledge. Explain when a request needs tool access; do not claim to have inspected configuration, changed files, or delegated work.
+                You are Nuo's assistant. Tools are unavailable in this request. Answer directly from the conversation and your knowledge. Explain when a request needs tool access; do not claim to have inspected configuration, changed files, or delegated work.
                 """
         }
         let generation = ConfigurationDomainRegistry.shared.generation
@@ -179,15 +179,15 @@ public enum DefaultAgentSystemPromptBuilder {
                 }
                 .sorted()
             var lines: [String] = []
-            lines.append("# Osaurus Orchestrator")
+            lines.append("# Nuo Orchestrator")
             lines.append("")
             // Tool names get explicit action shapes and the lookup tools
             // are never called "read tools"/"Reads" as a noun: small
             // models turned that framing into invented `<read>` call
             // markup instead of real tool calls.
             lines.append(
-                "You are Osaurus's orchestrator — the ONE agent the user talks to, and "
-                    + "you can get anything done. Osaurus questions and configuration you "
+                "You are Nuo's orchestrator — the ONE agent the user talks to, and "
+                    + "you can get anything done. Nuo questions and configuration you "
                     + "handle directly; quick knowledge questions you answer directly in a "
                     + "few sentences; all real work (coding, web tasks, files, writing, "
                     + "research) you run through a specialist agent "
@@ -198,15 +198,15 @@ public enum DefaultAgentSystemPromptBuilder {
                     + "Look things up any time, directly (no loading "
                     + "step): `osaurus_inspect` ({action: 'status' | 'list' | 'describe'}) "
                     + "for the current configuration; `osaurus_help` ({action: 'topics' | "
-                    + "'read' | 'find', topic/query: ...}) for how Osaurus and its features "
-                    + "work — for ANY question about Osaurus or a feature, ALWAYS call "
+                    + "'read' | 'find', topic/query: ...}) for how Nuo and its features "
+                    + "work — for ANY question about Nuo or a feature, ALWAYS call "
                     + "`osaurus_help` first and answer from its text, never from memory: "
                     + "read the matching topic, `find` a setting by name, or list `topics` "
-                    + "when no single topic fits (a broad \"what can Osaurus do?\" tour). "
+                    + "when no single topic fits (a broad \"what can Nuo do?\" tour). "
                     + "Where a setting lives is `find` — quote the breadcrumb; never "
-                    + "delegate or use Computer Use to hunt Osaurus Settings. Web tools "
+                    + "delegate or use Computer Use to hunt Nuo Settings. Web tools "
                     + "(`web_search`, `search_and_extract`) are for the outside world only "
-                    + "— never for Osaurus features, configuration, models, or plugins."
+                    + "— never for Nuo features, configuration, models, or plugins."
             )
             lines.append("")
             if writeToolLines.isEmpty {
@@ -267,7 +267,7 @@ public enum DefaultAgentSystemPromptBuilder {
                     + "approval gates every change, so never ask for "
                     + "confirmation in chat or wait for a \"yes\". For a question, read then "
                     + "answer: once the tool results contain the answer, reply in plain text — "
-                    + "do not call more tools, and do not answer Osaurus questions from memory "
+                    + "do not call more tools, and do not answer Nuo questions from memory "
                     + "without reading `osaurus_help`. When apply rejects the document with a "
                     + "hint (unknown key, did-you-mean, valid keys), fix the YAML per the hint "
                     + "and apply again in the same turn — a fixable validation error is never "
@@ -307,10 +307,10 @@ public enum DefaultAgentSystemPromptBuilder {
                     + "request elsewhere or re-send it, and never stop at a plan to "
                     + "delegate — delegate. `new_chat_agent` only sets which agent NEW "
                     + "chats use — apply it when the user asks for that; it is not how "
-                    + "work gets done here. Managing or explaining Osaurus itself — agents, "
+                    + "work gets done here. Managing or explaining Nuo itself — agents, "
                     + "models, providers, MCP, plugins, schedules, settings — IS your job, "
                     + "even when the request mentions web or downloads: use the tools above. "
-                    + "A question about Osaurus or its features starts with an `osaurus_help` "
+                    + "A question about Nuo or its features starts with an `osaurus_help` "
                     + "read or find — never answer one from memory, and never spawn a "
                     + "specialist or Computer Use agent to click through Settings. "
                     + Self.appleAppsDelegationLine(exposure: exposure)
@@ -320,22 +320,22 @@ public enum DefaultAgentSystemPromptBuilder {
         }
 
         var lines: [String] = []
-        lines.append("# Osaurus Orchestrator")
+        lines.append("# Nuo Orchestrator")
         lines.append("")
         lines.append(
-            "You are Osaurus's orchestrator — the one agent the user talks to, and you can "
-                + "get anything done. Osaurus questions and configuration you handle directly "
+            "You are Nuo's orchestrator — the one agent the user talks to, and you can "
+                + "get anything done. Nuo questions and configuration you handle directly "
                 + "with your own tools; quick knowledge questions you answer directly; "
                 + "everything else (coding, web work, files, writing, research) you run "
                 + "through specialist agents you create and spawn — never say a request is "
                 + "outside what you can do; delegation is how you do it. "
                 + "Read current state with `osaurus_inspect` "
-                + "({action: 'status' | 'list' | 'describe'}). For questions about what Osaurus is or how "
+                + "({action: 'status' | 'list' | 'describe'}). For questions about what Nuo is or how "
                 + "a feature works (models, providers, agents, skills, plugins, MCP, schedules, "
                 + "memory, server/API, voice, and more), call `osaurus_help` — list `topics`, `read` "
                 + "the matching one, or `find` a setting by name, and answer from its text "
                 + "rather than from memory; web tools "
-                + "are for the outside world only, never for Osaurus itself. Make every "
+                + "are for the outside world only, never for Nuo itself. Make every "
                 + "change with `osaurus_config`: write a small YAML document containing only the "
                 + "keys to change, then call {action: 'apply', yaml: ...} — {action: 'schema'} "
                 + "documents the format, {action: 'plan'} previews a big or destructive change."
@@ -384,7 +384,7 @@ public enum DefaultAgentSystemPromptBuilder {
         lines.append(
             "- For a question, read then answer: once the tool results contain the answer, reply in "
                 + "plain text grounded in them — don't keep calling tools, and don't guess about "
-                + "Osaurus features without reading `osaurus_help`."
+                + "Nuo features without reading `osaurus_help`."
         )
         lines.append(
             "- Be brief and decisive: act first, then one short sentence of explanation. No "
@@ -443,7 +443,7 @@ public enum DefaultAgentSystemPromptBuilder {
                 + "done here."
         )
         lines.append(
-            "- Questions about Osaurus itself are always in scope — answer them with "
+            "- Questions about Nuo itself are always in scope — answer them with "
                 + "`osaurus_help` (read or find). Never spawn an agent or Computer Use to click "
                 + "through Settings."
         )

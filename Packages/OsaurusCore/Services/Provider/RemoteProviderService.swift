@@ -371,7 +371,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
             guard !state.invalidationRequested else { return false }
             state.invalidationRequested = true
             print(
-                "[Osaurus] Remote Provider '\(self.provider.name)': session invalidated with \(state.inFlightRequests) request(s) in flight; requests that have not started will fail with sessionReplaced"
+                "[Nuo] Remote Provider '\(self.provider.name)': session invalidated with \(state.inFlightRequests) request(s) in flight; requests that have not started will fail with sessionReplaced"
             )
             if state.inFlightRequests == 0 { return true }
             state.deferredInvalidation = currentSession
@@ -1200,7 +1200,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
         _ message: @autoclosure () -> String
     ) {
         guard providerType == .osaurusRouter, routerStreamDebugEnabled else { return }
-        print("[Osaurus][Router][Stream] \(message())")
+        print("[Nuo][Router][Stream] \(message())")
     }
 
     private static func routerStreamFinalDebug(
@@ -1216,7 +1216,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
 
     private static func logRouterEmptyStreamIfNeeded(_ diagnostics: RouterStreamDiagnostics?) {
         guard let diagnostics, diagnostics.shouldLogEmptyTerminal else { return }
-        print("[Osaurus][Router][EmptyStream] \(diagnostics.sanitizedSummary)")
+        print("[Nuo][Router][EmptyStream] \(diagnostics.sanitizedSummary)")
     }
 
     /// Coarse per-event classification kind for the router diagnostics
@@ -1713,7 +1713,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
         let receivedBytes = calls.reduce(0) { $0 + $1.args.utf8.count }
         let label = names.isEmpty ? "tool call" : "tool call '\(names)'"
         print(
-            "[Osaurus] Discarding output-limited \(label): "
+            "[Nuo] Discarding output-limited \(label): "
                 + "received \(receivedBytes) argument bytes (\(finishMarker))"
         )
         return .streamingError(
@@ -1943,7 +1943,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
             // the stream normally.
             guard !state.accumulatedToolCalls.isEmpty else {
                 print(
-                    "[Osaurus] Warning: Skipping unparseable provider SSE event: "
+                    "[Nuo] Warning: Skipping unparseable provider SSE event: "
                         + "\(error.localizedDescription) (\(jsonData.count) bytes)"
                 )
                 return .continue
@@ -1952,7 +1952,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
             // event" report gives no way to identify the offending frame shape.
             let payloadPrefix = String(decoding: jsonData.prefix(200), as: UTF8.self)
             print(
-                "[Osaurus] Failed to parse provider SSE event while receiving tool arguments: "
+                "[Nuo] Failed to parse provider SSE event while receiving tool arguments: "
                     + "\(error.localizedDescription) (\(jsonData.count) bytes) "
                     + "payloadPrefix=\(payloadPrefix)"
             )
@@ -2138,7 +2138,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
                         args: argsString,
                         thoughtSignature: funcCall.thoughtSignature
                     )
-                    print("[Osaurus] Gemini tool call detected: index=\(idx), name=\(funcCall.name)")
+                    print("[Nuo] Gemini tool call detected: index=\(idx), name=\(funcCall.name)")
                     yield(StreamingToolHint.encode(funcCall.name))
                     yield(StreamingToolHint.encodeArgs(argsString))
                 case .inlineData(let imageData):
@@ -2267,7 +2267,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
                     args: initialArgs,
                     thoughtSignature: nil
                 )
-                print("[Osaurus] Anthropic tool call detected: index=\(idx), name=\(toolBlock.name)")
+                print("[Nuo] Anthropic tool call detected: index=\(idx), name=\(toolBlock.name)")
                 yield(StreamingToolHint.encode(toolBlock.name))
                 if !initialArgs.isEmpty {
                     yield(StreamingToolHint.encodeArgs(initialArgs))
@@ -2418,7 +2418,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
                 state.accumulatedToolCalls[idx] = (
                     id: funcCall.call_id, name: funcCall.name, args: "", thoughtSignature: nil
                 )
-                print("[Osaurus] Open Responses tool call detected: index=\(idx), name=\(funcCall.name)")
+                print("[Nuo] Open Responses tool call detected: index=\(idx), name=\(funcCall.name)")
                 yield(StreamingToolHint.encode(funcCall.name))
             }
 
@@ -2839,7 +2839,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
         ) {
         case .ready(let invocations):
             print(
-                "[Osaurus] Stream ended: emitting \(invocations.count) tool call(s) "
+                "[Nuo] Stream ended: emitting \(invocations.count) tool call(s) "
                     + "'\(invocations.map(\.toolName).joined(separator: "', '"))' "
                     + "(finish_reason: \(state.lastFinishReason ?? "none"))"
             )
@@ -2856,7 +2856,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
                     tools: tools
                 )
             {
-                print("[Osaurus] Fallback: detected inline tool call '\(name)' in text")
+                print("[Nuo] Fallback: detected inline tool call '\(name)' in text")
                 continuation.finish(
                     throwing: ServiceToolInvocation(
                         toolName: name,
@@ -3988,10 +3988,10 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
         // ("Model default not found ['fugu', ...]") this guard exists to stop.
         if request.runAsRemoteAgent && provider.providerType != .osaurus {
             RemoteAgentRunLog.clientError(
-                "agent run blocked: provider '\(provider.name)' type=\(provider.providerType.rawValue) is not an Osaurus agent endpoint"
+                "agent run blocked: provider '\(provider.name)' type=\(provider.providerType.rawValue) is not an Nuo agent endpoint"
             )
             throw RemoteProviderServiceError.requestFailed(
-                "Remote agent run cannot use provider '\(provider.name)' — it is not an Osaurus agent endpoint. "
+                "Remote agent run cannot use provider '\(provider.name)' — it is not an Nuo agent endpoint. "
                     + "Reconnect to the remote agent and try again."
             )
         }
@@ -4668,7 +4668,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
             guard message.role.lowercased() == "user", !message.imageUrls.isEmpty else {
                 return message
             }
-            let notice = "[Osaurus: image removed — rejected by \(routeName)]"
+            let notice = "[Nuo: image removed — rejected by \(routeName)]"
             let base = hasMeaningfulText(message.content) ? (message.content ?? "") : ""
             let flattened = base.isEmpty ? notice : base + "\n\n" + notice
             return ChatMessage(
@@ -6994,7 +6994,7 @@ extension RemoteProviderService {
         let discovery = try decodeOsaurusRouterModelsDiscovery(data: data)
         if discovery.staleCount > 0 {
             print(
-                "[Osaurus] Router model discovery: \(discovery.models.count) fresh models (\(discovery.staleCount) stale hidden of \(discovery.totalCount) total)"
+                "[Nuo] Router model discovery: \(discovery.models.count) fresh models (\(discovery.staleCount) stale hidden of \(discovery.totalCount) total)"
             )
         }
         return discovery
@@ -7408,7 +7408,7 @@ extension RemoteProviderService {
             return mergeFireworksModelIds(discovered: discovered, catalog: catalog)
         } catch {
             print(
-                "[Osaurus] Fireworks catalog discovery failed, using /models result only: \(ProviderDiagnosticRedactor.safe(error.localizedDescription, maxLength: 240))"
+                "[Nuo] Fireworks catalog discovery failed, using /models result only: \(ProviderDiagnosticRedactor.safe(error.localizedDescription, maxLength: 240))"
             )
             return discovered
         }

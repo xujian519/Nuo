@@ -858,7 +858,7 @@ public enum GitHubSkillError: Error, LocalizedError {
             return "GitHub rate-limited this app. Wait an hour to retry.\(tokenHint)"
         case .noImportableComponents(let pluginName):
             return
-                "\(pluginName) has no components Osaurus can import (it only ships hooks, output styles, or other unsupported parts)."
+                "\(pluginName) has no components Nuo can import (it only ships hooks, output styles, or other unsupported parts)."
         }
     }
 }

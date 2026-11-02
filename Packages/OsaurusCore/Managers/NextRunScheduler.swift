@@ -131,7 +131,7 @@ public final class NextRunScheduler {
             #endif
             await self.runLoop()
         }
-        print("[Osaurus] NextRunScheduler started")
+        print("[Nuo] NextRunScheduler started")
     }
 
     /// Arm a one-shot start for when the storage key becomes resident.

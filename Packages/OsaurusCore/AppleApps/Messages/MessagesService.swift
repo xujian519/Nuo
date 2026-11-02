@@ -107,7 +107,7 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
                 if let handle { sqlite3_close(handle) }
                 if ChatDBMessagesService.isPermissionCode(extended) || ChatDBMessagesService.isPermissionMessage(message) {
                     throw AppleToolError.permissionDenied(
-                        .disk, detail: "Reading Messages requires Full Disk Access for Osaurus (chat.db could not be opened: \(message))."
+                        .disk, detail: "Reading Messages requires Full Disk Access for Nuo (chat.db could not be opened: \(message))."
                     )
                 }
                 throw AppleToolError.unavailable("Could not open the Messages database: \(message)", retryable: true)
@@ -199,7 +199,7 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
             switch errno {
             case EPERM, EACCES:
                 throw AppleToolError.permissionDenied(
-                    .disk, detail: "Reading Messages requires Full Disk Access for Osaurus (\(databaseURL.path) is not readable)."
+                    .disk, detail: "Reading Messages requires Full Disk Access for Nuo (\(databaseURL.path) is not readable)."
                 )
             case ENOENT:
                 throw AppleToolError.unavailable(

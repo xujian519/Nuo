@@ -489,7 +489,7 @@ public final class RemoteProviderManager: ObservableObject {
             state.requiresAuth = false
             providerStates[providerId] = state
 
-            print("[Osaurus] Remote Provider '\(provider.name)': Connected with \(models.count) models")
+            print("[Nuo] Remote Provider '\(provider.name)': Connected with \(models.count) models")
 
             if provider.providerType == .osaurusRouter {
                 seedStarterFavoritesFromOsaurusRouterCatalog()
@@ -503,7 +503,7 @@ public final class RemoteProviderManager: ObservableObject {
             if Self.isPermanentOAuthFailure(error) {
                 handlePermanentOAuthFailure(providerId: providerId)
                 print(
-                    "[Osaurus] Remote Provider '\(provider.name)': OAuth refresh failed permanently — sign-in required"
+                    "[Nuo] Remote Provider '\(provider.name)': OAuth refresh failed permanently — sign-in required"
                 )
                 throw error
             }
@@ -523,7 +523,7 @@ public final class RemoteProviderManager: ObservableObject {
                 Task { await service.invalidateSession() }
             }
 
-            print("[Osaurus] Remote Provider '\(provider.name)': Connection failed - \(errorMessage)")
+            print("[Nuo] Remote Provider '\(provider.name)': Connection failed - \(errorMessage)")
 
             notifyStatusChanged()
             // `state.discoveredModels` was cleared above. Notify the shared
@@ -556,7 +556,7 @@ public final class RemoteProviderManager: ObservableObject {
             if provider.providerType == .osaurusRouter {
                 osaurusRouterModelCatalog = [:]
             }
-            print("[Osaurus] Remote Provider '\(provider.name)': Disconnected")
+            print("[Nuo] Remote Provider '\(provider.name)': Disconnected")
         }
 
         notifyStatusChanged()
@@ -621,7 +621,7 @@ public final class RemoteProviderManager: ObservableObject {
                 return
             } catch {
                 guard Self.isTransientConnectError(error), attempt < attempts else {
-                    print("[Osaurus] Failed to auto-connect to '\(providerName)': \(error)")
+                    print("[Nuo] Failed to auto-connect to '\(providerName)': \(error)")
                     return
                 }
                 await routerRetryBackoff(forAttempt: attempt, after: error)
@@ -1636,11 +1636,11 @@ public final class RemoteProviderManager: ObservableObject {
 
         // OpenAI-compatible and Gemini providers use /models endpoint
         guard let url = tempProvider.url(for: "/models") else {
-            print("[Osaurus] Test Connection: Invalid URL")
+            print("[Nuo] Test Connection: Invalid URL")
             throw RemoteProviderError.invalidURL
         }
 
-        print("[Osaurus] Test Connection: Requesting \(url.absoluteString)")
+        print("[Nuo] Test Connection: Requesting \(url.absoluteString)")
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -1654,7 +1654,7 @@ public final class RemoteProviderManager: ObservableObject {
                 value: value,
                 configuredSecretHeaderKeys: tempProvider.secretHeaderKeys
             )
-            print("[Osaurus] Test Connection: Adding header \(key)=\(logValue)")
+            print("[Nuo] Test Connection: Adding header \(key)=\(logValue)")
             request.setValue(value, forHTTPHeaderField: key)
         }
 
@@ -1680,7 +1680,7 @@ public final class RemoteProviderManager: ObservableObject {
             }
 
             guard let httpResponse = response as? HTTPURLResponse else {
-                print("[Osaurus] Test Connection: Invalid response type")
+                print("[Nuo] Test Connection: Invalid response type")
                 let diagnostics = ProviderReplayDiagnosticBundle(
                     phase: "test_model_discovery",
                     request: request,
@@ -1689,7 +1689,7 @@ public final class RemoteProviderManager: ObservableObject {
                 throw RemoteProviderServiceError.invalidResponse.attachingReplayDiagnostics(diagnostics)
             }
 
-            print("[Osaurus] Test Connection: HTTP \(httpResponse.statusCode)")
+            print("[Nuo] Test Connection: HTTP \(httpResponse.statusCode)")
             let diagnostics = ProviderReplayDiagnosticBundle(
                 phase: "test_model_discovery",
                 request: request,
@@ -1702,7 +1702,7 @@ public final class RemoteProviderManager: ObservableObject {
             if providerType == .gemini {
                 if httpResponse.statusCode >= 400 {
                     let errorMessage = extractErrorMessage(from: data, statusCode: httpResponse.statusCode)
-                    print("[Osaurus] Test Connection: Error response: \(errorMessage)")
+                    print("[Nuo] Test Connection: Error response: \(errorMessage)")
                     throw RemoteProviderServiceError.requestFailedWithDiagnostics(
                         ProviderDiagnosticRedactor.safe(errorMessage, maxLength: 500),
                         diagnostics
@@ -1716,7 +1716,7 @@ public final class RemoteProviderManager: ObservableObject {
                         return methods.contains("generateContent")
                     }
                     .map { $0.modelId }
-                print("[Osaurus] Test Connection (Gemini): Success - found \(models.count) models")
+                print("[Nuo] Test Connection (Gemini): Success - found \(models.count) models")
                 return models
             } else {
                 let models: [String]
@@ -1756,13 +1756,13 @@ public final class RemoteProviderManager: ObservableObject {
                             discovered: models,
                             catalog: catalog
                         )
-                        print("[Osaurus] Test Connection: Success - found \(merged.count) models")
+                        print("[Nuo] Test Connection: Success - found \(merged.count) models")
                         return merged
                     } catch {
-                        print("[Osaurus] Test Connection: Fireworks catalog unavailable, using /models only")
+                        print("[Nuo] Test Connection: Fireworks catalog unavailable, using /models only")
                     }
                 }
-                print("[Osaurus] Test Connection: Success - found \(models.count) models")
+                print("[Nuo] Test Connection: Success - found \(models.count) models")
                 return models
             }
         } catch let error as RemoteProviderServiceError {
@@ -1770,7 +1770,7 @@ public final class RemoteProviderManager: ObservableObject {
         } catch let error as RemoteProviderError {
             throw error
         } catch {
-            print("[Osaurus] Test Connection: Network error: \(error)")
+            print("[Nuo] Test Connection: Network error: \(error)")
             throw RemoteProviderError.connectionFailed(error.localizedDescription)
         }
     }
@@ -1815,21 +1815,21 @@ public final class RemoteProviderManager: ObservableObject {
         testHeaders: [String: String]
     ) async throws -> [String] {
         guard let baseURL = tempProvider.url(for: "/models") else {
-            print("[Osaurus] Test Connection (Anthropic): Invalid URL")
+            print("[Nuo] Test Connection (Anthropic): Invalid URL")
             throw RemoteProviderError.invalidURL
         }
 
-        print("[Osaurus] Test Connection (Anthropic): Requesting \(baseURL.absoluteString)")
+        print("[Nuo] Test Connection (Anthropic): Requesting \(baseURL.absoluteString)")
 
         do {
             let models = try await RemoteProviderService.fetchAnthropicModels(
                 baseURL: baseURL,
                 headers: testHeaders
             )
-            print("[Osaurus] Test Connection (Anthropic): Success - found \(models.count) models")
+            print("[Nuo] Test Connection (Anthropic): Success - found \(models.count) models")
             return models
         } catch {
-            print("[Osaurus] Test Connection (Anthropic): Error: \(error)")
+            print("[Nuo] Test Connection (Anthropic): Error: \(error)")
             throw RemoteProviderError.connectionFailed(error.localizedDescription)
         }
     }

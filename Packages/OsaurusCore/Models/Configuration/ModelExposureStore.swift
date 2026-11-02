@@ -135,7 +135,7 @@ public final class ModelExposureStore: @unchecked Sendable {
         do {
             return try JSONDecoder().decode(ModelExposureSettings.self, from: Data(contentsOf: url))
         } catch {
-            print("[Osaurus] Failed to load ModelExposureSettings: \(error)")
+            print("[Nuo] Failed to load ModelExposureSettings: \(error)")
             return nil
         }
     }
@@ -151,10 +151,10 @@ public final class ModelExposureStore: @unchecked Sendable {
                 data,
                 to: url,
                 synchronous: overrideDirectory != nil || OsaurusPaths.overrideRoot != nil,
-                onError: { print("[Osaurus] Failed to save ModelExposureSettings: \($0)") }
+                onError: { print("[Nuo] Failed to save ModelExposureSettings: \($0)") }
             )
         } catch {
-            print("[Osaurus] Failed to save ModelExposureSettings: \(error)")
+            print("[Nuo] Failed to save ModelExposureSettings: \(error)")
         }
     }
 }

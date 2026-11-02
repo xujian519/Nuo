@@ -161,7 +161,7 @@ public enum ConfigManifest {
             value: .mapping([
                 ConfigKeySpec(
                     "name", .scalar(.string, example: "null", nullable: true),
-                    comment: "custom display name; null = \"Osaurus\""),
+                    comment: "custom display name; null = \"Nuo\""),
                 ConfigKeySpec(
                     "model", .scalar(.string, example: "null", nullable: true),
                     comment: "\"foundation\", local id, or \"<provider>/<model>\"",
@@ -901,7 +901,7 @@ public enum ConfigManifest {
         }
         return [
             "$schema": "http://json-schema.org/draft-07/schema#",
-            "title": "Osaurus declarative configuration",
+            "title": "Nuo declarative configuration",
             "description":
                 "Merge-by-default: absent keys stay untouched; explicit null clears an "
                 + "override. Entities match by name (case-insensitive). Secrets never "

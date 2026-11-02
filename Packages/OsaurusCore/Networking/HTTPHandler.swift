@@ -385,7 +385,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         // mid-stream after disconnecting). Cancel in-flight work and close so
         // the socket can't be pinned indefinitely.
         if let idle = event as? IdleStateHandler.IdleStateEvent {
-            NSLog("[Osaurus] Closing idle connection (state=%@)", String(describing: idle))
+            NSLog("[Nuo] Closing idle connection (state=%@)", String(describing: idle))
             _isChannelActive.value = false
             requestTasks.cancelAll()
             context.close(promise: nil)
@@ -770,7 +770,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
 
                 let message: String
                 if !apiKeyValidator.hasKeys {
-                    message = "No access keys configured. Create one in Osaurus settings."
+                    message = "No access keys configured. Create one in Nuo settings."
                 } else {
                     let result = apiKeyValidator.validate(rawKey: token)
                     switch result {
@@ -959,7 +959,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             else if head.method == .GET, path == "/" {
                 var headers = [("Content-Type", "text/plain; charset=utf-8")]
                 headers.append(contentsOf: stateRef.value.corsHeaders)
-                let rootBody = "Osaurus Server is running! 🦕"
+                let rootBody = "Nuo Server is running! 🦕"
                 sendResponse(
                     context: context,
                     version: head.version,
@@ -1836,7 +1836,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 "status": "ok",
                 "timestamp": Date().ISO8601Format(),
                 "source":
-                    "last effective settings resolved by Osaurus; stage indicates whether they are pending preload or submitted to vmlx BatchEngine",
+                    "last effective settings resolved by Nuo; stage indicates whether they are pending preload or submitted to vmlx BatchEngine",
                 "models": lastEffectiveGenerationSettings.keys.sorted(),
                 "generation_defaults_by_model": defaultsByModel,
                 "last_effective_generation_by_model": effectiveByModel,
@@ -2298,7 +2298,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 status: .forbidden,
                 message:
                     "/admin/config/* is restricted to local (loopback) callers. "
-                    + "Run the osaurus CLI on this machine or use the Osaurus app."
+                    + "Run the osaurus CLI on this machine or use the Nuo app."
             )
             return
         }
@@ -2546,7 +2546,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 let needsAction = results.filter { $0.status == .needsUserAction }
                 if !needsAction.isEmpty {
                     notes.append(
-                        "\(needsAction.count) change(s) need a step finished in the Osaurus app "
+                        "\(needsAction.count) change(s) need a step finished in the Nuo app "
                             + "(credentials never travel through this endpoint).")
                 }
                 if !started.isEmpty {
@@ -4017,7 +4017,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
 
     func errorCaught(context: ChannelHandlerContext, error: Error) {
         // Log and close the connection to avoid NIO debug preconditions crashing the app
-        print("[Osaurus][NIO] errorCaught: \(error)")
+        print("[Nuo][NIO] errorCaught: \(error)")
         requestTasks.cancelAll()
         context.close(promise: nil)
     }
@@ -4214,7 +4214,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         guard !peerInferenceEnabled, Self.isPeerInferenceRoute(method: method, path: path) else { return nil }
         return (
             "peer_inference_disabled",
-            "This Osaurus does not share its models for inference with paired agents. "
+            "This Nuo does not share its models for inference with paired agents. "
                 + "Ask the owner to enable it in Server → Overview."
         )
     }
@@ -4400,7 +4400,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path)
             } catch {
                 // A missing persisted owner fails closed after relaunch.
-                NSLog("[Osaurus] Could not persist remote task ownership: %@", String(describing: error))
+                NSLog("[Nuo] Could not persist remote task ownership: %@", String(describing: error))
             }
         }
     }
@@ -9059,7 +9059,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 let recovered = try? recoverAddress(
                     payload: signedPayload,
                     signature: sigBytes,
-                    domainPrefix: "Osaurus Signed Pairing"
+                    domainPrefix: "Nuo Signed Pairing"
                 ),
                 recovered == req.connectorAddress
             else {
@@ -16901,7 +16901,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         // Refuse before any schema validation or gating.
         if ToolRegistry.externallyDeniedToolNames.contains(req.name) {
             let message =
-                "'\(req.name)' is not available to external callers. App-only tools can only run from the Osaurus app."
+                "'\(req.name)' is not available to external callers. App-only tools can only run from the Nuo app."
             let bodyJSON = #"{"error":"tool_not_exposable","message":"\#(message)"}"#
             sendResponse(
                 context: context,
@@ -16990,7 +16990,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     ToolRegistry.shared.isGlobalEnabled(toolName)
                 }
                 if !isEnabled {
-                    let message = "Tool '\(toolName)' is disabled in Osaurus settings."
+                    let message = "Tool '\(toolName)' is disabled in Nuo settings."
                     let payload: [String: Any] = [
                         "content": [["type": "text", "text": message]],
                         "isError": true,
@@ -17055,7 +17055,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     result = ToolEnvelope.failure(
                         kind: .unavailable,
                         message: refusal?.localizedDescription
-                            ?? "Tool '\(toolName)' runs Osaurus's own agent loop and can't be called with an agent token.",
+                            ?? "Tool '\(toolName)' runs Nuo's own agent loop and can't be called with an agent token.",
                         tool: toolName,
                         retryable: false
                     )

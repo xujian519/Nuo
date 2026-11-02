@@ -45,7 +45,7 @@ public enum BrowserConfigurationStore {
                 cached = config
                 return config
             } catch {
-                print("[Osaurus] Failed to load BrowserConfiguration: \(error)")
+                print("[Nuo] Failed to load BrowserConfiguration: \(error)")
             }
         }
         let config = BrowserConfiguration()
@@ -74,7 +74,7 @@ public enum BrowserConfigurationStore {
                 encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
                 try encoder.encode(config).write(to: url, options: [.atomic])
             } catch {
-                print("[Osaurus] Failed to save BrowserConfiguration: \(error)")
+                print("[Nuo] Failed to save BrowserConfiguration: \(error)")
             }
         }
     }

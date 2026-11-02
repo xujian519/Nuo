@@ -80,7 +80,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
         // process). The reason string is held for app lifetime; we never
         // re-enable, since the inference path is always potentially active.
         ProcessInfo.processInfo.disableAutomaticTermination(
-            "Osaurus local LLM HTTP server (long-running)"
+            "Nuo local LLM HTTP server (long-running)"
         )
 
         // Tahoe only early launch hygiene. Sequoia reported launch
@@ -323,7 +323,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
         // remain honored by vmlx for diagnostics.
 
         // App has launched
-        NSLog("Osaurus server app launched")
+        NSLog("Nuo server app launched")
 
         // Log per-launch adoption count for the Agent DB feature.
         // The total is across both built-in and custom agents
@@ -334,7 +334,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
         let allAgents = AgentManager.shared.agents
         let dbEnabledCount = allAgents.filter { $0.settings.dbEnabled }.count
         NSLog(
-            "[Osaurus] AgentDB adoption: %d/%d agents have dbEnabled=true",
+            "[Nuo] AgentDB adoption: %d/%d agents have dbEnabled=true",
             dbEnabledCount,
             allAgents.count
         )
@@ -685,7 +685,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
         // Keychain/password prompt.
         Task { @MainActor in
             guard StorageKeyManager.shared.isStorageReadyForWrites else {
-                NSLog("[Osaurus] Scheduler disabled: storage key is not already unlocked")
+                NSLog("[Nuo] Scheduler disabled: storage key is not already unlocked")
                 // Arm a one-shot start for when the key becomes resident,
                 // so slots persisted from a previous session still fire
                 // once the user unlocks encrypted storage.
@@ -772,7 +772,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
 
             if keychainDisabledTestMode && !keychainDisabledUIPresentationMode {
                 ProcessInfo.processInfo.disableAutomaticTermination(
-                    "Osaurus keychain-free headless live proof server"
+                    "Nuo keychain-free headless live proof server"
                 )
             }
 
@@ -1574,7 +1574,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
                 do {
                     try await SandboxManager.shared.stopContainer()
                 } catch {
-                    NSLog("[Osaurus] Sandbox stop failed: \(error)")
+                    NSLog("[Nuo] Sandbox stop failed: \(error)")
                 }
             }
             // Belt-and-suspenders: if the sandbox was never provisioned,
@@ -1633,7 +1633,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
     }
 
     public func applicationWillTerminate(_ notification: Notification) {
-        NSLog("Osaurus server app terminating")
+        NSLog("Nuo server app terminating")
         PluginRepositoryService.shared.stopBackgroundRefresh()
         ToastWindowController.shared.teardown()
         // Detach live browser WebViews and close their windows so WebKit's
@@ -1684,7 +1684,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
             }
         }
         if flushGroup.wait(timeout: .now() + 2.8) == .timedOut {
-            NSLog("Osaurus quit flush timed out; exiting with writes possibly pending")
+            NSLog("Nuo quit flush timed out; exiting with writes possibly pending")
         }
 
         // Hard-exit without running `atexit`/C++ static destructors.
@@ -1914,17 +1914,17 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
             switch serverController.serverHealth {
             case .stopped:
                 tooltip =
-                    serverController.isRestarting ? "Osaurus — Restarting…" : "Osaurus — Ready to start"
+                    serverController.isRestarting ? "Nuo — Restarting…" : "Nuo — Ready to start"
             case .starting:
-                tooltip = "Osaurus — Starting…"
+                tooltip = "Nuo — Starting…"
             case .restarting:
-                tooltip = "Osaurus — Restarting…"
+                tooltip = "Nuo — Restarting…"
             case .running:
-                tooltip = "Osaurus — Running on port \(serverController.port)"
+                tooltip = "Nuo — Running on port \(serverController.port)"
             case .stopping:
-                tooltip = "Osaurus — Stopping…"
+                tooltip = "Nuo — Stopping…"
             case .error(let message):
-                tooltip = "Osaurus — Error: \(message)"
+                tooltip = "Nuo — Error: \(message)"
             }
             if serverController.activeRequestCount > 0 {
                 tooltip += " — Generating…"

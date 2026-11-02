@@ -37,7 +37,7 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
     // The first sentence must stay ≤180 chars: the Default agent's compact
     // bootstrap schema keeps only that sentence.
     public let description =
-        "Configure Osaurus by applying a declarative YAML document: agents, models, "
+        "Configure Nuo by applying a declarative YAML document: agents, models, "
         + "plugins, MCP, providers, schedules, watchers, tools, memory, delegation, commands, "
         + "knowledge, channels. "
         + "`action`: schema (the YAML reference — read it when unsure of a key), "
@@ -452,7 +452,7 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
             // no: that reads as a decision and ends the setup it was doing.
             return ToolEnvelope.failure(
                 kind: .permissionDenied,
-                message: "Configuration changes need the user's approval in the Osaurus app, "
+                message: "Configuration changes need the user's approval in the Nuo app, "
                     + "and this run has no way to show it. Nothing was applied.",
                 tool: name,
                 retryable: false

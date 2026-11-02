@@ -113,7 +113,7 @@ public actor StorageExportService {
 
         // 4. Metadata stamp so the user knows what they have.
         let stamp = """
-            Osaurus plaintext backup
+            Nuo plaintext backup
             Generated: \(ISO8601DateFormatter().string(from: Date()))
             Storage key version: 1
 

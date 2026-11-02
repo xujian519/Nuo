@@ -117,14 +117,14 @@ struct AgentRuntimesView: View {
                     .foregroundColor(theme.primaryText)
             }
             Text(
-                "Pick a runtime in an agent's Configure tab. Each chat gets its own long-running process in the chat's folder, and Osaurus relays your messages to it. The harness brings its own model, tools, and history.",
+                "Pick a runtime in an agent's Configure tab. Each chat gets its own long-running process in the chat's folder, and Nuo relays your messages to it. The harness brings its own model, tools, and history.",
                 bundle: .module
             )
             .font(.system(size: 12))
             .foregroundColor(theme.secondaryText)
             .fixedSize(horizontal: false, vertical: true)
             Text(
-                "Runtimes run on this Mac with your account's access. Osaurus can scope Claude Code's file edits to the chat folder, but it can't confine shell commands or a Pi harness's tools.",
+                "Runtimes run on this Mac with your account's access. Nuo can scope Claude Code's file edits to the chat folder, but it can't confine shell commands or a Pi harness's tools.",
                 bundle: .module
             )
             .font(.system(size: 12))
@@ -437,7 +437,7 @@ struct HarnessRuntimeEditorSheet: View {
                                     "One argument per line. Keep --mode rpc. Add --session-id {chat_id} so chats resume after a restart, and --append-system-prompt {system_prompt_file} to pass the agent's system prompt. Narrow its tools with --tools."
                                 )
                                 : L(
-                                    "One argument per line, added after the flags Osaurus sets (model, session, permissions). Usually empty."
+                                    "One argument per line, added after the flags Nuo sets (model, session, permissions). Usually empty."
                                 )
                         )
                         hint(L("Placeholders: {chat_id}, {agent_id}, {cwd}, {system_prompt_file}."))
@@ -447,7 +447,7 @@ struct HarnessRuntimeEditorSheet: View {
                         textEditor(text: $environmentText, placeholder: "KEY=value")
                         hint(
                             L(
-                                "One KEY=value per line. Saved unencrypted, so don't put API keys here; sign in through the harness instead. Osaurus sets the OSAURUS_* variables itself."
+                                "One KEY=value per line. Saved unencrypted, so don't put API keys here; sign in through the harness instead. Nuo sets the OSAURUS_* variables itself."
                             )
                         )
                     }

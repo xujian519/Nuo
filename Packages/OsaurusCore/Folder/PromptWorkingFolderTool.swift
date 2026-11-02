@@ -150,7 +150,7 @@ public final class PromptWorkingFolderTool: OsaurusTool, @unchecked Sendable {
             || ChatExecutionContext.currentSessionSource == .delegation
         {
             return Self.unavailableEnvelope(
-                "prompt_working_folder only works in an attended Osaurus chat window; this run has "
+                "prompt_working_folder only works in an attended Nuo chat window; this run has "
                     + "no user present to pick a folder. Continue without file tools: deliver content "
                     + "with share_artifact or in your answer and say why."
             )

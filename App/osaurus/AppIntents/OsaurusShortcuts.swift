@@ -18,7 +18,7 @@ struct OsaurusShortcuts: AppShortcutsProvider {
             phrases: [
                 "Ask \(.applicationName)"
             ],
-            shortTitle: "Ask Osaurus",
+            shortTitle: "Ask Nuo",
             systemImageName: "bubble.left.and.text.bubble.right"
         )
         AppShortcut(

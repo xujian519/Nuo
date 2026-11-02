@@ -212,7 +212,7 @@ enum SpawnPermissionGate {
                 // The current click still grants this run. A missing launching
                 // agent is not silently represented as persisted.
                 print(
-                    "[Osaurus] Could not persist spawn Always Allow for agent "
+                    "[Nuo] Could not persist spawn Always Allow for agent "
                         + scope.agentId.uuidString
                 )
             }

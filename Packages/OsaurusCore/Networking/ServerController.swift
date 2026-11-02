@@ -209,7 +209,7 @@ final class ServerController: ObservableObject {
             self.localNetworkAddress =
                 configuration.exposeToNetwork ? self.getLocalIPAddress() : "127.0.0.1"
 
-            print("[Osaurus] Starting NIO server on \(bindHost):\(configuration.port)")
+            print("[Nuo] Starting NIO server on \(bindHost):\(configuration.port)")
             MobileConnectLog.write(
                 "server: starting on \(bindHost):\(configuration.port) exposeToNetwork=\(configuration.exposeToNetwork) lan=\(localNetworkAddress)"
             )
@@ -246,7 +246,7 @@ final class ServerController: ObservableObject {
             lastErrorMessage = nil
             FeatureTelemetry.serverStarted()
             MobileConnectLog.write("server: listening on \(bindHost):\(configuration.port)")
-            print("[Osaurus] NIO server started successfully on port \(configuration.port)")
+            print("[Nuo] NIO server started successfully on port \(configuration.port)")
             // One-line record of the effective inference policy so any
             // benchmark or bug report can state exactly which knobs were in
             // force without scraping Settings. Values here are the resolved
@@ -258,7 +258,7 @@ final class ServerController: ObservableObject {
             case .never: idleResidency = "never"
             }
             print(
-                "[Osaurus] inference policy: maxBatchSize=\(InferenceFeatureFlags.mlxBatchEngineMaxBatchSize) "
+                "[Nuo] inference policy: maxBatchSize=\(InferenceFeatureFlags.mlxBatchEngineMaxBatchSize) "
                     + "eviction=\(configuration.modelEvictionPolicy.rawValue) "
                     + "idleResidency=\(idleResidency)"
             )
@@ -293,7 +293,7 @@ final class ServerController: ObservableObject {
         // If nothing to stop, return
         guard serverActor != nil else { return }
         if !isRestarting { serverHealth = .stopping }
-        print("[Osaurus] Stopping NIO server...")
+        print("[Nuo] Stopping NIO server...")
 
         RelayTunnelManager.shared.disconnectAll()
         BonjourAdvertiser.shared.stopAdvertising()
@@ -311,7 +311,7 @@ final class ServerController: ObservableObject {
         localNetworkAddress = "127.0.0.1"
 
         if !isRestarting { serverHealth = .stopped }
-        print("[Osaurus] Server stopped successfully")
+        print("[Nuo] Server stopped successfully")
     }
 
     /// Ensures the server is properly shut down before app termination
@@ -319,7 +319,7 @@ final class ServerController: ObservableObject {
         HarnessGrantStore.shared.revokeAll()
         guard serverActor != nil else { return }
 
-        print("[Osaurus] Ensuring NIO server shutdown before app termination")
+        print("[Nuo] Ensuring NIO server shutdown before app termination")
         RelayTunnelManager.shared.disconnectAll()
         // Stop mDNS on the quit path too — `stopServer` does this, but
         // `ensureShutdown` is the only teardown the AppDelegate calls, so
@@ -341,7 +341,7 @@ final class ServerController: ObservableObject {
 
         localNetworkAddress = "127.0.0.1"
 
-        print("[Osaurus] Server shutdown completed")
+        print("[Nuo] Server shutdown completed")
     }
 
     // Capture singleton pointer on init attach to UI
@@ -483,7 +483,7 @@ final class ServerController: ObservableObject {
             let (_, response) = try await URLSession.shared.data(from: url)
             return (response as? HTTPURLResponse)?.statusCode == 200
         } catch {
-            print("[Osaurus] Health check failed: \(error)")
+            print("[Nuo] Health check failed: \(error)")
             return false
         }
     }
@@ -652,7 +652,7 @@ final class ServerController: ObservableObject {
 
     /// Handles server startup errors
     private func handleServerError(_ error: Error) {
-        print("[Osaurus] Failed to start server: \(error)")
+        print("[Nuo] Failed to start server: \(error)")
         MobileConnectLog.write("server: FAILED to start on port \(configuration.port): \(error)")
         isRunning = false
         let desc = error.localizedDescription.lowercased()

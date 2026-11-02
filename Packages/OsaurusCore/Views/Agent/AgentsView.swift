@@ -3317,7 +3317,7 @@ struct AgentDetailView: View {
                 ) {
                     claudeCodePermissionLabel(
                         title: "Allow shell commands",
-                        detail: "Auto-approve Bash under your macOS account. Osaurus can't confine shell commands to the chat folder, and this is not the Osaurus sandbox."
+                        detail: "Auto-approve Bash under your macOS account. Nuo can't confine shell commands to the chat folder, and this is not the Nuo sandbox."
                     )
                 }
                 .disabled(claudeCodeConfig.mode != .agent)
@@ -3335,7 +3335,7 @@ struct AgentDetailView: View {
                 ) {
                     claudeCodePermissionLabel(
                         title: "Allow Nuo read tools",
-                        detail: "Attach osaurus_inspect and osaurus_help over an MCP bridge scoped to this agent. Needs the Osaurus server running."
+                        detail: "Attach osaurus_inspect and osaurus_help over an MCP bridge scoped to this agent. Needs the Nuo server running."
                     )
                 }
                 .disabled(claudeCodeConfig.mode != .agent)
@@ -3352,7 +3352,7 @@ struct AgentDetailView: View {
                         title: "Allow Nuo configuration changes",
                         detail: agent.id == Agent.defaultId
                             ? "Also attach osaurus_config, which changes agents, providers, models, plugins, and MCP servers."
-                            : "Only the Default agent can change Osaurus configuration."
+                            : "Only the Default agent can change Nuo configuration."
                     )
                 }
                 .disabled(
@@ -3390,7 +3390,7 @@ struct AgentDetailView: View {
                         }
                     )
                 ) {
-                    Text("Osaurus (built-in)", bundle: .module).tag(AgentRuntime.builtIn)
+                    Text("Nuo (built-in)", bundle: .module).tag(AgentRuntime.builtIn)
                     ForEach(harnessRuntimeStore.runtimes) { runtime in
                         Text(verbatim: runtime.displayName).tag(AgentRuntime.harness(runtime.id))
                     }
@@ -3437,7 +3437,7 @@ struct AgentDetailView: View {
                 runtimeNote(
                     String(
                         format: L(
-                            "%@ runs this agent's chats as a process on this Mac, with its own model, tools, and conversation history. Osaurus sends each message and shows the reply; Osaurus abilities, memory, and the sandbox don't apply."
+                            "%@ runs this agent's chats as a process on this Mac, with its own model, tools, and conversation history. Nuo sends each message and shows the reply; Nuo abilities, memory, and the sandbox don't apply."
                         ),
                         runtime.displayName
                     )

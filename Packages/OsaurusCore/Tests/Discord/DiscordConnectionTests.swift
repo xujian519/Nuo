@@ -285,7 +285,7 @@ struct DiscordConnectionTests {
                   "author": {
                     "id": "444444444444444444",
                     "username": "osaurus-bot",
-                    "global_name": "Osaurus",
+                    "global_name": "Nuo",
                     "bot": true
                   },
                   "attachments": []
@@ -2160,7 +2160,7 @@ struct DiscordConnectionTests {
 
             let envelope = ToolRegistry.externalSurfaceDenialEnvelope(tool: name)
             #expect(EnvelopeAssertions.failureKind(envelope) == "rejected")
-            #expect(EnvelopeAssertions.failureMessage(envelope)?.contains("Osaurus app") == true)
+            #expect(EnvelopeAssertions.failureMessage(envelope)?.contains("Nuo app") == true)
         }
 
         for name in phantomDiscordNames {

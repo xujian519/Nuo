@@ -16,7 +16,7 @@ enum ExternalMCPToolPolicy {
     nonisolated static func externalMCPDenialMessage(for name: String) -> String? {
         guard ToolRegistry.externallyDeniedToolNames.contains(name) else { return nil }
         return "'\(name)' is not available to external callers. "
-            + "App-only tools can only run from the Osaurus app."
+            + "App-only tools can only run from the Nuo app."
     }
 
     @MainActor
@@ -26,7 +26,7 @@ enum ExternalMCPToolPolicy {
                 domain: "ToolRegistry",
                 code: 5,
                 userInfo: [
-                    NSLocalizedDescriptionKey: "Tool '\(name)' is disabled in Osaurus settings."
+                    NSLocalizedDescriptionKey: "Tool '\(name)' is disabled in Nuo settings."
                 ]
             )
         }

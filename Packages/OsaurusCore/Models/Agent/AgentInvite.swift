@@ -25,7 +25,7 @@ public enum AgentInviteError: Error, LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .identityMissing:
-            return "No Osaurus identity is configured on this device."
+            return "No Nuo identity is configured on this device."
         case .agentMissingIdentity:
             return "This agent has no derived crypto identity yet."
         case .relayBaseURLMissing:
@@ -84,7 +84,7 @@ public struct AgentInvite: Codable, Sendable, Equatable {
     public let sig: String
 
     public static let currentVersion: Int = 1
-    public static let signingDomain: String = "Osaurus Signed Invite"
+    public static let signingDomain: String = "Nuo Signed Invite"
 
     public init(
         v: Int = AgentInvite.currentVersion,

@@ -16,7 +16,7 @@ enum ConfigDeclarativeDomain {
         id: "config",
         displayName: "Configuration",
         summary:
-            "Configure Osaurus with one declarative YAML document: memory, agents, "
+            "Configure Nuo with one declarative YAML document: memory, agents, "
             + "models, plugins, MCP, providers, search, schedules, watchers, tools, "
             + "delegation, commands, knowledge, channels.",
         menuHint:

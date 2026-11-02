@@ -169,7 +169,7 @@ enum SubagentConfigurationStore {
                 let data = try encoder.encode(configuration)
                 try data.write(to: url, options: [.atomic])
             } catch {
-                print("[Osaurus] Failed to save SubagentConfiguration: \(error)")
+                print("[Nuo] Failed to save SubagentConfiguration: \(error)")
             }
         }
     }
@@ -453,7 +453,7 @@ enum SubagentConfigurationStore {
                 .decode(SubagentConfiguration.self, from: data)
                 .normalized
         } catch {
-            print("[Osaurus] Failed to load SubagentConfiguration: \(error)")
+            print("[Nuo] Failed to load SubagentConfiguration: \(error)")
             return nil
         }
     }

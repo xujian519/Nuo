@@ -48,7 +48,7 @@ struct ChatVoiceSettingsTab: View {
                     SettingsLinkRow(
                         title: "Stop Behavior & Cleanup",
                         description:
-                            "How Osaurus knows you've finished speaking, and whether it tidies up filler words. Shared with Transcription Mode.",
+                            "How Nuo knows you've finished speaking, and whether it tidies up filler words. Shared with Transcription Mode.",
                         icon: "arrow.right",
                         actionTitle: "Open Transcription"
                     ) {

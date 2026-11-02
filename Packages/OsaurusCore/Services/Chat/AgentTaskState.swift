@@ -852,7 +852,7 @@ public final class AgentTaskState {
                 )
                 // Visible in the run log so a live proof can show the notice fired
                 // (the notice itself only travels inside the model prompt).
-                print("[Osaurus][Loop] invalid-args notice staged tool=\(name) consecutiveRejections=\(run)")
+                print("[Nuo][Loop] invalid-args notice staged tool=\(name) consecutiveRejections=\(run)")
             }
         } else {
             invalidArgsRuns[name] = nil
@@ -880,7 +880,7 @@ public final class AgentTaskState {
                     authorizedToolNames: authorizedToolNamesProvider?()
                 )
                 print(
-                    "[Osaurus][Loop] tool-not-found notice staged tool=\(canonicalName) consecutiveRefusals=\(run)"
+                    "[Nuo][Loop] tool-not-found notice staged tool=\(canonicalName) consecutiveRefusals=\(run)"
                 )
             }
         } else {

@@ -228,7 +228,7 @@ public enum VMLXModel2VecEmbedderError: LocalizedError {
         switch self {
         case .modelNotFound(let modelName):
             return
-                "Could not find local Model2Vec embedding model '\(modelName)'. Install minishlab/\(modelName) in Osaurus's Models Directory or the Hugging Face cache, or set OSAURUS_EMBEDDING_MODEL_DIR."
+                "Could not find local Model2Vec embedding model '\(modelName)'. Install minishlab/\(modelName) in Nuo's Models Directory or the Hugging Face cache, or set OSAURUS_EMBEDDING_MODEL_DIR."
         }
     }
 }

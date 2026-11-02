@@ -44,7 +44,7 @@ public final class HarnessRuntimeStore: ObservableObject {
             runtimes = decoded.runtimes
         } else {
             // Unreadable file: run with nothing rather than overwrite it.
-            print("[Osaurus] Failed to decode harness-runtimes.json — file preserved")
+            print("[Nuo] Failed to decode harness-runtimes.json — file preserved")
             runtimes = []
         }
     }
@@ -118,7 +118,7 @@ public final class HarnessRuntimeStore: ObservableObject {
             let data = try encoder.encode(FileContents(runtimes: runtimes))
             try data.write(to: url, options: .atomic)
         } catch {
-            print("[Osaurus] Failed to save harness-runtimes.json: \(error)")
+            print("[Nuo] Failed to save harness-runtimes.json: \(error)")
         }
     }
 }

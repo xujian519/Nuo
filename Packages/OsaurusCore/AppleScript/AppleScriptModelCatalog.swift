@@ -91,7 +91,7 @@ enum AppleScriptModelCatalog {
     static let models: [MLXModel] = [
         MLXModel(
             id: model16BId,
-            name: "Osaurus AppleScript 16B",
+            name: "Nuo AppleScript 16B",
             description:
                 "On-device mixture-of-experts model fine-tuned to write executable AppleScript for "
                 + "macOS automation. Built for reliable scripts on harder automation tasks.",
@@ -103,7 +103,7 @@ enum AppleScriptModelCatalog {
         ),
         MLXModel(
             id: model8BId,
-            name: "Osaurus AppleScript 8B",
+            name: "Nuo AppleScript 8B",
             description:
                 "Lighter on-device model fine-tuned to write executable AppleScript for macOS "
                 + "automation. A smaller download that fits Macs with less memory.",

@@ -257,7 +257,7 @@ final class ScreenContextDistillerTests: XCTestCase {
                 selfPid: [
                     CUWindowInfo(
                         windowId: 2,
-                        title: "Osaurus Chat",
+                        title: "Nuo Chat",
                         focused: false,
                         minimized: false,
                         x: 0,
@@ -781,7 +781,7 @@ final class ScreenContextDistillerTests: XCTestCase {
                 CUElement(
                     id: "p1",
                     role: "statictext",
-                    value: "The accessibility tree exposes every on-screen element so Osaurus can read it.",
+                    value: "The accessibility tree exposes every on-screen element so Nuo can read it.",
                     windowId: 1,
                     x: 250,
                     y: 150,
@@ -919,7 +919,7 @@ final class ScreenContextDistillerTests: XCTestCase {
         let driver = editorDriver(
             app: "Slack",
             bundleId: "com.tinyspeck.slackmacgap",
-            title: "#engineering — Osaurus",
+            title: "#engineering — Nuo",
             windowW: 1400,
             windowH: 900,
             elements: [
@@ -947,7 +947,7 @@ final class ScreenContextDistillerTests: XCTestCase {
         let driver = editorDriver(
             app: "Slack",
             bundleId: "com.tinyspeck.slackmacgap",
-            title: "105-osaurus (Channel) - Osaurus - Slack",
+            title: "105-osaurus (Channel) - Nuo - Slack",
             windowW: 1400,
             windowH: 900,
             elements: [

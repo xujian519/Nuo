@@ -424,7 +424,7 @@ private let imageSpacing: CGFloat = 16
 #if DEBUG
     struct MarkdownMessageView_Previews: PreviewProvider {
         static let sampleMarkdown = """
-            # Welcome to Osaurus
+            # Welcome to Nuo
 
             Here's a **bold** statement and some *italic* text.
 

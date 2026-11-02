@@ -35,7 +35,7 @@ public enum SecureChannelClientError: Error, LocalizedError, Equatable {
         switch self {
         case .peerUnsupported:
             return
-                "This peer's Osaurus version does not support end-to-end encryption. Ask them to upgrade Osaurus."
+                "This peer's Nuo version does not support end-to-end encryption. Ask them to upgrade Nuo."
         case .missingAgentAddress:
             return "This provider has no pinned agent identity. Re-pair with the remote agent."
         case .identityMismatch:

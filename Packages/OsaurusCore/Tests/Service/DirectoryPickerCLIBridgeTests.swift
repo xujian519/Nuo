@@ -1,5 +1,6 @@
 import Darwin
 import Foundation
+import OsaurusRepository
 import Testing
 
 @testable import OsaurusCore

@@ -42,7 +42,7 @@ enum TokenBuilder {
         iat: Int = Int(Date().timeIntervalSince1970),
         exp: Int? = Int(Date().timeIntervalSince1970) + 3600,
         lbl: String? = "test",
-        signingPrefix: String = "Osaurus Signed Access"
+        signingPrefix: String = "Nuo Signed Access"
     ) throws -> String {
         let payload = AccessKeyPayload(
             aud: aud,
@@ -59,9 +59,9 @@ enum TokenBuilder {
 
         let signature: Data
         switch signingPrefix {
-        case "Osaurus Signed Access":
+        case "Nuo Signed Access":
             signature = try signAccessPayload(payloadData, privateKey: privateKey)
-        case "Osaurus Signed Message":
+        case "Nuo Signed Message":
             signature = try signPayload(payloadData, privateKey: privateKey)
         default:
             fatalError("Unknown prefix in test helper")

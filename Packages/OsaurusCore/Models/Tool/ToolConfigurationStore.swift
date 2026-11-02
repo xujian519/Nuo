@@ -18,7 +18,7 @@ enum ToolConfigurationStore {
             do {
                 return try JSONDecoder().decode(ToolConfiguration.self, from: Data(contentsOf: url))
             } catch {
-                print("[Osaurus] Failed to load ToolConfiguration: \(error)")
+                print("[Nuo] Failed to load ToolConfiguration: \(error)")
             }
         }
         // CRITICAL: see RemoteProviderConfigurationStore.load — never
@@ -110,7 +110,7 @@ enum ToolConfigurationStore {
                 encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
                 try encoder.encode(config).write(to: url, options: [.atomic])
             } catch {
-                print("[Osaurus] Failed to save ToolConfiguration: \(error)")
+                print("[Nuo] Failed to save ToolConfiguration: \(error)")
             }
         }
     }

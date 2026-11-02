@@ -703,7 +703,7 @@ public final class ToolRegistry: ObservableObject {
         return ToolEnvelope.failure(
             kind: .rejected,
             message:
-                "'\(tool)' is not available to external callers. This tool can only run from the Osaurus app.",
+                "'\(tool)' is not available to external callers. This tool can only run from the Nuo app.",
             tool: tool
         )
     }
@@ -722,7 +722,7 @@ public final class ToolRegistry: ObservableObject {
         let message: String
         if agentId == nil {
             message =
-                "'\(tool)' belongs to the built-in \(app.displayName) app and only runs inside an Osaurus agent that has \(app.displayName) enabled."
+                "'\(tool)' belongs to the built-in \(app.displayName) app and only runs inside an Nuo agent that has \(app.displayName) enabled."
         } else if agentId == Agent.defaultId {
             message =
                 "'\(tool)' belongs to the built-in \(app.displayName) app. The Default agent never uses Apple app tools; enable \(app.displayName) on a custom agent (`osaurus_config` → capabilities.apple_apps) and delegate to it."
@@ -762,7 +762,7 @@ public final class ToolRegistry: ObservableObject {
                 code: 3,
                 userInfo: [
                     NSLocalizedDescriptionKey:
-                        "'\(name)' is not available to external callers. This tool can only run from the Osaurus app."
+                        "'\(name)' is not available to external callers. This tool can only run from the Nuo app."
                 ]
             )
         }
@@ -911,7 +911,7 @@ public final class ToolRegistry: ObservableObject {
                 // tools hit this gate before their body runs).
                 var userInfo: [String: Any] = [
                     NSLocalizedDescriptionKey:
-                        "Missing system permissions for tool: \(name). Required: \(missingNames). Ask the user to grant it in System Settings → Privacy & Security (or the Osaurus Permissions tab), then try again."
+                        "Missing system permissions for tool: \(name). Required: \(missingNames). Ask the user to grant it in System Settings → Privacy & Security (or the Nuo Permissions tab), then try again."
                 ]
                 if let first = stillMissing.first {
                     userInfo[Self.missingPermissionUserInfoKey] = first.rawValue
@@ -1046,7 +1046,7 @@ public final class ToolRegistry: ObservableObject {
                         || ChatExecutionContext.denyUnapprovedToolPrompts
                     let message =
                         unanswerable
-                        ? "Tool '\(name)' requires interactive approval in the Osaurus app. Enable auto-approve or change the tool policy to auto before calling it from an external MCP client."
+                        ? "Tool '\(name)' requires interactive approval in the Nuo app. Enable auto-approve or change the tool policy to auto before calling it from an external MCP client."
                         : "User denied execution for tool: \(name)"
                     throw NSError(
                         domain: "ToolRegistry",

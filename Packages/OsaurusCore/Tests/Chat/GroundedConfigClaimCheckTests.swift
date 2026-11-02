@@ -353,7 +353,7 @@ struct GroundedConfigClaimCheckPredicateTests {
     func capabilityProse_doesNotTrip() {
         #expect(
             !GroundedConfigClaimCheck.containsUngroundedChangeClaim(
-                "Osaurus lets you configure providers, models, plugins, and schedules. "
+                "Nuo lets you configure providers, models, plugins, and schedules. "
                     + "Each agent can have its own model and personality."
             )
         )

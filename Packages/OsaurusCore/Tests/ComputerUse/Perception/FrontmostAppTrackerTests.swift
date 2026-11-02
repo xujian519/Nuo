@@ -51,7 +51,7 @@ final class FrontmostAppTrackerTests: XCTestCase {
                     && ($0.localizedName?.isEmpty == false)
             })
         else {
-            throw XCTSkip("No non-Osaurus running app with a name is available in this environment.")
+            throw XCTSkip("No non-Nuo running app with a name is available in this environment.")
         }
 
         tracker.record(other)

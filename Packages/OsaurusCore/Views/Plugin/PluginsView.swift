@@ -1912,7 +1912,7 @@ private struct PluginDetailView: View {
                 "Web search is now a native feature. This plugin's tools are no longer loaded — configure providers in Settings → Search. You can uninstall this plugin."
             default:
                 if let appleApp {
-                    "\(appleApp.displayName) tools are now built into Osaurus. This plugin's tools are no longer loaded — turn \(appleApp.displayName) on for a custom agent under Agents → Abilities → Tools (off by default). You can uninstall this plugin."
+                    "\(appleApp.displayName) tools are now built into Nuo. This plugin's tools are no longer loaded — turn \(appleApp.displayName) on for a custom agent under Agents → Abilities → Tools (off by default). You can uninstall this plugin."
                 } else {
                     "This plugin's functionality is now built into Nuo. Its tools are no longer loaded. You can uninstall this plugin."
                 }

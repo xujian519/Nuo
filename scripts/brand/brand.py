@@ -272,13 +272,26 @@ def swift_literal_spans(text: str) -> list[tuple[int, int]]:
     return spans
 
 
-def substitute_in_literals(text: str, regex: re.Pattern, replacement: str) -> tuple[str, int]:
+def substitute_in_literals(
+    text: str,
+    regex: re.Pattern,
+    replacement: str,
+    skip_substrings: list[str] | None = None,
+) -> tuple[str, int]:
+    """Replace regex matches inside Swift string-literal bodies only.
+
+    Bodies containing any `skip_substrings` entry are skipped whole — that is how
+    a rule replaces the brand name inside literals while leaving "Osaurus Cloud"
+    or a mock upstream response in the same file untouched.
+    """
     spans = swift_literal_spans(text)
     if not spans:
         return text, 0
     total = 0
     for start, end in reversed(spans):
         body = text[start:end]
+        if skip_substrings and any(x in body for x in skip_substrings):
+            continue
         new, count = substitute(body, regex, replacement)
         if count:
             text = text[:start] + new + text[end:]
@@ -329,7 +342,14 @@ def _sync_key_refs(rule: dict, key_edits: list[tuple[str, str]], dry: bool) -> t
             body = text[start:end]
             new_body = old_to_new.get(body)
             if new_body is None and '\\"' in body:
-                new_body = old_to_new.get(body.replace('\\"', '"'))
+                # The literal escapes its quotes (\"). The decoded key matched, so
+                # re-escape the replacement's quotes before splicing it back — the
+                # brand pairs never add or remove quote characters, so quote-for-
+                # quote re-escaping is exact. Without this the spliced raw quotes
+                # terminate the Swift literal early (compile error).
+                decoded = old_to_new.get(body.replace('\\"', '"'))
+                if decoded is not None:
+                    new_body = decoded.replace('"', '\\"')
             if new_body is not None:
                 hits.append((start, end, new_body))
         if not hits:
@@ -458,6 +478,9 @@ def load_rules(max_phase: int | None = None) -> list[dict]:
 def rule_files(rule: dict) -> list[str]:
     explicit = rule.get("files")
     files = select(explicit)
+    skip = set(rule.get("files_exclude", []))
+    if skip:
+        files = [f for f in files if f not in skip]
     if "path" in rule:
         target = rule["path"]
         files = [target] if not is_excluded(target) else []
@@ -477,12 +500,13 @@ def count_rule(rule: dict, dry: bool) -> tuple[int, list[str]]:
     if op != "replace":
         die(f"unknown op {op!r} in rule {rule['id']}")
     regex = re.compile(lit(rule, "pattern"), re.MULTILINE)
+    excludes = [fmt(str(x)) for x in rule.get("exclude_substrings", [])]
     total = 0
     touched: list[str] = []
     for rel in rule_files(rule):
         text = read_text(rel)
         if rule.get("mode") == "swift-literals":
-            new, count = substitute_in_literals(text, regex, lit(rule, "replace"))
+            new, count = substitute_in_literals(text, regex, lit(rule, "replace"), excludes or None)
         else:
             new, count = substitute(text, regex, lit(rule, "replace"))
         if count:

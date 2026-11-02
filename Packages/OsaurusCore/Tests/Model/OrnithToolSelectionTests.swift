@@ -63,7 +63,7 @@ struct OrnithToolSelectionTests {
         let help: [String: any Sendable] = [
             "name": "osaurus_help",
             "description":
-                "Bundled Osaurus user guide — answers questions about what Osaurus is and how its "
+                "Bundled Nuo user guide — answers questions about what Nuo is and how its "
                 + "features work (models, providers, agents, skills, plugins, MCP).",
             "parameters": helpParams,
         ]

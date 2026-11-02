@@ -3947,11 +3947,11 @@
                 if let owner {
                     return
                         "Sandbox VM is already owned by \(owner.diagnostic). "
-                        + "Stop that Osaurus app or eval process before starting another vmnet sandbox."
+                        + "Stop that Nuo app or eval process before starting another vmnet sandbox."
                 }
                 return
                     "Sandbox VM is already owned by another process. "
-                    + "Stop other Osaurus app or eval processes before starting vmnet."
+                    + "Stop other Nuo app or eval processes before starting vmnet."
             }
         }
 

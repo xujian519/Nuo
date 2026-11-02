@@ -79,7 +79,7 @@ public enum AppleAppsConfigurationStore {
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
             try encoder.encode(config).write(to: url, options: [.atomic])
         } catch {
-            print("[Osaurus] Failed to save AppleAppsConfiguration: \(error)")
+            print("[Nuo] Failed to save AppleAppsConfiguration: \(error)")
         }
     }
 
@@ -219,12 +219,12 @@ public enum AppleAppsPluginMigration {
                 }
             } catch {
                 allPersisted = false
-                print("[Osaurus] Apple apps: failed to persist migrated agent \"\(agent.name)\": \(error)")
+                print("[Nuo] Apple apps: failed to persist migrated agent \"\(agent.name)\": \(error)")
                 continue
             }
             migrated.append(agent.name)
             print(
-                "[Osaurus] Apple apps: removed \(outcome.renamedTools.count) legacy plugin tool name(s) on \"\(agent.name)\" → enabled \(AppleApp.sorted(outcome.enabledApps).map(\.rawValue).joined(separator: ", "))"
+                "[Nuo] Apple apps: removed \(outcome.renamedTools.count) legacy plugin tool name(s) on \"\(agent.name)\" → enabled \(AppleApp.sorted(outcome.enabledApps).map(\.rawValue).joined(separator: ", "))"
             )
         }
 

@@ -28,7 +28,7 @@ public enum ProjectStore {
                 let data = try Data(contentsOf: file)
                 projects.append(try decoder.decode(Project.self, from: data))
             } catch {
-                print("[Osaurus] Failed to load project from \(file.lastPathComponent): \(error)")
+                print("[Nuo] Failed to load project from \(file.lastPathComponent): \(error)")
             }
         }
         return projects.sorted {
@@ -47,7 +47,7 @@ public enum ProjectStore {
             let data = try encoder.encode(project)
             try data.write(to: url, options: [.atomic])
         } catch {
-            print("[Osaurus] Failed to save project \(project.id): \(error)")
+            print("[Nuo] Failed to save project \(project.id): \(error)")
         }
     }
 
@@ -59,7 +59,7 @@ public enum ProjectStore {
             try FileManager.default.removeItem(at: fileURL(for: id))
             return true
         } catch {
-            print("[Osaurus] Failed to delete project \(id): \(error)")
+            print("[Nuo] Failed to delete project \(id): \(error)")
             return false
         }
     }

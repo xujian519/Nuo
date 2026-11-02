@@ -3682,18 +3682,18 @@ struct MockAppleScriptWorldTests {
     func folderCreateAndExists() {
         var world = MockAppleScriptWorld()
         let missing = world.handle(
-            "tell application \"Finder\" to exists folder \"Osaurus Drops\" of desktop",
+            "tell application \"Finder\" to exists folder \"Nuo Drops\" of desktop",
             fallback: fallback
         )
         #expect(missing.output == "false")
         _ = world.handle(
             "tell application \"Finder\" to make new folder at desktop "
-                + "with properties {name:\"Osaurus Drops\"}",
+                + "with properties {name:\"Nuo Drops\"}",
             fallback: fallback
         )
-        #expect(world.snapshot()["folder:Osaurus Drops"] == "true")
+        #expect(world.snapshot()["folder:Nuo Drops"] == "true")
         let exists = world.handle(
-            "tell application \"Finder\" to exists folder \"Osaurus Drops\" of desktop",
+            "tell application \"Finder\" to exists folder \"Nuo Drops\" of desktop",
             fallback: fallback
         )
         #expect(exists.output == "true")
@@ -3704,13 +3704,13 @@ struct MockAppleScriptWorldTests {
         var world = MockAppleScriptWorld()
         let script = """
             tell application "Finder"
-                if not (exists folder "Osaurus Drops" of desktop) then
-                    make new folder at desktop with properties {name:"Osaurus Drops"}
+                if not (exists folder "Nuo Drops" of desktop) then
+                    make new folder at desktop with properties {name:"Nuo Drops"}
                 end if
             end tell
             """
         _ = world.handle(script, fallback: fallback)
-        #expect(world.snapshot()["folder:Osaurus Drops"] == "true")
+        #expect(world.snapshot()["folder:Nuo Drops"] == "true")
     }
 
     @Test("a MULTI-APP combined script records every recognized write")
@@ -3720,7 +3720,7 @@ struct MockAppleScriptWorldTests {
         var world = MockAppleScriptWorld()
         let script = """
             set targetURL to "https://example.com/osaurus"
-            set folderName to "Osaurus Drops"
+            set folderName to "Nuo Drops"
 
             tell application "Safari"
                 activate
@@ -3739,7 +3739,7 @@ struct MockAppleScriptWorldTests {
             """
         _ = world.handle(script, fallback: fallback)
         #expect(world.snapshot()["safari:url"] == "https://example.com/osaurus")
-        #expect(world.snapshot()["folder:Osaurus Drops"] == "true")
+        #expect(world.snapshot()["folder:Nuo Drops"] == "true")
     }
 
     @Test("`set URL of current tab of front window to <identifier>` resolves the binding")
@@ -3841,7 +3841,7 @@ struct AppleScriptAccessibilityTests {
         #expect(
             AppleScriptAccessibility.isAccessibilityDenial(
                 errorNumber: nil,
-                errorMessage: "Osaurus is not allowed to send keystrokes."
+                errorMessage: "Nuo is not allowed to send keystrokes."
             )
         )
         // The Automation denial has its own recovery path.
@@ -4002,7 +4002,7 @@ struct AppleScriptAppKnowledgeTests {
         #expect(withoutCue.isEmpty)
     }
 
-    @Test("working file or document anaphora targets the last non-Osaurus app")
+    @Test("working file or document anaphora targets the last non-Nuo app")
     func workingDocumentFallback() {
         let fileTask = AppleScriptAppKnowledge.detectTargetApps(
             task: "Change the text in the file from Hello to Goodbye",

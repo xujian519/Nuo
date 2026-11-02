@@ -239,12 +239,12 @@ public enum ClaudeCodeConfiguration {
                 cause = L("this agent runs Claude Code in text-only mode, which disables all tools")
             case .notEnabled, nil:
                 cause = L(
-                    "they are switched off for this agent — tell the user to turn on \"Allow Osaurus read tools\" in this agent's Claude Code Options"
+                    "they are switched off for this agent — tell the user to turn on \"Allow Nuo read tools\" in this agent's Claude Code Options"
                 )
             }
             return String(
                 format: L(
-                    "You do NOT have Osaurus's configuration tools (osaurus_inspect, osaurus_help, osaurus_config) on this run, because %@. Do not try to call them and do not speculate about permission errors. If the user asks about Osaurus's configuration, say plainly that you can't read it right now, explain why, and offer what they can check themselves."
+                    "You do NOT have Nuo's configuration tools (osaurus_inspect, osaurus_help, osaurus_config) on this run, because %@. Do not try to call them and do not speculate about permission errors. If the user asks about Nuo's configuration, say plainly that you can't read it right now, explain why, and offer what they can check themselves."
                 ),
                 cause
             )

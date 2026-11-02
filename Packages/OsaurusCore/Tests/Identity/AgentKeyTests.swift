@@ -178,7 +178,7 @@ struct AgentKeyTests {
         let payload = Data("scoped payload".utf8)
         let signature = try AgentKey.sign(payload: payload, masterKey: master, path: path)
         let recovered = try recoverAddress(
-            payload: payload, signature: signature, domainPrefix: "Osaurus Signed Access"
+            payload: payload, signature: signature, domainPrefix: "Nuo Signed Access"
         )
         #expect(recovered.lowercased() == address.lowercased())
     }
@@ -220,7 +220,7 @@ struct AgentKeyTests {
         let recovered = try recoverAddress(
             payload: payload,
             signature: signature,
-            domainPrefix: "Osaurus Signed Access"
+            domainPrefix: "Nuo Signed Access"
         )
         #expect(recovered.lowercased() == agentAddress.lowercased())
     }
@@ -244,7 +244,7 @@ struct AgentKeyTests {
         let recovered = try recoverAddress(
             payload: payload,
             signature: signature,
-            domainPrefix: "Osaurus Signed Access"
+            domainPrefix: "Nuo Signed Access"
         )
         #expect(recovered.lowercased() != masterAddress.lowercased())
     }

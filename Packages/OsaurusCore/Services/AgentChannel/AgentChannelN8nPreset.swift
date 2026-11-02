@@ -101,7 +101,7 @@ enum AgentChannelN8nPreset {
         if threaded {
             fields.append("\"thread_id\":{{input.thread_id}}")
         }
-        fields.append("\"sender\":{\"id\":\"osaurus\",\"display\":\"Osaurus\",\"is_bot\":true}")
+        fields.append("\"sender\":{\"id\":\"osaurus\",\"display\":\"Nuo\",\"is_bot\":true}")
         fields.append("\"content\":{{input.content}}")
         return "{" + fields.joined(separator: ",") + "}"
     }

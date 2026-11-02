@@ -5897,7 +5897,7 @@ final class ChatSession: ObservableObject {
             ? (uiSentinelOnlyCount > 0 ? "sentinel-only" : "empty")
             : "non-empty"
         print(
-            "[Osaurus][UI] Stream consumption completed: contentDeltas=\(uiDeltaCount) reasoningDeltas=\(uiReasoningDeltaCount) classification=\(uiStreamClassification) in \(String(format: "%.2f", totalTime))s, lastOutput→completion tailMs=\(visibleTailMs), final contentLen=\(currentTurn.contentLength), toolSentinels=\(uiToolSentinelCount), reasoningItems=\(uiReasoningItemCount), stats=\(uiStatsHintCount), billing=\(uiBillingHintCount), prefill=\(uiPrefillHintCount), capturedTools=\(capturedInvocations.count)"
+            "[Nuo][UI] Stream consumption completed: contentDeltas=\(uiDeltaCount) reasoningDeltas=\(uiReasoningDeltaCount) classification=\(uiStreamClassification) in \(String(format: "%.2f", totalTime))s, lastOutput→completion tailMs=\(visibleTailMs), final contentLen=\(currentTurn.contentLength), toolSentinels=\(uiToolSentinelCount), reasoningItems=\(uiReasoningItemCount), stats=\(uiStatsHintCount), billing=\(uiBillingHintCount), prefill=\(uiPrefillHintCount), capturedTools=\(capturedInvocations.count)"
         )
 
         return (capturedInvocations, currentTurn)
@@ -7798,7 +7798,7 @@ final class ChatSession: ObservableObject {
                         // Log tool success (truncated result)
                         let truncatedResult = resultText.prefix(500)
                         print(
-                            "[Osaurus][Tool] Success: \(inv.toolName) returned \(resultText.count) chars: \(truncatedResult)\(resultText.count > 500 ? "..." : "")"
+                            "[Nuo][Tool] Success: \(inv.toolName) returned \(resultText.count) chars: \(truncatedResult)\(resultText.count > 500 ? "..." : "")"
                         )
 
                         // Turn persistence intentionally does NOT happen here.
@@ -7841,7 +7841,7 @@ final class ChatSession: ObservableObject {
                             )
                             let truncatedArgs = recordedArgs.prefix(200)
                             print(
-                                "[Osaurus][Tool] Executing: \(inv.toolName) with args: \(truncatedArgs)\(recordedArgs.count > 200 ? "..." : "")"
+                                "[Nuo][Tool] Executing: \(inv.toolName) with args: \(truncatedArgs)\(recordedArgs.count > 200 ? "..." : "")"
                             )
 
                             if executionMode.usesSandboxTools {
@@ -7890,7 +7890,7 @@ final class ChatSession: ObservableObject {
                                                 // returns late (a blocked page trickling bytes for
                                                 // minutes) is visible in the run log.
                                                 print(
-                                                    "[Osaurus][Tool] Elapsed: \(inv.toolName) \(Int(Date().timeIntervalSince(toolStartedAt) * 1000)) ms"
+                                                    "[Nuo][Tool] Elapsed: \(inv.toolName) \(Int(Date().timeIntervalSince(toolStartedAt) * 1000)) ms"
                                                 )
                                                 return await postProcessToolResult(
                                                     inv,
@@ -7911,7 +7911,7 @@ final class ChatSession: ObservableObject {
                             let rejectionMessage = ToolEnvelope.fromError(error, tool: inv.toolName)
                             let failedAfterMs = Int(Date().timeIntervalSince(toolStartedAt) * 1000)
                             let failureKind: String = (error is CancellationError) ? "cancelled" : String(describing: type(of: error))
-                            print("[Osaurus][Tool] Elapsed: \(inv.toolName) \(failedAfterMs) ms (threw: \(failureKind))")
+                            print("[Nuo][Tool] Elapsed: \(inv.toolName) \(failedAfterMs) ms (threw: \(failureKind))")
                             // A spawn that threw (failed/cancelled/over-budget)
                             // may still have deposited artifacts its worker
                             // shared before dying — surface them anyway.
@@ -8089,7 +8089,7 @@ final class ChatSession: ObservableObject {
                         // the MainActor so the calls genuinely overlap.
                         if !approved.isEmpty {
                             print(
-                                "[Osaurus][Tool] Executing batch of \(approved.count) in parallel: \(approved.map { $0.invocation.toolName }.joined(separator: ", "))"
+                                "[Nuo][Tool] Executing batch of \(approved.count) in parallel: \(approved.map { $0.invocation.toolName }.joined(separator: ", "))"
                             )
                             let turnIdForTools = assistantTurn.id
                             let results = await AgentToolLoop.runBatchInParallel(
@@ -8471,7 +8471,7 @@ final class ChatSession: ObservableObject {
                                 {
                                     transientRetries += 1
                                     print(
-                                        "[Osaurus] Transient stream error (retry \(transientRetries)/\(maxTransientRetries)): \(error.localizedDescription)"
+                                        "[Nuo] Transient stream error (retry \(transientRetries)/\(maxTransientRetries)): \(error.localizedDescription)"
                                     )
                                     // Roll back any partial UI state from the failed
                                     // attempt so the retry starts clean.
@@ -8749,7 +8749,7 @@ final class ChatSession: ObservableObject {
                     )
 
                     print(
-                        "[Osaurus][Loop] exit=\(runResult.exit) iterations=\(runResult.iterations) "
+                        "[Nuo][Loop] exit=\(runResult.exit) iterations=\(runResult.iterations) "
                             + "elapsedMs=\(Int(Date().timeIntervalSince(loopStartedAt) * 1000))"
                     )
                     if runResult.exit == .toolRejected {
@@ -12586,7 +12586,7 @@ private enum PairingClient {
             let recovered = try? recoverAddress(
                 payload: pairingServerSigningPayload(agentAddress: decoded.agentAddress, nonce: nonce),
                 signature: sigBytes,
-                domainPrefix: "Osaurus Signed Pairing Server"
+                domainPrefix: "Nuo Signed Pairing Server"
             ),
             recovered.lowercased() == expectedAddress.lowercased()
         else {

@@ -68,7 +68,7 @@ public enum DefaultAgentConfigurationStore {
             // default. Do NOT auto-overwrite the on-disk file; see the
             // explicit no-implicit-save warning in
             // `AppConfiguration.loadFromDisk`.
-            print("[Osaurus] Failed to decode default-agent.json — using defaults (file preserved)")
+            print("[Nuo] Failed to decode default-agent.json — using defaults (file preserved)")
             ToastManager.shared.warning(
                 L("Default agent settings unreadable"),
                 message: L("Using defaults; your saved file was left untouched.")
@@ -97,7 +97,7 @@ public enum DefaultAgentConfigurationStore {
                 synchronous: overrideDirectory != nil || OsaurusPaths.overrideRoot != nil,
                 onError: { error in
                     let desc = error.localizedDescription
-                    print("[Osaurus] Failed to save default-agent.json: \(desc)")
+                    print("[Nuo] Failed to save default-agent.json: \(desc)")
                     Task { @MainActor in
                         ToastManager.shared.error(
                             L("Couldn't save default agent settings"),
@@ -107,7 +107,7 @@ public enum DefaultAgentConfigurationStore {
                 }
             )
         } catch {
-            print("[Osaurus] Failed to save default-agent.json: \(error)")
+            print("[Nuo] Failed to save default-agent.json: \(error)")
             ToastManager.shared.error(
                 L("Couldn't save default agent settings"),
                 message: error.localizedDescription

@@ -212,7 +212,7 @@ public enum FileChangeCapture {
                 return ToolEnvelope.failure(
                     kind: .userDenied,
                     message:
-                        "Not run: Osaurus can't snapshot "
+                        "Not run: Nuo can't snapshot "
                         + token.untrackedReasons.joined(separator: "; ")
                         + ", so this call's file changes couldn't be undone. Use precise file tools "
                         + "(`file_write`, `file_edit`, `file_copy`) on specific paths instead.",
@@ -246,7 +246,7 @@ public enum FileChangeCapture {
         return await ToolPermissionPromptService.requestApproval(
             toolName: toolName,
             description:
-                "This action can't be undone. Osaurus can't snapshot "
+                "This action can't be undone. Nuo can't snapshot "
                 + reasons.joined(separator: "; ")
                 + ", so changes it makes won't be recoverable from File Changes.",
             argumentsJSON: argumentsJSON,

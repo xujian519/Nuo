@@ -331,7 +331,7 @@ struct ModelDownloadView: View {
                 set: { if !$0 { unsupportedModelName = nil } }
             ),
             message: L(
-                "\(unsupportedModelName ?? "") isn't an MLX model, so it can't be used in Osaurus. The local engine runs MLX-format models only."
+                "\(unsupportedModelName ?? "") isn't an MLX model, so it can't be used in Nuo. The local engine runs MLX-format models only."
             ),
             primaryButton: .primary(L("OK")) { unsupportedModelName = nil }
         )

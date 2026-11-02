@@ -128,7 +128,7 @@ public actor OsaurusServer: Sendable {
 
         let ch = try await bootstrap.bind(host: config.host, port: config.port).get()
         self.channel = ch
-        print("[Osaurus] OsaurusServer started on http://\(config.host):\(config.port)")
+        print("[Nuo] OsaurusServer started on http://\(config.host):\(config.port)")
     }
 
     /// Stop the server: close the listener, then close the per-connection
@@ -161,13 +161,13 @@ public actor OsaurusServer: Sendable {
         let remaining = childChannels.drain()
         if !remaining.isEmpty {
             print(
-                "[Osaurus] OsaurusServer force-closing \(remaining.count) connection(s) after \(budget)s drain budget"
+                "[Nuo] OsaurusServer force-closing \(remaining.count) connection(s) after \(budget)s drain budget"
             )
             for ch in remaining {
                 ch.close(promise: nil)
             }
         }
-        print("[Osaurus] OsaurusServer stopped")
+        print("[Nuo] OsaurusServer stopped")
         return true
     }
 
@@ -225,7 +225,7 @@ public actor OsaurusServer: Sendable {
                 hasKeys: !APIKeyManager.shared.listKeys().isEmpty
             )
         } catch {
-            print("[Osaurus] Failed to build validator: \(error). Falling back to empty validator.")
+            print("[Nuo] Failed to build validator: \(error). Falling back to empty validator.")
             return .empty
         }
     }
@@ -307,7 +307,7 @@ final class ConnectionLimitHandler: ChannelInboundHandler {
             context.fireChannelActive()
         } else {
             NSLog(
-                "[Osaurus] Refusing connection — at max concurrent connections (%d)",
+                "[Nuo] Refusing connection — at max concurrent connections (%d)",
                 Self.maxConcurrentConnections
             )
             context.close(promise: nil)

@@ -112,7 +112,7 @@ public enum VADConfigurationStore {
         do {
             return try JSONDecoder().decode(VADConfiguration.self, from: Data(contentsOf: url))
         } catch {
-            print("[Osaurus] Failed to load VADConfiguration: \(error)")
+            print("[Nuo] Failed to load VADConfiguration: \(error)")
             return VADConfiguration.default
         }
     }
@@ -129,7 +129,7 @@ public enum VADConfigurationStore {
                 NotificationCenter.default.post(name: .voiceConfigurationChanged, object: nil)
             }
         } catch {
-            print("[Osaurus] Failed to save VADConfiguration: \(error)")
+            print("[Nuo] Failed to save VADConfiguration: \(error)")
         }
     }
 

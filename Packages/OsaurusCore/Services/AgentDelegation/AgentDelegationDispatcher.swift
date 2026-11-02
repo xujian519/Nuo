@@ -268,7 +268,7 @@ enum AgentDelegationDispatcher {
     static let remoteDeliveryContract: String =
         delegatedTaskOpen + "\n"
         + "You are running as a delegated subtask for another agent on a teammate's "
-        + "Osaurus. The requester sees ONLY your final message, returned as a compact "
+        + "Nuo. The requester sees ONLY your final message, returned as a compact "
         + "size-capped digest — intermediate commentary is lost, so finish with a "
         + "message that stands alone as the result. Include deliverable content "
         + "directly in that final message, or share files with `share_artifact`: small "

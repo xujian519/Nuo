@@ -794,7 +794,7 @@ public enum SandboxProvisioningDiagnostics {
             } else if let minimum = spec.minimumFileBytes, (fileSizeBytes ?? 0) < minimum {
                 status = .emptyFile
                 detail = L("File exists but is empty or smaller than the minimum expected size.")
-                repair = L("Remove \(path) and rerun sandbox setup so Osaurus can download a fresh asset.")
+                repair = L("Remove \(path) and rerun sandbox setup so Nuo can download a fresh asset.")
                 findings.append(
                     finding(
                         code: .locationEmpty,
@@ -1047,9 +1047,9 @@ public enum SandboxProvisioningDiagnostics {
     ) -> String {
         switch kind {
         case .directory:
-            L("Create the directory with mkdir -p \"\(path)\" or run Set Up Sandbox to let Osaurus create it.")
+            L("Create the directory with mkdir -p \"\(path)\" or run Set Up Sandbox to let Nuo create it.")
         case .file:
-            L("Run Set Up Sandbox so Osaurus can create or download \(path).")
+            L("Run Set Up Sandbox so Nuo can create or download \(path).")
         case .socket:
             L("Start the sandbox; this runtime socket is created only while the host bridge is running.")
         }

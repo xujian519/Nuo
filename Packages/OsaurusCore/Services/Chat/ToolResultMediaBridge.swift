@@ -130,7 +130,7 @@ enum ToolResultMediaBridge {
     /// text-only (OpenAI Chat Completions / Responses, Gemini
     /// functionResponse). Anthropic keeps images inside `tool_result`.
     static let hoistedImageIntro =
-        "[Osaurus] The image(s) below belong to the preceding tool result(s); treat them as that tool's output."
+        "[Nuo] The image(s) below belong to the preceding tool result(s); treat them as that tool's output."
 
     /// OpenAI-compatible wires reject image parts on the `tool` role. Move
     /// them into ONE user message inserted after the last tool message of

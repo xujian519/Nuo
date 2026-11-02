@@ -149,13 +149,13 @@ enum ConfigRisk {
         "Removes harness runtime `\(name)` (prune); agents on it stop running until they get another runtime."
     }
     static func agentOnHarness(_ agent: String, _ runtime: String) -> String {
-        "Agent `\(agent)` runs on harness `\(runtime)`: a local program with its own tools, outside the Osaurus sandbox."
+        "Agent `\(agent)` runs on harness `\(runtime)`: a local program with its own tools, outside the Nuo sandbox."
     }
     static func claudeCodeShell(_ agent: String) -> String {
         "Lets Claude Code run shell commands for agent `\(agent)`, unconfined on this Mac."
     }
     static func claudeCodeConfigWrites(_ agent: String) -> String {
-        "Lets Claude Code change Osaurus configuration for agent `\(agent)`."
+        "Lets Claude Code change Nuo configuration for agent `\(agent)`."
     }
 }
 
@@ -447,7 +447,7 @@ enum ConfigPlanner {
                 if entry.claudeCode?.allowOsaurusConfigWrites != nil {
                     issues.append(
                         "agents[\(entry.name)].claude_code.allow_osaurus_config_writes: only the "
-                            + "Default agent can change Osaurus configuration.")
+                            + "Default agent can change Nuo configuration.")
                 }
                 if let ids = entry.capabilities?.knowledgeCollectionIds {
                     for raw in ids where UUID(uuidString: raw) == nil {
@@ -1886,7 +1886,7 @@ enum ConfigPlanner {
                 continue
             }
             if key == ConfigHarness.builtInRuntimeKey {
-                issues.append("\(label): `builtin` is reserved for Osaurus's own loop.")
+                issues.append("\(label): `builtin` is reserved for Nuo's own loop.")
             }
             if !seen.insert(key).inserted {
                 issues.append("\(label): duplicate runtime name in document.")

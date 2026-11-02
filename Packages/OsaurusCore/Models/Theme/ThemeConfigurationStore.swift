@@ -102,7 +102,7 @@ public enum ThemeConfigurationStore {
             let data = try encodeTheme(normalizedTheme)
             try data.write(to: themeFileURL(for: normalizedTheme.metadata.id), options: .atomic)
         } catch {
-            print("[Osaurus] Failed to save theme '\(theme.metadata.name)': \(error)")
+            print("[Nuo] Failed to save theme '\(theme.metadata.name)': \(error)")
         }
     }
 

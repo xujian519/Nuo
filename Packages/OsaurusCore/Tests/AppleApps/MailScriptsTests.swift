@@ -31,8 +31,8 @@ struct MailScriptsTests {
 
     @Test("uncached resolve scans the given mailbox before the inbox, once each")
     func uncachedResolveOrder() throws {
-        let script = try MailScripts.resolve(messageId: "<x@y>", mailboxPath: "Work/Projects/Osaurus", cached: nil)
-        let nested = "mailbox \"Osaurus\" of mailbox \"Projects\" of account \"Work\""
+        let script = try MailScripts.resolve(messageId: "<x@y>", mailboxPath: "Work/Projects/Nuo", cached: nil)
+        let nested = "mailbox \"Nuo\" of mailbox \"Projects\" of account \"Work\""
         let firstScan = try #require(script.range(of: nested))
         let inboxScan = try #require(script.range(of: "first message of inbox whose"))
         #expect(firstScan.lowerBound < inboxScan.lowerBound)

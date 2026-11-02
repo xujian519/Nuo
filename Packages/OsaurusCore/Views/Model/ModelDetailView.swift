@@ -1217,7 +1217,7 @@ struct ModelDetailView: View, Identifiable {
                     EmptyView()
                 }
                 if let required = check.remote?.manifest?.requiredOsaurusVersion {
-                    Text("Requires Osaurus \(required) or later", bundle: .module)
+                    Text("Requires Nuo \(required) or later", bundle: .module)
                 }
                 if let error = check.error {
                     Text("Could not check for model updates: \(error)", bundle: .module)

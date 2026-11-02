@@ -172,7 +172,7 @@ public struct ToolsDoctor {
             .init(
                 label: "sandbox status",
                 result: .ok(
-                    "doctor cannot introspect; check Console.app for [Osaurus] dlopen errors if the plugin fails to load"
+                    "doctor cannot introspect; check Console.app for [Nuo] dlopen errors if the plugin fails to load"
                 )
             )
         )

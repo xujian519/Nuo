@@ -705,7 +705,7 @@ public final class AgentManager: ObservableObject {
     /// Update an existing agent
     public func update(_ agent: Agent) {
         guard !agent.isBuiltIn else {
-            print("[Osaurus] Cannot update built-in agent")
+            print("[Nuo] Cannot update built-in agent")
             return
         }
         var updated = agent
@@ -1404,7 +1404,7 @@ extension AgentManager {
                     do {
                         try await SandboxToolRegistrar.shared.provisionOnDemand(for: agentId)
                     } catch {
-                        print("[Osaurus] Sandbox failed to start for agent \(agentId): \(error)")
+                        print("[Nuo] Sandbox failed to start for agent \(agentId): \(error)")
                     }
                 }
             }
@@ -1908,7 +1908,7 @@ extension AgentManager {
         // Handle custom agents
         guard var agent = agent(for: agentId) else { return }
         guard !agent.isBuiltIn else {
-            print("[Osaurus] Cannot update built-in agent's model")
+            print("[Nuo] Cannot update built-in agent's model")
             return
         }
 

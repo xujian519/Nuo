@@ -158,15 +158,15 @@ private func signWithPrefix(_ payload: Data, privateKey: Data, prefix domainPref
 }
 
 func signPayload(_ payload: Data, privateKey: Data) throws -> Data {
-    try signWithPrefix(payload, privateKey: privateKey, prefix: "Osaurus Signed Message")
+    try signWithPrefix(payload, privateKey: privateKey, prefix: "Nuo Signed Message")
 }
 
 func signAccessPayload(_ payload: Data, privateKey: Data) throws -> Data {
-    try signWithPrefix(payload, privateKey: privateKey, prefix: "Osaurus Signed Access")
+    try signWithPrefix(payload, privateKey: privateKey, prefix: "Nuo Signed Access")
 }
 
 func signPairingPayload(_ payload: Data, privateKey: Data) throws -> Data {
-    try signWithPrefix(payload, privateKey: privateKey, prefix: "Osaurus Signed Pairing")
+    try signWithPrefix(payload, privateKey: privateKey, prefix: "Nuo Signed Pairing")
 }
 
 /// Signed by the advertiser's agent key in the `/pair` response so the
@@ -175,7 +175,7 @@ func signPairingPayload(_ payload: Data, privateKey: Data) throws -> Data {
 /// challenge nonce (anti-replay). Distinct domain prefix from the connector's
 /// pairing signature so the two can't be cross-substituted.
 func signPairingServerPayload(_ payload: Data, privateKey: Data) throws -> Data {
-    try signWithPrefix(payload, privateKey: privateKey, prefix: "Osaurus Signed Pairing Server")
+    try signWithPrefix(payload, privateKey: privateKey, prefix: "Nuo Signed Pairing Server")
 }
 
 /// Canonical bytes for the `/pair` server-identity signature. Centralised so
@@ -188,7 +188,7 @@ func pairingServerSigningPayload(agentAddress: String, nonce: String) -> Data {
 /// pairing so an attacker can't substitute an invite signature for any
 /// other class of token.
 func signInvitePayload(_ payload: Data, privateKey: Data) throws -> Data {
-    try signWithPrefix(payload, privateKey: privateKey, prefix: "Osaurus Signed Invite")
+    try signWithPrefix(payload, privateKey: privateKey, prefix: "Nuo Signed Invite")
 }
 
 /// Sign a Secure Channel handshake transcript with the agent key. Distinct
@@ -200,7 +200,7 @@ func signSecureChannelPayload(_ payload: Data, privateKey: Data) throws -> Data 
 
 /// Sign a template's content hash with an agent key. Distinct domain
 /// prefix so a template signature is never valid as any other token.
-let templateSignatureDomain = "Osaurus Signed Template"
+let templateSignatureDomain = "Nuo Signed Template"
 
 func signTemplatePayload(_ payload: Data, privateKey: Data) throws -> Data {
     try signWithPrefix(payload, privateKey: privateKey, prefix: templateSignatureDomain)

@@ -776,7 +776,7 @@ actor AgentChannelWebhookIngress {
                 426,
                 code: "secure_channel_required",
                 message:
-                    "This peer requires end-to-end encryption for agent requests. Upgrade Osaurus to a version that supports the secure channel."
+                    "This peer requires end-to-end encryption for agent requests. Upgrade Nuo to a version that supports the secure channel."
             )
         }
     }

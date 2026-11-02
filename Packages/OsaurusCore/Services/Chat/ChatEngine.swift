@@ -1226,7 +1226,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
         // Mode 2 is the native server-side agent run; everything else routed to
         // a remote provider is plain inference (Mode 1).
         let mode: RequestMode = (isOsaurus && runAsRemoteAgent) ? .remoteAgentRun : .remoteInference
-        // Native Osaurus peers always ride the Secure Channel; third-party
+        // Native Nuo peers always ride the Secure Channel; third-party
         // providers go direct (TLS) — see `_streamRemote`'s `secureProvider`.
         let transport: RequestTransport = isOsaurus ? .secureChannel : .direct
         let endpointURL: URL? =
@@ -1480,7 +1480,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
             let shouldAccumulate = shouldLogToInsights
             var responseAccumulator = ""
 
-            print("[Osaurus][Stream] Starting stream wrapper for model: \(model)")
+            print("[Nuo][Stream] Starting stream wrapper for model: \(model)")
 
             do {
                 for try await element in inner {
@@ -1529,7 +1529,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
 
                     // Check for task cancellation to allow early termination
                     if Task.isCancelled {
-                        print("[Osaurus][Stream] Task cancelled after \(deltaCount) deltas")
+                        print("[Nuo][Stream] Task cancelled after \(deltaCount) deltas")
                         break
                     }
 
@@ -1593,7 +1593,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
                     // Log every 50th delta or if there's a long gap (potential freeze indicator)
                     if deltaCount % 50 == 1 || timeSinceLastDelta > 2.0 {
                         print(
-                            "[Osaurus][Stream] Delta #\(deltaCount): +\(String(format: "%.2f", timeSinceStart))s total, gap=\(String(format: "%.3f", timeSinceLastDelta))s, len=\(delta.count)"
+                            "[Nuo][Stream] Delta #\(deltaCount): +\(String(format: "%.2f", timeSinceStart))s total, gap=\(String(format: "%.3f", timeSinceLastDelta))s, len=\(delta.count)"
                         )
                     }
 
@@ -1632,7 +1632,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
                     ? (sentinelCount > 0 ? "sentinel-only" : "empty")
                     : "non-empty"
                 print(
-                    "[Osaurus][Stream] Stream completed: \(deltaCount) content/reasoning deltas in \(String(format: "%.2f", totalTime))s classification=\(zeroDeltaClassification) reasoning=\(reasoningHintCount) stats=\(statsHintCount) toolHints=\(toolHintCount) billingHints=\(billingHintCount) prefillHints=\(prefillHintCount)"
+                    "[Nuo][Stream] Stream completed: \(deltaCount) content/reasoning deltas in \(String(format: "%.2f", totalTime))s classification=\(zeroDeltaClassification) reasoning=\(reasoningHintCount) stats=\(statsHintCount) toolHints=\(toolHintCount) billingHints=\(billingHintCount) prefillHints=\(prefillHintCount)"
                 )
 
                 // A blank stream that coincides with a fresh MLX C++ error is
@@ -1643,7 +1643,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
                     finishReason = .cancelled
                     continuation.finish(throwing: CancellationError())
                 } else if deltaCount == 0, let mlxErr = MLXErrorRecovery.errorSince(mlxErrorEpoch) {
-                    print("[Osaurus][Stream] Empty stream after MLX error: \(mlxErr)")
+                    print("[Nuo][Stream] Empty stream after MLX error: \(mlxErr)")
                     finishReason = .error
                     errorMsg = mlxErr
                     continuation.finish(throwing: MLXForwardPassError(message: mlxErr))
@@ -1651,7 +1651,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
                     continuation.finish()
                 }
             } catch let invs as ServiceToolInvocations {
-                print("[Osaurus][Stream] Tool invocations (batch): count=\(invs.invocations.count)")
+                print("[Nuo][Stream] Tool invocations (batch): count=\(invs.invocations.count)")
                 parsedToolNames = invs.invocations.map(\.toolName)
                 if let first = invs.invocations.first {
                     toolInvocation = (first.toolName, first.jsonArguments)
@@ -1659,7 +1659,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
                 finishReason = .toolCalls
                 continuation.finish(throwing: invs)
             } catch let inv as ServiceToolInvocation {
-                print("[Osaurus][Stream] Tool invocation: \(inv.toolName)")
+                print("[Nuo][Stream] Tool invocation: \(inv.toolName)")
                 parsedToolNames = [inv.toolName]
                 toolInvocation = (inv.toolName, inv.jsonArguments)
                 finishReason = .toolCalls
@@ -1667,11 +1667,11 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
             } catch {
                 // Check if this is a CancellationError (expected when consumer stops)
                 if Task.isCancelled || error is CancellationError {
-                    print("[Osaurus][Stream] Stream cancelled after \(deltaCount) deltas")
+                    print("[Nuo][Stream] Stream cancelled after \(deltaCount) deltas")
                     if !lifecycle.snapshot().terminalStatsObserved { finishReason = .cancelled }
                     continuation.finish(throwing: CancellationError())
                 } else {
-                    print("[Osaurus][Stream] Stream error after \(deltaCount) deltas: \(error.localizedDescription)")
+                    print("[Nuo][Stream] Stream error after \(deltaCount) deltas: \(error.localizedDescription)")
                     finishReason = .error
                     errorMsg = error.localizedDescription
                     continuation.finish(throwing: error)
@@ -1755,9 +1755,9 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
                     // alive long enough to drain the runtime-owned terminal
                     // work; the vMLX solo lease and Metal gate are released
                     // only after that drain finishes.
-                    print("[Osaurus][Stream] Consumer closed after terminal stats - draining producer")
+                    print("[Nuo][Stream] Consumer closed after terminal stats - draining producer")
                 } else {
-                    print("[Osaurus][Stream] Consumer cancelled before terminal stats - stopping producer task")
+                    print("[Nuo][Stream] Consumer cancelled before terminal stats - stopping producer task")
                     producerTask.cancel()
                 }
             case .finished:

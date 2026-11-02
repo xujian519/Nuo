@@ -378,7 +378,7 @@ struct PrivacyPresetRulesSection: View {
                 Text("\(presets.count) recommended presets are off", bundle: .module)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(theme.primaryText)
-                Text("Osaurus turns these on for \(joined) and Global on a new install.", bundle: .module)
+                Text("Nuo turns these on for \(joined) and Global on a new install.", bundle: .module)
                     .font(.system(size: 11))
                     .foregroundColor(theme.tertiaryText)
                     .fixedSize(horizontal: false, vertical: true)

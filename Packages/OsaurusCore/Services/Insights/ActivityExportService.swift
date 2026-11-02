@@ -212,7 +212,7 @@ enum ActivityExportService {
         df.dateStyle = .medium
         df.timeStyle = .medium
         var md: [String] = []
-        md.append("# Osaurus Activity Log")
+        md.append("# Nuo Activity Log")
         md.append("")
         md.append("- Exported: \(df.string(from: manifest.exportedAt))")
         md.append("- App version: \(manifest.appVersion)")

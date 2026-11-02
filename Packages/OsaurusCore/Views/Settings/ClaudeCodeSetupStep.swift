@@ -229,7 +229,7 @@ struct ClaudeCodeSetupStep: View {
             }
 
             Text(
-                "This opens Claude Code's own sign-in in your browser. Osaurus never sees your credentials. If the browser flow stalls, sign in from Terminal, then choose Re-check.",
+                "This opens Claude Code's own sign-in in your browser. Nuo never sees your credentials. If the browser flow stalls, sign in from Terminal, then choose Re-check.",
                 bundle: .module
             )
             .font(.system(size: 11))
@@ -327,7 +327,7 @@ struct ClaudeCodeSetupStep: View {
                 // models still work, they just aren't subscription-billed. Say so
                 // rather than implying a subscription is active.
                 Text(
-                    "This sign-in isn't a Pro or Max subscription, so requests bill through whatever credential Claude Code is configured with. Osaurus removes ANTHROPIC_API_KEY from the environment it starts Claude Code with.",
+                    "This sign-in isn't a Pro or Max subscription, so requests bill through whatever credential Claude Code is configured with. Nuo removes ANTHROPIC_API_KEY from the environment it starts Claude Code with.",
                     bundle: .module
                 )
                 .font(.system(size: 11))

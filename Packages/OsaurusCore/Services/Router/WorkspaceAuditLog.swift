@@ -271,7 +271,7 @@ actor WorkspaceAuditLog {
         do {
             try write(record, workspaceId: sanitizedId)
         } catch {
-            NSLog("[Osaurus][Workspaces] audit append failed: %@", "\(error)")
+            NSLog("[Nuo][Workspaces] audit append failed: %@", "\(error)")
             return nil
         }
         tails[sanitizedId] = (seq, hash)

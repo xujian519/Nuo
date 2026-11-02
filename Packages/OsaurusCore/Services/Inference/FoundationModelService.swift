@@ -43,7 +43,7 @@ enum FoundationUnavailableReason: Sendable, Equatable {
         case .osTooOld:
             return "Foundation Model requires macOS 26 or later."
         case .frameworkMissing:
-            return "This build of Osaurus does not include Foundation Models support."
+            return "This build of Nuo does not include Foundation Models support."
         case .unknown:
             return "Apple Intelligence is not available right now."
         }

@@ -53,7 +53,7 @@ struct ThemeAppearanceModeTests {
     @Test
     func osaurusPresetsRetainLegacyDefaultPalettes() {
         let dark = CustomTheme.osaurusDarkPreset
-        #expect(dark.metadata.name == "Osaurus Dark")
+        #expect(dark.metadata.name == "Nuo Dark")
         #expect(dark.isBuiltIn)
         #expect(dark.isDark)
         #expect(dark.colors.primaryBackground == "#0e1120")
@@ -61,7 +61,7 @@ struct ThemeAppearanceModeTests {
         #expect(!dark.glass.enabled)
 
         let light = CustomTheme.osaurusLightPreset
-        #expect(light.metadata.name == "Osaurus Light")
+        #expect(light.metadata.name == "Nuo Light")
         #expect(light.isBuiltIn)
         #expect(!light.isDark)
         #expect(light.colors.primaryBackground == "#ffffea")

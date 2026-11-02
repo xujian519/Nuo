@@ -708,7 +708,7 @@ actor WorkspaceAgentAccessHost {
                 [.posixPermissions: 0o600], ofItemAtPath: url.path
             )
         } catch {
-            NSLog("[Osaurus][Workspaces] Failed to persist workspace key records: %@", "\(error)")
+            NSLog("[Nuo][Workspaces] Failed to persist workspace key records: %@", "\(error)")
         }
     }
 }

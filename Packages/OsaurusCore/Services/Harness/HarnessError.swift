@@ -39,7 +39,7 @@ public enum HarnessError: LocalizedError, Sendable, Equatable {
         case .workingFolderUnavailable(let path):
             return String(
                 format: L(
-                    "Osaurus can't open the working folder %@. Choose the folder again, or clear it, then resend."
+                    "Nuo can't open the working folder %@. Choose the folder again, or clear it, then resend."
                 ),
                 path
             )
@@ -65,7 +65,7 @@ public enum HarnessError: LocalizedError, Sendable, Equatable {
         case .unsupportedPath(let agentName):
             return String(
                 format: L(
-                    "%@ runs on an external harness, which this feature can't drive. Chat with the agent in Osaurus instead."
+                    "%@ runs on an external harness, which this feature can't drive. Chat with the agent in Nuo instead."
                 ),
                 agentName
             )

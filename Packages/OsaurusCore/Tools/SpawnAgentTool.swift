@@ -300,7 +300,7 @@ public final class SpawnAgentTool: OsaurusTool, @unchecked Sendable {
             kind: .unavailable,
             message: "Agent `\(agent.name)` cannot run yet: "
                 + blockers.map { "\($0.title.lowercased()): \($0.detail)" }.joined(separator: " ")
-                + " Only the user can fix this, in Osaurus (Agents → \(agent.name)). Tell them what is "
+                + " Only the user can fix this, in Nuo (Agents → \(agent.name)). Tell them what is "
                 + "needed and stop; do not retry until they confirm it is done.",
             tool: tool,
             retryable: false,

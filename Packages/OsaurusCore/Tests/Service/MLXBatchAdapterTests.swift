@@ -300,7 +300,7 @@ struct MLXBatchAdapterTests {
 
         #expect(
             params.enableCompiledBatchDecode,
-            "Osaurus default maxBatchSize=1 path must opt into vmlx BatchEngine compiled decode; leaving this false is the observed half-speed path"
+            "Nuo default maxBatchSize=1 path must opt into vmlx BatchEngine compiled decode; leaving this false is the observed half-speed path"
         )
     }
 
@@ -1672,14 +1672,14 @@ struct MLXBatchAdapterTests {
                 modelName: "DeepSeek-V4-Flash-0731-JANG",
                 maxBatchSize: 1
             ),
-            "DSV4 automatically uses its model-native compiled gate/SwiGLU path; Osaurus must not request the incompatible generic whole-cache compiler"
+            "DSV4 automatically uses its model-native compiled gate/SwiGLU path; Nuo must not request the incompatible generic whole-cache compiler"
         )
         #expect(
             !MLXBatchAdapter.shouldEnableCompiledBatchDecode(
                 modelName: "JANGQ-AI/Hy3-preview-JANGTQ",
                 maxBatchSize: 1
             ),
-            "Hy3 is coherent on the uncompiled path but diverges on the B=1 compiled trace; Osaurus must not request that path"
+            "Hy3 is coherent on the uncompiled path but diverges on the B=1 compiled trace; Nuo must not request that path"
         )
         #expect(
             !MLXBatchAdapter.shouldEnableCompiledBatchDecode(
@@ -1699,7 +1699,7 @@ struct MLXBatchAdapterTests {
                 modelName: "JANGQ-AI/Step-3.7-Flash-JANG_2L",
                 maxBatchSize: 1
             ),
-            "Step 3.7 is proven on vmlx's uncompiled BatchEngine path; Osaurus must not route it through the compiled B=1 trace until that path is separately proven"
+            "Step 3.7 is proven on vmlx's uncompiled BatchEngine path; Nuo must not route it through the compiled B=1 trace until that path is separately proven"
         )
         #expect(
             !MLXBatchAdapter.shouldEnableCompiledBatchDecode(
@@ -1712,7 +1712,7 @@ struct MLXBatchAdapterTests {
                 modelName: "NVIDIA-Nemotron-3-Ultra-550B-A55B-JANGTQ_1L",
                 maxBatchSize: 1
             ),
-            "Hybrid SSM families need exact cache/topology proof on the uncompiled path; Osaurus must not opt them into the B=1 compiled trace"
+            "Hybrid SSM families need exact cache/topology proof on the uncompiled path; Nuo must not opt them into the B=1 compiled trace"
         )
         #expect(
             !MLXBatchAdapter.shouldEnableCompiledBatchDecode(
@@ -2145,7 +2145,7 @@ struct MLXBatchAdapterTests {
         #expect(maxReasoning["enable_thinking"] as? Bool == true)
         #expect(
             maxReasoning["reasoning_effort"] as? String == "max",
-            "DSV4 Max must reach vmlx-swift unchanged; Osaurus must not hide runtime issues behind an effort downgrade"
+            "DSV4 Max must reach vmlx-swift unchanged; Nuo must not hide runtime issues behind an effort downgrade"
         )
 
         let legacyToggle = MLXBatchAdapter.additionalContext(

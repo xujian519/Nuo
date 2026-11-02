@@ -269,7 +269,7 @@ struct ModelManifestTests {
     }
 
     @Test func versionRefusalsUseClientErrorEnvelopes() {
-        let failure = ModelManifest.Failure(reason: .requiresOsaurusUpdate, message: "Update Osaurus.")
+        let failure = ModelManifest.Failure(reason: .requiresOsaurusUpdate, message: "Update Nuo.")
         #expect(HTTPHandler.localRuntimeHTTPStatus(for: failure).code == 400)
         #expect(HTTPHandler.openAIErrorType(for: failure) == "invalid_request_error")
         #expect(HTTPHandler.anthropicErrorType(for: failure) == "invalid_request_error")

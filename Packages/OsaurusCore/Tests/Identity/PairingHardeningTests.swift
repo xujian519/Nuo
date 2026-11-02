@@ -322,7 +322,7 @@ struct BonjourAdvertiserNameTests {
     @Test func instanceName_shortNameUnchanged() {
         let agent = Agent(name: "Nuo", autonomousExec: AutonomousExecConfig(enabled: false))
         let name = BonjourAdvertiser.instanceName(for: agent)
-        #expect(name == "Osaurus@\(agent.id.uuidString)")
+        #expect(name == "Nuo@\(agent.id.uuidString)")
     }
 
     @Test func truncateUTF8_neverSplitsCharacters() {

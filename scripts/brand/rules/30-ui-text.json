@@ -32,6 +32,39 @@
         "Packages/OsaurusCore/Services/MCP/OAuth/MCPOAuthClientMetadata.swift",
         "Packages/OsaurusCore/Services/Provider/OpenRouterOAuthService.swift"
       ]
+    },
+    {
+      "id": "ui-text.swift-literals",
+      "op": "replace",
+      "mode": "swift-literals",
+      "files": [
+        "App/osaurus/**/*.swift",
+        "Packages/OsaurusCore/**/*.swift",
+        "Packages/OsaurusCLI/Sources/**/*.swift"
+      ],
+      "files_exclude": [
+        "Packages/OsaurusCore/Tests/Utils/AppDefaultsMigrationTests.swift",
+        "Packages/OsaurusCore/Services/MediaGeneration/OsaurusCloudMediaClient.swift",
+        "Packages/OsaurusCore/Services/MCP/OAuth/MCPOAuthClientMetadata.swift",
+        "Packages/OsaurusCore/Services/Provider/OpenRouterOAuthService.swift"
+      ],
+      "exclude_substrings": [
+        "Osaurus Cloud",
+        "Osaurus Router",
+        "Osaurus ID",
+        "OsaurusID",
+        "Osaurus Identity",
+        "Osaurus Secure",
+        "Osaurus Premium",
+        "Osaurus Connect",
+        "OsaurusAI",
+        "Osaurus phone app",
+        "Osaurus.app"
+      ],
+      "pattern": "\\bOsaurus\\b",
+      "replace": "{brand_display}",
+      "enforced": true,
+      "comment": "Hardcoded brand self-references in Swift string literals: UI copy, log prefixes ([Osaurus] -> [Nuo]), tool descriptions, test fixtures. \\b protects every OsaurusXxx code identifier (OsaurusRouter, OsaurusPaths, ...); PROTECTED frozen literals (X-Osaurus-*, OSAURUS_*, ai.osaurus.*, min_osaurus, osaurus_help) are spliced out by substitute(); exclude_substrings shields B-class service names and upstream mocks per R7. AppDefaultsMigrationTests is excluded because its fixtures ARE legacy defaults keys (NSWindow Frame Osaurus Chat) that the migration under test must keep reading."
     }
   ]
 }

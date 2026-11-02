@@ -530,7 +530,7 @@ private struct FolderStep: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             if items.isEmpty {
-                StepDoneBanner(text: L("Osaurus can read and write \(agent.workingFolderPath ?? "")."))
+                StepDoneBanner(text: L("Nuo can read and write \(agent.workingFolderPath ?? "")."))
             } else {
                 StepIssueList(items: items)
                 if let hint = agent.workingFolderPath {

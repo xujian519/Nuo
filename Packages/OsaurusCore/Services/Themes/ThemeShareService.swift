@@ -34,7 +34,7 @@ public enum ThemeShareError: LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .noMasterKey:
-            return "No Osaurus identity is set up yet. Create one in Identity settings before sharing themes."
+            return "No Nuo identity is set up yet. Create one in Identity settings before sharing themes."
         case .bodyTooLarge(let size):
             let mb = Double(size) / (1024 * 1024)
             return String(

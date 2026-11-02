@@ -13,7 +13,7 @@ import Testing
 
 @testable import OsaurusCore
 
-@Suite("Osaurus router account service", .serialized)
+@Suite("Nuo router account service", .serialized)
 @MainActor
 struct OsaurusRouterAccountServiceTests {
 

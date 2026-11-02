@@ -364,7 +364,7 @@ final class PDFEditor {
             case .button:
                 throw op.fail("\"\(field.name)\" is a push button (it runs an action), not a fillable field.")
             case .signature:
-                throw op.fail("\"\(field.name)\" is a digital signature field; Osaurus can't sign PDFs. Fill the other fields and leave signing to the signer.")
+                throw op.fail("\"\(field.name)\" is a digital signature field; Nuo can't sign PDFs. Fill the other fields and leave signing to the signer.")
             default: break
             }
             if field.isReadOnly {

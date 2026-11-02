@@ -58,7 +58,7 @@ struct CryptoHelpersTests {
         let recovered = try recoverAddress(
             payload: payload,
             signature: signature,
-            domainPrefix: "Osaurus Signed Message"
+            domainPrefix: "Nuo Signed Message"
         )
         #expect(recovered.lowercased() == expectedAddress.lowercased())
     }
@@ -74,7 +74,7 @@ struct CryptoHelpersTests {
         let recovered = try recoverAddress(
             payload: payload,
             signature: signature,
-            domainPrefix: "Osaurus Signed Access"
+            domainPrefix: "Nuo Signed Access"
         )
         #expect(recovered.lowercased() == expectedAddress.lowercased())
     }
@@ -100,7 +100,7 @@ struct CryptoHelpersTests {
         let recoveredWithWrongPrefix = try recoverAddress(
             payload: payload,
             signature: signature,
-            domainPrefix: "Osaurus Signed Access"
+            domainPrefix: "Nuo Signed Access"
         )
         #expect(recoveredWithWrongPrefix.lowercased() != expectedAddress.lowercased())
     }
@@ -112,7 +112,7 @@ struct CryptoHelpersTests {
         let shortSig = Data(repeating: 0x00, count: 64)
 
         #expect(throws: OsaurusIdentityError.self) {
-            _ = try recoverAddress(payload: payload, signature: shortSig, domainPrefix: "Osaurus Signed Access")
+            _ = try recoverAddress(payload: payload, signature: shortSig, domainPrefix: "Nuo Signed Access")
         }
     }
 
@@ -126,7 +126,7 @@ struct CryptoHelpersTests {
         for badV: UInt8 in [0x00 + 4, 26, 31, 0x7f, 0xff] {
             signature[signature.index(before: signature.endIndex)] = badV
             #expect(throws: OsaurusIdentityError.self, "v=\(badV)") {
-                _ = try recoverAddress(payload: payload, signature: signature, domainPrefix: "Osaurus Signed Access")
+                _ = try recoverAddress(payload: payload, signature: signature, domainPrefix: "Nuo Signed Access")
             }
         }
 
@@ -134,7 +134,7 @@ struct CryptoHelpersTests {
         var raw = try signPayload(payload, privateKey: TestKeys.alicePrivateKey)
         let last = raw.index(before: raw.endIndex)
         raw[last] = raw[last] - 27
-        let recovered = try recoverAddress(payload: payload, signature: raw, domainPrefix: "Osaurus Signed Message")
+        let recovered = try recoverAddress(payload: payload, signature: raw, domainPrefix: "Nuo Signed Message")
         #expect(recovered.lowercased() == TestKeys.aliceAddress.lowercased())
     }
 
@@ -197,7 +197,7 @@ struct CryptoHelpersTests {
     // MARK: - Base64url Encoding
 
     @Test func base64url_roundtrip() {
-        let original = Data("Hello, Osaurus!".utf8)
+        let original = Data("Hello, Nuo!".utf8)
         let encoded = original.base64urlEncoded
         let decoded = Data(base64urlEncoded: encoded)
         #expect(decoded == original)

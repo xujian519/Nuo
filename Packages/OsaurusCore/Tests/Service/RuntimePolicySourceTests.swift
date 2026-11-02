@@ -830,7 +830,7 @@ struct RuntimePolicySourceTests {
         #expect(manifestRevision == appRevision)
         #expect(
             manifestRevision == expectedRuntimeHardenedRevision,
-            "Osaurus must consume the required vmlx-swift revision 48fdbb82 for serialized tokenizer contracts, checked text-prefill error propagation and declared bundle thinking/effort defaults, on top of the LFM3 text, vision, video and speech-input runtime, native audio text-stop handling and existing runtime hardening. An internally-consistent older pin is still not wired"
+            "Nuo must consume the required vmlx-swift revision 48fdbb82 for serialized tokenizer contracts, checked text-prefill error propagation and declared bundle thinking/effort defaults, on top of the LFM3 text, vision, video and speech-input runtime, native audio text-stop handling and existing runtime hardening. An internally-consistent older pin is still not wired"
         )
         #expect(manifest.contains("https://github.com/osaurus-ai/vmlx-swift"))
         #expect(!manifest.contains("https://github.com/osaurus-ai/vmlx-swift-lm"))
@@ -1079,7 +1079,7 @@ struct RuntimePolicySourceTests {
         }
     }
 
-    @Test("Osaurus source does not import unvendored tokenizer or template modules")
+    @Test("Nuo source does not import unvendored tokenizer or template modules")
     func osaurusSourceUsesVMLXPrefixedTokenizerAndTemplateModules() throws {
         let disallowedImports = [
             "import Tokenizers",
@@ -3801,7 +3801,7 @@ struct RuntimePolicySourceTests {
         #expect(
             adapter.contains("engineDefaults.temperature")
                 && !adapter.contains("runtimeTemperature ?? 0.7"),
-            "Local chat sampler fallback must use vmlx GenerateParameters defaults, not Osaurus-specific invented temperature defaults."
+            "Local chat sampler fallback must use vmlx GenerateParameters defaults, not Nuo-specific invented temperature defaults."
         )
         #expect(
             adapter.contains("engineDefaults.topP")
@@ -3810,7 +3810,7 @@ struct RuntimePolicySourceTests {
                 && !adapter.contains("runtimeTopP ?? 1.0")
                 && !adapter.contains("runtimeTopK ?? 0")
                 && !adapter.contains("runtimeMinP ?? 0"),
-            "Local chat sampler fallback must use vmlx GenerateParameters defaults for topP/topK/minP instead of hardcoded Osaurus literals."
+            "Local chat sampler fallback must use vmlx GenerateParameters defaults for topP/topK/minP instead of hardcoded Nuo literals."
         )
         #expect(
             !adapter.contains("generation.samplingParametersAreImplicit {\n            return true"),
@@ -3836,7 +3836,7 @@ struct RuntimePolicySourceTests {
                 && !tokenizerLoader.contains(
                     "Self.requiresToolChoice(adjustedContext),\n            (env[\"VMLX_CHAT_TEMPLATE_FALLBACK_DISABLE\"] ?? \"0\") != \"1\"\n        {\n            return try fallback(\n                label: \"Gemma4"
                 ),
-            "Gemma4 required/named tool turns must not bypass the model-bundled native template with an Osaurus-forced Gemma4WithTools fallback."
+            "Gemma4 required/named tool turns must not bypass the model-bundled native template with an Nuo-forced Gemma4WithTools fallback."
         )
         #expect(
             reasoningCapability.contains("runtime code must not synthesize")

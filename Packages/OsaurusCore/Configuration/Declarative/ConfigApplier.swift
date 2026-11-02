@@ -617,7 +617,7 @@ enum ConfigApplier {
                 }
             } else {
                 outcome.notes.append(
-                    "runtime: `\(raw)` is not registered on this Mac, so the agent runs on Osaurus's "
+                    "runtime: `\(raw)` is not registered on this Mac, so the agent runs on Nuo's "
                         + "own loop. Add it under Agents → Runtimes, then pick it in the chat model picker.")
             }
         }
@@ -1050,7 +1050,7 @@ enum ConfigApplier {
             return .success(ref)
         case .success(.local):
             return .failure(
-                "`\(raw)` is one of this Osaurus's own agents; list it under spawnable_agents.")
+                "`\(raw)` is one of this Nuo's own agents; list it under spawnable_agents.")
         case .failure(.ambiguous(let forms)):
             return .failure(
                 "`\(raw)` matches more than one shared agent; use one of: "
@@ -1964,7 +1964,7 @@ enum ConfigApplier {
     /// What a phone run is told for an existing provider whose key only the
     /// Mac can take: the model relays it, so it names where to go.
     static func credentialsNeedTheMac(providerName: String) -> String {
-        "The API key for '\(providerName)' has to be entered on the Mac: Osaurus → Settings → "
+        "The API key for '\(providerName)' has to be entered on the Mac: Nuo → Settings → "
             + "Providers. It was not requested from the phone and nothing was stored; tell the user "
             + "to add it there, then this provider will work."
     }
@@ -2123,7 +2123,7 @@ enum ConfigApplier {
                 result: ConfigApplyResult(
                     section: "providers", target: entry.name, status: .needsUserAction,
                     message: "'\(entry.name)' was not added: \(step) on the Mac, which can't be done "
-                        + "from the phone. Tell the user to add it in Osaurus → Settings → Providers "
+                        + "from the phone. Tell the user to add it in Nuo → Settings → Providers "
                         + "on their Mac, or to run this setup from the Mac."))
         }
         let outcome = await ProviderCredentialPromptService.requestCredentials(request)

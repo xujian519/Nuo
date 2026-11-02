@@ -169,7 +169,7 @@ struct VADModeSettingsTab: View {
             }
 
             VoiceInfoBox(
-                "When enabled, Osaurus will continuously listen for agent names. Say an agent's name to automatically open a chat with that agent."
+                "When enabled, Nuo will continuously listen for agent names. Say an agent's name to automatically open a chat with that agent."
             )
         }
     }

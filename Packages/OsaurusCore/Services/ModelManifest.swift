@@ -111,14 +111,14 @@ struct ModelManifest: Equatable, Sendable {
             return Failure(
                 reason: .unknownOsaurusVersion,
                 message:
-                    "This model requires Osaurus \(requiredOsaurusVersion) or later, but this app's version could not be read. Install a versioned Osaurus build."
+                    "This model requires Nuo \(requiredOsaurusVersion) or later, but this app's version could not be read. Install a versioned Nuo build."
             )
         }
         guard current < required else { return nil }
         return Failure(
             reason: .requiresOsaurusUpdate,
             message:
-                "This model requires Osaurus \(requiredOsaurusVersion) or later; this app is \(hostVersion). Update Osaurus before loading this model."
+                "This model requires Nuo \(requiredOsaurusVersion) or later; this app is \(hostVersion). Update Nuo before loading this model."
         )
     }
 

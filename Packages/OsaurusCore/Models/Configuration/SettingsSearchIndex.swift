@@ -942,7 +942,7 @@ public enum SettingsSearchIndex {
                 "codex profile", "external client", "coding agent",
             ],
             disambiguation:
-                "Points OpenAI's Codex CLI at this Osaurus as a local model provider. Not the \"OpenAI Codex\" remote provider under Providers, which is Osaurus using a ChatGPT subscription."
+                "Points OpenAI's Codex CLI at this Nuo as a local model provider. Not the \"OpenAI Codex\" remote provider under Providers, which is Nuo using a ChatGPT subscription."
         ),
         .init(
             id: "computerUse.enable",
@@ -1069,7 +1069,7 @@ public enum SettingsSearchIndex {
                 "who may speak", "connect n8n", "remote callers",
             ],
             disambiguation:
-                "The n8n channel sheet (Settings → Channels → n8n): Name it → Where is your n8n? → Who answers? → Pair → Prove it. n8n calls Osaurus; the only n8n URL Osaurus stores is the optional Outbound Webhook URL under Who answers?."
+                "The n8n channel sheet (Settings → Channels → n8n): Name it → Where is your n8n? → Who answers? → Pair → Prove it. n8n calls Nuo; the only n8n URL Nuo stores is the optional Outbound Webhook URL under Who answers?."
         ),
         .init(
             id: "agentChannels.n8n.enabled",
@@ -1158,7 +1158,7 @@ public enum SettingsSearchIndex {
                 "end-to-end encrypted", "osrs-n8n", "ping", "credential test", "no pairing code yet",
             ],
             disambiguation:
-                "Inside the n8n channel sheet (Settings → Channels → n8n → Pair). One copyable string the Osaurus n8n community node decodes; it contains the channel secret and only the URL valid for Where is your n8n?. Withheld until it can work (e.g. Relay connected for Remote). Not the osk-v1 access key from Share Agent."
+                "Inside the n8n channel sheet (Settings → Channels → n8n → Pair). One copyable string the Nuo n8n community node decodes; it contains the channel secret and only the URL valid for Where is your n8n?. Withheld until it can work (e.g. Relay connected for Remote). Not the osk-v1 access key from Share Agent."
         ),
         .init(
             id: "agentChannels.n8n.pendingApprovals",
@@ -2031,7 +2031,7 @@ public enum SettingsSearchIndex {
             tab: .agents,
             title: "Brief description (optional)",
             keywords: ["agent description", "purpose", "routing", "delegation", "auto-generated description", "generated description"],
-            disambiguation: "Optional one-line summary shown to the orchestrator when it chooses a delegation target. Left blank, Osaurus generates one in the background from the agent's system prompt; typing your own overrides it.",
+            disambiguation: "Optional one-line summary shown to the orchestrator when it chooses a delegation target. Left blank, Nuo generates one in the background from the agent's system prompt; typing your own overrides it.",
             declarativeSection: "agents"
         ),
         .init(
@@ -2045,7 +2045,7 @@ public enum SettingsSearchIndex {
                 "manage runtimes", "switch runtime", "switch to claude code", "model picker runtime",
             ],
             disambiguation:
-                "Per-agent choice between Osaurus's own loop and a registered harness (Configure tab → Runtime). The chat model picker lists the same runtimes as columns; picking one there changes this setting. Register or test harnesses under Agents → Runtimes. Declarative key: `runtime` (\"builtin\" or a harness_runtimes name) on agents[] and default_agent.",
+                "Per-agent choice between Nuo's own loop and a registered harness (Configure tab → Runtime). The chat model picker lists the same runtimes as columns; picking one there changes this setting. Register or test harnesses under Agents → Runtimes. Declarative key: `runtime` (\"builtin\" or a harness_runtimes name) on agents[] and default_agent.",
             declarativeSection: "agents"
         ),
         .init(

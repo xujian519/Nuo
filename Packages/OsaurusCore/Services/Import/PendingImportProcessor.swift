@@ -486,7 +486,7 @@ public final class PendingImportProcessor {
             if exists {
                 return .conflict(
                     "A \(what) named \"\(op.name)\" already exists and was not installed by \(bundle.id). "
-                        + "Rename or remove it in Osaurus, then run the import again.")
+                        + "Rename or remove it in Nuo, then run the import again.")
             }
             return .create
         }
@@ -501,7 +501,7 @@ public final class PendingImportProcessor {
         }
         guard exists else {
             if op.action == .update {
-                return .skip("Removed in Osaurus since it was installed. Run install to add it back.")
+                return .skip("Removed in Nuo since it was installed. Run install to add it back.")
             }
             return .create
         }
@@ -870,7 +870,7 @@ public final class PendingImportProcessor {
         case .agent:
             if let id = receipt.agentId.flatMap(UUID.init(uuidString:)), AgentManager.shared.agent(for: id) != nil {
                 guard await AgentManager.shared.delete(id: id).deleted else {
-                    return row(.failed, "Osaurus could not delete the agent.")
+                    return row(.failed, "Nuo could not delete the agent.")
                 }
             } else {
                 gone = true
@@ -882,7 +882,7 @@ public final class PendingImportProcessor {
                 } ?? SkillManager.shared.skill(named: receipt.name)
             if let skill, !skill.isBuiltIn, !skill.isFromPlugin {
                 guard await SkillManager.shared.delete(id: skill.id) else {
-                    return row(.failed, "Osaurus could not delete the skill.")
+                    return row(.failed, "Nuo could not delete the skill.")
                 }
             } else {
                 gone = true
@@ -915,7 +915,7 @@ public final class PendingImportProcessor {
         }
         receipts.removeAll { $0.bundleId == receipt.bundleId && $0.matches(kind: receipt.kind, name: receipt.name) }
         removed.insert(Self.removalKey(receipt.kind, receipt.name))
-        return row(.done, gone ? "Already removed in Osaurus." : nil)
+        return row(.done, gone ? "Already removed in Nuo." : nil)
     }
 
     // MARK: - Launch notice

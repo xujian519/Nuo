@@ -108,7 +108,7 @@ final class InsightsService: ObservableObject {
             } catch {
                 storeAvailable = false
                 storeError = error.localizedDescription
-                NSLog("[Osaurus][Insights] activity log unavailable: %@", "\(error)")
+                NSLog("[Nuo][Insights] activity log unavailable: %@", "\(error)")
             }
         } else {
             storeAvailable = store.isOpen
@@ -178,7 +178,7 @@ final class InsightsService: ObservableObject {
                     self.changed.send()
                 }
             } catch {
-                NSLog("[Osaurus][Insights] append failed: %@", "\(error)")
+                NSLog("[Nuo][Insights] append failed: %@", "\(error)")
                 await MainActor.run { [weak self] in self?.storeError = error.localizedDescription }
             }
         }
@@ -199,7 +199,7 @@ final class InsightsService: ObservableObject {
             do {
                 try store.clear()
             } catch {
-                NSLog("[Osaurus][Insights] clear failed: %@", "\(error)")
+                NSLog("[Nuo][Insights] clear failed: %@", "\(error)")
             }
             await MainActor.run { [weak self] in self?.changed.send() }
         }

@@ -158,7 +158,7 @@ public struct PPTXEmitter: DocumentFormatEmitter {
         try add(
             "docProps/app.xml",
             "<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/extended-properties\">"
-                + "<Application>Osaurus</Application><Slides>\(slides.count)</Slides></Properties>")
+                + "<Application>Nuo</Application><Slides>\(slides.count)</Slides></Properties>")
 
         let slideIds = slides.indices.map { "<p:sldId id=\"\(256 + $0)\" r:id=\"rId\(10 + $0)\"/>" }.joined()
         try add(
@@ -322,10 +322,10 @@ public struct PPTXEmitter: DocumentFormatEmitter {
             + "<a:lnStyleLst>\(line)\(line)\(line)</a:lnStyleLst>"
             + "<a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst>"
             + "<a:bgFillStyleLst>\(solid)\(solid)\(solid)</a:bgFillStyleLst>"
-        return "<a:theme xmlns:a=\"\(aNS)\" name=\"Osaurus\"><a:themeElements>"
-            + "<a:clrScheme name=\"Osaurus\">\(colors)</a:clrScheme>"
-            + "<a:fontScheme name=\"Osaurus\">\(fonts)</a:fontScheme>"
-            + "<a:fmtScheme name=\"Osaurus\">\(format)</a:fmtScheme>"
+        return "<a:theme xmlns:a=\"\(aNS)\" name=\"Nuo\"><a:themeElements>"
+            + "<a:clrScheme name=\"Nuo\">\(colors)</a:clrScheme>"
+            + "<a:fontScheme name=\"Nuo\">\(fonts)</a:fontScheme>"
+            + "<a:fmtScheme name=\"Nuo\">\(format)</a:fmtScheme>"
             + "</a:themeElements><a:objectDefaults/><a:extraClrSchemeLst/></a:theme>"
     }
 }

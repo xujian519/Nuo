@@ -205,7 +205,7 @@ struct ActivityExportTests {
             filterDescription: "cloud only", verification: try store.verify(), appVersion: "9.9"
         )
         let md = String(decoding: data, as: UTF8.self)
-        #expect(md.hasPrefix("# Osaurus Activity Log"))
+        #expect(md.hasPrefix("# Nuo Activity Log"))
         #expect(md.contains("- App version: 9.9"))
         #expect(md.contains("- Records: 3 (1 local, 2 cloud)"))
         #expect(md.contains("- Filter: cloud only"))

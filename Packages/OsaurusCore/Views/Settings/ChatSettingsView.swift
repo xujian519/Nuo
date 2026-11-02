@@ -192,7 +192,7 @@ struct ChatSettingsView: View {
             SettingsToggle(
                 title: L("Clipboard Monitoring"),
                 description:
-                    "Offer text you've just copied in any app as context, and grab the current selection when you summon Osaurus.",
+                    "Offer text you've just copied in any app as context, and grab the current selection when you summon Nuo.",
                 anchorId: "settings.chat.clipboard",
                 isOn: $tempEnableClipboardMonitoring
             )

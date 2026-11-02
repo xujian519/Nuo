@@ -590,7 +590,7 @@ public enum RemoteProviderConfigurationStore {
         } catch {
             // Return empty in-memory config but never overwrite the existing file;
             // that would permanently destroy the user's providers.
-            print("[Osaurus] Failed to load RemoteProviderConfiguration: \(error)")
+            print("[Nuo] Failed to load RemoteProviderConfiguration: \(error)")
             return RemoteProviderConfiguration()
         }
     }
@@ -610,10 +610,10 @@ public enum RemoteProviderConfigurationStore {
                 data,
                 to: url,
                 synchronous: OsaurusPaths.overrideRoot != nil,
-                onError: { print("[Osaurus] Failed to save RemoteProviderConfiguration: \($0)") }
+                onError: { print("[Nuo] Failed to save RemoteProviderConfiguration: \($0)") }
             )
         } catch {
-            print("[Osaurus] Failed to save RemoteProviderConfiguration: \(error)")
+            print("[Nuo] Failed to save RemoteProviderConfiguration: \(error)")
         }
     }
 

@@ -413,7 +413,7 @@ struct ClaudePluginSpecTests {
         let error = ClaudeMarketplaceInstallPreviewError.reviewRequired(
             pluginName: "https://example.com/plugin?token=secret-token",
             reason:
-                "This entry is not in the bundled importability catalog yet, so Osaurus cannot preview what would be installed."
+                "This entry is not in the bundled importability catalog yet, so Nuo cannot preview what would be installed."
         )
 
         let message = error.errorDescription ?? ""

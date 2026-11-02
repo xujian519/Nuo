@@ -302,7 +302,7 @@ enum SlackConnectionServiceError: LocalizedError, Equatable, Sendable {
         case .writeDisabled:
             return "Slack write access is disabled in settings."
         case .sendConfirmationRequired:
-            return "`confirm_send` must be true before Osaurus posts to Slack."
+            return "`confirm_send` must be true before Nuo posts to Slack."
         case .messageTooLong:
             return "Slack messages must be 40000 characters or fewer."
         case .emptyMessage:

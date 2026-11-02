@@ -35,7 +35,7 @@ enum HuggingFaceDeepLinkAlert {
             // token sheet instead of calling the repo "not MLX".
             alert.messageText = L("Hugging Face token needed")
             alert.informativeText = L(
-                "Hugging Face would not show \(modelId) without a token. If it is a private or gated repository, add a Hugging Face token for an account that has access and Osaurus will open the model. If you did not expect that, check the repository id."
+                "Hugging Face would not show \(modelId) without a token. If it is a private or gated repository, add a Hugging Face token for an account that has access and Nuo will open the model. If you did not expect that, check the repository id."
             )
             alert.alertStyle = .informational
             alert.addButton(withTitle: L("Add Token…"))
@@ -59,7 +59,7 @@ enum HuggingFaceDeepLinkAlert {
         case .unsupported(.unreachable):
             alert.messageText = L("Hugging Face unreachable")
             alert.informativeText = L(
-                "Osaurus could not reach huggingface.co to check \(modelId). Check your connection and open the link again."
+                "Nuo could not reach huggingface.co to check \(modelId). Check your connection and open the link again."
             )
             alert.alertStyle = .warning
             alert.addButton(withTitle: "OK")

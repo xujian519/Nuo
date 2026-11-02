@@ -1564,10 +1564,10 @@ struct SlackSettingsView: View {
     /// (App Manifest page) for the change to take effect.
     static let recommendedManifest = """
     display_information:
-      name: Osaurus
+      name: Nuo
     features:
       bot_user:
-        display_name: Osaurus
+        display_name: Nuo
         always_online: true
     oauth_config:
       scopes:

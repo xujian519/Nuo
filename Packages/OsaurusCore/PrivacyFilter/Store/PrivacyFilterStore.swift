@@ -52,7 +52,7 @@ public enum PrivacyFilterStore {
             snapshotLock.unlock()
             return decoded
         } catch {
-            print("[Osaurus] Failed to load PrivacyFilterConfiguration: \(error)")
+            print("[Nuo] Failed to load PrivacyFilterConfiguration: \(error)")
             return nil
         }
     }
@@ -77,7 +77,7 @@ public enum PrivacyFilterStore {
                 )
             }
         } catch {
-            print("[Osaurus] Failed to save PrivacyFilterConfiguration: \(error)")
+            print("[Nuo] Failed to save PrivacyFilterConfiguration: \(error)")
         }
     }
 

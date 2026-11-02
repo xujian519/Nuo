@@ -125,8 +125,8 @@ enum PrivacyFilterPipelineError: Error, Equatable, LocalizedError {
             return Self.formatScrubLeaked(categoryCounts: counts)
         case .reviewRequiresInteractive(let count):
             return count == 1
-                ? "Privacy Filter detected 1 item of PII in this request. Non-interactive requests (HTTP API, plugins) cannot show the review sheet, so the send was blocked. Approve redactions in the Osaurus chat first, disable 'Require review for non-interactive requests' in Settings → Privacy, or disable the filter for this provider."
-                : "Privacy Filter detected \(count) items of PII in this request. Non-interactive requests (HTTP API, plugins) cannot show the review sheet, so the send was blocked. Approve redactions in the Osaurus chat first, disable 'Require review for non-interactive requests' in Settings → Privacy, or disable the filter for this provider."
+                ? "Privacy Filter detected 1 item of PII in this request. Non-interactive requests (HTTP API, plugins) cannot show the review sheet, so the send was blocked. Approve redactions in the Nuo chat first, disable 'Require review for non-interactive requests' in Settings → Privacy, or disable the filter for this provider."
+                : "Privacy Filter detected \(count) items of PII in this request. Non-interactive requests (HTTP API, plugins) cannot show the review sheet, so the send was blocked. Approve redactions in the Nuo chat first, disable 'Require review for non-interactive requests' in Settings → Privacy, or disable the filter for this provider."
         }
     }
 

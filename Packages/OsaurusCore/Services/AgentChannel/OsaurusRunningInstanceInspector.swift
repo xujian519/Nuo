@@ -32,6 +32,6 @@ enum OsaurusRunningInstanceInspector {
 
     static func duplicateInstanceWarning(instanceCount: Int) -> String? {
         guard instanceCount > 1 else { return nil }
-        return "\(instanceCount) Osaurus instances are running. Slack delivers each Socket Mode event to only one connection, so the other instance may consume your messages. Quit the extra instance (for example an Xcode debug build) and try again."
+        return "\(instanceCount) Nuo instances are running. Slack delivers each Socket Mode event to only one connection, so the other instance may consume your messages. Quit the extra instance (for example an Xcode debug build) and try again."
     }
 }

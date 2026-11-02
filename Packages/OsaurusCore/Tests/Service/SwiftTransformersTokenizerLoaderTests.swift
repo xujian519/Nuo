@@ -74,7 +74,7 @@ struct SwiftTransformersTokenizerLoaderTests {
     }
 
     @Test func zayaVLLocalTokenizerRendersImagePlaceholderFromOsaurusFallback() async throws {
-        let defaultPath = "/Users/eric/models/Osaurus/ZAYA1-VL-8B-MXFP4"
+        let defaultPath = "/Users/eric/models/Nuo/ZAYA1-VL-8B-MXFP4"
         let modelPath = ProcessInfo.processInfo.environment["OSAURUS_ZAYA_VL_TEST_MODEL"] ?? defaultPath
         let modelURL = URL(fileURLWithPath: modelPath)
         guard
@@ -103,7 +103,7 @@ struct SwiftTransformersTokenizerLoaderTests {
     }
 
     @Test func zayaVLLocalTokenizerRendersTextOnlyToolsFromOsaurusFallback() async throws {
-        let defaultPath = "/Users/eric/models/Osaurus/ZAYA1-VL-8B-MXFP4"
+        let defaultPath = "/Users/eric/models/Nuo/ZAYA1-VL-8B-MXFP4"
         let modelPath = ProcessInfo.processInfo.environment["OSAURUS_ZAYA_VL_TEST_MODEL"] ?? defaultPath
         let modelURL = URL(fileURLWithPath: modelPath)
         guard
@@ -214,7 +214,7 @@ struct SwiftTransformersTokenizerLoaderTests {
     }
 
     @Test func zayaVLLocalTokenizerKeepsRequiredToolReminderInCurrentUserTurn() async throws {
-        let defaultPath = "/Users/eric/models/Osaurus/ZAYA1-VL-8B-MXFP4"
+        let defaultPath = "/Users/eric/models/Nuo/ZAYA1-VL-8B-MXFP4"
         let modelPath = ProcessInfo.processInfo.environment["OSAURUS_ZAYA_VL_TEST_MODEL"] ?? defaultPath
         let modelURL = URL(fileURLWithPath: modelPath)
         guard
@@ -865,7 +865,7 @@ struct SwiftTransformersTokenizerLoaderTests {
 
         #expect(
             decoded.hasPrefix("<\u{FF5C}begin\u{2581}of\u{2581}sentence\u{FF5C}>"),
-            "DSV4 bundles have no tokenizer chat_template; Osaurus must route through vmlx's canonical DSV4 encoder path. Decoded: \(decoded)"
+            "DSV4 bundles have no tokenizer chat_template; Nuo must route through vmlx's canonical DSV4 encoder path. Decoded: \(decoded)"
         )
         #expect(
             decoded.hasSuffix("<\u{FF5C}Assistant\u{FF5C}></think>"),
@@ -1084,7 +1084,7 @@ struct SwiftTransformersTokenizerLoaderTests {
         )
         #expect(
             decoded.contains("\"name\":\"get_weather\""),
-            "DSV4 canonical template path must include the Osaurus-provided tool schema. Decoded: \(decoded)"
+            "DSV4 canonical template path must include the Nuo-provided tool schema. Decoded: \(decoded)"
         )
         #expect(
             !decoded.contains("<available_tools>"),
@@ -1462,7 +1462,7 @@ struct SwiftTransformersTokenizerLoaderTests {
             #expect(!decoded.isEmpty, "\(row.label) rendered an empty prompt")
             #expect(
                 decoded.contains("capabilities_discover"),
-                "\(row.label) must render the Osaurus tool surface. Decoded: \(decoded)"
+                "\(row.label) must render the Nuo tool surface. Decoded: \(decoded)"
             )
             #expect(
                 !decoded.contains("Runtime error") && !decoded.contains("upper filter"),

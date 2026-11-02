@@ -390,7 +390,7 @@ struct SharedAgentIdentityTests {
 
         let offline = SharedAgentStatus.offline(lastSeen: nil)
         #expect(offline.title(agentName: "Writer") == "Writer is offline")
-        #expect(offline.detail(agentName: "Writer", hostName: "Alice")?.contains("Alice's Osaurus") == true)
+        #expect(offline.detail(agentName: "Writer", hostName: "Alice")?.contains("Alice's Nuo") == true)
 
         #expect(SharedAgentStatus.connecting.detail(agentName: "X", hostName: nil) == nil)
         #expect(SharedAgentStatus.ready.title(agentName: "X").isEmpty)

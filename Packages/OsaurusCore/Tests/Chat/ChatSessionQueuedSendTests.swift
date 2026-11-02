@@ -577,7 +577,7 @@ struct ChatSessionQueuedSendTests {
     func injectQueuedSteer_landsBeforeTheTrailingAssistantPlaceholder() async throws {
         try await ChatHistoryTestStorage.run {
             let session = ChatSession()
-            let user = ChatTurn(role: .user, content: "Check what's currently configured in Osaurus.")
+            let user = ChatTurn(role: .user, content: "Check what's currently configured in Nuo.")
             let call = ChatTurn(role: .assistant, content: "")
             call.toolCalls = [
                 ToolCall(

@@ -312,7 +312,7 @@ final class PluginManager {
                     let pluginId = loaded.plugin.id
                     let errorMsg =
                         "Duplicate plugin id '\(pluginId)': already loaded from \(existing.plugin.bundlePath); ignoring \(entry.url.path)"
-                    NSLog("[Osaurus] %@", errorMsg)
+                    NSLog("[Nuo] %@", errorMsg)
                     failedPlugins[pluginId] = FailedPlugin(
                         pluginId: pluginId,
                         error: errorMsg,
@@ -1036,8 +1036,8 @@ final class PluginManager {
                     if current < required {
                         return PluginLoadError(
                             message:
-                                "Plugin \(manifest.plugin_id) requires Osaurus \(required) or later; "
-                                + "this host is \(current). Update Osaurus to load this plugin."
+                                "Plugin \(manifest.plugin_id) requires Nuo \(required) or later; "
+                                + "this host is \(current). Update Nuo to load this plugin."
                         )
                     }
                 } else {
@@ -1045,7 +1045,7 @@ final class PluginManager {
                     // shape we can't make sense of). Fail open so dev
                     // builds aren't blocked, but make it visible.
                     NSLog(
-                        "[Osaurus] Cannot enforce min_osaurus='%@' for %@ — host version "
+                        "[Nuo] Cannot enforce min_osaurus='%@' for %@ — host version "
                             + "'%@' is empty or unparseable. Allowing load (dev build?).",
                         minHost,
                         manifest.plugin_id,
@@ -1054,7 +1054,7 @@ final class PluginManager {
                 }
             } else {
                 NSLog(
-                    "[Osaurus] Plugin %@ has unparseable min_osaurus '%@' — ignoring constraint.",
+                    "[Nuo] Plugin %@ has unparseable min_osaurus '%@' — ignoring constraint.",
                     manifest.plugin_id,
                     minHost
                 )
@@ -1075,7 +1075,7 @@ final class PluginManager {
                 }
             } else {
                 NSLog(
-                    "[Osaurus] Plugin %@ has unparseable min_macos '%@' — ignoring constraint.",
+                    "[Nuo] Plugin %@ has unparseable min_macos '%@' — ignoring constraint.",
                     manifest.plugin_id,
                     minOS
                 )
@@ -1228,7 +1228,7 @@ final class PluginManager {
             } else {
                 errorMsg = "Failed to load library (unknown error)"
             }
-            print("[Osaurus] dlopen failed for \(url.path): \(errorMsg)")
+            print("[Nuo] dlopen failed for \(url.path): \(errorMsg)")
             return .failure(PluginLoadError(message: errorMsg))
         }
 
@@ -1248,7 +1248,7 @@ final class PluginManager {
                 ctx = try PluginHostContext(pluginId: preliminaryId)
             } catch {
                 let errorMsg = "Failed to create host context: \(error.localizedDescription)"
-                print("[Osaurus] \(errorMsg) for \(url.lastPathComponent)")
+                print("[Nuo] \(errorMsg) for \(url.lastPathComponent)")
                 dlclose(handle)
                 return .failure(PluginLoadError(message: errorMsg))
             }
@@ -1263,7 +1263,7 @@ final class PluginManager {
 
             guard let apiRawPtr else {
                 let errorMsg = "Plugin v2 entry returned null API"
-                print("[Osaurus] \(errorMsg) in \(url.lastPathComponent)")
+                print("[Nuo] \(errorMsg) in \(url.lastPathComponent)")
                 ctx.teardown()
                 dlclose(handle)
                 return .failure(PluginLoadError(message: errorMsg))
@@ -1275,12 +1275,12 @@ final class PluginManager {
             hostContext = ctx
 
             PluginHostContext.setContext(ctx, for: preliminaryId)
-            print("[Osaurus] Loaded plugin from \(url.lastPathComponent) (entry=v2, abi=v\(abiVersion))")
+            print("[Nuo] Loaded plugin from \(url.lastPathComponent) (entry=v2, abi=v\(abiVersion))")
         } else if let v1sym = dlsym(handle, "osaurus_plugin_entry") {
             let entryFn = unsafeBitCast(v1sym, to: osr_plugin_entry_t.self)
             guard let apiRawPtr = entryFn() else {
                 let errorMsg = "Plugin entry returned null API"
-                print("[Osaurus] \(errorMsg) in \(url.lastPathComponent)")
+                print("[Nuo] \(errorMsg) in \(url.lastPathComponent)")
                 dlclose(handle)
                 return .failure(PluginLoadError(message: errorMsg))
             }
@@ -1292,13 +1292,13 @@ final class PluginManager {
             api = osr_plugin_api(v1: prefixPtr.pointee)
             abiVersion = 1
             print(
-                "[Osaurus] Loaded plugin from \(url.lastPathComponent) (entry=v1 legacy). "
+                "[Nuo] Loaded plugin from \(url.lastPathComponent) (entry=v1 legacy). "
                     + "v1 plugins cannot call host APIs. Consider rebuilding against the v3 surface "
                     + "(export osaurus_plugin_entry_v2 with api.version >= 2) for richer functionality."
             )
         } else {
             let errorMsg = "Missing plugin entry point (osaurus_plugin_entry_v2 or osaurus_plugin_entry)"
-            print("[Osaurus] \(errorMsg) in \(url.lastPathComponent)")
+            print("[Nuo] \(errorMsg) in \(url.lastPathComponent)")
             dlclose(handle)
             return .failure(PluginLoadError(message: errorMsg))
         }
@@ -1310,7 +1310,7 @@ final class PluginManager {
         // already handed out a live context.
         if let abiError = abiTableValidationFailure(api) {
             let errorMsg = "\(abiError) in \(url.lastPathComponent)"
-            print("[Osaurus] \(errorMsg)")
+            print("[Nuo] \(errorMsg)")
             hostContext?.teardown()
             dlclose(handle)
             return .failure(PluginLoadError(message: errorMsg))
@@ -1319,7 +1319,7 @@ final class PluginManager {
         // Initialize Plugin
         guard let initFn = api.`init` else {
             let errorMsg = "Plugin missing init function"
-            print("[Osaurus] \(errorMsg) in \(url.lastPathComponent)")
+            print("[Nuo] \(errorMsg) in \(url.lastPathComponent)")
             hostContext?.teardown()
             dlclose(handle)
             return .failure(PluginLoadError(message: errorMsg))
@@ -1337,7 +1337,7 @@ final class PluginManager {
 
         guard let ctx else {
             let errorMsg = "Plugin initialization failed"
-            print("[Osaurus] \(errorMsg) in \(url.lastPathComponent)")
+            print("[Nuo] \(errorMsg) in \(url.lastPathComponent)")
             hostContext?.teardown()
             dlclose(handle)
             return .failure(PluginLoadError(message: errorMsg))
@@ -1346,7 +1346,7 @@ final class PluginManager {
         // Get Manifest
         guard let getManifest = api.get_manifest, let jsonPtr = getManifest(ctx) else {
             let errorMsg = "Plugin failed to return manifest"
-            print("[Osaurus] \(errorMsg) in \(url.lastPathComponent)")
+            print("[Nuo] \(errorMsg) in \(url.lastPathComponent)")
             api.destroy?(ctx)
             hostContext?.teardown()
             dlclose(handle)
@@ -1360,7 +1360,7 @@ final class PluginManager {
             let manifest = try? JSONDecoder().decode(PluginManifest.self, from: data)
         else {
             let errorMsg = "Failed to parse plugin manifest"
-            print("[Osaurus] \(errorMsg) in \(url.lastPathComponent)")
+            print("[Nuo] \(errorMsg) in \(url.lastPathComponent)")
             api.destroy?(ctx)
             hostContext?.teardown()
             dlclose(handle)
@@ -1378,7 +1378,7 @@ final class PluginManager {
             manifest: manifest,
             directoryId: directoryId
         ) {
-            print("[Osaurus] \(identityError)")
+            print("[Nuo] \(identityError)")
             api.destroy?(ctx)
             hostContext?.teardown()
             dlclose(handle)
@@ -1389,7 +1389,7 @@ final class PluginManager {
         // IDs would silently overwrite each other in the tool registry, and
         // empty/duplicate route IDs break route dispatch and diagnostics.
         if let capabilityError = manifestCapabilityValidationFailure(manifest) {
-            print("[Osaurus] \(capabilityError)")
+            print("[Nuo] \(capabilityError)")
             api.destroy?(ctx)
             hostContext?.teardown()
             dlclose(handle)
@@ -1409,7 +1409,7 @@ final class PluginManager {
             hostVersion: currentHostVersionString(),
             osVersion: ProcessInfo.processInfo.operatingSystemVersion
         ) {
-            print("[Osaurus] \(compatError.message)")
+            print("[Nuo] \(compatError.message)")
             api.destroy?(ctx)
             hostContext?.teardown()
             dlclose(handle)
@@ -1434,7 +1434,7 @@ final class PluginManager {
                 if isShadowed {
                     let errorMsg =
                         "Plugin \(manifest.plugin_id) declares route '\(route.path)' under web mount '\(mount)'; the static web branch would shadow this route. Move the route outside the web mount or remove the web mount overlap."
-                    print("[Osaurus] \(errorMsg)")
+                    print("[Nuo] \(errorMsg)")
                     api.destroy?(ctx)
                     hostContext?.teardown()
                     dlclose(handle)
@@ -1535,9 +1535,9 @@ final class PluginManager {
                     pluginId: pluginId
                 )
                 results.append(skill)
-                NSLog("[Osaurus] Loaded skill '\(skill.name)' from plugin \(pluginId)")
+                NSLog("[Nuo] Loaded skill '\(skill.name)' from plugin \(pluginId)")
             } catch {
-                NSLog("[Osaurus] Failed to parse SKILL.md from plugin \(pluginId): \(error)")
+                NSLog("[Nuo] Failed to parse SKILL.md from plugin \(pluginId): \(error)")
             }
         }
 
@@ -1682,7 +1682,7 @@ final class PluginManager {
             )
         )
         writeQuarantineEntries(entries)
-        NSLog("[Osaurus] Quarantined plugin '%@' after crash during load", pluginId)
+        NSLog("[Nuo] Quarantined plugin '%@' after crash during load", pluginId)
     }
 
     /// Consumes the quarantine row for `pluginId` when what crashed is no longer
@@ -1708,7 +1708,7 @@ final class PluginManager {
         guard versionChanged || buildChanged else { return false }
         writeQuarantineEntries(entries.filter { $0.id != pluginId })
         NSLog(
-            "[Osaurus] Releasing quarantined plugin '%@' for one retry (crashed at version %@ under build %@)",
+            "[Nuo] Releasing quarantined plugin '%@' for one retry (crashed at version %@ under build %@)",
             pluginId, entry.version ?? "unknown", entry.build ?? "unknown"
         )
         return true

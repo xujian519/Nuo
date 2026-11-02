@@ -276,7 +276,7 @@ enum OsaurusRouterAPIError: LocalizedError, Sendable {
         case .insufficientFunds:
             return "Insufficient credits. Add balance to continue."
         case .accountFrozen:
-            return "Your Osaurus billing account is on hold."
+            return "Your Nuo billing account is on hold."
         case .unauthorized:
             return "Router authentication failed. Check your clock and identity."
         case .rateLimited:

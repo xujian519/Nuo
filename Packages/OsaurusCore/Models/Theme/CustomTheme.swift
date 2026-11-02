@@ -1051,7 +1051,7 @@ public struct CustomTheme: Codable, Equatable, Sendable {
         CustomTheme(
             metadata: ThemeMetadata(
                 id: UUID(uuidString: "00000000-0000-0000-0000-000000000007")!,
-                name: "Osaurus Dark",
+                name: "Nuo Dark",
                 version: "1.1",
                 author: "Nuo"
             ),
@@ -1130,7 +1130,7 @@ public struct CustomTheme: Codable, Equatable, Sendable {
         CustomTheme(
             metadata: ThemeMetadata(
                 id: UUID(uuidString: "00000000-0000-0000-0000-000000000008")!,
-                name: "Osaurus Light",
+                name: "Nuo Light",
                 version: "1.1",
                 author: "Nuo"
             ),

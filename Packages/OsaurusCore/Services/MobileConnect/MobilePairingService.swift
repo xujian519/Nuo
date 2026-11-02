@@ -580,7 +580,7 @@ final class MobilePairingService: ObservableObject {
         if shouldHold, keepAwakeToken == nil {
             keepAwakeToken = ProcessInfo.processInfo.beginActivity(
                 options: [.idleSystemSleepDisabled],
-                reason: "Osaurus Mobile: keep this Mac reachable from the paired phone"
+                reason: "Nuo Mobile: keep this Mac reachable from the paired phone"
             )
         } else if !shouldHold, let token = keepAwakeToken {
             ProcessInfo.processInfo.endActivity(token)

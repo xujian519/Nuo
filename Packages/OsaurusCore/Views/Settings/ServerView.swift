@@ -163,7 +163,7 @@ private struct PeerInferenceSharingSection: View {
             SettingsToggle(
                 title: "Share my models for inference",
                 description:
-                    "Teammates, local-network peers, and invite-link connections can list the models you expose in Server → Models and run inference through your Osaurus. Off: they see no models and inference requests are refused; shared-agent chat is unaffected.",
+                    "Teammates, local-network peers, and invite-link connections can list the models you expose in Server → Models and run inference through your Nuo. Off: they see no models and inference requests are refused; shared-agent chat is unaffected.",
                 isOn: $isEnabled
             )
             .settingsLandingAnchor("server.peerInference")

@@ -34,7 +34,7 @@ public enum ConfigurationToolBase {
                 kind: .unavailable,
                 message:
                     "Configuration tools require a chat session context. "
-                    + "They are only available from the Default agent inside Osaurus.",
+                    + "They are only available from the Default agent inside Nuo.",
                 tool: tool,
                 retryable: false
             )
@@ -47,7 +47,7 @@ public enum ConfigurationToolBase {
                 kind: .unavailable,
                 message:
                     "Configuration tools are only available to the Default agent. "
-                    + "Switch to the Default agent in the sidebar to configure Osaurus.",
+                    + "Switch to the Default agent in the sidebar to configure Nuo.",
                 tool: tool,
                 retryable: false
             )
