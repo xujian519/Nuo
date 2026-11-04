@@ -2,8 +2,8 @@
 
 > 状态：**已落地（已提交）**
 > 日期：2026-11-04
-> 设计文档：`DESIGN_SPEC.md` §9.1（**不在本仓内**：源交付包在 `~/Pictures/Nuo-UI/`，
-> 其中 `DESIGN_SPEC.md` / `DECISIONS.md` 是阶段二～四的唯一依据，需另行归档）
+> 设计文档：`docs/nuo-ui/DESIGN_SPEC.md` §9.1 + `docs/nuo-ui/DECISIONS.md`（逐字快照，
+> 源交付包仍在 `~/Pictures/Nuo-UI/`；快照说明见 `docs/nuo-ui/README.md`）
 > 目标：只改主题数据层，不动 5,770 处 `theme.*Color` 调用点，让整个 App 一次性换到「纸与印」。
 
 ---
