@@ -31,7 +31,9 @@ struct PendingImportProcessorTests {
     }
 
     private func makeFixture(
-        withServer: Bool = false, withRuntime: Bool = false, orchestratorSpawnable: Bool? = nil
+        withServer: Bool = false,
+        withRuntime: Bool = false,
+        orchestratorSpawnable: Bool? = nil
     ) throws -> Fixture {
         let suffix = UUID().uuidString.prefix(8).lowercased()
         let fixture = Fixture(
@@ -41,11 +43,14 @@ struct PendingImportProcessorTests {
             skill: "triage-\(suffix)",
             agent: "Support \(suffix)",
             server: "Tickets \(suffix)",
-            runtime: "Pi \(suffix)")
+            runtime: "Pi \(suffix)"
+        )
         func write(_ text: String, _ relative: String) throws {
             let url = fixture.root.appendingPathComponent(relative)
             try FileManager.default.createDirectory(
-                at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
             try text.write(to: url, atomically: true, encoding: .utf8)
         }
         var manifest: [String: Any] = [
@@ -82,7 +87,8 @@ struct PendingImportProcessorTests {
         try write(String(decoding: manifestData, as: UTF8.self), "osaurus-bundle.json")
         try write(
             "---\nname: \(fixture.skill)\ndescription: Triage a ticket.\n---\n\n# Triage\n\nRead the ticket.\n",
-            "skills/\(fixture.skill)/SKILL.md")
+            "skills/\(fixture.skill)/SKILL.md"
+        )
         try write("Escalation matrix.\n", "skills/\(fixture.skill)/references/escalation.md")
         let envelope: [String: Any] = [
             "format": "osaurus.template", "format_version": 1, "name": fixture.agent, "agent": agent,
@@ -113,7 +119,10 @@ struct PendingImportProcessorTests {
 
     /// Queues a request the way `osaurus import` does and applies it.
     private func run(
-        _ action: ImportAction, _ fixture: Fixture, kinds: [BundleItemKind]? = nil, yes: Bool = false
+        _ action: ImportAction,
+        _ fixture: Fixture,
+        kinds: [BundleItemKind]? = nil,
+        yes: Bool = false
     ) async throws -> ImportResult {
         let bundle = try OsaurusBundle.load(from: fixture.root)
         var operations: [ImportOperation] = []
@@ -128,8 +137,12 @@ struct PendingImportProcessorTests {
             }
         }
         let request = ImportRequest(
-            bundleId: bundle.id, bundleName: bundle.manifest.name, bundleVersion: bundle.manifest.version,
-            operations: operations, confirmHighRisk: yes)
+            bundleId: bundle.id,
+            bundleName: bundle.manifest.name,
+            bundleVersion: bundle.manifest.version,
+            operations: operations,
+            confirmHighRisk: yes
+        )
         try ImportQueue.enqueue(request, bundle: action == .remove ? nil : bundle)
         return try #require(await processor().process(requestId: request.id))
     }
@@ -163,7 +176,10 @@ struct PendingImportProcessorTests {
             #expect(skill.directoryName == fixture.skill)
             #expect(
                 FileManager.default.fileExists(
-                    atPath: SkillStore.skillDirectory(for: skill).appendingPathComponent("references/escalation.md").path))
+                    atPath: SkillStore.skillDirectory(for: skill).appendingPathComponent("references/escalation.md")
+                        .path
+                )
+            )
             #expect(Set(receipts(fixture).map(\.kind)) == [.skill, .agent])
             #expect(receipts(fixture).first { $0.kind == .agent }?.agentId == installed.id.uuidString)
             #expect(receipts(fixture).first { $0.kind == .skill }?.explicit == true)
@@ -253,7 +269,9 @@ struct PendingImportProcessorTests {
                 #expect(runtime.environment == ["PI_LOG_LEVEL": "info"])
                 let created = try #require(agent(named: fixture.agent))
                 #expect(created.runtime == .harness(runtime.id))
-                #expect(receipts(fixture).first { $0.kind == .harnessRuntime }?.harnessRuntimeId == runtime.id.uuidString)
+                #expect(
+                    receipts(fixture).first { $0.kind == .harnessRuntime }?.harnessRuntimeId == runtime.id.uuidString
+                )
                 #expect(receipts(fixture).first { $0.kind == .agent }?.harnessRuntime == fixture.runtime)
 
                 let again = try await run(.install, fixture, yes: true)
@@ -283,11 +301,14 @@ struct PendingImportProcessorTests {
                 let refs = try bundle.select(kind: .agent, names: [fixture.agent])
                 #expect(refs.contains { $0.kind == .harnessRuntime && !$0.explicit })
                 let request = ImportRequest(
-                    bundleId: bundle.id, bundleName: nil, bundleVersion: bundle.manifest.version,
+                    bundleId: bundle.id,
+                    bundleName: nil,
+                    bundleVersion: bundle.manifest.version,
                     operations: refs.map {
                         ImportOperation(action: .install, kind: $0.kind, name: $0.name, explicit: $0.explicit)
                     },
-                    confirmHighRisk: true)
+                    confirmHighRisk: true
+                )
                 try ImportQueue.enqueue(request, bundle: bundle)
                 let installed = try #require(await processor().process(requestId: request.id))
                 #expect(installed.status == .applied, "\(installed.items)")
@@ -309,9 +330,14 @@ struct PendingImportProcessorTests {
             let refs = try bundle.select(kind: .agent, names: [fixture.agent])
             #expect(refs.contains { $0.kind == .skill && !$0.explicit })
             let request = ImportRequest(
-                bundleId: bundle.id, bundleName: nil, bundleVersion: bundle.manifest.version,
-                operations: refs.map { ImportOperation(action: .install, kind: $0.kind, name: $0.name, explicit: $0.explicit) },
-                confirmHighRisk: false)
+                bundleId: bundle.id,
+                bundleName: nil,
+                bundleVersion: bundle.manifest.version,
+                operations: refs.map {
+                    ImportOperation(action: .install, kind: $0.kind, name: $0.name, explicit: $0.explicit)
+                },
+                confirmHighRisk: false
+            )
             try ImportQueue.enqueue(request, bundle: bundle)
             let installed = try #require(await processor().process(requestId: request.id))
             #expect(installed.status == .applied, "\(installed.items)")
@@ -369,7 +395,8 @@ struct PendingImportProcessorTests {
             func setVersion(_ version: String) throws {
                 let url = fixture.root.appendingPathComponent("osaurus-bundle.json")
                 var manifest = try #require(
-                    JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+                    JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any]
+                )
                 manifest["version"] = version
                 try JSONSerialization.data(withJSONObject: manifest).write(to: url)
             }
@@ -437,7 +464,8 @@ struct PendingImportProcessorTests {
                 operations: [
                     ImportOperation(action: .install, kind: .skill, name: fixture.skill, explicit: true),
                     ImportOperation(action: .install, kind: .agent, name: fixture.agent, explicit: true),
-                ])
+                ]
+            )
             #expect(checked.issues.count == 1, "\(checked.issues)")
             #expect(checked.issues.first?.contains("agent") == true)
             #expect(SkillManager.shared.skill(named: fixture.skill) == nil)
@@ -488,7 +516,11 @@ struct PendingImportProcessorTests {
     }
 
     private func apply(
-        _ action: ImportAction, bundleAt root: URL, bundleId: String, settings: FakeSettings, yes: Bool = false
+        _ action: ImportAction,
+        bundleAt root: URL,
+        bundleId: String,
+        settings: FakeSettings,
+        yes: Bool = false
     ) async throws -> ImportResult {
         var operations: [ImportOperation]
         var bundle: OsaurusBundle?
@@ -504,8 +536,12 @@ struct PendingImportProcessorTests {
             }
         }
         let request = ImportRequest(
-            bundleId: bundleId, bundleName: nil, bundleVersion: bundle?.manifest.version,
-            operations: operations, confirmHighRisk: yes)
+            bundleId: bundleId,
+            bundleName: nil,
+            bundleVersion: bundle?.manifest.version,
+            operations: operations,
+            confirmHighRisk: yes
+        )
         try ImportQueue.enqueue(request, bundle: bundle)
         let processor = processor()
         processor.settings = settings
@@ -602,7 +638,8 @@ struct PendingImportProcessorTests {
             #expect(result.items.first?.status == .done, "\(result.items)")
             #expect(result.items.first?.message?.contains("restarts") == true)
             #expect(
-                settings.values[.allowedOrigins] == .strings(["https://mine.example.com", "https://app.example.com"]))
+                settings.values[.allowedOrigins] == .strings(["https://mine.example.com", "https://app.example.com"])
+            )
             #expect(settings.restarts == 0)
             let processor = processor()
             processor.settings = settings
@@ -658,7 +695,13 @@ struct PendingImportProcessorTests {
             #expect(settings.values[.requireLocalAccessKey] == .bool(true))
 
             _ = try await apply(.remove, bundleAt: onRoot, bundleId: onId, settings: settings)
-            let afterRemoval = try await apply(.install, bundleAt: offRoot, bundleId: offId, settings: settings, yes: true)
+            let afterRemoval = try await apply(
+                .install,
+                bundleAt: offRoot,
+                bundleId: offId,
+                settings: settings,
+                yes: true
+            )
             #expect(afterRemoval.items.first?.status == .done, "\(afterRemoval.items)")
             _ = try await apply(.remove, bundleAt: offRoot, bundleId: offId, settings: settings)
         }
@@ -686,12 +729,14 @@ struct PendingImportProcessorTests {
             #expect(checked.issues.isEmpty, "\(checked.issues)")
 
             let support = try Template.parse(
-                String(contentsOf: example.appendingPathComponent("agents/support-desk.json"), encoding: .utf8))
+                String(contentsOf: example.appendingPathComponent("agents/support-desk.json"), encoding: .utf8)
+            )
             #expect(support.agent.skills == .value(["triage-ticket"]))
             #expect(support.agent.tools?.mode == "manual")
             #expect(support.modelPolicy == .preferred)
             let checker = try Template.parse(
-                String(contentsOf: example.appendingPathComponent("agents/release-checker.json"), encoding: .utf8))
+                String(contentsOf: example.appendingPathComponent("agents/release-checker.json"), encoding: .utf8)
+            )
             #expect(checker.agent.sandbox?.enabled == true)
             #expect(checker.agent.sandbox?.networkEnabled == false)
             #expect(checker.agent.skills == .value([]))

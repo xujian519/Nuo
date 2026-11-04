@@ -166,7 +166,9 @@ enum ChatSessionImportCoordinator {
                         do {
                             let data = try Data(contentsOf: url)
                             let result = try ChatSessionImporter.parse(
-                                data: data, onProgress: onProgress)
+                                data: data,
+                                onProgress: onProgress
+                            )
                             outcome.conversations.append(contentsOf: result.conversations)
                             outcome.unreadable += result.unreadable
                         } catch let error as ChatSessionImporter.ImportError
@@ -282,17 +284,22 @@ enum ChatSessionImportCoordinator {
             parts.append(
                 summary.unreadable == 1
                     ? L("1 conversation couldn't be read")
-                    : L("\(summary.unreadable) conversations couldn't be read"))
+                    : L("\(summary.unreadable) conversations couldn't be read")
+            )
         }
         for name in summary.failedFiles {
             parts.append(L("\(name) couldn't be imported"))
         }
         if summary.hasIssues {
             ToastManager.shared.warning(
-                L("Import finished with issues"), message: parts.joined(separator: " · "))
+                L("Import finished with issues"),
+                message: parts.joined(separator: " · ")
+            )
         } else {
             ToastManager.shared.success(
-                L("Import complete"), message: parts.joined(separator: " · "))
+                L("Import complete"),
+                message: parts.joined(separator: " · ")
+            )
         }
     }
 

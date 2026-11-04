@@ -44,8 +44,14 @@ struct ModelPickerItemCacheTests {
                 ExternalModelLocator.invalidateInMemory()
                 ExternalModelLocator.rescan()
                 ModelManager.scanLocalModelsOverrideForTests = { _ in
-                    [MLXModel(id: "fixture/stable-chat-model", name: "Stable Chat",
-                              description: "fixture", downloadURL: "https://example.invalid/chat")]
+                    [
+                        MLXModel(
+                            id: "fixture/stable-chat-model",
+                            name: "Stable Chat",
+                            description: "fixture",
+                            downloadURL: "https://example.invalid/chat"
+                        )
+                    ]
                 }
                 ModelManager.invalidateLocalModelsCache()
                 await ModelManager.awaitLocalModelsCacheReadyForDispatch()
@@ -246,15 +252,21 @@ struct ModelPickerItemCacheTests {
     @Test func remoteModelItems_attachesGeminiReasoningOnlyOnHonoringRoutes() throws {
         let providers = [
             Self.providerEntry(
-                name: "OpenRouter", type: .openaiLegacy, host: "openrouter.ai",
+                name: "OpenRouter",
+                type: .openaiLegacy,
+                host: "openrouter.ai",
                 models: ["openrouter/google/gemini-3.8-flash", "openrouter/google/gemini-3-pro-image-preview"]
             ),
             Self.providerEntry(
-                name: "Google", type: .gemini, host: "generativelanguage.googleapis.com",
+                name: "Google",
+                type: .gemini,
+                host: "generativelanguage.googleapis.com",
                 models: ["google/gemini-3-pro-preview"]
             ),
             Self.providerEntry(
-                name: "Proxy", type: .openaiLegacy, host: "litellm.internal",
+                name: "Proxy",
+                type: .openaiLegacy,
+                host: "litellm.internal",
                 models: ["proxy/gemini-3.8-flash"]
             ),
         ]

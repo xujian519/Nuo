@@ -177,7 +177,8 @@ enum MailboxPath {
             if let unified = unifiedNames[parts[0].uppercased()] { return unified }
             throw AppleToolError.invalidArgs(
                 "`mailbox_path` must be `Account/Mailbox[/Sub]` (or `Local/Mailbox` for On My Mac) or one of INBOX, Drafts, Sent, Trash, Junk. Got `\(path)`.",
-                field: "mailbox_path", expected: "Account/Mailbox from mail_mailboxes"
+                field: "mailbox_path",
+                expected: "Account/Mailbox from mail_mailboxes"
             )
         }
         var ref: String
@@ -211,7 +212,9 @@ enum MailScripts {
     /// is N` (the `message id N` form does not compile — see file header),
     /// then a `whose message id is` scan of the given mailbox, the cached
     /// mailbox and finally the unified inbox.
-    static func resolve(messageId: String, mailboxPath: String?, cached: (path: String, internalId: Int)?) throws -> String {
+    static func resolve(messageId: String, mailboxPath: String?, cached: (path: String, internalId: Int)?) throws
+        -> String
+    {
         let lit = AppleScriptBridge.literal(messageId)
         var lines: [String] = ["set msg to missing value"]
         if let cached {
@@ -355,9 +358,12 @@ final class AppleScriptMailService: MailServicing, @unchecked Sendable {
     /// slightly below the executor budget so Mail's own `-1712` surfaces as
     /// a typed timeout instead of the executor giving up on a live script.
     private func run(
-        _ body: String, timeout: TimeInterval = AppleScriptBridge.defaultTimeout, isWrite: Bool = false
+        _ body: String,
+        timeout: TimeInterval = AppleScriptBridge.defaultTimeout,
+        isWrite: Bool = false
     ) async throws -> String {
-        guard await AppleScriptBridge.ensureRunning(bundleIdentifier: Self.bundleIdentifier, appName: Self.appName) else {
+        guard await AppleScriptBridge.ensureRunning(bundleIdentifier: Self.bundleIdentifier, appName: Self.appName)
+        else {
             throw AppleToolError.unavailable("Mail could not be launched on this Mac.", retryable: true)
         }
         let eventBudget = max(Int(timeout) - 5, 10)
@@ -371,10 +377,16 @@ final class AppleScriptMailService: MailServicing, @unchecked Sendable {
             end timeout
             """
         return try await AppleScriptBridge.runRetryingIfAppGone(
-            bundleIdentifier: Self.bundleIdentifier, appName: Self.appName, isWrite: isWrite
+            bundleIdentifier: Self.bundleIdentifier,
+            appName: Self.appName,
+            isWrite: isWrite
         ) {
             try await AppleScriptBridge.run(
-                source, permission: .automationMail, appName: Self.appName, timeout: timeout, isWrite: isWrite
+                source,
+                permission: .automationMail,
+                appName: Self.appName,
+                timeout: timeout,
+                isWrite: isWrite
             )
         }
     }
@@ -526,9 +538,13 @@ final class AppleScriptMailService: MailServicing, @unchecked Sendable {
         AppleScriptBridge.parseRecords(out).compactMap { r in
             guard r.count >= 9 else { return nil }
             let summary = MailMessageSummary(
-                id: r[0], subject: r[1], sender: r[2],
-                dateReceived: AppleScriptBridge.isoOutput(r[3]), dateSent: AppleScriptBridge.isoOutput(r[4]),
-                isRead: AppleScriptBridge.bool(r[5]), isFlagged: AppleScriptBridge.bool(r[6]),
+                id: r[0],
+                subject: r[1],
+                sender: r[2],
+                dateReceived: AppleScriptBridge.isoOutput(r[3]),
+                dateSent: AppleScriptBridge.isoOutput(r[4]),
+                isRead: AppleScriptBridge.bool(r[5]),
+                isFlagged: AppleScriptBridge.bool(r[6]),
                 mailboxPath: r[7]
             )
             return (summary, AppleScriptBridge.int(r[8]))
@@ -572,7 +588,11 @@ final class AppleScriptMailService: MailServicing, @unchecked Sendable {
     /// Run a script that resolves `msg` first; a `-1728` from the resolver
     /// drops the stale cache entry and rethrows a path-aware not-found.
     private func runResolved(
-        _ id: String, _ mailboxPath: String?, timeout: TimeInterval, isWrite: Bool = false, body: () throws -> String
+        _ id: String,
+        _ mailboxPath: String?,
+        timeout: TimeInterval,
+        isWrite: Bool = false,
+        body: () throws -> String
     ) async throws -> String {
         do {
             return try await run(try body(), timeout: timeout, isWrite: isWrite)
@@ -732,40 +752,59 @@ final class AppleScriptMailService: MailServicing, @unchecked Sendable {
             end tell
             """
         }
-        let sections = out.split(separator: AppleScriptBridge.recordSeparator, maxSplits: 2, omittingEmptySubsequences: false).map(String.init)
+        let sections = out.split(
+            separator: AppleScriptBridge.recordSeparator,
+            maxSplits: 2,
+            omittingEmptySubsequences: false
+        ).map(String.init)
         guard sections.count >= 2, let row = Self.decodeRows(sections[0]).first else {
             throw notFound(id, mailboxPath)
         }
         if let internalId = row.internalId, !row.summary.mailboxPath.isEmpty {
             remember(row.summary.id, path: row.summary.mailboxPath, internalId: internalId)
         }
-        let meta = sections[1].split(separator: AppleScriptBridge.fieldSeparator, omittingEmptySubsequences: false).map(String.init)
+        let meta = sections[1].split(separator: AppleScriptBridge.fieldSeparator, omittingEmptySubsequences: false).map(
+            String.init
+        )
         let body = sections.count > 2 ? sections[2] : ""
-        let split: (String) -> [String] = { $0.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty } }
+        let split: (String) -> [String] = {
+            $0.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        }
         let attachments: [MailAttachmentInfo] = (meta.count > 4 ? meta[4] : "")
             .split(separator: "\u{1D}", omittingEmptySubsequences: true)
             .map { raw in
                 let p = raw.split(separator: "\u{1C}", omittingEmptySubsequences: false).map(String.init)
                 return MailAttachmentInfo(
-                    name: p.first ?? "", sizeBytes: p.count > 1 ? Int(p[1]) : nil,
+                    name: p.first ?? "",
+                    sizeBytes: p.count > 1 ? Int(p[1]) : nil,
                     mimeType: p.count > 2 && !p[2].isEmpty ? p[2] : nil
                 )
             }
         let s = row.summary
         return MailMessageContent(
-            id: s.id, subject: s.subject, sender: s.sender,
-            to: split(meta.first ?? ""), cc: split(meta.count > 1 ? meta[1] : ""),
+            id: s.id,
+            subject: s.subject,
+            sender: s.sender,
+            to: split(meta.first ?? ""),
+            cc: split(meta.count > 1 ? meta[1] : ""),
             replyTo: meta.count > 2 && !meta[2].isEmpty ? meta[2] : nil,
-            dateReceived: s.dateReceived, dateSent: s.dateSent, isRead: s.isRead, isFlagged: s.isFlagged,
+            dateReceived: s.dateReceived,
+            dateSent: s.dateSent,
+            isRead: s.isRead,
+            isFlagged: s.isFlagged,
             isJunk: meta.count > 3 ? AppleScriptBridge.bool(meta[3]) : false,
-            mailboxPath: s.mailboxPath, content: body, attachments: attachments
+            mailboxPath: s.mailboxPath,
+            content: body,
+            attachments: attachments
         )
     }
 
     func compose(_ draft: MailDraft) async throws -> (sent: Bool, subject: String) {
         func recipients(_ kind: String, _ list: [String]) -> String {
-            list.map { "make new \(kind) at end of \(kind)s with properties {address:\(AppleScriptBridge.literal($0))}" }
-                .joined(separator: "\n")
+            list.map {
+                "make new \(kind) at end of \(kind)s with properties {address:\(AppleScriptBridge.literal($0))}"
+            }
+            .joined(separator: "\n")
         }
         // A draft stays visible in a compose window inside Mail (no
         // `activate`, so focus does not move); a send closes it. `send`
@@ -811,13 +850,17 @@ final class AppleScriptMailService: MailServicing, @unchecked Sendable {
             end tell
             """
         }
-        let parts = out.split(separator: AppleScriptBridge.fieldSeparator, omittingEmptySubsequences: false).map(String.init)
+        let parts = out.split(separator: AppleScriptBridge.fieldSeparator, omittingEmptySubsequences: false).map(
+            String.init
+        )
         return (parts.first?.trimmingCharacters(in: .whitespacesAndNewlines) == "sent", parts.count > 1 ? parts[1] : "")
     }
 
     func move(id: String, mailboxPath: String?, to destinationPath: String) async throws -> MailMessageSummary {
         let dest = try MailboxPath.reference(destinationPath)
-        let isTrash = MailboxPath.segments(destinationPath).first?.uppercased() == "TRASH" && MailboxPath.isUnified(destinationPath)
+        let isTrash =
+            MailboxPath.segments(destinationPath).first?.uppercased() == "TRASH"
+            && MailboxPath.isUnified(destinationPath)
         // Capture the summary from the original reference *before* the move
         // (the specifier points at the old location afterwards), then poll
         // the destination for up to ~3s for the re-homed copy. If the server
@@ -846,13 +889,21 @@ final class AppleScriptMailService: MailServicing, @unchecked Sendable {
         let rows = Self.decodeRows(out)
         guard let before = rows.first else { throw notFound(id, mailboxPath) }
         if rows.count > 1, !rows[1].summary.id.isEmpty {
-            if let internalId = rows[1].internalId { remember(id, path: rows[1].summary.mailboxPath, internalId: internalId) }
+            if let internalId = rows[1].internalId {
+                remember(id, path: rows[1].summary.mailboxPath, internalId: internalId)
+            }
             return rows[1].summary
         }
         let s = before.summary
         return MailMessageSummary(
-            id: s.id, subject: s.subject, sender: s.sender, dateReceived: s.dateReceived, dateSent: s.dateSent,
-            isRead: s.isRead, isFlagged: s.isFlagged, mailboxPath: destinationPath
+            id: s.id,
+            subject: s.subject,
+            sender: s.sender,
+            dateReceived: s.dateReceived,
+            dateSent: s.dateSent,
+            isRead: s.isRead,
+            isFlagged: s.isFlagged,
+            mailboxPath: destinationPath
         )
     }
 
@@ -908,7 +959,10 @@ final class AppleScriptMailService: MailServicing, @unchecked Sendable {
     /// Strip Re:/Fwd:/Fw:/AW: prefixes for thread grouping.
     static func normalizedSubject(_ subject: String) -> String {
         var s = subject.trimmingCharacters(in: .whitespacesAndNewlines)
-        let pattern = try? NSRegularExpression(pattern: "^(?:(?:re|fwd?|aw|wg|sv|vs)\\s*:\\s*)+", options: [.caseInsensitive])
+        let pattern = try? NSRegularExpression(
+            pattern: "^(?:(?:re|fwd?|aw|wg|sv|vs)\\s*:\\s*)+",
+            options: [.caseInsensitive]
+        )
         if let pattern {
             let range = NSRange(s.startIndex..., in: s)
             s = pattern.stringByReplacingMatches(in: s, range: range, withTemplate: "")
@@ -920,8 +974,13 @@ final class AppleScriptMailService: MailServicing, @unchecked Sendable {
 extension MailMessageSummary {
     init(from content: MailMessageContent) {
         self.init(
-            id: content.id, subject: content.subject, sender: content.sender, dateReceived: content.dateReceived,
-            dateSent: content.dateSent, isRead: content.isRead, isFlagged: content.isFlagged,
+            id: content.id,
+            subject: content.subject,
+            sender: content.sender,
+            dateReceived: content.dateReceived,
+            dateSent: content.dateSent,
+            isRead: content.isRead,
+            isFlagged: content.isFlagged,
             mailboxPath: content.mailboxPath
         )
     }

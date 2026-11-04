@@ -163,2201 +163,2265 @@ public enum SettingsSearchIndex {
     ]
 
     /// Every searchable setting, grouped by tab in declaration order.
-    public static let entries: [SettingsSearchEntry] = [
-        // MARK: Settings (General)
-        .init(
-            id: "settings.general.hotkey",
-            tab: .settings,
-            section: "General",
-            title: "Global Hotkey",
-            keywords: ["shortcut", "keybinding", "hotkey"]
-        ),
-        .init(
-            id: "settings.general.login",
-            tab: .settings,
-            section: "General",
-            title: "Start at Login",
-            keywords: ["launch", "startup", "autostart"]
-        ),
-        .init(
-            id: "settings.general.updates",
-            tab: .settings,
-            section: "General",
-            title: "Beta Updates",
-            keywords: ["beta", "prerelease", "updates", "channel"]
-        ),
-        .init(
-            id: "settings.general.coreModel",
-            tab: .settings,
-            section: "General",
-            title: "Core Model",
-            keywords: ["default model", "core model"]
-        ),
-        .init(
-            id: "server.cli",
-            tab: .server,
-            section: "Overview",
-            title: "Command Line Tool",
-            keywords: ["cli", "install cli", "terminal", "symlink", "install", "command line", "osaurus cli"]
-        ),
-        .init(
-            id: "settings.general.reset",
-            tab: .settings,
-            section: "Reset",
-            title: "Factory Reset",
-            keywords: ["reset", "wipe", "erase", "maintenance", "danger zone"]
-        ),
-        .init(
-            id: "settings.general.dock",
-            tab: .settings,
-            section: "General",
-            title: "Hide Dock Icon",
-            keywords: ["dock", "menu bar", "menubar", "hide dock"]
-        ),
+    public static let entries: [SettingsSearchEntry] =
+        [
+            // MARK: Settings (General)
+            .init(
+                id: "settings.general.hotkey",
+                tab: .settings,
+                section: "General",
+                title: "Global Hotkey",
+                keywords: ["shortcut", "keybinding", "hotkey"]
+            ),
+            .init(
+                id: "settings.general.login",
+                tab: .settings,
+                section: "General",
+                title: "Start at Login",
+                keywords: ["launch", "startup", "autostart"]
+            ),
+            .init(
+                id: "settings.general.updates",
+                tab: .settings,
+                section: "General",
+                title: "Beta Updates",
+                keywords: ["beta", "prerelease", "updates", "channel"]
+            ),
+            .init(
+                id: "settings.general.coreModel",
+                tab: .settings,
+                section: "General",
+                title: "Core Model",
+                keywords: ["default model", "core model"]
+            ),
+            .init(
+                id: "server.cli",
+                tab: .server,
+                section: "Overview",
+                title: "Command Line Tool",
+                keywords: ["cli", "install cli", "terminal", "symlink", "install", "command line", "osaurus cli"]
+            ),
+            .init(
+                id: "settings.general.reset",
+                tab: .settings,
+                section: "Reset",
+                title: "Factory Reset",
+                keywords: ["reset", "wipe", "erase", "maintenance", "danger zone"]
+            ),
+            .init(
+                id: "settings.general.dock",
+                tab: .settings,
+                section: "General",
+                title: "Hide Dock Icon",
+                keywords: ["dock", "menu bar", "menubar", "hide dock"]
+            ),
 
-        // MARK: Conversation (sidebar "Conversation"; ManagementTab.chat)
-        .init(
-            id: "settings.orchestrator.systemPrompt",
-            tab: .orchestrator,
-            section: "Identity",
-            title: "System Prompt",
-            keywords: ["persona", "instructions", "system prompt", "orchestrator"],
-            declarativeSection: "default_agent"
-        ),
-        .init(
-            id: "settings.orchestrator.name",
-            tab: .orchestrator,
-            section: "Identity",
-            title: "Orchestrator Name",
-            keywords: ["name", "rename", "display name", "orchestrator", "default agent", "osaurus"],
-            declarativeSection: "default_agent"
-        ),
-        .init(
-            id: "settings.chat.autoGenerateTitles",
-            tab: .chat,
-            section: "Behavior",
-            title: "Automatically Name Chats",
-            keywords: ["title", "auto title", "rename", "chat name", "summary"]
-        ),
-        .init(
-            id: "settings.chat.generateFollowUps",
-            tab: .chat,
-            section: "Behavior",
-            title: "Suggest Follow-Up Questions",
-            keywords: ["follow up", "followup", "suggestions", "next question", "prompts", "suggested"]
-        ),
-        .init(
-            id: "settings.chat.cmdNNewChat",
-            tab: .chat,
-            section: "Behavior",
-            title: "⌘+N Starts a New Chat in the Current Window",
-            keywords: ["cmd n", "new chat", "shortcut", "keyboard", "new window", "hotkey"]
-        ),
-        .init(
-            id: "settings.chat.smoothStreaming",
-            tab: .chat,
-            section: "Appearance",
-            title: "Smooth Streaming",
-            keywords: ["typewriter", "streaming pace", "token reveal", "smooth tokens"]
-        ),
-        .init(
-            id: "settings.chat.thinkingDisplay",
-            tab: .chat,
-            section: "Advanced",
-            title: "Expand Thinking While Streaming",
-            keywords: [
-                "thinking", "reasoning", "expand thinking", "show thinking",
-                "chain of thought",
-            ]
-        ),
-        .init(
-            id: "settings.chat.activityRollup",
-            tab: .chat,
-            section: "Appearance",
-            title: "Group Thinking & Tool Activity",
-            keywords: [
-                "group thinking", "tool activity", "rollup", "worked for",
-                "collapse tools", "activity row",
-            ]
-        ),
-        .init(
-            id: "settings.chat.clipboard",
-            tab: .chat,
-            section: "Behavior",
-            title: "Clipboard Monitoring",
-            keywords: ["clipboard", "copied text", "grab selection", "paste context"]
-        ),
-        .init(
-            id: "settings.chat.keepAwakeForAgentRuns",
-            tab: .chat,
-            section: "Agent Sessions",
-            title: "Keep Mac Awake While Agents Run",
-            keywords: ["sleep", "awake", "caffeinate", "idle sleep", "power", "keep awake"]
-        ),
-        .init(
-            id: "settings.connect.pairing",
-            tab: .connect,
-            section: "Pair an iPhone",
-            title: "Generate Pairing Code",
-            keywords: [
-                "iphone", "ios", "ipad", "mobile", "phone", "pair", "pairing code", "6 digit",
-                "iosaurus", "remote", "osaurus connect", "mobile",
-            ]
-        ),
-        .init(
-            id: "settings.connect.pairedDevice",
-            tab: .connect,
-            section: "Paired iPhone",
-            title: "Paired iPhone",
-            keywords: ["unpair", "revoke phone", "paired device", "remove iphone", "mobile access"]
-        ),
-        .init(
-            id: "settings.connect.reachAnywhere",
-            tab: .connect,
-            section: "Availability",
-            title: "Reach From Anywhere",
-            keywords: ["relay", "remote access", "away from home", "cellular", "tunnel", "outside network"]
-        ),
-        .init(
-            id: "settings.connect.keepAwake",
-            tab: .connect,
-            section: "Availability",
-            title: "Keep Mac Awake for Paired iPhone",
-            keywords: ["sleep", "awake", "reachable", "phone", "remote", "idle sleep"]
-        ),
-        .init(
-            id: "settings.connect.continuePhoneChats",
-            tab: .connect,
-            section: "On This Mac",
-            title: "Continue Phone Chats on This Mac",
-            keywords: [
-                "handoff", "continue", "resume", "iphone", "phone", "bring to front", "focus", "come back",
-                "return", "unlock",
-            ]
-        ),
-        .init(
-            id: "settings.chat.compactionModel",
-            tab: .chat,
-            section: "Advanced",
-            title: "Compaction Model",
-            keywords: [
-                "compaction", "compact", "summarize", "context", "summary model",
-                "auto compact", "compact conversation", "fallback", "context full",
-                "summary thinking off", "empty summary", "truncated summary",
-            ],
-            disambiguation:
-                "Which model writes the summary. Unset means the chat's current model. Summary requests use Thinking Off when supported; chat and agent settings are unchanged. Compaction runs automatically near the limit and from the Compact button in the context budget popover."
-        ),
-        .init(
-            id: "settings.orchestrator.temperature",
-            tab: .orchestrator,
-            section: "Generation",
-            title: "Temperature",
-            keywords: ["randomness", "creativity", "sampling"],
-            declarativeSection: "default_agent"
-        ),
-        .init(
-            id: "settings.orchestrator.maxTokens",
-            tab: .orchestrator,
-            section: "Generation",
-            title: "Max Output Tokens",
-            keywords: [
-                "response length", "output tokens", "generation config",
-                "max new tokens", "max tokens",
-            ],
-            disambiguation:
-                "Per-response length for the Orchestrator — not the chat context window, KV retention, or Server Sampling Defaults.",
-            declarativeSection: "default_agent"
-        ),
-        .init(
-            id: "settings.chat.contextLength",
-            tab: .server,
-            section: "Cache",
-            title: "Context Window Cap (tokens)",
-            keywords: [
-                "context window", "context", "context length", "context budget",
-                "token budget", "model maximum", "context window cap",
-                "context cap", "max context", "limit context",
-            ],
-            subTab: "cache",
-            disambiguation:
-                "Lowers every model's chat window. Not Memory Budget, not Orchestrator max output tokens, not KV retention."
-        ),
-        .init(
-            id: "settings.server.contextMetadataFallback",
-            tab: .server,
-            section: "Cache",
-            title: "Unknown-Model Metadata Fallback (tokens)",
-            keywords: [
-                "metadata fallback", "unknown model", "context length fallback",
-            ],
-            subTab: "cache",
-            disambiguation:
-                "Used only when a model does not report a maximum. Does not constrain local bundles — use Context Window Cap for that."
-        ),
-        .init(
-            id: "settings.server.kvRetention",
-            tab: .server,
-            section: "Cache",
-            title: "KV Retention Override (tokens)",
-            keywords: ["kv retention", "cache window", "kv cap", "retention override"],
-            subTab: "cache",
-            disambiguation:
-                "GPU/SSD KV retention, not the semantic chat context window."
-        ),
-        .init(
-            id: "settings.chat.topP",
-            tab: .chat,
-            section: "Advanced",
-            title: "Top P Override",
-            keywords: ["nucleus sampling", "top-p", "top p"]
-        ),
-        .init(
-            id: "settings.chat.toolAttempts",
-            tab: .chat,
-            section: "Advanced",
-            title: "Max Tool Attempts",
-            keywords: ["tool calls", "agent loop", "attempts"]
-        ),
-        // The control that answers "make every tool always allowed" — 83 tools
-        // ship `enabled: true` with an EMPTY policy map, and
-        // `ToolConfiguration.policy(for:)` defaults to `.ask`, so without this
-        // toggle every one of them prompts. Lives at the top of Tools & MCP →
-        // All Tools, beside the per-tool policies it overrides.
-        .init(
-            id: "tools.autoAllowAll",
-            tab: .tools,
-            section: "All Tools",
-            title: "Auto-Allow All Tool Calls",
-            keywords: [
-                "auto allow", "auto-allow", "allow all tools", "allow tools",
-                "tool permission", "tool permissions", "approve tools",
-                "approval", "always allow", "never ask", "tool prompt",
-            ],
-            subTab: "All"
-        ),
-        .init(
-            id: "settings.chat.spellCheck",
-            tab: .chat,
-            section: "Appearance",
-            title: "Check Spelling While Typing",
-            keywords: [
-                "spell", "spelling", "spellcheck", "spell check", "spell checker",
-                "grammar", "typo", "typos", "dictionary", "underline", "misspelled",
-                "composer", "input",
-            ]
-        ),
+            // MARK: Conversation (sidebar "Conversation"; ManagementTab.chat)
+            .init(
+                id: "settings.orchestrator.systemPrompt",
+                tab: .orchestrator,
+                section: "Identity",
+                title: "System Prompt",
+                keywords: ["persona", "instructions", "system prompt", "orchestrator"],
+                declarativeSection: "default_agent"
+            ),
+            .init(
+                id: "settings.orchestrator.name",
+                tab: .orchestrator,
+                section: "Identity",
+                title: "Orchestrator Name",
+                keywords: ["name", "rename", "display name", "orchestrator", "default agent", "osaurus"],
+                declarativeSection: "default_agent"
+            ),
+            .init(
+                id: "settings.chat.autoGenerateTitles",
+                tab: .chat,
+                section: "Behavior",
+                title: "Automatically Name Chats",
+                keywords: ["title", "auto title", "rename", "chat name", "summary"]
+            ),
+            .init(
+                id: "settings.chat.generateFollowUps",
+                tab: .chat,
+                section: "Behavior",
+                title: "Suggest Follow-Up Questions",
+                keywords: ["follow up", "followup", "suggestions", "next question", "prompts", "suggested"]
+            ),
+            .init(
+                id: "settings.chat.cmdNNewChat",
+                tab: .chat,
+                section: "Behavior",
+                title: "⌘+N Starts a New Chat in the Current Window",
+                keywords: ["cmd n", "new chat", "shortcut", "keyboard", "new window", "hotkey"]
+            ),
+            .init(
+                id: "settings.chat.smoothStreaming",
+                tab: .chat,
+                section: "Appearance",
+                title: "Smooth Streaming",
+                keywords: ["typewriter", "streaming pace", "token reveal", "smooth tokens"]
+            ),
+            .init(
+                id: "settings.chat.thinkingDisplay",
+                tab: .chat,
+                section: "Advanced",
+                title: "Expand Thinking While Streaming",
+                keywords: [
+                    "thinking", "reasoning", "expand thinking", "show thinking",
+                    "chain of thought",
+                ]
+            ),
+            .init(
+                id: "settings.chat.activityRollup",
+                tab: .chat,
+                section: "Appearance",
+                title: "Group Thinking & Tool Activity",
+                keywords: [
+                    "group thinking", "tool activity", "rollup", "worked for",
+                    "collapse tools", "activity row",
+                ]
+            ),
+            .init(
+                id: "settings.chat.clipboard",
+                tab: .chat,
+                section: "Behavior",
+                title: "Clipboard Monitoring",
+                keywords: ["clipboard", "copied text", "grab selection", "paste context"]
+            ),
+            .init(
+                id: "settings.chat.keepAwakeForAgentRuns",
+                tab: .chat,
+                section: "Agent Sessions",
+                title: "Keep Mac Awake While Agents Run",
+                keywords: ["sleep", "awake", "caffeinate", "idle sleep", "power", "keep awake"]
+            ),
+            .init(
+                id: "settings.connect.pairing",
+                tab: .connect,
+                section: "Pair an iPhone",
+                title: "Generate Pairing Code",
+                keywords: [
+                    "iphone", "ios", "ipad", "mobile", "phone", "pair", "pairing code", "6 digit",
+                    "iosaurus", "remote", "osaurus connect", "mobile",
+                ]
+            ),
+            .init(
+                id: "settings.connect.pairedDevice",
+                tab: .connect,
+                section: "Paired iPhone",
+                title: "Paired iPhone",
+                keywords: ["unpair", "revoke phone", "paired device", "remove iphone", "mobile access"]
+            ),
+            .init(
+                id: "settings.connect.reachAnywhere",
+                tab: .connect,
+                section: "Availability",
+                title: "Reach From Anywhere",
+                keywords: ["relay", "remote access", "away from home", "cellular", "tunnel", "outside network"]
+            ),
+            .init(
+                id: "settings.connect.keepAwake",
+                tab: .connect,
+                section: "Availability",
+                title: "Keep Mac Awake for Paired iPhone",
+                keywords: ["sleep", "awake", "reachable", "phone", "remote", "idle sleep"]
+            ),
+            .init(
+                id: "settings.connect.continuePhoneChats",
+                tab: .connect,
+                section: "On This Mac",
+                title: "Continue Phone Chats on This Mac",
+                keywords: [
+                    "handoff", "continue", "resume", "iphone", "phone", "bring to front", "focus", "come back",
+                    "return", "unlock",
+                ]
+            ),
+            .init(
+                id: "settings.chat.compactionModel",
+                tab: .chat,
+                section: "Advanced",
+                title: "Compaction Model",
+                keywords: [
+                    "compaction", "compact", "summarize", "context", "summary model",
+                    "auto compact", "compact conversation", "fallback", "context full",
+                    "summary thinking off", "empty summary", "truncated summary",
+                ],
+                disambiguation:
+                    "Which model writes the summary. Unset means the chat's current model. Summary requests use Thinking Off when supported; chat and agent settings are unchanged. Compaction runs automatically near the limit and from the Compact button in the context budget popover."
+            ),
+            .init(
+                id: "settings.orchestrator.temperature",
+                tab: .orchestrator,
+                section: "Generation",
+                title: "Temperature",
+                keywords: ["randomness", "creativity", "sampling"],
+                declarativeSection: "default_agent"
+            ),
+            .init(
+                id: "settings.orchestrator.maxTokens",
+                tab: .orchestrator,
+                section: "Generation",
+                title: "Max Output Tokens",
+                keywords: [
+                    "response length", "output tokens", "generation config",
+                    "max new tokens", "max tokens",
+                ],
+                disambiguation:
+                    "Per-response length for the Orchestrator — not the chat context window, KV retention, or Server Sampling Defaults.",
+                declarativeSection: "default_agent"
+            ),
+            .init(
+                id: "settings.chat.contextLength",
+                tab: .server,
+                section: "Cache",
+                title: "Context Window Cap (tokens)",
+                keywords: [
+                    "context window", "context", "context length", "context budget",
+                    "token budget", "model maximum", "context window cap",
+                    "context cap", "max context", "limit context",
+                ],
+                subTab: "cache",
+                disambiguation:
+                    "Lowers every model's chat window. Not Memory Budget, not Orchestrator max output tokens, not KV retention."
+            ),
+            .init(
+                id: "settings.server.contextMetadataFallback",
+                tab: .server,
+                section: "Cache",
+                title: "Unknown-Model Metadata Fallback (tokens)",
+                keywords: [
+                    "metadata fallback", "unknown model", "context length fallback",
+                ],
+                subTab: "cache",
+                disambiguation:
+                    "Used only when a model does not report a maximum. Does not constrain local bundles — use Context Window Cap for that."
+            ),
+            .init(
+                id: "settings.server.kvRetention",
+                tab: .server,
+                section: "Cache",
+                title: "KV Retention Override (tokens)",
+                keywords: ["kv retention", "cache window", "kv cap", "retention override"],
+                subTab: "cache",
+                disambiguation:
+                    "GPU/SSD KV retention, not the semantic chat context window."
+            ),
+            .init(
+                id: "settings.chat.topP",
+                tab: .chat,
+                section: "Advanced",
+                title: "Top P Override",
+                keywords: ["nucleus sampling", "top-p", "top p"]
+            ),
+            .init(
+                id: "settings.chat.toolAttempts",
+                tab: .chat,
+                section: "Advanced",
+                title: "Max Tool Attempts",
+                keywords: ["tool calls", "agent loop", "attempts"]
+            ),
+            // The control that answers "make every tool always allowed" — 83 tools
+            // ship `enabled: true` with an EMPTY policy map, and
+            // `ToolConfiguration.policy(for:)` defaults to `.ask`, so without this
+            // toggle every one of them prompts. Lives at the top of Tools & MCP →
+            // All Tools, beside the per-tool policies it overrides.
+            .init(
+                id: "tools.autoAllowAll",
+                tab: .tools,
+                section: "All Tools",
+                title: "Auto-Allow All Tool Calls",
+                keywords: [
+                    "auto allow", "auto-allow", "allow all tools", "allow tools",
+                    "tool permission", "tool permissions", "approve tools",
+                    "approval", "always allow", "never ask", "tool prompt",
+                ],
+                subTab: "All"
+            ),
+            .init(
+                id: "settings.chat.spellCheck",
+                tab: .chat,
+                section: "Appearance",
+                title: "Check Spelling While Typing",
+                keywords: [
+                    "spell", "spelling", "spellcheck", "spell check", "spell checker",
+                    "grammar", "typo", "typos", "dictionary", "underline", "misspelled",
+                    "composer", "input",
+                ]
+            ),
 
-        // MARK: Settings (Notifications / Legal)
-        // Usage-analytics + crash-reporting consent now live at the top of the
-        // Privacy tab's Overview, so these route there (and glow on landing).
-        .init(
-            id: "settings.privacy.usage",
-            tab: .privacy,
-            section: "Data Collection",
-            title: "Share Anonymous Usage Data",
-            keywords: ["telemetry", "analytics", "tracking"]
-        ),
-        .init(
-            id: "settings.privacy.crash",
-            tab: .privacy,
-            section: "Data Collection",
-            title: "Send Crash Reports",
-            keywords: ["crash", "diagnostics", "freeze"]
-        ),
-        .init(
-            id: "settings.notifications.toasts",
-            tab: .settings,
-            section: "Notifications",
-            title: "Show Notifications",
-            keywords: ["toast", "toasts", "notifications", "alerts", "banners", "popups"]
-        ),
-        .init(
-            id: "settings.notifications.maxConcurrent",
-            tab: .settings,
-            section: "Advanced",
-            title: "Max Concurrent Background Tasks",
-            keywords: ["concurrent tasks", "background tasks", "task limit", "max concurrent"]
-        ),
-        .init(
-            id: "settings.legal",
-            tab: .settings,
-            section: "Legal",
-            title: "Terms & Privacy Policy",
-            keywords: ["terms", "privacy policy", "legal", "about"]
-        ),
+            // MARK: Settings (Notifications / Legal)
+            // Usage-analytics + crash-reporting consent now live at the top of the
+            // Privacy tab's Overview, so these route there (and glow on landing).
+            .init(
+                id: "settings.privacy.usage",
+                tab: .privacy,
+                section: "Data Collection",
+                title: "Share Anonymous Usage Data",
+                keywords: ["telemetry", "analytics", "tracking"]
+            ),
+            .init(
+                id: "settings.privacy.crash",
+                tab: .privacy,
+                section: "Data Collection",
+                title: "Send Crash Reports",
+                keywords: ["crash", "diagnostics", "freeze"]
+            ),
+            .init(
+                id: "settings.notifications.toasts",
+                tab: .settings,
+                section: "Notifications",
+                title: "Show Notifications",
+                keywords: ["toast", "toasts", "notifications", "alerts", "banners", "popups"]
+            ),
+            .init(
+                id: "settings.notifications.maxConcurrent",
+                tab: .settings,
+                section: "Advanced",
+                title: "Max Concurrent Background Tasks",
+                keywords: ["concurrent tasks", "background tasks", "task limit", "max concurrent"]
+            ),
+            .init(
+                id: "settings.legal",
+                tab: .settings,
+                section: "Legal",
+                title: "Terms & Privacy Policy",
+                keywords: ["terms", "privacy policy", "legal", "about"]
+            ),
 
-        // MARK: Voice (subTab values are VoiceTab raw values)
-        .init(
-            id: "voice.stt.model",
-            tab: .voice,
-            section: "Setup",
-            title: "Speech Model",
-            keywords: ["transcription model", "parakeet", "whisper", "speech recognition", "dictation"],
-            subTab: "Setup"
-        ),
-        .init(
-            id: "voice.setup.sensitivity",
-            tab: .voice,
-            section: "Setup",
-            title: "Voice Sensitivity",
-            keywords: ["sensitivity", "microphone sensitivity", "detection level", "voice detection"],
-            subTab: "Setup",
-            disambiguation: "Shared by chat voice, Transcription Mode, and Wake Word."
-        ),
-        .init(
-            id: "voice.chat.enable",
-            tab: .voice,
-            section: "Chat Voice",
-            title: "Enable Voice Input",
-            keywords: ["voice input", "microphone button", "mic button", "chat voice", "speech to text"],
-            subTab: "Speech To Text"
-        ),
-        .init(
-            id: "voice.transcription.enable",
-            tab: .voice,
-            section: "Transcription",
-            title: "Enable Transcription Mode",
-            keywords: ["transcription mode", "dictation", "type with voice", "voice typing", "any app"],
-            subTab: "Transcription"
-        ),
-        .init(
-            id: "voice.stt.hotkey",
-            tab: .voice,
-            section: "Transcription",
-            title: "Activation Hotkey",
-            keywords: [
-                "dictation hotkey", "push to talk", "voice hotkey", "shortcut",
-                "global hotkey", "activation hotkey",
-            ],
-            subTab: "Transcription"
-        ),
-        .init(
-            id: "voice.stt.cleanup",
-            tab: .voice,
-            section: "Transcription",
-            title: "Clean Up Transcription",
-            keywords: ["filler words", "clean up", "post process", "um uh", "polish transcript"],
-            subTab: "Transcription"
-        ),
-        .init(
-            id: "voice.stt.stopMode",
-            tab: .voice,
-            section: "Transcription",
-            title: "Stop Mode",
-            keywords: ["stop mode", "automatic", "manual", "finished speaking", "endpointing"],
-            subTab: "Transcription"
-        ),
-        .init(
-            id: "voice.stt.pause",
-            tab: .voice,
-            section: "Transcription",
-            title: "Pause Detection",
-            keywords: ["pause", "auto stop", "auto send", "stop after silence"],
-            subTab: "Transcription"
-        ),
-        .init(
-            id: "voice.stt.confirmation",
-            tab: .voice,
-            section: "Transcription",
-            title: "Confirmation Delay",
-            keywords: ["confirmation", "cancel window", "delay before send"],
-            subTab: "Transcription"
-        ),
-        .init(
-            id: "voice.stt.silence",
-            tab: .voice,
-            section: "Transcription",
-            title: "Silence Timeout",
-            keywords: ["silence", "timeout", "close voice input", "inactivity"],
-            subTab: "Transcription"
-        ),
-        .init(
-            id: "voice.stt.vad",
-            tab: .voice,
-            section: "Wake Word",
-            title: "Wake Word",
-            keywords: ["vad", "wake word", "always listening", "agent name", "voice activation"],
-            subTab: "VAD Mode"
-        ),
-        .init(
-            id: "voice.tts.voice",
-            tab: .voice,
-            section: "Text to Speech",
-            title: "Spoken Voice",
-            keywords: ["tts", "read aloud", "speech synthesis", "voice"],
-            subTab: "Text To Speech"
-        ),
-        .init(
-            id: "voice.tts.engine",
-            tab: .voice,
-            section: "Text to Speech",
-            title: "Engine",
-            keywords: ["tts engine", "pockettts", "on-device tts", "openai compatible tts"],
-            subTab: "Text To Speech"
-        ),
-        .init(
-            id: "voice.tts.remote",
-            tab: .voice,
-            section: "Text to Speech",
-            title: "Remote TTS",
-            keywords: ["remote tts", "tts endpoint", "openai tts", "speech server"],
-            subTab: "Text To Speech"
-        ),
-        .init(
-            id: "voice.tts.temperature",
-            tab: .voice,
-            section: "Text to Speech",
-            title: "Voice Temperature",
-            keywords: ["tts temperature", "expressiveness", "variation"],
-            subTab: "Text To Speech"
-        ),
-        .init(
-            id: "voice.models",
-            tab: .voice,
-            section: "Models",
-            title: "Voice Models",
-            keywords: ["download model", "speech model", "parakeet"],
-            subTab: "Models"
-        ),
+            // MARK: Voice (subTab values are VoiceTab raw values)
+            .init(
+                id: "voice.stt.model",
+                tab: .voice,
+                section: "Setup",
+                title: "Speech Model",
+                keywords: ["transcription model", "parakeet", "whisper", "speech recognition", "dictation"],
+                subTab: "Setup"
+            ),
+            .init(
+                id: "voice.setup.sensitivity",
+                tab: .voice,
+                section: "Setup",
+                title: "Voice Sensitivity",
+                keywords: ["sensitivity", "microphone sensitivity", "detection level", "voice detection"],
+                subTab: "Setup",
+                disambiguation: "Shared by chat voice, Transcription Mode, and Wake Word."
+            ),
+            .init(
+                id: "voice.chat.enable",
+                tab: .voice,
+                section: "Chat Voice",
+                title: "Enable Voice Input",
+                keywords: ["voice input", "microphone button", "mic button", "chat voice", "speech to text"],
+                subTab: "Speech To Text"
+            ),
+            .init(
+                id: "voice.transcription.enable",
+                tab: .voice,
+                section: "Transcription",
+                title: "Enable Transcription Mode",
+                keywords: ["transcription mode", "dictation", "type with voice", "voice typing", "any app"],
+                subTab: "Transcription"
+            ),
+            .init(
+                id: "voice.stt.hotkey",
+                tab: .voice,
+                section: "Transcription",
+                title: "Activation Hotkey",
+                keywords: [
+                    "dictation hotkey", "push to talk", "voice hotkey", "shortcut",
+                    "global hotkey", "activation hotkey",
+                ],
+                subTab: "Transcription"
+            ),
+            .init(
+                id: "voice.stt.cleanup",
+                tab: .voice,
+                section: "Transcription",
+                title: "Clean Up Transcription",
+                keywords: ["filler words", "clean up", "post process", "um uh", "polish transcript"],
+                subTab: "Transcription"
+            ),
+            .init(
+                id: "voice.stt.stopMode",
+                tab: .voice,
+                section: "Transcription",
+                title: "Stop Mode",
+                keywords: ["stop mode", "automatic", "manual", "finished speaking", "endpointing"],
+                subTab: "Transcription"
+            ),
+            .init(
+                id: "voice.stt.pause",
+                tab: .voice,
+                section: "Transcription",
+                title: "Pause Detection",
+                keywords: ["pause", "auto stop", "auto send", "stop after silence"],
+                subTab: "Transcription"
+            ),
+            .init(
+                id: "voice.stt.confirmation",
+                tab: .voice,
+                section: "Transcription",
+                title: "Confirmation Delay",
+                keywords: ["confirmation", "cancel window", "delay before send"],
+                subTab: "Transcription"
+            ),
+            .init(
+                id: "voice.stt.silence",
+                tab: .voice,
+                section: "Transcription",
+                title: "Silence Timeout",
+                keywords: ["silence", "timeout", "close voice input", "inactivity"],
+                subTab: "Transcription"
+            ),
+            .init(
+                id: "voice.stt.vad",
+                tab: .voice,
+                section: "Wake Word",
+                title: "Wake Word",
+                keywords: ["vad", "wake word", "always listening", "agent name", "voice activation"],
+                subTab: "VAD Mode"
+            ),
+            .init(
+                id: "voice.tts.voice",
+                tab: .voice,
+                section: "Text to Speech",
+                title: "Spoken Voice",
+                keywords: ["tts", "read aloud", "speech synthesis", "voice"],
+                subTab: "Text To Speech"
+            ),
+            .init(
+                id: "voice.tts.engine",
+                tab: .voice,
+                section: "Text to Speech",
+                title: "Engine",
+                keywords: ["tts engine", "pockettts", "on-device tts", "openai compatible tts"],
+                subTab: "Text To Speech"
+            ),
+            .init(
+                id: "voice.tts.remote",
+                tab: .voice,
+                section: "Text to Speech",
+                title: "Remote TTS",
+                keywords: ["remote tts", "tts endpoint", "openai tts", "speech server"],
+                subTab: "Text To Speech"
+            ),
+            .init(
+                id: "voice.tts.temperature",
+                tab: .voice,
+                section: "Text to Speech",
+                title: "Voice Temperature",
+                keywords: ["tts temperature", "expressiveness", "variation"],
+                subTab: "Text To Speech"
+            ),
+            .init(
+                id: "voice.models",
+                tab: .voice,
+                section: "Models",
+                title: "Voice Models",
+                keywords: ["download model", "speech model", "parakeet"],
+                subTab: "Models"
+            ),
 
-        // MARK: Server (subTab values are ServerSettingsSection raw values)
-        .init(
-            id: "server.connection",
-            tab: .server,
-            section: "Connection",
-            title: "Port & Network",
-            keywords: ["port", "expose", "network", "host", "bind"],
-            subTab: "connection"
-        ),
-        .init(
-            id: "server.cors",
-            tab: .server,
-            section: "Connection",
-            title: "Allowed Origins (CORS)",
-            keywords: ["cors", "origins", "cross origin"],
-            subTab: "connection"
-        ),
-        .init(
-            id: "server.auth",
-            tab: .server,
-            section: "Authentication",
-            title: "API Authentication",
-            keywords: ["api key", "auth", "token", "bearer"],
-            subTab: "authentication"
-        ),
-        .init(
-            id: "server.localAccessKey",
-            tab: .server,
-            section: "Authentication",
-            title: "Require Access Key for Local Admin Routes",
-            keywords: [
-                "local access key", "local api key", "require key locally", "loopback auth", "localhost key",
-                "browser origin", "refuse browser", "protect sessions", "protect agents", "mcp key",
-                "admin config key", "local admin routes",
-            ],
-            subTab: "authentication",
-            disambiguation:
-                "Makes callers on this Mac send an access key to /sessions, /agents, /mcp/*, /admin/config/* and /admin/import/*, and refuses browser origins there unless listed by name in Allowed Origins (CORS). Not the access key list itself (Server → Overview) and not the CORS list (Server → Connection)."
-        ),
-        .init(
-            id: "server.generation",
-            tab: .server,
-            section: "Sampling Defaults",
-            title: "Generation Defaults",
-            keywords: [
-                "top p", "temperature", "sampling", "sampler", "top k", "min p",
-                "defaults", "max tokens",
-            ],
-            subTab: "sampling",
-            disambiguation:
-                "Server/API sampling defaults. Orchestrator Max Output Tokens and agent Max Tokens are separate."
-        ),
-        .init(
-            id: "server.residency",
-            tab: .server,
-            section: "Model Memory",
-            title: "Model Residency",
-            keywords: ["eviction policy", "idle", "keep model loaded", "unload after", "30 seconds", "close window"],
-            subTab: "modelMemory"
-        ),
-        .init(
-            id: "server.concurrency",
-            tab: .server,
-            section: "Concurrency & Batching",
-            title: "Concurrency",
-            keywords: ["parallel", "batch", "requests", "threads"],
-            subTab: "concurrency"
-        ),
-        .init(
-            id: "settings.server.concurrentSessions",
-            tab: .server,
-            section: "Concurrency & Batching",
-            title: "Concurrent Sessions",
-            keywords: ["parallel", "batch engine", "local subagents", "maximum requests"],
-            subTab: "concurrency",
-            disambiguation: "Shared engine ceiling for same-model local work; memory safety and Continuous Batching can reduce the effective limit."
-        ),
-        .init(
-            id: "settings.server.prefillChunkSize",
-            tab: .server,
-            section: "Concurrency & Batching",
-            title: "Prompt Prefill Chunk Size",
-            keywords: ["prompt processing", "prefill step", "tokens per step", "chunk"],
-            subTab: "concurrency"
-        ),
-        .init(
-            id: "server.proxy",
-            tab: .server,
-            section: "Global Proxy",
-            title: "Global Proxy",
-            keywords: ["proxy", "http proxy", "socks"],
-            subTab: "globalProxy"
-        ),
-        .init(
-            id: "server.cache",
-            tab: .server,
-            section: "Cache",
-            title: "Prompt Cache",
-            // The controls in this section are labelled "Disk Cache", "SSD
-            // Cache (L2)", "Disk Cache Size (% of disk)" and "Clear SSD
-            // Cache". None of those phrases resolved, so the section could
-            // not be found by any name it shows the user — the same defect
-            // D5 fixed for the sampler row.
-            keywords: [
-                "cache", "kv cache", "prefix",
-                "disk cache", "ssd cache", "l2 cache", "disk cache size",
-                "clear cache", "clear ssd cache", "disk cache directory",
-                "eviction", "evict", "paged kv", "gpu cache",
-            ],
-            subTab: "cache"
-        ),
-        .init(
-            id: "settings.server.prefixCache",
-            tab: .server,
-            section: "Cache",
-            title: "Prefix Cache",
-            keywords: ["prefix reuse", "master reuse switch"],
-            subTab: "cache"
-        ),
-        .init(
-            id: "settings.server.gpuCache",
-            tab: .server,
-            section: "Cache",
-            title: "Enable GPU Cache",
-            keywords: ["paged kv", "hot tier"],
-            subTab: "cache"
-        ),
-        .init(
-            id: "settings.server.gpuCacheBlockSize",
-            tab: .server,
-            section: "Cache",
-            title: "Block Size (tokens)",
-            keywords: ["paged block tokens"],
-            subTab: "cache"
-        ),
-        .init(
-            id: "settings.server.gpuCacheMaxBlocks",
-            tab: .server,
-            section: "Cache",
-            title: "Max Blocks",
-            keywords: ["gpu cache memory"],
-            subTab: "cache"
-        ),
-        .init(
-            id: "settings.server.diskCache",
-            tab: .server,
-            section: "Cache",
-            title: "Disk Cache",
-            keywords: ["ssd reuse", "l2"],
-            subTab: "cache"
-        ),
-        .init(
-            id: "settings.server.clearDiskCache",
-            tab: .server,
-            section: "Cache",
-            title: "Clear SSD Cache",
-            keywords: ["purge cached conversations", "save cache directory before clearing"],
-            subTab: "cache"
-        ),
-        .init(
-            id: "settings.server.diskCacheDirectory",
-            tab: .server,
-            section: "Cache",
-            title: "Disk Cache Directory",
-            keywords: ["ssd path", "cache folder"],
-            subTab: "cache"
-        ),
-        .init(
-            id: "settings.server.ssmReDerive",
-            tab: .server,
-            section: "Cache",
-            title: "Re-derive SSM State After Generation",
-            keywords: ["hybrid", "mamba", "companion"],
-            subTab: "cache"
-        ),
-        .init(
-            id: "settings.server.diskCacheSize",
-            tab: .server,
-            section: "Cache",
-            title: "Disk Cache Size (% of disk)",
-            keywords: ["ssd cache size", "increase cache size", "disk cache limit", "cache capacity"],
-            subTab: "cache"
-        ),
-        .init(
-            id: "settings.server.diskCacheAutomatic",
-            tab: .server,
-            section: "Cache",
-            title: "Use Automatic Cache Size",
-            keywords: ["automatic ssd", "reset cache size", "legacy cache size", "available disk space"],
-            subTab: "cache"
-        ),
-        .init(
-            id: "server.memorySafety.keepModelInMemory",
-            tab: .server,
-            section: "Memory Safety",
-            title: "Keep Model in Memory",
-            keywords: ["pin weights", "wired memory", "gpu residency", "page eviction"],
-            subTab: "memorySafety"
-        ),
-        .init(
-            id: "server.memorySafety",
-            tab: .server,
-            section: "Memory Safety",
-            title: "Memory Safety",
-            keywords: ["memory", "ram", "guard", "oom", "limits"],
-            subTab: "memorySafety"
-        ),
-        .init(
-            id: "server.memorySafety.loadAllocatorCap",
-            tab: .server,
-            section: "Memory Safety",
-            title: "Load Allocator Cap",
-            keywords: ["load allocator", "inference reuse", "allocator cache", "freed buffers", "memory limit"],
-            subTab: "memorySafety",
-            disambiguation:
-                "Load-time freed-buffer reuse target. Inference has a separate process-wide target. An explicit Allocator Cache Cap bounds the selected target; occupancy can exceed it until the next allocation trims the pool."
-        ),
-        .init(
-            id: "server.decode",
-            tab: .server,
-            section: "Decode Performance",
-            title: "Decode Performance",
-            keywords: [
-                "decode", "throughput", "speed", "tokens per second",
-                "deepseek", "dsv4", "activation qat", "graph fidelity",
-            ],
-            subTab: "decodePerformance"
-        ),
-        .init(
-            id: "server.speculative",
-            tab: .server,
-            section: "Speculative Decoding",
-            title: "Speculative Decoding",
-            keywords: [
-                "speculative", "mtp", "native mtp", "draft model", "speculative depth", "bundle default", "default", "on adaptive", "off ar", "adaptive",
-                // The drafter picker lives in this card. Someone who has
-                // just downloaded a DFlash 2 checkpoint searches for its
-                // name, not for "speculative decoding".
-                "dflash", "dflash 2", "drafter", "block diffusion",
-            ],
-            subTab: "speculative"
-        ),
-        .init(
-            id: "server.liveActivity",
-            tab: .server,
-            section: "Live Activity",
-            title: "Live Activity",
-            keywords: [
-                "live activity", "dynamic island", "status", "sampler", "sampler last used",
-            ],
-            subTab: "liveActivity"
-        ),
-        .init(
-            id: "server.multimodal",
-            tab: .server,
-            section: "Multimodal",
-            title: "Multimodal",
-            keywords: ["vision", "image", "audio", "multimodal"],
-            subTab: "multimodal"
-        ),
-        .init(
-            id: "server.tools",
-            tab: .server,
-            section: "Tools & Templates",
-            title: "Tools & Templates",
-            // "Reasoning Parser Override" lives in this section, and reasoning
-            // was unfindable by ANY of its own words — `reasoning`, `thinking`,
-            // `effort` and `preserve thinking` all returned 0 matches while
-            // three real controls existed. Same defect D5 fixed for the
-            // sampler row.
-            keywords: [
-                "tool calling", "templates", "chat template",
-                "reasoning", "reasoning parser", "reasoning effort", "effort",
-                "thinking", "preserve thinking", "think tags",
-            ],
-            subTab: "tools"
-        ),
-        .init(
-            id: "server.power",
-            tab: .server,
-            section: "Power",
-            title: "Power",
-            keywords: ["power", "battery", "low power", "energy"],
-            subTab: "power"
-        ),
-        .init(
-            id: "server.requestLimits",
-            tab: .server,
-            section: "Request Limits",
-            title: "Request Limits",
-            keywords: ["body size", "request limits", "max body", "advanced http"],
-            subTab: "requestLimits"
-        ),
+            // MARK: Server (subTab values are ServerSettingsSection raw values)
+            .init(
+                id: "server.connection",
+                tab: .server,
+                section: "Connection",
+                title: "Port & Network",
+                keywords: ["port", "expose", "network", "host", "bind"],
+                subTab: "connection"
+            ),
+            .init(
+                id: "server.cors",
+                tab: .server,
+                section: "Connection",
+                title: "Allowed Origins (CORS)",
+                keywords: ["cors", "origins", "cross origin"],
+                subTab: "connection"
+            ),
+            .init(
+                id: "server.auth",
+                tab: .server,
+                section: "Authentication",
+                title: "API Authentication",
+                keywords: ["api key", "auth", "token", "bearer"],
+                subTab: "authentication"
+            ),
+            .init(
+                id: "server.localAccessKey",
+                tab: .server,
+                section: "Authentication",
+                title: "Require Access Key for Local Admin Routes",
+                keywords: [
+                    "local access key", "local api key", "require key locally", "loopback auth", "localhost key",
+                    "browser origin", "refuse browser", "protect sessions", "protect agents", "mcp key",
+                    "admin config key", "local admin routes",
+                ],
+                subTab: "authentication",
+                disambiguation:
+                    "Makes callers on this Mac send an access key to /sessions, /agents, /mcp/*, /admin/config/* and /admin/import/*, and refuses browser origins there unless listed by name in Allowed Origins (CORS). Not the access key list itself (Server → Overview) and not the CORS list (Server → Connection)."
+            ),
+            .init(
+                id: "server.generation",
+                tab: .server,
+                section: "Sampling Defaults",
+                title: "Generation Defaults",
+                keywords: [
+                    "top p", "temperature", "sampling", "sampler", "top k", "min p",
+                    "defaults", "max tokens",
+                ],
+                subTab: "sampling",
+                disambiguation:
+                    "Server/API sampling defaults. Orchestrator Max Output Tokens and agent Max Tokens are separate."
+            ),
+            .init(
+                id: "server.residency",
+                tab: .server,
+                section: "Model Memory",
+                title: "Model Residency",
+                keywords: [
+                    "eviction policy", "idle", "keep model loaded", "unload after", "30 seconds", "close window",
+                ],
+                subTab: "modelMemory"
+            ),
+            .init(
+                id: "server.concurrency",
+                tab: .server,
+                section: "Concurrency & Batching",
+                title: "Concurrency",
+                keywords: ["parallel", "batch", "requests", "threads"],
+                subTab: "concurrency"
+            ),
+            .init(
+                id: "settings.server.concurrentSessions",
+                tab: .server,
+                section: "Concurrency & Batching",
+                title: "Concurrent Sessions",
+                keywords: ["parallel", "batch engine", "local subagents", "maximum requests"],
+                subTab: "concurrency",
+                disambiguation:
+                    "Shared engine ceiling for same-model local work; memory safety and Continuous Batching can reduce the effective limit."
+            ),
+            .init(
+                id: "settings.server.prefillChunkSize",
+                tab: .server,
+                section: "Concurrency & Batching",
+                title: "Prompt Prefill Chunk Size",
+                keywords: ["prompt processing", "prefill step", "tokens per step", "chunk"],
+                subTab: "concurrency"
+            ),
+            .init(
+                id: "server.proxy",
+                tab: .server,
+                section: "Global Proxy",
+                title: "Global Proxy",
+                keywords: ["proxy", "http proxy", "socks"],
+                subTab: "globalProxy"
+            ),
+            .init(
+                id: "server.cache",
+                tab: .server,
+                section: "Cache",
+                title: "Prompt Cache",
+                // The controls in this section are labelled "Disk Cache", "SSD
+                // Cache (L2)", "Disk Cache Size (% of disk)" and "Clear SSD
+                // Cache". None of those phrases resolved, so the section could
+                // not be found by any name it shows the user — the same defect
+                // D5 fixed for the sampler row.
+                keywords: [
+                    "cache", "kv cache", "prefix",
+                    "disk cache", "ssd cache", "l2 cache", "disk cache size",
+                    "clear cache", "clear ssd cache", "disk cache directory",
+                    "eviction", "evict", "paged kv", "gpu cache",
+                ],
+                subTab: "cache"
+            ),
+            .init(
+                id: "settings.server.prefixCache",
+                tab: .server,
+                section: "Cache",
+                title: "Prefix Cache",
+                keywords: ["prefix reuse", "master reuse switch"],
+                subTab: "cache"
+            ),
+            .init(
+                id: "settings.server.gpuCache",
+                tab: .server,
+                section: "Cache",
+                title: "Enable GPU Cache",
+                keywords: ["paged kv", "hot tier"],
+                subTab: "cache"
+            ),
+            .init(
+                id: "settings.server.gpuCacheBlockSize",
+                tab: .server,
+                section: "Cache",
+                title: "Block Size (tokens)",
+                keywords: ["paged block tokens"],
+                subTab: "cache"
+            ),
+            .init(
+                id: "settings.server.gpuCacheMaxBlocks",
+                tab: .server,
+                section: "Cache",
+                title: "Max Blocks",
+                keywords: ["gpu cache memory"],
+                subTab: "cache"
+            ),
+            .init(
+                id: "settings.server.diskCache",
+                tab: .server,
+                section: "Cache",
+                title: "Disk Cache",
+                keywords: ["ssd reuse", "l2"],
+                subTab: "cache"
+            ),
+            .init(
+                id: "settings.server.clearDiskCache",
+                tab: .server,
+                section: "Cache",
+                title: "Clear SSD Cache",
+                keywords: ["purge cached conversations", "save cache directory before clearing"],
+                subTab: "cache"
+            ),
+            .init(
+                id: "settings.server.diskCacheDirectory",
+                tab: .server,
+                section: "Cache",
+                title: "Disk Cache Directory",
+                keywords: ["ssd path", "cache folder"],
+                subTab: "cache"
+            ),
+            .init(
+                id: "settings.server.ssmReDerive",
+                tab: .server,
+                section: "Cache",
+                title: "Re-derive SSM State After Generation",
+                keywords: ["hybrid", "mamba", "companion"],
+                subTab: "cache"
+            ),
+            .init(
+                id: "settings.server.diskCacheSize",
+                tab: .server,
+                section: "Cache",
+                title: "Disk Cache Size (% of disk)",
+                keywords: ["ssd cache size", "increase cache size", "disk cache limit", "cache capacity"],
+                subTab: "cache"
+            ),
+            .init(
+                id: "settings.server.diskCacheAutomatic",
+                tab: .server,
+                section: "Cache",
+                title: "Use Automatic Cache Size",
+                keywords: ["automatic ssd", "reset cache size", "legacy cache size", "available disk space"],
+                subTab: "cache"
+            ),
+            .init(
+                id: "server.memorySafety.keepModelInMemory",
+                tab: .server,
+                section: "Memory Safety",
+                title: "Keep Model in Memory",
+                keywords: ["pin weights", "wired memory", "gpu residency", "page eviction"],
+                subTab: "memorySafety"
+            ),
+            .init(
+                id: "server.memorySafety",
+                tab: .server,
+                section: "Memory Safety",
+                title: "Memory Safety",
+                keywords: ["memory", "ram", "guard", "oom", "limits"],
+                subTab: "memorySafety"
+            ),
+            .init(
+                id: "server.memorySafety.loadAllocatorCap",
+                tab: .server,
+                section: "Memory Safety",
+                title: "Load Allocator Cap",
+                keywords: ["load allocator", "inference reuse", "allocator cache", "freed buffers", "memory limit"],
+                subTab: "memorySafety",
+                disambiguation:
+                    "Load-time freed-buffer reuse target. Inference has a separate process-wide target. An explicit Allocator Cache Cap bounds the selected target; occupancy can exceed it until the next allocation trims the pool."
+            ),
+            .init(
+                id: "server.decode",
+                tab: .server,
+                section: "Decode Performance",
+                title: "Decode Performance",
+                keywords: [
+                    "decode", "throughput", "speed", "tokens per second",
+                    "deepseek", "dsv4", "activation qat", "graph fidelity",
+                ],
+                subTab: "decodePerformance"
+            ),
+            .init(
+                id: "server.speculative",
+                tab: .server,
+                section: "Speculative Decoding",
+                title: "Speculative Decoding",
+                keywords: [
+                    "speculative", "mtp", "native mtp", "draft model", "speculative depth", "bundle default", "default",
+                    "on adaptive", "off ar", "adaptive",
+                    // The drafter picker lives in this card. Someone who has
+                    // just downloaded a DFlash 2 checkpoint searches for its
+                    // name, not for "speculative decoding".
+                    "dflash", "dflash 2", "drafter", "block diffusion",
+                ],
+                subTab: "speculative"
+            ),
+            .init(
+                id: "server.liveActivity",
+                tab: .server,
+                section: "Live Activity",
+                title: "Live Activity",
+                keywords: [
+                    "live activity", "dynamic island", "status", "sampler", "sampler last used",
+                ],
+                subTab: "liveActivity"
+            ),
+            .init(
+                id: "server.multimodal",
+                tab: .server,
+                section: "Multimodal",
+                title: "Multimodal",
+                keywords: ["vision", "image", "audio", "multimodal"],
+                subTab: "multimodal"
+            ),
+            .init(
+                id: "server.tools",
+                tab: .server,
+                section: "Tools & Templates",
+                title: "Tools & Templates",
+                // "Reasoning Parser Override" lives in this section, and reasoning
+                // was unfindable by ANY of its own words — `reasoning`, `thinking`,
+                // `effort` and `preserve thinking` all returned 0 matches while
+                // three real controls existed. Same defect D5 fixed for the
+                // sampler row.
+                keywords: [
+                    "tool calling", "templates", "chat template",
+                    "reasoning", "reasoning parser", "reasoning effort", "effort",
+                    "thinking", "preserve thinking", "think tags",
+                ],
+                subTab: "tools"
+            ),
+            .init(
+                id: "server.power",
+                tab: .server,
+                section: "Power",
+                title: "Power",
+                keywords: ["power", "battery", "low power", "energy"],
+                subTab: "power"
+            ),
+            .init(
+                id: "server.requestLimits",
+                tab: .server,
+                section: "Request Limits",
+                title: "Request Limits",
+                keywords: ["body size", "request limits", "max body", "advanced http"],
+                subTab: "requestLimits"
+            ),
 
-        // MARK: Permissions / Computer Use / Privacy tabs
-        .init(
-            id: "permissions.tools",
-            tab: .permissions,
-            title: "macOS Permissions",
-            keywords: [
-                "system permissions", "tcc", "accessibility", "microphone",
-                "screen recording", "full disk access", "privacy",
-            ],
-            disambiguation:
-                "macOS grants (TCC). Not the Tools catalog Auto/Ask/Deny policies, and not Chat folder-tool permissions."
-        ),
-        .init(
-            id: "server.peerInference",
-            tab: .server,
-            title: "Share my models for inference",
-            keywords: ["peer inference", "share models", "lan inference", "expose models"]
-        ),
-        .init(
-            id: "server.codexCLI",
-            tab: .server,
-            title: "Use with Codex CLI",
-            keywords: [
-                "codex", "codex cli", "openai codex", "config.toml", "model_providers",
-                "codex profile", "external client", "coding agent",
-            ],
-            disambiguation:
-                "Points OpenAI's Codex CLI at this Nuo as a local model provider. Not the \"OpenAI Codex\" remote provider under Providers, which is Nuo using a ChatGPT subscription."
-        ),
-        .init(
-            id: "computerUse.enable",
-            tab: .computerUse,
-            title: "Computer Use",
-            keywords: [
-                "screen control", "cursor", "automation", "accessibility", "per-app",
-                "autonomy", "app allowlist", "screen context",
-            ]
-        ),
-        .init(
-            id: "browser.enable",
-            tab: .browser,
-            title: "Browser Use",
-            keywords: [
-                "browser", "web", "browse", "session", "sign in", "login", "cookies", "webkit",
-            ]
-        ),
-        .init(
-            id: "browser.sessions",
-            tab: .browser,
-            title: "Browser Sessions",
-            keywords: ["sessions", "profiles", "signed in", "reset browser", "browsing data"]
-        ),
+            // MARK: Permissions / Computer Use / Privacy tabs
+            .init(
+                id: "permissions.tools",
+                tab: .permissions,
+                title: "macOS Permissions",
+                keywords: [
+                    "system permissions", "tcc", "accessibility", "microphone",
+                    "screen recording", "full disk access", "privacy",
+                ],
+                disambiguation:
+                    "macOS grants (TCC). Not the Tools catalog Auto/Ask/Deny policies, and not Chat folder-tool permissions."
+            ),
+            .init(
+                id: "server.peerInference",
+                tab: .server,
+                title: "Share my models for inference",
+                keywords: ["peer inference", "share models", "lan inference", "expose models"]
+            ),
+            .init(
+                id: "server.codexCLI",
+                tab: .server,
+                title: "Use with Codex CLI",
+                keywords: [
+                    "codex", "codex cli", "openai codex", "config.toml", "model_providers",
+                    "codex profile", "external client", "coding agent",
+                ],
+                disambiguation:
+                    "Points OpenAI's Codex CLI at this Nuo as a local model provider. Not the \"OpenAI Codex\" remote provider under Providers, which is Nuo using a ChatGPT subscription."
+            ),
+            .init(
+                id: "computerUse.enable",
+                tab: .computerUse,
+                title: "Computer Use",
+                keywords: [
+                    "screen control", "cursor", "automation", "accessibility", "per-app",
+                    "autonomy", "app allowlist", "screen context",
+                ]
+            ),
+            .init(
+                id: "browser.enable",
+                tab: .browser,
+                title: "Browser Use",
+                keywords: [
+                    "browser", "web", "browse", "session", "sign in", "login", "cookies", "webkit",
+                ]
+            ),
+            .init(
+                id: "browser.sessions",
+                tab: .browser,
+                title: "Browser Sessions",
+                keywords: ["sessions", "profiles", "signed in", "reset browser", "browsing data"]
+            ),
 
-        // MARK: Channels / Integrations
-        .init(
-            id: "agentChannels.overview",
-            tab: .agentChannels,
-            title: "Channels",
-            keywords: [
-                "agent channels", "integrations", "channels", "discord", "slack", "telegram",
-                "imessage", "whatsapp", "custom json", "custom http", "remote channel",
-            ],
-            declarativeSection: "channels"
-        ),
-        .init(
-            id: "agentChannels.globalWrites",
-            tab: .agentChannels,
-            section: "Sending",
-            title: "Allow Agents to Send Messages",
-            keywords: [
-                "kill switch", "disable writes", "remote writes", "channel writes",
-                "sending", "read-only", "pause sending",
-            ]
-        ),
-        .init(
-            id: "agentChannels.focusOnInbound",
-            tab: .agentChannels,
-            section: "Incoming",
-            title: "Focus Chat on Incoming Messages",
-            keywords: [
-                "focus", "bring to front", "bring forward", "activate window", "popup",
-                "pop up", "attention", "dedicated device", "kiosk", "monitor", "incoming",
-                "inbound", "channel window", "channel tab", "new message", "steal focus",
-            ],
-            disambiguation:
-                "Channels-only: brings the channel conversation's chat tab and window forward when a message arrives. Toast notifications are under Settings → General → Notifications."
-        ),
-        .init(
-            id: "agentChannels.discord",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "Discord",
-            keywords: ["discord bot token", "discord server ids", "discord channel allowlist"]
-        ),
-        .init(
-            id: "agentChannels.slack",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "Slack",
-            keywords: [
-                "slack bot token", "slack signing secret", "socket mode",
-                "slack workspace ids", "slack channel allowlist",
-                "accept messages sent through apps", "slack api", "chat.postmessage",
-                "user token", "bot_message_denied", "phone shortcut",
-            ]
-        ),
-        .init(
-            id: "agentChannels.telegram",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "Telegram",
-            keywords: [
-                "telegram bot token", "telegram chat ids", "sender allowlist",
-                "telegram channel allowlist", "telegram long polling",
-                "telegram getupdates", "store incoming messages",
-            ]
-        ),
-        .init(
-            id: "agentChannels.imessage",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "iMessage",
-            keywords: [
-                "imessage", "messages app", "imessage chats", "full disk access",
-                "messages automation", "imsg helper", "sender allowlist",
-                "tapback", "unsend", "sip", "library validation",
-            ]
-        ),
-        .init(
-            id: "agentChannels.whatsapp",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "WhatsApp",
-            keywords: [
-                "whatsapp", "whatsapp web", "whatsapp qr code", "qr code", "link device",
-                "whatsmeow",
-                "osaurus-wa helper", "sender allowlist", "whatsapp chats",
-                "phone number", "group jid",
-            ]
-        ),
-        .init(
-            id: "agentChannels.n8n",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "n8n",
-            keywords: [
-                "n8n", "workflow automation", "webhook bridge", "channel secret",
-                "hmac signature", "shared secret header", "poll url", "task poll",
-                "host.docker.internal", "plaintext allowed", "secure channel required",
-                "http request", "conversation_id", "topology", "docker desktop",
-                "name it", "who answers", "pair", "prove it", "display name", "connection id",
-                "who may speak", "connect n8n", "remote callers",
-            ],
-            disambiguation:
-                "The n8n channel sheet (Settings → Channels → n8n): Name it → Where is your n8n? → Who answers? → Pair → Prove it. n8n calls Nuo; the only n8n URL Nuo stores is the optional Outbound Webhook URL under Who answers?."
-        ),
-        .init(
-            id: "agentChannels.n8n.enabled",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "n8n channel on/off",
-            keywords: [
-                "enable n8n channel", "disable n8n channel", "channel enabled", "pause n8n",
-                "connection_disabled", "turn off n8n", "turn on n8n",
-            ],
-            disambiguation:
-                "The switch on the n8n card in Settings → Channels. Off answers every inbound, poll and ping with 403 connection_disabled. It is no longer inside the setup sheet."
-        ),
-        .init(
-            id: "agentChannels.n8n.callerLocation",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "Where is your n8n?",
-            keywords: [
-                "where is n8n", "n8n location", "caller location", "this mac", "docker desktop on this mac",
-                "another machine on my network", "remote (hosted or another network)", "lan n8n", "remote n8n",
-                "hosted n8n",
-                "n8n cloud", "relay", "expose to network", "allow plaintext http",
-                "plaintext from other machines", "remote callers", "426",
-            ],
-            disambiguation:
-                "Step 2 of the n8n sheet. Picks which URL the pairing code carries (127.0.0.1, host.docker.internal, LAN address, or relay URL), whether Relay is required, and whether the plaintext toggle is shown (LAN only)."
-        ),
-        .init(
-            id: "agentChannels.n8n.plaintextAllowed",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "Allow plaintext HTTP from other machines",
-            keywords: [
-                "plaintext http", "remote callers", "plaintext allowed", "secure channel required",
-                "426", "trusted lan", "lan plaintext", "n8n plaintext",
-            ],
-            disambiguation:
-                "Shown only when Where is your n8n? is 'Another machine on my network'. Off: non-loopback callers must speak Secure Channel or get 426. Remote uses Secure Channel via Relay and never needs this."
-        ),
-        .init(
-            id: "agentChannels.n8n.relay",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "Relay for the bound agent",
-            keywords: [
-                "enable relay", "n8n relay", "relay connected", "public url", "agent.osaurus.ai",
-                "hosted n8n relay", "expose agent to internet", "take over relay",
-            ],
-            disambiguation:
-                "Under Who answers? in the n8n sheet, shown for Remote (required) and LAN (optional). Enables Relay on the agent picked as the default target; the pairing code is issued once the relay reports connected."
-        ),
-        .init(
-            id: "agentChannels.n8n.outboundWebhookURL",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "Outbound Webhook URL",
-            keywords: [
-                "n8n url", "n8n webhook url", "push replies to n8n", "osaurus trigger", "webhook trigger",
-                "sign outbound bodies", "reply automatically", "where do i enter my n8n url",
-            ],
-            disambiguation:
-                "Under Who answers? → Push replies to n8n (optional). The only place an n8n URL is entered; must be public https. Leave empty for poll-only replies."
-        ),
-        .init(
-            id: "agentChannels.n8n.channelSecret",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "Channel Secret",
-            keywords: [
-                "channel secret", "rotate secret", "generate secret", "n8n secret", "hmac key",
-                "keychain secret", "webhook secret",
-            ],
-            disambiguation:
-                "Under Pair → Advanced in the n8n sheet. Generated automatically for a new channel and carried inside the pairing code; rotating it invalidates every issued code."
-        ),
-        .init(
-            id: "agentChannels.n8n.pairingCode",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "Pair with n8n",
-            keywords: [
-                "pairing code", "pair n8n", "pair", "n8n node", "n8n credential", "osaurus channel credential",
-                "n8n-nodes-osaurus", "@osaurus/n8n-nodes-osaurus", "remote n8n", "hosted n8n",
-                "relay url", "secure channel", "channel secret", "rotate secret",
-                "end-to-end encrypted", "osrs-n8n", "ping", "credential test", "no pairing code yet",
-            ],
-            disambiguation:
-                "Inside the n8n channel sheet (Settings → Channels → n8n → Pair). One copyable string the Nuo n8n community node decodes; it contains the channel secret and only the URL valid for Where is your n8n?. Withheld until it can work (e.g. Relay connected for Remote). Not the osk-v1 access key from Share Agent."
-        ),
-        .init(
-            id: "agentChannels.n8n.pendingApprovals",
-            tab: .agentChannels,
-            section: "Native Integrations",
-            title: "Who may speak",
-            keywords: [
-                "approve workflow", "allow workflow", "deny workflow", "pending approval", "first contact",
-                "waiting for approval", "wants to use", "allowed conversations", "allowed senders",
-                "allowlist", "edit allowlists by hand", "conversation_id", "sender.id", "accept bot senders",
-                "prove it",
-            ],
-            disambiguation:
-                "Step 5 (Prove it) of the n8n sheet. The first run of a workflow appears here as 'Workflow X (sender Y) wants to use <channel> — Allow / Deny'; Allow adds its ids to the allowlists. Manual allowlist editing is under Advanced in the same step."
-        ),
-        .init(
-            id: "agentChannels.customJSON",
-            tab: .agentChannels,
-            section: "Custom JSON Connections",
-            title: "Custom HTTP Connections",
-            keywords: ["custom json channels", "webhook", "agent-channels.json", "secret references"]
-        ),
-        .init(
-            id: "agentChannels.destinations",
-            tab: .agentChannels,
-            section: "Messages Agents Can Start",
-            title: "Messages Agents Can Start",
-            keywords: [
-                "proactive", "publish", "destination", "binding", "outbound",
-                "autonomous", "draft", "confirm", "agent destinations",
-                "new messages", "agent posting", "post", "room", "auto-send",
-            ]
-        ),
-        .init(
-            id: "agentChannels.outbox",
-            tab: .agentChannels,
-            section: "Outbox",
-            title: "Channel Outbox",
-            keywords: [
-                "outbox", "pending approval", "approve message", "queued messages",
-                "outbound activity", "drafts",
-            ]
-        ),
+            // MARK: Channels / Integrations
+            .init(
+                id: "agentChannels.overview",
+                tab: .agentChannels,
+                title: "Channels",
+                keywords: [
+                    "agent channels", "integrations", "channels", "discord", "slack", "telegram",
+                    "imessage", "whatsapp", "custom json", "custom http", "remote channel",
+                ],
+                declarativeSection: "channels"
+            ),
+            .init(
+                id: "agentChannels.globalWrites",
+                tab: .agentChannels,
+                section: "Sending",
+                title: "Allow Agents to Send Messages",
+                keywords: [
+                    "kill switch", "disable writes", "remote writes", "channel writes",
+                    "sending", "read-only", "pause sending",
+                ]
+            ),
+            .init(
+                id: "agentChannels.focusOnInbound",
+                tab: .agentChannels,
+                section: "Incoming",
+                title: "Focus Chat on Incoming Messages",
+                keywords: [
+                    "focus", "bring to front", "bring forward", "activate window", "popup",
+                    "pop up", "attention", "dedicated device", "kiosk", "monitor", "incoming",
+                    "inbound", "channel window", "channel tab", "new message", "steal focus",
+                ],
+                disambiguation:
+                    "Channels-only: brings the channel conversation's chat tab and window forward when a message arrives. Toast notifications are under Settings → General → Notifications."
+            ),
+            .init(
+                id: "agentChannels.discord",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "Discord",
+                keywords: ["discord bot token", "discord server ids", "discord channel allowlist"]
+            ),
+            .init(
+                id: "agentChannels.slack",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "Slack",
+                keywords: [
+                    "slack bot token", "slack signing secret", "socket mode",
+                    "slack workspace ids", "slack channel allowlist",
+                    "accept messages sent through apps", "slack api", "chat.postmessage",
+                    "user token", "bot_message_denied", "phone shortcut",
+                ]
+            ),
+            .init(
+                id: "agentChannels.telegram",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "Telegram",
+                keywords: [
+                    "telegram bot token", "telegram chat ids", "sender allowlist",
+                    "telegram channel allowlist", "telegram long polling",
+                    "telegram getupdates", "store incoming messages",
+                ]
+            ),
+            .init(
+                id: "agentChannels.imessage",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "iMessage",
+                keywords: [
+                    "imessage", "messages app", "imessage chats", "full disk access",
+                    "messages automation", "imsg helper", "sender allowlist",
+                    "tapback", "unsend", "sip", "library validation",
+                ]
+            ),
+            .init(
+                id: "agentChannels.whatsapp",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "WhatsApp",
+                keywords: [
+                    "whatsapp", "whatsapp web", "whatsapp qr code", "qr code", "link device",
+                    "whatsmeow",
+                    "osaurus-wa helper", "sender allowlist", "whatsapp chats",
+                    "phone number", "group jid",
+                ]
+            ),
+            .init(
+                id: "agentChannels.n8n",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "n8n",
+                keywords: [
+                    "n8n", "workflow automation", "webhook bridge", "channel secret",
+                    "hmac signature", "shared secret header", "poll url", "task poll",
+                    "host.docker.internal", "plaintext allowed", "secure channel required",
+                    "http request", "conversation_id", "topology", "docker desktop",
+                    "name it", "who answers", "pair", "prove it", "display name", "connection id",
+                    "who may speak", "connect n8n", "remote callers",
+                ],
+                disambiguation:
+                    "The n8n channel sheet (Settings → Channels → n8n): Name it → Where is your n8n? → Who answers? → Pair → Prove it. n8n calls Nuo; the only n8n URL Nuo stores is the optional Outbound Webhook URL under Who answers?."
+            ),
+            .init(
+                id: "agentChannels.n8n.enabled",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "n8n channel on/off",
+                keywords: [
+                    "enable n8n channel", "disable n8n channel", "channel enabled", "pause n8n",
+                    "connection_disabled", "turn off n8n", "turn on n8n",
+                ],
+                disambiguation:
+                    "The switch on the n8n card in Settings → Channels. Off answers every inbound, poll and ping with 403 connection_disabled. It is no longer inside the setup sheet."
+            ),
+            .init(
+                id: "agentChannels.n8n.callerLocation",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "Where is your n8n?",
+                keywords: [
+                    "where is n8n", "n8n location", "caller location", "this mac", "docker desktop on this mac",
+                    "another machine on my network", "remote (hosted or another network)", "lan n8n", "remote n8n",
+                    "hosted n8n",
+                    "n8n cloud", "relay", "expose to network", "allow plaintext http",
+                    "plaintext from other machines", "remote callers", "426",
+                ],
+                disambiguation:
+                    "Step 2 of the n8n sheet. Picks which URL the pairing code carries (127.0.0.1, host.docker.internal, LAN address, or relay URL), whether Relay is required, and whether the plaintext toggle is shown (LAN only)."
+            ),
+            .init(
+                id: "agentChannels.n8n.plaintextAllowed",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "Allow plaintext HTTP from other machines",
+                keywords: [
+                    "plaintext http", "remote callers", "plaintext allowed", "secure channel required",
+                    "426", "trusted lan", "lan plaintext", "n8n plaintext",
+                ],
+                disambiguation:
+                    "Shown only when Where is your n8n? is 'Another machine on my network'. Off: non-loopback callers must speak Secure Channel or get 426. Remote uses Secure Channel via Relay and never needs this."
+            ),
+            .init(
+                id: "agentChannels.n8n.relay",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "Relay for the bound agent",
+                keywords: [
+                    "enable relay", "n8n relay", "relay connected", "public url", "agent.osaurus.ai",
+                    "hosted n8n relay", "expose agent to internet", "take over relay",
+                ],
+                disambiguation:
+                    "Under Who answers? in the n8n sheet, shown for Remote (required) and LAN (optional). Enables Relay on the agent picked as the default target; the pairing code is issued once the relay reports connected."
+            ),
+            .init(
+                id: "agentChannels.n8n.outboundWebhookURL",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "Outbound Webhook URL",
+                keywords: [
+                    "n8n url", "n8n webhook url", "push replies to n8n", "osaurus trigger", "webhook trigger",
+                    "sign outbound bodies", "reply automatically", "where do i enter my n8n url",
+                ],
+                disambiguation:
+                    "Under Who answers? → Push replies to n8n (optional). The only place an n8n URL is entered; must be public https. Leave empty for poll-only replies."
+            ),
+            .init(
+                id: "agentChannels.n8n.channelSecret",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "Channel Secret",
+                keywords: [
+                    "channel secret", "rotate secret", "generate secret", "n8n secret", "hmac key",
+                    "keychain secret", "webhook secret",
+                ],
+                disambiguation:
+                    "Under Pair → Advanced in the n8n sheet. Generated automatically for a new channel and carried inside the pairing code; rotating it invalidates every issued code."
+            ),
+            .init(
+                id: "agentChannels.n8n.pairingCode",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "Pair with n8n",
+                keywords: [
+                    "pairing code", "pair n8n", "pair", "n8n node", "n8n credential", "osaurus channel credential",
+                    "n8n-nodes-osaurus", "@osaurus/n8n-nodes-osaurus", "remote n8n", "hosted n8n",
+                    "relay url", "secure channel", "channel secret", "rotate secret",
+                    "end-to-end encrypted", "osrs-n8n", "ping", "credential test", "no pairing code yet",
+                ],
+                disambiguation:
+                    "Inside the n8n channel sheet (Settings → Channels → n8n → Pair). One copyable string the Nuo n8n community node decodes; it contains the channel secret and only the URL valid for Where is your n8n?. Withheld until it can work (e.g. Relay connected for Remote). Not the osk-v1 access key from Share Agent."
+            ),
+            .init(
+                id: "agentChannels.n8n.pendingApprovals",
+                tab: .agentChannels,
+                section: "Native Integrations",
+                title: "Who may speak",
+                keywords: [
+                    "approve workflow", "allow workflow", "deny workflow", "pending approval", "first contact",
+                    "waiting for approval", "wants to use", "allowed conversations", "allowed senders",
+                    "allowlist", "edit allowlists by hand", "conversation_id", "sender.id", "accept bot senders",
+                    "prove it",
+                ],
+                disambiguation:
+                    "Step 5 (Prove it) of the n8n sheet. The first run of a workflow appears here as 'Workflow X (sender Y) wants to use <channel> — Allow / Deny'; Allow adds its ids to the allowlists. Manual allowlist editing is under Advanced in the same step."
+            ),
+            .init(
+                id: "agentChannels.customJSON",
+                tab: .agentChannels,
+                section: "Custom JSON Connections",
+                title: "Custom HTTP Connections",
+                keywords: ["custom json channels", "webhook", "agent-channels.json", "secret references"]
+            ),
+            .init(
+                id: "agentChannels.destinations",
+                tab: .agentChannels,
+                section: "Messages Agents Can Start",
+                title: "Messages Agents Can Start",
+                keywords: [
+                    "proactive", "publish", "destination", "binding", "outbound",
+                    "autonomous", "draft", "confirm", "agent destinations",
+                    "new messages", "agent posting", "post", "room", "auto-send",
+                ]
+            ),
+            .init(
+                id: "agentChannels.outbox",
+                tab: .agentChannels,
+                section: "Outbox",
+                title: "Channel Outbox",
+                keywords: [
+                    "outbox", "pending approval", "approve message", "queued messages",
+                    "outbound activity", "drafts",
+                ]
+            ),
 
-        // MARK: Image Generation tab (subTab values are ImageGenerationTab raw values)
-        .init(
-            id: "imageGeneration.tab",
-            tab: .imageGeneration,
-            title: "Images",
-            keywords: [
-                "image", "image generation", "text to image", "ideogram",
-                "diffusion", "mflux", "generate image", "edit image",
-            ]
-        ),
-        .init(
-            id: "imageGeneration.models",
-            tab: .imageGeneration,
-            section: "Defaults",
-            title: "Default Models",
-            keywords: ["generation model", "edit model", "default image model"],
-            subTab: "Settings"
-        ),
-        .init(
-            id: "imageGeneration.permission",
-            tab: .imageGeneration,
-            section: "Permissions",
-            title: "Image jobs",
-            keywords: ["image permission", "ask", "deny", "always allow"],
-            subTab: "Settings"
-        ),
-        .init(
-            id: "imageGeneration.videoPermission",
-            tab: .imageGeneration,
-            section: "Permissions",
-            title: "Video jobs",
-            keywords: ["video permission", "video jobs", "quoted video", "ask", "deny"],
-            subTab: "Settings"
-        ),
-        .init(
-            id: "imageGeneration.video",
-            tab: .imageGeneration,
-            section: "Defaults",
-            title: "Video",
-            keywords: [
-                "video", "text to video", "image to video", "video model", "venice", "video jobs",
-            ],
-            subTab: "Settings"
-        ),
-        .init(
-            id: "imageGeneration.loadPolicy",
-            tab: .imageGeneration,
-            section: "Advanced",
-            title: "Image model load policy",
-            keywords: ["load policy", "image jobs", "unload", "residency", "gpu"],
-            subTab: "Settings"
-        ),
-        .init(
-            id: "imageGeneration.previews", tab: .imageGeneration, section: "Image Models",
-            title: "Live previews", keywords: ["image preview", "denoising preview", "progress image"], subTab: "Models"
-        ),
-        .init(
-            id: "imageGeneration.steps", tab: .imageGeneration, section: "Image Models",
-            title: "Steps", keywords: ["flux 3", "klein", "denoising steps", "sampling steps"], subTab: "Models",
-            disambiguation: "Denoising steps in the Generate/Edit panel and chat image controls. FLUX 3 accepts any positive count."
-        ),
-        .init(
-            id: "imageGeneration.width", tab: .imageGeneration, section: "Image Models",
-            title: "Width", keywords: ["flux 3", "klein", "image width", "image size", "pixels"], subTab: "Models",
-            disambiguation: "FLUX 3 local image dimensions in the Generate/Edit panel and chat size picker."
-        ),
-        .init(
-            id: "imageGeneration.height", tab: .imageGeneration, section: "Image Models",
-            title: "Height", keywords: ["flux 3", "klein", "image height", "image size", "pixels"], subTab: "Models",
-            disambiguation: "FLUX 3 local image dimensions in the Generate/Edit panel and chat size picker."
-        ),
-        .init(
-            id: "imageGeneration.sampler",
-            tab: .imageGeneration,
-            section: "Image Models",
-            title: "Sampler",
-            keywords: ["image sampling", "heun", "euler"],
-            subTab: "Models"
-        ),
-        .init(
-            id: "imageGeneration.scheduler",
-            tab: .imageGeneration,
-            section: "Image Models",
-            title: "Scheduler",
-            keywords: ["image schedule", "sigma", "linear"],
-            subTab: "Models"
-        ),
-        .init(
-            id: "imageGeneration.shift",
-            tab: .imageGeneration,
-            section: "Image Models",
-            title: "Timestep shift",
-            keywords: ["image shift", "flow matching", "sigma shift"],
-            subTab: "Models"
-        ),
-        .init(
-            id: "imageGeneration.upscale",
-            tab: .imageGeneration,
-            section: "Image Models",
-            title: "Upscale",
-            keywords: ["seedvr2", "super resolution", "upscale image", "scale", "2x", "4x"],
-            subTab: "Models"
-        ),
-        .init(
-            id: "imageGeneration.download",
-            tab: .imageGeneration,
-            section: "Image Models",
-            title: "Download image models",
-            keywords: ["download", "image model", "ideogram", "mflux", "catalog", "import"],
-            subTab: "Models"
-        ),
+            // MARK: Image Generation tab (subTab values are ImageGenerationTab raw values)
+            .init(
+                id: "imageGeneration.tab",
+                tab: .imageGeneration,
+                title: "Images",
+                keywords: [
+                    "image", "image generation", "text to image", "ideogram",
+                    "diffusion", "mflux", "generate image", "edit image",
+                ]
+            ),
+            .init(
+                id: "imageGeneration.models",
+                tab: .imageGeneration,
+                section: "Defaults",
+                title: "Default Models",
+                keywords: ["generation model", "edit model", "default image model"],
+                subTab: "Settings"
+            ),
+            .init(
+                id: "imageGeneration.permission",
+                tab: .imageGeneration,
+                section: "Permissions",
+                title: "Image jobs",
+                keywords: ["image permission", "ask", "deny", "always allow"],
+                subTab: "Settings"
+            ),
+            .init(
+                id: "imageGeneration.videoPermission",
+                tab: .imageGeneration,
+                section: "Permissions",
+                title: "Video jobs",
+                keywords: ["video permission", "video jobs", "quoted video", "ask", "deny"],
+                subTab: "Settings"
+            ),
+            .init(
+                id: "imageGeneration.video",
+                tab: .imageGeneration,
+                section: "Defaults",
+                title: "Video",
+                keywords: [
+                    "video", "text to video", "image to video", "video model", "venice", "video jobs",
+                ],
+                subTab: "Settings"
+            ),
+            .init(
+                id: "imageGeneration.loadPolicy",
+                tab: .imageGeneration,
+                section: "Advanced",
+                title: "Image model load policy",
+                keywords: ["load policy", "image jobs", "unload", "residency", "gpu"],
+                subTab: "Settings"
+            ),
+            .init(
+                id: "imageGeneration.previews",
+                tab: .imageGeneration,
+                section: "Image Models",
+                title: "Live previews",
+                keywords: ["image preview", "denoising preview", "progress image"],
+                subTab: "Models"
+            ),
+            .init(
+                id: "imageGeneration.steps",
+                tab: .imageGeneration,
+                section: "Image Models",
+                title: "Steps",
+                keywords: ["flux 3", "klein", "denoising steps", "sampling steps"],
+                subTab: "Models",
+                disambiguation:
+                    "Denoising steps in the Generate/Edit panel and chat image controls. FLUX 3 accepts any positive count."
+            ),
+            .init(
+                id: "imageGeneration.width",
+                tab: .imageGeneration,
+                section: "Image Models",
+                title: "Width",
+                keywords: ["flux 3", "klein", "image width", "image size", "pixels"],
+                subTab: "Models",
+                disambiguation: "FLUX 3 local image dimensions in the Generate/Edit panel and chat size picker."
+            ),
+            .init(
+                id: "imageGeneration.height",
+                tab: .imageGeneration,
+                section: "Image Models",
+                title: "Height",
+                keywords: ["flux 3", "klein", "image height", "image size", "pixels"],
+                subTab: "Models",
+                disambiguation: "FLUX 3 local image dimensions in the Generate/Edit panel and chat size picker."
+            ),
+            .init(
+                id: "imageGeneration.sampler",
+                tab: .imageGeneration,
+                section: "Image Models",
+                title: "Sampler",
+                keywords: ["image sampling", "heun", "euler"],
+                subTab: "Models"
+            ),
+            .init(
+                id: "imageGeneration.scheduler",
+                tab: .imageGeneration,
+                section: "Image Models",
+                title: "Scheduler",
+                keywords: ["image schedule", "sigma", "linear"],
+                subTab: "Models"
+            ),
+            .init(
+                id: "imageGeneration.shift",
+                tab: .imageGeneration,
+                section: "Image Models",
+                title: "Timestep shift",
+                keywords: ["image shift", "flow matching", "sigma shift"],
+                subTab: "Models"
+            ),
+            .init(
+                id: "imageGeneration.upscale",
+                tab: .imageGeneration,
+                section: "Image Models",
+                title: "Upscale",
+                keywords: ["seedvr2", "super resolution", "upscale image", "scale", "2x", "4x"],
+                subTab: "Models"
+            ),
+            .init(
+                id: "imageGeneration.download",
+                tab: .imageGeneration,
+                section: "Image Models",
+                title: "Download image models",
+                keywords: ["download", "image model", "ideogram", "mflux", "catalog", "import"],
+                subTab: "Models"
+            ),
 
-        // MARK: Subagents (Orchestrator delegation policy + runtime knobs)
-        // There is no global master switch and no dedicated Spawn tab anymore.
-        // Settings → Orchestrator: Model readiness, Working Folder, Subagents
-        // (Allowed subagents / Permission / Limits / Advanced), Delegations.
-        // Custom-agent spawn policy remains in each agent's Subagents tab.
-        .init(
-            id: "settings.orchestrator.modelReadiness",
-            tab: .orchestrator,
-            section: "Model & Generation",
-            title: "Model readiness",
-            keywords: [
-                "orchestrator model", "context window", "tools ok", "tools limited",
-                "recommended model", "model too small", "readiness", "can the orchestrator use tools",
-            ]
-        ),
-        .init(
-            id: "settings.orchestrator.workingFolder",
-            tab: .orchestrator,
-            section: "Working Folder",
-            title: "Working Folder",
-            keywords: [
-                "orchestrator folder", "folder access", "file access", "read files",
-                "file_read", "file_search", "deliverables", "project folder",
-                "subagent folder", "inherit folder", "choose folder",
-            ],
-            disambiguation: "The Orchestrator's folder. Custom agents set theirs in Agents → Abilities."
-        ),
-        .init(
-            id: "settings.orchestrator.delegation",
-            tab: .orchestrator,
-            section: "Subagents",
-            title: "Subagents",
-            keywords: [
-                "spawn", "delegate", "delegation", "subagent", "subagents",
-                "helper jobs", "agent delegation", "allowed agents",
-                "allowed subagents", "main chat", "orchestrator",
-                "parallel subagents", "child budgets", "spawn_agent",
-            ],
-            declarativeSection: "delegation"
-        ),
-        .init(
-            id: "settings.orchestrator.delegation.mainChat",
-            tab: .orchestrator,
-            section: "Subagents",
-            title: "Allowed subagents",
-            keywords: [
-                "default agent", "built-in chat", "spawn pool", "main chat spawn",
-                "allowed agents", "shared workspace agents", "workspace agents",
-                "teammate agents", "auto-join", "remove agent",
-            ],
-            declarativeSection: "delegation"
-        ),
-        .init(
-            id: "settings.orchestrator.delegation.starterAgents",
-            tab: .orchestrator,
-            section: "Subagents",
-            title: "Create starter agents",
-            keywords: [
-                "starter agents", "coder", "researcher", "writer", "create agents",
-                "no agents yet", "first agents", "quick start",
-            ]
-        ),
-        .init(
-            id: "settings.orchestrator.delegation.addAllAgents",
-            tab: .orchestrator,
-            section: "Subagents",
-            title: "Add all agents",
-            keywords: [
-                "add all agents", "empty pool", "spawn pool empty", "no spawn_agent",
-                "cannot delegate", "orchestrator cannot delegate", "re-add agents",
-                "restore delegation", "agents not in list",
-            ],
-            disambiguation:
-                "Shown only while the Orchestrator's allowed list is empty but agents exist; puts every existing agent back in the list so spawn_agent returns.",
-            declarativeSection: "delegation"
-        ),
-        .init(
-            id: "settings.orchestrator.delegation.permission",
-            tab: .orchestrator,
-            section: "Subagents",
-            title: "Permission",
-            keywords: [
-                "ask before delegating", "always allow", "approval card", "spawn permission",
-                "local agents permission", "shared agents permission", "workspace permission",
-                "permission for shared (workspace) agents", "deny delegation", "one approval per wave",
-            ],
-            disambiguation: "Whether to ask before subagents run. For every tool, see Chat → Auto-allow all tools.",
-            declarativeSection: "delegation"
-        ),
-        .init(
-            id: "settings.orchestrator.delegation.limits",
-            tab: .orchestrator,
-            section: "Subagents",
-            title: "Limits",
-            keywords: [
-                "max output tokens per subagent", "max turns per subagent",
-                "time limit per subagent (seconds)", "max local subagents at once",
-                "max remote subagents at once", "max parallel", "parallel subagents",
-                "remote parallel", "budgets", "subagent limits", "agents end too fast",
-                "delegation limits", "max delegate tokens", "elapsed seconds",
-            ],
-            declarativeSection: "delegation"
-        ),
-        .init(
-            id: "settings.orchestrator.delegation.advanced",
-            tab: .orchestrator,
-            section: "Subagents",
-            title: "Advanced",
-            keywords: [
-                "agent-target model override", "model override", "subagent model",
-                "run subagents on model", "override model", "advanced delegation",
-            ],
-            declarativeSection: "delegation"
-        ),
-        .init(
-            id: "settings.orchestrator.delegation.handoff",
-            tab: .orchestrator,
-            section: "Subagents",
-            title: "Local Models & Memory",
-            keywords: [
-                "handoff", "swap local models", "swap", "ram safety", "memory check",
-                "residency", "unload", "preflight", "coexistence", "keep chat model loaded",
-                "check memory before delegating",
-            ]
-        ),
-        .init(
-            id: "settings.orchestrator.delegation.swapModels",
-            tab: .orchestrator,
-            section: "Local Models & Memory",
-            title: "Swap local models for subagents",
-            keywords: [
-                "handoff", "browser use", "computer use", "applescript", "batch", "unload", "restore", "keep loaded",
-                "coexistence",
-            ],
-            disambiguation:
-                "Shared by all agents for text, Browser Use, Computer Use, AppleScript, local image jobs and context compaction. Off retains the invoking model during the job, including under Server Strict; memory admission and image cleanup remain separate.",
-            declarativeSection: "delegation"
-        ),
-        .init(
-            id: "settings.orchestrator.delegation.ramSafety",
-            tab: .orchestrator,
-            section: "Local Models & Memory",
-            title: "Check memory before delegating",
-            keywords: [
-                "ram safety", "memory pressure", "stable_memory_refusal", "preflight", "subagent",
-                "disable memory check",
-            ],
-            disambiguation:
-                "One shared delegation RAM check for the Orchestrator and all agents. Separate from Server → Memory Safety load budgets.",
-            declarativeSection: "delegation"
-        ),
-        .init(
-            id: "settings.orchestrator.delegations",
-            tab: .orchestrator,
-            section: "Delegations",
-            title: "Delegations",
-            keywords: [
-                "delegation history", "sent", "received", "worker runs", "subagent runs",
-                "open chat", "tok/s", "artifacts", "delegated tasks", "inbound runs",
-                "shared agent runs",
-            ]
-        ),
-        .init(
-            id: "privacy.tab",
-            tab: .privacy,
-            title: "Privacy Filter",
-            keywords: ["redaction", "filter", "scrub", "mask", "sensitive data", "custom rules", "pii"]
-        ),
-        .init(
-            id: "privacy.filter.enabled",
-            tab: .privacy,
-            section: "Filter",
-            title: "Scrub PII before sending to cloud providers",
-            keywords: ["privacy filter", "scrub", "redact", "pii", "cloud", "enable filter"],
-            subTab: "overview"
-        ),
-        .init(
-            id: "privacy.filter.aiDetection",
-            tab: .privacy,
-            section: "Filter",
-            title: "AI detection (on-device model)",
-            keywords: ["ai detection", "on-device model", "names", "addresses", "secrets"],
-            subTab: "overview"
-        ),
-        .init(
-            id: "privacy.filter.skipCode",
-            tab: .privacy,
-            section: "Filter",
-            title: "Skip Code Blocks",
-            keywords: ["code blocks", "skip code", "fenced code", "inline code"],
-            subTab: "overview"
-        ),
-        .init(
-            id: "privacy.filter.alwaysApprove",
-            tab: .privacy,
-            section: "Filter",
-            title: "Always Approve by Default",
-            keywords: ["always approve", "review sheet", "skip review", "auto approve redaction"],
-            subTab: "overview"
-        ),
-        .init(
-            id: "privacy.filter.providers",
-            tab: .privacy,
-            section: "Per-Provider",
-            title: "Per-Provider",
-            keywords: ["per provider", "provider override", "filter per provider", "exempt provider"],
-            subTab: "overview"
-        ),
-        .init(
-            id: "privacy.filter.forget",
-            tab: .privacy,
-            section: "Conversation Privacy",
-            title: "Forget Redactions in Every Conversation",
-            keywords: ["forget redactions", "clear placeholders", "reset redactions"],
-            subTab: "overview"
-        ),
-        .init(
-            id: "privacy.filter.nonInteractive",
-            tab: .privacy,
-            section: "Advanced",
-            title: "Require Review for Background Requests",
-            keywords: [
-                "non-interactive", "background requests", "http api review", "schedules review",
-                "silent approve",
-            ],
-            subTab: "overview"
-        ),
-        .init(
-            id: "privacy.activityLog.retention",
-            tab: .privacy,
-            section: "Activity Log",
-            title: "Keep Activity History",
-            keywords: [
-                "activity log", "activity log retention", "audit log retention", "retention", "keep history",
-                "how long", "insights retention", "delete old activity", "7 days", "30 days", "keep forever",
-                "prune",
-            ],
-            subTab: "overview",
-            disambiguation:
-                "Privacy → Activity Log. How many days of Insights activity (model requests, web searches, URL fetches, MCP calls, channel deliveries, Router calls) stay on disk before automatic pruning. Not Memory retention (Memory → Settings) and not File History (General → Advanced)."
-        ),
-        .init(
-            id: "privacy.activityLog.storeContent",
-            tab: .privacy,
-            section: "Activity Log",
-            title: "Store Prompts and Responses",
-            keywords: [
-                "activity log", "audit log", "store content", "store prompts", "log bodies", "metadata only",
-                "prompt logging", "response logging", "wire payload", "insights content",
-            ],
-            subTab: "overview",
-            disambiguation:
-                "Privacy → Activity Log. When off, new Insights records keep metadata (destination, bytes, tokens, timing) but replace prompt/response/tool bodies with a withheld marker. Not the Privacy Filter redaction switch."
-        ),
-        .init(
-            id: "privacy.activityLog.openInsights",
-            tab: .privacy,
-            section: "Activity Log",
-            title: "Review Activity in Insights",
-            keywords: ["open insights", "review activity", "audit", "export log", "verify chain"],
-            subTab: "overview"
-        ),
-        .init(
-            id: "privacy.rules.detectionPatterns",
-            tab: .privacy,
-            section: "Rules",
-            title: "Detection Patterns",
-            keywords: [
-                "detection patterns", "built-in patterns", "phone numbers", "international phone", "email addresses",
-                "urls", "account numbers", "credit card", "luhn", "regex layer",
-            ],
-            subTab: "rules",
-            disambiguation:
-                "Privacy → Rules → Detection Patterns. Per-category switches for the built-in regex detectors (phone, email, URL, card numbers). National ID formats such as SSN, NINO or Aadhaar live under Preset Rules, not here."
-        ),
-        .init(
-            id: "privacy.rules.regions",
-            tab: .privacy,
-            section: "Rules",
-            title: "My Regions",
-            keywords: [
-                "my regions", "region", "country", "locale", "home region", "add region", "remove region",
-                "detected region", "which country", "international", "country presets",
-            ],
-            subTab: "rules",
-            disambiguation:
-                "Privacy → Rules → My Regions. The countries whose ID / tax / health / bank number presets are on by default. Adding a region enables its presets; removing one never disables anything. Not the Preset Rules list itself and not the app language."
-        ),
-        .init(
-            id: "privacy.rules.presets",
-            tab: .privacy,
-            section: "Rules",
-            title: "Preset Rules",
-            keywords: [
-                "preset rules", "presets", "country", "national id", "passport", "ssn", "social security",
-                "nino", "aadhaar", "iban", "tax id", "vat", "driver's licence", "health number", "bank account",
-                "api key", "secret", "aws key", "github token", "enable all", "disable all", "ip address",
-                "bitcoin", "ethereum",
-            ],
-            subTab: "rules",
-            disambiguation:
-                "Privacy → Rules → Preset Rules. Ready-made patterns grouped My regions → Global → Other regions, each with Enable all / Disable all and a per-row switch. Not My Regions (which picks the countries) and not Custom Rules (which you write yourself)."
-        ),
-        .init(
-            id: "privacy.rules.custom",
-            tab: .privacy,
-            section: "Rules",
-            title: "Custom Rules",
-            keywords: [
-                "custom rules", "add rule", "regex", "pattern", "placeholder", "codename", "customer id",
-                "rule builder", "my own pattern",
-            ],
-            subTab: "rules",
-            disambiguation:
-                "Privacy → Rules → Custom Rules. User-written patterns (regex or builder) with their own placeholder label. Not Preset Rules (ready-made, per country)."
-        ),
-        .init(
-            id: "privacy.rules.test",
-            tab: .privacy,
-            section: "Rules",
-            title: "Test Your Rules",
-            keywords: [
-                "test rules", "dry run", "preview redaction", "try sample", "what gets redacted", "tester",
-            ],
-            subTab: "rules"
-        ),
-        .init(
-            id: "privacy.models",
-            tab: .privacy,
-            section: "Models",
-            title: "Detection Models",
-            keywords: ["privacy model", "pii model", "rampart", "install detection model", "on-device detector"],
-            subTab: "model"
-        ),
+            // MARK: Subagents (Orchestrator delegation policy + runtime knobs)
+            // There is no global master switch and no dedicated Spawn tab anymore.
+            // Settings → Orchestrator: Model readiness, Working Folder, Subagents
+            // (Allowed subagents / Permission / Limits / Advanced), Delegations.
+            // Custom-agent spawn policy remains in each agent's Subagents tab.
+            .init(
+                id: "settings.orchestrator.modelReadiness",
+                tab: .orchestrator,
+                section: "Model & Generation",
+                title: "Model readiness",
+                keywords: [
+                    "orchestrator model", "context window", "tools ok", "tools limited",
+                    "recommended model", "model too small", "readiness", "can the orchestrator use tools",
+                ]
+            ),
+            .init(
+                id: "settings.orchestrator.workingFolder",
+                tab: .orchestrator,
+                section: "Working Folder",
+                title: "Working Folder",
+                keywords: [
+                    "orchestrator folder", "folder access", "file access", "read files",
+                    "file_read", "file_search", "deliverables", "project folder",
+                    "subagent folder", "inherit folder", "choose folder",
+                ],
+                disambiguation: "The Orchestrator's folder. Custom agents set theirs in Agents → Abilities."
+            ),
+            .init(
+                id: "settings.orchestrator.delegation",
+                tab: .orchestrator,
+                section: "Subagents",
+                title: "Subagents",
+                keywords: [
+                    "spawn", "delegate", "delegation", "subagent", "subagents",
+                    "helper jobs", "agent delegation", "allowed agents",
+                    "allowed subagents", "main chat", "orchestrator",
+                    "parallel subagents", "child budgets", "spawn_agent",
+                ],
+                declarativeSection: "delegation"
+            ),
+            .init(
+                id: "settings.orchestrator.delegation.mainChat",
+                tab: .orchestrator,
+                section: "Subagents",
+                title: "Allowed subagents",
+                keywords: [
+                    "default agent", "built-in chat", "spawn pool", "main chat spawn",
+                    "allowed agents", "shared workspace agents", "workspace agents",
+                    "teammate agents", "auto-join", "remove agent",
+                ],
+                declarativeSection: "delegation"
+            ),
+            .init(
+                id: "settings.orchestrator.delegation.starterAgents",
+                tab: .orchestrator,
+                section: "Subagents",
+                title: "Create starter agents",
+                keywords: [
+                    "starter agents", "coder", "researcher", "writer", "create agents",
+                    "no agents yet", "first agents", "quick start",
+                ]
+            ),
+            .init(
+                id: "settings.orchestrator.delegation.addAllAgents",
+                tab: .orchestrator,
+                section: "Subagents",
+                title: "Add all agents",
+                keywords: [
+                    "add all agents", "empty pool", "spawn pool empty", "no spawn_agent",
+                    "cannot delegate", "orchestrator cannot delegate", "re-add agents",
+                    "restore delegation", "agents not in list",
+                ],
+                disambiguation:
+                    "Shown only while the Orchestrator's allowed list is empty but agents exist; puts every existing agent back in the list so spawn_agent returns.",
+                declarativeSection: "delegation"
+            ),
+            .init(
+                id: "settings.orchestrator.delegation.permission",
+                tab: .orchestrator,
+                section: "Subagents",
+                title: "Permission",
+                keywords: [
+                    "ask before delegating", "always allow", "approval card", "spawn permission",
+                    "local agents permission", "shared agents permission", "workspace permission",
+                    "permission for shared (workspace) agents", "deny delegation", "one approval per wave",
+                ],
+                disambiguation: "Whether to ask before subagents run. For every tool, see Chat → Auto-allow all tools.",
+                declarativeSection: "delegation"
+            ),
+            .init(
+                id: "settings.orchestrator.delegation.limits",
+                tab: .orchestrator,
+                section: "Subagents",
+                title: "Limits",
+                keywords: [
+                    "max output tokens per subagent", "max turns per subagent",
+                    "time limit per subagent (seconds)", "max local subagents at once",
+                    "max remote subagents at once", "max parallel", "parallel subagents",
+                    "remote parallel", "budgets", "subagent limits", "agents end too fast",
+                    "delegation limits", "max delegate tokens", "elapsed seconds",
+                ],
+                declarativeSection: "delegation"
+            ),
+            .init(
+                id: "settings.orchestrator.delegation.advanced",
+                tab: .orchestrator,
+                section: "Subagents",
+                title: "Advanced",
+                keywords: [
+                    "agent-target model override", "model override", "subagent model",
+                    "run subagents on model", "override model", "advanced delegation",
+                ],
+                declarativeSection: "delegation"
+            ),
+            .init(
+                id: "settings.orchestrator.delegation.handoff",
+                tab: .orchestrator,
+                section: "Subagents",
+                title: "Local Models & Memory",
+                keywords: [
+                    "handoff", "swap local models", "swap", "ram safety", "memory check",
+                    "residency", "unload", "preflight", "coexistence", "keep chat model loaded",
+                    "check memory before delegating",
+                ]
+            ),
+            .init(
+                id: "settings.orchestrator.delegation.swapModels",
+                tab: .orchestrator,
+                section: "Local Models & Memory",
+                title: "Swap local models for subagents",
+                keywords: [
+                    "handoff", "browser use", "computer use", "applescript", "batch", "unload", "restore",
+                    "keep loaded",
+                    "coexistence",
+                ],
+                disambiguation:
+                    "Shared by all agents for text, Browser Use, Computer Use, AppleScript, local image jobs and context compaction. Off retains the invoking model during the job, including under Server Strict; memory admission and image cleanup remain separate.",
+                declarativeSection: "delegation"
+            ),
+            .init(
+                id: "settings.orchestrator.delegation.ramSafety",
+                tab: .orchestrator,
+                section: "Local Models & Memory",
+                title: "Check memory before delegating",
+                keywords: [
+                    "ram safety", "memory pressure", "stable_memory_refusal", "preflight", "subagent",
+                    "disable memory check",
+                ],
+                disambiguation:
+                    "One shared delegation RAM check for the Orchestrator and all agents. Separate from Server → Memory Safety load budgets.",
+                declarativeSection: "delegation"
+            ),
+            .init(
+                id: "settings.orchestrator.delegations",
+                tab: .orchestrator,
+                section: "Delegations",
+                title: "Delegations",
+                keywords: [
+                    "delegation history", "sent", "received", "worker runs", "subagent runs",
+                    "open chat", "tok/s", "artifacts", "delegated tasks", "inbound runs",
+                    "shared agent runs",
+                ]
+            ),
+            .init(
+                id: "privacy.tab",
+                tab: .privacy,
+                title: "Privacy Filter",
+                keywords: ["redaction", "filter", "scrub", "mask", "sensitive data", "custom rules", "pii"]
+            ),
+            .init(
+                id: "privacy.filter.enabled",
+                tab: .privacy,
+                section: "Filter",
+                title: "Scrub PII before sending to cloud providers",
+                keywords: ["privacy filter", "scrub", "redact", "pii", "cloud", "enable filter"],
+                subTab: "overview"
+            ),
+            .init(
+                id: "privacy.filter.aiDetection",
+                tab: .privacy,
+                section: "Filter",
+                title: "AI detection (on-device model)",
+                keywords: ["ai detection", "on-device model", "names", "addresses", "secrets"],
+                subTab: "overview"
+            ),
+            .init(
+                id: "privacy.filter.skipCode",
+                tab: .privacy,
+                section: "Filter",
+                title: "Skip Code Blocks",
+                keywords: ["code blocks", "skip code", "fenced code", "inline code"],
+                subTab: "overview"
+            ),
+            .init(
+                id: "privacy.filter.alwaysApprove",
+                tab: .privacy,
+                section: "Filter",
+                title: "Always Approve by Default",
+                keywords: ["always approve", "review sheet", "skip review", "auto approve redaction"],
+                subTab: "overview"
+            ),
+            .init(
+                id: "privacy.filter.providers",
+                tab: .privacy,
+                section: "Per-Provider",
+                title: "Per-Provider",
+                keywords: ["per provider", "provider override", "filter per provider", "exempt provider"],
+                subTab: "overview"
+            ),
+            .init(
+                id: "privacy.filter.forget",
+                tab: .privacy,
+                section: "Conversation Privacy",
+                title: "Forget Redactions in Every Conversation",
+                keywords: ["forget redactions", "clear placeholders", "reset redactions"],
+                subTab: "overview"
+            ),
+            .init(
+                id: "privacy.filter.nonInteractive",
+                tab: .privacy,
+                section: "Advanced",
+                title: "Require Review for Background Requests",
+                keywords: [
+                    "non-interactive", "background requests", "http api review", "schedules review",
+                    "silent approve",
+                ],
+                subTab: "overview"
+            ),
+            .init(
+                id: "privacy.activityLog.retention",
+                tab: .privacy,
+                section: "Activity Log",
+                title: "Keep Activity History",
+                keywords: [
+                    "activity log", "activity log retention", "audit log retention", "retention", "keep history",
+                    "how long", "insights retention", "delete old activity", "7 days", "30 days", "keep forever",
+                    "prune",
+                ],
+                subTab: "overview",
+                disambiguation:
+                    "Privacy → Activity Log. How many days of Insights activity (model requests, web searches, URL fetches, MCP calls, channel deliveries, Router calls) stay on disk before automatic pruning. Not Memory retention (Memory → Settings) and not File History (General → Advanced)."
+            ),
+            .init(
+                id: "privacy.activityLog.storeContent",
+                tab: .privacy,
+                section: "Activity Log",
+                title: "Store Prompts and Responses",
+                keywords: [
+                    "activity log", "audit log", "store content", "store prompts", "log bodies", "metadata only",
+                    "prompt logging", "response logging", "wire payload", "insights content",
+                ],
+                subTab: "overview",
+                disambiguation:
+                    "Privacy → Activity Log. When off, new Insights records keep metadata (destination, bytes, tokens, timing) but replace prompt/response/tool bodies with a withheld marker. Not the Privacy Filter redaction switch."
+            ),
+            .init(
+                id: "privacy.activityLog.openInsights",
+                tab: .privacy,
+                section: "Activity Log",
+                title: "Review Activity in Insights",
+                keywords: ["open insights", "review activity", "audit", "export log", "verify chain"],
+                subTab: "overview"
+            ),
+            .init(
+                id: "privacy.rules.detectionPatterns",
+                tab: .privacy,
+                section: "Rules",
+                title: "Detection Patterns",
+                keywords: [
+                    "detection patterns", "built-in patterns", "phone numbers", "international phone",
+                    "email addresses",
+                    "urls", "account numbers", "credit card", "luhn", "regex layer",
+                ],
+                subTab: "rules",
+                disambiguation:
+                    "Privacy → Rules → Detection Patterns. Per-category switches for the built-in regex detectors (phone, email, URL, card numbers). National ID formats such as SSN, NINO or Aadhaar live under Preset Rules, not here."
+            ),
+            .init(
+                id: "privacy.rules.regions",
+                tab: .privacy,
+                section: "Rules",
+                title: "My Regions",
+                keywords: [
+                    "my regions", "region", "country", "locale", "home region", "add region", "remove region",
+                    "detected region", "which country", "international", "country presets",
+                ],
+                subTab: "rules",
+                disambiguation:
+                    "Privacy → Rules → My Regions. The countries whose ID / tax / health / bank number presets are on by default. Adding a region enables its presets; removing one never disables anything. Not the Preset Rules list itself and not the app language."
+            ),
+            .init(
+                id: "privacy.rules.presets",
+                tab: .privacy,
+                section: "Rules",
+                title: "Preset Rules",
+                keywords: [
+                    "preset rules", "presets", "country", "national id", "passport", "ssn", "social security",
+                    "nino", "aadhaar", "iban", "tax id", "vat", "driver's licence", "health number", "bank account",
+                    "api key", "secret", "aws key", "github token", "enable all", "disable all", "ip address",
+                    "bitcoin", "ethereum",
+                ],
+                subTab: "rules",
+                disambiguation:
+                    "Privacy → Rules → Preset Rules. Ready-made patterns grouped My regions → Global → Other regions, each with Enable all / Disable all and a per-row switch. Not My Regions (which picks the countries) and not Custom Rules (which you write yourself)."
+            ),
+            .init(
+                id: "privacy.rules.custom",
+                tab: .privacy,
+                section: "Rules",
+                title: "Custom Rules",
+                keywords: [
+                    "custom rules", "add rule", "regex", "pattern", "placeholder", "codename", "customer id",
+                    "rule builder", "my own pattern",
+                ],
+                subTab: "rules",
+                disambiguation:
+                    "Privacy → Rules → Custom Rules. User-written patterns (regex or builder) with their own placeholder label. Not Preset Rules (ready-made, per country)."
+            ),
+            .init(
+                id: "privacy.rules.test",
+                tab: .privacy,
+                section: "Rules",
+                title: "Test Your Rules",
+                keywords: [
+                    "test rules", "dry run", "preview redaction", "try sample", "what gets redacted", "tester",
+                ],
+                subTab: "rules"
+            ),
+            .init(
+                id: "privacy.models",
+                tab: .privacy,
+                section: "Models",
+                title: "Detection Models",
+                keywords: ["privacy model", "pii model", "rampart", "install detection model", "on-device detector"],
+                subTab: "model"
+            ),
 
-        // MARK: Identity / Storage / Themes / Memory
-        .init(
-            id: "identity.osaurusId",
-            tab: .identity,
-            title: "Osaurus ID",
-            keywords: [
-                "osaurus id", "handle", "username", "profile", "display name", "bio", "claim",
-                "public name",
-            ]
-        ),
-        .init(
-            id: "identity.keys",
-            tab: .identity,
-            title: "Identity & Recovery",
-            keywords: [
-                "mnemonic", "seed phrase", "recovery phrase", "agent keys", "signing",
-                "cryptographic identity", "keys",
-            ]
-        ),
-        .init(
-            id: "workspaces.overview",
-            tab: .workspaces,
-            title: "Workspaces",
-            keywords: [
-                "workspace", "workspaces", "new workspace", "create workspace", "team", "teams",
-                "collaboration", "share agents",
-            ]
-        ),
-        .init(
-            id: "workspaces.invites",
-            tab: .workspaces,
-            section: "Members",
-            title: "Invites & Members",
-            keywords: [
-                "invite", "invite link", "join", "join code", "member", "role", "admin",
-                "owner", "viewer", "join workspace", "join team",
-            ]
-        ),
-        .init(
-            id: "workspaces.agents",
-            tab: .workspaces,
-            section: "Shared Agents",
-            title: "Shared Agents",
-            keywords: [
-                "share agent", "shared agent", "relay", "presence", "workspace billing", "team billing",
-            ]
-        ),
-        .init(
-            id: "workspaces.agents.billPool",
-            tab: .workspaces,
-            section: "Shared Agents",
-            title: "Bill the workspace pool",
-            keywords: [
-                "pool billing", "workspace pool", "workspace credits", "shared credits", "bill personal",
-                "personal credits", "own balance", "who pays", "billing toggle", "team credits",
-            ],
-            disambiguation:
-                "Per shared agent, shown only for agents hosted on this Mac. On by default once you share an agent; off bills your own chats with it to your personal balance. Teammates' runs always draw from the pool."
-        ),
-        .init(
-            id: "workspaces.agents.orchestratorAutoJoin",
-            tab: .workspaces,
-            section: "Shared Agents",
-            title: "Let the Orchestrator delegate to shared agents",
-            keywords: [
-                "auto-join", "auto join", "workspace auto join", "orchestrator shared agents",
-                "delegate to teammates", "shared agents pool", "stop joining", "workspace delegation",
-            ],
-            disambiguation: "Per-workspace switch. The pool itself is Settings → Orchestrator → Allowed subagents.",
-            declarativeSection: "delegation"
-        ),
-        // The standalone Storage tab is gone: everything storage-shaped now
-        // lives on the General tab — "Models on This Mac" in the open, and the
-        // Models Directory, Model Sources, and Data & Storage (encryption +
-        // file history) under General → Advanced.
-        .init(
-            id: "storage.externalModels",
-            tab: .settings,
-            section: "Models on This Mac",
-            title: "Use models already on this Mac",
-            keywords: [
-                "hugging face", "hf cache", "lm studio", "external", "import models", "external models",
-                "models on this mac", "other apps",
-            ]
-        ),
-        .init(
-            id: "storage.location",
-            tab: .settings,
-            section: "Advanced",
-            title: "Models Directory",
-            keywords: ["disk", "data location", "models folder", "move models", "cleanup", "models size"]
-        ),
-        .init(
-            id: "storage.encryption",
-            tab: .settings,
-            section: "Advanced",
-            title: "Encrypt Local Data at Rest",
-            keywords: ["sqlcipher", "encryption", "filevault", "at rest", "storage key", "backup", "data & storage"]
-        ),
-        .init(
-            id: "storage.fileHistory.retention",
-            tab: .settings,
-            section: "Advanced",
-            title: "Keep File History",
-            keywords: [
-                "file history retention", "undo history", "revert history", "file changes", "change history",
-                "file snapshots", "keep changes", "delete old changes", "30 days", "90 days",
-            ],
-            disambiguation:
-                "How long reverting agent file changes stays possible. Deleting a chat always deletes its file history."
-        ),
-        .init(
-            id: "storage.fileHistory.sizeLimit",
-            tab: .settings,
-            section: "Advanced",
-            title: "File History Size Limit",
-            keywords: [
-                "file history size", "file history disk", "undo storage", "snapshot storage", "revert storage",
-                "file changes disk usage",
-            ]
-        ),
-        .init(
-            id: "themes.appearance",
-            tab: .themes,
-            title: "Appearance & Themes",
-            keywords: ["theme", "appearance", "dark mode", "color", "accent"]
-        ),
-        .init(
-            id: "themes.borders.color",
-            tab: .themes,
-            section: "Borders & Effects",
-            title: "Border Color",
-            keywords: ["default border color", "popover border", "model picker border", "credits border"]
-        ),
-        .init(
-            id: "themes.borders.width",
-            tab: .themes,
-            section: "Borders & Effects",
-            title: "Border Width",
-            keywords: ["default border width", "menu border width", "popover border width", "model picker border width", "credits border width"]
-        ),
-        .init(
-            id: "themes.borders.opacity",
-            tab: .themes,
-            section: "Borders & Effects",
-            title: "Border Opacity",
-            keywords: [
-                "default border opacity", "dropdown border opacity", "popover opacity", "popover border opacity",
-                "model picker border opacity", "credits border opacity",
-            ]
-        ),
-        .init(
-            id: "themes.typography.smallBody",
-            tab: .themes,
-            section: "Text & Fonts",
-            title: "Small body",
-            keywords: ["small body size", "small text", "font size", "compact controls", "model list", "model picker"],
-            disambiguation: "Compact controls and model lists"
-        ),
-        .init(
-            id: "memory.settings",
-            tab: .memory,
-            title: "Memory",
-            keywords: ["memories", "facts", "recall", "long term memory"],
-            declarativeSection: "memory"
-        ),
-        .init(
-            id: "memory.settings.enabled",
-            tab: .memory,
-            section: "Configuration",
-            title: "Enable Memory",
-            keywords: ["turn on memory", "disable memory", "memory switch"],
-            subTab: "settings",
-            declarativeSection: "memory"
-        ),
-        .init(
-            id: "memory.settings.budget",
-            tab: .memory,
-            section: "Configuration",
-            title: "Memory Budget",
-            keywords: ["memory tokens", "injection", "memory budget"],
-            subTab: "settings",
-            disambiguation:
-                "Tokens of long-term memory injected per turn — not the chat Context Window Cap.",
-            declarativeSection: "memory"
-        ),
-        .init(
-            id: "memory.settings.consolidation",
-            tab: .memory,
-            section: "Configuration",
-            title: "Consolidation Interval",
-            keywords: ["consolidation", "decay", "dedup", "eviction interval"],
-            subTab: "settings"
-        ),
-        .init(
-            id: "memory.settings.retention",
-            tab: .memory,
-            section: "Configuration",
-            title: "Episode Retention",
-            keywords: ["retention", "prune", "days", "history cleanup"],
-            subTab: "settings"
-        ),
+            // MARK: Identity / Storage / Themes / Memory
+            .init(
+                id: "identity.osaurusId",
+                tab: .identity,
+                title: "Osaurus ID",
+                keywords: [
+                    "osaurus id", "handle", "username", "profile", "display name", "bio", "claim",
+                    "public name",
+                ]
+            ),
+            .init(
+                id: "identity.keys",
+                tab: .identity,
+                title: "Identity & Recovery",
+                keywords: [
+                    "mnemonic", "seed phrase", "recovery phrase", "agent keys", "signing",
+                    "cryptographic identity", "keys",
+                ]
+            ),
+            .init(
+                id: "workspaces.overview",
+                tab: .workspaces,
+                title: "Workspaces",
+                keywords: [
+                    "workspace", "workspaces", "new workspace", "create workspace", "team", "teams",
+                    "collaboration", "share agents",
+                ]
+            ),
+            .init(
+                id: "workspaces.invites",
+                tab: .workspaces,
+                section: "Members",
+                title: "Invites & Members",
+                keywords: [
+                    "invite", "invite link", "join", "join code", "member", "role", "admin",
+                    "owner", "viewer", "join workspace", "join team",
+                ]
+            ),
+            .init(
+                id: "workspaces.agents",
+                tab: .workspaces,
+                section: "Shared Agents",
+                title: "Shared Agents",
+                keywords: [
+                    "share agent", "shared agent", "relay", "presence", "workspace billing", "team billing",
+                ]
+            ),
+            .init(
+                id: "workspaces.agents.billPool",
+                tab: .workspaces,
+                section: "Shared Agents",
+                title: "Bill the workspace pool",
+                keywords: [
+                    "pool billing", "workspace pool", "workspace credits", "shared credits", "bill personal",
+                    "personal credits", "own balance", "who pays", "billing toggle", "team credits",
+                ],
+                disambiguation:
+                    "Per shared agent, shown only for agents hosted on this Mac. On by default once you share an agent; off bills your own chats with it to your personal balance. Teammates' runs always draw from the pool."
+            ),
+            .init(
+                id: "workspaces.agents.orchestratorAutoJoin",
+                tab: .workspaces,
+                section: "Shared Agents",
+                title: "Let the Orchestrator delegate to shared agents",
+                keywords: [
+                    "auto-join", "auto join", "workspace auto join", "orchestrator shared agents",
+                    "delegate to teammates", "shared agents pool", "stop joining", "workspace delegation",
+                ],
+                disambiguation: "Per-workspace switch. The pool itself is Settings → Orchestrator → Allowed subagents.",
+                declarativeSection: "delegation"
+            ),
+            // The standalone Storage tab is gone: everything storage-shaped now
+            // lives on the General tab — "Models on This Mac" in the open, and the
+            // Models Directory, Model Sources, and Data & Storage (encryption +
+            // file history) under General → Advanced.
+            .init(
+                id: "storage.externalModels",
+                tab: .settings,
+                section: "Models on This Mac",
+                title: "Use models already on this Mac",
+                keywords: [
+                    "hugging face", "hf cache", "lm studio", "external", "import models", "external models",
+                    "models on this mac", "other apps",
+                ]
+            ),
+            .init(
+                id: "storage.location",
+                tab: .settings,
+                section: "Advanced",
+                title: "Models Directory",
+                keywords: ["disk", "data location", "models folder", "move models", "cleanup", "models size"]
+            ),
+            .init(
+                id: "storage.encryption",
+                tab: .settings,
+                section: "Advanced",
+                title: "Encrypt Local Data at Rest",
+                keywords: [
+                    "sqlcipher", "encryption", "filevault", "at rest", "storage key", "backup", "data & storage",
+                ]
+            ),
+            .init(
+                id: "storage.fileHistory.retention",
+                tab: .settings,
+                section: "Advanced",
+                title: "Keep File History",
+                keywords: [
+                    "file history retention", "undo history", "revert history", "file changes", "change history",
+                    "file snapshots", "keep changes", "delete old changes", "30 days", "90 days",
+                ],
+                disambiguation:
+                    "How long reverting agent file changes stays possible. Deleting a chat always deletes its file history."
+            ),
+            .init(
+                id: "storage.fileHistory.sizeLimit",
+                tab: .settings,
+                section: "Advanced",
+                title: "File History Size Limit",
+                keywords: [
+                    "file history size", "file history disk", "undo storage", "snapshot storage", "revert storage",
+                    "file changes disk usage",
+                ]
+            ),
+            .init(
+                id: "themes.appearance",
+                tab: .themes,
+                title: "Appearance & Themes",
+                keywords: ["theme", "appearance", "dark mode", "color", "accent"]
+            ),
+            .init(
+                id: "themes.borders.color",
+                tab: .themes,
+                section: "Borders & Effects",
+                title: "Border Color",
+                keywords: ["default border color", "popover border", "model picker border", "credits border"]
+            ),
+            .init(
+                id: "themes.borders.width",
+                tab: .themes,
+                section: "Borders & Effects",
+                title: "Border Width",
+                keywords: [
+                    "default border width", "menu border width", "popover border width", "model picker border width",
+                    "credits border width",
+                ]
+            ),
+            .init(
+                id: "themes.borders.opacity",
+                tab: .themes,
+                section: "Borders & Effects",
+                title: "Border Opacity",
+                keywords: [
+                    "default border opacity", "dropdown border opacity", "popover opacity", "popover border opacity",
+                    "model picker border opacity", "credits border opacity",
+                ]
+            ),
+            .init(
+                id: "themes.typography.smallBody",
+                tab: .themes,
+                section: "Text & Fonts",
+                title: "Small body",
+                keywords: [
+                    "small body size", "small text", "font size", "compact controls", "model list", "model picker",
+                ],
+                disambiguation: "Compact controls and model lists"
+            ),
+            .init(
+                id: "memory.settings",
+                tab: .memory,
+                title: "Memory",
+                keywords: ["memories", "facts", "recall", "long term memory"],
+                declarativeSection: "memory"
+            ),
+            .init(
+                id: "memory.settings.enabled",
+                tab: .memory,
+                section: "Configuration",
+                title: "Enable Memory",
+                keywords: ["turn on memory", "disable memory", "memory switch"],
+                subTab: "settings",
+                declarativeSection: "memory"
+            ),
+            .init(
+                id: "memory.settings.budget",
+                tab: .memory,
+                section: "Configuration",
+                title: "Memory Budget",
+                keywords: ["memory tokens", "injection", "memory budget"],
+                subTab: "settings",
+                disambiguation:
+                    "Tokens of long-term memory injected per turn — not the chat Context Window Cap.",
+                declarativeSection: "memory"
+            ),
+            .init(
+                id: "memory.settings.consolidation",
+                tab: .memory,
+                section: "Configuration",
+                title: "Consolidation Interval",
+                keywords: ["consolidation", "decay", "dedup", "eviction interval"],
+                subTab: "settings"
+            ),
+            .init(
+                id: "memory.settings.retention",
+                tab: .memory,
+                section: "Configuration",
+                title: "Episode Retention",
+                keywords: ["retention", "prune", "days", "history cleanup"],
+                subTab: "settings"
+            ),
 
-        // MARK: Agents
-        // Landing anchors live on the Agents screen (`AgentsView`): the header
-        // glows for the overview entry; the agent grid glows for the database
-        // entry, where each custom agent card exposes an Open Database
-        // shortcut into that agent's Database workspace.
-        .init(
-            id: "agents.overview",
-            tab: .agents,
-            title: "Agents",
-            keywords: [
-                "agent", "assistant", "persona", "custom agent", "create agent",
-                "system prompt", "agent settings",
-            ],
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.templates",
-            tab: .agents,
-            title: "Templates",
-            keywords: [
-                "agent templates", "import agent template", "agent starter", "share agent", "osaurustemplate",
-                "save as template", "export template", "import template",
-            ],
-            disambiguation:
-                "Agents header → Templates. Import Template takes a .osaurustemplate file; Save as Template is in an agent card's … menu and the agent page's Share menu."
-        ),
-        .init(
-            id: "agents.configure",
-            tab: .agents,
-            title: "Configure Agent",
-            keywords: [
-                "per-agent", "capabilities", "max tokens", "temperature",
-                "advanced", "agent model", "configure",
-            ],
-            disambiguation:
-                "Per-agent Advanced generation and capability toggles. Orchestrator defaults live under Orchestrator → Generation.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.showResponseMetrics",
-            tab: .agents,
-            section: "Advanced Settings",
-            title: "Show Response Metrics",
-            keywords: ["tokenizer", "token count", "tokens per second", "tok/s", "response statistics", "agent display"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings. Shows existing measured response statistics in that agent's chats.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.temperature",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Temperature",
-            keywords: ["agent temperature", "per-agent generation", "agent defaults"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.maxTokens",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Max Tokens",
-            keywords: ["agent max tokens", "per-agent generation", "agent defaults"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.topP",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Top P",
-            keywords: ["agent top p", "per-agent generation", "agent defaults"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.topK",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Top K",
-            keywords: ["agent top k", "per-agent generation", "agent defaults"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.minP",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Min P",
-            keywords: ["agent min p", "per-agent generation", "agent defaults"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.repetitionPenalty",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Repetition penalty",
-            keywords: ["agent repetition penalty", "per-agent generation", "agent defaults"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.frequencyPenalty",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Frequency penalty",
-            keywords: ["agent frequency penalty", "per-agent generation", "agent defaults"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.presencePenalty",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Presence penalty",
-            keywords: ["agent presence penalty", "per-agent generation", "agent defaults"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.seed",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Seed",
-            keywords: ["agent seed", "per-agent generation", "agent defaults"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.stop",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Stop sequences",
-            keywords: ["agent stop sequences (json array)", "per-agent generation", "agent defaults", "custom stop strings", "stop chips", "empty array"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.thinking",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Thinking",
-            keywords: ["agent thinking", "per-agent generation", "agent defaults"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.reasoningEffort",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Reasoning effort",
-            keywords: ["agent reasoning effort", "per-agent generation", "agent defaults"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.speculativeDecoding",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Speculative Decoding",
-            keywords: ["agent native mtp", "adaptive on off ar", "dspark", "dflash", "drafter", "per-agent speculation"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Eligible local bundles only. Inherit uses Server settings; Off uses AR; On requests adaptive drafting for this agent without changing shared defaults.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.generation.templateKwargs",
-            tab: .agents,
-            section: "Generation Overrides",
-            title: "Template parameters (JSON)",
-            keywords: ["agent template parameters (json)", "per-agent generation", "agent defaults", "custom template variables", "advanced chat template parameters", "empty object"],
-            disambiguation: "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.description",
-            tab: .agents,
-            title: "Brief description (optional)",
-            keywords: ["agent description", "purpose", "routing", "delegation", "auto-generated description", "generated description"],
-            disambiguation: "Optional one-line summary shown to the orchestrator when it chooses a delegation target. Left blank, Nuo generates one in the background from the agent's system prompt; typing your own overrides it.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.runtime",
-            tab: .agents,
-            section: "Runtime",
-            title: "Runs on",
-            keywords: [
-                "runtime", "agent runtime", "harness", "external harness", "claude code", "pi", "pi rpc",
-                "built-in loop", "osaurus built-in", "run agent on claude code", "spotlight", "splash",
-                "manage runtimes", "switch runtime", "switch to claude code", "model picker runtime",
-            ],
-            disambiguation:
-                "Per-agent choice between Nuo's own loop and a registered harness (Configure tab → Runtime). The chat model picker lists the same runtimes as columns; picking one there changes this setting. Register or test harnesses under Agents → Runtimes. Declarative key: `runtime` (\"builtin\" or a harness_runtimes name) on agents[] and default_agent.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.claudeCode.model",
-            tab: .agents,
-            section: "Claude Code Options",
-            title: "Claude model",
-            keywords: ["claude code model", "sonnet", "opus", "fable", "haiku", "model alias"],
-            disambiguation:
-                "Shown only when the agent's runtime is Claude Code. The Claude Code column of the chat model picker sets the same value. Declarative key: `claude_code.model`.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.claudeCode.effort",
-            tab: .agents,
-            section: "Claude Code Options",
-            title: "Claude effort",
-            keywords: [
-                "claude code effort", "effort", "thinking effort", "reasoning effort", "thinking level",
-                "extra high", "xhigh", "max effort", "--effort",
-            ],
-            disambiguation:
-                "Shown only when the agent's runtime is Claude Code. Passed to the CLI as `--effort`; Default leaves Claude Code on its own per-model default. Not the chat composer's reasoning control for built-in-loop models. Declarative key: `claude_code.effort`.",
-            declarativeSection: "agents"
-        ),
-        .init(
-            id: "agents.claudeCode",
-            tab: .agents,
-            section: "Claude Code Options",
-            title: "Allow file changes",
-            keywords: [
-                "execution mode", "text only", "allow shell commands", "bash", "allow osaurus read tools",
-                "allow osaurus configuration changes", "claude code permissions", "claude code tools", "mcp bridge",
-            ],
-            disambiguation:
-                "Claude Code permission switches on an agent whose runtime is Claude Code. File changes are scoped to the chat folder; shell commands can't be confined. Declarative block: `claude_code` on agents[] and default_agent.",
-            declarativeSection: "agents"
-        ),
-        // MARK: Agent Runtimes
-        .init(
-            id: "agentRuntimes.overview",
-            tab: .agentRuntimes,
-            title: "Agent Runtimes",
-            keywords: [
-                "runtimes", "harness", "harnesses", "external agent", "claude code", "pi", "pi rpc", "rpc mode",
-                "spotlight", "splash", "agent backend", "pluggable", "harness_runtimes",
-            ],
-            declarativeSection: "harness_runtimes"
-        ),
-        .init(
-            id: "agentRuntimes.add",
-            tab: .agentRuntimes,
-            title: "Add Runtime",
-            keywords: [
-                "new runtime", "register harness", "executable", "arguments", "environment", "protocol",
-                "session id", "chat id placeholder", "system prompt file",
-            ],
-            declarativeSection: "harness_runtimes"
-        ),
-        .init(
-            id: "agentRuntimes.list",
-            tab: .agentRuntimes,
-            title: "Test",
-            keywords: [
-                "test runtime", "check harness", "get_state", "sign in", "claude code sign in", "claude login",
-                "edit runtime", "delete runtime",
-            ],
-            disambiguation: "Per-runtime Test, Sign In (Claude Code), Edit, and Delete buttons in Agents → Runtimes.",
-            declarativeSection: "harness_runtimes"
-        ),
-        .init(
-            id: "agentRuntimes.safety",
-            tab: .agentRuntimes,
-            title: "How runtimes work",
-            keywords: ["harness permissions", "confine", "harness sandbox", "harness folder", "osaurus_agent_token"]
-        ),
-        .init(
-            id: "agents.database",
-            tab: .agents,
-            section: "Knowledge",
-            title: "Agent Database",
-            keywords: [
-                "database", "tables", "rows", "saved views", "sql", "sqlite",
-                "agent data", "structured data", "encrypted database", "db",
-            ]
-        ),
-        // Agents → (custom agent) → Abilities → Tools. The built-in Apple
-        // apps are groups in the tool picker (one per app, toggled per app);
-        // the anchor sits on the picker. Also writable via
-        // `capabilities.apple_apps`.
-        .init(
-            id: "agents.appleApps",
-            tab: .agents,
-            section: "Abilities → Tools",
-            title: "Apple Apps",
-            keywords: [
-                "apple apps", "apple", "native apps", "mac apps", "built-in apps", "apple tools",
-                "calendar", "reminders", "contacts", "notes", "mail", "messages", "imessage",
-                "maps", "location", "music", "shortcuts", "apple_apps",
-            ],
-            subTab: "capabilities",
-            disambiguation:
-                "Per-custom-agent groups in Abilities → Tools for the built-in Apple app tools (off by default, toggled per app). The Orchestrator never uses them directly; it enables them on a custom agent via osaurus_config capabilities.apple_apps.",
-            declarativeSection: "agents"
-        ),
+            // MARK: Agents
+            // Landing anchors live on the Agents screen (`AgentsView`): the header
+            // glows for the overview entry; the agent grid glows for the database
+            // entry, where each custom agent card exposes an Open Database
+            // shortcut into that agent's Database workspace.
+            .init(
+                id: "agents.overview",
+                tab: .agents,
+                title: "Agents",
+                keywords: [
+                    "agent", "assistant", "persona", "custom agent", "create agent",
+                    "system prompt", "agent settings",
+                ],
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.templates",
+                tab: .agents,
+                title: "Templates",
+                keywords: [
+                    "agent templates", "import agent template", "agent starter", "share agent", "osaurustemplate",
+                    "save as template", "export template", "import template",
+                ],
+                disambiguation:
+                    "Agents header → Templates. Import Template takes a .osaurustemplate file; Save as Template is in an agent card's … menu and the agent page's Share menu."
+            ),
+            .init(
+                id: "agents.configure",
+                tab: .agents,
+                title: "Configure Agent",
+                keywords: [
+                    "per-agent", "capabilities", "max tokens", "temperature",
+                    "advanced", "agent model", "configure",
+                ],
+                disambiguation:
+                    "Per-agent Advanced generation and capability toggles. Orchestrator defaults live under Orchestrator → Generation.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.showResponseMetrics",
+                tab: .agents,
+                section: "Advanced Settings",
+                title: "Show Response Metrics",
+                keywords: [
+                    "tokenizer", "token count", "tokens per second", "tok/s", "response statistics", "agent display",
+                ],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings. Shows existing measured response statistics in that agent's chats.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.temperature",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Temperature",
+                keywords: ["agent temperature", "per-agent generation", "agent defaults"],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.maxTokens",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Max Tokens",
+                keywords: ["agent max tokens", "per-agent generation", "agent defaults"],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.topP",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Top P",
+                keywords: ["agent top p", "per-agent generation", "agent defaults"],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.topK",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Top K",
+                keywords: ["agent top k", "per-agent generation", "agent defaults"],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.minP",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Min P",
+                keywords: ["agent min p", "per-agent generation", "agent defaults"],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.repetitionPenalty",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Repetition penalty",
+                keywords: ["agent repetition penalty", "per-agent generation", "agent defaults"],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.frequencyPenalty",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Frequency penalty",
+                keywords: ["agent frequency penalty", "per-agent generation", "agent defaults"],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.presencePenalty",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Presence penalty",
+                keywords: ["agent presence penalty", "per-agent generation", "agent defaults"],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.seed",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Seed",
+                keywords: ["agent seed", "per-agent generation", "agent defaults"],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.stop",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Stop sequences",
+                keywords: [
+                    "agent stop sequences (json array)", "per-agent generation", "agent defaults",
+                    "custom stop strings", "stop chips", "empty array",
+                ],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.thinking",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Thinking",
+                keywords: ["agent thinking", "per-agent generation", "agent defaults"],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.reasoningEffort",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Reasoning effort",
+                keywords: ["agent reasoning effort", "per-agent generation", "agent defaults"],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.speculativeDecoding",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Speculative Decoding",
+                keywords: [
+                    "agent native mtp", "adaptive on off ar", "dspark", "dflash", "drafter", "per-agent speculation",
+                ],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Eligible local bundles only. Inherit uses Server settings; Off uses AR; On requests adaptive drafting for this agent without changing shared defaults.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.generation.templateKwargs",
+                tab: .agents,
+                section: "Generation Overrides",
+                title: "Template parameters (JSON)",
+                keywords: [
+                    "agent template parameters (json)", "per-agent generation", "agent defaults",
+                    "custom template variables", "advanced chat template parameters", "empty object",
+                ],
+                disambiguation:
+                    "Custom agent → General → Configure → Advanced Settings → Generation Overrides. Inherit preserves existing defaults; reasoning choices depend on the selected model.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.description",
+                tab: .agents,
+                title: "Brief description (optional)",
+                keywords: [
+                    "agent description", "purpose", "routing", "delegation", "auto-generated description",
+                    "generated description",
+                ],
+                disambiguation:
+                    "Optional one-line summary shown to the orchestrator when it chooses a delegation target. Left blank, Nuo generates one in the background from the agent's system prompt; typing your own overrides it.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.runtime",
+                tab: .agents,
+                section: "Runtime",
+                title: "Runs on",
+                keywords: [
+                    "runtime", "agent runtime", "harness", "external harness", "claude code", "pi", "pi rpc",
+                    "built-in loop", "osaurus built-in", "run agent on claude code", "spotlight", "splash",
+                    "manage runtimes", "switch runtime", "switch to claude code", "model picker runtime",
+                ],
+                disambiguation:
+                    "Per-agent choice between Nuo's own loop and a registered harness (Configure tab → Runtime). The chat model picker lists the same runtimes as columns; picking one there changes this setting. Register or test harnesses under Agents → Runtimes. Declarative key: `runtime` (\"builtin\" or a harness_runtimes name) on agents[] and default_agent.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.claudeCode.model",
+                tab: .agents,
+                section: "Claude Code Options",
+                title: "Claude model",
+                keywords: ["claude code model", "sonnet", "opus", "fable", "haiku", "model alias"],
+                disambiguation:
+                    "Shown only when the agent's runtime is Claude Code. The Claude Code column of the chat model picker sets the same value. Declarative key: `claude_code.model`.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.claudeCode.effort",
+                tab: .agents,
+                section: "Claude Code Options",
+                title: "Claude effort",
+                keywords: [
+                    "claude code effort", "effort", "thinking effort", "reasoning effort", "thinking level",
+                    "extra high", "xhigh", "max effort", "--effort",
+                ],
+                disambiguation:
+                    "Shown only when the agent's runtime is Claude Code. Passed to the CLI as `--effort`; Default leaves Claude Code on its own per-model default. Not the chat composer's reasoning control for built-in-loop models. Declarative key: `claude_code.effort`.",
+                declarativeSection: "agents"
+            ),
+            .init(
+                id: "agents.claudeCode",
+                tab: .agents,
+                section: "Claude Code Options",
+                title: "Allow file changes",
+                keywords: [
+                    "execution mode", "text only", "allow shell commands", "bash", "allow osaurus read tools",
+                    "allow osaurus configuration changes", "claude code permissions", "claude code tools", "mcp bridge",
+                ],
+                disambiguation:
+                    "Claude Code permission switches on an agent whose runtime is Claude Code. File changes are scoped to the chat folder; shell commands can't be confined. Declarative block: `claude_code` on agents[] and default_agent.",
+                declarativeSection: "agents"
+            ),
+            // MARK: Agent Runtimes
+            .init(
+                id: "agentRuntimes.overview",
+                tab: .agentRuntimes,
+                title: "Agent Runtimes",
+                keywords: [
+                    "runtimes", "harness", "harnesses", "external agent", "claude code", "pi", "pi rpc", "rpc mode",
+                    "spotlight", "splash", "agent backend", "pluggable", "harness_runtimes",
+                ],
+                declarativeSection: "harness_runtimes"
+            ),
+            .init(
+                id: "agentRuntimes.add",
+                tab: .agentRuntimes,
+                title: "Add Runtime",
+                keywords: [
+                    "new runtime", "register harness", "executable", "arguments", "environment", "protocol",
+                    "session id", "chat id placeholder", "system prompt file",
+                ],
+                declarativeSection: "harness_runtimes"
+            ),
+            .init(
+                id: "agentRuntimes.list",
+                tab: .agentRuntimes,
+                title: "Test",
+                keywords: [
+                    "test runtime", "check harness", "get_state", "sign in", "claude code sign in", "claude login",
+                    "edit runtime", "delete runtime",
+                ],
+                disambiguation:
+                    "Per-runtime Test, Sign In (Claude Code), Edit, and Delete buttons in Agents → Runtimes.",
+                declarativeSection: "harness_runtimes"
+            ),
+            .init(
+                id: "agentRuntimes.safety",
+                tab: .agentRuntimes,
+                title: "How runtimes work",
+                keywords: [
+                    "harness permissions", "confine", "harness sandbox", "harness folder", "osaurus_agent_token",
+                ]
+            ),
+            .init(
+                id: "agents.database",
+                tab: .agents,
+                section: "Knowledge",
+                title: "Agent Database",
+                keywords: [
+                    "database", "tables", "rows", "saved views", "sql", "sqlite",
+                    "agent data", "structured data", "encrypted database", "db",
+                ]
+            ),
+            // Agents → (custom agent) → Abilities → Tools. The built-in Apple
+            // apps are groups in the tool picker (one per app, toggled per app);
+            // the anchor sits on the picker. Also writable via
+            // `capabilities.apple_apps`.
+            .init(
+                id: "agents.appleApps",
+                tab: .agents,
+                section: "Abilities → Tools",
+                title: "Apple Apps",
+                keywords: [
+                    "apple apps", "apple", "native apps", "mac apps", "built-in apps", "apple tools",
+                    "calendar", "reminders", "contacts", "notes", "mail", "messages", "imessage",
+                    "maps", "location", "music", "shortcuts", "apple_apps",
+                ],
+                subTab: "capabilities",
+                disambiguation:
+                    "Per-custom-agent groups in Abilities → Tools for the built-in Apple app tools (off by default, toggled per app). The Orchestrator never uses them directly; it enables them on a custom agent via osaurus_config capabilities.apple_apps.",
+                declarativeSection: "agents"
+            ),
 
-        // Agents → (custom agent) → Abilities → Tools: the per-agent skill
-        // allow-list card above the picker. Also writable via
-        // `agents[].skills`.
-        .init(
-            id: "agents.skills",
-            tab: .agents,
-            section: "Abilities → Tools",
-            title: "Limit to selected skills",
-            keywords: [
-                "skills", "skill allow-list", "allowed skills", "allow list", "allowlist",
-                "restrict skills", "choose skills", "agent skills", "skill access",
-            ],
-            subTab: "capabilities",
-            disambiguation:
-                "Per-custom-agent switch in Abilities → Tools. Off: the agent sees every installed skill. On: only the ticked skills appear in its prompt, capabilities_load and slash commands. Installing skill content is Skills in the sidebar, not this card. Declarative: agents[].skills (omit = unchanged, null = all skills, list = only these).",
-            declarativeSection: "agents"
-        ),
+            // Agents → (custom agent) → Abilities → Tools: the per-agent skill
+            // allow-list card above the picker. Also writable via
+            // `agents[].skills`.
+            .init(
+                id: "agents.skills",
+                tab: .agents,
+                section: "Abilities → Tools",
+                title: "Limit to selected skills",
+                keywords: [
+                    "skills", "skill allow-list", "allowed skills", "allow list", "allowlist",
+                    "restrict skills", "choose skills", "agent skills", "skill access",
+                ],
+                subTab: "capabilities",
+                disambiguation:
+                    "Per-custom-agent switch in Abilities → Tools. Off: the agent sees every installed skill. On: only the ticked skills appear in its prompt, capabilities_load and slash commands. Installing skill content is Skills in the sidebar, not this card. Declarative: agents[].skills (omit = unchanged, null = all skills, list = only these).",
+                declarativeSection: "agents"
+            ),
 
-        // MARK: Search
-        .init(
-            id: "search.providers",
-            tab: .search,
-            title: "Search Providers",
-            keywords: [
-                "web search", "search engine", "tavily", "exa", "brave", "serper", "parallel",
-                "google", "kagi", "duckduckgo", "bing", "api key", "internet",
-            ]
-        ),
-        .init(
-            id: "search.premium",
-            tab: .search,
-            title: "Premium Search",
-            keywords: [
-                "premium search", "hosted search", "osaurus search", "router search",
-                "paid search", "web search credits",
-            ]
-        ),
-        .init(
-            id: "credits.webSearch",
-            tab: .credits,
-            section: "Web search",
-            title: "Search Credits",
-            keywords: [
-                "web search", "premium search", "free searches", "search credits",
-                "auto pay", "search billing", "page extract", "grant",
-            ]
-        ),
-        .init(
-            id: "search.tryIt",
-            tab: .search,
-            section: "Try it",
-            title: "Test Search",
-            keywords: ["test query", "search playground", "try search"]
-        ),
-        .init(
-            id: "search.routing",
-            tab: .search,
-            section: "Advanced",
-            title: "Per-category Provider Order",
-            keywords: ["fallback", "ranking", "routing", "news", "images", "priority"]
-        ),
-        .init(
-            id: "search.custom",
-            tab: .search,
-            section: "Advanced",
-            title: "Custom Search Provider",
-            keywords: ["custom api", "json definition", "searxng", "perplexity", "self-hosted"],
-            declarativeSection: "search_providers"
-        ),
+            // MARK: Search
+            .init(
+                id: "search.providers",
+                tab: .search,
+                title: "Search Providers",
+                keywords: [
+                    "web search", "search engine", "tavily", "exa", "brave", "serper", "parallel",
+                    "google", "kagi", "duckduckgo", "bing", "api key", "internet",
+                ]
+            ),
+            .init(
+                id: "search.premium",
+                tab: .search,
+                title: "Premium Search",
+                keywords: [
+                    "premium search", "hosted search", "osaurus search", "router search",
+                    "paid search", "web search credits",
+                ]
+            ),
+            .init(
+                id: "credits.webSearch",
+                tab: .credits,
+                section: "Web search",
+                title: "Search Credits",
+                keywords: [
+                    "web search", "premium search", "free searches", "search credits",
+                    "auto pay", "search billing", "page extract", "grant",
+                ]
+            ),
+            .init(
+                id: "search.tryIt",
+                tab: .search,
+                section: "Try it",
+                title: "Test Search",
+                keywords: ["test query", "search playground", "try search"]
+            ),
+            .init(
+                id: "search.routing",
+                tab: .search,
+                section: "Advanced",
+                title: "Per-category Provider Order",
+                keywords: ["fallback", "ranking", "routing", "news", "images", "priority"]
+            ),
+            .init(
+                id: "search.custom",
+                tab: .search,
+                section: "Advanced",
+                title: "Custom Search Provider",
+                keywords: ["custom api", "json definition", "searxng", "perplexity", "self-hosted"],
+                declarativeSection: "search_providers"
+            ),
 
-        // MARK: Tab-level rows for Management areas that had zero search hits
-        .init(
-            id: "models.automaticUpdates",
-            tab: .models,
-            title: "Automatically Check Model Updates",
-            keywords: ["background model updates", "huggingface", "model revision", "automatic checks", "offline"],
-            disambiguation: "Checks installed OsaurusAI model metadata only. Does not update the Osaurus application or download model files."
-        ),
-        .init(
-            id: "models.overview",
-            tab: .models,
-            title: "Local Models",
-            keywords: ["install model", "download model", "mlx", "huggingface", "catalog"],
-            declarativeSection: "models"
-        ),
-        .init(
-            id: "providers.overview",
-            tab: .providers,
-            title: "Providers",
-            keywords: ["cloud models", "provider", "api key", "openai", "anthropic", "openrouter", "xai"],
-            declarativeSection: "providers"
-        ),
-        .init(
-            id: "knowledge.overview",
-            tab: .knowledge,
-            title: "Knowledge",
-            keywords: ["collections", "documents", "rag", "index files"],
-            declarativeSection: "knowledge_collections"
-        ),
-        .init(
-            id: "tools.overview",
-            tab: .tools,
-            title: "Tools & MCP",
-            keywords: [
-                "tool catalog", "enable tools", "ask deny", "auto ask deny",
-                "mcp", "plugins", "tool policy", "tools",
-            ],
-            disambiguation:
-                "Global tool enablement and Auto/Ask/Deny. Not macOS Permissions.",
-            declarativeSection: "tools"
-        ),
-        .init(
-            id: "tools.services",
-            tab: .tools,
-            section: "Services",
-            title: "Services",
-            keywords: [
-                "mcp services", "mcp servers", "connections", "connected services", "remote tools",
-                "mcp",
-            ],
-            subTab: "Services",
-            declarativeSection: "mcp_servers"
-        ),
-        .init(
-            id: "tools.addService",
-            tab: .tools,
-            section: "Services",
-            title: "Add Service",
-            keywords: ["add mcp", "add connection", "add provider", "connect service", "new mcp server"],
-            subTab: "Services"
-        ),
-        .init(
-            id: "tools.directory",
-            tab: .tools,
-            section: "Services",
-            title: "Directory",
-            keywords: [
-                "browse services", "mcp directory", "discover mcp", "provider catalog", "linear",
-                "github", "notion", "custom server", "connectors", "legal connectors",
-                "accounting connectors", "finance connectors", "healthcare connectors", "quickbooks",
-                "xero", "docusign", "google drive", "gmail", "slack", "dropbox", "gusto",
-                "microsoft 365", "outlook", "harvey",
-            ],
-            subTab: "Services"
-        ),
-        .init(
-            id: "tools.allTools",
-            tab: .tools,
-            section: "All Tools",
-            title: "All Tools",
-            keywords: [
-                "tool list", "per tool permission", "folder permissions", "write files", "edit files",
-                "shell", "git commit", "working folder", "auto ask deny",
-            ],
-            subTab: "All",
-            disambiguation:
-                "Every tool with its own Auto/Ask/Deny policy, including the folder tools (write/edit/shell/git).",
-            declarativeSection: "tools"
-        ),
-        .init(
-            id: "skills.overview",
-            tab: .skills,
-            title: "Skills",
-            keywords: ["skill packs", "install skill", "skill.md"]
-        ),
-        .init(
-            id: "commands.overview",
-            tab: .commands,
-            title: "Commands",
-            keywords: ["slash commands", "custom command", "prompt command"],
-            declarativeSection: "commands"
-        ),
-        .init(
-            id: "schedules.overview",
-            tab: .schedules,
-            title: "Schedules",
-            keywords: ["cron", "interval", "timed job", "recurring"],
-            declarativeSection: "schedules"
-        ),
-        .init(
-            id: "watchers.overview",
-            tab: .watchers,
-            title: "Watchers",
-            keywords: ["folder watcher", "file events", "watch folder"],
-            declarativeSection: "watchers"
-        ),
-        .init(
-            id: "sandbox.overview",
-            tab: .sandbox,
-            title: "Sandbox",
-            keywords: ["container", "isolation", "sandbox resources"]
-        ),
-        .init(
-            id: "insights.overview",
-            tab: .insights,
-            title: "Insights",
-            keywords: [
-                "analytics", "usage", "charts", "metrics", "activity log", "audit log", "audit trail",
-                "activity history", "what was sent to the cloud", "cloud egress", "local vs cloud",
-                "web search log", "mcp call log", "export activity", "verify log", "tamper evident",
-                "request history", "review activity",
-            ],
-            disambiguation:
-                "The Insights tab is the activity log / audit dashboard: every model request (local or cloud), web search, URL fetch, MCP tool call, channel delivery, Router call and inbound API request, with Local/Cloud badges, filters, Verify and Export. Retention and content policy live under Privacy → Activity Log."
-        ),
-    ] + appleAppEntries
+            // MARK: Tab-level rows for Management areas that had zero search hits
+            .init(
+                id: "models.automaticUpdates",
+                tab: .models,
+                title: "Automatically Check Model Updates",
+                keywords: ["background model updates", "huggingface", "model revision", "automatic checks", "offline"],
+                disambiguation:
+                    "Checks installed OsaurusAI model metadata only. Does not update the Osaurus application or download model files."
+            ),
+            .init(
+                id: "models.overview",
+                tab: .models,
+                title: "Local Models",
+                keywords: ["install model", "download model", "mlx", "huggingface", "catalog"],
+                declarativeSection: "models"
+            ),
+            .init(
+                id: "providers.overview",
+                tab: .providers,
+                title: "Providers",
+                keywords: ["cloud models", "provider", "api key", "openai", "anthropic", "openrouter", "xai"],
+                declarativeSection: "providers"
+            ),
+            .init(
+                id: "knowledge.overview",
+                tab: .knowledge,
+                title: "Knowledge",
+                keywords: ["collections", "documents", "rag", "index files"],
+                declarativeSection: "knowledge_collections"
+            ),
+            .init(
+                id: "tools.overview",
+                tab: .tools,
+                title: "Tools & MCP",
+                keywords: [
+                    "tool catalog", "enable tools", "ask deny", "auto ask deny",
+                    "mcp", "plugins", "tool policy", "tools",
+                ],
+                disambiguation:
+                    "Global tool enablement and Auto/Ask/Deny. Not macOS Permissions.",
+                declarativeSection: "tools"
+            ),
+            .init(
+                id: "tools.services",
+                tab: .tools,
+                section: "Services",
+                title: "Services",
+                keywords: [
+                    "mcp services", "mcp servers", "connections", "connected services", "remote tools",
+                    "mcp",
+                ],
+                subTab: "Services",
+                declarativeSection: "mcp_servers"
+            ),
+            .init(
+                id: "tools.addService",
+                tab: .tools,
+                section: "Services",
+                title: "Add Service",
+                keywords: ["add mcp", "add connection", "add provider", "connect service", "new mcp server"],
+                subTab: "Services"
+            ),
+            .init(
+                id: "tools.directory",
+                tab: .tools,
+                section: "Services",
+                title: "Directory",
+                keywords: [
+                    "browse services", "mcp directory", "discover mcp", "provider catalog", "linear",
+                    "github", "notion", "custom server", "connectors", "legal connectors",
+                    "accounting connectors", "finance connectors", "healthcare connectors", "quickbooks",
+                    "xero", "docusign", "google drive", "gmail", "slack", "dropbox", "gusto",
+                    "microsoft 365", "outlook", "harvey",
+                ],
+                subTab: "Services"
+            ),
+            .init(
+                id: "tools.allTools",
+                tab: .tools,
+                section: "All Tools",
+                title: "All Tools",
+                keywords: [
+                    "tool list", "per tool permission", "folder permissions", "write files", "edit files",
+                    "shell", "git commit", "working folder", "auto ask deny",
+                ],
+                subTab: "All",
+                disambiguation:
+                    "Every tool with its own Auto/Ask/Deny policy, including the folder tools (write/edit/shell/git).",
+                declarativeSection: "tools"
+            ),
+            .init(
+                id: "skills.overview",
+                tab: .skills,
+                title: "Skills",
+                keywords: ["skill packs", "install skill", "skill.md"]
+            ),
+            .init(
+                id: "commands.overview",
+                tab: .commands,
+                title: "Commands",
+                keywords: ["slash commands", "custom command", "prompt command"],
+                declarativeSection: "commands"
+            ),
+            .init(
+                id: "schedules.overview",
+                tab: .schedules,
+                title: "Schedules",
+                keywords: ["cron", "interval", "timed job", "recurring"],
+                declarativeSection: "schedules"
+            ),
+            .init(
+                id: "watchers.overview",
+                tab: .watchers,
+                title: "Watchers",
+                keywords: ["folder watcher", "file events", "watch folder"],
+                declarativeSection: "watchers"
+            ),
+            .init(
+                id: "sandbox.overview",
+                tab: .sandbox,
+                title: "Sandbox",
+                keywords: ["container", "isolation", "sandbox resources"]
+            ),
+            .init(
+                id: "insights.overview",
+                tab: .insights,
+                title: "Insights",
+                keywords: [
+                    "analytics", "usage", "charts", "metrics", "activity log", "audit log", "audit trail",
+                    "activity history", "what was sent to the cloud", "cloud egress", "local vs cloud",
+                    "web search log", "mcp call log", "export activity", "verify log", "tamper evident",
+                    "request history", "review activity",
+                ],
+                disambiguation:
+                    "The Insights tab is the activity log / audit dashboard: every model request (local or cloud), web search, URL fetch, MCP tool call, channel delivery, Router call and inbound API request, with Local/Cloud badges, filters, Verify and Export. Retention and content policy live under Privacy → Activity Log."
+            ),
+        ] + appleAppEntries
 
     /// One row per Apple app group in a custom agent's Abilities → Tools
     /// picker (`agents.appleApps.<app>`), with the exact group title and the
@@ -2387,7 +2451,10 @@ public enum SettingsSearchIndex {
         case .notes: words += ["apple notes", "note", "folders", "notebook"]
         case .mail: words += ["email", "inbox", "mailbox", "compose", "reply", "apple mail"]
         case .messages: words += ["imessage", "sms", "text message", "chat.db", "conversations"]
-        case .maps: words += ["maps & location", "location", "directions", "geocode", "eta", "places", "nearby", "current location"]
+        case .maps:
+            words += [
+                "maps & location", "location", "directions", "geocode", "eta", "places", "nearby", "current location",
+            ]
         case .music: words += ["apple music", "now playing", "playlist", "play", "pause", "volume", "itunes"]
         case .shortcuts: words += ["shortcut", "run shortcut", "automation", "workflow"]
         }

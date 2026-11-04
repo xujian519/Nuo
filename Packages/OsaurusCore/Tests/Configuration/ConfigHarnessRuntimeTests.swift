@@ -140,7 +140,11 @@ struct ConfigHarnessRuntimeTests {
         var config = ClaudeCodeAgentConfig.default
         var entry = AgentClaudeCodeEntry()
         entry.effort = "XHigh"
-        #expect(ConfigHarness.changes(entry, current: config, prefix: "claude_code") == ["claude_code.effort: default -> xhigh"])
+        #expect(
+            ConfigHarness.changes(entry, current: config, prefix: "claude_code") == [
+                "claude_code.effort: default -> xhigh"
+            ]
+        )
         ConfigHarness.patch(&config, from: entry)
         #expect(config.resolvedEffort == .xhigh)
         #expect(ConfigHarness.export(config, includeConfigWrites: false).effort == "xhigh")

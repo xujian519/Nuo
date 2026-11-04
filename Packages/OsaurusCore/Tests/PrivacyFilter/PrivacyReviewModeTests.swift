@@ -72,10 +72,11 @@ struct PrivacyReviewModeTests {
             requestSource: .chatUI,
             reviewMode: .autoScrub
         )
-        let text = scrubbed.first?.contentParts?.compactMap { part -> String? in
-            if case .text(let t) = part { return t }
-            return nil
-        }.joined() ?? ""
+        let text =
+            scrubbed.first?.contentParts?.compactMap { part -> String? in
+                if case .text(let t) = part { return t }
+                return nil
+            }.joined() ?? ""
         #expect(!text.contains(phone))
         #expect(text.contains("[PHONE_1]"))
     }

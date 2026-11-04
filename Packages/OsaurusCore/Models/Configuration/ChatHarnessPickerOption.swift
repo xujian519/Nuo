@@ -47,7 +47,11 @@ struct ChatHarnessPickerOption: Identifiable, Equatable, Hashable, Sendable {
             }
             if let currentClaudeModel, !options.contains(where: { $0.claudeModel == currentClaudeModel }) {
                 options.append(
-                    ChatHarnessPickerOption(runtimeId: runtime.id, claudeModel: currentClaudeModel, title: currentClaudeModel)
+                    ChatHarnessPickerOption(
+                        runtimeId: runtime.id,
+                        claudeModel: currentClaudeModel,
+                        title: currentClaudeModel
+                    )
                 )
             }
             return options

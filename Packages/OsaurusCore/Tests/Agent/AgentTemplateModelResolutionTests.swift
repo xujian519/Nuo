@@ -20,7 +20,9 @@ struct AgentTemplateModelResolutionTests {
         if let model { entry.model = .value(model) }
         var requirements = TemplateRequirements()
         if let model, let policy {
-            requirements.models = [ModelRequirement(slot: ModelRequirement.agentSlot, preferred: model, strictness: policy)]
+            requirements.models = [
+                ModelRequirement(slot: ModelRequirement.agentSlot, preferred: model, strictness: policy)
+            ]
         }
         return AgentTemplate(name: "T", agent: entry, requirements: requirements)
     }
@@ -29,7 +31,8 @@ struct AgentTemplateModelResolutionTests {
         localModelIds: ["mlx-community/Qwen3-Coder-Next-4bit"],
         providers: [
             ConfigModelReference.ProviderModels(prefix: "anthropic", name: "Anthropic", models: ["sonnet-5"])
-        ])
+        ]
+    )
 
     @Test
     func installedLocalModel_isAvailableWithCanonicalCase() {

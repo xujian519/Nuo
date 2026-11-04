@@ -65,7 +65,8 @@ public enum ChatSessionImporter {
                     "This file is the index of a Claude export, not the conversations. Claude splits large exports into batch zip files and lists them here. Import each batch zip directly, no need to unzip. If you only received this file, download each link under export_url first."
                 )
                 if !files.isEmpty {
-                    text += "\n\n" + L("Batch files listed in the index:") + "\n"
+                    text +=
+                        "\n\n" + L("Batch files listed in the index:") + "\n"
                         + files.map { "• " + $0 }.joined(separator: "\n")
                 }
                 return text
@@ -298,7 +299,8 @@ public enum ChatSessionImporter {
         switch type {
         case "text", "multimodal_text":
             let parts = content["parts"] as? [Any] ?? []
-            return parts
+            return
+                parts
                 .map { part -> String in
                     if let text = part as? String { return text }
                     return "[attachment omitted]"
@@ -327,7 +329,7 @@ public enum ChatSessionImporter {
         return files.compactMap { entry in
             (entry["filename"] as? String)
                 ?? (entry["export_url"] as? String)
-                    .flatMap { URL(string: $0)?.lastPathComponent }
+                .flatMap { URL(string: $0)?.lastPathComponent }
         }
     }
 
@@ -461,7 +463,9 @@ public enum ChatSessionImporter {
         }
         text = text.replacingOccurrences(of: "<li>", with: "- ", options: .caseInsensitive)
         text = text.replacingOccurrences(
-            of: "<[^>]+>", with: "", options: [.regularExpression, .caseInsensitive]
+            of: "<[^>]+>",
+            with: "",
+            options: [.regularExpression, .caseInsensitive]
         )
         for (entity, character) in [
             ("&nbsp;", " "), ("&quot;", "\""), ("&#39;", "'"), ("&apos;", "'"),
@@ -471,7 +475,9 @@ public enum ChatSessionImporter {
         }
         // Collapse the blank-line runs left by adjacent block tags.
         text = text.replacingOccurrences(
-            of: "\n{3,}", with: "\n\n", options: .regularExpression
+            of: "\n{3,}",
+            with: "\n\n",
+            options: .regularExpression
         )
         return text
     }
@@ -654,7 +660,8 @@ public enum ChatSessionImporter {
     private static func genericText(from content: Any?) -> String {
         if let text = content as? String { return text }
         if let parts = content as? [Any] {
-            return parts
+            return
+                parts
                 .compactMap { part -> String? in
                     if let text = part as? String { return text }
                     if let block = part as? [String: Any] {

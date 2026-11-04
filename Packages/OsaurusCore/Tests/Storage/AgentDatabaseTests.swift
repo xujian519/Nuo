@@ -176,10 +176,12 @@ struct AgentDatabaseTests {
                 "SELECT v.day, m.value FROM metric_rows v "
                 + "JOIN metrics m ON m.id = v.id WHERE v.value >= 5 ORDER BY v.value"
         )
-        #expect(filtered.rows == [
-            [.text("tue"), .integer(5)],
-            [.text("wed"), .integer(7)],
-        ])
+        #expect(
+            filtered.rows == [
+                [.text("tue"), .integer(5)],
+                [.text("wed"), .integer(7)],
+            ]
+        )
 
         let direct = try db.runView(name: "metric_rows")
         #expect(direct.rows.count == 3)

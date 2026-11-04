@@ -48,17 +48,21 @@ struct MTPResolvedStateReadoutTests {
     @Test func namesTheDflash2WidthThatActuallyDrafted() {
         #expect(
             MTPSection.resolvedValue(depth: nil, strategy: "dflash2", dflash2BlockSize: 8)
-                == "dflash2 block 8")
+                == "dflash2 block 8"
+        )
         #expect(
             MTPSection.resolvedValue(depth: nil, strategy: "dflash2", dflash2BlockSize: 2)
-                == "dflash2 block 2")
+                == "dflash2 block 2"
+        )
     }
 
     /// No width resolved means no drafter ran, so printing "block 0" would
     /// claim a depth that never existed.
     @Test func aZeroOrAbsentWidthIsNotPrinted() {
-        #expect(MTPSection.resolvedValue(depth: nil, strategy: "dflash2", dflash2BlockSize: 0)
-            == "dflash2")
+        #expect(
+            MTPSection.resolvedValue(depth: nil, strategy: "dflash2", dflash2BlockSize: 0)
+                == "dflash2"
+        )
         #expect(MTPSection.resolvedValue(depth: nil, strategy: "dflash2") == "dflash2")
     }
 
@@ -67,7 +71,8 @@ struct MTPResolvedStateReadoutTests {
     @Test func nativeDepthWinsOverADflash2Width() {
         #expect(
             MTPSection.resolvedValue(depth: 2, strategy: "native_mtp:d2", dflash2BlockSize: 8)
-                == "MTP depth 2")
+                == "MTP depth 2"
+        )
     }
 
     /// Never blank. A missing value is indistinguishable from a broken

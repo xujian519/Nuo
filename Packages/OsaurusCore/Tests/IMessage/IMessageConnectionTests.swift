@@ -1026,9 +1026,15 @@ struct IMessageConnectionServiceTests {
                 "sender": "+15551234567", "text": "hello",
                 "is_from_me": false, "created_at": "2026-07-29T13:00:00Z",
             ])
-            #expect(summary == AgentChannelReceiveBatchSummary(
-                received: 0, stored: 0, dispatchAttempted: 0, dispatchSuppressed: 0
-            ))
+            #expect(
+                summary
+                    == AgentChannelReceiveBatchSummary(
+                        received: 0,
+                        stored: 0,
+                        dispatchAttempted: 0,
+                        dispatchSuppressed: 0
+                    )
+            )
         }
     }
 
@@ -1464,16 +1470,22 @@ struct IMessageConnectionServiceTests {
             // Emoji input normalizes to the canonical kind the pinned helper
             // accepts, and add/remove maps to the upstream `remove` flag.
             _ = try await service.setTapback(
-                chatId: chat, messageId: "guid-1", reaction: "👍",
-                adding: true, confirmSend: true
+                chatId: chat,
+                messageId: "guid-1",
+                reaction: "👍",
+                adding: true,
+                confirmSend: true
             )
             var params = transport.calls(for: IMessageRPCMethod.tapback).last
             #expect(params?["reaction"] as? String == "like")
             #expect(params?["remove"] as? Bool == false)
 
             _ = try await service.setTapback(
-                chatId: chat, messageId: "guid-1", reaction: ":heart:",
-                adding: false, confirmSend: true
+                chatId: chat,
+                messageId: "guid-1",
+                reaction: ":heart:",
+                adding: false,
+                confirmSend: true
             )
             params = transport.calls(for: IMessageRPCMethod.tapback).last
             #expect(params?["reaction"] as? String == "love")
@@ -1484,8 +1496,11 @@ struct IMessageConnectionServiceTests {
             transport.clearCalls()
             do {
                 _ = try await service.setTapback(
-                    chatId: chat, messageId: "guid-1", reaction: "🌮",
-                    adding: true, confirmSend: true
+                    chatId: chat,
+                    messageId: "guid-1",
+                    reaction: "🌮",
+                    adding: true,
+                    confirmSend: true
                 )
                 Issue.record("expected invalidAdvancedParameter for 🌮")
             } catch let error as IMessageConnectionServiceError {
@@ -1691,11 +1706,10 @@ private final class FakeIMessageTransport: IMessageRPCTransport, @unchecked Send
         params: [String: any Sendable],
         timeout: TimeInterval
     ) async throws -> IMessageRPCResponse {
-        let (error, result, observer):
-            (IMessageRPCError?, [String: Any], (@Sendable () -> Void)?) = lock.withLock {
-                recordedCalls.append((method, params as [String: Any]))
-                return (errors[method], responses[method] ?? [:], callObservers[method])
-            }
+        let (error, result, observer): (IMessageRPCError?, [String: Any], (@Sendable () -> Void)?) = lock.withLock {
+            recordedCalls.append((method, params as [String: Any]))
+            return (errors[method], responses[method] ?? [:], callObservers[method])
+        }
         observer?()
         if let error { throw error }
         return IMessageRPCResponse(resultJSON: try JSONSerialization.data(withJSONObject: result))

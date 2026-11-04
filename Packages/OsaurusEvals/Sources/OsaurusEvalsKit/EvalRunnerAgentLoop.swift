@@ -442,38 +442,54 @@ extension EvalRunner {
         let started = Date()
         func runFreshChat(_ query: String) async -> AgentLoopTranscript {
             await AgentLoopEvaluator.run(
-            task: query,
-            workspace: workspace,
-            agentId: evalAgentId,
-            maxIterations: exp.maxIterations ?? 10,
-            contextWindowOverride: exp.contextWindowOverride,
-            maxTokens: exp.maxTokens,
-            enableThinking: EvalThinkingControlState.resolve(exp.enableThinking),
-            stopOnToolRejection: exp.stopOnToolRejection ?? false,
-            sandbox: sandboxMode,
-            useHostFolder: testCase.fixtures.useHostFolder ?? true,
-            cancelAfterToolCalls: exp.cancelAfterToolCalls
-        )
+                task: query,
+                workspace: workspace,
+                agentId: evalAgentId,
+                maxIterations: exp.maxIterations ?? 10,
+                contextWindowOverride: exp.contextWindowOverride,
+                maxTokens: exp.maxTokens,
+                enableThinking: EvalThinkingControlState.resolve(exp.enableThinking),
+                stopOnToolRejection: exp.stopOnToolRejection ?? false,
+                sandbox: sandboxMode,
+                useHostFolder: testCase.fixtures.useHostFolder ?? true,
+                cancelAfterToolCalls: exp.cancelAfterToolCalls
+            )
         }
         var warmupResults: [(Bool, String)] = []
         for (index, warmup) in (exp.freshChatWarmups ?? []).enumerated() {
             let prior = await runFreshChat(warmup.query)
             let childScore = scoreSpawnSummaries(warmup.spawnSummaries, transcript: prior)
-            let targetScore = scoreSpawnTargets(warmup.spawnAgentIDs, transcript: prior,
-                workers: testCase.fixtures.agentCapabilities?.spawnAgents ?? [])
+            let targetScore = scoreSpawnTargets(
+                warmup.spawnAgentIDs,
+                transcript: prior,
+                workers: testCase.fixtures.agentCapabilities?.spawnAgents ?? []
+            )
             let reservations = await SubagentAdmission.shared.snapshot()
             let settled = reservations.inPlace == 0 && reservations.exclusive == 0 && reservations.remote == 0
-            let passed = childScore.passed && prior.exit == "finalResponse"
+            let passed =
+                childScore.passed && prior.exit == "finalResponse"
                 && prior.toolCalls.count == warmup.spawnSummaries.count
                 && prior.error == nil && settled && targetScore.passed
-            let note = "fresh chat \(index + 1): exit=\(prior.exit), reservations=\(reservations), \(targetScore.note), \(childScore.note)"
+            let note =
+                "fresh chat \(index + 1): exit=\(prior.exit), reservations=\(reservations), \(targetScore.note), \(childScore.note)"
             warmupResults.append((passed, note))
-            _ = persistAgentLoopTranscript(prior, for: EvalCaseReport(
-                id: "\(testCase.id).fresh-chat-\(index + 1)", label: label,
-                domain: testCase.domain, query: warmup.query,
-                outcome: passed ? .passed : .failed, notes: [note], modelId: modelId,
-                latencyMs: prior.loopDurationMs, toolUsage: toolUsageStats(prior), telemetry: telemetry(from: prior)
-            ), query: warmup.query, includeSuccessful: true)
+            _ = persistAgentLoopTranscript(
+                prior,
+                for: EvalCaseReport(
+                    id: "\(testCase.id).fresh-chat-\(index + 1)",
+                    label: label,
+                    domain: testCase.domain,
+                    query: warmup.query,
+                    outcome: passed ? .passed : .failed,
+                    notes: [note],
+                    modelId: modelId,
+                    latencyMs: prior.loopDurationMs,
+                    toolUsage: toolUsageStats(prior),
+                    telemetry: telemetry(from: prior)
+                ),
+                query: warmup.query,
+                includeSuccessful: true
+            )
         }
         let transcript = await runFreshChat(resolvedQuery)
         if let enabledCapabilityRestore, let evalAgentId {
@@ -550,7 +566,9 @@ extension EvalRunner {
         var score = AgentLoopScore()
         for (passed, note) in warmupResults { score.record(passed, note: note) }
         if let settings = testCase.fixtures.delegationSettings {
-            score.notes.append("delegation fixture: RAM=\(settings.ramSafety), handoff=\(settings.handoff), coexistence=\(settings.coexistence)")
+            score.notes.append(
+                "delegation fixture: RAM=\(settings.ramSafety), handoff=\(settings.handoff), coexistence=\(settings.coexistence)"
+            )
         }
         if let runtimeConcurrencyNote {
             score.notes.append(runtimeConcurrencyNote)
@@ -570,14 +588,19 @@ extension EvalRunner {
             score.record(result.passed, note: result.note)
         }
         if let expected = exp.spawnSummaries {
-            let targets = scoreSpawnTargets(exp.spawnAgentIDs, transcript: transcript,
-                workers: testCase.fixtures.agentCapabilities?.spawnAgents ?? [])
+            let targets = scoreSpawnTargets(
+                exp.spawnAgentIDs,
+                transcript: transcript,
+                workers: testCase.fixtures.agentCapabilities?.spawnAgents ?? []
+            )
             score.record(targets.passed, note: targets.note)
             let result = scoreSpawnSummaries(expected, transcript: transcript)
             score.record(result.passed, note: result.note)
             let reservations = await SubagentAdmission.shared.snapshot()
-            score.record(reservations.inPlace == 0 && reservations.exclusive == 0 && reservations.remote == 0,
-                note: "post-chat reservations=\(reservations)")
+            score.record(
+                reservations.inPlace == 0 && reservations.exclusive == 0 && reservations.remote == 0,
+                note: "post-chat reservations=\(reservations)"
+            )
         }
         if let assertion = exp.spawnWave {
             let result = scoreSpawnWave(assertion, transcript: transcript)
@@ -599,14 +622,29 @@ extension EvalRunner {
             )
         }
         if let maxTotal = exp.scoredMaxTotalTokens {
-            switch EvalTokenCost.ceiling(maxTotal, estimatedPrompt: transcript.promptTokensTotal,
-                reportedCompletion: transcript.completionTokens) {
+            switch EvalTokenCost.ceiling(
+                maxTotal,
+                estimatedPrompt: transcript.promptTokensTotal,
+                reportedCompletion: transcript.completionTokens
+            ) {
             case .within(let total):
-                score.check(true, pass: "estimated input + reported output tokens \(total) <= max \(maxTotal)", fail: "")
+                score.check(
+                    true,
+                    pass: "estimated input + reported output tokens \(total) <= max \(maxTotal)",
+                    fail: ""
+                )
             case .exceeded(let total):
-                score.check(false, pass: "", fail: "estimated input + reported output tokens \(total) > max \(maxTotal)")
+                score.check(
+                    false,
+                    pass: "",
+                    fail: "estimated input + reported output tokens \(total) > max \(maxTotal)"
+                )
             case .unreported:
-                score.check(false, pass: "", fail: "total-cost gate unverified: prompt estimate or reported completion count unavailable")
+                score.check(
+                    false,
+                    pass: "",
+                    fail: "total-cost gate unverified: prompt estimate or reported completion count unavailable"
+                )
             }
         }
 
@@ -749,7 +787,8 @@ extension EvalRunner {
                 resolution: resolution,
                 tokenStepConfiguredDepths: transcript.stepDiagnostics
                     .filter { ($0.completionTokens ?? 0) > 0 }
-                    .map(\.mtpDepth))
+                    .map(\.mtpDepth)
+            )
             {
             case .honored:
                 break
@@ -840,7 +879,8 @@ extension EvalRunner {
                     )
                 },
                 error: transcript.error
-            ), includeSuccessful: includeSuccessful
+            ),
+            includeSuccessful: includeSuccessful
                 || expectations?.spawnSummaries != nil
                 || expectations?.spawnWave != nil
                 || !(expectations?.rubric?.isEmpty ?? true)
@@ -858,8 +898,10 @@ extension EvalRunner {
     ) -> EvalCaseTelemetry? {
         // Estimated input + reported output. Keep this unavailable when a
         // component is missing; prompt-only attribution remains separate.
-        let total = EvalTokenCost.total(estimatedPrompt: transcript.promptTokensTotal,
-            reportedCompletion: transcript.completionTokens)
+        let total = EvalTokenCost.total(
+            estimatedPrompt: transcript.promptTokensTotal,
+            reportedCompletion: transcript.completionTokens
+        )
         let mtpSteps = transcript.stepDiagnostics.filter { $0.mtpDepth != nil }
         let t = EvalCaseTelemetry(
             decodeTokensPerSecond: transcript.decodeTokensPerSecond,
@@ -1303,7 +1345,8 @@ extension EvalRunner {
     /// Deterministic transcript assertions (exit shape, tool-call sets,
     /// duplicate discipline, dedupe replays, notices, compaction).
     static func scoreSpawnTargets(
-        _ expected: [UUID]?, transcript: AgentLoopTranscript,
+        _ expected: [UUID]?,
+        transcript: AgentLoopTranscript,
         workers: [EvalCase.AgentCapabilitiesFixture.SpawnAgentFixture]
     ) -> (passed: Bool, note: String) {
         guard let expected else { return (true, "spawn targets: no explicit assertion") }
@@ -1318,16 +1361,20 @@ extension EvalRunner {
             let matches = workers.filter { $0.name.caseInsensitiveCompare(target) == .orderedSame }
             return matches.count == 1 ? matches[0].id : nil
         }
-        return (selected == expected.map(Optional.some),
-            "spawn target selectors: expected=\(expected), selected=\(selected)")
+        return (
+            selected == expected.map(Optional.some),
+            "spawn target selectors: expected=\(expected), selected=\(selected)"
+        )
     }
 
     static func scoreSpawnSummaries(
-        _ expected: [String], transcript: AgentLoopTranscript
+        _ expected: [String],
+        transcript: AgentLoopTranscript
     ) -> (passed: Bool, note: String) {
         let calls = transcript.toolCalls.filter { $0.name == "spawn_agent" }
         let observed = calls.map(\.spawnSummary)
-        let passed = calls.count == expected.count
+        let passed =
+            calls.count == expected.count
             && !calls.contains { $0.wasError || $0.wasDeduped }
             && observed == expected.map(Optional.some)
         return (passed, "child digests: expected=\(expected), observed=\(observed)")
@@ -1703,22 +1750,26 @@ extension EvalRunner {
                     (observed.sessionId?.isEmpty == false) != value
                 {
                     failures.append(
-                        "row[\(index)].session_id present=\(observed.sessionId != nil) != \(value)")
+                        "row[\(index)].session_id present=\(observed.sessionId != nil) != \(value)"
+                    )
                 }
                 if let value = expected.continuesEarlierRow {
                     let earlierHandles = Set(
-                        rows.prefix(index).compactMap { $0.sessionId?.lowercased() })
+                        rows.prefix(index).compactMap { $0.sessionId?.lowercased() }
+                    )
                     let continued = observed.continuedSessionId?.lowercased()
                     let observedContinues = continued.map(earlierHandles.contains) ?? false
                     if observedContinues != value {
                         failures.append(
                             "row[\(index)].continue=\(String(describing: observed.continuedSessionId)) "
-                                + "reuses an earlier session_id: \(observedContinues) != \(value)")
+                                + "reuses an earlier session_id: \(observedContinues) != \(value)"
+                        )
                     }
                 }
                 if let value = expected.needsInput, (observed.needsInput ?? false) != value {
                     failures.append(
-                        "row[\(index)].needs_input \(String(describing: observed.needsInput)) != \(value)")
+                        "row[\(index)].needs_input \(String(describing: observed.needsInput)) != \(value)"
+                    )
                 }
             }
         }

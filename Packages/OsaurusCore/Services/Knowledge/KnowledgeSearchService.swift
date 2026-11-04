@@ -206,12 +206,18 @@ public actor KnowledgeSearchService {
                 KnowledgeDebugLog.log("service.search", "ensureVectorDB collection=\(collectionId) (VecturaKit init)")
                 let tDB = KnowledgeDebugLog.now()
                 guard let db = await ensureVectorDB(for: collectionId) else {
-                    KnowledgeDebugLog.log("service.search", "ensureVectorDB returned nil (fallback) for \(collectionId)")
+                    KnowledgeDebugLog.log(
+                        "service.search",
+                        "ensureVectorDB returned nil (fallback) for \(collectionId)"
+                    )
                     continue
                 }
                 KnowledgeDebugLog.log("service.search", "vectorDB ready in \(KnowledgeDebugLog.ms(since: tDB))ms")
                 do {
-                    KnowledgeDebugLog.log("service.search", "db.search START (embeds query + ANN) collection=\(collectionId)")
+                    KnowledgeDebugLog.log(
+                        "service.search",
+                        "db.search START (embeds query + ANN) collection=\(collectionId)"
+                    )
                     let tVec = KnowledgeDebugLog.now()
                     let results = try await MediaActivityLogger.$embeddingPurpose.withValue("knowledge_search") {
                         try await db.search(

@@ -85,7 +85,9 @@ final class BrowserToolExecutor {
             confirm
             ?? { preview in
                 await ComputerUsePromptQueue.shared.requestConfirmation(
-                    preview, toolCallId: capturedToolCallId)
+                    preview,
+                    toolCallId: capturedToolCallId
+                )
             }
     }
 
@@ -152,7 +154,10 @@ final class BrowserToolExecutor {
         submit: Bool = false
     ) async -> String? {
         let effect = BrowserEffectClassifier.classify(
-            action: action, target: targetLabel, submit: submit)
+            action: action,
+            target: targetLabel,
+            submit: submit
+        )
         switch gate.evaluate(
             effect: effect,
             actionLabel: actionLabel,
@@ -172,7 +177,11 @@ final class BrowserToolExecutor {
             )
         case .reject(let reason):
             return ToolEnvelope.failure(
-                kind: .rejected, message: reason, tool: tool, retryable: false)
+                kind: .rejected,
+                message: reason,
+                tool: tool,
+                retryable: false
+            )
         }
     }
 
@@ -212,23 +221,34 @@ final class BrowserToolExecutor {
     private func navigate(_ args: [String: Any]) async -> String {
         guard let url = args["url"] as? String, !url.isEmpty else {
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`url` is required.", field: "url",
-                expected: "URL to navigate to", tool: "browser_navigate")
+                kind: .invalidArgs,
+                message: "`url` is required.",
+                field: "url",
+                expected: "URL to navigate to",
+                tool: "browser_navigate"
+            )
         }
         // Scheme policy at the tool boundary — a clear invalidArgs beats a
         // policy trap deep in WebKit. decidePolicyFor still backstops
         // redirects and JS-driven loads.
         if let refusal = BrowserSession.navigationRefusalReason(for: URL(string: url)) {
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: refusal, field: "url",
-                expected: "an http:// or https:// URL", tool: "browser_navigate",
-                retryable: false)
+                kind: .invalidArgs,
+                message: refusal,
+                field: "url",
+                expected: "an http:// or https:// URL",
+                tool: "browser_navigate",
+                retryable: false
+            )
         }
         let targetHost = URL(string: url)?.host
         if let denial = await gateAction(
-            "navigate", tool: "browser_navigate", actionLabel: "Navigate",
-            host: targetHost, targetLabel: url)
-        {
+            "navigate",
+            tool: "browser_navigate",
+            actionLabel: "Navigate",
+            host: targetHost,
+            targetLabel: url
+        ) {
             return denial
         }
         let waitUntil = BrowserSession.WaitUntil(rawValue: args["wait_until"] as? String ?? "load") ?? .load
@@ -236,16 +256,19 @@ final class BrowserToolExecutor {
         let result = await session.navigate(to: url, timeout: timeout, waitUntil: waitUntil)
         guard result.success else {
             return ToolEnvelope.failure(
-                kind: .executionError, message: result.error ?? "Navigation failed.",
-                tool: "browser_navigate")
+                kind: .executionError,
+                message: result.error ?? "Navigation failed.",
+                tool: "browser_navigate"
+            )
         }
         recordCurrentPage()
         // Landed on a login page → structured LOGIN_REQUIRED so the agent
         // calls browser_open_login instead of asking for credentials in chat.
         let finalURL = session.currentURL ?? url
         if let host = BrowserLoginDetector.loginHost(
-            finalURL: finalURL, title: session.currentTitle ?? "")
-        {
+            finalURL: finalURL,
+            title: session.currentTitle ?? ""
+        ) {
             return ToolEnvelope.failure(
                 kind: .unavailable,
                 message: "Navigation landed on a login page (\(host)).",
@@ -271,16 +294,20 @@ final class BrowserToolExecutor {
 
     private func navigateBack(_ args: [String: Any]) async -> String {
         if let denial = await gateAction(
-            "back", tool: "browser_navigate_back", actionLabel: "Go back",
-            targetLabel: "browser history")
-        {
+            "back",
+            tool: "browser_navigate_back",
+            actionLabel: "Go back",
+            targetLabel: "browser history"
+        ) {
             return denial
         }
         let result = await session.goBack()
         guard result.success else {
             return ToolEnvelope.failure(
-                kind: .executionError, message: result.error ?? "Back navigation failed.",
-                tool: "browser_navigate_back")
+                kind: .executionError,
+                message: result.error ?? "Back navigation failed.",
+                tool: "browser_navigate_back"
+            )
         }
         return await actionResult(
             tool: "browser_navigate_back",
@@ -295,7 +322,10 @@ final class BrowserToolExecutor {
         let result = await session.readPageText()
         if let error = result.error {
             return ToolEnvelope.failure(
-                kind: .executionError, message: error, tool: "browser_read_page")
+                kind: .executionError,
+                message: error,
+                tool: "browser_read_page"
+            )
         }
         let text = result.text ?? ""
         let total = text.count
@@ -303,12 +333,15 @@ final class BrowserToolExecutor {
             return ToolEnvelope.failure(
                 kind: .invalidArgs,
                 message: "`offset` \(offset) is beyond the page text (\(total) characters).",
-                field: "offset", expected: "0..<\(total)", tool: "browser_read_page",
-                retryable: false)
+                field: "offset",
+                expected: "0..<\(total)",
+                tool: "browser_read_page",
+                retryable: false
+            )
         }
         let start = text.index(text.startIndex, offsetBy: offset)
         let end = text.index(start, offsetBy: min(maxChars, total - offset))
-        let slice = String(text[start..<end])
+        let slice = String(text[start ..< end])
         let hasMore = offset + slice.count < total
         var payload: [String: Any] = [
             "url": session.currentURL ?? "",
@@ -332,7 +365,10 @@ final class BrowserToolExecutor {
         let text = await session.takeSnapshot(options: options, detail: detail(args, default: .standard))
         if text.hasPrefix("Error:") {
             return ToolEnvelope.failure(
-                kind: .executionError, message: text, tool: "browser_snapshot")
+                kind: .executionError,
+                message: text,
+                tool: "browser_snapshot"
+            )
         }
         return ToolEnvelope.success(tool: "browser_snapshot", text: text)
     }
@@ -342,98 +378,143 @@ final class BrowserToolExecutor {
         let selector = args["selector"] as? String
         let label = await session.elementLabel(ref: ref, selector: selector)
         if let denial = await gateAction(
-            "click", tool: "browser_click", actionLabel: "Click",
-            targetLabel: label ?? ref ?? selector)
-        {
+            "click",
+            tool: "browser_click",
+            actionLabel: "Click",
+            targetLabel: label ?? ref ?? selector
+        ) {
             return denial
         }
         let result = await session.clickElement(ref: ref, selector: selector)
         guard result.success else {
             return ToolEnvelope.failure(
-                kind: .executionError, message: result.error ?? "Click failed.",
-                tool: "browser_click")
+                kind: .executionError,
+                message: result.error ?? "Click failed.",
+                tool: "browser_click"
+            )
         }
         // Brief settle for click-triggered DOM changes (plugin parity).
         try? await Task.sleep(nanoseconds: 200_000_000)
         return await actionResult(
-            tool: "browser_click", prefix: "Action: click succeeded", detail: detail(args))
+            tool: "browser_click",
+            prefix: "Action: click succeeded",
+            detail: detail(args)
+        )
     }
 
     private func type(_ args: [String: Any]) async -> String {
         guard let text = args["text"] as? String else {
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`text` is required.", field: "text",
-                expected: "text to type", tool: "browser_type")
+                kind: .invalidArgs,
+                message: "`text` is required.",
+                field: "text",
+                expected: "text to type",
+                tool: "browser_type"
+            )
         }
         let ref = args["ref"] as? String
         let selector = args["selector"] as? String
         let submit = (args["submit"] as? Bool) ?? false
         let label = await session.elementLabel(ref: ref, selector: selector)
         if let denial = await gateAction(
-            "type", tool: "browser_type", actionLabel: submit ? "Type + submit" : "Type",
-            targetLabel: label ?? ref ?? selector, typedText: text, submit: submit)
-        {
+            "type",
+            tool: "browser_type",
+            actionLabel: submit ? "Type + submit" : "Type",
+            targetLabel: label ?? ref ?? selector,
+            typedText: text,
+            submit: submit
+        ) {
             return denial
         }
         let result = await session.typeText(
-            ref: ref, selector: selector, text: text,
-            clear: (args["clear"] as? Bool) ?? true, submit: submit)
+            ref: ref,
+            selector: selector,
+            text: text,
+            clear: (args["clear"] as? Bool) ?? true,
+            submit: submit
+        )
         guard result.success else {
             return ToolEnvelope.failure(
-                kind: .executionError, message: result.error ?? "Type failed.",
-                tool: "browser_type")
+                kind: .executionError,
+                message: result.error ?? "Type failed.",
+                tool: "browser_type"
+            )
         }
         return await actionResult(
-            tool: "browser_type", prefix: "Action: type succeeded", detail: detail(args))
+            tool: "browser_type",
+            prefix: "Action: type succeeded",
+            detail: detail(args)
+        )
     }
 
     private func select(_ args: [String: Any]) async -> String {
         guard let values = args["values"] as? [String], !values.isEmpty else {
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`values` is required.", field: "values",
-                expected: "array of option values or labels", tool: "browser_select")
+                kind: .invalidArgs,
+                message: "`values` is required.",
+                field: "values",
+                expected: "array of option values or labels",
+                tool: "browser_select"
+            )
         }
         let ref = args["ref"] as? String
         let selector = args["selector"] as? String
         if let denial = await gateAction(
-            "select", tool: "browser_select", actionLabel: "Select",
-            targetLabel: values.joined(separator: ", "))
-        {
+            "select",
+            tool: "browser_select",
+            actionLabel: "Select",
+            targetLabel: values.joined(separator: ", ")
+        ) {
             return denial
         }
         let result = await session.selectOption(ref: ref, selector: selector, values: values)
         guard result.success else {
             return ToolEnvelope.failure(
-                kind: .executionError, message: result.error ?? "Select failed.",
-                tool: "browser_select")
+                kind: .executionError,
+                message: result.error ?? "Select failed.",
+                tool: "browser_select"
+            )
         }
         return await actionResult(
-            tool: "browser_select", prefix: "Action: select succeeded", detail: detail(args))
+            tool: "browser_select",
+            prefix: "Action: select succeeded",
+            detail: detail(args)
+        )
     }
 
     private func hover(_ args: [String: Any]) async -> String {
         let ref = args["ref"] as? String
         let selector = args["selector"] as? String
         if let denial = await gateAction(
-            "hover", tool: "browser_hover", actionLabel: "Hover", targetLabel: ref ?? selector)
-        {
+            "hover",
+            tool: "browser_hover",
+            actionLabel: "Hover",
+            targetLabel: ref ?? selector
+        ) {
             return denial
         }
         let result = await session.hoverElement(ref: ref, selector: selector)
         guard result.success else {
             return ToolEnvelope.failure(
-                kind: .executionError, message: result.error ?? "Hover failed.",
-                tool: "browser_hover")
+                kind: .executionError,
+                message: result.error ?? "Hover failed.",
+                tool: "browser_hover"
+            )
         }
         return await actionResult(
-            tool: "browser_hover", prefix: "Action: hover succeeded", detail: detail(args))
+            tool: "browser_hover",
+            prefix: "Action: hover succeeded",
+            detail: detail(args)
+        )
     }
 
     private func scroll(_ args: [String: Any]) async -> String {
         if let denial = await gateAction(
-            "scroll", tool: "browser_scroll", actionLabel: "Scroll",
-            targetLabel: args["direction"] as? String)
-        {
+            "scroll",
+            tool: "browser_scroll",
+            actionLabel: "Scroll",
+            targetLabel: args["direction"] as? String
+        ) {
             return denial
         }
         let result = await session.scroll(
@@ -444,32 +525,48 @@ final class BrowserToolExecutor {
         )
         guard result.success else {
             return ToolEnvelope.failure(
-                kind: .executionError, message: result.error ?? "Scroll failed.",
-                tool: "browser_scroll")
+                kind: .executionError,
+                message: result.error ?? "Scroll failed.",
+                tool: "browser_scroll"
+            )
         }
         return await actionResult(
-            tool: "browser_scroll", prefix: "Action: scroll succeeded", detail: detail(args))
+            tool: "browser_scroll",
+            prefix: "Action: scroll succeeded",
+            detail: detail(args)
+        )
     }
 
     private func pressKey(_ args: [String: Any]) async -> String {
         guard let key = args["key"] as? String, !key.isEmpty else {
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`key` is required.", field: "key",
-                expected: "key name (Enter, Escape, Tab, …)", tool: "browser_press_key")
+                kind: .invalidArgs,
+                message: "`key` is required.",
+                field: "key",
+                expected: "key name (Enter, Escape, Tab, …)",
+                tool: "browser_press_key"
+            )
         }
         let isSubmitKey = key.lowercased() == "enter"
         if let denial = await gateAction(
-            "press_key", tool: "browser_press_key", actionLabel: "Press key",
-            targetLabel: key, submit: isSubmitKey)
-        {
+            "press_key",
+            tool: "browser_press_key",
+            actionLabel: "Press key",
+            targetLabel: key,
+            submit: isSubmitKey
+        ) {
             return denial
         }
         let result = await session.pressKey(
-            key: key, modifiers: (args["modifiers"] as? [String]) ?? [])
+            key: key,
+            modifiers: (args["modifiers"] as? [String]) ?? []
+        )
         guard result.success else {
             return ToolEnvelope.failure(
-                kind: .executionError, message: result.error ?? "Key press failed.",
-                tool: "browser_press_key")
+                kind: .executionError,
+                message: result.error ?? "Key press failed.",
+                tool: "browser_press_key"
+            )
         }
         return ToolEnvelope.success(tool: "browser_press_key", text: "Action: press \(key) succeeded")
     }
@@ -483,7 +580,10 @@ final class BrowserToolExecutor {
         )
         guard result.success else {
             return ToolEnvelope.failure(
-                kind: .timeout, message: result.error ?? "Wait failed.", tool: "browser_wait_for")
+                kind: .timeout,
+                message: result.error ?? "Wait failed.",
+                tool: "browser_wait_for"
+            )
         }
         return ToolEnvelope.success(tool: "browser_wait_for", text: "Wait condition met")
     }
@@ -491,14 +591,20 @@ final class BrowserToolExecutor {
     private func batchDo(_ args: [String: Any]) async -> String {
         guard let actions = args["actions"] as? [[String: Any]] else {
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`actions` is required.", field: "actions",
-                expected: "array of action objects", tool: "browser_do")
+                kind: .invalidArgs,
+                message: "`actions` is required.",
+                field: "actions",
+                expected: "array of action objects",
+                tool: "browser_do"
+            )
         }
         let detail = detail(args)
         if actions.isEmpty {
             return await actionResult(
-                tool: "browser_do", prefix: "Action: browser_do completed (0 actions)",
-                detail: detail)
+                tool: "browser_do",
+                prefix: "Action: browser_do completed (0 actions)",
+                detail: detail
+            )
         }
 
         for (index, item) in actions.enumerated() {
@@ -506,7 +612,9 @@ final class BrowserToolExecutor {
                 return ToolEnvelope.failure(
                     kind: .invalidArgs,
                     message: "Action \(index) is missing the required `action` field.",
-                    field: "actions", tool: "browser_do")
+                    field: "actions",
+                    tool: "browser_do"
+                )
             }
             let ref = item["ref"] as? String
             let selector = item["selector"] as? String
@@ -526,12 +634,13 @@ final class BrowserToolExecutor {
             let isSubmit =
                 submit || (action == "press_key" && (item["key"] as? String)?.lowercased() == "enter")
             if let denial = await gateAction(
-                action, tool: "browser_do",
+                action,
+                tool: "browser_do",
                 actionLabel: "\(action) (batch step \(index + 1)/\(actions.count))",
                 targetLabel: gateLabel,
                 typedText: action == "type" ? item["text"] as? String : nil,
-                submit: isSubmit)
-            {
+                submit: isSubmit
+            ) {
                 return denial
             }
 
@@ -541,44 +650,74 @@ final class BrowserToolExecutor {
                 result = await session.clickElement(ref: ref, selector: selector)
             case "type":
                 guard let text = item["text"] as? String else {
-                    return await batchFailure(index: index, action: action,
-                        error: "missing required 'text' parameter", detail: detail)
+                    return await batchFailure(
+                        index: index,
+                        action: action,
+                        error: "missing required 'text' parameter",
+                        detail: detail
+                    )
                 }
                 result = await session.typeText(
-                    ref: ref, selector: selector, text: text,
-                    clear: (item["clear"] as? Bool) ?? true, submit: submit)
+                    ref: ref,
+                    selector: selector,
+                    text: text,
+                    clear: (item["clear"] as? Bool) ?? true,
+                    submit: submit
+                )
             case "select":
                 guard let values = item["values"] as? [String] else {
-                    return await batchFailure(index: index, action: action,
-                        error: "missing required 'values' parameter", detail: detail)
+                    return await batchFailure(
+                        index: index,
+                        action: action,
+                        error: "missing required 'values' parameter",
+                        detail: detail
+                    )
                 }
                 result = await session.selectOption(ref: ref, selector: selector, values: values)
             case "hover":
                 result = await session.hoverElement(ref: ref, selector: selector)
             case "scroll":
                 result = await session.scroll(
-                    direction: item["direction"] as? String, ref: ref,
-                    x: item["x"] as? Int, y: item["y"] as? Int)
+                    direction: item["direction"] as? String,
+                    ref: ref,
+                    x: item["x"] as? Int,
+                    y: item["y"] as? Int
+                )
             case "press_key":
                 guard let key = item["key"] as? String else {
-                    return await batchFailure(index: index, action: action,
-                        error: "missing required 'key' parameter", detail: detail)
+                    return await batchFailure(
+                        index: index,
+                        action: action,
+                        error: "missing required 'key' parameter",
+                        detail: detail
+                    )
                 }
                 result = await session.pressKey(
-                    key: key, modifiers: (item["modifiers"] as? [String]) ?? [])
+                    key: key,
+                    modifiers: (item["modifiers"] as? [String]) ?? []
+                )
             case "wait_for":
                 result = await session.waitFor(
                     text: item["text"] as? String,
                     textGone: item["text_gone"] as? String,
                     time: item["time"] as? Double,
-                    timeout: (item["timeout"] as? Double) ?? 10)
+                    timeout: (item["timeout"] as? Double) ?? 10
+                )
             default:
-                return await batchFailure(index: index, action: action,
-                    error: "unknown action type", detail: detail)
+                return await batchFailure(
+                    index: index,
+                    action: action,
+                    error: "unknown action type",
+                    detail: detail
+                )
             }
             if !result.success {
-                return await batchFailure(index: index, action: action,
-                    error: result.error ?? "Unknown error", detail: detail)
+                return await batchFailure(
+                    index: index,
+                    action: action,
+                    error: result.error ?? "Unknown error",
+                    detail: detail
+                )
             }
         }
 
@@ -597,10 +736,14 @@ final class BrowserToolExecutor {
     /// Batched-action failure with a fresh snapshot so the agent can recover
     /// without an extra call (plugin parity).
     private func batchFailure(
-        index: Int, action: String, error: String, detail: BrowserDetailLevel
+        index: Int,
+        action: String,
+        error: String,
+        detail: BrowserDetailLevel
     ) async -> String {
         let snapshot = await session.takeSnapshot(
-            detail: detail == .none ? .compact : detail)
+            detail: detail == .none ? .compact : detail
+        )
         return ToolEnvelope.failure(
             kind: .executionError,
             message: "Action \(index) (\(action)) failed: \(error)",
@@ -621,41 +764,52 @@ final class BrowserToolExecutor {
                 field: "path",
                 expected: "a file name inside ~/Downloads",
                 tool: "browser_screenshot",
-                retryable: false)
+                retryable: false
+            )
         }
         guard let imageData = await session.takeScreenshot(fullPage: (args["full_page"] as? Bool) ?? false)
         else {
             return ToolEnvelope.failure(
                 kind: .executionError,
                 message: "Failed to capture screenshot. Make sure a page is loaded with browser_navigate first.",
-                tool: "browser_screenshot")
+                tool: "browser_screenshot"
+            )
         }
         do {
             try FileManager.default.createDirectory(
                 at: destination.deletingLastPathComponent(),
-                withIntermediateDirectories: true)
+                withIntermediateDirectories: true
+            )
             try imageData.write(to: destination)
             return ToolEnvelope.success(
                 tool: "browser_screenshot",
-                result: ["path": destination.path, "size": imageData.count])
+                result: ["path": destination.path, "size": imageData.count]
+            )
         } catch {
             return ToolEnvelope.failure(
                 kind: .executionError,
                 message: "Failed to save screenshot: \(error.localizedDescription)",
-                tool: "browser_screenshot")
+                tool: "browser_screenshot"
+            )
         }
     }
 
     private func executeScript(_ args: [String: Any]) async -> String {
         guard let script = args["script"] as? String, !script.isEmpty else {
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`script` is required.", field: "script",
-                expected: "JavaScript code to execute", tool: "browser_execute_script")
+                kind: .invalidArgs,
+                message: "`script` is required.",
+                field: "script",
+                expected: "JavaScript code to execute",
+                tool: "browser_execute_script"
+            )
         }
         if let denial = await gateAction(
-            "execute_script", tool: "browser_execute_script", actionLabel: "Run JavaScript",
-            typedText: script)
-        {
+            "execute_script",
+            tool: "browser_execute_script",
+            actionLabel: "Run JavaScript",
+            typedText: script
+        ) {
             return denial
         }
         let result = await session.executeScript(script)
@@ -663,7 +817,8 @@ final class BrowserToolExecutor {
             return ToolEnvelope.failure(
                 kind: .executionError,
                 message: "JavaScript execution failed: \(error)",
-                tool: "browser_execute_script")
+                tool: "browser_execute_script"
+            )
         }
         return ToolEnvelope.success(tool: "browser_execute_script", result: jsonSafe(result.result))
     }
@@ -676,7 +831,8 @@ final class BrowserToolExecutor {
         )
         return ToolEnvelope.success(
             tool: "browser_console_messages",
-            result: ["count": messages.count, "messages": messages])
+            result: ["count": messages.count, "messages": messages]
+        )
     }
 
     private func networkRequests(_ args: [String: Any]) async -> String {
@@ -688,7 +844,8 @@ final class BrowserToolExecutor {
         )
         return ToolEnvelope.success(
             tool: "browser_network_requests",
-            result: ["count": requests.count, "requests": requests])
+            result: ["count": requests.count, "requests": requests]
+        )
     }
 
     private func handleDialog(_ args: [String: Any]) async -> String {
@@ -697,12 +854,15 @@ final class BrowserToolExecutor {
         case "status":
             return ToolEnvelope.success(
                 tool: "browser_handle_dialog",
-                result: ["last_dialog": session.lastDialog.map(jsonSafe) ?? NSNull()])
+                result: ["last_dialog": session.lastDialog.map(jsonSafe) ?? NSNull()]
+            )
         case "accept", "dismiss":
             if let denial = await gateAction(
-                "handle_dialog", tool: "browser_handle_dialog",
-                actionLabel: "Set dialog policy", targetLabel: action)
-            {
+                "handle_dialog",
+                tool: "browser_handle_dialog",
+                actionLabel: "Set dialog policy",
+                targetLabel: action
+            ) {
                 return denial
             }
             session.setDialogPolicy(
@@ -711,12 +871,15 @@ final class BrowserToolExecutor {
             )
             return ToolEnvelope.success(
                 tool: "browser_handle_dialog",
-                text: "Next dialog will be \(action == "accept" ? "accepted" : "dismissed").")
+                text: "Next dialog will be \(action == "accept" ? "accepted" : "dismissed")."
+            )
         default:
             return ToolEnvelope.failure(
                 kind: .invalidArgs,
                 message: "`action` must be one of accept, dismiss, status.",
-                field: "action", tool: "browser_handle_dialog")
+                field: "action",
+                tool: "browser_handle_dialog"
+            )
         }
     }
 
@@ -731,10 +894,11 @@ final class BrowserToolExecutor {
             let includeValues = (args["include_values"] as? Bool) ?? false
             if includeValues {
                 if let denial = await gateAction(
-                    "read_cookie_values", tool: "browser_cookies",
+                    "read_cookie_values",
+                    tool: "browser_cookies",
                     actionLabel: "Read cookie values",
-                    targetLabel: domain ?? "all domains")
-                {
+                    targetLabel: domain ?? "all domains"
+                ) {
                     return denial
                 }
             }
@@ -755,37 +919,50 @@ final class BrowserToolExecutor {
         case "set":
             guard let cookie = args["cookie"] as? [String: Any] else {
                 return ToolEnvelope.failure(
-                    kind: .invalidArgs, message: "`cookie` object is required for action='set'.",
-                    field: "cookie", tool: "browser_cookies")
+                    kind: .invalidArgs,
+                    message: "`cookie` object is required for action='set'.",
+                    field: "cookie",
+                    tool: "browser_cookies"
+                )
             }
             if let denial = await gateAction(
-                "set_cookie", tool: "browser_cookies", actionLabel: "Set cookie",
-                targetLabel: cookie["name"] as? String)
-            {
+                "set_cookie",
+                tool: "browser_cookies",
+                actionLabel: "Set cookie",
+                targetLabel: cookie["name"] as? String
+            ) {
                 return denial
             }
             let result = await session.setCookie(cookie)
             guard result.ok else {
                 return ToolEnvelope.failure(
-                    kind: .executionError, message: result.error ?? "Failed to set cookie.",
-                    tool: "browser_cookies")
+                    kind: .executionError,
+                    message: result.error ?? "Failed to set cookie.",
+                    tool: "browser_cookies"
+                )
             }
             return ToolEnvelope.success(tool: "browser_cookies", text: "Cookie set.")
         case "clear":
             if let denial = await gateAction(
-                "clear_cookies", tool: "browser_cookies", actionLabel: "Clear cookies",
-                targetLabel: domain ?? "all domains")
-            {
+                "clear_cookies",
+                tool: "browser_cookies",
+                actionLabel: "Clear cookies",
+                targetLabel: domain ?? "all domains"
+            ) {
                 return denial
             }
             await session.clearCookies(domain: domain)
             return ToolEnvelope.success(
                 tool: "browser_cookies",
-                text: "Cookies cleared" + (domain.map { " for \($0)" } ?? "") + ".")
+                text: "Cookies cleared" + (domain.map { " for \($0)" } ?? "") + "."
+            )
         default:
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`action` must be one of get, set, clear.",
-                field: "action", tool: "browser_cookies")
+                kind: .invalidArgs,
+                message: "`action` must be one of get, set, clear.",
+                field: "action",
+                tool: "browser_cookies"
+            )
         }
     }
 
@@ -798,14 +975,20 @@ final class BrowserToolExecutor {
             initialURL = nil
         }
         if let denial = await gateAction(
-            "open_login", tool: "browser_open_login", actionLabel: "Open sign-in window",
-            host: initialURL?.host, targetLabel: initialURL?.absoluteString)
-        {
+            "open_login",
+            tool: "browser_open_login",
+            actionLabel: "Open sign-in window",
+            host: initialURL?.host,
+            targetLabel: initialURL?.absoluteString
+        ) {
             return denial
         }
         let timeoutSeconds = TimeInterval(max(1000, (args["timeout_ms"] as? Int) ?? 300_000)) / 1000.0
         let result = await BrowserSessionManager.shared.presentLoginWindow(
-            agentId: agentId, initialURL: initialURL, timeoutSeconds: timeoutSeconds)
+            agentId: agentId,
+            initialURL: initialURL,
+            timeoutSeconds: timeoutSeconds
+        )
         var payload: [String: Any] = [
             "closed_at": ISO8601DateFormatter().string(from: result.closedAt),
             "timed_out": result.timedOut,
@@ -816,15 +999,18 @@ final class BrowserToolExecutor {
 
     private func resetSession(_ args: [String: Any]) async -> String {
         if let denial = await gateAction(
-            "reset_session", tool: "browser_reset_session", actionLabel: "Reset browser session",
-            targetLabel: "wipe cookies, storage, and sign-ins for this agent")
-        {
+            "reset_session",
+            tool: "browser_reset_session",
+            actionLabel: "Reset browser session",
+            targetLabel: "wipe cookies, storage, and sign-ins for this agent"
+        ) {
             return denial
         }
         await BrowserSessionManager.shared.resetSession(for: agentId)
         return ToolEnvelope.success(
             tool: "browser_reset_session",
-            text: "Session cleared. The next browser_navigate starts a fresh logged-out profile.")
+            text: "Session cleared. The next browser_navigate starts a fresh logged-out profile."
+        )
     }
 
     /// Coerce a JS evaluation result into a JSON-serialisable value.

@@ -29,11 +29,14 @@ enum CalendarArgs {
     static func recurrence(_ args: [String: Any]) throws -> CalendarRecurrence? {
         guard let dict = try AppleArgs.object(args, "recurrence") else { return nil }
         let frequency = try AppleArgs.enumeration(
-            dict, "frequency", allowed: ["daily", "weekly", "monthly", "yearly"]
+            dict,
+            "frequency",
+            allowed: ["daily", "weekly", "monthly", "yearly"]
         )
         guard let frequency else {
             throw AppleToolError.invalidArgs(
-                "recurrence.frequency is required (daily | weekly | monthly | yearly).", field: "recurrence.frequency"
+                "recurrence.frequency is required (daily | weekly | monthly | yearly).",
+                field: "recurrence.frequency"
             )
         }
         let interval = try AppleArgs.int(dict, "interval") ?? 1
@@ -65,7 +68,9 @@ enum CalendarArgs {
     /// and delete tools then use `this_event`, and refuse recurring events
     /// that name no `occurrence_start`).
     static func span(_ args: [String: Any]) throws -> CalendarEditSpan? {
-        guard let raw = try AppleArgs.enumeration(args, "span", allowed: ["this_event", "future_events"]) else { return nil }
+        guard let raw = try AppleArgs.enumeration(args, "span", allowed: ["this_event", "future_events"]) else {
+            return nil
+        }
         return raw == "future_events" ? .futureEvents : .thisEvent
     }
 
@@ -80,7 +85,8 @@ enum CalendarArgs {
         guard let minutes else { return nil }
         let clamped = AppleAlarms.clamped(minutes)
         guard !clamped.isEmpty else { return nil }
-        return "alarms_minutes_before values \(clamped) were clamped to 0…\(AppleAlarms.maxMinutesBefore) minutes (4 weeks)."
+        return
+            "alarms_minutes_before values \(clamped) were clamped to 0…\(AppleAlarms.maxMinutesBefore) minutes (4 weeks)."
     }
 
     /// Bare-date strings for an all-day range, for the tool payload.
@@ -162,7 +168,8 @@ final class CalendarEventsTool: AppleToolBase, @unchecked Sendable {
         var warnings: [String] = []
         if result.endWasClamped {
             warnings.append(
-                "Calendar searches cover at most four years per call; the range was searched through \(AppleDateParsing.format(result.effectiveEnd)). Call again with a later `start` for the rest.")
+                "Calendar searches cover at most four years per call; the range was searched through \(AppleDateParsing.format(result.effectiveEnd)). Call again with a later `start` for the rest."
+            )
         }
         return AppleToolPayload(
             [
@@ -171,7 +178,9 @@ final class CalendarEventsTool: AppleToolBase, @unchecked Sendable {
                 "total_in_range": page.total,
                 "truncated": page.truncated,
                 "range": ["start": start, "end": result.effectiveEnd, "end_clamped": result.endWasClamped],
-            ], warnings: warnings)
+            ],
+            warnings: warnings
+        )
     }
 }
 
@@ -191,13 +200,19 @@ final class CalendarCreateEventTool: AppleToolBase, @unchecked Sendable {
                 [
                     "title": AppleSchema.string("Event title."),
                     "start": AppleSchema.date("Start."),
-                    "end": AppleSchema.date("End (default: start + 1 hour; all-day: same day). For all-day events a bare date is the last day, inclusive."),
+                    "end": AppleSchema.date(
+                        "End (default: start + 1 hour; all-day: same day). For all-day events a bare date is the last day, inclusive."
+                    ),
                     "all_day": AppleSchema.boolean("All-day event (default false; true when `start` is a bare date)."),
-                    "calendar": AppleSchema.string("Calendar id or title (from calendar_list). Default: the user's default calendar."),
+                    "calendar": AppleSchema.string(
+                        "Calendar id or title (from calendar_list). Default: the user's default calendar."
+                    ),
                     "location": AppleSchema.string("Location text."),
                     "notes": AppleSchema.string("Notes / description."),
                     "url": AppleSchema.string("Related URL."),
-                    "alarms_minutes_before": AppleSchema.integerArray("Alerts, in minutes before the start (e.g. [10, 60])."),
+                    "alarms_minutes_before": AppleSchema.integerArray(
+                        "Alerts, in minutes before the start (e.g. [10, 60])."
+                    ),
                     "availability": AppleSchema.string("Show as.", enum: ["busy", "free", "tentative", "unavailable"]),
                     "recurrence": AppleSchema.recurrence,
                 ],
@@ -248,13 +263,16 @@ final class CalendarCreateEventTool: AppleToolBase, @unchecked Sendable {
             alarmsMinutesBefore: try CalendarArgs.alarms(args),
             recurrence: try CalendarArgs.recurrence(args),
             availability: try AppleArgs.enumeration(
-                args, "availability", allowed: ["busy", "free", "tentative", "unavailable"]
+                args,
+                "availability",
+                allowed: ["busy", "free", "tentative", "unavailable"]
             )
         )
         let created = try await service.create(draft)
         return AppleToolPayload(
             ["event": created, "created": true],
-            warnings: [CalendarArgs.alarmWarning(draft.alarmsMinutesBefore)].compactMap { $0 })
+            warnings: [CalendarArgs.alarmWarning(draft.alarmsMinutesBefore)].compactMap { $0 }
+        )
     }
 }
 
@@ -273,7 +291,9 @@ final class CalendarUpdateEventTool: AppleToolBase, @unchecked Sendable {
             parameters: AppleSchema.object(
                 [
                     "id": AppleSchema.string("Event id from calendar_events."),
-                    "occurrence_start": AppleSchema.date("Required for recurring events: the start of the occurrence to edit."),
+                    "occurrence_start": AppleSchema.date(
+                        "Required for recurring events: the start of the occurrence to edit."
+                    ),
                     "span": AppleSchema.string("Which occurrences to change.", enum: ["this_event", "future_events"]),
                     "title": AppleSchema.string("New title."),
                     "start": AppleSchema.date("New start."),
@@ -283,7 +303,9 @@ final class CalendarUpdateEventTool: AppleToolBase, @unchecked Sendable {
                     "location": AppleSchema.nullableString("New location (null clears)."),
                     "notes": AppleSchema.nullableString("New notes (null clears)."),
                     "url": AppleSchema.nullableString("New URL (null clears)."),
-                    "alarms_minutes_before": AppleSchema.integerArray("Replace alerts with these minutes-before values ([] removes all)."),
+                    "alarms_minutes_before": AppleSchema.integerArray(
+                        "Replace alerts with these minutes-before values ([] removes all)."
+                    ),
                     "availability": AppleSchema.string("Show as.", enum: ["busy", "free", "tentative", "unavailable"]),
                     "recurrence": AppleSchema.recurrence,
                     "clear_recurrence": AppleSchema.boolean("Remove the repeat rule."),
@@ -306,16 +328,22 @@ final class CalendarUpdateEventTool: AppleToolBase, @unchecked Sendable {
             // all-day normalization keeps that instant; timed events get the
             // exclusive next-midnight bound as before.
             let allDayHint = try AppleArgs.bool(args, "all_day") == true
-            patch.end = end.isDateOnly ? (allDayHint ? end.exclusiveRangeEnd.addingTimeInterval(-1) : end.exclusiveRangeEnd) : end.date
+            patch.end =
+                end.isDateOnly
+                ? (allDayHint ? end.exclusiveRangeEnd.addingTimeInterval(-1) : end.exclusiveRangeEnd) : end.date
         }
         patch.isAllDay = try AppleArgs.bool(args, "all_day")
         patch.calendarId = try AppleArgs.string(args, "calendar")
         if args["location"] != nil { patch.location = .some(try AppleArgs.string(args, "location")) }
         if args["notes"] != nil { patch.notes = .some(try AppleArgs.string(args, "notes")) }
         if args["url"] != nil { patch.url = .some(try AppleArgs.string(args, "url")) }
-        if args["alarms_minutes_before"] != nil { patch.alarmsMinutesBefore = .some(try CalendarArgs.alarms(args) ?? []) }
+        if args["alarms_minutes_before"] != nil {
+            patch.alarmsMinutesBefore = .some(try CalendarArgs.alarms(args) ?? [])
+        }
         patch.availability = try AppleArgs.enumeration(
-            args, "availability", allowed: ["busy", "free", "tentative", "unavailable"]
+            args,
+            "availability",
+            allowed: ["busy", "free", "tentative", "unavailable"]
         )
         if try AppleArgs.bool(args, "clear_recurrence") == true {
             patch.recurrence = .some(nil)
@@ -414,7 +442,10 @@ final class CalendarOpenEventTool: AppleToolBase, @unchecked Sendable {
         }
         let opened = await AppleURLOpener.open(url)
         guard opened else {
-            throw AppleToolError.unavailable("Calendar could not be opened for event `\(event.title)`.", retryable: true)
+            throw AppleToolError.unavailable(
+                "Calendar could not be opened for event `\(event.title)`.",
+                retryable: true
+            )
         }
         return AppleToolPayload(["opened": true, "event": event])
     }

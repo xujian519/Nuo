@@ -10,7 +10,8 @@ import Testing
 @Suite("Controlled Metal failure through Responses", .timeLimit(.minutes(1)))
 @MainActor
 struct MetalFailureResponsesLifecycleTests {
-    private static let signature = "[METAL] Command buffer execution failed: Impacting Interactivity (0000000e:kIOGPUCommandBufferCallbackErrorImpactingInteractivity)."
+    private static let signature =
+        "[METAL] Command buffer execution failed: Impacting Interactivity (0000000e:kIOGPUCommandBufferCallbackErrorImpactingInteractivity)."
 
     private actor Gate {
         private var open = false
@@ -77,17 +78,39 @@ struct MetalFailureResponsesLifecycleTests {
             if stage == .decoding {
                 events += [.reasoning("partial reasoning"), .chunk("partial answer")]
                 let arguments: [String: MLXLMCommon.JSONValue] = ["path": .string("must-not-write.txt")]
-                events.append(.toolCall(MLXLMCommon.ToolCall(function: .init(name: "write_file", arguments: arguments))))
+                events.append(
+                    .toolCall(MLXLMCommon.ToolCall(function: .init(name: "write_file", arguments: arguments)))
+                )
             }
-            events.append(.info(GenerateCompletionInfo(promptTokenCount: 73,
-                generationTokenCount: stage == .decoding ? 3 : 0, promptTime: 0.2,
-                generationTime: 0.1, stopReason: .cancelled, generationFailure: failure)))
+            events.append(
+                .info(
+                    GenerateCompletionInfo(
+                        promptTokenCount: 73,
+                        generationTokenCount: stage == .decoding ? 3 : 0,
+                        promptTime: 0.2,
+                        generationTime: 0.1,
+                        stopReason: .cancelled,
+                        generationFailure: failure
+                    )
+                )
+            )
             // A late secondary diagnostic must not replace the first error or
             // publish another handled report/success/precise usage count.
-            events.append(.info(GenerateCompletionInfo(promptTokenCount: 73,
-                generationTokenCount: 999, promptTime: 0, generationTime: 0,
-                stopReason: .cancelled, generationFailure: .init(stage: stage,
-                    cause: "controlled secondary cleanup diagnostic"))))
+            events.append(
+                .info(
+                    GenerateCompletionInfo(
+                        promptTokenCount: 73,
+                        generationTokenCount: 999,
+                        promptTime: 0,
+                        generationTime: 0,
+                        stopReason: .cancelled,
+                        generationFailure: .init(
+                            stage: stage,
+                            cause: "controlled secondary cleanup diagnostic"
+                        )
+                    )
+                )
+            )
             prefix = events
         }
         func next() async -> Generation? {
@@ -101,7 +124,9 @@ struct MetalFailureResponsesLifecycleTests {
                 await release.wait()
                 probe.finish(cancelled: Task.isCancelled)
                 await finished.signal()
-            } onCancel: { probe.cancel() }
+            } onCancel: {
+                probe.cancel()
+            }
             return nil
         }
     }
@@ -139,15 +164,26 @@ struct MetalFailureResponsesLifecycleTests {
             return (typedCalls, legacyCalls)
         }
         func streamResponses(
-            messages: [ChatMessage], parameters: GenerationParameters, stopSequences: [String],
-            tools: [OsaurusCore.Tool], toolChoice: ToolChoiceOption?, requestedModel: String?
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            stopSequences: [String],
+            tools: [OsaurusCore.Tool],
+            toolChoice: ToolChoiceOption?,
+            requestedModel: String?
         ) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> { try take() }
-        func streamDeltas(messages: [ChatMessage], parameters: GenerationParameters,
-            requestedModel: String?, stopSequences: [String]) async throws -> AsyncThrowingStream<String, Error> {
+        func streamDeltas(
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?,
+            stopSequences: [String]
+        ) async throws -> AsyncThrowingStream<String, Error> {
             legacy(); throw FixtureError.unexpectedReplay
         }
-        func generateOneShot(messages: [ChatMessage], parameters: GenerationParameters,
-            requestedModel: String?) async throws -> String {
+        func generateOneShot(
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?
+        ) async throws -> String {
             legacy(); throw FixtureError.unexpectedReplay
         }
     }
@@ -169,7 +205,9 @@ struct MetalFailureResponsesLifecycleTests {
     }
 
     @Test(arguments: [GenerationFailure.Stage.preparation, .decoding])
-    func firstFailureStopsDispatchPreservesPartialChannelsAndDrainsBeforeHealthyFollowup(stage: GenerationFailure.Stage) async throws {
+    func firstFailureStopsDispatchPreservesPartialChannelsAndDrainsBeforeHealthyFollowup(stage: GenerationFailure.Stage)
+        async throws
+    {
         let model = "controlled-metal-\(UUID())"
         let failure = GenerationFailure(stage: stage, cause: Self.signature)
         let sourceProbe = Probe()
@@ -179,38 +217,70 @@ struct MetalFailureResponsesLifecycleTests {
         defer { Task { await source.release.signal() } }
         let mapped = GenerationEventMapper.map(
             events: AsyncStream(unfolding: { await source.next() }, onCancel: { sourceProbe.cancel() }),
-            modelName: model, promptTokenCount: 73, suppressProgressUI: true,
+            modelName: model,
+            promptTokenCount: 73,
+            suppressProgressUI: true,
             onConsumerCancellation: { sourceProbe.cancel() },
             reportFailure: { value, _, prompt, generated, _ in
                 sourceProbe.report(value, prompt: prompt, generated: generated)
-            })
-        let failing = ResponsesGenerationStream.native(mapped, waitForProducerDrain: {
-            await withTaskCancellationHandler {
-                nativeDrainProbe.enter(cancelled: Task.isCancelled)
-                await source.finished.wait()
-                nativeDrainProbe.finish(cancelled: Task.isCancelled)
-                await nativeDrained.signal()
-            } onCancel: { nativeDrainProbe.cancel() }
-        })
-        let service = Service(model: model, factories: [{ failing }, {
-            // Construct the next producer only after actual failed-producer
-            // drain, rather than pre-buffering a healthy response in advance.
-            let previous = nativeDrainProbe.snapshot()
-            #expect(previous.finished && !previous.cancelled)
-            return ResponsesGenerationStream.native(GenerationEventMapper.map(
-                events: AsyncStream { continuation in
-                    continuation.yield(.chunk("independent healthy answer"))
-                    continuation.yield(.info(GenerateCompletionInfo(promptTokenCount: 73,
-                        generationTokenCount: 4, promptTime: 0.2, generationTime: 0.1, stopReason: .stop)))
-                    continuation.finish()
-                }, promptTokenCount: 73, suppressProgressUI: true))
-        }])
+            }
+        )
+        let failing = ResponsesGenerationStream.native(
+            mapped,
+            waitForProducerDrain: {
+                await withTaskCancellationHandler {
+                    nativeDrainProbe.enter(cancelled: Task.isCancelled)
+                    await source.finished.wait()
+                    nativeDrainProbe.finish(cancelled: Task.isCancelled)
+                    await nativeDrained.signal()
+                } onCancel: {
+                    nativeDrainProbe.cancel()
+                }
+            }
+        )
+        let service = Service(
+            model: model,
+            factories: [
+                { failing },
+                {
+                    // Construct the next producer only after actual failed-producer
+                    // drain, rather than pre-buffering a healthy response in advance.
+                    let previous = nativeDrainProbe.snapshot()
+                    #expect(previous.finished && !previous.cancelled)
+                    return ResponsesGenerationStream.native(
+                        GenerationEventMapper.map(
+                            events: AsyncStream { continuation in
+                                continuation.yield(.chunk("independent healthy answer"))
+                                continuation.yield(
+                                    .info(
+                                        GenerateCompletionInfo(
+                                            promptTokenCount: 73,
+                                            generationTokenCount: 4,
+                                            promptTime: 0.2,
+                                            generationTime: 0.1,
+                                            stopReason: .stop
+                                        )
+                                    )
+                                )
+                                continuation.finish()
+                            },
+                            promptTokenCount: 73,
+                            suppressProgressUI: true
+                        )
+                    )
+                },
+            ]
+        )
         let engine = ChatEngine(services: [service], installedModelsProvider: { [] }, source: .chatUI)
         let turn = UUID()
         var request = ResponsesInferenceRequest(model: model, input: [ChatMessage(role: "user", content: "fixture")])
         request.context.turnId = turn
-        request.tools = [OsaurusCore.Tool(type: "function",
-            function: ToolFunction(name: "write_file", description: nil, parameters: nil))]
+        request.tools = [
+            OsaurusCore.Tool(
+                type: "function",
+                function: ToolFunction(name: "write_file", description: nil, parameters: nil)
+            )
+        ]
         var reasoning = ""
         var text = ""
         var previews = 0
@@ -232,19 +302,30 @@ struct MetalFailureResponsesLifecycleTests {
                 let result = try accumulator.result()
                 let assistant = try result.completedAssistantInput()
                 let calls = (assistant.tool_calls ?? []).map { call in
-                    ServiceToolInvocation(toolName: call.function.name,
-                        jsonArguments: call.function.arguments, toolCallId: call.id)
+                    ServiceToolInvocation(
+                        toolName: call.function.name,
+                        jsonArguments: call.function.arguments,
+                        toolCallId: call.id
+                    )
                 }
                 return calls.isEmpty ? .finalResponse : .toolCalls(calls)
             },
             executeTool: { _, _ in
                 executedTools += 1
                 return AgentLoopToolExecution(result: "unexpected execution")
-            })
+            }
+        )
         try await withTaskCancellationHandler {
             do {
-                _ = try await AgentToolLoop.run(policy: .init(maxIterations: 8,
-                    stopOnToolRejection: false, dedupeNoticeEnabled: false), state: AgentTaskState(), hooks: hooks)
+                _ = try await AgentToolLoop.run(
+                    policy: .init(
+                        maxIterations: 8,
+                        stopOnToolRejection: false,
+                        dedupeNoticeEnabled: false
+                    ),
+                    state: AgentTaskState(),
+                    hooks: hooks
+                )
                 Issue.record("The controlled model failure must escape the actual driver")
             } catch let caught as GenerationFailure {
                 #expect(caught == failure)
@@ -266,21 +347,30 @@ struct MetalFailureResponsesLifecycleTests {
             #expect(pending.reports.first?.failure == failure)
             #expect(pending.reports.first?.generated == (stage == .decoding ? 3 : 0))
             #expect(pending.reports.first?.prompt == 73)
-            let handled = try #require(HandledGPUFailureReport(failure: failure,
-                modelName: "OsaurusAI/controlled-fixture", promptTokens: 73,
-                generatedTokens: stage == .decoding ? 3 : 0))
+            let handled = try #require(
+                HandledGPUFailureReport(
+                    failure: failure,
+                    modelName: "OsaurusAI/controlled-fixture",
+                    promptTokens: 73,
+                    generatedTokens: stage == .decoding ? 3 : 0
+                )
+            )
             #expect(handled.stage == stage.rawValue)
             await source.release.signal()
             await nativeDrained.wait()
             #expect(sourceProbe.snapshot().finished && !sourceProbe.snapshot().cancelled)
             #expect(nativeDrainProbe.snapshot().finished && !nativeDrainProbe.snapshot().cancelled)
 
-            var followup = ResponsesInferenceRequest(model: model,
-                input: [ChatMessage(role: "user", content: "independent followup")])
+            var followup = ResponsesInferenceRequest(
+                model: model,
+                input: [ChatMessage(role: "user", content: "independent followup")]
+            )
             let followupTurn = UUID()
             followup.context.turnId = followupTurn
             let result = try await ResponsesGenerationResult.collect(
-                try await engine.streamResponses(request: followup), endAt: .streamEnd)
+                try await engine.streamResponses(request: followup),
+                endAt: .streamEnd
+            )
             #expect(result.text == "independent healthy answer")
             #expect(result.completion.status == .completed && result.completion.tokenCount == 4)
             let success = try await log(turn: followupTurn)

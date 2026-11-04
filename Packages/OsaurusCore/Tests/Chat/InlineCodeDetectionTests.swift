@@ -40,7 +40,11 @@ struct InlineCodeDetectionTests {
     }
 
     @Test func boldWrappedCodeSpanIsDetectable() throws {
-        #expect(try codeRunCovers("📄 **`UW Metrics & Definitions/Reports/Summary.md`**",
-            span: "UW Metrics & Definitions/Reports/Summary.md"))
+        #expect(
+            try codeRunCovers(
+                "📄 **`UW Metrics & Definitions/Reports/Summary.md`**",
+                span: "UW Metrics & Definitions/Reports/Summary.md"
+            )
+        )
     }
 }

@@ -1046,8 +1046,9 @@ struct AgentChannelConfiguration: Codable, Equatable, Sendable {
         return
             bindings
             .map(\.normalized)
-            .filter { !$0.id.isEmpty && !$0.connectionId.isEmpty && !$0.roomId.isEmpty
-                && seen.insert($0.id).inserted
+            .filter {
+                !$0.id.isEmpty && !$0.connectionId.isEmpty && !$0.roomId.isEmpty
+                    && seen.insert($0.id).inserted
             }
     }
 }

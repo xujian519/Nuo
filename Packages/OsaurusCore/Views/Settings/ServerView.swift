@@ -857,9 +857,14 @@ private struct CodexCLISetupSection: View {
             Spacer()
 
             if let contextWindow {
-                Text(verbatim: String(format: L("%@ context"), Self.tokenFormatter.string(from: NSNumber(value: contextWindow)) ?? "\(contextWindow)"))
-                    .font(.system(size: 11))
-                    .foregroundColor(theme.tertiaryText)
+                Text(
+                    verbatim: String(
+                        format: L("%@ context"),
+                        Self.tokenFormatter.string(from: NSNumber(value: contextWindow)) ?? "\(contextWindow)"
+                    )
+                )
+                .font(.system(size: 11))
+                .foregroundColor(theme.tertiaryText)
             }
         }
     }
@@ -899,7 +904,9 @@ private struct CodexCLISetupSection: View {
                 format: replaced
                     ? L("Updated %@ and wrote %@. Run `%@`.")
                     : L("Added the provider to %@ and wrote %@. Run `%@`."),
-                configPath, profilePath, CodexCLIConfiguration.usageCommand
+                configPath,
+                profilePath,
+                CodexCLIConfiguration.usageCommand
             )
         case .failure(let detail):
             isSuccess = false
@@ -996,7 +1003,10 @@ private struct CodexCLISetupSection: View {
                 let cap = ServerRuntimeSettingsStore.resolvedKVRetentionCap()
                 continuation.resume(
                     returning: CodexCLIConfiguration.effectiveContextWindow(
-                        bundleContextLength: bundle, kvRetentionCap: cap))
+                        bundleContextLength: bundle,
+                        kvRetentionCap: cap
+                    )
+                )
             }
         }
         guard modelId == selectedModelId else { return }

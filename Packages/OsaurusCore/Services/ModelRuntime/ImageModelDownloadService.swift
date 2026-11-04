@@ -406,7 +406,9 @@ final class ImageModelDownloadService: ObservableObject {
             if complete { return (destination, true) }
             let recovered = try Self.recoverMisroutedFile(file, from: legacyRoot, to: destination)
             if recovered {
-                imageDownloadLog.info("Recovered verified image-model file from the managed model folder: \(expectedSize) bytes")
+                imageDownloadLog.info(
+                    "Recovered verified image-model file from the managed model folder: \(expectedSize) bytes"
+                )
             }
             return (destination, recovered)
         }

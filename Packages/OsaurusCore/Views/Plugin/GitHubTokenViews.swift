@@ -190,7 +190,9 @@ struct GitHubTokenCard: View {
 
                 Spacer(minLength: 8)
 
-                Button { showAddSheet = true } label: {
+                Button {
+                    showAddSheet = true
+                } label: {
                     HStack(spacing: 5) {
                         Image(systemName: "plus.circle")
                             .font(.system(size: 12, weight: .semibold))

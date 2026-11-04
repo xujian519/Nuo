@@ -36,7 +36,10 @@ struct AgentChannelInboundFocusPreferenceTests {
 
         pref.setEnabled(true)
         #expect(pref.isEnabled)
-        #expect(AgentChannelInboundFocusPreference(defaults: defaults).isEnabled, "a fresh reader sees the stored value")
+        #expect(
+            AgentChannelInboundFocusPreference(defaults: defaults).isEnabled,
+            "a fresh reader sees the stored value"
+        )
 
         pref.setEnabled(false)
         #expect(pref.isEnabled == false)

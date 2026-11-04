@@ -96,13 +96,21 @@ private enum ChatDBFixture {
             let transient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
             sqlite3_bind_int64(stmt, 1, Int64(rowid))
             sqlite3_bind_text(stmt, 2, row.guid, -1, transient)
-            if let text = row.text { sqlite3_bind_text(stmt, 3, text, -1, transient) } else { sqlite3_bind_null(stmt, 3) }
+            if let text = row.text {
+                sqlite3_bind_text(stmt, 3, text, -1, transient)
+            } else {
+                sqlite3_bind_null(stmt, 3)
+            }
             if let body = row.body {
                 body.withUnsafeBytes { sqlite3_bind_blob(stmt, 4, $0.baseAddress, Int32(body.count), transient) }
             } else {
                 sqlite3_bind_null(stmt, 4)
             }
-            if let handle = row.handle { sqlite3_bind_int64(stmt, 5, Int64(handle)) } else { sqlite3_bind_null(stmt, 5) }
+            if let handle = row.handle {
+                sqlite3_bind_int64(stmt, 5, Int64(handle))
+            } else {
+                sqlite3_bind_null(stmt, 5)
+            }
             sqlite3_bind_text(stmt, 6, "iMessage", -1, transient)
             sqlite3_bind_int64(stmt, 7, date)
             sqlite3_bind_int64(stmt, 8, row.fromMe ? 1 : 0)
@@ -126,15 +134,59 @@ struct MessagesChatDBFixtureTests {
             // Plain-text legacy row.
             .init(guid: "m-old", chat: 1, handle: 1, fromMe: false, minutesAgo: 600, text: "lunch tomorrow?"),
             // Modern rows: text NULL, body only in attributedBody.
-            .init(guid: "m-body", chat: 1, handle: 1, fromMe: false, minutesAgo: 30, text: nil, body: ChatDBFixture.attributedBody("Dentist at 3pm, 50% off"), isRead: false),
-            .init(guid: "m-mine", chat: 1, handle: nil, fromMe: true, minutesAgo: 20, text: nil, body: ChatDBFixture.attributedBody("ok see you at the dentist")),
+            .init(
+                guid: "m-body",
+                chat: 1,
+                handle: 1,
+                fromMe: false,
+                minutesAgo: 30,
+                text: nil,
+                body: ChatDBFixture.attributedBody("Dentist at 3pm, 50% off"),
+                isRead: false
+            ),
+            .init(
+                guid: "m-mine",
+                chat: 1,
+                handle: nil,
+                fromMe: true,
+                minutesAgo: 20,
+                text: nil,
+                body: ChatDBFixture.attributedBody("ok see you at the dentist")
+            ),
             // Tapback referencing m-body (associated 2000 = love).
-            .init(guid: "m-tapback", chat: 1, handle: 1, fromMe: false, minutesAgo: 19, text: "Loved “Dentist at 3pm”", isRead: false, associated: 2000),
+            .init(
+                guid: "m-tapback",
+                chat: 1,
+                handle: 1,
+                fromMe: false,
+                minutesAgo: 19,
+                text: "Loved “Dentist at 3pm”",
+                isRead: false,
+                associated: 2000
+            ),
             // Group rename system item.
             .init(guid: "m-rename", chat: 2, handle: 1, fromMe: false, minutesAgo: 15, text: nil, itemType: 2),
             // Attachment-only message (placeholder text).
-            .init(guid: "m-photo", chat: 2, handle: 2, fromMe: false, minutesAgo: 10, text: "\u{FFFC}", isRead: false, attachments: true),
-            .init(guid: "m-group", chat: 2, handle: 2, fromMe: false, minutesAgo: 5, text: nil, body: ChatDBFixture.attributedBody("who's bringing snacks_?"), isRead: false),
+            .init(
+                guid: "m-photo",
+                chat: 2,
+                handle: 2,
+                fromMe: false,
+                minutesAgo: 10,
+                text: "\u{FFFC}",
+                isRead: false,
+                attachments: true
+            ),
+            .init(
+                guid: "m-group",
+                chat: 2,
+                handle: 2,
+                fromMe: false,
+                minutesAgo: 5,
+                text: nil,
+                body: ChatDBFixture.attributedBody("who's bringing snacks_?"),
+                isRead: false
+            ),
         ])
         return ChatDBMessagesService(databaseURL: url)
     }
@@ -191,7 +243,10 @@ struct MessagesChatDBFixtureTests {
     @Test("a missing database is `unavailable`, not a Full Disk Access denial")
     func missingDatabase() async throws {
         let service = ChatDBMessagesService(
-            databaseURL: FileManager.default.temporaryDirectory.appendingPathComponent("osaurus-missing-\(UUID().uuidString)/chat.db"))
+            databaseURL: FileManager.default.temporaryDirectory.appendingPathComponent(
+                "osaurus-missing-\(UUID().uuidString)/chat.db"
+            )
+        )
         do {
             _ = try await service.unread(limit: 1)
             Issue.record("expected an error")
@@ -207,9 +262,21 @@ struct MessagesChatDBFixtureTests {
 
     @Test("bodyText strips U+FFFC and falls back to [attachment]")
     func bodyText() {
-        #expect(ChatDBMessagesService.bodyText(text: "\u{FFFC}", attributedBody: nil, hasAttachments: true) == "[attachment]")
+        #expect(
+            ChatDBMessagesService.bodyText(text: "\u{FFFC}", attributedBody: nil, hasAttachments: true)
+                == "[attachment]"
+        )
         #expect(ChatDBMessagesService.bodyText(text: "\u{FFFC}", attributedBody: nil, hasAttachments: false) == "")
-        #expect(ChatDBMessagesService.bodyText(text: "hi \u{FFFC}there", attributedBody: nil, hasAttachments: true) == "hi there")
-        #expect(ChatDBMessagesService.bodyText(text: nil, attributedBody: ChatDBFixture.attributedBody("x"), hasAttachments: false) == "x")
+        #expect(
+            ChatDBMessagesService.bodyText(text: "hi \u{FFFC}there", attributedBody: nil, hasAttachments: true)
+                == "hi there"
+        )
+        #expect(
+            ChatDBMessagesService.bodyText(
+                text: nil,
+                attributedBody: ChatDBFixture.attributedBody("x"),
+                hasAttachments: false
+            ) == "x"
+        )
     }
 }

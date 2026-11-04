@@ -260,470 +260,871 @@ public struct MCPProviderTemplate: Identifiable, Sendable, Equatable {
         // MARK: Legal
 
         .oauth(
-            "bloomberg_law", "Bloomberg Law", "https://gw.mcp.bindg.ai/blaw/mcp", .legal,
-            icon: "books.vertical.fill", tagline: "Research cases, dockets, and legal news",
+            "bloomberg_law",
+            "Bloomberg Law",
+            "https://gw.mcp.bindg.ai/blaw/mcp",
+            .legal,
+            icon: "books.vertical.fill",
+            tagline: "Research cases, dockets, and legal news",
             subscription: true
         ),
         .oauth(
-            "cocounsel", "CoCounsel Legal", "https://cocoagent-service.cocounsel.thomsonreuters.com/mcp", .legal,
-            icon: "text.book.closed.fill", tagline: "Thomson Reuters legal research and drafting",
+            "cocounsel",
+            "CoCounsel Legal",
+            "https://cocoagent-service.cocounsel.thomsonreuters.com/mcp",
+            .legal,
+            icon: "text.book.closed.fill",
+            tagline: "Thomson Reuters legal research and drafting",
             subscription: true
         ),
         .oauth(
-            "courtlistener", "CourtListener", "https://mcp.courtlistener.com/", .legal,
-            icon: "building.columns.fill", tagline: "Search US court opinions, dockets, and judges"
+            "courtlistener",
+            "CourtListener",
+            "https://mcp.courtlistener.com/",
+            .legal,
+            icon: "building.columns.fill",
+            tagline: "Search US court opinions, dockets, and judges"
         ),
         .oauth(
-            "datasite", "Datasite", "https://mcp.global.datasite.com/mcp", .legal,
-            icon: "lock.doc.fill", tagline: "Review M&A data rooms and deal documents",
+            "datasite",
+            "Datasite",
+            "https://mcp.global.datasite.com/mcp",
+            .legal,
+            icon: "lock.doc.fill",
+            tagline: "Review M&A data rooms and deal documents",
             subscription: true
         ),
         .oauth(
-            "definely", "Definely", "https://mcp.app.definely.com/", .legal,
-            icon: "doc.text.magnifyingglass", tagline: "Navigate definitions and clauses in contracts",
+            "definely",
+            "Definely",
+            "https://mcp.app.definely.com/",
+            .legal,
+            icon: "doc.text.magnifyingglass",
+            tagline: "Navigate definitions and clauses in contracts",
             subscription: true
         ),
         .oauth(
-            "descrybe", "Descrybe", "https://mcp.descrybe.com/mcp", .legal,
-            icon: "scalemass.fill", tagline: "Search US case law summaries"
+            "descrybe",
+            "Descrybe",
+            "https://mcp.descrybe.com/mcp",
+            .legal,
+            icon: "scalemass.fill",
+            tagline: "Search US case law summaries"
         ),
         .manualOAuth(
-            "harvey", "Harvey", "https://api.harvey.ai/hosted_mcp/mcp", .legal,
-            icon: "brain.head.profile", tagline: "Legal Q&A, Vault documents, and research sources",
-            setupHelp: "https://developers.harvey.ai/guides/harvey_mcp", subscription: true
-        ),
-        .oauth(
-            "imanage", "iManage Work", "https://cloudimanage.com/mcp/work", .legal,
-            icon: "archivebox.fill", tagline: "Find and read documents in iManage Work",
+            "harvey",
+            "Harvey",
+            "https://api.harvey.ai/hosted_mcp/mcp",
+            .legal,
+            icon: "brain.head.profile",
+            tagline: "Legal Q&A, Vault documents, and research sources",
+            setupHelp: "https://developers.harvey.ai/guides/harvey_mcp",
             subscription: true
         ),
         .oauth(
-            "ironclad", "Ironclad", "https://mcp.na1.ironcladapp.com/mcp", .legal,
-            icon: "doc.badge.gearshape", tagline: "Search contracts and workflows in Ironclad",
-            subscription: true, metadataDocumentOnly: true
-        ),
-        .oauth(
-            "juro", "Juro", "https://integrations.app.juro.com/mcp", .legal,
-            icon: "signature", tagline: "Draft, review, and track contracts in Juro",
+            "imanage",
+            "iManage Work",
+            "https://cloudimanage.com/mcp/work",
+            .legal,
+            icon: "archivebox.fill",
+            tagline: "Find and read documents in iManage Work",
             subscription: true
         ),
         .oauth(
-            "lawvu", "LawVu", "https://mcp.lawvu.com/mcp", .legal,
-            icon: "briefcase.fill", tagline: "Manage in-house legal matters and contracts",
+            "ironclad",
+            "Ironclad",
+            "https://mcp.na1.ironcladapp.com/mcp",
+            .legal,
+            icon: "doc.badge.gearshape",
+            tagline: "Search contracts and workflows in Ironclad",
+            subscription: true,
+            metadataDocumentOnly: true
+        ),
+        .oauth(
+            "juro",
+            "Juro",
+            "https://integrations.app.juro.com/mcp",
+            .legal,
+            icon: "signature",
+            tagline: "Draft, review, and track contracts in Juro",
             subscription: true
         ),
         .oauth(
-            "legal_data_hunter", "Legal Data Hunter", "https://legaldatahunter.com/mcp", .legal,
-            icon: "globe", tagline: "Search legislation and case law across countries"
-        ),
-        .oauth(
-            "legalzoom", "LegalZoom", "https://www.legalzoom.com/mcp/claude/v1", .legal,
-            icon: "building.2.fill", tagline: "Business formation and legal document guidance"
-        ),
-        .oauth(
-            "midpage", "Midpage", "https://app.midpage.ai/mcp", .legal,
-            icon: "magnifyingglass.circle.fill", tagline: "Legal research with cited case law",
+            "lawvu",
+            "LawVu",
+            "https://mcp.lawvu.com/mcp",
+            .legal,
+            icon: "briefcase.fill",
+            tagline: "Manage in-house legal matters and contracts",
             subscription: true
         ),
         .oauth(
-            "mycase", "MyCase", "https://mcp.mycase.com/mcp", .legal,
-            icon: "person.2.fill", tagline: "Cases, clients, and calendars in MyCase",
-            subscription: true, metadataDocumentOnly: true
+            "legal_data_hunter",
+            "Legal Data Hunter",
+            "https://legaldatahunter.com/mcp",
+            .legal,
+            icon: "globe",
+            tagline: "Search legislation and case law across countries"
         ),
         .oauth(
-            "netdocuments", "NetDocuments", "https://web-api.us.netdocuments.app/connect/mcp", .legal,
-            icon: "doc.on.doc.fill", tagline: "Find and read documents in NetDocuments",
+            "legalzoom",
+            "LegalZoom",
+            "https://www.legalzoom.com/mcp/claude/v1",
+            .legal,
+            icon: "building.2.fill",
+            tagline: "Business formation and legal document guidance"
+        ),
+        .oauth(
+            "midpage",
+            "Midpage",
+            "https://app.midpage.ai/mcp",
+            .legal,
+            icon: "magnifyingglass.circle.fill",
+            tagline: "Legal research with cited case law",
+            subscription: true
+        ),
+        .oauth(
+            "mycase",
+            "MyCase",
+            "https://mcp.mycase.com/mcp",
+            .legal,
+            icon: "person.2.fill",
+            tagline: "Cases, clients, and calendars in MyCase",
+            subscription: true,
+            metadataDocumentOnly: true
+        ),
+        .oauth(
+            "netdocuments",
+            "NetDocuments",
+            "https://web-api.us.netdocuments.app/connect/mcp",
+            .legal,
+            icon: "doc.on.doc.fill",
+            tagline: "Find and read documents in NetDocuments",
             subscription: true
         ),
 
         // MARK: Finance & Accounting
 
         .oauth(
-            "brex", "Brex", "https://api.brex.com/mcp", .financeAccounting,
-            icon: "creditcard.and.123", tagline: "Review Brex card spend, expenses, and budgets",
+            "brex",
+            "Brex",
+            "https://api.brex.com/mcp",
+            .financeAccounting,
+            icon: "creditcard.and.123",
+            tagline: "Review Brex card spend, expenses, and budgets",
             subscription: true
         ),
         .oauth(
-            "carta", "Carta", "https://mcp.app.carta.com/mcp", .financeAccounting,
-            icon: "person.3.sequence.fill", tagline: "Cap tables, equity, and fund data in Carta",
+            "carta",
+            "Carta",
+            "https://mcp.app.carta.com/mcp",
+            .financeAccounting,
+            icon: "person.3.sequence.fill",
+            tagline: "Cap tables, equity, and fund data in Carta",
             subscription: true
         ),
         .oauth(
-            "datarails", "Datarails", "https://mcp.datarails.com/mcp", .financeAccounting,
-            icon: "chart.bar.xaxis", tagline: "FP&A reporting and budgets in Datarails",
+            "datarails",
+            "Datarails",
+            "https://mcp.datarails.com/mcp",
+            .financeAccounting,
+            icon: "chart.bar.xaxis",
+            tagline: "FP&A reporting and budgets in Datarails",
             subscription: true
         ),
         .oauth(
-            "deel", "Deel", "https://api.letsdeel.com/mcp", .financeAccounting,
-            icon: "globe.americas.fill", tagline: "Payroll, contracts, and people data in Deel",
+            "deel",
+            "Deel",
+            "https://api.letsdeel.com/mcp",
+            .financeAccounting,
+            icon: "globe.americas.fill",
+            tagline: "Payroll, contracts, and people data in Deel",
             subscription: true
         ),
         .oauth(
-            "digits", "Digits", "https://api.digits.com/mcp", .financeAccounting,
-            icon: "number.circle.fill", tagline: "Books, financial statements, and cash in Digits",
+            "digits",
+            "Digits",
+            "https://api.digits.com/mcp",
+            .financeAccounting,
+            icon: "number.circle.fill",
+            tagline: "Books, financial statements, and cash in Digits",
             subscription: true
         ),
         .oauth(
-            "dualentry", "DualEntry", "https://api.dualentry.com/mcp", .financeAccounting,
-            icon: "list.bullet.rectangle.fill", tagline: "General ledger and accounting in DualEntry",
+            "dualentry",
+            "DualEntry",
+            "https://api.dualentry.com/mcp",
+            .financeAccounting,
+            icon: "list.bullet.rectangle.fill",
+            tagline: "General ledger and accounting in DualEntry",
             subscription: true
         ),
         .oauth(
-            "freshbooks", "FreshBooks", "https://mcp.freshbooks.com/v1", .financeAccounting,
-            icon: "doc.plaintext.fill", tagline: "Invoices, expenses, and clients in FreshBooks"
+            "freshbooks",
+            "FreshBooks",
+            "https://mcp.freshbooks.com/v1",
+            .financeAccounting,
+            icon: "doc.plaintext.fill",
+            tagline: "Invoices, expenses, and clients in FreshBooks"
         ),
         .oauth(
-            "gocardless", "GoCardless", "https://mcp.gocardless.com/", .financeAccounting,
-            icon: "arrow.triangle.2.circlepath.circle.fill", tagline: "Direct debit payments and mandates"
+            "gocardless",
+            "GoCardless",
+            "https://mcp.gocardless.com/",
+            .financeAccounting,
+            icon: "arrow.triangle.2.circlepath.circle.fill",
+            tagline: "Direct debit payments and mandates"
         ),
         .oauth(
-            "gusto", "Gusto", "https://mcp.api.gusto.com", .financeAccounting,
-            icon: "person.text.rectangle.fill", tagline: "Payroll, employees, and tax data in Gusto (read-only)"
+            "gusto",
+            "Gusto",
+            "https://mcp.api.gusto.com",
+            .financeAccounting,
+            icon: "person.text.rectangle.fill",
+            tagline: "Payroll, employees, and tax data in Gusto (read-only)"
         ),
         .oauth(
-            "mercury", "Mercury", "https://mcp.mercury.com/mcp", .financeAccounting,
-            icon: "banknote.fill", tagline: "Business bank accounts and transactions"
+            "mercury",
+            "Mercury",
+            "https://mcp.mercury.com/mcp",
+            .financeAccounting,
+            icon: "banknote.fill",
+            tagline: "Business bank accounts and transactions"
         ),
         .oauth(
-            "myob", "MYOB", "https://mcp.myob.com/mcp", .financeAccounting,
-            icon: "chart.pie.fill", tagline: "Accounting and payroll data in MYOB"
+            "myob",
+            "MYOB",
+            "https://mcp.myob.com/mcp",
+            .financeAccounting,
+            icon: "chart.pie.fill",
+            tagline: "Accounting and payroll data in MYOB"
         ),
         .oauth(
-            "paypal", "PayPal", "https://mcp.paypal.com/mcp", .financeAccounting,
-            icon: "p.circle.fill", tagline: "Query and manage PayPal payments and orders"
+            "paypal",
+            "PayPal",
+            "https://mcp.paypal.com/mcp",
+            .financeAccounting,
+            icon: "p.circle.fill",
+            tagline: "Query and manage PayPal payments and orders"
         ),
         .oauth(
-            "pocketsmith", "PocketSmith", "https://mcp.pocketsmith.com/mcp", .financeAccounting,
-            icon: "calendar.badge.clock", tagline: "Personal budgets and cash-flow forecasts"
+            "pocketsmith",
+            "PocketSmith",
+            "https://mcp.pocketsmith.com/mcp",
+            .financeAccounting,
+            icon: "calendar.badge.clock",
+            tagline: "Personal budgets and cash-flow forecasts"
         ),
         .oauth(
-            "qonto", "Qonto", "https://mcp.qonto.com/mcp", .financeAccounting,
-            icon: "eurosign.circle.fill", tagline: "Business banking and transactions in Qonto"
+            "qonto",
+            "Qonto",
+            "https://mcp.qonto.com/mcp",
+            .financeAccounting,
+            icon: "eurosign.circle.fill",
+            tagline: "Business banking and transactions in Qonto"
         ),
         .oauth(
-            "quickbooks", "QuickBooks", "https://mcp.quickbooks.intuit.com/mcp", .financeAccounting,
-            icon: "q.circle.fill", tagline: "Invoices, customers, and reports in QuickBooks Online"
+            "quickbooks",
+            "QuickBooks",
+            "https://mcp.quickbooks.intuit.com/mcp",
+            .financeAccounting,
+            icon: "q.circle.fill",
+            tagline: "Invoices, customers, and reports in QuickBooks Online"
         ),
         .oauth(
-            "ramp", "Ramp", "https://ramp-mcp-remote.ramp.com/mcp", .financeAccounting,
-            icon: "arrow.up.right.circle.fill", tagline: "Corporate cards, bills, and spend in Ramp",
+            "ramp",
+            "Ramp",
+            "https://ramp-mcp-remote.ramp.com/mcp",
+            .financeAccounting,
+            icon: "arrow.up.right.circle.fill",
+            tagline: "Corporate cards, bills, and spend in Ramp",
             subscription: true
         ),
         .oauth(
-            "rillet", "Rillet", "https://api.rillet.com/mcp", .financeAccounting,
-            icon: "tablecells.fill", tagline: "ERP ledger, revenue, and close in Rillet",
+            "rillet",
+            "Rillet",
+            "https://api.rillet.com/mcp",
+            .financeAccounting,
+            icon: "tablecells.fill",
+            tagline: "ERP ledger, revenue, and close in Rillet",
             subscription: true
         ),
         .oauth(
-            "square", "Square", "https://mcp.squareup.com/mcp", .financeAccounting,
-            icon: "s.square.fill", tagline: "Read and manage Square payments and orders"
+            "square",
+            "Square",
+            "https://mcp.squareup.com/mcp",
+            .financeAccounting,
+            icon: "s.square.fill",
+            tagline: "Read and manage Square payments and orders"
         ),
         .oauth(
-            "stripe", "Stripe", "https://mcp.stripe.com", .financeAccounting,
-            icon: "creditcard.fill", tagline: "Read and manage Stripe customers, charges, and subscriptions"
+            "stripe",
+            "Stripe",
+            "https://mcp.stripe.com",
+            .financeAccounting,
+            icon: "creditcard.fill",
+            tagline: "Read and manage Stripe customers, charges, and subscriptions"
         ),
         .open(
-            "taxact", "TaxAct", "https://mcp.taxact.com/mcp", .financeAccounting,
-            icon: "percent", tagline: "US tax questions and filing guidance"
+            "taxact",
+            "TaxAct",
+            "https://mcp.taxact.com/mcp",
+            .financeAccounting,
+            icon: "percent",
+            tagline: "US tax questions and filing guidance"
         ),
         .oauth(
-            "tiller", "Tiller", "https://ai-tools.tillermoney.com/mcp", .financeAccounting,
-            icon: "tablecells.badge.ellipsis", tagline: "Spending and budget spreadsheets from Tiller"
+            "tiller",
+            "Tiller",
+            "https://ai-tools.tillermoney.com/mcp",
+            .financeAccounting,
+            icon: "tablecells.badge.ellipsis",
+            tagline: "Spending and budget spreadsheets from Tiller"
         ),
         .manualOAuth(
-            "xero", "Xero", "https://mcp.xero.com/mcp", .financeAccounting,
-            icon: "x.circle.fill", tagline: "Financial reports, invoices, and contacts in Xero",
+            "xero",
+            "Xero",
+            "https://mcp.xero.com/mcp",
+            .financeAccounting,
+            icon: "x.circle.fill",
+            tagline: "Financial reports, invoices, and contacts in Xero",
             setupHelp: "https://developer.xero.com/app/manage"
         ),
         .oauth(
-            "zoho_books", "Zoho Books", "https://claude-zohobooks.zohomcp.com/mcp/message", .financeAccounting,
-            icon: "book.fill", tagline: "Invoices, bills, and accounting in Zoho Books"
+            "zoho_books",
+            "Zoho Books",
+            "https://claude-zohobooks.zohomcp.com/mcp/message",
+            .financeAccounting,
+            icon: "book.fill",
+            tagline: "Invoices, bills, and accounting in Zoho Books"
         ),
 
         // MARK: Investing & Market Data
 
         .oauth(
-            "addepar", "Addepar", "https://mcp.addepar.com/", .investing,
-            icon: "chart.pie", tagline: "Portfolio and wealth data in Addepar",
+            "addepar",
+            "Addepar",
+            "https://mcp.addepar.com/",
+            .investing,
+            icon: "chart.pie",
+            tagline: "Portfolio and wealth data in Addepar",
             subscription: true
         ),
         .oauth(
-            "affinity", "Affinity", "https://mcp.affinity.co/mcp", .investing,
-            icon: "point.3.connected.trianglepath.dotted", tagline: "Relationship intelligence for deal teams",
-            subscription: true, metadataDocumentOnly: true
-        ),
-        .oauth(
-            "alpha_vantage", "Alpha Vantage", "https://mcp.alphavantage.co/mcp", .investing,
-            icon: "waveform.path.ecg", tagline: "Stock, forex, and economic market data"
-        ),
-        .oauth(
-            "crunchbase", "Crunchbase", "https://mcp.crunchbase.com/", .investing,
-            icon: "building.2.crop.circle", tagline: "Company, funding, and investor data",
+            "affinity",
+            "Affinity",
+            "https://mcp.affinity.co/mcp",
+            .investing,
+            icon: "point.3.connected.trianglepath.dotted",
+            tagline: "Relationship intelligence for deal teams",
+            subscription: true,
             metadataDocumentOnly: true
         ),
         .oauth(
-            "daloopa", "Daloopa", "https://mcp.daloopa.com/server/mcp", .investing,
-            icon: "tablecells", tagline: "Fundamental data from company filings",
-            subscription: true
+            "alpha_vantage",
+            "Alpha Vantage",
+            "https://mcp.alphavantage.co/mcp",
+            .investing,
+            icon: "waveform.path.ecg",
+            tagline: "Stock, forex, and economic market data"
         ),
         .oauth(
-            "factset", "FactSet", "https://mcp.factset.com/content/v1", .investing,
-            icon: "chart.xyaxis.line", tagline: "Financial data and analytics from FactSet",
-            subscription: true
-        ),
-        .oauth(
-            "fmp", "Financial Modeling Prep", "https://financialmodelingprep.com/mcp", .investing,
-            icon: "dollarsign.circle.fill", tagline: "Financial statements, prices, and ratios",
+            "crunchbase",
+            "Crunchbase",
+            "https://mcp.crunchbase.com/",
+            .investing,
+            icon: "building.2.crop.circle",
+            tagline: "Company, funding, and investor data",
             metadataDocumentOnly: true
         ),
         .oauth(
-            "lseg", "LSEG", "https://api.analytics.lseg.com/lfa/mcp/server-cl", .investing,
-            icon: "globe.europe.africa.fill", tagline: "LSEG financial analytics and market data",
+            "daloopa",
+            "Daloopa",
+            "https://mcp.daloopa.com/server/mcp",
+            .investing,
+            icon: "tablecells",
+            tagline: "Fundamental data from company filings",
             subscription: true
         ),
         .oauth(
-            "moodys", "Moody's", "https://mcp.moodys.com/genai-ready-data/Credit/mcp", .investing,
-            icon: "checkmark.seal.fill", tagline: "Credit ratings and research from Moody's",
+            "factset",
+            "FactSet",
+            "https://mcp.factset.com/content/v1",
+            .investing,
+            icon: "chart.xyaxis.line",
+            tagline: "Financial data and analytics from FactSet",
             subscription: true
         ),
         .oauth(
-            "morningstar", "Morningstar", "https://mcp.morningstar.com/mcp", .investing,
-            icon: "star.circle.fill", tagline: "Fund, stock, and portfolio research",
+            "fmp",
+            "Financial Modeling Prep",
+            "https://financialmodelingprep.com/mcp",
+            .investing,
+            icon: "dollarsign.circle.fill",
+            tagline: "Financial statements, prices, and ratios",
+            metadataDocumentOnly: true
+        ),
+        .oauth(
+            "lseg",
+            "LSEG",
+            "https://api.analytics.lseg.com/lfa/mcp/server-cl",
+            .investing,
+            icon: "globe.europe.africa.fill",
+            tagline: "LSEG financial analytics and market data",
             subscription: true
         ),
         .oauth(
-            "pitchbook", "PitchBook", "https://premium.mcp.pitchbook.com/mcp", .investing,
-            icon: "chart.line.uptrend.xyaxis", tagline: "Private market companies, deals, and investors",
+            "moodys",
+            "Moody's",
+            "https://mcp.moodys.com/genai-ready-data/Credit/mcp",
+            .investing,
+            icon: "checkmark.seal.fill",
+            tagline: "Credit ratings and research from Moody's",
             subscription: true
         ),
         .oauth(
-            "sp_global", "S&P Global", "https://kfinance.kensho.com/integrations/mcp", .investing,
-            icon: "chart.bar.fill", tagline: "S&P Capital IQ financials via Kensho",
+            "morningstar",
+            "Morningstar",
+            "https://mcp.morningstar.com/mcp",
+            .investing,
+            icon: "star.circle.fill",
+            tagline: "Fund, stock, and portfolio research",
             subscription: true
         ),
         .oauth(
-            "wealthbox", "Wealthbox", "https://mcp.crmworkspace.com/mcp", .investing,
-            icon: "person.crop.circle.badge.checkmark", tagline: "CRM for financial advisors",
-            subscription: true, metadataDocumentOnly: true
+            "pitchbook",
+            "PitchBook",
+            "https://premium.mcp.pitchbook.com/mcp",
+            .investing,
+            icon: "chart.line.uptrend.xyaxis",
+            tagline: "Private market companies, deals, and investors",
+            subscription: true
+        ),
+        .oauth(
+            "sp_global",
+            "S&P Global",
+            "https://kfinance.kensho.com/integrations/mcp",
+            .investing,
+            icon: "chart.bar.fill",
+            tagline: "S&P Capital IQ financials via Kensho",
+            subscription: true
+        ),
+        .oauth(
+            "wealthbox",
+            "Wealthbox",
+            "https://mcp.crmworkspace.com/mcp",
+            .investing,
+            icon: "person.crop.circle.badge.checkmark",
+            tagline: "CRM for financial advisors",
+            subscription: true,
+            metadataDocumentOnly: true
         ),
 
         // MARK: Healthcare & Life Sciences
 
         .oauth(
-            "consensus", "Consensus", "https://mcp.consensus.app/mcp", .healthcare,
-            icon: "text.magnifyingglass", tagline: "Answers from peer-reviewed research papers"
-        ),
-        .oauth(
-            "cortellis", "Cortellis Regulatory", "https://api.clarivate.com/lifesciences/mcp-regulatory/mcp",
+            "consensus",
+            "Consensus",
+            "https://mcp.consensus.app/mcp",
             .healthcare,
-            icon: "pills.fill", tagline: "Drug regulatory intelligence from Clarivate",
+            icon: "text.magnifyingglass",
+            tagline: "Answers from peer-reviewed research papers"
+        ),
+        .oauth(
+            "cortellis",
+            "Cortellis Regulatory",
+            "https://api.clarivate.com/lifesciences/mcp-regulatory/mcp",
+            .healthcare,
+            icon: "pills.fill",
+            tagline: "Drug regulatory intelligence from Clarivate",
             subscription: true
         ),
         .oauth(
-            "elicit", "Elicit", "https://elicit.com/api/mcp", .healthcare,
-            icon: "lightbulb.fill", tagline: "Search and summarize scientific literature"
+            "elicit",
+            "Elicit",
+            "https://elicit.com/api/mcp",
+            .healthcare,
+            icon: "lightbulb.fill",
+            tagline: "Search and summarize scientific literature"
         ),
         .oauth(
-            "healthex", "HealthEx", "https://api.healthex.io/mcp", .healthcare,
-            icon: "heart.text.square.fill", tagline: "Your own health records, with your consent"
+            "healthex",
+            "HealthEx",
+            "https://api.healthex.io/mcp",
+            .healthcare,
+            icon: "heart.text.square.fill",
+            tagline: "Your own health records, with your consent"
         ),
         .oauth(
-            "medidata", "Medidata", "https://mcp.imedidata.com/mcp", .healthcare,
-            icon: "cross.case.fill", tagline: "Clinical trial data in Medidata",
+            "medidata",
+            "Medidata",
+            "https://mcp.imedidata.com/mcp",
+            .healthcare,
+            icon: "cross.case.fill",
+            tagline: "Clinical trial data in Medidata",
             subscription: true
         ),
         .open(
-            "open_targets", "Open Targets", "https://mcp.platform.opentargets.org/mcp", .healthcare,
-            icon: "scope", tagline: "Drug target and disease association data"
+            "open_targets",
+            "Open Targets",
+            "https://mcp.platform.opentargets.org/mcp",
+            .healthcare,
+            icon: "scope",
+            tagline: "Drug target and disease association data"
         ),
         .oauth(
-            "scite", "Scite", "https://api.scite.ai/mcp", .healthcare,
-            icon: "quote.bubble.fill", tagline: "See how research papers are cited"
+            "scite",
+            "Scite",
+            "https://api.scite.ai/mcp",
+            .healthcare,
+            icon: "quote.bubble.fill",
+            tagline: "See how research papers are cited"
         ),
         .open(
-            "snomed_ct", "SNOMED CT", "https://snowstorm-mcp.snomedtools.org/mcp", .healthcare,
-            icon: "stethoscope", tagline: "Look up clinical terminology codes"
+            "snomed_ct",
+            "SNOMED CT",
+            "https://snowstorm-mcp.snomedtools.org/mcp",
+            .healthcare,
+            icon: "stethoscope",
+            tagline: "Look up clinical terminology codes"
         ),
         .oauth(
-            "turquoise_health", "Turquoise Health", "https://mcp.turquoise.health/mcp", .healthcare,
-            icon: "dollarsign.square.fill", tagline: "Healthcare price transparency data"
+            "turquoise_health",
+            "Turquoise Health",
+            "https://mcp.turquoise.health/mcp",
+            .healthcare,
+            icon: "dollarsign.square.fill",
+            tagline: "Healthcare price transparency data"
         ),
         .oauth(
-            "wiley", "Wiley Scholar Gateway", "https://connector.scholargateway.ai/v2/mcp", .healthcare,
-            icon: "graduationcap.fill", tagline: "Search peer-reviewed Wiley research"
+            "wiley",
+            "Wiley Scholar Gateway",
+            "https://connector.scholargateway.ai/v2/mcp",
+            .healthcare,
+            icon: "graduationcap.fill",
+            tagline: "Search peer-reviewed Wiley research"
         ),
 
         // MARK: Documents & Signatures
 
         .manualOAuth(
-            "box", "Box", "https://mcp.box.com/", .documents,
-            icon: "shippingbox.fill", tagline: "Search and read files in Box",
-            setupHelp: "https://developer.box.com/guides/box-mcp/setup", subscription: true
+            "box",
+            "Box",
+            "https://mcp.box.com/",
+            .documents,
+            icon: "shippingbox.fill",
+            tagline: "Search and read files in Box",
+            setupHelp: "https://developer.box.com/guides/box-mcp/setup",
+            subscription: true
         ),
         .manualOAuth(
-            "docusign", "Docusign", "https://mcp.docusign.com/mcp", .documents,
-            icon: "signature", tagline: "Envelopes, agreements, and signing status",
+            "docusign",
+            "Docusign",
+            "https://mcp.docusign.com/mcp",
+            .documents,
+            icon: "signature",
+            tagline: "Envelopes, agreements, and signing status",
             setupHelp: "https://developers.docusign.com/platform/mcp-server/"
         ),
         .oauth(
-            "dropbox", "Dropbox", "https://mcp.dropbox.com/mcp", .documents,
-            icon: "archivebox", tagline: "Browse, search, and manage files in Dropbox"
+            "dropbox",
+            "Dropbox",
+            "https://mcp.dropbox.com/mcp",
+            .documents,
+            icon: "archivebox",
+            tagline: "Browse, search, and manage files in Dropbox"
         ),
         .oauth(
-            "egnyte", "Egnyte", "https://mcp-server.egnyte.com/mcp", .documents,
-            icon: "externaldrive.fill", tagline: "Search and read files in Egnyte",
+            "egnyte",
+            "Egnyte",
+            "https://mcp-server.egnyte.com/mcp",
+            .documents,
+            icon: "externaldrive.fill",
+            tagline: "Search and read files in Egnyte",
             subscription: true
         ),
         .oauth(
-            "pandadoc", "PandaDoc", "https://mcp.pandadoc.com/v1/mcp", .documents,
-            icon: "doc.richtext", tagline: "Proposals, quotes, and e-signatures"
+            "pandadoc",
+            "PandaDoc",
+            "https://mcp.pandadoc.com/v1/mcp",
+            .documents,
+            icon: "doc.richtext",
+            tagline: "Proposals, quotes, and e-signatures"
         ),
         .oauth(
-            "signnow", "SignNow", "https://mcp-server.signnow.com/mcp", .documents,
-            icon: "pencil.and.outline", tagline: "Send documents for e-signature"
+            "signnow",
+            "SignNow",
+            "https://mcp-server.signnow.com/mcp",
+            .documents,
+            icon: "pencil.and.outline",
+            tagline: "Send documents for e-signature"
         ),
 
         // MARK: Compliance & Security
 
         .oauth(
-            "iubenda", "iubenda", "https://mcp-server.iubenda.com/mcp", .compliance,
-            icon: "hand.raised.fill", tagline: "Privacy policies, cookie consent, and GDPR records"
+            "iubenda",
+            "iubenda",
+            "https://mcp-server.iubenda.com/mcp",
+            .compliance,
+            icon: "hand.raised.fill",
+            tagline: "Privacy policies, cookie consent, and GDPR records"
         ),
         .oauth(
-            "vanta", "Vanta", "https://mcp.vanta.com/mcp", .compliance,
-            icon: "checkmark.shield.fill", tagline: "SOC 2, ISO 27001, and HIPAA compliance status",
+            "vanta",
+            "Vanta",
+            "https://mcp.vanta.com/mcp",
+            .compliance,
+            icon: "checkmark.shield.fill",
+            tagline: "SOC 2, ISO 27001, and HIPAA compliance status",
             subscription: true
         ),
 
         // MARK: Business Productivity
 
         .oauth(
-            "airtable", "Airtable", "https://mcp.airtable.com/mcp", .productivity,
-            icon: "square.grid.3x2.fill", tagline: "Read and update Airtable bases and records"
+            "airtable",
+            "Airtable",
+            "https://mcp.airtable.com/mcp",
+            .productivity,
+            icon: "square.grid.3x2.fill",
+            tagline: "Read and update Airtable bases and records"
         ),
         .manualOAuth(
-            "asana", "Asana", "https://mcp.asana.com/v2/mcp", .productivity,
-            icon: "checkmark.circle.fill", tagline: "Tasks, projects, and goals in Asana",
+            "asana",
+            "Asana",
+            "https://mcp.asana.com/v2/mcp",
+            .productivity,
+            icon: "checkmark.circle.fill",
+            tagline: "Tasks, projects, and goals in Asana",
             setupHelp: "https://developers.asana.com/docs/integrating-with-asanas-mcp-server"
         ),
         .oauth(
-            "atlassian", "Atlassian", "https://mcp.atlassian.com/v2/mcp", .productivity,
-            icon: "square.stack.3d.up.fill", tagline: "Search and edit Jira and Confluence content"
+            "atlassian",
+            "Atlassian",
+            "https://mcp.atlassian.com/v2/mcp",
+            .productivity,
+            icon: "square.stack.3d.up.fill",
+            tagline: "Search and edit Jira and Confluence content"
         ),
         .oauth(
-            "calendly", "Calendly", "https://mcp.calendly.com/", .productivity,
-            icon: "calendar.badge.plus", tagline: "Scheduling links and booked meetings"
+            "calendly",
+            "Calendly",
+            "https://mcp.calendly.com/",
+            .productivity,
+            icon: "calendar.badge.plus",
+            tagline: "Scheduling links and booked meetings"
         ),
         .oauth(
-            "canva", "Canva", "https://mcp.canva.com/mcp", .productivity,
-            icon: "paintpalette.fill", tagline: "Search and edit your Canva designs"
+            "canva",
+            "Canva",
+            "https://mcp.canva.com/mcp",
+            .productivity,
+            icon: "paintpalette.fill",
+            tagline: "Search and edit your Canva designs"
         ),
         .oauth(
-            "clickup", "ClickUp", "https://mcp.clickup.com/mcp", .productivity,
-            icon: "checklist", tagline: "Tasks, docs, and goals in ClickUp"
+            "clickup",
+            "ClickUp",
+            "https://mcp.clickup.com/mcp",
+            .productivity,
+            icon: "checklist",
+            tagline: "Tasks, docs, and goals in ClickUp"
         ),
         .oauth(
-            "deepl", "DeepL", "https://mcp.deepl.com/v1/mcp", .productivity,
-            icon: "character.bubble.fill", tagline: "Translate text and documents"
+            "deepl",
+            "DeepL",
+            "https://mcp.deepl.com/v1/mcp",
+            .productivity,
+            icon: "character.bubble.fill",
+            tagline: "Translate text and documents"
         ),
         .oauth(
-            "dropbox_dash", "Dropbox Dash", "https://mcp.dropbox.com/dash", .productivity,
-            icon: "text.magnifyingglass", tagline: "Search across the work apps connected to Dash",
+            "dropbox_dash",
+            "Dropbox Dash",
+            "https://mcp.dropbox.com/dash",
+            .productivity,
+            icon: "text.magnifyingglass",
+            tagline: "Search across the work apps connected to Dash",
             subscription: true
         ),
         .open(
-            "excalidraw", "Excalidraw", "https://mcp.excalidraw.com/mcp", .productivity,
-            icon: "scribble.variable", tagline: "Sketch diagrams and whiteboards"
+            "excalidraw",
+            "Excalidraw",
+            "https://mcp.excalidraw.com/mcp",
+            .productivity,
+            icon: "scribble.variable",
+            tagline: "Sketch diagrams and whiteboards"
         ),
         .open(
-            "exa_search", "Exa Search", "https://mcp.exa.ai/mcp", .productivity,
-            icon: "magnifyingglass", tagline: "AI-native web search and content extraction"
+            "exa_search",
+            "Exa Search",
+            "https://mcp.exa.ai/mcp",
+            .productivity,
+            icon: "magnifyingglass",
+            tagline: "AI-native web search and content extraction"
         ),
         .oauth(
-            "fireflies", "Fireflies", "https://api.fireflies.ai/mcp", .productivity,
-            icon: "waveform", tagline: "Meeting transcripts and summaries"
+            "fireflies",
+            "Fireflies",
+            "https://api.fireflies.ai/mcp",
+            .productivity,
+            icon: "waveform",
+            tagline: "Meeting transcripts and summaries"
         ),
         .oauth(
-            "gamma", "Gamma", "https://mcp.gamma.app/mcp", .productivity,
-            icon: "rectangle.on.rectangle", tagline: "Generate presentations and documents"
+            "gamma",
+            "Gamma",
+            "https://mcp.gamma.app/mcp",
+            .productivity,
+            icon: "rectangle.on.rectangle",
+            tagline: "Generate presentations and documents"
         ),
         .manualOAuth(
-            "gmail", "Gmail", "https://gmailmcp.googleapis.com/mcp/v1", .productivity,
-            icon: "envelope.fill", tagline: "Search and draft email in Gmail",
+            "gmail",
+            "Gmail",
+            "https://gmailmcp.googleapis.com/mcp/v1",
+            .productivity,
+            icon: "envelope.fill",
+            tagline: "Search and draft email in Gmail",
             setupHelp: "https://developers.google.com/workspace/guides/configure-mcp-servers"
         ),
         .manualOAuth(
-            "google_calendar", "Google Calendar", "https://calendarmcp.googleapis.com/mcp/v1", .productivity,
-            icon: "calendar", tagline: "Events and availability in Google Calendar",
+            "google_calendar",
+            "Google Calendar",
+            "https://calendarmcp.googleapis.com/mcp/v1",
+            .productivity,
+            icon: "calendar",
+            tagline: "Events and availability in Google Calendar",
             setupHelp: "https://developers.google.com/workspace/guides/configure-mcp-servers"
         ),
         .manualOAuth(
-            "google_drive", "Google Drive", "https://drivemcp.googleapis.com/mcp/v1", .productivity,
-            icon: "folder.fill", tagline: "Search and read files in Google Drive",
+            "google_drive",
+            "Google Drive",
+            "https://drivemcp.googleapis.com/mcp/v1",
+            .productivity,
+            icon: "folder.fill",
+            tagline: "Search and read files in Google Drive",
             setupHelp: "https://developers.google.com/workspace/drive/api/guides/configure-mcp-server"
         ),
         .oauth(
-            "granola", "Granola", "https://mcp.granola.ai/mcp", .productivity,
-            icon: "note.text", tagline: "Meeting notes from Granola"
+            "granola",
+            "Granola",
+            "https://mcp.granola.ai/mcp",
+            .productivity,
+            icon: "note.text",
+            tagline: "Meeting notes from Granola"
         ),
         .open(
-            "keenable", "Keenable", "https://api.keenable.ai/mcp", .productivity,
-            icon: "magnifyingglass.circle", tagline: "Web search for AI agents"
+            "keenable",
+            "Keenable",
+            "https://api.keenable.ai/mcp",
+            .productivity,
+            icon: "magnifyingglass.circle",
+            tagline: "Web search for AI agents"
         ),
         .manualOAuth(
-            "microsoft_365", "Microsoft 365", "https://workiq.svc.cloud.microsoft/mcp", .productivity,
-            icon: "square.grid.2x2.fill", tagline: "Outlook mail and calendar, Teams, OneDrive, and SharePoint",
+            "microsoft_365",
+            "Microsoft 365",
+            "https://workiq.svc.cloud.microsoft/mcp",
+            .productivity,
+            icon: "square.grid.2x2.fill",
+            tagline: "Outlook mail and calendar, Teams, OneDrive, and SharePoint",
             setupHelp: "https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/work-iq/mcp/overview",
             subscription: true
         ),
         .oauth(
-            "miro", "Miro", "https://mcp.miro.com/", .productivity,
-            icon: "rectangle.on.rectangle.angled", tagline: "Read and create Miro boards"
+            "miro",
+            "Miro",
+            "https://mcp.miro.com/",
+            .productivity,
+            icon: "rectangle.on.rectangle.angled",
+            tagline: "Read and create Miro boards"
         ),
         .oauth(
-            "monday", "monday.com", "https://mcp.monday.com/mcp", .productivity,
-            icon: "square.grid.3x3.fill", tagline: "Read and update monday.com boards and items"
+            "monday",
+            "monday.com",
+            "https://mcp.monday.com/mcp",
+            .productivity,
+            icon: "square.grid.3x3.fill",
+            tagline: "Read and update monday.com boards and items"
         ),
         .oauth(
-            "notion", "Notion", "https://mcp.notion.com/mcp", .productivity,
-            icon: "doc.text.fill", tagline: "Read and edit your Notion pages and databases"
+            "notion",
+            "Notion",
+            "https://mcp.notion.com/mcp",
+            .productivity,
+            icon: "doc.text.fill",
+            tagline: "Read and edit your Notion pages and databases"
         ),
         .manualOAuth(
-            "slack", "Slack", "https://mcp.slack.com/mcp", .productivity,
-            icon: "number.square.fill", tagline: "Search and send messages in Slack",
+            "slack",
+            "Slack",
+            "https://mcp.slack.com/mcp",
+            .productivity,
+            icon: "number.square.fill",
+            tagline: "Search and send messages in Slack",
             setupHelp: "https://docs.slack.dev/ai/slack-mcp-server/"
         ),
         .oauth(
-            "todoist", "Todoist", "https://ai.todoist.net/mcp", .productivity,
-            icon: "checkmark.square.fill", tagline: "Tasks and projects in Todoist"
+            "todoist",
+            "Todoist",
+            "https://ai.todoist.net/mcp",
+            .productivity,
+            icon: "checkmark.square.fill",
+            tagline: "Tasks and projects in Todoist"
         ),
         .oauth(
-            "trello", "Trello", "https://mcp.trello.com/v1", .productivity,
-            icon: "rectangle.split.3x1.fill", tagline: "Boards, lists, and cards in Trello"
+            "trello",
+            "Trello",
+            "https://mcp.trello.com/v1",
+            .productivity,
+            icon: "rectangle.split.3x1.fill",
+            tagline: "Boards, lists, and cards in Trello"
         ),
         .oauth(
-            "webflow", "Webflow", "https://mcp.webflow.com/mcp", .productivity,
-            icon: "doc.richtext.fill", tagline: "Read and edit Webflow sites and CMS items"
+            "webflow",
+            "Webflow",
+            "https://mcp.webflow.com/mcp",
+            .productivity,
+            icon: "doc.richtext.fill",
+            tagline: "Read and edit Webflow sites and CMS items"
         ),
         .oauth(
-            "zapier", "Zapier", "https://mcp.zapier.com/api/mcp/mcp", .productivity,
-            icon: "bolt.fill", tagline: "Trigger 9,000+ apps via Zapier actions"
+            "zapier",
+            "Zapier",
+            "https://mcp.zapier.com/api/mcp/mcp",
+            .productivity,
+            icon: "bolt.fill",
+            tagline: "Trigger 9,000+ apps via Zapier actions"
         ),
         .manualOAuth(
-            "zoom", "Zoom", "https://mcp.zoom.us/mcp/zoom/streamable", .productivity,
-            icon: "video.fill", tagline: "Meetings, recordings, and AI summaries in Zoom",
+            "zoom",
+            "Zoom",
+            "https://mcp.zoom.us/mcp/zoom/streamable",
+            .productivity,
+            icon: "video.fill",
+            tagline: "Meetings, recordings, and AI summaries in Zoom",
             setupHelp: "https://developers.zoom.us/docs/mcp/servers/connect-to-zoom-mcp-servers/"
         ),
 
         // MARK: Sales & CRM
 
         .oauth(
-            "attio", "Attio", "https://mcp.attio.com/mcp", .sales,
-            icon: "person.text.rectangle.fill", tagline: "Contacts, companies, and deals in Attio"
+            "attio",
+            "Attio",
+            "https://mcp.attio.com/mcp",
+            .sales,
+            icon: "person.text.rectangle.fill",
+            tagline: "Contacts, companies, and deals in Attio"
         ),
         .oauth(
-            "close", "Close", "https://mcp.close.com/mcp", .sales,
-            icon: "phone.fill", tagline: "Leads, calls, and pipeline in Close"
+            "close",
+            "Close",
+            "https://mcp.close.com/mcp",
+            .sales,
+            icon: "phone.fill",
+            tagline: "Leads, calls, and pipeline in Close"
         ),
         // HubSpot's remote MCP server requires confidential-client OAuth via an
         // "MCP Auth App" the user creates in their developer portal. Private App
@@ -731,38 +1132,66 @@ public struct MCPProviderTemplate: Identifiable, Sendable, Equatable {
         // they only work with the REST API and the self-hosted Developer MCP
         // npm package.
         .manualOAuth(
-            "hubspot", "HubSpot", "https://mcp.hubspot.com", .sales,
-            icon: "person.crop.rectangle.stack.fill", tagline: "Query HubSpot contacts, deals, and pipelines",
+            "hubspot",
+            "HubSpot",
+            "https://mcp.hubspot.com",
+            .sales,
+            icon: "person.crop.rectangle.stack.fill",
+            tagline: "Query HubSpot contacts, deals, and pipelines",
             setupHelp:
                 "https://developers.hubspot.com/docs/apps/developer-platform/build-apps/integrate-with-the-remote-hubspot-mcp-server"
         ),
         .oauth(
-            "intercom", "Intercom", "https://mcp.intercom.com/mcp", .sales,
-            icon: "bubble.left.and.bubble.right.fill", tagline: "Customer conversations and contacts"
+            "intercom",
+            "Intercom",
+            "https://mcp.intercom.com/mcp",
+            .sales,
+            icon: "bubble.left.and.bubble.right.fill",
+            tagline: "Customer conversations and contacts"
         ),
         .oauth(
-            "salesforce", "Salesforce", "https://api.salesforce.com/platform/mcp/v1/platform/headless-360", .sales,
-            icon: "person.2.crop.square.stack.fill", tagline: "Accounts, opportunities, and records in Salesforce",
+            "salesforce",
+            "Salesforce",
+            "https://api.salesforce.com/platform/mcp/v1/platform/headless-360",
+            .sales,
+            icon: "person.2.crop.square.stack.fill",
+            tagline: "Accounts, opportunities, and records in Salesforce",
             subscription: true
         ),
 
         // MARK: Developer
 
         .oauth(
-            "buildkite", "Buildkite", "https://mcp.buildkite.com/mcp", .developer,
-            icon: "hammer.fill", tagline: "Inspect Buildkite pipelines, builds, and deploys"
+            "buildkite",
+            "Buildkite",
+            "https://mcp.buildkite.com/mcp",
+            .developer,
+            icon: "hammer.fill",
+            tagline: "Inspect Buildkite pipelines, builds, and deploys"
         ),
         .oauth(
-            "cloudflare", "Cloudflare", "https://mcp.cloudflare.com/mcp", .developer,
-            icon: "cloud.fill", tagline: "Manage your Cloudflare account, workers, and DNS"
+            "cloudflare",
+            "Cloudflare",
+            "https://mcp.cloudflare.com/mcp",
+            .developer,
+            icon: "cloud.fill",
+            tagline: "Manage your Cloudflare account, workers, and DNS"
         ),
         .oauth(
-            "cloudinary", "Cloudinary", "https://asset-management.mcp.cloudinary.com/mcp", .developer,
-            icon: "photo.stack.fill", tagline: "Browse and transform Cloudinary media assets"
+            "cloudinary",
+            "Cloudinary",
+            "https://asset-management.mcp.cloudinary.com/mcp",
+            .developer,
+            icon: "photo.stack.fill",
+            tagline: "Browse and transform Cloudinary media assets"
         ),
         .open(
-            "deepwiki", "DeepWiki", "https://mcp.deepwiki.com/mcp", .developer,
-            icon: "book.closed.fill", tagline: "Q&A over any public GitHub repo"
+            "deepwiki",
+            "DeepWiki",
+            "https://mcp.deepwiki.com/mcp",
+            .developer,
+            icon: "book.closed.fill",
+            tagline: "Q&A over any public GitHub repo"
         ),
         MCPProviderTemplate(
             id: "github",
@@ -778,32 +1207,60 @@ public struct MCPProviderTemplate: Identifiable, Sendable, Equatable {
             )!
         ),
         .oauth(
-            "huggingface", "Hugging Face", "https://huggingface.co/mcp", .developer,
-            icon: "face.smiling.fill", tagline: "Search models, datasets, papers, and Spaces"
+            "huggingface",
+            "Hugging Face",
+            "https://huggingface.co/mcp",
+            .developer,
+            icon: "face.smiling.fill",
+            tagline: "Search models, datasets, papers, and Spaces"
         ),
         .oauth(
-            "linear", "Linear", "https://mcp.linear.app/mcp", .developer,
-            icon: "chart.bar.doc.horizontal.fill", tagline: "Read and update Linear issues, projects, and cycles"
+            "linear",
+            "Linear",
+            "https://mcp.linear.app/mcp",
+            .developer,
+            icon: "chart.bar.doc.horizontal.fill",
+            tagline: "Read and update Linear issues, projects, and cycles"
         ),
         .oauth(
-            "neon", "Neon", "https://mcp.neon.tech/mcp", .developer,
-            icon: "cylinder.fill", tagline: "Query and manage Neon Postgres databases"
+            "neon",
+            "Neon",
+            "https://mcp.neon.tech/mcp",
+            .developer,
+            icon: "cylinder.fill",
+            tagline: "Query and manage Neon Postgres databases"
         ),
         .oauth(
-            "netlify", "Netlify", "https://netlify-mcp.netlify.app/mcp", .developer,
-            icon: "network", tagline: "Manage Netlify sites, deploys, and DNS"
+            "netlify",
+            "Netlify",
+            "https://netlify-mcp.netlify.app/mcp",
+            .developer,
+            icon: "network",
+            tagline: "Manage Netlify sites, deploys, and DNS"
         ),
         .oauth(
-            "sentry", "Sentry", "https://mcp.sentry.dev/mcp", .developer,
-            icon: "exclamationmark.shield.fill", tagline: "Investigate Sentry issues, traces, and releases"
+            "sentry",
+            "Sentry",
+            "https://mcp.sentry.dev/mcp",
+            .developer,
+            icon: "exclamationmark.shield.fill",
+            tagline: "Investigate Sentry issues, traces, and releases"
         ),
         .oauth(
-            "supabase", "Supabase", "https://mcp.supabase.com/mcp", .developer,
-            icon: "bolt.horizontal.circle.fill", tagline: "Manage Supabase Postgres, auth, and storage"
+            "supabase",
+            "Supabase",
+            "https://mcp.supabase.com/mcp",
+            .developer,
+            icon: "bolt.horizontal.circle.fill",
+            tagline: "Manage Supabase Postgres, auth, and storage"
         ),
         .oauth(
-            "vercel", "Vercel", "https://mcp.vercel.com/", .developer,
-            icon: "triangle.fill", tagline: "Manage Vercel projects, deploys, and DNS"
+            "vercel",
+            "Vercel",
+            "https://mcp.vercel.com/",
+            .developer,
+            icon: "triangle.fill",
+            tagline: "Manage Vercel projects, deploys, and DNS"
         ),
     ]
 }

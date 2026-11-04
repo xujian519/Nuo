@@ -45,8 +45,15 @@ struct NotesToolsTests {
 
     private func note(_ id: String, attachments: [String]) -> NoteContent {
         NoteContent(
-            id: id, title: "Trip", folder: "Notes", created: nil, modified: nil, plaintext: "hello",
-            characterCount: 5, hasAttachments: !attachments.isEmpty, attachments: attachments
+            id: id,
+            title: "Trip",
+            folder: "Notes",
+            created: nil,
+            modified: nil,
+            plaintext: "hello",
+            characterCount: 5,
+            hasAttachments: !attachments.isEmpty,
+            attachments: attachments
         )
     }
 
@@ -92,7 +99,10 @@ struct NotesToolsTests {
 
     @Test("folder selection accepts a folder id, a folder name, or every non-system folder")
     func folderSelection() {
-        #expect(AppleScriptNotesService.folderSelection("x-coredata://ABC/ICFolder/p12") == "set targetFolders to {folder id \"x-coredata://ABC/ICFolder/p12\"}")
+        #expect(
+            AppleScriptNotesService.folderSelection("x-coredata://ABC/ICFolder/p12")
+                == "set targetFolders to {folder id \"x-coredata://ABC/ICFolder/p12\"}"
+        )
         let byName = AppleScriptNotesService.folderSelection("Work")
         #expect(byName.contains("my allFolders()"))
         #expect(byName.contains("(item 2 of entry) is \"Work\""))

@@ -42,7 +42,8 @@ enum ChatHistoryWriter {
     /// `ChatSession.save` path lands (HTTP / plugin / workspace-served), so
     /// `ChatSessionsManager` can pick it up without polling.
     static let didPersistExternallyNotification = Notification.Name(
-        "ChatHistoryWriter.didPersistExternally")
+        "ChatHistoryWriter.didPersistExternally"
+    )
 
     /// Persist a completed inference round.
     /// - Parameters:

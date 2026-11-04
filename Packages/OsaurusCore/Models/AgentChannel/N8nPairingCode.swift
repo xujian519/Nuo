@@ -84,7 +84,7 @@ struct N8nPairingCode: Codable, Equatable, Sendable {
         let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.hasPrefix("osrs-n8n-") else { throw N8nPairingCodeError.missingPrefix }
         guard let dot = trimmed.firstIndex(of: ".") else { throw N8nPairingCodeError.malformedPayload }
-        let versionText = trimmed[trimmed.index(trimmed.startIndex, offsetBy: "osrs-n8n-".count)..<dot]
+        let versionText = trimmed[trimmed.index(trimmed.startIndex, offsetBy: "osrs-n8n-".count) ..< dot]
         guard let parsedVersion = Int(versionText) else { throw N8nPairingCodeError.malformedPayload }
         guard parsedVersion == version else { throw N8nPairingCodeError.unsupportedVersion(parsedVersion) }
         let payload = String(trimmed[trimmed.index(after: dot)...])

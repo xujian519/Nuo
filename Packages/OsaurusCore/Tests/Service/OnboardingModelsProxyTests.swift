@@ -77,22 +77,34 @@ struct OnboardingModelsProxyTests {
     @Test func resolveRequestURL_rejectsTraversalAndMalformedInputs() {
         #expect(
             OnboardingModelsProxy.resolveRequestURL(
-                baseURL: base, repoId: "org/repo", revision: "main", path: "../secrets"
+                baseURL: base,
+                repoId: "org/repo",
+                revision: "main",
+                path: "../secrets"
             ) == nil
         )
         #expect(
             OnboardingModelsProxy.resolveRequestURL(
-                baseURL: base, repoId: "org/repo", revision: "", path: "config.json"
+                baseURL: base,
+                repoId: "org/repo",
+                revision: "",
+                path: "config.json"
             ) == nil
         )
         #expect(
             OnboardingModelsProxy.resolveRequestURL(
-                baseURL: base, repoId: "org/repo", revision: "main/extra", path: "config.json"
+                baseURL: base,
+                repoId: "org/repo",
+                revision: "main/extra",
+                path: "config.json"
             ) == nil
         )
         #expect(
             OnboardingModelsProxy.resolveRequestURL(
-                baseURL: base, repoId: "", revision: "main", path: "config.json"
+                baseURL: base,
+                repoId: "",
+                revision: "main",
+                path: "config.json"
             ) == nil
         )
     }
@@ -100,12 +112,14 @@ struct OnboardingModelsProxyTests {
     // MARK: - Signed path
 
     @Test func pathAndQuery_isPercentEncodedWireForm() throws {
-        let url = try #require(OnboardingModelsProxy.resolveRequestURL(
-            baseURL: base,
-            repoId: "org/repo",
-            revision: "main",
-            path: "model.gguf"
-        ))
+        let url = try #require(
+            OnboardingModelsProxy.resolveRequestURL(
+                baseURL: base,
+                repoId: "org/repo",
+                revision: "main",
+                path: "model.gguf"
+            )
+        )
         #expect(
             OnboardingModelsProxy.pathAndQuery(for: url)
                 == "/v1/org/repo/resolve/main/model.gguf?mode=json"

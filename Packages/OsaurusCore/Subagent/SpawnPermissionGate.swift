@@ -31,8 +31,7 @@ enum SpawnPermissionGate {
     /// can count prompts, choose allow/deny/always, or suspend until cancelled
     /// without presenting an AppKit panel.
     @TaskLocal
-    static var promptOverride:
-        (@Sendable (PromptRequest) async throws -> PromptChoice)?
+    static var promptOverride: (@Sendable (PromptRequest) async throws -> PromptChoice)?
 
     /// Deterministic eval seam. Production never binds this value; scripted
     /// delegation evaluations still execute the real gate, but cannot inherit

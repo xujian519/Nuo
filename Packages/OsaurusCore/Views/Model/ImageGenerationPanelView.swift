@@ -361,10 +361,14 @@ struct ImageGenerationPanelView: View {
                         .font(.system(size: 11)).lineLimit(1)
                     Spacer()
                     if sourceLimit > 1 {
-                        Button { sourceURLs.swapAt(index, index - 1) } label: {
+                        Button {
+                            sourceURLs.swapAt(index, index - 1)
+                        } label: {
                             Image(systemName: "arrow.up")
                         }.disabled(index == 0)
-                        Button { sourceURLs.remove(at: index) } label: {
+                        Button {
+                            sourceURLs.remove(at: index)
+                        } label: {
                             Image(systemName: "minus.circle")
                         }
                     }
@@ -395,18 +399,18 @@ struct ImageGenerationPanelView: View {
                         )
                 )
             if modelInfo.capabilities.negativePrompt && (!isEdit || modelInfo.capabilities.editNegativePrompt) {
-            fieldLabel("Negative prompt (optional)")
-            TextField("", text: $negativePrompt)
-                .textFieldStyle(.plain)
-                .font(.system(size: 13))
-                .padding(10)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(theme.inputBackground)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10).stroke(theme.inputBorder, lineWidth: 1)
-                        )
-                )
+                fieldLabel("Negative prompt (optional)")
+                TextField("", text: $negativePrompt)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 13))
+                    .padding(10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(theme.inputBackground)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10).stroke(theme.inputBorder, lineWidth: 1)
+                            )
+                    )
                 if requestPolicy.isQwen21 {
                     Text(localized: "Negative prompt applies when guidance is above 1.")
                         .font(.system(size: 11)).foregroundColor(theme.secondaryText)
@@ -427,52 +431,56 @@ struct ImageGenerationPanelView: View {
                 Text(localized: "SeedVR2 restores the image in one step. The source aspect ratio is preserved.")
                     .font(.system(size: 11)).foregroundColor(theme.secondaryText)
             } else {
-            HStack {
-                Text(localized: "Steps").font(.system(size: 11))
-                TextField(String(modelInfo.defaultSteps ?? 20), text: $stepsText).frame(width: 70)
-                    .disabled(modelInfo.canonicalName == "qwen-image-2.1-turbo")
-                    .settingsLandingAnchor("imageGeneration.steps")
-                if requestPolicy.supportsGuidance {
-                Text(localized: "Guidance").font(.system(size: 11))
-                TextField(String(modelInfo.defaultGuidance ?? 3.5), text: $guidanceText).frame(width: 70)
-                }
-            }
-            Toggle(isOn: $livePreviews) { Text(localized: "Live previews") }
-                .disabled(model.isBusy)
-                .settingsLandingAnchor("imageGeneration.previews")
-            if !samplingCapabilities.samplers.isEmpty {
-                Picker(selection: $sampler) {
-                    Text(localized: "Bundle default").tag("")
-                    ForEach(samplingCapabilities.samplers, id: \.self) { Text(verbatim: $0).tag($0) }
-                } label: { Text(localized: "Sampler") }
-                .settingsLandingAnchor("imageGeneration.sampler")
-                .disabled(model.isBusy)
-            }
-            if !samplingCapabilities.schedulers.isEmpty {
-                Picker(selection: $scheduler) {
-                    Text(localized: "Bundle default").tag("")
-                    ForEach(samplingCapabilities.schedulers, id: \.self) { Text(verbatim: $0).tag($0) }
-                } label: { Text(localized: "Scheduler") }
-                .settingsLandingAnchor("imageGeneration.scheduler")
-                .disabled(model.isBusy)
-            }
-            if samplingCapabilities.supportsShift {
                 HStack {
-                    Text(localized: "Timestep shift")
-                    TextField("", text: $shiftText).frame(width: 90)
-                        .disabled(model.isBusy)
+                    Text(localized: "Steps").font(.system(size: 11))
+                    TextField(String(modelInfo.defaultSteps ?? 20), text: $stepsText).frame(width: 70)
+                        .disabled(modelInfo.canonicalName == "qwen-image-2.1-turbo")
+                        .settingsLandingAnchor("imageGeneration.steps")
+                    if requestPolicy.supportsGuidance {
+                        Text(localized: "Guidance").font(.system(size: 11))
+                        TextField(String(modelInfo.defaultGuidance ?? 3.5), text: $guidanceText).frame(width: 70)
+                    }
                 }
-                .settingsLandingAnchor("imageGeneration.shift")
-                if !samplingInputValid {
-                    Text(localized: "Timestep shift must be a finite number.")
-                        .foregroundColor(theme.warningColor)
+                Toggle(isOn: $livePreviews) { Text(localized: "Live previews") }
+                    .disabled(model.isBusy)
+                    .settingsLandingAnchor("imageGeneration.previews")
+                if !samplingCapabilities.samplers.isEmpty {
+                    Picker(selection: $sampler) {
+                        Text(localized: "Bundle default").tag("")
+                        ForEach(samplingCapabilities.samplers, id: \.self) { Text(verbatim: $0).tag($0) }
+                    } label: {
+                        Text(localized: "Sampler")
+                    }
+                    .settingsLandingAnchor("imageGeneration.sampler")
+                    .disabled(model.isBusy)
                 }
-            }
-            if !isEdit {
-                Picker("Images", selection: $imageCount) {
-                    ForEach(1...8, id: \.self) { count in Text("\(count)").tag(count) }
-                }.frame(width: 160).disabled(model.isBusy)
-            }
+                if !samplingCapabilities.schedulers.isEmpty {
+                    Picker(selection: $scheduler) {
+                        Text(localized: "Bundle default").tag("")
+                        ForEach(samplingCapabilities.schedulers, id: \.self) { Text(verbatim: $0).tag($0) }
+                    } label: {
+                        Text(localized: "Scheduler")
+                    }
+                    .settingsLandingAnchor("imageGeneration.scheduler")
+                    .disabled(model.isBusy)
+                }
+                if samplingCapabilities.supportsShift {
+                    HStack {
+                        Text(localized: "Timestep shift")
+                        TextField("", text: $shiftText).frame(width: 90)
+                            .disabled(model.isBusy)
+                    }
+                    .settingsLandingAnchor("imageGeneration.shift")
+                    if !samplingInputValid {
+                        Text(localized: "Timestep shift must be a finite number.")
+                            .foregroundColor(theme.warningColor)
+                    }
+                }
+                if !isEdit {
+                    Picker("Images", selection: $imageCount) {
+                        ForEach(1 ... 8, id: \.self) { count in Text("\(count)").tag(count) }
+                    }.frame(width: 160).disabled(model.isBusy)
+                }
             }
             if isEdit {
                 Toggle(isOn: $useSourceSize) {
@@ -502,33 +510,43 @@ struct ImageGenerationPanelView: View {
                         Text("4×").tag(4)
                     }.labelsHidden().pickerStyle(.segmented).frame(width: 150)
                 } else {
-                if requestPolicy.isFlux3 {
-                    HStack {
-                        VStack(alignment: .leading) {
-                            fieldLabel("Width")
-                            TextField("", value: $customWidth, format: .number.grouping(.never))
-                                .frame(width: 76)
-                                .onSubmit { customWidth = requestPolicy.snappedDimension(customWidth, limits: modelInfo.requestLimits) }
-                        }.settingsLandingAnchor("imageGeneration.width")
-                        VStack(alignment: .leading) {
-                            fieldLabel("Height")
-                            TextField("", value: $customHeight, format: .number.grouping(.never))
-                                .frame(width: 76)
-                                .onSubmit { customHeight = requestPolicy.snappedDimension(customHeight, limits: modelInfo.requestLimits) }
-                        }.settingsLandingAnchor("imageGeneration.height")
-                    }.disabled(isEdit && useSourceSize)
-                } else {
-                fieldLabel("Size")
-                Picker("", selection: $sizeIndex) {
-                    ForEach(sizes.indices, id: \.self) { i in
-                        Text("\(sizes[i])²").tag(i)
+                    if requestPolicy.isFlux3 {
+                        HStack {
+                            VStack(alignment: .leading) {
+                                fieldLabel("Width")
+                                TextField("", value: $customWidth, format: .number.grouping(.never))
+                                    .frame(width: 76)
+                                    .onSubmit {
+                                        customWidth = requestPolicy.snappedDimension(
+                                            customWidth,
+                                            limits: modelInfo.requestLimits
+                                        )
+                                    }
+                            }.settingsLandingAnchor("imageGeneration.width")
+                            VStack(alignment: .leading) {
+                                fieldLabel("Height")
+                                TextField("", value: $customHeight, format: .number.grouping(.never))
+                                    .frame(width: 76)
+                                    .onSubmit {
+                                        customHeight = requestPolicy.snappedDimension(
+                                            customHeight,
+                                            limits: modelInfo.requestLimits
+                                        )
+                                    }
+                            }.settingsLandingAnchor("imageGeneration.height")
+                        }.disabled(isEdit && useSourceSize)
+                    } else {
+                        fieldLabel("Size")
+                        Picker("", selection: $sizeIndex) {
+                            ForEach(sizes.indices, id: \.self) { i in
+                                Text("\(sizes[i])²").tag(i)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.segmented)
+                        .disabled(isEdit && useSourceSize)
+                        .frame(width: 150)
                     }
-                }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .disabled(isEdit && useSourceSize)
-                .frame(width: 150)
-                }
                 }
             }
             VStack(alignment: .leading, spacing: 8) {
@@ -619,7 +637,9 @@ struct ImageGenerationPanelView: View {
                 ScrollView(.horizontal) {
                     HStack {
                         ForEach(Array(model.results.enumerated()), id: \.offset) { index, image in
-                            Button { model.selectResult(image) } label: {
+                            Button {
+                                model.selectResult(image)
+                            } label: {
                                 Text("\(L("Image")) \(index + 1)")
                             }.disabled(image.url == url)
                         }
@@ -639,11 +659,13 @@ struct ImageGenerationPanelView: View {
             }
             if let parameters = model.resultParameters {
                 if requestPolicy.isFlux3 {
-                Text("\(parameters.width) × \(parameters.height) · \(parameters.steps) steps")
-                    .font(.system(size: 11, design: .monospaced))
-                    .foregroundColor(theme.tertiaryText)
+                    Text("\(parameters.width) × \(parameters.height) · \(parameters.steps) steps")
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundColor(theme.tertiaryText)
                 } else {
-                Text("\(parameters.width) × \(parameters.height) · \(parameters.steps) steps · CFG \(parameters.guidance, specifier: "%g")")
+                    Text(
+                        "\(parameters.width) × \(parameters.height) · \(parameters.steps) steps · CFG \(parameters.guidance, specifier: "%g")"
+                    )
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(theme.tertiaryText)
                 }
@@ -729,8 +751,10 @@ struct ImageGenerationPanelView: View {
         let trimmedPrompt = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard canRun, let input = parsedInput else { return }
         let size = sizes[sizeIndex]
-        let width = requestPolicy.isFlux3 ? requestPolicy.snappedDimension(customWidth, limits: modelInfo.requestLimits) : size
-        let height = requestPolicy.isFlux3 ? requestPolicy.snappedDimension(customHeight, limits: modelInfo.requestLimits) : size
+        let width =
+            requestPolicy.isFlux3 ? requestPolicy.snappedDimension(customWidth, limits: modelInfo.requestLimits) : size
+        let height =
+            requestPolicy.isFlux3 ? requestPolicy.snappedDimension(customHeight, limits: modelInfo.requestLimits) : size
         let seed = input.seed
         let negative = negativePrompt.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -739,7 +763,8 @@ struct ImageGenerationPanelView: View {
             model.upscale(ImageUpscaleParameters(model: modelId, sourceImage: data, scale: upscaleFactor, seed: seed))
         } else if isEdit {
             guard !sourceURLs.isEmpty,
-                let sources = try? sourceURLs.map({ try Data(contentsOf: $0) }) else { return }
+                let sources = try? sourceURLs.map({ try Data(contentsOf: $0) })
+            else { return }
             model.edit(
                 ImageEditParameters(
                     model: modelId,
@@ -748,9 +773,11 @@ struct ImageGenerationPanelView: View {
                     negativePrompt: modelInfo.capabilities.editNegativePrompt && !negative.isEmpty ? negative : nil,
                     width: useSourceSize ? nil : width,
                     height: useSourceSize ? nil : height,
-                    steps: input.steps, guidance: requestPolicy.supportsGuidance ? input.guidance : nil,
+                    steps: input.steps,
+                    guidance: requestPolicy.supportsGuidance ? input.guidance : nil,
                     seed: seed,
-                    sampler: sampler.isEmpty ? nil : sampler, scheduler: scheduler.isEmpty ? nil : scheduler,
+                    sampler: sampler.isEmpty ? nil : sampler,
+                    scheduler: scheduler.isEmpty ? nil : scheduler,
                     shift: shiftText.isEmpty ? nil : Float(shiftText),
                     previewInterval: livePreviews ? 5 : nil
                 )
@@ -763,9 +790,12 @@ struct ImageGenerationPanelView: View {
                     negativePrompt: modelInfo.capabilities.negativePrompt && !negative.isEmpty ? negative : nil,
                     width: width,
                     height: height,
-                    steps: input.steps, guidance: requestPolicy.supportsGuidance ? input.guidance : nil,
-                    seed: seed, numImages: imageCount,
-                    sampler: sampler.isEmpty ? nil : sampler, scheduler: scheduler.isEmpty ? nil : scheduler,
+                    steps: input.steps,
+                    guidance: requestPolicy.supportsGuidance ? input.guidance : nil,
+                    seed: seed,
+                    numImages: imageCount,
+                    sampler: sampler.isEmpty ? nil : sampler,
+                    scheduler: scheduler.isEmpty ? nil : scheduler,
                     shift: shiftText.isEmpty ? nil : Float(shiftText),
                     previewInterval: livePreviews ? 5 : nil
                 )

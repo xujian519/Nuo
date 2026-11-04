@@ -30,9 +30,11 @@ struct SecureChannelVectorsTests {
     private static let agentAddress = try! AgentKey.deriveAddress(masterKey: TestKeys.alicePrivateKey, index: 0)
 
     private static let clientEphemeralPrivate = Data(
-        hexEncoded: "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a")!
+        hexEncoded: "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a"
+    )!
     private static let serverEphemeralPrivate = Data(
-        hexEncoded: "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb")!
+        hexEncoded: "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb"
+    )!
     private static let nonce = Data(hexEncoded: "000102030405060708090a0b0c0d0e0f")!
     private static let sid = Data(hexEncoded: "f0e1d2c3b4a5968778695a4b3c2d1e0f")!
     private static let expiresAt = 1_800_000_000
@@ -120,7 +122,13 @@ struct SecureChannelVectorsTests {
                 "seq": frame.seq, "plaintext": chunk, "fin": false,
                 "aad": String(
                     decoding: SecureChannel.responseAAD(
-                        sid: serverHello.sid, requestSeq: streamSeq, seq: frame.seq, fin: false), as: UTF8.self),
+                        sid: serverHello.sid,
+                        requestSeq: streamSeq,
+                        seq: frame.seq,
+                        fin: false
+                    ),
+                    as: UTF8.self
+                ),
                 "ct": frame.ct,
             ])
         }
@@ -129,7 +137,13 @@ struct SecureChannelVectorsTests {
             "seq": finFrame.seq, "plaintext": "", "fin": true,
             "aad": String(
                 decoding: SecureChannel.responseAAD(
-                    sid: serverHello.sid, requestSeq: streamSeq, seq: finFrame.seq, fin: true), as: UTF8.self),
+                    sid: serverHello.sid,
+                    requestSeq: streamSeq,
+                    seq: finFrame.seq,
+                    fin: true
+                ),
+                as: UTF8.self
+            ),
             "ct": finFrame.ct,
         ])
 
@@ -175,8 +189,13 @@ struct SecureChannelVectorsTests {
                     "seq": bufferedFrame.seq, "fin": true, "ct": bufferedFrame.ct,
                     "aad": String(
                         decoding: SecureChannel.responseAAD(
-                            sid: serverHello.sid, requestSeq: requestSeq, seq: bufferedFrame.seq, fin: true),
-                        as: UTF8.self),
+                            sid: serverHello.sid,
+                            requestSeq: requestSeq,
+                            seq: bufferedFrame.seq,
+                            fin: true
+                        ),
+                        as: UTF8.self
+                    ),
                     "plaintext": innerResponseJSON,
                 ],
             ],
@@ -212,7 +231,9 @@ struct SecureChannelVectorsTests {
 
         if ProcessInfo.processInfo.environment["OSAURUS_WRITE_SC_VECTORS"] == "1" {
             try FileManager.default.createDirectory(
-                at: Self.fixtureURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+                at: Self.fixtureURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
             try (builtData + Data("\n".utf8)).write(to: Self.fixtureURL)
         }
 
@@ -249,7 +270,8 @@ struct SecureChannelVectorsTests {
             signature: serverJSON["signature"] as! String
         )
         let clientKey = try Curve25519.KeyAgreement.PrivateKey(
-            rawRepresentation: Data(hexEncoded: handshake["clientEphemeralPrivateHex"] as! String)!)
+            rawRepresentation: Data(hexEncoded: handshake["clientEphemeralPrivateHex"] as! String)!
+        )
 
         let session = try SecureChannel.establishClientSession(
             hello: hello,

@@ -564,8 +564,10 @@ enum StreamingStatsHint: Sendable {
             ]
             if let reason = mtp.adaptiveFallbackReason,
                 let encoded = reason.addingPercentEncoding(
-                    withAllowedCharacters: .alphanumerics),
-                !encoded.isEmpty {
+                    withAllowedCharacters: .alphanumerics
+                ),
+                !encoded.isEmpty
+            {
                 fields.append(encoded)
             }
             flags.append("\(mtpFlagPrefix)\(fields.joined(separator: "/"))")
@@ -625,13 +627,20 @@ enum StreamingStatsHint: Sendable {
                 let bonus = Int(fields[4]), let rejected = Int(fields[5]),
                 let arFallback = Int(fields[6]), let downshifts = Int(fields[7])
             else { return nil }
-            let reason = fields.count >= 9
+            let reason =
+                fields.count >= 9
                 ? String(fields[8]).removingPercentEncoding : nil
             return MTPStatsSummary(
-                depth: depth, activeDepth: active, verifyCalls: verify,
-                acceptedDraftTokens: accepted, bonusTokens: bonus,
-                rejectedTokens: rejected, arFallbackTokens: arFallback,
-                adaptiveDownshifts: downshifts, adaptiveFallbackReason: reason)
+                depth: depth,
+                activeDepth: active,
+                verifyCalls: verify,
+                acceptedDraftTokens: accepted,
+                bonusTokens: bonus,
+                rejectedTokens: rejected,
+                arFallbackTokens: arFallback,
+                adaptiveDownshifts: downshifts,
+                adaptiveFallbackReason: reason
+            )
         }.first
         return (
             count,

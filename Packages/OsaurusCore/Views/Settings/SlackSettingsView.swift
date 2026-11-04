@@ -347,8 +347,8 @@ struct SlackSettingsView: View {
                 "Tokens are saved to the macOS Keychain when you load from Slack, test the connection, or press Done.",
                 bundle: .module
             )
-                .font(.system(size: 11))
-                .foregroundColor(theme.tertiaryText)
+            .font(.system(size: 11))
+            .foregroundColor(theme.tertiaryText)
         }
     }
 
@@ -506,7 +506,9 @@ struct SlackSettingsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 SettingsToggle(
                     title: L("Allow Sending on Slack"),
-                    description: L("Let agents post to write-allowlisted Slack channels. The global Sending switch in Channels must also be on."),
+                    description: L(
+                        "Let agents post to write-allowlisted Slack channels. The global Sending switch in Channels must also be on."
+                    ),
                     isOn: $writeEnabled.animation(.easeOut(duration: 0.2))
                 )
 
@@ -1352,7 +1354,9 @@ struct SlackSettingsView: View {
     private func verifyIncomingMessage() {
         isVerifying = true
         showStatus(
-            L("Waiting for a Slack message. Send the test message now from an authorized sender in a readable channel."),
+            L(
+                "Waiting for a Slack message. Send the test message now from an authorized sender in a readable channel."
+            ),
             isError: false
         )
         let start = Date()
@@ -1445,7 +1449,9 @@ struct SlackSettingsView: View {
     private func verifyNoEventGuidance() -> [String] {
         var guidance = [
             L("Confirm the message was sent in a channel selected as readable, by a person in Authorized Senders."),
-            L("Confirm the Slack app has Socket Mode on and the app_mention/message event subscriptions (the recommended manifest includes them)."),
+            L(
+                "Confirm the Slack app has Socket Mode on and the app_mention/message event subscriptions (the recommended manifest includes them)."
+            ),
             L("Confirm the bot has been invited to the channel (/invite @your-bot)."),
             L("Mention the Slack bot user, not the Nuo agent name."),
         ]
@@ -1563,37 +1569,37 @@ struct SlackSettingsView: View {
     /// `always_online` manifest flag. Existing apps must reapply the manifest
     /// (App Manifest page) for the change to take effect.
     static let recommendedManifest = """
-    display_information:
-      name: Nuo
-    features:
-      bot_user:
-        display_name: Nuo
-        always_online: true
-    oauth_config:
-      scopes:
-        bot:
-          - app_mentions:read
-          - channels:history
-          - channels:read
-          - chat:write
-          - groups:history
-          - groups:read
-          - im:history
-          - im:read
-          - mpim:history
-          - mpim:read
-          - users:read
-    settings:
-      event_subscriptions:
-        bot_events:
-          - app_mention
-          - message.channels
-          - message.groups
-          - message.im
-          - message.mpim
-      interactivity:
-        is_enabled: false
-      org_deploy_enabled: false
-      socket_mode_enabled: true
-    """
+        display_information:
+          name: Nuo
+        features:
+          bot_user:
+            display_name: Nuo
+            always_online: true
+        oauth_config:
+          scopes:
+            bot:
+              - app_mentions:read
+              - channels:history
+              - channels:read
+              - chat:write
+              - groups:history
+              - groups:read
+              - im:history
+              - im:read
+              - mpim:history
+              - mpim:read
+              - users:read
+        settings:
+          event_subscriptions:
+            bot_events:
+              - app_mention
+              - message.channels
+              - message.groups
+              - message.im
+              - message.mpim
+          interactivity:
+            is_enabled: false
+          org_deploy_enabled: false
+          socket_mode_enabled: true
+        """
 }

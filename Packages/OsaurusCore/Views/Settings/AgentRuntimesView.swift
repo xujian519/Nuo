@@ -387,7 +387,9 @@ struct HarnessRuntimeEditorSheet: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(theme.primaryText)
                 Spacer()
-                Button { dismiss() } label: {
+                Button {
+                    dismiss()
+                } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 16))
                         .foregroundColor(theme.tertiaryText)
@@ -474,10 +476,18 @@ struct HarnessRuntimeEditorSheet: View {
 
             HStack {
                 Spacer()
-                Button { dismiss() } label: { Text("Cancel", bundle: .module) }
-                    .buttonStyle(SlashCommandButtonStyle(theme: theme))
-                Button { save() } label: { Text(isEditing ? "Save" : "Add Runtime", bundle: .module) }
-                    .buttonStyle(SlashCommandButtonStyle(isPrimary: true, theme: theme))
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Cancel", bundle: .module)
+                }
+                .buttonStyle(SlashCommandButtonStyle(theme: theme))
+                Button {
+                    save()
+                } label: {
+                    Text(isEditing ? "Save" : "Add Runtime", bundle: .module)
+                }
+                .buttonStyle(SlashCommandButtonStyle(isPrimary: true, theme: theme))
             }
             .padding(16)
         }
@@ -557,7 +567,9 @@ struct HarnessRuntimeEditorSheet: View {
             return nil
         }
         if args.contains("--mode=rpc") { return nil }
-        return L("The arguments don't include --mode rpc. That's fine only if this command starts in RPC mode on its own.")
+        return L(
+            "The arguments don't include --mode rpc. That's fine only if this command starts in RPC mode on its own."
+        )
     }
 
     private func parseEnvironment() -> (values: [String: String], errors: [String]) {

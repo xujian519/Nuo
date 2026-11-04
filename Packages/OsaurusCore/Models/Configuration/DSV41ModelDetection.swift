@@ -51,7 +51,8 @@ enum DSV41ModelDetection {
 
         guard let directory = LocalReasoningCapability.localDirectory(forModelId: modelId),
             let data = LocalReasoningCapability.readSmallConfigFile(
-                directory.appendingPathComponent("config.json", isDirectory: false)),
+                directory.appendingPathComponent("config.json", isDirectory: false)
+            ),
             let config = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
             let rawType = config["model_type"] as? String
         else { return nil }

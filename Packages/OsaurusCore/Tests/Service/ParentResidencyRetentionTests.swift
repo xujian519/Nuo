@@ -154,10 +154,13 @@ struct ParentResidencyRetentionTests {
             Issue.record("Cleanup failure must not be reported as success")
         } catch let failure as ResidencyHandoffFailure {
             #expect(bodyFails)
-            #expect(failure == .bodyAndRestoreFailed(
-                body: RetentionFailure.body.localizedDescription,
-                restore: RetentionFailure.cleanup.localizedDescription
-            ))
+            #expect(
+                failure
+                    == .bodyAndRestoreFailed(
+                        body: RetentionFailure.body.localizedDescription,
+                        restore: RetentionFailure.cleanup.localizedDescription
+                    )
+            )
         } catch RetentionFailure.cleanup {
             #expect(!bodyFails)
         }

@@ -159,8 +159,10 @@ struct ContextBudgetPreviewTests {
             // Tools row is non-zero (always-loaded baseline JSON schemas).
             #expect(preview.toolTokens > 0)
             #expect(preview.tools.contains { $0.function.name == "capabilities" })
-            #expect(Set(preview.tools.map { $0.function.name })
-                .isSuperset(of: SystemPromptComposer.agentLoopToolNames))
+            #expect(
+                Set(preview.tools.map { $0.function.name })
+                    .isSuperset(of: SystemPromptComposer.agentLoopToolNames)
+            )
             #expect(preview.tools.contains { $0.function.name == "get_current_time" })
             #expect(!preview.tools.contains { $0.function.name == "capabilities_discover" })
         }

@@ -118,8 +118,11 @@ public enum WorkspaceDelegationEvaluator {
             var memberKinds: [String] = []
             for target in step.targets {
                 switch AgentTargetResolver.resolve(
-                    target, scope: .localAndWorkspace,
-                    localAgents: localAgents, sharedAgents: shared, workspaceNames: workspaceNames
+                    target,
+                    scope: .localAndWorkspace,
+                    localAgents: localAgents,
+                    sharedAgents: shared,
+                    workspaceNames: workspaceNames
                 ) {
                 case .success(.local(let id)):
                     let name = localAgents.first { $0.id == id }?.name ?? id.uuidString
@@ -128,9 +131,10 @@ public enum WorkspaceDelegationEvaluator {
                     memberKinds.append(SubagentCapabilityRegistry.spawn.id)
                 case .success(.workspace(let ref)):
                     let entry = shared.first { $0.ref == ref }
-                    let qualified = entry.map {
-                        AgentTargetResolver.qualifiedName(for: $0, workspaceNames: workspaceNames)
-                    } ?? ref.key
+                    let qualified =
+                        entry.map {
+                            AgentTargetResolver.qualifiedName(for: $0, workspaceNames: workspaceNames)
+                        } ?? ref.key
                     resolutions.append("workspace:\(qualified)")
                     let fixture = scenario.sharedAgents.first {
                         $0.workspaceId == ref.workspaceId && $0.address.lowercased() == ref.agentAddress

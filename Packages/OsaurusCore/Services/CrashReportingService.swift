@@ -105,7 +105,8 @@ public final class CrashReportingService {
     /// Serial queue owning the consent write, so two rapid toggles land in the
     /// order they were made and the last one also wins in `defaults`.
     private let writeQueue = DispatchQueue(
-        label: "com.dinoki.osaurus.crash-consent-write")
+        label: "com.dinoki.osaurus.crash-consent-write"
+    )
 
     /// Blocks until any queued consent write has reached `defaults`. Tests and
     /// shutdown paths use this to observe the persisted value.
@@ -195,19 +196,29 @@ public final class CrashReportingService {
     }
 
     private nonisolated static let breadcrumbQueue = DispatchQueue(
-        label: "com.dinoki.osaurus.crash-breadcrumbs", qos: .utility)
+        label: "com.dinoki.osaurus.crash-breadcrumbs",
+        qos: .utility
+    )
 
     /// Handled eval failures do not produce a fatal crash event. Record the
     /// known interactivity signature without the raw error, prompt or output.
     /// Limits and occupancy are sampled when terminal info arrives. Producer
     /// drain may still be in progress; this is neither peak nor at-fault policy.
     nonisolated static func recordHandledGPUFailure(
-        _ failure: GenerationFailure, modelName: String, promptTokens: Int, generatedTokens: Int,
+        _ failure: GenerationFailure,
+        modelName: String,
+        promptTokens: Int,
+        generatedTokens: Int,
         context: HandledGPUFailureContext = HandledGPUFailureContext()
     ) {
         guard SentrySDK.isEnabled,
-            let report = HandledGPUFailureReport(failure: failure, modelName: modelName,
-                promptTokens: promptTokens, generatedTokens: generatedTokens, context: context)
+            let report = HandledGPUFailureReport(
+                failure: failure,
+                modelName: modelName,
+                promptTokens: promptTokens,
+                generatedTokens: generatedTokens,
+                context: context
+            )
         else { return }
         let saved = ServerRuntimeSettingsStore.snapshot().memorySafety
         let status = MemoryStatus.snapshot()
@@ -230,9 +241,11 @@ public final class CrashReportingService {
         let savedProfile = HandledGPUFailureReport.savedProfileContext(saved)
         // Serialize before crossing the queue: [String: Any] is not Sendable.
         // All values are the numeric/identifier allowlist constructed above.
-        guard let data = try? JSONSerialization.data(withJSONObject: [
-            "saved_profile": savedProfile, "observed_at_terminal_info": observed,
-        ]) else { return }
+        guard
+            let data = try? JSONSerialization.data(withJSONObject: [
+                "saved_profile": savedProfile, "observed_at_terminal_info": observed,
+            ])
+        else { return }
         breadcrumbQueue.async {
             // Consent can be revoked while a report is queued.
             guard SentrySDK.isEnabled,
@@ -243,7 +256,8 @@ public final class CrashReportingService {
     }
 
     nonisolated static func makeHandledGPUFailureEvent(
-        report: HandledGPUFailureReport, memory: [String: Any]
+        report: HandledGPUFailureReport,
+        memory: [String: Any]
     ) -> Event {
         let event = Event(level: .error)
         event.message = SentryMessage(formatted: "Handled Metal GPU failure: Impacting Interactivity")
@@ -513,7 +527,8 @@ public final class CrashReportingService {
         let operations = MainThreadOperationLedger.shared.snapshot()
         guard let primary = operations.first else {
             event.tags = (event.tags ?? [:]).merging(
-                ["stall.subsystem": "uninstrumented"], uniquingKeysWith: { _, new in new }
+                ["stall.subsystem": "uninstrumented"],
+                uniquingKeysWith: { _, new in new }
             )
             return
         }

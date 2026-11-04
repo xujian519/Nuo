@@ -32,7 +32,8 @@ struct ChatTabLayoutPersistenceTests {
 
     private func storedSession(_ title: String, agentId: UUID = Agent.defaultId) -> ChatSessionData {
         let data = ChatSessionData(
-            id: UUID(), title: title,
+            id: UUID(),
+            title: title,
             turns: [ChatTurnData(role: .user, content: "\(title) question")],
             agentId: agentId
         )
@@ -50,10 +51,14 @@ struct ChatTabLayoutPersistenceTests {
         let windowB = UUID()
         let a = ChatTabLayoutRecord(
             tabs: [.init(sessionId: UUID(), lastActivatedAt: Date(timeIntervalSince1970: 10))],
-            activeSessionId: nil, savedAt: Date(timeIntervalSince1970: 100))
+            activeSessionId: nil,
+            savedAt: Date(timeIntervalSince1970: 100)
+        )
         let b = ChatTabLayoutRecord(
             tabs: [.init(sessionId: UUID(), lastActivatedAt: Date(timeIntervalSince1970: 20))],
-            activeSessionId: nil, savedAt: Date(timeIntervalSince1970: 50))
+            activeSessionId: nil,
+            savedAt: Date(timeIntervalSince1970: 50)
+        )
         store.save(ChatTabLayout(windows: [windowA: a, windowB: b]))
 
         let loaded = store.load()
@@ -129,7 +134,9 @@ struct ChatTabLayoutPersistenceTests {
                     .init(sessionId: deleted, lastActivatedAt: Date(timeIntervalSince1970: 2)),
                     .init(sessionId: second.id, lastActivatedAt: Date(timeIntervalSince1970: 3)),
                 ],
-                activeSessionId: second.id, savedAt: Date())
+                activeSessionId: second.id,
+                savedAt: Date()
+            )
 
             let window = ChatWindowState(windowId: UUID(), agentId: Agent.defaultId)
             defer { window.cleanup() }
@@ -165,7 +172,9 @@ struct ChatTabLayoutPersistenceTests {
             let other = storedSession("Other")
             let record = ChatTabLayoutRecord(
                 tabs: [.init(sessionId: first.id, lastActivatedAt: Date())],
-                activeSessionId: first.id, savedAt: Date())
+                activeSessionId: first.id,
+                savedAt: Date()
+            )
 
             // "Open in New Window" from History: the window starts on a
             // conversation, so the remembered tabs join it without stealing focus.
@@ -186,7 +195,9 @@ struct ChatTabLayoutPersistenceTests {
             let stored = storedSession("Cold")
             let record = ChatTabLayoutRecord(
                 tabs: [.init(sessionId: stored.id, lastActivatedAt: Date())],
-                activeSessionId: nil, savedAt: Date())
+                activeSessionId: nil,
+                savedAt: Date()
+            )
             let window = ChatWindowState(windowId: UUID(), agentId: Agent.defaultId)
             defer { window.cleanup() }
             addTurn(window.session, "keep the initial tab")
@@ -207,7 +218,9 @@ struct ChatTabLayoutPersistenceTests {
             let stored = storedSession("Slow")
             let record = ChatTabLayoutRecord(
                 tabs: [.init(sessionId: stored.id, lastActivatedAt: Date())],
-                activeSessionId: nil, savedAt: Date())
+                activeSessionId: nil,
+                savedAt: Date()
+            )
             let window = ChatWindowState(windowId: UUID(), agentId: Agent.defaultId)
             defer { window.cleanup() }
             addTurn(window.session, "home")
@@ -235,7 +248,9 @@ struct ChatTabLayoutPersistenceTests {
             let stored = storedSession("Closed early")
             let record = ChatTabLayoutRecord(
                 tabs: [.init(sessionId: stored.id, lastActivatedAt: Date())],
-                activeSessionId: nil, savedAt: Date())
+                activeSessionId: nil,
+                savedAt: Date()
+            )
             let window = ChatWindowState(windowId: UUID(), agentId: Agent.defaultId)
             defer { window.cleanup() }
             addTurn(window.session, "home")

@@ -433,7 +433,9 @@ struct ChatSessionSidebar: View {
                 // History pane.
                 SidebarHeaderIconButton(icon: "plus", help: "New Agent", size: 14) {
                     AppDelegate.shared?.showManagementWindow(
-                        initialTab: .agents, deeplinkCreateAgent: true)
+                        initialTab: .agents,
+                        deeplinkCreateAgent: true
+                    )
                 }
             case .projects:
                 SidebarHeaderIconButton(icon: "plus", help: "New Project", size: 14) {
@@ -513,7 +515,8 @@ struct ChatSessionSidebar: View {
     ) -> [OsaurusRouterWorkspaceAgent] {
         Self.filterByName(roster.agents, query: navigatorQuery) { member in
             SharedAgentIdentity.resolve(
-                address: member.agentAddress.lowercased(), workspaceId: roster.workspace.id
+                address: member.agentAddress.lowercased(),
+                workspaceId: roster.workspace.id
             ).name
         }
     }
@@ -545,7 +548,10 @@ struct ChatSessionSidebar: View {
                         },
                         onUnshareFromWorkspace: { workspace in
                             guard let address = agent.agentAddress else { return }
-                            unshare(SharedAgentIdentity.resolve(address: address, workspaceId: workspace.id), from: workspace)
+                            unshare(
+                                SharedAgentIdentity.resolve(address: address, workspaceId: workspace.id),
+                                from: workspace
+                            )
                         },
                         isNew: newAgentHighlight.isNew(localAgentId: agent.id),
                         onSelect: {
@@ -571,7 +577,8 @@ struct ChatSessionSidebar: View {
                         GeometryReader { proxy in
                             Color.clear.preference(
                                 key: AgentRowFramesKey.self,
-                                value: [agent.id: proxy.frame(in: .named("agentList"))])
+                                value: [agent.id: proxy.frame(in: .named("agentList"))]
+                            )
                         }
                     )
                 }
@@ -681,7 +688,8 @@ struct ChatSessionSidebar: View {
         let pairedAddresses = Set(
             remoteAgentManager.remoteAgents.map { $0.agentAddress.lowercased() }
         )
-        let visible = discoveredAgents
+        let visible =
+            discoveredAgents
             .filter { Self.isVisibleDiscovered($0, pairedAddresses: pairedAddresses) }
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         return Self.filterByName(visible, query: navigatorQuery, name: \.name)
@@ -692,7 +700,8 @@ struct ChatSessionSidebar: View {
     /// row in another section. Addressless peers (pre-Secure-Channel) have
     /// nothing to match a pairing on, so they always render.
     nonisolated static func isVisibleDiscovered(
-        _ agent: DiscoveredAgent, pairedAddresses: Set<String>
+        _ agent: DiscoveredAgent,
+        pairedAddresses: Set<String>
     ) -> Bool {
         guard let address = agent.address?.lowercased(), !address.isEmpty else { return true }
         return !pairedAddresses.contains(address)
@@ -846,7 +855,9 @@ struct ChatSessionSidebar: View {
                 if orphaned.isEmpty {
                     VStack(alignment: .leading, spacing: 2) {
                         sidebarSectionHeader(
-                            icon: "rectangle.3.group.fill", title: L("Workspaces"), help: L("Workspaces")
+                            icon: "rectangle.3.group.fill",
+                            title: L("Workspaces"),
+                            help: L("Workspaces")
                         )
                         workspaceStateRow(
                             icon: "bolt.slash.fill",
@@ -969,7 +980,9 @@ struct ChatSessionSidebar: View {
                             onSelect: { onSelectAgent?(mine.id) },
                             onOpenSettings: {
                                 AppDelegate.shared?.showManagementWindow(
-                                    initialTab: .agents, deeplinkAgentId: mine.id)
+                                    initialTab: .agents,
+                                    deeplinkAgentId: mine.id
+                                )
                             },
                             onOpenWorkspace: { openWorkspaceInSettings(id: workspace.id) },
                             onUnshare: { unshare(identity, from: workspace) },
@@ -989,7 +1002,8 @@ struct ChatSessionSidebar: View {
                                 onSelectWorkspaceAgent?(address, workspace.id)
                             },
                             onOpenInNewWindow: {
-                                ChatWindowManager.shared.openNewChatWindow(withWorkspaceAgentAddress: address,
+                                ChatWindowManager.shared.openNewChatWindow(
+                                    withWorkspaceAgentAddress: address,
                                     workspaceId: workspace.id
                                 )
                             },
@@ -1050,7 +1064,8 @@ struct ChatSessionSidebar: View {
         ) {
             Task {
                 _ = await workspacesService.unshareAgent(
-                    workspaceId: workspace.id, agentAddress: identity.address
+                    workspaceId: workspace.id,
+                    agentAddress: identity.address
                 )
             }
         }
@@ -1085,13 +1100,16 @@ struct ChatSessionSidebar: View {
 
     /// Roll live activity up to a team agent: sessions this user has with
     /// that agent (by address) that are streaming / waiting.
-    private func activityStatus(forRemoteAgentAddress address: String, workspaceId: String) -> SessionActivityMonitor.Status? {
+    private func activityStatus(forRemoteAgentAddress address: String, workspaceId: String) -> SessionActivityMonitor
+        .Status?
+    {
         let statuses = activityMonitor.statuses
         guard !statuses.isEmpty else { return nil }
         var rolledUp: SessionActivityMonitor.Status?
         for session in ChatSessionsManager.shared.sessions(forRemoteAgentAddress: address) {
             guard session.workspace?.workspaceId == workspaceId,
-                let status = statuses[session.id] else { continue }
+                let status = statuses[session.id]
+            else { continue }
             if status == .working { return .working }
             rolledUp = rolledUp ?? status
         }
@@ -1401,7 +1419,10 @@ private struct AgentSidebarRow: View {
                     }
                     .buttonStyle(.plain)
                     .pointingHandCursor()
-                    .localizedHelp(agent.isBuiltIn ? LocalizedStringKey("Orchestrator Settings") : LocalizedStringKey("Agent Settings"))
+                    .localizedHelp(
+                        agent.isBuiltIn
+                            ? LocalizedStringKey("Orchestrator Settings") : LocalizedStringKey("Agent Settings")
+                    )
                 }
                 .transition(.opacity)
             }
@@ -2488,7 +2509,8 @@ private struct SessionRow: View {
                     } label: {
                         Text(
                             session.projectId == nil ? "Move to Project" : "Change Project",
-                            bundle: .module)
+                            bundle: .module
+                        )
                     }
                 }
                 Divider()
@@ -2513,7 +2535,11 @@ private struct SessionRow: View {
                 onMove(project.id)
             } label: {
                 if project.id == session.projectId {
-                    Label { Text(verbatim: project.name) } icon: { Image(systemName: "checkmark") }
+                    Label {
+                        Text(verbatim: project.name)
+                    } icon: {
+                        Image(systemName: "checkmark")
+                    }
                 } else {
                     Text(verbatim: project.name)
                 }
@@ -2563,7 +2589,9 @@ private struct SessionRow: View {
             if session.projectId != nil {
                 Divider().padding(.vertical, 2)
                 ActionsPopoverButton(
-                    icon: "folder.badge.minus", label: "Remove from Project", isDestructive: true
+                    icon: "folder.badge.minus",
+                    label: "Remove from Project",
+                    isDestructive: true
                 ) {
                     dismissProjectPicker()
                     onSetProject?(nil)
@@ -3110,7 +3138,8 @@ struct SessionStopButton: View {
                 .frame(width: SidebarStyle.actionButtonSize, height: SidebarStyle.actionButtonSize)
                 .background(
                     RoundedRectangle(
-                        cornerRadius: SidebarStyle.actionButtonCornerRadius, style: .continuous
+                        cornerRadius: SidebarStyle.actionButtonCornerRadius,
+                        style: .continuous
                     )
                     .fill(isHovered ? theme.errorColor.opacity(0.12) : .clear)
                 )
@@ -3365,7 +3394,8 @@ struct ChatHistoryList: View {
                     .padding(.bottom, 4)
                     .animation(
                         theme.springAnimation(responseMultiplier: 0.9),
-                        value: filteredSessions.map(\.id))
+                        value: filteredSessions.map(\.id)
+                    )
                 }
                 .scrollIndicators(.hidden)
                 .frame(maxHeight: listMaxHeight ?? .infinity)
@@ -3409,7 +3439,7 @@ struct ChatHistoryList: View {
             selectionAnchorId = id
             return
         }
-        let range = anchorIndex <= targetIndex ? anchorIndex...targetIndex : targetIndex...anchorIndex
+        let range = anchorIndex <= targetIndex ? anchorIndex ... targetIndex : targetIndex ... anchorIndex
         selectedIds.formUnion(ids[range])
     }
 
@@ -3431,10 +3461,16 @@ struct ChatHistoryList: View {
             if !projectManager.projects.isEmpty {
                 Menu {
                     ForEach(projectManager.projects) { project in
-                        Button { moveSelected(to: project.id) } label: { Text(verbatim: project.name) }
+                        Button {
+                            moveSelected(to: project.id)
+                        } label: {
+                            Text(verbatim: project.name)
+                        }
                     }
                     Divider()
-                    Button { moveSelected(to: nil) } label: {
+                    Button {
+                        moveSelected(to: nil)
+                    } label: {
                         Text("Remove from Project", bundle: .module)
                     }
                 } label: {
@@ -3473,7 +3509,10 @@ struct ChatHistoryList: View {
     }
 
     private func selectionBarButton(
-        icon: String, help: LocalizedStringKey, tint: Color, action: @escaping () -> Void
+        icon: String,
+        help: LocalizedStringKey,
+        tint: Color,
+        action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
             Image(systemName: icon)

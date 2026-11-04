@@ -54,8 +54,13 @@ public struct OpenResponsesTextFormat: Codable, Sendable {
     public let schema: JSONValue?
     public let strict: Bool?
 
-    public init(type: String, name: String? = nil, description: String? = nil,
-                schema: JSONValue? = nil, strict: Bool? = nil) {
+    public init(
+        type: String,
+        name: String? = nil,
+        description: String? = nil,
+        schema: JSONValue? = nil,
+        strict: Bool? = nil
+    ) {
         self.type = type
         self.name = name
         self.description = description
@@ -803,7 +808,12 @@ public struct OpenResponsesReasoningItem: Codable, Sendable {
     let originalJSON: JSONValue?
     private enum CodingKeys: String, CodingKey { case type, id, status, summary, encrypted_content }
 
-    public init(id: String, status: OpenResponsesItemStatus, summary: [OpenResponsesReasoningSummaryText], encryptedContent: String? = nil) {
+    public init(
+        id: String,
+        status: OpenResponsesItemStatus,
+        summary: [OpenResponsesReasoningSummaryText],
+        encryptedContent: String? = nil
+    ) {
         self.type = "reasoning"
         self.id = id
         self.status = status
@@ -856,7 +866,12 @@ public struct OpenResponsesOutputMessage: Codable, Sendable {
     let originalJSON: JSONValue?
     private enum CodingKeys: String, CodingKey { case type, id, status, role, content, phase }
 
-    public init(id: String, status: OpenResponsesItemStatus, content: [OpenResponsesOutputContent], phase: String? = nil) {
+    public init(
+        id: String,
+        status: OpenResponsesItemStatus,
+        content: [OpenResponsesOutputContent],
+        phase: String? = nil
+    ) {
         self.type = "message"
         self.id = id
         self.status = status
@@ -1291,10 +1306,13 @@ private struct OpenResponsesAssistantInput {
     var message: ChatMessage? {
         guard !items.isEmpty || !text.isEmpty || !reasoning.isEmpty || !calls.isEmpty else { return nil }
         return ChatMessage(
-            role: "assistant", content: text.isEmpty ? nil : text,
-            tool_calls: calls.isEmpty ? nil : calls, tool_call_id: nil,
+            role: "assistant",
+            content: text.isEmpty ? nil : text,
+            tool_calls: calls.isEmpty ? nil : calls,
+            tool_call_id: nil,
             reasoning_content: reasoning.isEmpty ? nil : reasoning,
-            reasoning_item_id: reasoningID, reasoning_encrypted: encryptedReasoning,
+            reasoning_item_id: reasoningID,
+            reasoning_encrypted: encryptedReasoning,
             responses_output_items: items.isEmpty ? nil : items
         )
     }
@@ -1306,8 +1324,11 @@ extension OpenResponsesRequest {
     func toResponsesInferenceRequest() throws -> ResponsesInferenceRequest {
         try ChatTemplateParameters.validate(chat_template_kwargs)
         if let reason = RequestValidator.repetitionPenaltyReason(repetition_penalty) {
-            throw NSError(domain: "OsaurusGenerationParameters", code: 400,
-                userInfo: [NSLocalizedDescriptionKey: reason])
+            throw NSError(
+                domain: "OsaurusGenerationParameters",
+                code: 400,
+                userInfo: [NSLocalizedDescriptionKey: reason]
+            )
         }
         var messages: [ChatMessage] = []
         var assistant = OpenResponsesAssistantInput()
@@ -1318,7 +1339,9 @@ extension OpenResponsesRequest {
         func nativeJSON<T: Encodable>(_ value: T) throws -> JSONValue {
             try JSONDecoder().decode(JSONValue.self, from: JSONEncoder.osaurusCanonical().encode(value))
         }
-        if let instructions, !instructions.isEmpty { messages.append(ChatMessage(role: "system", content: instructions)) }
+        if let instructions, !instructions.isEmpty {
+            messages.append(ChatMessage(role: "system", content: instructions))
+        }
         switch input {
         case .text(let text): messages.append(ChatMessage(role: "user", content: text))
         case .items(let items):
@@ -1331,11 +1354,16 @@ extension OpenResponsesRequest {
                         assistant.items.append(raw)
                         if case .object(let fields) = raw,
                             case .string(let text) = fields["reasoning_content"]
-                        { assistant.reasoning += text }
+                        {
+                            assistant.reasoning += text
+                        }
                     } else {
                         flushAssistant()
-                        var message = ChatMessage(role: value.role, content: value.content.chatPlainText,
-                            contentParts: value.content.chatContentParts)
+                        var message = ChatMessage(
+                            role: value.role,
+                            content: value.content.chatPlainText,
+                            contentParts: value.content.chatContentParts
+                        )
                         message.responses_output_items = [try nativeJSON(value)]
                         messages.append(message)
                     }
@@ -1345,14 +1373,25 @@ extension OpenResponsesRequest {
                     assistant.encryptedReasoning = value.encrypted_content
                     assistant.items.append(try nativeJSON(value))
                 case .functionCall(let value):
-                    assistant.calls.append(ToolCall(id: value.call_id, type: "function",
-                        function: ToolCallFunction(name: value.name, arguments: value.arguments)))
+                    assistant.calls.append(
+                        ToolCall(
+                            id: value.call_id,
+                            type: "function",
+                            function: ToolCallFunction(name: value.name, arguments: value.arguments)
+                        )
+                    )
                     assistant.items.append(try nativeJSON(value))
                 case .functionCallOutput(let value):
                     flushAssistant()
-                    messages.append(ChatMessage(role: "tool", content: value.output,
-                        tool_calls: nil, tool_call_id: value.call_id,
-                        responses_output_items: [try nativeJSON(value)]))
+                    messages.append(
+                        ChatMessage(
+                            role: "tool",
+                            content: value.output,
+                            tool_calls: nil,
+                            tool_call_id: value.call_id,
+                            responses_output_items: [try nativeJSON(value)]
+                        )
+                    )
                 case .raw(let value):
                     // Provider-native state has no invented template text.
                     // It remains on the assistant carrier for the provider
@@ -1364,8 +1403,15 @@ extension OpenResponsesRequest {
         }
         let functions = tools?.compactMap { value -> Tool? in
             guard let name = value.name else { return nil }
-            return Tool(type: "function", function: ToolFunction(name: name, description: value.description,
-                parameters: value.parameters, strict: value.strict))
+            return Tool(
+                type: "function",
+                function: ToolFunction(
+                    name: name,
+                    description: value.description,
+                    parameters: value.parameters,
+                    strict: value.strict
+                )
+            )
         }
         var request = ResponsesInferenceRequest(model: model, input: messages)
         request.tools = functions?.isEmpty == false ? functions : nil
@@ -1378,9 +1424,16 @@ extension OpenResponsesRequest {
                 request.toolChoice = .function(.init(type: "function", function: .init(name: name)))
             }
         }
-        request.providerOptions = ResponsesProviderOptions(tools: tools, toolChoice: tool_choice,
-            reasoning: reasoning, store: store, include: include,
-            parallelToolCalls: parallel_tool_calls, metadata: metadata, text: text)
+        request.providerOptions = ResponsesProviderOptions(
+            tools: tools,
+            toolChoice: tool_choice,
+            reasoning: reasoning,
+            store: store,
+            include: include,
+            parallelToolCalls: parallel_tool_calls,
+            metadata: metadata,
+            text: text
+        )
         request.generation.temperature = temperature
         request.generation.topP = top_p
         request.generation.maxOutputTokens = max_output_tokens
@@ -1392,9 +1445,17 @@ extension OpenResponsesRequest {
         request.generation.enableThinking = enable_thinking
         request.generation.templateKwargs = chat_template_kwargs
         if let format = text?.format {
-            request.generation.outputFormat = ResponseFormat(type: format.type,
-                json_schema: format.schema.map { ResponseJSONSchema(name: format.name ?? "",
-                    description: format.description, schema: $0, strict: format.strict) })
+            request.generation.outputFormat = ResponseFormat(
+                type: format.type,
+                json_schema: format.schema.map {
+                    ResponseJSONSchema(
+                        name: format.name ?? "",
+                        description: format.description,
+                        schema: $0,
+                        strict: format.strict
+                    )
+                }
+            )
         }
         request.sessionID = prompt_cache_key.flatMap {
             let key = $0.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1424,21 +1485,33 @@ extension ResponsesGenerationResult {
 
     var reportedChatUsage: Usage? {
         guard let inputTokenCount, let output = completion.tokenCount else { return nil }
-        return Usage(prompt_tokens: inputTokenCount, completion_tokens: output,
-            total_tokens: inputTokenCount + output, tokens_per_second: completion.tokensPerSecond,
-            prompt_tokens_details: completion.cachedInputTokenCount.map { .init(cached_tokens: $0) })
+        return Usage(
+            prompt_tokens: inputTokenCount,
+            completion_tokens: output,
+            total_tokens: inputTokenCount + output,
+            tokens_per_second: completion.tokensPerSecond,
+            prompt_tokens_details: completion.cachedInputTokenCount.map { .init(cached_tokens: $0) }
+        )
     }
 
     func compatibilityAssistantMessage() throws -> ChatMessage {
         switch completion.status {
         case .completed: return try completedAssistantInput()
         case .cancelled:
-            throw NSError(domain: "OsaurusUpstreamCancellation", code: 499,
-                userInfo: [NSLocalizedDescriptionKey: "The upstream model or provider cancelled generation."])
+            throw NSError(
+                domain: "OsaurusUpstreamCancellation",
+                code: 499,
+                userInfo: [NSLocalizedDescriptionKey: "The upstream model or provider cancelled generation."]
+            )
         case .incomplete:
             guard completion.stopReason == "length" else { throw CollectionError.incomplete(completion.stopReason) }
-            return ChatMessage(role: "assistant", content: text, tool_calls: nil, tool_call_id: nil,
-                reasoning_content: reasoning.isEmpty ? nil : reasoning)
+            return ChatMessage(
+                role: "assistant",
+                content: text,
+                tool_calls: nil,
+                tool_call_id: nil,
+                reasoning_content: reasoning.isEmpty ? nil : reasoning
+            )
         }
     }
 
@@ -1449,38 +1522,56 @@ extension ResponsesGenerationResult {
         let finish: String
         switch completion.status {
         case .cancelled:
-            throw NSError(domain: "OsaurusUpstreamCancellation", code: 499,
-                userInfo: [NSLocalizedDescriptionKey: "The upstream model or provider cancelled generation."])
+            throw NSError(
+                domain: "OsaurusUpstreamCancellation",
+                code: 499,
+                userInfo: [NSLocalizedDescriptionKey: "The upstream model or provider cancelled generation."]
+            )
         case .incomplete:
             guard completion.stopReason == "length" else {
                 throw ResponsesGenerationResult.CollectionError.incomplete(completion.stopReason)
             }
             finish = "length"
-            assistant = ChatMessage(role: "assistant", content: text, tool_calls: nil, tool_call_id: nil,
-                reasoning_content: reasoning.isEmpty ? nil : reasoning)
+            assistant = ChatMessage(
+                role: "assistant",
+                content: text,
+                tool_calls: nil,
+                tool_call_id: nil,
+                reasoning_content: reasoning.isEmpty ? nil : reasoning
+            )
         case .completed:
             finish = completion.functionCalls.isEmpty ? "stop" : "tool_calls"
             assistant = try completedAssistantInput()
         }
         let messageData = try JSONEncoder.osaurusCanonical().encode(assistant)
         let message = try JSONSerialization.jsonObject(with: messageData)
-        var object: [String: Any] = ["id": completion.responseID, "object": "chat.completion",
+        var object: [String: Any] = [
+            "id": completion.responseID, "object": "chat.completion",
             "created": Int(Date().timeIntervalSince1970), "model": model,
-            "choices": [["index": 0, "message": message, "finish_reason": finish]]]
+            "choices": [["index": 0, "message": message, "finish_reason": finish]],
+        ]
         object["generation_metrics"] = try JSONSerialization.jsonObject(
-            with: JSONEncoder.osaurusCanonical().encode(reportedGenerationMetrics))
+            with: JSONEncoder.osaurusCanonical().encode(reportedGenerationMetrics)
+        )
         if let reportedChatUsage {
-            object["usage"] = try JSONSerialization.jsonObject(with: JSONEncoder.osaurusCanonical().encode(reportedChatUsage))
+            object["usage"] = try JSONSerialization.jsonObject(
+                with: JSONEncoder.osaurusCanonical().encode(reportedChatUsage)
+            )
         }
         if let prefixHash { object["prefix_hash"] = prefixHash }
-        return String(decoding: try JSONSerialization.data(withJSONObject: object, options: .osaurusCanonical), as: UTF8.self)
+        return String(
+            decoding: try JSONSerialization.data(withJSONObject: object, options: .osaurusCanonical),
+            as: UTF8.self
+        )
     }
 }
 
 extension ResponsesGenerationResult {
     /// Explicit public Responses wire projection. Native status and sparse
     /// measured usage are authoritative; no estimated token count is usage.
-    func openResponsesResponse(responseID: String, model: String, metadata: [String: String]? = nil) -> OpenResponsesResponse {
+    func openResponsesResponse(responseID: String, model: String, metadata: [String: String]? = nil)
+        -> OpenResponsesResponse
+    {
         let status: OpenResponsesStatus
         let itemStatus: OpenResponsesItemStatus
         switch completion.status {
@@ -1493,30 +1584,65 @@ extension ResponsesGenerationResult {
             output = providerOutputItems.map(OpenResponsesOutputItem.raw)
         } else {
             if !reasoning.isEmpty || reasoningItem != nil {
-                output.append(.reasoning(.init(id: reasoningItem?.id ?? "rs_" + responseID,
-                    status: itemStatus,
-                    summary: reasoning.isEmpty ? [] : [.init(text: reasoning)],
-                    encryptedContent: reasoningItem?.encryptedContent)))
+                output.append(
+                    .reasoning(
+                        .init(
+                            id: reasoningItem?.id ?? "rs_" + responseID,
+                            status: itemStatus,
+                            summary: reasoning.isEmpty ? [] : [.init(text: reasoning)],
+                            encryptedContent: reasoningItem?.encryptedContent
+                        )
+                    )
+                )
             }
             if !text.isEmpty {
-                output.append(.message(.init(id: "msg_" + responseID, status: itemStatus,
-                    content: [.outputText(.init(text: text))])))
+                output.append(
+                    .message(
+                        .init(
+                            id: "msg_" + responseID,
+                            status: itemStatus,
+                            content: [.outputText(.init(text: text))]
+                        )
+                    )
+                )
             }
-            output.append(contentsOf: completion.functionCalls.map {
-                .functionCall(.init(id: $0.id, status: itemStatus, callId: $0.callID,
-                    name: $0.name, arguments: $0.arguments))
-            })
+            output.append(
+                contentsOf: completion.functionCalls.map {
+                    .functionCall(
+                        .init(
+                            id: $0.id,
+                            status: itemStatus,
+                            callId: $0.callID,
+                            name: $0.name,
+                            arguments: $0.arguments
+                        )
+                    )
+                }
+            )
         }
         let usage: OpenResponsesUsage?
         if let inputTokenCount, let count = completion.tokenCount {
-            usage = .init(inputTokens: inputTokenCount, outputTokens: count,
-                tokensPerSecond: completion.tokensPerSecond, cachedInputTokens: completion.cachedInputTokenCount)
-        } else { usage = nil }
-        return OpenResponsesResponse(id: responseID, createdAt: Int(Date().timeIntervalSince1970),
-            status: status, model: model, output: output, usage: usage,
-            outputText: text.isEmpty ? nil : text, metadata: metadata,
+            usage = .init(
+                inputTokens: inputTokenCount,
+                outputTokens: count,
+                tokensPerSecond: completion.tokensPerSecond,
+                cachedInputTokens: completion.cachedInputTokenCount
+            )
+        } else {
+            usage = nil
+        }
+        return OpenResponsesResponse(
+            id: responseID,
+            createdAt: Int(Date().timeIntervalSince1970),
+            status: status,
+            model: model,
+            output: output,
+            usage: usage,
+            outputText: text.isEmpty ? nil : text,
+            metadata: metadata,
             incompleteReason: status == .incomplete
-                ? (completion.stopReason == "length" ? "max_output_tokens" : completion.stopReason) : nil)
+                ? (completion.stopReason == "length" ? "max_output_tokens" : completion.stopReason) : nil
+        )
     }
 }
 
@@ -1682,11 +1808,17 @@ extension OpenResponsesRequest {
         request.enable_thinking = enable_thinking
         request.chat_template_kwargs = chat_template_kwargs
         if let format = text?.format {
-            request.response_format = ResponseFormat(type: format.type,
+            request.response_format = ResponseFormat(
+                type: format.type,
                 json_schema: format.schema.map {
-                    ResponseJSONSchema(name: format.name ?? "", description: format.description,
-                        schema: $0, strict: format.strict)
-                })
+                    ResponseJSONSchema(
+                        name: format.name ?? "",
+                        description: format.description,
+                        schema: $0,
+                        strict: format.strict
+                    )
+                }
+            )
         }
         return request
     }

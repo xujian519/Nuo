@@ -199,9 +199,13 @@ public struct ChatConfiguration: Codable, Equatable, Sendable {
         coreModelProvider = try container.decodeIfPresent(String.self, forKey: .coreModelProvider)
         coreModelName = try container.decodeIfPresent(String.self, forKey: .coreModelName)
         compactionModelProvider = try container.decodeIfPresent(
-            String.self, forKey: .compactionModelProvider)
+            String.self,
+            forKey: .compactionModelProvider
+        )
         compactionModelName = try container.decodeIfPresent(
-            String.self, forKey: .compactionModelName)
+            String.self,
+            forKey: .compactionModelName
+        )
         enableClipboardMonitoring = try container.decodeIfPresent(Bool.self, forKey: .enableClipboardMonitoring) ?? true
         warmModelsOnLoad = try container.decodeIfPresent(Bool.self, forKey: .warmModelsOnLoad) ?? true
         autoGenerateChatTitles =

@@ -310,13 +310,16 @@ private struct AgentAbilityContextDetailsView: View {
 
     private var displayRows: [DisplayRow] {
         let entries = preview.breakdown.context
-        let instructions = entries
+        let instructions =
+            entries
             .filter { $0.id == "platform" || $0.id == "persona" }
             .reduce(0) { $0 + $1.tokens }
-        let tools = entries
+        let tools =
+            entries
             .filter { $0.id == "tools" }
             .reduce(0) { $0 + $1.tokens }
-        let abilities = entries
+        let abilities =
+            entries
             .filter {
                 $0.id != "platform"
                     && $0.id != "persona"

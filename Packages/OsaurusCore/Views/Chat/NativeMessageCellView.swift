@@ -949,7 +949,8 @@ final class NativeAssistantActionsView: NSView {
         )
         let cfg = NSImage.SymbolConfiguration(pointSize: CGFloat(theme.captionSize) - 1, weight: .medium)
         fileChangesButton.image = SymbolImageCache.image(
-            "clock.arrow.circlepath", accessibilityDescription: nil
+            "clock.arrow.circlepath",
+            accessibilityDescription: nil
         )?.withSymbolConfiguration(cfg)
         fileChangesButton.contentTintColor = tint
         fileChangesButton.toolTip = L("Show in File Changes")
@@ -1683,11 +1684,16 @@ final class NativeStatsView: NSView {
         showResponseMetrics: Bool = false,
         theme: any ThemeProtocol
     ) {
-        label.stringValue = showResponseMetrics
+        label.stringValue =
+            showResponseMetrics
             ? Self.statsText(
-                ttft: ttft, tokensPerSecond: tokensPerSecond, tokenCount: tokenCount,
-                unclosedReasoning: unclosedReasoning, modelLoad: modelLoad,
-                cachedInputTokens: cachedInputTokens, totalDuration: totalDuration
+                ttft: ttft,
+                tokensPerSecond: tokensPerSecond,
+                tokenCount: tokenCount,
+                unclosedReasoning: unclosedReasoning,
+                modelLoad: modelLoad,
+                cachedInputTokens: cachedInputTokens,
+                totalDuration: totalDuration
             )
             : (unclosedReasoning ? L("⚠ thinking didn't close — answer may be in reasoning above") : "")
         label.font = NSFont.monospacedDigitSystemFont(
@@ -2105,7 +2111,12 @@ final class NativeMessageCellView: NSTableCellView {
             )
 
         case let .typingIndicator(phase):
-            configureAsTypingIndicator(phase: phase, prefillProgress: block.prefillProgress, context: context, sameKind: sameKind)
+            configureAsTypingIndicator(
+                phase: phase,
+                prefillProgress: block.prefillProgress,
+                context: context,
+                sameKind: sameKind
+            )
 
         case let .sharedArtifact(artifact):
             configureAsArtifact(block: block, artifact: artifact, context: context, sameKind: sameKind)
@@ -2117,7 +2128,13 @@ final class NativeMessageCellView: NSTableCellView {
             configureAsFileDiff(block: block, diff: diff, context: context, sameKind: sameKind)
 
         case let .generationStats(
-            ttft, tokensPerSecond, tokenCount, unclosedReasoning, modelLoad, cachedInputTokens, totalDuration
+            ttft,
+            tokensPerSecond,
+            tokenCount,
+            unclosedReasoning,
+            modelLoad,
+            cachedInputTokens,
+            totalDuration
         ):
             configureAsStats(
                 ttft: ttft,

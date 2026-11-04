@@ -164,8 +164,10 @@ struct SpawnGuidanceTests {
             agents: [
                 agent("helper"),
                 agent(
-                    "coder", id: UUID(uuidString: "4A78F152-34AC-4867-AD7C-CB5FB6905E70")!,
-                    folder: "/Users/me/Repo"),
+                    "coder",
+                    id: UUID(uuidString: "4A78F152-34AC-4867-AD7C-CB5FB6905E70")!,
+                    folder: "/Users/me/Repo"
+                ),
             ],
             launcherHasFolder: true
         )
@@ -225,8 +227,11 @@ struct SpawnGuidanceTests {
             agents: [agent("helper", description: "Writes code", folder: "/Users/me/Project")],
             workspaceAgents: [
                 SpawnWorkspaceAgentDescriptor(
-                    ref: ref, name: "Reviewer", description: "Reviews PRs",
-                    workspaceName: "Team", ownerName: "Ana"
+                    ref: ref,
+                    name: "Reviewer",
+                    description: "Reviews PRs",
+                    workspaceName: "Team",
+                    ownerName: "Ana"
                 )
             ],
             maxParallel: 2,

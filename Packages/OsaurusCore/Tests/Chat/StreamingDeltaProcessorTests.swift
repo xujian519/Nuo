@@ -17,8 +17,11 @@ struct StreamingDeltaProcessorTests {
         let previous = UserDefaults.standard.object(forKey: key)
         UserDefaults.standard.set(true, forKey: key)
         defer {
-            if let previous { UserDefaults.standard.set(previous, forKey: key) }
-            else { UserDefaults.standard.removeObject(forKey: key) }
+            if let previous {
+                UserDefaults.standard.set(previous, forKey: key)
+            } else {
+                UserDefaults.standard.removeObject(forKey: key)
+            }
         }
 
         let text = String(repeating: "The photo shows a city. ", count: 20)
@@ -59,8 +62,11 @@ struct StreamingDeltaProcessorTests {
         let key = "chatSmoothStreamingEnabled"
         let previous = UserDefaults.standard.object(forKey: key)
         defer {
-            if let previous { UserDefaults.standard.set(previous, forKey: key) }
-            else { UserDefaults.standard.removeObject(forKey: key) }
+            if let previous {
+                UserDefaults.standard.set(previous, forKey: key)
+            } else {
+                UserDefaults.standard.removeObject(forKey: key)
+            }
         }
         let line = "The north gate remains open.\n"
         let payloads = [
@@ -109,8 +115,11 @@ struct StreamingDeltaProcessorTests {
         let previous = UserDefaults.standard.object(forKey: key)
         UserDefaults.standard.set(true, forKey: key)
         defer {
-            if let previous { UserDefaults.standard.set(previous, forKey: key) }
-            else { UserDefaults.standard.removeObject(forKey: key) }
+            if let previous {
+                UserDefaults.standard.set(previous, forKey: key)
+            } else {
+                UserDefaults.standard.removeObject(forKey: key)
+            }
         }
         let oldTurn = ChatTurn(role: .assistant, content: "")
         let processor = StreamingDeltaProcessor(turn: oldTurn)

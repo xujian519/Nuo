@@ -48,8 +48,8 @@ struct SpawnPoolAutoAddTests {
         let name = "Spawn Pool Probe \(UUID().uuidString.prefix(6))"
         var document = OsaurusConfigDocument()
         var entry = AgentEntry(name: name)
-            entry.description = "Handles independent tasks for this isolated delegation test."
-            document.agents = [entry]
+        entry.description = "Handles independent tasks for this isolated delegation test."
+        document.agents = [entry]
         let results = await ConfigApplier.apply(document: document, prune: false)
         #expect(results.allSatisfy { $0.status != .failed }, "\(results)")
 
@@ -59,12 +59,14 @@ struct SpawnPoolAutoAddTests {
         }
         #expect(
             SubagentConfigurationStore.snapshot().spawnableAgentIDs.contains(created.id),
-            "a newly created agent must join the Default agent's spawn pool")
+            "a newly created agent must join the Default agent's spawn pool"
+        )
         // The create result must tell the orchestrator it can act NOW.
         let createResult = results.first { $0.section == "agents" && $0.target == name }
         #expect(
             createResult?.message?.contains("spawn_agent") == true,
-            "create result must point at spawn_agent: \(String(describing: createResult))")
+            "create result must point at spawn_agent: \(String(describing: createResult))"
+        )
 
         // Re-applying the same document updates (not re-creates) the agent
         // and must not duplicate the pool entry.
@@ -76,7 +78,8 @@ struct SpawnPoolAutoAddTests {
         _ = await AgentManager.shared.delete(id: created.id)
         #expect(
             !SubagentConfigurationStore.snapshot().spawnableAgentIDs.contains(created.id),
-            "deleting an agent must prune it from the Default spawn pool")
+            "deleting an agent must prune it from the Default spawn pool"
+        )
     }
 
     @Test("AgentManager.create auto-adds; built-ins are excluded; the append is idempotent")
@@ -91,10 +94,13 @@ struct SpawnPoolAutoAddTests {
     private func managerCreateBody() async throws {
         let agent = AgentManager.shared.create(
             name: "Pool Create Probe \(UUID().uuidString.prefix(6))",
-            description: "Exercises agent configuration in this isolated test.", systemPrompt: "")
+            description: "Exercises agent configuration in this isolated test.",
+            systemPrompt: ""
+        )
         #expect(
             SubagentConfigurationStore.snapshot().spawnableAgentIDs.contains(agent.id),
-            "AgentManager.create must auto-add the agent to the Default spawn pool")
+            "AgentManager.create must auto-add the agent to the Default spawn pool"
+        )
 
         // Duplicate / import / restore reach the same hook — it must be
         // idempotent so no path can double-append.
@@ -109,11 +115,13 @@ struct SpawnPoolAutoAddTests {
         AgentManager.shared.registerInDefaultSpawnPool(builtIn)
         #expect(
             !SubagentConfigurationStore.snapshot().spawnableAgentIDs.contains(builtIn.id),
-            "built-in agents must not join the spawn pool")
+            "built-in agents must not join the spawn pool"
+        )
 
         _ = await AgentManager.shared.delete(id: agent.id)
         #expect(
-            !SubagentConfigurationStore.snapshot().spawnableAgentIDs.contains(agent.id))
+            !SubagentConfigurationStore.snapshot().spawnableAgentIDs.contains(agent.id)
+        )
     }
 
     @Test("orchestrator_spawnable: false keeps a created agent out of the pool; patching ignores it")
@@ -143,7 +151,8 @@ struct SpawnPoolAutoAddTests {
         defer { Task { _ = await AgentManager.shared.delete(id: created.id) } }
         #expect(
             !SubagentConfigurationStore.snapshot().spawnableAgentIDs.contains(created.id),
-            "an opted-out agent must not join the Default spawn pool")
+            "an opted-out agent must not join the Default spawn pool"
+        )
         let createResult = results.first { $0.section == "agents" && $0.target == name }
         #expect(createResult?.message?.contains("Settings → Subagents") == true, "\(String(describing: createResult))")
 
@@ -153,7 +162,8 @@ struct SpawnPoolAutoAddTests {
         _ = await ConfigApplier.apply(document: document, prune: false)
         #expect(
             SubagentConfigurationStore.snapshot().spawnableAgentIDs.filter { $0 == created.id }.count == 1,
-            "patching must not remove an agent the user added to the pool")
+            "patching must not remove an agent the user added to the pool"
+        )
     }
 
     @Test("orchestrator_spawnable omitted or true joins the pool as before")
@@ -202,7 +212,8 @@ struct SpawnPoolAutoAddTests {
     @Test("bundle agent files accept orchestrator_spawnable through the strict parser")
     func templateParseAcceptsOrchestratorSpawnable() throws {
         let template = try Template.parse(
-            #"{ "name": "Strict Probe", "orchestrator_spawnable": false, "system_prompt": "Hi." }"#)
+            #"{ "name": "Strict Probe", "orchestrator_spawnable": false, "system_prompt": "Hi." }"#
+        )
         #expect(template.agent.orchestratorSpawnable == false)
         #expect(throws: (any Error).self) {
             try Template.parse(#"{ "name": "Strict Probe", "orchestrator_spawnabel": false }"#)
@@ -221,20 +232,25 @@ struct SpawnPoolAutoAddTests {
                 .deletingLastPathComponent()  // Tests/
                 .deletingLastPathComponent()  // OsaurusCore/
             return try String(
-                contentsOf: packageRoot.appendingPathComponent(relativePath), encoding: .utf8)
+                contentsOf: packageRoot.appendingPathComponent(relativePath),
+                encoding: .utf8
+            )
         }
         let agentsView = try source("Views/Agent/AgentsView.swift")
         #expect(
             agentsView.contains("registerInDefaultSpawnPool(duplicated)"),
-            "duplicateAgent must register the copy in the Default spawn pool")
+            "duplicateAgent must register the copy in the Default spawn pool"
+        )
         let bundleService = try source("Services/AgentBridge/AgentBundleService.swift")
         #expect(
             bundleService.contains("registerInDefaultSpawnPool(agent)"),
-            "bundle-import activate must register the imported agent")
+            "bundle-import activate must register the imported agent"
+        )
         let manager = try source("Managers/AgentManager.swift")
         #expect(
             manager.contains("registerInDefaultSpawnPool(restored)"),
-            "restoreRecoverableAgentBackup must register the restored agent")
+            "restoreRecoverableAgentBackup must register the restored agent"
+        )
     }
 }
 
@@ -307,10 +323,12 @@ struct SameTurnSpawnStagingTests {
             let names = staged.map { $0.function.name }
             #expect(
                 names.contains(SubagentCapabilityRegistry.spawnAgentToolName),
-                "spawn_agent must be staged for the same turn, got \(names)")
+                "spawn_agent must be staged for the same turn, got \(names)"
+            )
             #expect(
                 !names.contains("spawn_batch"),
-                "spawn_batch was removed; only spawn_agent is staged, got \(names)")
+                "spawn_batch was removed; only spawn_agent is staged, got \(names)"
+            )
 
             // The staged schema must already advertise the just-created
             // agent (UUID + display name) — execution validates against the
@@ -333,7 +351,8 @@ struct SameTurnSpawnStagingTests {
             #expect(scope.permits(SubagentCapabilityRegistry.spawnAgentToolName))
             #expect(
                 scope.modelVisibleSpecs.map { $0.function.name }
-                    .contains(SubagentCapabilityRegistry.spawnAgentToolName))
+                    .contains(SubagentCapabilityRegistry.spawnAgentToolName)
+            )
         }
     }
 
@@ -377,7 +396,8 @@ struct SameTurnSpawnStagingTests {
             let staged = await buffer.drain()
             #expect(
                 staged.map { $0.function.name }.contains(SubagentCapabilityRegistry.spawnAgentToolName),
-                "owner .http applies must stage spawn_agent for the same turn: \(staged)")
+                "owner .http applies must stage spawn_agent for the same turn: \(staged)"
+            )
         }
     }
 
@@ -482,7 +502,8 @@ struct SpawnPoolSeedMigrationTests {
         snapshot = SubagentConfigurationStore.snapshot()
         #expect(
             !snapshot.spawnableAgentIDs.contains(custom1.id),
-            "seeding must never re-add an agent the user removed")
+            "seeding must never re-add an agent the user removed"
+        )
         #expect(snapshot.spawnableAgentIDs == [custom2.id])
     }
 
@@ -499,7 +520,8 @@ struct SpawnPoolSeedMigrationTests {
         let gone = Agent(name: "Reconcile Gone")
         let builtIn = Agent(name: "Reconcile Built-in", isBuiltIn: true)
         SubagentConfigurationStore.save(
-            SubagentConfiguration(spawnableAgentIDs: [live.id, gone.id], spawnPoolSeeded: true))
+            SubagentConfiguration(spawnableAgentIDs: [live.id, gone.id], spawnPoolSeeded: true)
+        )
 
         // Nothing (or only the built-in) loaded: keep everything.
         _ = SubagentConfigurationStore.reconcile(with: [])
@@ -521,7 +543,8 @@ struct SpawnPoolSeedMigrationTests {
         // trigger)…
         let legacy = try JSONDecoder().decode(
             SubagentConfiguration.self,
-            from: Data("{}".utf8))
+            from: Data("{}".utf8)
+        )
         #expect(!legacy.spawnPoolSeeded)
 
         // …and a seeded config keeps the flag through encode/decode and
@@ -531,7 +554,8 @@ struct SpawnPoolSeedMigrationTests {
         #expect(seeded.normalized.spawnPoolSeeded)
         let decoded = try JSONDecoder().decode(
             SubagentConfiguration.self,
-            from: JSONEncoder().encode(seeded))
+            from: JSONEncoder().encode(seeded)
+        )
         #expect(decoded.spawnPoolSeeded)
 
         // A delegation-section apply (the export/apply round-trip path)
@@ -555,7 +579,9 @@ struct SpawnPoolSeedMigrationTests {
         var editor = staleBaseline
         editor.ramSafetyPreflightEnabled = false
         let merged = SubagentConfigurationStore.saveEditorSnapshot(
-            editor, loadedBaseline: staleBaseline)
+            editor,
+            loadedBaseline: staleBaseline
+        )
         #expect(merged.spawnPoolSeeded, "an editor save must not revert the seed sentinel")
         #expect(!merged.ramSafetyPreflightEnabled)
     }
@@ -579,7 +605,8 @@ struct SpawnPoolSeedMigrationTests {
                 changed.ramSafetyPreflightEnabled = enabled
                 SubagentConfigurationStore.save(changed)
                 let merged = SubagentConfigurationStore.saveEditorSnapshot(
-                    staleEditor, loadedBaseline: baseline
+                    staleEditor,
+                    loadedBaseline: baseline
                 )
                 #expect(merged.ramSafetyPreflightEnabled == enabled)
 
@@ -595,11 +622,13 @@ struct SpawnPoolSeedMigrationTests {
                 // shared flag; residency shape may not turn it back on.
                 for handoff in [false, true] {
                     let plan = try SubagentResidency.decidePlan(
-                        isLocal: true, modelName: "gemma",
+                        isLocal: true,
+                        modelName: "gemma",
                         residentChatModels: ["gemma"],
                         handoffEnabled: handoff,
                         ramSafetyEnabled: reloaded.ramSafetyPreflightEnabled,
-                        requiredBytes: 5_899_232_198, idleWaitSeconds: 30,
+                        requiredBytes: 5_899_232_198,
+                        idleWaitSeconds: 30,
                         deniedMessage: "unused"
                     )
                     #expect(plan.ramSafetyEnabled == enabled)
@@ -624,7 +653,9 @@ struct SpawnPoolSeedMigrationTests {
             // auto-adds it; the sentinel is what a real seeded install carries).
             let agent = AgentManager.shared.create(
                 name: "Export Roundtrip \(UUID().uuidString.prefix(6))",
-                description: "Exercises agent configuration in this isolated test.", systemPrompt: "")
+                description: "Exercises agent configuration in this isolated test.",
+                systemPrompt: ""
+            )
             _ = SubagentConfigurationStore.mutate { $0.spawnPoolSeeded = true }
             let before = SubagentConfigurationStore.snapshot()
             #expect(before.spawnableAgentIDs.contains(agent.id))

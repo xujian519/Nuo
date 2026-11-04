@@ -92,7 +92,9 @@ struct MCPCapabilityLoadFlowTests {
                     Tool(
                         type: "function",
                         function: ToolFunction(
-                            name: "capabilities_load", description: "load", parameters: nil
+                            name: "capabilities_load",
+                            description: "load",
+                            parameters: nil
                         )
                     )
                 ])

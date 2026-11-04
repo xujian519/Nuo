@@ -162,7 +162,8 @@ public enum CLIVersionResolver {
         let companion = companionAppPath(for: executablePath)
         if let companion,
             let metadata = bundleMetadata(at: companion),
-            let version = metadata.version {
+            let version = metadata.version
+        {
             return ResolvedCLIVersion(
                 version: version,
                 build: metadata.build,
@@ -233,10 +234,12 @@ public enum InstallationDiagnostics {
         let apps = await Task.detached(priority: .utility) {
             appPaths.map { path -> AppBundleDiagnostic in
                 let metadata = CLIVersionResolver.bundleMetadata(at: path)
-                let signature = includeSignatureChecks
+                let signature =
+                    includeSignatureChecks
                     ? assess(executable: "/usr/bin/codesign", arguments: ["--verify", "--deep", "--strict", path])
                     : .unchecked
-                let notarization = includeSignatureChecks
+                let notarization =
+                    includeSignatureChecks
                     ? assess(executable: "/usr/sbin/spctl", arguments: ["-a", "-t", "execute", path])
                     : .unchecked
                 return AppBundleDiagnostic(
@@ -303,13 +306,15 @@ public enum InstallationDiagnostics {
         if let app = apps.first,
             let appVersion = app.version,
             let cliVersion,
-            compareVersions(appVersion, cliVersion) != .orderedSame {
+            compareVersions(appVersion, cliVersion) != .orderedSame
+        {
             return compareVersions(appVersion, cliVersion) == .orderedAscending
                 ? .appStale
                 : .appNewer
         }
         if let appBuild = apps.first?.build, let cliBuild,
-            compareVersions(appBuild, cliBuild) != .orderedSame {
+            compareVersions(appBuild, cliBuild) != .orderedSame
+        {
             return compareVersions(appBuild, cliBuild) == .orderedAscending ? .appStale : .appNewer
         }
         if let portOwner {
@@ -335,13 +340,16 @@ public enum InstallationDiagnostics {
         case .appNewer:
             return "Update the CLI or invoke the helper bundled with the installed Nuo app."
         case .duplicateBundles:
-            return "Quit Nuo and remove or archive duplicate registered app bundles, then launch the intended app explicitly."
+            return
+                "Quit Nuo and remove or archive duplicate registered app bundles, then launch the intended app explicitly."
         case .portBusy:
             return "Choose another port or stop the non-Nuo process using port \(port)."
         case .serverUnhealthy:
-            return "The Nuo process owns port \(port) but is unhealthy. Quit it, relaunch the intended app, and inspect `nuo doctor`."
+            return
+                "The Nuo process owns port \(port) but is unhealthy. Quit it, relaunch the intended app, and inspect `nuo doctor`."
         case .serverNotRunning:
-            return "The installation looks usable, but the server is not running. Launch Nuo or run `nuo serve --port \(port)`."
+            return
+                "The installation looks usable, but the server is not running. Launch Nuo or run `nuo serve --port \(port)`."
         case .startupTimeout:
             return "Launch the intended Nuo app explicitly, then retry `nuo serve --port \(port)`."
         }
@@ -396,7 +404,8 @@ public enum InstallationDiagnostics {
         let output: String
         if captureOutput,
             let data = try? pipe.fileHandleForReading.readToEnd(),
-            let decoded = String(data: data, encoding: .utf8) {
+            let decoded = String(data: data, encoding: .utf8)
+        {
             output = decoded
         } else {
             output = ""
@@ -412,7 +421,7 @@ public enum InstallationDiagnostics {
         let left = normalizedVersionComponents(lhs)
         let right = normalizedVersionComponents(rhs)
         let count = max(left.count, right.count)
-        for index in 0..<count {
+        for index in 0 ..< count {
             let l = index < left.count ? left[index] : 0
             let r = index < right.count ? right[index] : 0
             if l < r { return .orderedAscending }
@@ -447,8 +456,9 @@ public enum InstallationDiagnostics {
     ) -> LegacyModelDirectoryDiagnostic? {
         let legacy = home.appendingPathComponent(Brand.Legacy.dataRootName, isDirectory: true)
             .appendingPathComponent("models", isDirectory: true)
-        guard legacy.resolvingSymlinksInPath().standardizedFileURL
-            != activeRoot.resolvingSymlinksInPath().standardizedFileURL
+        guard
+            legacy.resolvingSymlinksInPath().standardizedFileURL
+                != activeRoot.resolvingSymlinksInPath().standardizedFileURL
         else { return nil }
         let (modelCount, scanComplete) = countModelBundles(in: legacy, maximumEntries: maximumEntries)
         guard modelCount > 0 else { return nil }
@@ -460,11 +470,13 @@ public enum InstallationDiagnostics {
         maximumEntries: Int = 100_000
     ) -> (count: Int, complete: Bool) {
         let fm = FileManager.default
-        guard let enumerator = fm.enumerator(
-            at: root,
-            includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey],
-            options: [.skipsHiddenFiles, .skipsPackageDescendants]
-        ) else { return (0, false) }
+        guard
+            let enumerator = fm.enumerator(
+                at: root,
+                includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey],
+                options: [.skipsHiddenFiles, .skipsPackageDescendants]
+            )
+        else { return (0, false) }
         var modelDirectories = Set<String>()
         var visited = 0
         for case let url as URL in enumerator {

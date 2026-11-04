@@ -13,9 +13,10 @@ struct MiniCPMAppTokenizerTests {
     private static var actualBundleDirectory: URL {
         // Honor the same explicit model root as the isolated app harness.
         // An empty fixture root must not reach a user's unrelated bundles.
-        let root = ProcessInfo.processInfo.environment["OSU_MODELS_DIR"].map {
-            URL(fileURLWithPath: $0, isDirectory: true)
-        } ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("models")
+        let root =
+            ProcessInfo.processInfo.environment["OSU_MODELS_DIR"].map {
+                URL(fileURLWithPath: $0, isDirectory: true)
+            } ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("models")
         return root.appendingPathComponent("OsaurusAI/MiniCPM5-2B-JANG_8M")
     }
 

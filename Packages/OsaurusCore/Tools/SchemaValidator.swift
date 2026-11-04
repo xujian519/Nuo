@@ -164,7 +164,8 @@ public struct SchemaValidator {
     ) -> ValidationResult {
         guard !result.isValid else { return result }
         let field = result.field.map { "\(parent).\($0)" } ?? parent
-        let message = result.errorMessage.map { "\(parent): \($0)" }
+        let message =
+            result.errorMessage.map { "\(parent): \($0)" }
             ?? "Invalid value at \(parent)."
         return .fail(message, field: field)
     }
@@ -643,7 +644,11 @@ public struct SchemaValidator {
         // and the decoded object contains at least one declared key.
         out = unwrapSchemaBodyWrapper(in: out, key: "arguments", propsDict: propsDict)
         out = normalizeKeySpelling(in: out, propsDict: propsDict)
-        out = dropEmptyOptionalStrings(in: out, propsDict: propsDict, required: requiredKeys(schemaObject) + preservingEmpty)
+        out = dropEmptyOptionalStrings(
+            in: out,
+            propsDict: propsDict,
+            required: requiredKeys(schemaObject) + preservingEmpty
+        )
         for (key, value) in out {
             guard case .object(let propSchema)? = propsDict[key] else { continue }
             out[key] = coerceValue(value, schemaObject: propSchema)

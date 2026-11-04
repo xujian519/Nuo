@@ -76,7 +76,10 @@ enum EvalMediaFixtures {
         let output = NSMutableData()
         guard
             let destination = CGImageDestinationCreateWithData(
-                output, UTType.png.identifier as CFString, 1, nil
+                output,
+                UTType.png.identifier as CFString,
+                1,
+                nil
             )
         else { return nil }
         CGImageDestinationAddImage(destination, image, nil)

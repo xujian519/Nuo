@@ -99,7 +99,9 @@ struct ToolExecutionScopeWiringTests {
             .deletingLastPathComponent()  // Tests/
             .deletingLastPathComponent()  // OsaurusCore/
         return try String(
-            contentsOf: packageRoot.appendingPathComponent(relativePath), encoding: .utf8)
+            contentsOf: packageRoot.appendingPathComponent(relativePath),
+            encoding: .utf8
+        )
     }
 
     @Test("The check runs AFTER the tool/ prefix is normalized away")

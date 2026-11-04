@@ -59,21 +59,29 @@ struct ComputerUseAuthorizationTests {
         #expect(
             ComputerUseTool.refusalStage(
                 fromEnvelope: ToolEnvelope.failure(
-                    kind: .rejected, message: "nested", tool: tool, metadata: ["recursion": true]
+                    kind: .rejected,
+                    message: "nested",
+                    tool: tool,
+                    metadata: ["recursion": true]
                 )
             ) == .recursion
         )
         #expect(
             ComputerUseTool.refusalStage(
                 fromEnvelope: ToolEnvelope.failure(
-                    kind: .unavailable, message: "busy", tool: tool, metadata: ["admission": "timeout"]
+                    kind: .unavailable,
+                    message: "busy",
+                    tool: tool,
+                    metadata: ["admission": "timeout"]
                 )
             ) == .admissionTimeout
         )
         #expect(
             ComputerUseTool.refusalStage(
                 fromEnvelope: ToolEnvelope.failure(
-                    kind: .rejected, message: "ram", tool: tool,
+                    kind: .rejected,
+                    message: "ram",
+                    tool: tool,
                     metadata: ["admission": "stable_memory_refusal"]
                 )
             ) == .ramSafety
@@ -81,7 +89,10 @@ struct ComputerUseAuthorizationTests {
         #expect(
             ComputerUseTool.refusalStage(
                 fromEnvelope: ToolEnvelope.failure(
-                    kind: .executionError, message: "stopped", tool: tool, metadata: ["cancelled": true]
+                    kind: .executionError,
+                    message: "stopped",
+                    tool: tool,
+                    metadata: ["cancelled": true]
                 )
             ) == .cancelled
         )

@@ -39,7 +39,10 @@ struct WatcherFolderDispatchTests {
             .appendingPathComponent("osaurus-watch-\(label)-\(UUID().uuidString.prefix(8))", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         try "memo".write(
-            to: dir.appendingPathComponent("New Recording 12.m4a"), atomically: true, encoding: .utf8)
+            to: dir.appendingPathComponent("New Recording 12.m4a"),
+            atomically: true,
+            encoding: .utf8
+        )
         return dir
     }
 
@@ -86,11 +89,16 @@ struct WatcherFolderDispatchTests {
         // No resolved path (engine could not resolve) → the display path
         // still travels, so the run's plain-path fallback has something.
         let pathOnly = Watcher(
-            name: "Config Watcher", instructions: "organize", agentId: UUID(),
-            watchPath: "/Users/probe/Inbox", watchBookmark: nil
+            name: "Config Watcher",
+            instructions: "organize",
+            agentId: UUID(),
+            watchPath: "/Users/probe/Inbox",
+            watchBookmark: nil
         )
         let fallback = WatcherManager.shared.makeDispatchRequest(
-            for: pathOnly, prompt: "p", resolvedWatchPath: nil
+            for: pathOnly,
+            prompt: "p",
+            resolvedWatchPath: nil
         )
         #expect(fallback.folderPath == "/Users/probe/Inbox")
         #expect(fallback.folderBookmark == nil)
@@ -148,11 +156,16 @@ struct WatcherFolderDispatchTests {
         #expect(!section.contains("/workspace/agents"))
         // … and the trigger prompt anchors the run on the same folder.
         let watcher = Watcher(
-            name: "Voice Memo Watcher", instructions: "transcribe new voice memos",
-            agentId: agentId, watchPath: nil, watchBookmark: Data([0x01])
+            name: "Voice Memo Watcher",
+            instructions: "transcribe new voice memos",
+            agentId: agentId,
+            watchPath: nil,
+            watchBookmark: Data([0x01])
         )
         let prompt = WatcherManager.shared.buildDispatchPrompt(
-            for: watcher, iteration: 1, resolvedWatchPath: dir.path,
+            for: watcher,
+            iteration: 1,
+            resolvedWatchPath: dir.path,
             changedPaths: ["New Recording 12.m4a"]
         )
         #expect(prompt.contains("work HERE, not in any other directory): \(dir.path)"))
@@ -212,7 +225,8 @@ struct WatcherFolderDispatchTests {
         }
         #expect(
             ChatSession.turnFolderRoot(sandboxEnabled: true, folderFromDispatch: false, folderRoot: nil)
-                == nil)
+                == nil
+        )
     }
 
     /// An INTERACTIVE folder (user picked it in the chat UI, sandbox left
@@ -239,12 +253,22 @@ struct WatcherFolderDispatchTests {
         }
         #expect(
             ChatSession.turnFolderRoot(
-                sandboxEnabled: true, folderFromDispatch: false, folderRoot: dir) == nil)
+                sandboxEnabled: true,
+                folderFromDispatch: false,
+                folderRoot: dir
+            ) == nil
+        )
         // Sandbox off → the interactive folder resumes.
         #expect(
             sameFolder(
                 ChatSession.turnFolderRoot(
-                    sandboxEnabled: false, folderFromDispatch: false, folderRoot: dir), dir))
+                    sandboxEnabled: false,
+                    folderFromDispatch: false,
+                    folderRoot: dir
+                ),
+                dir
+            )
+        )
     }
 
     // MARK: - File tools inside a dispatched host-folder run
@@ -294,7 +318,8 @@ struct WatcherFolderDispatchTests {
                 await ChatExecutionContext.$hostFolderIsDispatchTarget.withValue(true) {
                     do {
                         return try await read.execute(
-                            argumentsJSON: #"{"path":"/workspace/agents/agent-x"}"#)
+                            argumentsJSON: #"{"path":"/workspace/agents/agent-x"}"#
+                        )
                     } catch {
                         return error.localizedDescription
                     }
@@ -351,7 +376,10 @@ struct WatcherFolderDispatchTests {
     func unreadableFolder_isReportedNotSilentlySwappedForTheSandbox() async {
         let missing = "/tmp/osaurus-missing-\(UUID().uuidString)"
         let context = ExecutionContext(
-            agentId: UUID(), folderBookmark: Data([0xAA, 0xBB]), folderPath: missing, source: .watcher
+            agentId: UUID(),
+            folderBookmark: Data([0xAA, 0xBB]),
+            folderPath: missing,
+            source: .watcher
         )
         let failure = await context.activateFolderContextIfNeeded()
         #expect(failure?.contains("could not") == true)

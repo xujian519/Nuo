@@ -109,10 +109,11 @@ final class WriteKnowledgeTool: OsaurusTool, PermissionedTool, KnowledgeWritePre
 
     func approvalPreview(argumentsJSON: String) async -> KnowledgeWritePreview? {
         guard let args = Self.parsedArguments(argumentsJSON) else { return nil }
-        guard case .granted(let collections, _) = await KnowledgeToolScope.resolve(
-            tool: name,
-            collectionName: args["collection"] as? String
-        ),
+        guard
+            case .granted(let collections, _) = await KnowledgeToolScope.resolve(
+                tool: name,
+                collectionName: args["collection"] as? String
+            ),
             let collection = collections.first, collections.count == 1
         else {
             // Ambiguous or ungranted: the body returns a precise error. Fall
@@ -242,8 +243,9 @@ final class WriteKnowledgeTool: OsaurusTool, PermissionedTool, KnowledgeWritePre
 
         if let raw = args["documents"] as? [[String: Any]] {
             for entry in raw {
-                guard let path = (entry["path"] as? String)?
-                    .trimmingCharacters(in: .whitespacesAndNewlines), !path.isEmpty
+                guard
+                    let path = (entry["path"] as? String)?
+                        .trimmingCharacters(in: .whitespacesAndNewlines), !path.isEmpty
                 else {
                     return .failure(
                         ToolEnvelope.failure(
@@ -261,7 +263,8 @@ final class WriteKnowledgeTool: OsaurusTool, PermissionedTool, KnowledgeWritePre
                         // Same normalization the approval preview applied, so
                         // the diff the user approved is what lands.
                         content: KnowledgeWriteService.strippingReadPreamble(
-                            (entry["content"] as? String) ?? "")
+                            (entry["content"] as? String) ?? ""
+                        )
                     )
                 )
             }
@@ -272,7 +275,8 @@ final class WriteKnowledgeTool: OsaurusTool, PermissionedTool, KnowledgeWritePre
                 PendingDocument(
                     path: path,
                     content: KnowledgeWriteService.strippingReadPreamble(
-                        (args["content"] as? String) ?? "")
+                        (args["content"] as? String) ?? ""
+                    )
                 )
             )
         }
@@ -454,10 +458,11 @@ final class DeleteKnowledgeTool: OsaurusTool, PermissionedTool, KnowledgeWritePr
 
     func approvalPreview(argumentsJSON: String) async -> KnowledgeWritePreview? {
         guard let args = WriteKnowledgeTool.parsedArguments(argumentsJSON) else { return nil }
-        guard case .granted(let collections, _) = await KnowledgeToolScope.resolve(
-            tool: name,
-            collectionName: args["collection"] as? String
-        ),
+        guard
+            case .granted(let collections, _) = await KnowledgeToolScope.resolve(
+                tool: name,
+                collectionName: args["collection"] as? String
+            ),
             let collection = collections.first, collections.count == 1
         else { return nil }
         return KnowledgeWritePreviewBuilder.build(
@@ -560,8 +565,7 @@ final class DeleteKnowledgeTool: OsaurusTool, PermissionedTool, KnowledgeWritePr
 
     // MARK: - Arguments
 
-    static func paths(from args: [String: Any], tool: String) -> WriteKnowledgeTool.DocumentsResult
-    {
+    static func paths(from args: [String: Any], tool: String) -> WriteKnowledgeTool.DocumentsResult {
         var paths: [String] = []
         if let raw = args["paths"] as? [String] {
             paths = raw.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -748,15 +752,18 @@ final class EditKnowledgeTool: OsaurusTool, PermissionedTool, KnowledgeWritePrev
             let path = (args["path"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
             !path.isEmpty
         else { return nil }
-        guard case .granted(let collections, _) = await KnowledgeToolScope.resolve(
-            tool: name,
-            collectionName: args["collection"] as? String
-        ),
+        guard
+            case .granted(let collections, _) = await KnowledgeToolScope.resolve(
+                tool: name,
+                collectionName: args["collection"] as? String
+            ),
             let collection = collections.first, collections.count == 1
         else { return nil }
         guard case .success(let edits) = Self.edits(from: args, tool: name),
             let resolved = try? KnowledgeWriteService.resolvedURL(
-                collection: collection, relPath: path),
+                collection: collection,
+                relPath: path
+            ),
             let data = FileManager.default.contents(atPath: resolved.path),
             let current = String(data: data, encoding: .utf8)
         else { return nil }
@@ -809,10 +816,15 @@ final class EditKnowledgeTool: OsaurusTool, PermissionedTool, KnowledgeWritePrev
             for line in edit.replace.components(separatedBy: "\n") { lines.append("+\(line)") }
             // Track the intermediate document so a later edit's count reflects
             // what an earlier one already changed.
-            running = edit.all
+            running =
+                edit.all
                 ? running.replacingOccurrences(of: edit.find, with: edit.replace)
                 : running.replacingOccurrences(
-                    of: edit.find, with: edit.replace, options: [], range: running.range(of: edit.find))
+                    of: edit.find,
+                    with: edit.replace,
+                    options: [],
+                    range: running.range(of: edit.find)
+                )
         }
         return lines.joined(separator: "\n")
     }
@@ -824,7 +836,11 @@ final class EditKnowledgeTool: OsaurusTool, PermissionedTool, KnowledgeWritePrev
         guard case .value(let args) = argsReq else { return argsReq.failureEnvelope ?? "" }
 
         let pathReq = requireString(
-            args, "path", expected: "collection-relative markdown path", tool: name)
+            args,
+            "path",
+            expected: "collection-relative markdown path",
+            tool: name
+        )
         guard case .value(let rawPath) = pathReq else { return pathReq.failureEnvelope ?? "" }
         let path = rawPath.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -834,7 +850,9 @@ final class EditKnowledgeTool: OsaurusTool, PermissionedTool, KnowledgeWritePrev
         }
 
         let scope = await KnowledgeToolScope.resolve(
-            tool: name, collectionName: args["collection"] as? String)
+            tool: name,
+            collectionName: args["collection"] as? String
+        )
         guard case .granted(let collections, _) = scope else {
             if case .failure(let envelope) = scope { return envelope }
             return ""

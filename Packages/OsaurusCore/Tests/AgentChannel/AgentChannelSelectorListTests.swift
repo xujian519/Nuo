@@ -19,7 +19,7 @@ struct AgentChannelSelectorListTests {
     }
 
     private func entries(_ count: Int, prefix: String = "user") -> [Entry] {
-        (0..<count).map { Entry(id: "\(prefix)-id-\($0)", name: "\(prefix) \($0)") }
+        (0 ..< count).map { Entry(id: "\(prefix)-id-\($0)", name: "\(prefix) \($0)") }
     }
 
     private func shape(

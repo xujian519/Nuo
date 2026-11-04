@@ -136,7 +136,8 @@ struct AnthropicStreamFinishReasonTests {
     func largeInputJSONDelta_preservesAllToolArguments(contentBytes: Int) throws {
         var state = RemoteProviderService.StreamingState(stopSequences: [], trackContent: false)
         var yielded: [String] = []
-        let arguments = #"{"path":"probe.txt","content":""#
+        let arguments =
+            #"{"path":"probe.txt","content":""#
             + String(repeating: "x", count: contentBytes)
             + #""}"#
 

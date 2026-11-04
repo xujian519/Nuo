@@ -21,7 +21,8 @@ enum DesktopResponsesModelStep {
             case .incomplete(let reason):
                 return "The desktop model response was incomplete (\(reason ?? "unknown reason"))."
             case .unsupportedCalls(let expected, let names):
-                return "This desktop step requires one '\(expected)' call; received \(names.count) call(s): \(names.joined(separator: ", ")). No action was executed."
+                return
+                    "This desktop step requires one '\(expected)' call; received \(names.count) call(s): \(names.joined(separator: ", ")). No action was executed."
             case .missingCallID:
                 return "The desktop model call has no call ID. No action was executed."
             case .missingVisibleAnswer:
@@ -78,10 +79,17 @@ enum DesktopResponsesModelStep {
             if required {
                 // Preserve the required/named-tool contract used by the native
                 // runtime and the Computer Use loop's bounded protocol path.
-                throw NSError(domain: "OsaurusToolChoice", code: 422, userInfo: [
-                    NSLocalizedDescriptionKey: "The model did not produce the required '\(expectedTool)' call.",
-                    NSUnderlyingErrorKey: InvalidResponse(reason: .missingRequiredCall(expectedTool), response: result)
-                ])
+                throw NSError(
+                    domain: "OsaurusToolChoice",
+                    code: 422,
+                    userInfo: [
+                        NSLocalizedDescriptionKey: "The model did not produce the required '\(expectedTool)' call.",
+                        NSUnderlyingErrorKey: InvalidResponse(
+                            reason: .missingRequiredCall(expectedTool),
+                            response: result
+                        ),
+                    ]
+                )
             }
             guard !result.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 throw InvalidResponse(reason: .missingVisibleAnswer, response: result)
@@ -89,7 +97,10 @@ enum DesktopResponsesModelStep {
             return nil
         }
         guard calls.count == 1, calls[0].name == expectedTool else {
-            throw InvalidResponse(reason: .unsupportedCalls(expected: expectedTool, names: calls.map(\.name)), response: result)
+            throw InvalidResponse(
+                reason: .unsupportedCalls(expected: expectedTool, names: calls.map(\.name)),
+                response: result
+            )
         }
         guard !calls[0].callID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw InvalidResponse(reason: .missingCallID, response: result)

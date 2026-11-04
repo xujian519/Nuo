@@ -103,14 +103,22 @@ public enum ReasoningChannelEvaluator {
     ) async -> ReasoningChannelTranscript {
         let resolvedModel = model ?? ChatConfigurationStore.load().coreModelIdentifier ?? "foundation"
         return await runConversation(
-            queries: queries, model: resolvedModel, maxTokens: maxTokens, temperature: temperature,
-            supportsThinking: modelSupportsThinking(modelId: resolvedModel), engine: ChatEngine()
+            queries: queries,
+            model: resolvedModel,
+            maxTokens: maxTokens,
+            temperature: temperature,
+            supportsThinking: modelSupportsThinking(modelId: resolvedModel),
+            engine: ChatEngine()
         )
     }
 
     static func runConversation(
-        queries: [String], model: String, maxTokens: Int, temperature: Float? = nil,
-        supportsThinking: Bool, engine: any ResponsesEngineProtocol
+        queries: [String],
+        model: String,
+        maxTokens: Int,
+        temperature: Float? = nil,
+        supportsThinking: Bool,
+        engine: any ResponsesEngineProtocol
     ) async -> ReasoningChannelTranscript {
         let sessionId = UUID().uuidString
         var history: [ChatMessage] = []
@@ -118,24 +126,29 @@ public enum ReasoningChannelEvaluator {
         for (index, query) in queries.enumerated() {
             history.append(ChatMessage(role: "user", content: query))
             let request = ResponsesInferenceRequest(
-                model: model, input: history,
+                model: model,
+                input: history,
                 generation: ResponsesGenerationOptions(temperature: temperature, maxOutputTokens: maxTokens),
                 sessionID: sessionId
             )
             do {
                 let result = try await engine.completeResponse(request: request, endAt: .streamEnd)
-                turns.append(ReasoningChannelTurn(
-                    visibleText: result.text, reasoningText: result.reasoning,
-                    unclosedReasoning: result.completion.unclosedReasoning,
-                    tokenCount: result.completion.tokenCount,
-                    decodeTokensPerSecond: result.completion.tokensPerSecond
-                ))
+                turns.append(
+                    ReasoningChannelTurn(
+                        visibleText: result.text,
+                        reasoningText: result.reasoning,
+                        unclosedReasoning: result.completion.unclosedReasoning,
+                        tokenCount: result.completion.tokenCount,
+                        decodeTokensPerSecond: result.completion.tokensPerSecond
+                    )
+                )
                 // Native reasoning, encrypted/provider Items and their IDs must
                 // survive the next request; never reconstruct a text-only echo.
                 history.append(try result.completedAssistantInput())
             } catch {
                 return ReasoningChannelTranscript(
-                    turns: turns, error: "turn \(index + 1)/\(queries.count) failed: \(error)",
+                    turns: turns,
+                    error: "turn \(index + 1)/\(queries.count) failed: \(error)",
                     modelSupportsThinking: supportsThinking
                 )
             }

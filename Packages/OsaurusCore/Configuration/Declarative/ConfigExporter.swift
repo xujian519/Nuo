@@ -105,7 +105,8 @@ enum ConfigExporter {
         let relay = RelayConfigurationStore.load()
         let agents = AgentManager.shared.agents
         let toolGroups = ToolRegistry.shared.portableToolGroups()
-        return agents
+        return
+            agents
             .filter { !$0.isBuiltIn }
             .map { agent in
                 exportAgent(agent, agents: agents, relay: relay, toolGroups: toolGroups)
@@ -119,11 +120,14 @@ enum ConfigExporter {
             agent,
             agents: AgentManager.shared.agents,
             relay: RelayConfigurationStore.load(),
-            toolGroups: ToolRegistry.shared.portableToolGroups())
+            toolGroups: ToolRegistry.shared.portableToolGroups()
+        )
     }
 
     private static func exportAgent(
-        _ agent: Agent, agents: [Agent], relay: RelayConfiguration,
+        _ agent: Agent,
+        agents: [Agent],
+        relay: RelayConfiguration,
         toolGroups: [PortableToolGroup: [String]]
     ) -> AgentEntry {
         var entry = AgentEntry(name: agent.name)
@@ -174,7 +178,8 @@ enum ConfigExporter {
     /// tool names; partly selected groups travel as their exact tool names.
     /// Auto mode only records the mode.
     private static func exportToolSelection(
-        of agent: Agent, into entry: inout AgentEntry,
+        of agent: Agent,
+        into entry: inout AgentEntry,
         groups: [PortableToolGroup: [String]]
     ) {
         var tools = AgentToolsEntry()
@@ -185,7 +190,9 @@ enum ConfigExporter {
             return
         }
         let split = AgentToolSelectionResolver.export(
-            manualToolNames: agent.manualToolNames ?? [], groups: groups)
+            manualToolNames: agent.manualToolNames ?? [],
+            groups: groups
+        )
         tools.enabled = split.toolNames
         entry.tools = tools
         if !split.enabledMCPServers.isEmpty || !split.disabledMCPServers.isEmpty {

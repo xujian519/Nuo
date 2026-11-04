@@ -836,13 +836,17 @@ public struct EvalReport: Sendable, Codable {
                 counts["tool:\(t.name)", default: 0] += 1
             }
         }
-        let ranked = totals
+        let ranked =
+            totals
             .map { (name: $0.key, mean: $0.value / max(1, counts[$0.key] ?? 1)) }
             .sorted { $0.mean > $1.mean }
             .prefix(10)
         for entry in ranked {
             let nameCol = entry.name.padding(
-                toLength: max(28, entry.name.count), withPad: " ", startingAt: 0)
+                toLength: max(28, entry.name.count),
+                withPad: " ",
+                startingAt: 0
+            )
             lines.append("  \(nameCol) mean≈\(entry.mean) tok  (n=\(counts[entry.name] ?? 0))")
         }
         return lines

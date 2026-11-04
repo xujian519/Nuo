@@ -37,7 +37,10 @@ struct FileReadNotFoundRecoveryTests {
         let nested = root.appendingPathComponent("docs", isDirectory: true)
         try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
         try "content".write(
-            to: nested.appendingPathComponent("note.txt"), atomically: true, encoding: .utf8)
+            to: nested.appendingPathComponent("note.txt"),
+            atomically: true,
+            encoding: .utf8
+        )
 
         // Model guessed the root when the file lives in docs/.
         let output = try await FileReadTool(rootPath: root).execute(
@@ -51,7 +54,10 @@ struct FileReadNotFoundRecoveryTests {
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         try "x".write(
-            to: root.appendingPathComponent("Note.TXT"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("Note.TXT"),
+            atomically: true,
+            encoding: .utf8
+        )
 
         let output = try await FileReadTool(rootPath: root).execute(
             argumentsJSON: #"{"path":"missing/note.txt"}"#
@@ -63,7 +69,10 @@ struct FileReadNotFoundRecoveryTests {
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         try "x".write(
-            to: root.appendingPathComponent("other.md"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("other.md"),
+            atomically: true,
+            encoding: .utf8
+        )
 
         // No basename match: the original thrown not-found path is kept.
         await #expect(throws: FolderToolError.self) {

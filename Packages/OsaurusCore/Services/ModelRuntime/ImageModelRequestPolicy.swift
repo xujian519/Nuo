@@ -52,9 +52,16 @@ struct ImageModelRequestPolicy: Sendable {
     }
 
     func validate(
-        width: Int?, height: Int?, isEdit: Bool, guidance: Float,
-        negativePrompt: String?, strength: Float? = nil, hasMask: Bool = false,
-        sourceCount: Int = 0, steps: Int? = nil, outputFormat: ImageOutputFormat? = nil
+        width: Int?,
+        height: Int?,
+        isEdit: Bool,
+        guidance: Float,
+        negativePrompt: String?,
+        strength: Float? = nil,
+        hasMask: Bool = false,
+        sourceCount: Int = 0,
+        steps: Int? = nil,
+        outputFormat: ImageOutputFormat? = nil
     ) throws {
         // Older families keep their existing adapter contract. The Q21 rules
         // describe this port's actual support, rather than coercing requests.
@@ -63,14 +70,20 @@ struct ImageModelRequestPolicy: Sendable {
             // the stamped architecture limits, with no RAM estimate refusal.
             if let steps, steps < 1 { throw ImageGenerationError.invalidRequest("steps must be positive") }
             for side in [width, height].compactMap({ $0 }) {
-                guard (64...4096).contains(side), side % 16 == 0 else {
-                    throw ImageGenerationError.invalidRequest("FLUX 3 dimensions must be multiples of 16 from 64 through 4096")
+                guard (64 ... 4096).contains(side), side % 16 == 0 else {
+                    throw ImageGenerationError.invalidRequest(
+                        "FLUX 3 dimensions must be multiples of 16 from 64 through 4096"
+                    )
                 }
             }
-            if let outputFormat, outputFormat != .png { throw ImageGenerationError.invalidRequest("FLUX 3 supports PNG output only") }
+            if let outputFormat, outputFormat != .png {
+                throw ImageGenerationError.invalidRequest("FLUX 3 supports PNG output only")
+            }
             if isEdit {
-                guard (1...10).contains(sourceCount), !hasMask, strength == nil || strength == 1 else {
-                    throw ImageGenerationError.invalidRequest("FLUX 3 edits require 1...10 ordered references, no mask, and omitted strength or 1")
+                guard (1 ... 10).contains(sourceCount), !hasMask, strength == nil || strength == 1 else {
+                    throw ImageGenerationError.invalidRequest(
+                        "FLUX 3 edits require 1...10 ordered references, no mask, and omitted strength or 1"
+                    )
                 }
             }
             // No unconditional branch exists; negative prompts are accepted.
@@ -82,8 +95,10 @@ struct ImageModelRequestPolicy: Sendable {
             throw ImageGenerationError.invalidRequest("Qwen-Image-2.1 supports PNG output only")
         }
         for value in [width, height].compactMap({ $0 }) {
-            guard (32...Self.q21MaximumDimension).contains(value), value % 32 == 0 else {
-                throw ImageGenerationError.invalidRequest("Qwen-Image-2.1 dimensions must be multiples of 32 from 32 through 2048")
+            guard (32 ... Self.q21MaximumDimension).contains(value), value % 32 == 0 else {
+                throw ImageGenerationError.invalidRequest(
+                    "Qwen-Image-2.1 dimensions must be multiples of 32 from 32 through 2048"
+                )
             }
         }
         guard guidance.isFinite else {
@@ -91,25 +106,31 @@ struct ImageModelRequestPolicy: Sendable {
         }
         let hasNegative = !(negativePrompt?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
         if isEdit {
-            guard (1...4).contains(sourceCount) else {
+            guard (1 ... 4).contains(sourceCount) else {
                 throw ImageGenerationError.invalidRequest("this app supports one to four ordered source images")
             }
             guard !hasMask else {
                 throw ImageGenerationError.invalidRequest("Qwen-Image-2.1 masks are not wired yet")
             }
             guard !hasNegative else {
-                throw ImageGenerationError.invalidRequest("Qwen-Image-2.1 edit negative prompts are not exposed by this engine")
+                throw ImageGenerationError.invalidRequest(
+                    "Qwen-Image-2.1 edit negative prompts are not exposed by this engine"
+                )
             }
             if let strength, strength != 1 {
-                throw ImageGenerationError.invalidRequest("Qwen-Image-2.1 edit strength below 1 is not implemented; omit strength")
+                throw ImageGenerationError.invalidRequest(
+                    "Qwen-Image-2.1 edit strength below 1 is not implemented; omit strength"
+                )
             }
         } else if hasNegative, guidance <= 1 {
-            throw ImageGenerationError.invalidRequest("Qwen-Image-2.1 negative prompts require explicit guidance above 1")
+            throw ImageGenerationError.invalidRequest(
+                "Qwen-Image-2.1 negative prompts require explicit guidance above 1"
+            )
         }
     }
 
     static func validateQwen21Steps(_ steps: Int?) throws {
-        if let steps, !(2...50).contains(steps) {
+        if let steps, !(2 ... 50).contains(steps) {
             throw ImageGenerationError.invalidRequest("Qwen-Image-2.1 steps must be from 2 through 50")
         }
     }

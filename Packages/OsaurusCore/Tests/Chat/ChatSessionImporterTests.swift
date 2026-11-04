@@ -84,7 +84,9 @@ struct ChatSessionImporterTests {
 
     @Test func chatGPTFallsBackToDeepestLeafWithoutCurrentNode() throws {
         let export = chatGPTExport.replacingOccurrences(
-            of: "\"current_node\": \"n3\",", with: "")
+            of: "\"current_node\": \"n3\",",
+            with: ""
+        )
         let imported = try ChatSessionImporter.parse(data: Data(export.utf8)).conversations
         let session = try #require(imported.first).session
         // Deepest "last child" chain is root → n1 → n2b.
@@ -448,7 +450,8 @@ struct ChatSessionImporterTests {
                  "category": "conversations", "part": 2}
               ]
             }
-            """.utf8)
+            """.utf8
+        )
         #expect {
             _ = try ChatSessionImporter.parse(data: export)
         } throws: { error in
@@ -469,7 +472,8 @@ struct ChatSessionImporterTests {
         let export = Data(
             """
             {"conversations": [{"messages": [{"role": "assistant", "content": "orphan"}]}]}
-            """.utf8)
+            """.utf8
+        )
         #expect(throws: ChatSessionImporter.ImportError.self) {
             _ = try ChatSessionImporter.parse(data: export)
         }
@@ -505,7 +509,8 @@ struct ChatSessionImporterTests {
               },
               {"title": "Empty", "mapping": {}}
             ]
-            """.utf8)
+            """.utf8
+        )
         let result = try ChatSessionImporter.parse(data: export)
         #expect(result.conversations.count == 1)
         #expect(result.conversations.first?.session.title == "Good")

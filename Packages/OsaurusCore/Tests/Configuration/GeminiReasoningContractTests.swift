@@ -42,9 +42,19 @@ struct GeminiReasoningContractTests {
     }
 
     @Test func routeScopingCoversOnlyForwardingHosts() {
-        #expect(GeminiReasoningContract.routeHonorsContract(providerType: .gemini, host: "generativelanguage.googleapis.com"))
+        #expect(
+            GeminiReasoningContract.routeHonorsContract(
+                providerType: .gemini,
+                host: "generativelanguage.googleapis.com"
+            )
+        )
         #expect(GeminiReasoningContract.routeHonorsContract(providerType: .openaiLegacy, host: "openrouter.ai"))
-        #expect(GeminiReasoningContract.routeHonorsContract(providerType: .openaiLegacy, host: "generativelanguage.googleapis.com"))
+        #expect(
+            GeminiReasoningContract.routeHonorsContract(
+                providerType: .openaiLegacy,
+                host: "generativelanguage.googleapis.com"
+            )
+        )
         #expect(!GeminiReasoningContract.routeHonorsContract(providerType: .openaiLegacy, host: "litellm.internal"))
         #expect(!GeminiReasoningContract.routeHonorsContract(providerType: .osaurusRouter, host: "router.osaurus.ai"))
     }

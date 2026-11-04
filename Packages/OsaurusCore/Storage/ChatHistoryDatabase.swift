@@ -55,7 +55,8 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
     /// successfully. Lets deferred main-thread readers reload once the
     /// background prewarm lands instead of blocking on the open.
     public static let didOpenNotification = Notification.Name(
-        "ai.osaurus.chatHistory.databaseDidOpen")
+        "ai.osaurus.chatHistory.databaseDidOpen"
+    )
 
     /// Non-blocking `isOpen`. May lag an in-flight `open()` by design.
     public var isOpenNonBlocking: Bool {
@@ -245,7 +246,8 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
         } catch {
             try? executeRaw("ROLLBACK")
             throw ChatHistoryDatabaseError.migrationFailed(
-                "reconcile at v\(version): \(error.localizedDescription)")
+                "reconcile at v\(version): \(error.localizedDescription)"
+            )
         }
     }
 
@@ -919,7 +921,8 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
     /// pays a single round-trip across the serial queue.
     public func loadSession(id: UUID) -> ChatSessionData? {
         MainThreadOperationLedger.shared.withMainThreadOperation(
-            subsystem: "chat-history-db", operation: "load-session"
+            subsystem: "chat-history-db",
+            operation: "load-session"
         ) {
             loadSessionOnQueue(id: id)
         }
@@ -975,7 +978,7 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
     public func loadMetadata(ids: [UUID]) -> [ChatSessionData] {
         guard !ids.isEmpty else { return [] }
         var sessions: [ChatSessionData] = []
-        let placeholders = (1...ids.count).map { "?\($0)" }.joined(separator: ",")
+        let placeholders = (1 ... ids.count).map { "?\($0)" }.joined(separator: ",")
         let sql = Self.baseSessionSelectSQL + " WHERE id IN (\(placeholders))"
         do {
             try prepareAndExecute(
@@ -1170,7 +1173,8 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
 
     public func deleteSession(id: UUID) throws {
         try MainThreadOperationLedger.shared.withMainThreadOperation(
-            subsystem: "chat-history-db", operation: "delete-session"
+            subsystem: "chat-history-db",
+            operation: "delete-session"
         ) {
             try queue.sync { try deleteSessionOnQueue(id: id) }
         }
@@ -1372,13 +1376,17 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
                         guard
                             let id = UUID(uuidString: String(cString: sqlite3_column_text(stmt, 0))),
                             let root = SandboxWorkspaceRootKind(
-                                rawValue: String(cString: sqlite3_column_text(stmt, 3))),
+                                rawValue: String(cString: sqlite3_column_text(stmt, 3))
+                            ),
                             let entryType = SandboxChangeEntryType(
-                                rawValue: String(cString: sqlite3_column_text(stmt, 5))),
+                                rawValue: String(cString: sqlite3_column_text(stmt, 5))
+                            ),
                             let kind = SandboxChangeKind(
-                                rawValue: String(cString: sqlite3_column_text(stmt, 6))),
+                                rawValue: String(cString: sqlite3_column_text(stmt, 6))
+                            ),
                             let state = SandboxChangeState(
-                                rawValue: String(cString: sqlite3_column_text(stmt, 7)))
+                                rawValue: String(cString: sqlite3_column_text(stmt, 7))
+                            )
                         else { continue }
                         changes.append(
                             SandboxWorkspaceChange(
@@ -1398,9 +1406,11 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
                                 },
                                 sourceTool: String(cString: sqlite3_column_text(stmt, 10)),
                                 firstChangedAt: Date(
-                                    timeIntervalSince1970: sqlite3_column_double(stmt, 11)),
+                                    timeIntervalSince1970: sqlite3_column_double(stmt, 11)
+                                ),
                                 lastChangedAt: Date(
-                                    timeIntervalSince1970: sqlite3_column_double(stmt, 12))
+                                    timeIntervalSince1970: sqlite3_column_double(stmt, 12)
+                                )
                             )
                         )
                     }
@@ -1526,9 +1536,11 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
                         guard
                             let id = UUID(uuidString: String(cString: sqlite3_column_text(stmt, 0))),
                             let origin = FileChangeOrigin(
-                                rawValue: String(cString: sqlite3_column_text(stmt, 5))),
+                                rawValue: String(cString: sqlite3_column_text(stmt, 5))
+                            ),
                             let status = FileChangeSetStatus(
-                                rawValue: String(cString: sqlite3_column_text(stmt, 6)))
+                                rawValue: String(cString: sqlite3_column_text(stmt, 6))
+                            )
                         else { continue }
                         index[id] = sets.count
                         sets.append(
@@ -1567,11 +1579,14 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
                             let setId = UUID(uuidString: String(cString: sqlite3_column_text(stmt, 1))),
                             let setIndex = index[setId],
                             let rootKind = SandboxWorkspaceRootKind(
-                                rawValue: String(cString: sqlite3_column_text(stmt, 4))),
+                                rawValue: String(cString: sqlite3_column_text(stmt, 4))
+                            ),
                             let kind = FileChangeEntryKind(
-                                rawValue: String(cString: sqlite3_column_text(stmt, 8))),
+                                rawValue: String(cString: sqlite3_column_text(stmt, 8))
+                            ),
                             let state = FileChangeEntryState(
-                                rawValue: String(cString: sqlite3_column_text(stmt, 9)))
+                                rawValue: String(cString: sqlite3_column_text(stmt, 9))
+                            )
                         else { continue }
                         sets[setIndex].entries.append(
                             FileChangeEntry(
@@ -1688,7 +1703,8 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
             process: { stmt in
                 while sqlite3_step(stmt) == SQLITE_ROW {
                     setCounts[String(cString: sqlite3_column_text(stmt, 0))] = Int(
-                        sqlite3_column_int64(stmt, 1))
+                        sqlite3_column_int64(stmt, 1)
+                    )
                 }
             }
         )
@@ -1721,7 +1737,8 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
                 }
                 if rc != SQLITE_DONE {
                     throw ChatHistoryDatabaseError.failedToExecute(
-                        "file_change_entries scan stopped early (sqlite \(rc))")
+                        "file_change_entries scan stopped early (sqlite \(rc))"
+                    )
                 }
             }
         )
@@ -1743,7 +1760,9 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
                     rc = sqlite3_step(stmt)
                 }
                 if rc != SQLITE_DONE {
-                    throw ChatHistoryDatabaseError.failedToExecute("file_change_entries root scan stopped early (sqlite \(rc))")
+                    throw ChatHistoryDatabaseError.failedToExecute(
+                        "file_change_entries root scan stopped early (sqlite \(rc))"
+                    )
                 }
             }
         )
@@ -1764,7 +1783,8 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
                         (
                             id, String(cString: sqlite3_column_text(stmt, 1)),
                             Date(timeIntervalSince1970: sqlite3_column_double(stmt, 2))
-                        ))
+                        )
+                    )
                 }
             }
         )
@@ -2022,10 +2042,16 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
             let inputTokenCount: Int?
             let cachedInputTokenCount: Int?
         }
-        if let native = try? encoder.encode(NativeState(
-            reasoningItemId: turn.reasoningItemId, reasoningEncrypted: turn.reasoningEncrypted,
-            responsesOutputItems: turn.responsesOutputItems, anthropicThinkingBlocks: turn.anthropicThinkingBlocks,
-            inputTokenCount: turn.inputTokenCount, cachedInputTokenCount: turn.cachedInputTokenCount)) {
+        if let native = try? encoder.encode(
+            NativeState(
+                reasoningItemId: turn.reasoningItemId,
+                reasoningEncrypted: turn.reasoningEncrypted,
+                responsesOutputItems: turn.responsesOutputItems,
+                anthropicThinkingBlocks: turn.anthropicThinkingBlocks,
+                inputTokenCount: turn.inputTokenCount,
+                cachedInputTokenCount: turn.cachedInputTokenCount
+            )
+        ) {
             hasher.update(data: native)
         }
         let digest = hasher.finalize()
@@ -2217,7 +2243,8 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
             .map { String(cString: $0) }
             .flatMap(decodeJSON)
         let workspace = WorkspaceSessionContext.decode(
-            json: sqlite3_column_text(stmt, 16).map { String(cString: $0) })
+            json: sqlite3_column_text(stmt, 16).map { String(cString: $0) }
+        )
         return ChatSessionData(
             id: UUID(uuidString: idStr) ?? UUID(),
             title: title,
@@ -2323,7 +2350,8 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
         )
         turn.generationControls = sqlite3_column_text(stmt, 30)
             .map { String(cString: $0) }.flatMap(decodeJSON)
-        turn.anthropicThinkingBlocks = sqlite3_column_text(stmt, 27)
+        turn.anthropicThinkingBlocks =
+            sqlite3_column_text(stmt, 27)
             .map { String(cString: $0) }.flatMap(decodeJSON) ?? []
         return turn
     }
@@ -2379,8 +2407,16 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
         bindNullableDouble(stmt, index: 27, value: turn.requestedAt?.timeIntervalSince1970)
         bindText(stmt, index: 28, value: turn.reasoningItemId)
         bindText(stmt, index: 29, value: turn.reasoningEncrypted)
-        bindText(stmt, index: 30, value: turn.responsesOutputItems.isEmpty ? nil : encodeJSON(turn.responsesOutputItems))
-        bindText(stmt, index: 31, value: turn.anthropicThinkingBlocks.isEmpty ? nil : encodeJSON(turn.anthropicThinkingBlocks))
+        bindText(
+            stmt,
+            index: 30,
+            value: turn.responsesOutputItems.isEmpty ? nil : encodeJSON(turn.responsesOutputItems)
+        )
+        bindText(
+            stmt,
+            index: 31,
+            value: turn.anthropicThinkingBlocks.isEmpty ? nil : encodeJSON(turn.anthropicThinkingBlocks)
+        )
         bindNullableInt(stmt, index: 32, value: turn.inputTokenCount)
         bindNullableInt(stmt, index: 33, value: turn.cachedInputTokenCount)
         bindText(stmt, index: 34, value: turn.generationControls.flatMap(encodeJSON))
@@ -2443,7 +2479,11 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
         if let value {
             _ = value.withUnsafeBytes { bytes in
                 sqlite3_bind_blob(
-                    stmt, Int32(index), bytes.baseAddress, Int32(value.count), SQLITE_TRANSIENT
+                    stmt,
+                    Int32(index),
+                    bytes.baseAddress,
+                    Int32(value.count),
+                    SQLITE_TRANSIENT
                 )
             }
         } else {
@@ -2501,7 +2541,8 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
         // maintenance pass). A watchdog breach then attributes to
         // "chat-history-db.query" rather than a generic hang.
         try MainThreadOperationLedger.shared.withMainThreadOperation(
-            subsystem: "chat-history-db", operation: "query"
+            subsystem: "chat-history-db",
+            operation: "query"
         ) {
             try prepareAndExecuteOnQueue(sql, bind: bind, process: process)
         }
@@ -2534,7 +2575,8 @@ public final class ChatHistoryDatabase: @unchecked Sendable {
 
     private func inTransaction<T>(_ operation: (OpaquePointer) throws -> T) throws -> T {
         try MainThreadOperationLedger.shared.withMainThreadOperation(
-            subsystem: "chat-history-db", operation: "transaction"
+            subsystem: "chat-history-db",
+            operation: "transaction"
         ) {
             try inTransactionOnQueue(operation)
         }

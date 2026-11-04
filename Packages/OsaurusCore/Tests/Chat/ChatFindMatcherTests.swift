@@ -37,7 +37,8 @@ struct ChatFindMatcherTests {
                 ChatFindMatch(turnId: turns[0].id, occurrence: 0),
                 ChatFindMatch(turnId: turns[1].id, occurrence: 0),
                 ChatFindMatch(turnId: turns[3].id, occurrence: 0),
-            ])
+            ]
+        )
         #expect(state.matchIndex == 0)
         #expect(jumpTo == ChatFindMatch(turnId: turns[0].id, occurrence: 0))
     }
@@ -59,7 +60,8 @@ struct ChatFindMatcherTests {
                 ChatFindMatch(turnId: turns[1].id, occurrence: 0),
                 ChatFindMatch(turnId: turns[1].id, occurrence: 1),
                 ChatFindMatch(turnId: turns[1].id, occurrence: 2),
-            ])
+            ]
+        )
     }
 
     @Test func occurrenceCountIsNonOverlapping() {
@@ -87,7 +89,9 @@ struct ChatFindMatcherTests {
     @Test func blankQueryClearsState() {
         let turns = makeTurns()
         let previous = ChatFindState(
-            matches: [ChatFindMatch(turnId: turns[0].id, occurrence: 0)], matchIndex: 0)
+            matches: [ChatFindMatch(turnId: turns[0].id, occurrence: 0)],
+            matchIndex: 0
+        )
         for query in ["", "   ", "\n"] {
             let (state, jumpTo) = ChatFindMatcher.recompute(
                 query: query,
@@ -136,7 +140,8 @@ struct ChatFindMatcherTests {
         #expect(recomputed.matches.count == 4)
         #expect(
             recomputed.matches[recomputed.matchIndex]
-                == ChatFindMatch(turnId: turns[1].id, occurrence: 0))
+                == ChatFindMatch(turnId: turns[1].id, occurrence: 0)
+        )
         #expect(jumpTo == nil)
     }
 
@@ -167,7 +172,9 @@ struct ChatFindMatcherTests {
     @Test func resetsToFirstWhenCurrentMatchDisappears() {
         let turns = makeTurns()
         let gone = ChatFindState(
-            matches: [ChatFindMatch(turnId: UUID(), occurrence: 0)], matchIndex: 0)
+            matches: [ChatFindMatch(turnId: UUID(), occurrence: 0)],
+            matchIndex: 0
+        )
         let (state, jumpTo) = ChatFindMatcher.recompute(
             query: "notch",
             turns: turns,
@@ -182,7 +189,7 @@ struct ChatFindMatcherTests {
 
     @Test func advanceWrapsBothDirections() {
         let turnId = UUID()
-        let matches = (0..<3).map { ChatFindMatch(turnId: turnId, occurrence: $0) }
+        let matches = (0 ..< 3).map { ChatFindMatch(turnId: turnId, occurrence: $0) }
         var state = ChatFindState(matches: matches, matchIndex: 0)
 
         var jumpTo: ChatFindMatch?

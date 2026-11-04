@@ -19,16 +19,21 @@ enum GeneratedMediaToolArtifactBridge {
     static func preservePartialImages(_ images: [GeneratedImage], sessionID: String) {
         for image in images {
             let outcome = SharedArtifact.processTrustedLocalFileResult(
-                fileURL: image.url, filename: image.url.lastPathComponent,
+                fileURL: image.url,
+                filename: image.url.lastPathComponent,
                 mimeType: SharedArtifact.mimeType(from: image.url.lastPathComponent),
                 description: "Completed image from an interrupted batch",
-                contextId: sessionID, contextType: .chat)
+                contextId: sessionID,
+                contextType: .chat
+            )
             switch outcome {
             case .success(let processed):
                 SpawnArtifactCollector.deposit(processed.artifact, sessionId: sessionID)
             case .failure(let reason):
-                NSLog("[NativeImageToolArtifactBridge] partial image preservation failed: %@",
-                    String(describing: reason))
+                NSLog(
+                    "[NativeImageToolArtifactBridge] partial image preservation failed: %@",
+                    String(describing: reason)
+                )
             }
         }
     }
@@ -51,14 +56,20 @@ enum GeneratedMediaToolArtifactBridge {
     }
 
     static func processMediaArtifacts(
-        toolName: String, toolResult: String, contextId: String,
+        toolName: String,
+        toolResult: String,
+        contextId: String,
         contextType: ArtifactContextType = .chat
     ) -> [Result<SharedArtifact.ProcessingResult, SharedArtifact.ResolutionFailure>] {
         guard isGeneratedMediaTool(toolName),
-            let payload = ToolEnvelope.successPayload(toolResult) as? [String: Any] else { return [] }
+            let payload = ToolEnvelope.successPayload(toolResult) as? [String: Any]
+        else { return [] }
         let items: [[String: Any]]
-        if let media = payload["media"] as? [String: Any] { items = [media] }
-        else { items = payload["images"] as? [[String: Any]] ?? [] }
+        if let media = payload["media"] as? [String: Any] {
+            items = [media]
+        } else {
+            items = payload["images"] as? [[String: Any]] ?? []
+        }
         return items.compactMap { media in
             guard mediaPath(in: media) != nil else { return nil }
             return process(media, payload: payload, contextId: contextId, contextType: contextType)
@@ -66,7 +77,9 @@ enum GeneratedMediaToolArtifactBridge {
     }
 
     private static func process(
-        _ media: [String: Any], payload: [String: Any], contextId: String,
+        _ media: [String: Any],
+        payload: [String: Any],
+        contextId: String,
         contextType: ArtifactContextType
     ) -> Result<SharedArtifact.ProcessingResult, SharedArtifact.ResolutionFailure> {
         // Callers validate the local path before entering the shared promotion.

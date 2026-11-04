@@ -330,7 +330,11 @@ public struct ToolsInstall {
         guard let version = SemanticVersion.parse(versionString) else {
             throw ManualInstallError.invalidManifestVersion(manifest.filename, versionString)
         }
-        return ManualInstallIdentity(pluginId: manifest.pluginId, version: version, source: .manifest(manifest.filename))
+        return ManualInstallIdentity(
+            pluginId: manifest.pluginId,
+            version: version,
+            source: .manifest(manifest.filename)
+        )
     }
 
     static func validateBundledManifestIfPresent(
@@ -480,7 +484,8 @@ public struct ToolsInstall {
             case .manifestReadFailed(let filename, let message):
                 return "Failed to read \(filename): \(message)"
             case .manifestValidationFailed(let filename, let errors):
-                return "Manifest validation failed (\(filename)):\n" + errors.map { "  - \($0)" }.joined(separator: "\n")
+                return "Manifest validation failed (\(filename)):\n"
+                    + errors.map { "  - \($0)" }.joined(separator: "\n")
             case .manifestIdentityMismatch(let filename, let actual, let expected):
                 return "`\(filename)` declares plugin_id `\(actual)`, but install target is `\(expected)`."
             case .manifestVersionMismatch(let filename, let actual, let expected):

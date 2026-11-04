@@ -517,10 +517,13 @@ struct ProvidersView: View {
                         .foregroundColor(theme.tertiaryText)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 } else if directoryTemplates.isEmpty {
-                    Text("No services match \"\(directoryQuery.trimmingCharacters(in: .whitespaces))\". Try another name, or pick Custom Server above.", bundle: .module)
-                        .font(.system(size: 12))
-                        .foregroundColor(theme.tertiaryText)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(
+                        "No services match \"\(directoryQuery.trimmingCharacters(in: .whitespaces))\". Try another name, or pick Custom Server above.",
+                        bundle: .module
+                    )
+                    .font(.system(size: 12))
+                    .foregroundColor(theme.tertiaryText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
 
@@ -1018,10 +1021,13 @@ private struct ProviderCard: View {
                     if let lastError {
                         MCPProviderErrorText(raw: lastError, providerName: provider.name, color: theme.errorColor)
                     } else {
-                        Text("This server rejected the request as unauthorized. Paste an API token to retry.", bundle: .module)
-                            .font(.system(size: 11))
-                            .foregroundColor(theme.secondaryText)
-                            .lineLimit(3)
+                        Text(
+                            "This server rejected the request as unauthorized. Paste an API token to retry.",
+                            bundle: .module
+                        )
+                        .font(.system(size: 11))
+                        .foregroundColor(theme.secondaryText)
+                        .lineLimit(3)
                     }
                 }
                 Spacer()
@@ -1550,7 +1556,7 @@ private struct ProviderEditSheet: View {
                                 ? L("Connected! (1 tool)")
                                 : L("Connected! (\(probe.toolCount) tools)")
                         )
-                            .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                     case .failure(let probe):
                         Text("Failed - \(probe.reasonCode.rawValue)", bundle: .module)
                             .font(.system(size: 12, weight: .medium))
@@ -3043,7 +3049,9 @@ private struct ProviderEditSheet: View {
         // Save secret header values to Keychain
         for header in customHeaders where header.isSecret && !header.key.isEmpty && !header.value.isEmpty {
             if !MCPProviderKeychain.saveHeaderSecret(
-                header.value, key: header.key, for: updatedProvider.id
+                header.value,
+                key: header.key,
+                for: updatedProvider.id
             ) {
                 NSLog("ProvidersView: failed to save secret header to Keychain")
             }

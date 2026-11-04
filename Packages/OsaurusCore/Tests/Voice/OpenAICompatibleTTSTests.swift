@@ -64,7 +64,12 @@ struct OpenAICompatibleTTSClientTests {
         apiKey: String? = nil
     ) -> OpenAICompatibleTTSClient {
         OpenAICompatibleTTSClient(
-            endpoint: endpoint, model: "tts-1", voice: "alloy", speed: 1.0, apiKey: apiKey)
+            endpoint: endpoint,
+            model: "tts-1",
+            voice: "alloy",
+            speed: 1.0,
+            apiKey: apiKey
+        )
     }
 
     private func requestURL(for endpoint: String) throws -> String {
@@ -198,7 +203,9 @@ struct OpenAICompatibleTTSClientTests {
             pending.append(byte)
             var remainder = Data()
             let decoded = OpenAICompatibleTTSClient.samples(
-                from: pending, keepingRemainderIn: &remainder)
+                from: pending,
+                keepingRemainderIn: &remainder
+            )
             if !decoded.isEmpty {
                 chunked.append(contentsOf: decoded)
                 pending = Data(remainder)
@@ -237,10 +244,12 @@ struct OpenAICompatibleTTSClientTests {
 
         #expect(
             OpenAICompatibleTTSClient.sniffFormat(Data([0x49, 0x44, 0x33, 0x04, 0, 0]))
-                == F.compressed("MP3"))  // "ID3"
+                == F.compressed("MP3")
+        )  // "ID3"
         #expect(
             OpenAICompatibleTTSClient.sniffFormat(Data([0xFF, 0xFB, 0x90, 0x00]))
-                == F.compressed("MP3"))  // frame sync
+                == F.compressed("MP3")
+        )  // frame sync
         #expect(OpenAICompatibleTTSClient.sniffFormat(Data("OggS\0\0\0\0".utf8)) == F.compressed("Ogg"))
         #expect(OpenAICompatibleTTSClient.sniffFormat(Data("fLaC\0\0\0\0".utf8)) == F.compressed("FLAC"))
 
@@ -256,8 +265,11 @@ struct OpenAICompatibleTTSClientTests {
     /// Build a WAV header: RIFF/WAVE, optional pre-`data` extra chunk,
     /// canonical 16-byte fmt chunk, then a `data` chunk with `dataBytes`.
     private func wavHeader(
-        sampleRate: Int = 24_000, channels: Int = 1, bits: Int = 16,
-        extraChunk: (id: String, size: Int)? = nil, dataBytes: Int = 4
+        sampleRate: Int = 24_000,
+        channels: Int = 1,
+        bits: Int = 16,
+        extraChunk: (id: String, size: Int)? = nil,
+        dataBytes: Int = 4
     ) -> Data {
         func u16(_ v: Int) -> [UInt8] { [UInt8(v & 0xFF), UInt8((v >> 8) & 0xFF)] }
         func u32(_ v: Int) -> [UInt8] { u16(v & 0xFFFF) + u16((v >> 16) & 0xFFFF) }

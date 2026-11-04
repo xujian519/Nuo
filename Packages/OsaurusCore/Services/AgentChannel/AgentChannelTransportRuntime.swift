@@ -191,7 +191,8 @@ actor AgentChannelTransportSupervisor {
         if slackHasBotToken()
             && slackHasAppToken()
             && !configuration.readableChannelIds.isEmpty
-            && !configuration.senderAllowlist.isEmpty {
+            && !configuration.senderAllowlist.isEmpty
+        {
             if !slackStarted {
                 slackStarted = true
                 await slackRuntime.start(pollInterval: 1)
@@ -208,13 +209,15 @@ actor AgentChannelTransportSupervisor {
         configuration: SlackConnectionConfiguration,
         now: Date
     ) async {
-        let desired = Set<String>(configuration.workspaceAccounts.compactMap { account in
-            guard !account.readableChannelIds.isEmpty,
-                  !account.senderAllowlist.isEmpty,
-                  SlackConnectionService.shared.socketModeAppToken(teamId: account.teamId) != nil
-            else { return nil }
-            return account.teamId
-        })
+        let desired = Set<String>(
+            configuration.workspaceAccounts.compactMap { account in
+                guard !account.readableChannelIds.isEmpty,
+                    !account.senderAllowlist.isEmpty,
+                    SlackConnectionService.shared.socketModeAppToken(teamId: account.teamId) != nil
+                else { return nil }
+                return account.teamId
+            }
+        )
         for teamId in additionalSlackRuntimes.keys where !desired.contains(teamId) {
             if let runtime = additionalSlackRuntimes.removeValue(forKey: teamId) {
                 await runtime.stop(now: now)
@@ -265,7 +268,8 @@ actor AgentChannelTransportSupervisor {
         }
         if discordHasBotToken()
             && !configuration.readableChannelIds.isEmpty
-            && !configuration.senderAllowlist.isEmpty {
+            && !configuration.senderAllowlist.isEmpty
+        {
             guard !discordStarted else { return }
             discordStarted = true
             await discordRuntime.start(pollInterval: 3)

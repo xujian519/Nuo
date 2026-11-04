@@ -178,7 +178,8 @@ struct ExternalModelLocatorAvailabilityTests {
             try FileManager.default.removeItem(at: bundle.appendingPathComponent("config.json"))
             try FileManager.default.createSymbolicLink(
                 at: bundle.appendingPathComponent("config.json"),
-                withDestinationURL: bundle.appendingPathComponent("unavailable-config.json"))
+                withDestinationURL: bundle.appendingPathComponent("unavailable-config.json")
+            )
             #expect(ExternalModelLocator.bundlePresence(at: bundle) == .unavailable)
             #expect(ExternalModelLocator.path(forId: id) == nil)
             #expect(!ExternalModelLocator.pruneMissing())
@@ -335,23 +336,41 @@ struct ExternalModelLocatorAvailabilityTests {
         let failedRoot = URL(fileURLWithPath: "/proof/offline", isDirectory: true)
         let healthyRoot = URL(fileURLWithPath: "/proof/healthy", isDirectory: true)
         let failed = ExternalModelLocator.Discovered(
-            id: "publisher/offline", bundlePath: failedRoot.appendingPathComponent("publisher/offline").path,
-            revision: nil, source: ExternalModelLocator.Source.customModelFolder.rawValue,
-            scanRootPath: failedRoot.path)
+            id: "publisher/offline",
+            bundlePath: failedRoot.appendingPathComponent("publisher/offline").path,
+            revision: nil,
+            source: ExternalModelLocator.Source.customModelFolder.rawValue,
+            scanRootPath: failedRoot.path
+        )
         let deleted = ExternalModelLocator.Discovered(
-            id: "publisher/deleted", bundlePath: healthyRoot.appendingPathComponent("publisher/deleted").path,
-            revision: nil, source: ExternalModelLocator.Source.customModelFolder.rawValue,
-            scanRootPath: healthyRoot.path)
+            id: "publisher/deleted",
+            bundlePath: healthyRoot.appendingPathComponent("publisher/deleted").path,
+            revision: nil,
+            source: ExternalModelLocator.Source.customModelFolder.rawValue,
+            scanRootPath: healthyRoot.path
+        )
         let report = ExternalModelLocator.ScanReport(sources: [
-            .init(source: .customModelFolder, rootPath: failedRoot.path, discovered: [], skipped: [
-                .init(repoId: nil, path: failedRoot.path, reason: .unreadableRoot, detail: "Fixture root unavailable")
-            ]),
+            .init(
+                source: .customModelFolder,
+                rootPath: failedRoot.path,
+                discovered: [],
+                skipped: [
+                    .init(
+                        repoId: nil,
+                        path: failedRoot.path,
+                        reason: .unreadableRoot,
+                        detail: "Fixture root unavailable"
+                    )
+                ]
+            ),
             .init(source: .customModelFolder, rootPath: healthyRoot.path, discovered: [], skipped: []),
         ])
         let result = ExternalModelLocator.reconciledRegistry(
-            previous: [failed.id: failed, deleted.id: deleted], report: report,
+            previous: [failed.id: failed, deleted.id: deleted],
+            report: report,
             configuredRoots: [(failedRoot, .customModelFolder), (healthyRoot, .customModelFolder)],
-            probe: { $0.path == failed.bundlePath ? presence : .missingDirectory })
+            probe: { $0.path == failed.bundlePath ? presence : .missingDirectory }
+        )
         #expect(result == [failed.id: failed])
     }
 }

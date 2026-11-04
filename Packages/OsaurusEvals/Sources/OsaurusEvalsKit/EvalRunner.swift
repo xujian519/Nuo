@@ -1720,8 +1720,10 @@ public enum EvalRunner {
     static func claimsTelemetry(
         from transcript: CapabilityClaimsTranscript
     ) -> EvalCaseTelemetry? {
-        let total = EvalTokenCost.total(estimatedPrompt: transcript.promptTokensTotal,
-            reportedCompletion: transcript.completionTokens)
+        let total = EvalTokenCost.total(
+            estimatedPrompt: transcript.promptTokensTotal,
+            reportedCompletion: transcript.completionTokens
+        )
         let telemetry = EvalCaseTelemetry(
             decodeTokensPerSecond: transcript.decodeTokensPerSecond,
             completionTokens: transcript.completionTokens,
@@ -2191,7 +2193,8 @@ public enum EvalRunner {
     ) -> (passed: Bool, note: String) {
         var pairs = matcher.args.map { "\($0)=\($1)" }.sorted().joined(separator: ",")
         if let groups = matcher.argsAnyOf, !groups.isEmpty {
-            let rendered = groups
+            let rendered =
+                groups
                 .map { "{" + $0.map { "\($0)=\($1)" }.sorted().joined(separator: ",") + "}" }
                 .joined(separator: "|")
             pairs += " anyOf " + rendered

@@ -13,21 +13,30 @@ struct NativeMTPRowCapabilityTests {
             let config = Data("{\"model_type\":\"vlm\",\"text_config\":{\"model_type\":\"\(type)\"}}".utf8)
             #expect(ModelRuntime.modelTypeIsMTPControlTarget(configData: config))
         }
-        #expect(!ModelRuntime.modelTypeIsMTPControlTarget(
-            configData: Data(#"{"model_type":"glm5_next","name":"qwen4_exp"}"#.utf8)))
+        #expect(
+            !ModelRuntime.modelTypeIsMTPControlTarget(
+                configData: Data(#"{"model_type":"glm5_next","name":"qwen4_exp"}"#.utf8)
+            )
+        )
     }
 
     @Test("headless statuses are NOT capable")
     func headlessRejected() {
         #expect(
             !FloatingInputCard.statusIndicatesNativeMTPHead(
-                "mtp: none, layers=0, tensors=0"))
+                "mtp: none, layers=0, tensors=0"
+            )
+        )
         #expect(
             !FloatingInputCard.statusIndicatesNativeMTPHead(
-                "mtp: unknown, layers=0, tensors=0"))
+                "mtp: unknown, layers=0, tensors=0"
+            )
+        )
         #expect(
             !FloatingInputCard.statusIndicatesNativeMTPHead(
-                "mtp: metadata_only_missing_weights, layers=1, tensors=0"))
+                "mtp: metadata_only_missing_weights, layers=1, tensors=0"
+            )
+        )
         #expect(!FloatingInputCard.statusIndicatesNativeMTPHead(nil))
         #expect(!FloatingInputCard.statusIndicatesNativeMTPHead(""))
     }
@@ -36,19 +45,27 @@ struct NativeMTPRowCapabilityTests {
     func realHeadsAccepted() {
         #expect(
             FloatingInputCard.statusIndicatesNativeMTPHead(
-                "mtp: preserved_disabled, layers=1, tensors=13, tuning=d2, speculative=on"))
+                "mtp: preserved_disabled, layers=1, tensors=13, tuning=d2, speculative=on"
+            )
+        )
         #expect(
             FloatingInputCard.statusIndicatesNativeMTPHead(
-                "mtp: enabled, layers=1, tensors=13, speculative=off (vmlx_mtp_tuning.json tuning required)"))
+                "mtp: enabled, layers=1, tensors=13, speculative=off (vmlx_mtp_tuning.json tuning required)"
+            )
+        )
         #expect(
             FloatingInputCard.statusIndicatesNativeMTPHead(
-                "mtp: speculative_verified, layers=1, tensors=13"))
+                "mtp: speculative_verified, layers=1, tensors=13"
+            )
+        )
     }
 
     @Test("a head-implying mode with zero tensors is rejected")
     func zeroTensorHeadRejected() {
         #expect(
             !FloatingInputCard.statusIndicatesNativeMTPHead(
-                "mtp: enabled, layers=1, tensors=0"))
+                "mtp: enabled, layers=1, tensors=0"
+            )
+        )
     }
 }

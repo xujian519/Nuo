@@ -134,13 +134,16 @@ struct WorkspaceSpawnPromptStabilityTests {
 
             store.apply(rosters: [.init(workspace: try Self.workspace(), agents: [])])
             let availability = SpawnDescriptors.resolveForPreview(
-                agentIDs: [], launcherModelOverride: nil, workspaceAgents: [Self.ref]
+                agentIDs: [],
+                launcherModelOverride: nil,
+                workspaceAgents: [Self.ref]
             )
             #expect(availability.workspaceAgentTargets.map(\.state) == [.missing])
             #expect(availability.runnableWorkspaceAgents.isEmpty)
             #expect(!availability.hasRunnableAgentTargets)
             let guidance = SystemPromptTemplates.spawnGuidance(
-                agents: [], workspaceAgents: availability.workspaceAgents
+                agents: [],
+                workspaceAgents: availability.workspaceAgents
             )
             #expect(!guidance.contains(Self.address))
         }

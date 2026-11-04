@@ -15,7 +15,8 @@ struct ResponsesToolBatchHistory {
         var errorDescription: String? {
             switch self {
             case .unfinishedBatch: return "A previous tool batch has not finished."
-            case .invalidCallIdentity: return "The model returned empty or duplicate tool call IDs. The batch was not executed."
+            case .invalidCallIdentity:
+                return "The model returned empty or duplicate tool call IDs. The batch was not executed."
             }
         }
     }

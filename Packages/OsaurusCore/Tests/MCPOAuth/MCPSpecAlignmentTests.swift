@@ -230,10 +230,12 @@ struct MCPSpecAlignmentTests {
     @Test func deadlineReasonNamesTheLimitThatTripped() {
         #expect(
             MCPProviderManager.deadlineReason(elapsed: 46, idleTimeout: 45, hardCap: 3_600)
-                == "No progress for 45s")
+                == "No progress for 45s"
+        )
         #expect(
             MCPProviderManager.deadlineReason(elapsed: 3_600, idleTimeout: 45, hardCap: 3_600)
-                == "Reached the 60 min limit for calls that report progress")
+                == "Reached the 60 min limit for calls that report progress"
+        )
     }
 
     @Test func mcpToolBypassesRegistryTimeout() {
@@ -296,14 +298,19 @@ struct MCPSpecAlignmentTests {
             [
                 .text(text: "Found one contract.", annotations: nil, _meta: nil),
                 .resourceLink(
-                    uri: "https://files.example.com/c.pdf", name: "c.pdf", title: "Contract",
+                    uri: "https://files.example.com/c.pdf",
+                    name: "c.pdf",
+                    title: "Contract",
                     mimeType: "application/pdf"
                 ),
             ],
             toolName: "search"
         )
         #expect(output.contains("resource_link"))
-        #expect(output.contains("https:\\/\\/files.example.com\\/c.pdf") || output.contains("https://files.example.com/c.pdf"))
+        #expect(
+            output.contains("https:\\/\\/files.example.com\\/c.pdf")
+                || output.contains("https://files.example.com/c.pdf")
+        )
         #expect(output.contains("application\\/pdf") || output.contains("application/pdf"))
     }
 
@@ -362,11 +369,14 @@ struct MCPSpecAlignmentTests {
 
         await #expect(throws: MCPProviderError.self) {
             _ = try await MCPProviderManager.callMCPTool(
-                client: client, toolName: "slow", arguments: [:], timeout: 0.3
+                client: client,
+                toolName: "slow",
+                arguments: [:],
+                timeout: 0.3
             )
         }
 
-        for _ in 0..<50 where await !observed.handlerCancelled {
+        for _ in 0 ..< 50 where await !observed.handlerCancelled {
             try await Task.sleep(for: .milliseconds(50))
         }
         #expect(await observed.handlerCancelled)

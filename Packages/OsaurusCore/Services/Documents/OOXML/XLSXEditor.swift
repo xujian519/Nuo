@@ -106,9 +106,11 @@ struct XLSXEditor {
                 }
             }
             func inArrayResult(_ cell: XMLElement) -> Bool {
-                guard !arrayRanges.isEmpty, let ref = cell.attr("r").flatMap(XLSXFormula.CellRef.init) else { return false }
+                guard !arrayRanges.isEmpty, let ref = cell.attr("r").flatMap(XLSXFormula.CellRef.init) else {
+                    return false
+                }
                 return arrayRanges.contains {
-                    ($0.0.row...$0.1.row).contains(ref.row) && ($0.0.column...$0.1.column).contains(ref.column)
+                    ($0.0.row ... $0.1.row).contains(ref.row) && ($0.0.column ... $0.1.column).contains(ref.column)
                 }
             }
             var changed = false
@@ -143,7 +145,8 @@ struct XLSXEditor {
         guard op.has(key) else {
             if required {
                 throw op.fail(
-                    "`\(key)` is required for \(op.name): name the sheet (or give its 1-based position). Sheets: \(all.map(\.name).joined(separator: ", ")).")
+                    "`\(key)` is required for \(op.name): name the sheet (or give its 1-based position). Sheets: \(all.map(\.name).joined(separator: ", "))."
+                )
             }
             return all[0]
         }
@@ -186,11 +189,17 @@ struct XLSXEditor {
                 if s.hasPrefix("="), s.count > 1 { return .formula(String(s.dropFirst())) }
                 return .text(s)
             default:
-                throw op.fail("cell values must be text, numbers, true/false, null, or a formula string starting with \"=\".")
+                throw op.fail(
+                    "cell values must be text, numbers, true/false, null, or a formula string starting with \"=\"."
+                )
             }
         }
         func cellRef(_ raw: String) throws -> XLSXFormula.CellRef {
-            guard let ref = XLSXFormula.CellRef(raw.trimmingCharacters(in: .whitespaces).uppercased().replacingOccurrences(of: "$", with: "")) else {
+            guard
+                let ref = XLSXFormula.CellRef(
+                    raw.trimmingCharacters(in: .whitespaces).uppercased().replacingOccurrences(of: "$", with: "")
+                )
+            else {
                 throw op.fail("\"\(raw)\" isn't a cell reference like B3.")
             }
             return ref
@@ -209,7 +218,9 @@ struct XLSXEditor {
         }
         guard !assignments.isEmpty else { throw op.fail("`cells` is empty.") }
         guard assignments.count <= Self.maxCellsPerOperation else {
-            throw op.fail("\(assignments.count) cells is over the \(Self.maxCellsPerOperation)-cell limit per operation; split it up.")
+            throw op.fail(
+                "\(assignments.count) cells is over the \(Self.maxCellsPerOperation)-cell limit per operation; split it up."
+            )
         }
 
         let data = try sheetData(target, op: op)
@@ -222,13 +233,16 @@ struct XLSXEditor {
         let formulas = assignments.filter { if case .formula = $0.1 { return true } else { return false } }.count
         summaries.append(
             "Set \(assignments.count) cell\(assignments.count == 1 ? "" : "s") on \"\(target.name)\""
-                + (formulas > 0 ? " (\(formulas) formula\(formulas == 1 ? "" : "s"))" : ""))
+                + (formulas > 0 ? " (\(formulas) formula\(formulas == 1 ? "" : "s"))" : "")
+        )
         if formulas > 0 {
             warnings.append("Formula results are recalculated when the workbook is opened in Excel or Numbers.")
         }
     }
 
-    private func setCell(_ ref: XLSXFormula.CellRef, _ value: CellValue, in data: XMLElement, op: DocumentOperation) throws {
+    private func setCell(_ ref: XLSXFormula.CellRef, _ value: CellValue, in data: XMLElement, op: DocumentOperation)
+        throws
+    {
         let row = rowElement(ref.row, in: data, create: true)!
         row.removeAttr("spans")
         let cells = row.childElements("c")
@@ -248,7 +262,9 @@ struct XLSXEditor {
         if let f = cell.firstChild("f") {
             let kind = f.attr("t")
             if kind == "array" || (kind == "shared" && f.attr("ref") != nil) {
-                throw op.fail("\(ref.plain) holds a \(kind == "array" ? "array" : "shared") formula that other cells depend on; set that whole block of cells explicitly instead.")
+                throw op.fail(
+                    "\(ref.plain) holds a \(kind == "array" ? "array" : "shared") formula that other cells depend on; set that whole block of cells explicitly instead."
+                )
             }
         }
         cell.removeAttr("t")
@@ -337,17 +353,23 @@ struct XLSXEditor {
 
         // Refusals first, so a failed operation leaves the workbook untouched.
         for f in data.descendants("f") where f.attr("t") == "array" {
-            guard let ref = f.attr("ref"), let (r1, r2) = Self.rowSpan(ref), Self.straddles(r1, r2, shift) else { continue }
+            guard let ref = f.attr("ref"), let (r1, r2) = Self.rowSpan(ref), Self.straddles(r1, r2, shift) else {
+                continue
+            }
             throw op.fail(
-                "rows \(r1)–\(r2) hold an array formula (\(ref)); Excel doesn't allow inserting or deleting rows inside one. Rewrite that block instead.")
+                "rows \(r1)–\(r2) hold an array formula (\(ref)); Excel doesn't allow inserting or deleting rows inside one. Rewrite that block instead."
+            )
         }
         if !inserting {
             for row in data.childElements("row") {
                 guard let r = Int(row.attr("r") ?? ""), shift.map(r) == nil else { continue }
                 for f in row.descendants("f") where f.attr("t") == "array" {
-                    guard let range = f.attr("ref"), let (r1, r2) = Self.rowSpan(range), shift.map(r1) != nil || shift.map(r2) != nil
+                    guard let range = f.attr("ref"), let (r1, r2) = Self.rowSpan(range),
+                        shift.map(r1) != nil || shift.map(r2) != nil
                     else { continue }
-                    throw op.fail("row \(r) holds an array formula that also fills rows you're keeping; delete or rewrite that whole block instead.")
+                    throw op.fail(
+                        "row \(r) holds an array formula that also fills rows you're keeping; delete or rewrite that whole block instead."
+                    )
                 }
             }
         } else if let maxRow = data.childElements("row").compactMap({ Int($0.attr("r") ?? "") }).max(),
@@ -363,7 +385,9 @@ struct XLSXEditor {
             let headerRows = Int(table.attr("headerRowCount") ?? "1") ?? 1
             let totalsRows = Int(table.attr("totalsRowCount") ?? "0") ?? 0
             if !inserting, headerRows > 0, shift.map(r1) == nil {
-                throw op.fail("deleting row \(r1) would remove the header row of table \"\(name)\"; delete the table in Excel first.")
+                throw op.fail(
+                    "deleting row \(r1) would remove the header row of table \"\(name)\"; delete the table in Excel first."
+                )
             }
             if !inserting, totalsRows > 0, shift.map(r2) == nil {
                 throw op.fail("deleting row \(r2) would remove the totals row of table \"\(name)\".")
@@ -376,12 +400,14 @@ struct XLSXEditor {
         }
         for part in Self.related(sheetRels, from: target.part, suffix: "/pivotTable") {
             let pivot = try package.root(part)
-            guard let location = pivot.firstChild("location"), let ref = location.attr("ref"), let (r1, r2) = Self.rowSpan(ref)
+            guard let location = pivot.firstChild("location"), let ref = location.attr("ref"),
+                let (r1, r2) = Self.rowSpan(ref)
             else { continue }
             let overlaps = inserting ? (r1 < at && r2 >= at) : (r1 <= at + count - 1 && r2 >= at)
             if overlaps {
                 throw op.fail(
-                    "rows \(r1)–\(r2) are a pivot table (\(pivot.attr("name") ?? "PivotTable")); Excel doesn't allow inserting or deleting rows inside one. Move it in Excel first.")
+                    "rows \(r1)–\(r2) are a pivot table (\(pivot.attr("name") ?? "PivotTable")); Excel doesn't allow inserting or deleting rows inside one. Move it in Excel first."
+                )
             }
         }
         var pivotSources: [(part: String, element: XMLElement, ref: String)] = []
@@ -390,10 +416,13 @@ struct XLSXEditor {
             guard package.has(part) else { continue }
             let definition = try package.root(part)
             for source in definition.descendants("worksheetSource") {
-                guard source.attr("sheet")?.caseInsensitiveCompare(target.name) == .orderedSame, let ref = source.attr("ref")
+                guard source.attr("sheet")?.caseInsensitiveCompare(target.name) == .orderedSame,
+                    let ref = source.attr("ref")
                 else { continue }
                 guard XLSXFormula.shift(ref: ref, by: shift) != nil else {
-                    throw op.fail("deleting rows \(at)–\(at + count - 1) would remove every row a pivot table reads (\(ref)); refresh or delete the pivot table in Excel first.")
+                    throw op.fail(
+                        "deleting rows \(at)–\(at + count - 1) would remove every row a pivot table reads (\(ref)); refresh or delete the pivot table in Excel first."
+                    )
                 }
                 pivotSources.append((part, source, ref))
             }
@@ -448,7 +477,9 @@ struct XLSXEditor {
             // sheet's drawing; they are always sheet-qualified.
             for chart in try chartParts(of: info.part) {
                 var chartChanged = false
-                for f in try package.root(chart).descendants("f") where shiftFormulaText(f, on: nil) { chartChanged = true }
+                for f in try package.root(chart).descendants("f") where shiftFormulaText(f, on: nil) {
+                    chartChanged = true
+                }
                 if chartChanged { package.markDirty(chart) }
             }
             if changed { package.markDirty(info.part) }
@@ -457,7 +488,11 @@ struct XLSXEditor {
         let root = try package.root(target.part)
         for merge in root.descendants("mergeCell") {
             guard let ref = merge.attr("ref") else { continue }
-            if let shifted = XLSXFormula.shift(ref: ref, by: shift) { merge.setAttr("ref", shifted) } else { merge.detach() }
+            if let shifted = XLSXFormula.shift(ref: ref, by: shift) {
+                merge.setAttr("ref", shifted)
+            } else {
+                merge.detach()
+            }
         }
         if let merges = root.firstChild("mergeCells") {
             let n = merges.childElements("mergeCell").count
@@ -465,7 +500,11 @@ struct XLSXEditor {
         }
         for element in root.descendants("hyperlink") + root.descendants("autoFilter") {
             guard let ref = element.attr("ref") else { continue }
-            if let shifted = XLSXFormula.shift(ref: ref, by: shift) { element.setAttr("ref", shifted) } else { element.detach() }
+            if let shifted = XLSXFormula.shift(ref: ref, by: shift) {
+                element.setAttr("ref", shifted)
+            } else {
+                element.detach()
+            }
         }
         for element in root.descendants("conditionalFormatting") + root.descendants("dataValidation") {
             guard let sqref = element.attr("sqref") else { continue }
@@ -496,9 +535,13 @@ struct XLSXEditor {
 
         for part in tableParts {
             let table = try package.root(part)
-            if let ref = table.attr("ref"), let shifted = XLSXFormula.shift(ref: ref, by: shift) { table.setAttr("ref", shifted) }
+            if let ref = table.attr("ref"), let shifted = XLSXFormula.shift(ref: ref, by: shift) {
+                table.setAttr("ref", shifted)
+            }
             for filter in table.descendants("autoFilter") {
-                if let ref = filter.attr("ref"), let shifted = XLSXFormula.shift(ref: ref, by: shift) { filter.setAttr("ref", shifted) }
+                if let ref = filter.attr("ref"), let shifted = XLSXFormula.shift(ref: ref, by: shift) {
+                    filter.setAttr("ref", shifted)
+                }
             }
             for element in table.descendants("calculatedColumnFormula") + table.descendants("totalsRowFormula") {
                 _ = shiftFormulaText(element, on: target.name)
@@ -533,12 +576,16 @@ struct XLSXEditor {
         summaries.append(
             inserting
                 ? "Inserted \(count) \(rows) at row \(at) on \"\(target.name)\""
-                : "Deleted \(count) \(rows) from row \(at) on \"\(target.name)\"" + (removed == 0 ? " (they were empty)" : ""))
+                : "Deleted \(count) \(rows) from row \(at) on \"\(target.name)\""
+                    + (removed == 0 ? " (they were empty)" : "")
+        )
         if adjustedFormulas > 0 {
             summaries.append("Adjusted references in \(adjustedFormulas) formula\(adjustedFormulas == 1 ? "" : "s")")
         }
         if expanded > 0 {
-            summaries.append("Expanded \(expanded) shared formula cell\(expanded == 1 ? "" : "s") into explicit formulas")
+            summaries.append(
+                "Expanded \(expanded) shared formula cell\(expanded == 1 ? "" : "s") into explicit formulas"
+            )
         }
         if !pivotSources.isEmpty {
             warnings.append("Pivot tables reading \"\(target.name)\" refresh when the workbook is opened.")
@@ -572,7 +619,8 @@ struct XLSXEditor {
         var out: [String] = []
         for drawing in Self.related(try package.relationships(of: sheetPart), from: sheetPart, suffix: "/drawing")
         where package.has(drawing) {
-            for chart in Self.related(try package.relationships(of: drawing), from: drawing, suffix: "/chart") where package.has(chart) {
+            for chart in Self.related(try package.relationships(of: drawing), from: drawing, suffix: "/chart")
+            where package.has(chart) {
                 out.append(chart)
             }
         }
@@ -613,7 +661,10 @@ struct XLSXEditor {
             guard Self.straddles(r1, r2, shift) else { continue }
             for member in block.members {
                 member.f.stringValue = XLSXFormula.translate(
-                    text, rows: member.cell.row - master.cell.row, columns: member.cell.column - master.cell.column)
+                    text,
+                    rows: member.cell.row - master.cell.row,
+                    columns: member.cell.column - master.cell.column
+                )
                 member.f.removeAttr("t")
                 member.f.removeAttr("si")
                 member.f.removeAttr("ref")
@@ -625,13 +676,22 @@ struct XLSXEditor {
 
     /// Comments (legacy + threaded), their VML anchors, and drawing
     /// anchors follow the rows they were attached to.
-    private func shiftAnnotations(_ rels: [OOXMLPackage.Relationship], from sheetPart: String, by shift: XLSXFormula.RowShift) throws {
-        for part in Self.related(rels, from: sheetPart, suffix: "/comments") + Self.related(rels, from: sheetPart, suffix: "/threadedComment")
+    private func shiftAnnotations(
+        _ rels: [OOXMLPackage.Relationship],
+        from sheetPart: String,
+        by shift: XLSXFormula.RowShift
+    ) throws {
+        for part in Self.related(rels, from: sheetPart, suffix: "/comments")
+            + Self.related(rels, from: sheetPart, suffix: "/threadedComment")
         where package.has(part) {
             let root = try package.root(part)
             for comment in root.descendants("comment") + root.descendants("threadedComment") {
                 guard let ref = comment.attr("ref") else { continue }
-                if let shifted = XLSXFormula.shift(ref: ref, by: shift) { comment.setAttr("ref", shifted) } else { comment.detach() }
+                if let shifted = XLSXFormula.shift(ref: ref, by: shift) {
+                    comment.setAttr("ref", shifted)
+                } else {
+                    comment.detach()
+                }
             }
             package.markDirty(part)
         }
@@ -643,7 +703,9 @@ struct XLSXEditor {
         for part in Self.related(rels, from: sheetPart, suffix: "/vmlDrawing") where package.has(part) {
             guard let root = try? package.root(part) else { continue }  // VML isn't always well-formed; leave it alone.
             for row in root.descendants("Row") {
-                guard let value = Int((row.stringValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines)) else { continue }
+                guard let value = Int((row.stringValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines)) else {
+                    continue
+                }
                 if shift.map(value + 1) == nil {
                     // Its comment was deleted with the row.
                     var shape: XMLElement? = row
@@ -654,7 +716,9 @@ struct XLSXEditor {
                 }
             }
             for anchor in root.descendants("Anchor") {
-                var numbers = (anchor.stringValue ?? "").split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+                var numbers = (anchor.stringValue ?? "").split(separator: ",").compactMap {
+                    Int($0.trimmingCharacters(in: .whitespaces))
+                }
                 guard numbers.count == 8 else { continue }
                 numbers[2] = mapAnchorRow(numbers[2])
                 numbers[6] = max(mapAnchorRow(numbers[6]), numbers[2])
@@ -700,7 +764,9 @@ struct XLSXEditor {
             try OOXMLPackage.newXML(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
                     + "<worksheet xmlns=\"\(ns)\" xmlns:r=\"\(OOXMLNamespace.officeRelationships)\">"
-                    + "<dimension ref=\"A1\"/><sheetData/></worksheet>"))
+                    + "<dimension ref=\"A1\"/><sheetData/></worksheet>"
+            )
+        )
         try package.addOverride(part, contentType: Self.worksheetContentType)
         let rid = try package.addRelationship(from: workbookPart, type: OOXMLRelationshipType.worksheet, to: part)
 
@@ -733,7 +799,9 @@ struct XLSXEditor {
         for info in try sheets() {
             let root = try package.root(info.part)
             var changed = false
-            for f in root.descendants("f") + root.descendants("formula") + root.descendants("formula1") + root.descendants("formula2") {
+            for f in root.descendants("f") + root.descendants("formula") + root.descendants("formula1")
+                + root.descendants("formula2")
+            {
                 guard let text = f.stringValue, !text.isEmpty else { continue }
                 let renamed = XLSXFormula.renameSheet(text, from: target.name, to: newName)
                 if renamed != text { f.stringValue = renamed; changed = true; updated += 1 }
@@ -770,25 +838,30 @@ struct XLSXEditor {
         summaries.append(
             "Renamed sheet \"\(target.name)\" to \"\(newName)\""
                 + (updated > 0 ? " (updated \(updated) formula\(updated == 1 ? "" : "s"))" : "")
-                + (charts > 0 ? " (updated \(charts) chart range\(charts == 1 ? "" : "s"))" : ""))
+                + (charts > 0 ? " (updated \(charts) chart range\(charts == 1 ? "" : "s"))" : "")
+        )
     }
 
     private mutating func deleteSheet(_ op: DocumentOperation) throws {
         let all = try sheets()
         let target = try sheet(op, required: true)
         guard all.count > 1 else { throw op.fail("a workbook needs at least one sheet.") }
-        let visibleOthers = all.filter { $0.part != target.part && ($0.element.attr("state") ?? "visible") == "visible" }
+        let visibleOthers = all.filter {
+            $0.part != target.part && ($0.element.attr("state") ?? "visible") == "visible"
+        }
         guard !visibleOthers.isEmpty else { throw op.fail("this is the only visible sheet; a workbook needs one.") }
         let index = all.firstIndex { $0.part == target.part }!
 
         var dangling = 0
         var danglingCharts = 0
         for info in all where info.part != target.part {
-            for f in try package.root(info.part).descendants("f") where XLSXFormula.references(f.stringValue ?? "", sheet: target.name) {
+            for f in try package.root(info.part).descendants("f")
+            where XLSXFormula.references(f.stringValue ?? "", sheet: target.name) {
                 dangling += 1
             }
             for chart in try chartParts(of: info.part) {
-                for f in try package.root(chart).descendants("f") where XLSXFormula.references(f.stringValue ?? "", sheet: target.name) {
+                for f in try package.root(chart).descendants("f")
+                where XLSXFormula.references(f.stringValue ?? "", sheet: target.name) {
                     danglingCharts += 1
                 }
             }
@@ -800,9 +873,15 @@ struct XLSXEditor {
         let workbook = try package.root(workbookPart)
         for name in workbook.descendants("definedName") {
             guard let local = Int(name.attr("localSheetId") ?? "") else { continue }
-            if local == index { name.detach() } else if local > index { name.setAttr("localSheetId", String(local - 1)) }
+            if local == index {
+                name.detach()
+            } else if local > index {
+                name.setAttr("localSheetId", String(local - 1))
+            }
         }
-        if let names = workbook.firstChild("definedNames"), names.childElements("definedName").isEmpty { names.detach() }
+        if let names = workbook.firstChild("definedNames"), names.childElements("definedName").isEmpty {
+            names.detach()
+        }
         for view in workbook.descendants("workbookView") {
             for key in ["activeTab", "firstSheet"] {
                 if let value = Int(view.attr(key) ?? ""), value >= all.count - 1 { view.setAttr(key, "0") }
@@ -812,10 +891,14 @@ struct XLSXEditor {
         needsRecalc = true
         summaries.append("Deleted sheet \"\(target.name)\"")
         if dangling > 0 {
-            warnings.append("\(dangling) formula\(dangling == 1 ? "" : "s") on other sheets referred to \"\(target.name)\" and will show #REF! until fixed.")
+            warnings.append(
+                "\(dangling) formula\(dangling == 1 ? "" : "s") on other sheets referred to \"\(target.name)\" and will show #REF! until fixed."
+            )
         }
         if danglingCharts > 0 {
-            warnings.append("\(danglingCharts) chart series on other sheets plotted data from \"\(target.name)\" and will be empty until repointed.")
+            warnings.append(
+                "\(danglingCharts) chart series on other sheets plotted data from \"\(target.name)\" and will be empty until repointed."
+            )
         }
     }
 }

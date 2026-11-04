@@ -8,8 +8,13 @@
 import Foundation
 
 public enum TranscriptionTextNormalizer {
-    private static let noiseScalars = CharacterSet(charactersIn: "\u{00AD}\u{034F}\u{180E}\u{200B}\u{2060}\u{2061}\u{2062}\u{2063}\u{2064}\u{FEFF}\u{FFFE}")
-    private static let formatOnlyScalars = CharacterSet(charactersIn: "\u{061C}\u{200C}\u{200D}\u{200E}\u{200F}\u{202A}\u{202B}\u{202C}\u{202D}\u{202E}\u{2066}\u{2067}\u{2068}\u{2069}")
+    private static let noiseScalars = CharacterSet(
+        charactersIn: "\u{00AD}\u{034F}\u{180E}\u{200B}\u{2060}\u{2061}\u{2062}\u{2063}\u{2064}\u{FEFF}\u{FFFE}"
+    )
+    private static let formatOnlyScalars = CharacterSet(
+        charactersIn:
+            "\u{061C}\u{200C}\u{200D}\u{200E}\u{200F}\u{202A}\u{202B}\u{202C}\u{202D}\u{202E}\u{2066}\u{2067}\u{2068}\u{2069}"
+    )
 
     public static func visibleText(_ text: String) -> String {
         let scalars = text.unicodeScalars.filter { scalar in

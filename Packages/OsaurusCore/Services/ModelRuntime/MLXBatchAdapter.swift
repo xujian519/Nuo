@@ -961,8 +961,11 @@ struct MLXBatchAdapter {
     ) async {
         if case .uno(let adapterPath, _)? = draftStrategy {
             await warmupUnoAtLoad(
-                modelName: modelName, container: container, adapterPath: adapterPath,
-                maxBatchSize: maxBatchSize)
+                modelName: modelName,
+                container: container,
+                adapterPath: adapterPath,
+                maxBatchSize: maxBatchSize
+            )
             return
         }
         // DeepSeek-V4.1 dSpark (`.dspark`) is deliberately not warmed here. Its head (~8.9 GB) is
@@ -975,8 +978,13 @@ struct MLXBatchAdapter {
         // includes the head load.
         if draftStrategy?.usesDFlash2 == true {
             await warmupDFlash2AtLoad(
-                modelName: modelName, container: container, modelDefaults: modelDefaults,
-                draftStrategy: draftStrategy, runtime: runtime, maxBatchSize: maxBatchSize)
+                modelName: modelName,
+                container: container,
+                modelDefaults: modelDefaults,
+                draftStrategy: draftStrategy,
+                runtime: runtime,
+                maxBatchSize: maxBatchSize
+            )
             return
         }
         guard draftStrategy?.usesNativeMTP == true else { return }
@@ -1106,7 +1114,8 @@ struct MLXBatchAdapter {
         var done: [String] = []
         for step in UnoWarmup.steps(adapterDirectory: adapterPath) {
             if Task.isCancelled { break }
-            let lease = maxBatchSize == 1
+            let lease =
+                maxBatchSize == 1
                 ? await Registry.shared.acquireSoloLease(for: modelName) : nil
             do {
                 try await MetalGate.shared.enterMediaPrep(model: modelName)
@@ -1117,7 +1126,10 @@ struct MLXBatchAdapter {
             do {
                 let ms = try await container.perform { context in
                     try UnoWarmup.prepare(
-                        step: step, model: context.model, adapterDirectory: adapterPath)
+                        step: step,
+                        model: context.model,
+                        adapterDirectory: adapterPath
+                    )
                 }
                 done.append("\(step)=\(ms.map(String.init) ?? "skip")")
             } catch {
@@ -1133,7 +1145,8 @@ struct MLXBatchAdapter {
         }
         let wallMs = Int((CFAbsoluteTimeGetCurrent() - startedAt) * 1000)
         PrefillDebugLog.shared.log(
-            "==UNO WARMUP-DONE model=\(modelName) steps=\(done.joined(separator: ",")) wallMs=\(wallMs)")
+            "==UNO WARMUP-DONE model=\(modelName) steps=\(done.joined(separator: ",")) wallMs=\(wallMs)"
+        )
         batchAdapterLog.info(
             "Uno load warmup for \(modelName, privacy: .public): \(done.joined(separator: ","), privacy: .public) in \(wallMs, privacy: .public) ms"
         )
@@ -1410,11 +1423,16 @@ struct MLXBatchAdapter {
             if disableThinking == true || directRailReasoningEffort {
                 level = "none"
             } else if let requested = normalizedReasoningEffort, hasPositiveReasoningEffort {
-                level = DeclaredReasoningEffort.mode(
-                    forNativeEffort: requested,
-                    control: .modeKwargs(levels, defaultLevel: defaultLevel, kwargs: kwargs))
+                level =
+                    DeclaredReasoningEffort.mode(
+                        forNativeEffort: requested,
+                        control: .modeKwargs(levels, defaultLevel: defaultLevel, kwargs: kwargs)
+                    )
                     ?? DeclaredReasoningEffort.snapped(
-                        requested, ontoLevels: levels, defaultLevel: defaultLevel)
+                        requested,
+                        ontoLevels: levels,
+                        defaultLevel: defaultLevel
+                    )
             } else {
                 level = defaultLevel ?? levels.last
             }
@@ -2585,7 +2603,10 @@ struct MLXBatchAdapter {
                 schemaParameters.jsonSchema = schema
                 do {
                     try MLXLMCommon.validateStructuredOutputRequest(
-                        input: lmInput, parameters: schemaParameters, context: context)
+                        input: lmInput,
+                        parameters: schemaParameters,
+                        context: context
+                    )
                 } catch {
                     throw ChatEngine.EngineError(kind: .invalidStructuredOutput(error.localizedDescription))
                 }

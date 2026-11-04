@@ -95,10 +95,16 @@ struct GroundedKnowledgeClaimCheckTests {
     func outcomeClassification() {
         #expect(
             GroundedKnowledgeClaimCheck.isFailedKnowledgeOutcome(
-                toolName: "list_knowledge", result: Self.failedListEnvelope))
+                toolName: "list_knowledge",
+                result: Self.failedListEnvelope
+            )
+        )
         #expect(
             !GroundedKnowledgeClaimCheck.isGroundedKnowledgeOutcome(
-                toolName: "list_knowledge", result: Self.failedListEnvelope))
+                toolName: "list_knowledge",
+                result: Self.failedListEnvelope
+            )
+        )
         let ok = ToolEnvelope.success(tool: "list_knowledge", text: "Found 3 knowledge document(s):")
         #expect(GroundedKnowledgeClaimCheck.isGroundedKnowledgeOutcome(toolName: "list_knowledge", result: ok))
         #expect(!GroundedKnowledgeClaimCheck.isFailedKnowledgeOutcome(toolName: "list_knowledge", result: ok))
@@ -106,10 +112,15 @@ struct GroundedKnowledgeClaimCheckTests {
         #expect(
             !GroundedKnowledgeClaimCheck.isFailedKnowledgeOutcome(
                 toolName: "file_read",
-                result: ToolEnvelope.failure(kind: .notFound, message: "x", tool: "file_read")))
+                result: ToolEnvelope.failure(kind: .notFound, message: "x", tool: "file_read")
+            )
+        )
         #expect(
             !GroundedKnowledgeClaimCheck.isGroundedKnowledgeOutcome(
-                toolName: "file_read", result: ToolEnvelope.success(tool: "file_read", text: "x")))
+                toolName: "file_read",
+                result: ToolEnvelope.success(tool: "file_read", text: "x")
+            )
+        )
     }
 
     // MARK: Granted names from the failure envelope
@@ -118,7 +129,8 @@ struct GroundedKnowledgeClaimCheckTests {
     func grantedNamesParsedFromEnvelope() {
         #expect(
             GroundedKnowledgeClaimCheck.grantedCollectionNames(inFailure: Self.failedListEnvelope)
-                == ["Obsidian Vault"])
+                == ["Obsidian Vault"]
+        )
         let two = ToolEnvelope.failure(
             kind: .invalidArgs,
             message: "Unknown collection `x`. Granted collections: Obsidian Vault, Runbooks v2.1.",
@@ -126,23 +138,30 @@ struct GroundedKnowledgeClaimCheckTests {
         )
         #expect(
             GroundedKnowledgeClaimCheck.grantedCollectionNames(inFailure: two)
-                == ["Obsidian Vault", "Runbooks v2.1"])
+                == ["Obsidian Vault", "Runbooks v2.1"]
+        )
         let none = ToolEnvelope.failure(
-            kind: .rejected, message: "Knowledge tools require an active agent context.",
-            tool: "list_knowledge")
+            kind: .rejected,
+            message: "Knowledge tools require an active agent context.",
+            tool: "list_knowledge"
+        )
         #expect(GroundedKnowledgeClaimCheck.grantedCollectionNames(inFailure: none).isEmpty)
     }
 
     @Test
     func noticeNamesTheGrantedCollectionAndTheTool() {
         let notice = GroundedKnowledgeClaimCheck.ungroundedKnowledgeClaimNotice(
-            tool: "list_knowledge", grantedNames: ["Obsidian Vault"])
+            tool: "list_knowledge",
+            grantedNames: ["Obsidian Vault"]
+        )
         #expect(notice.hasPrefix("[System Notice]"))
         #expect(notice.contains("`Obsidian Vault`"))
         #expect(notice.contains("`list_knowledge`"))
         #expect(notice.contains("do not estimate"))
         let bare = GroundedKnowledgeClaimCheck.ungroundedKnowledgeClaimNotice(
-            tool: "search_knowledge", grantedNames: [])
+            tool: "search_knowledge",
+            grantedNames: []
+        )
         #expect(bare.contains("omitted"))
     }
 }
@@ -306,7 +325,9 @@ struct KnowledgeClaimLoopDriverTests {
                 return AgentLoopToolExecution(
                     result: ToolEnvelope.success(
                         tool: "list_knowledge",
-                        text: "Found 312 knowledge document(s) in total; showing 1–100 (offset 0):"))
+                        text: "Found 312 knowledge document(s) in total; showing 1–100 (offset 0):"
+                    )
+                )
             }
             return Self.failedList
         }
@@ -331,7 +352,8 @@ struct KnowledgeClaimLoopDriverTests {
         surface.executeOverride = { inv in
             if inv.jsonArguments.contains("Obsidian Vault") {
                 return AgentLoopToolExecution(
-                    result: ToolEnvelope.success(tool: "list_knowledge", text: "Found 312 knowledge document(s)"))
+                    result: ToolEnvelope.success(tool: "list_knowledge", text: "Found 312 knowledge document(s)")
+                )
             }
             return Self.failedList
         }
@@ -377,7 +399,10 @@ struct KnowledgeClaimLoopDriverTests {
     @Test
     func repeatedFabrication_isBounded() async throws {
         let surface = KnowledgeClaimLoopSurface(
-            steps: [.toolCalls([listKnowledge(collection: "knowledge")]), .finalResponse, .finalResponse, .finalResponse, .finalResponse],
+            steps: [
+                .toolCalls([listKnowledge(collection: "knowledge")]), .finalResponse, .finalResponse, .finalResponse,
+                .finalResponse,
+            ],
             visibleTexts: [
                 "", "The vault contains 20 documents.", "The vault contains 20 documents.",
                 "The vault contains 20 documents.", "The vault contains 20 documents.",

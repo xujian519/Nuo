@@ -485,7 +485,8 @@ struct KnowledgeWritePreviewTests {
     @Test func replacingAwayExistingFrontmatterIsFlagged() throws {
         try withCollection { collection, root in
             try seed(
-                root, "a.md",
+                root,
+                "a.md",
                 "---\ntitle: How to Deploy\ntype: guide\ndescription: d\ntags: packaging\n---\n\n# How to Deploy\n\nv3.\n"
             )
             let preview = KnowledgeWritePreviewBuilder.build(
@@ -570,7 +571,9 @@ struct KnowledgeWritePreviewTests {
 
             // What the old build showed: unreadable.
             let uncoerced = KnowledgeWritePreviewBuilder.build(
-                collection: collection, argumentsJSON: json, isDelete: false
+                collection: collection,
+                argumentsJSON: json,
+                isDelete: false
             )
             #expect(uncoerced.parseError != nil)
 
@@ -620,11 +623,14 @@ struct KnowledgeWritePreviewTests {
             // The tool sees arguments already coerced by the registry.
             let coerced = SchemaValidator.coerceArguments(
                 try #require(
-                    JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any]),
+                    JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any]
+                ),
                 against: try #require(WriteKnowledgeTool().parameters)
             )
             let parsed = WriteKnowledgeTool.documents(
-                from: try #require(coerced as? [String: Any]), tool: "write_knowledge")
+                from: try #require(coerced as? [String: Any]),
+                tool: "write_knowledge"
+            )
             guard case .success(let documents) = parsed else {
                 Issue.record("tool rejected arguments the card accepted")
                 return

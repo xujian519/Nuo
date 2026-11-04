@@ -244,7 +244,8 @@ struct SandboxPluginRegisterTool: OsaurusTool, @unchecked Sendable {
         case let DecodingError.valueNotFound(type, context):
             return "null/missing value at \(path(context.codingPath)) — expected \(type)."
         case let DecodingError.dataCorrupted(context):
-            let underlying = (context.underlyingError as NSError?)?
+            let underlying =
+                (context.underlyingError as NSError?)?
                 .userInfo[NSDebugDescriptionErrorKey] as? String
             let detail = underlying ?? context.debugDescription
             return "malformed JSON — \(detail) Check for unescaped quotes/newlines in string values."

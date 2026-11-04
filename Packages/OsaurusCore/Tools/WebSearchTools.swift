@@ -318,7 +318,9 @@ final class WebSearchTool: OsaurusTool, @unchecked Sendable {
         // this call can never double-charge or double-consume a free slot.
         let idempotencyKey = UUID().uuidString
         let run = await SearchProviderManager.shared.runHostedFirstSearch(
-            request, idempotencyKey: idempotencyKey)
+            request,
+            idempotencyKey: idempotencyKey
+        )
         let outcome = run.outcome
         if outcome.hits.isEmpty {
             let hasAPIProvider = await SearchProviderManager.shared.hasConfiguredAPIProvider
@@ -456,8 +458,9 @@ final class SearchAndExtractTool: OsaurusTool, @unchecked Sendable {
             if !directURLs.contains(where: Self.looksLikeStructuredData) {
                 let idempotencyKey = UUID().uuidString
                 if let hosted = await SearchProviderManager.shared.hostedExtract(
-                    urls: directURLs, idempotencyKey: idempotencyKey)
-                {
+                    urls: directURLs,
+                    idempotencyKey: idempotencyKey
+                ) {
                     // Only pages that actually returned content were billed;
                     // failed URLs fall back to local Readability per URL.
                     for page in hosted.pages where page.succeeded {
@@ -494,14 +497,17 @@ final class SearchAndExtractTool: OsaurusTool, @unchecked Sendable {
                 payload: payload,
                 warnings: bounded.dropped.isEmpty
                     ? nil
-                    : [Self.droppedURLsWarning(bounded.dropped)])
+                    : [Self.droppedURLsWarning(bounded.dropped)]
+            )
         }
 
         var warnings: [String] = []
         let timeRange = WebSearchArgs.sanitizeTimeRange(args["time_range"], warnings: &warnings)
         let onCall = VoiceCallSearch.isActive
         let maxResults = max(
-            1, min(ArgumentCoercion.int(args["max_results"]) ?? 5, onCall ? VoiceCallSearch.extractResults : 20))
+            1,
+            min(ArgumentCoercion.int(args["max_results"]) ?? 5, onCall ? VoiceCallSearch.extractResults : 20)
+        )
         let extractCount = max(
             1,
             min(
@@ -611,7 +617,8 @@ final class SearchAndExtractTool: OsaurusTool, @unchecked Sendable {
                 SearchExtractionStatus.timeout.rawValue,
             ]
             let hasTransientFailure = statuses.contains { transientStatuses.contains($0) }
-            let allTimedOut = !statuses.isEmpty
+            let allTimedOut =
+                !statuses.isEmpty
                 && statuses.allSatisfy { $0 == SearchExtractionStatus.timeout.rawValue }
             let retryable = hasTransientFailure || attempted.isEmpty
 
@@ -619,7 +626,7 @@ final class SearchAndExtractTool: OsaurusTool, @unchecked Sendable {
             metadata["next_action"] = [
                 "instruction": retryable
                     ? "A transient retrieval failure occurred. Retry once or choose a materially different retrievable source; if retrieval still fails, report the blocker. Do not claim these pages were inspected."
-                    : "Choose a materially different retrievable source or report that page retrieval is blocked. Do not claim these pages were inspected.",
+                    : "Choose a materially different retrievable source or report that page retrieval is blocked. Do not claim these pages were inspected."
             ]
             if let warnings, !warnings.isEmpty { metadata["warnings"] = warnings }
 
@@ -671,7 +678,9 @@ final class SearchAndExtractTool: OsaurusTool, @unchecked Sendable {
             {
                 if let title = hosted.title, !title.isEmpty { entry["title"] = title }
                 let (text, truncated) = SearchDiagnostics.truncate(
-                    hosted.text, maxCharacters: VoiceCallSearch.pageLimit)
+                    hosted.text,
+                    maxCharacters: VoiceCallSearch.pageLimit
+                )
                 entry["extract_status"] = SearchExtractionStatus.ok.rawValue
                 entry["extracted"] = true
                 entry["extract_source"] = "premium"
@@ -744,7 +753,9 @@ final class SearchAndExtractTool: OsaurusTool, @unchecked Sendable {
                         }
                     } else if VoiceCallSearch.isActive {
                         let (text, cut) = SearchDiagnostics.truncate(
-                            extraction.markdown, maxCharacters: VoiceCallSearch.pageLimit)
+                            extraction.markdown,
+                            maxCharacters: VoiceCallSearch.pageLimit
+                        )
                         entry["markdown"] = text
                         entry["truncated"] = extraction.truncated || cut
                         if cut {

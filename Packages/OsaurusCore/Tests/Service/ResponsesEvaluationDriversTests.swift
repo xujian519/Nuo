@@ -30,18 +30,26 @@ struct ResponsesEvaluationDriversTests {
     ])
 
     private func row(
-        _ text: String, status: ResponsesGenerationCompletion.Status = .completed,
+        _ text: String,
+        status: ResponsesGenerationCompletion.Status = .completed,
         measured: Bool = true
     ) -> [ResponsesGenerationEvent] {
         [
             .reasoningDelta("reasoning"), .outputTextDelta(text), .providerOutputItem(raw),
             .reasoningItem(.init(id: "rs_eval", encryptedContent: "opaque")),
-            .responseCompleted(.init(
-                responseID: "resp_eval", status: status, functionCalls: [],
-                tokenCount: measured ? 17 : nil, tokensPerSecond: measured ? 43.123456789 : nil,
-                unclosedReasoning: status == .incomplete,
-                stopReason: status == .incomplete ? "length" : "stop", promptTokensPerSecond: nil, mtp: nil
-            )),
+            .responseCompleted(
+                .init(
+                    responseID: "resp_eval",
+                    status: status,
+                    functionCalls: [],
+                    tokenCount: measured ? 17 : nil,
+                    tokensPerSecond: measured ? 43.123456789 : nil,
+                    unclosedReasoning: status == .incomplete,
+                    stopReason: status == .incomplete ? "length" : "stop",
+                    promptTokensPerSecond: nil,
+                    mtp: nil
+                )
+            ),
             .drained,
         ]
     }
@@ -49,8 +57,11 @@ struct ResponsesEvaluationDriversTests {
     @Test func reasoningMultiTurnKeepsRawItemsReasoningAndBundleDefaults() async throws {
         let engine = Engine([row("first", measured: false), row("second")])
         let result = await ReasoningChannelEvaluator.runConversation(
-            queries: ["one", "two"], model: "selected-eval-model", maxTokens: 192,
-            supportsThinking: true, engine: engine
+            queries: ["one", "two"],
+            model: "selected-eval-model",
+            maxTokens: 192,
+            supportsThinking: true,
+            engine: engine
         )
         #expect(result.error == nil)
         #expect(result.turns.map(\.visibleText) == ["first", "second"])
@@ -72,8 +83,12 @@ struct ResponsesEvaluationDriversTests {
     @Test func memoryInjectionIsTransientAndMetricsAndProviderHistorySurvive() async throws {
         let engine = Engine([row("first"), row("second", measured: false)])
         let result = await MemoryRecallEvaluator.runConversation(
-            queries: ["one", "two"], agentId: "eval-agent", model: "selected-eval-model", maxTokens: 96,
-            engine: engine, memorySectionProvider: { agent, query in "memory-\(agent)-\(query)" }
+            queries: ["one", "two"],
+            agentId: "eval-agent",
+            model: "selected-eval-model",
+            maxTokens: 96,
+            engine: engine,
+            memorySectionProvider: { agent, query in "memory-\(agent)-\(query)" }
         )
         #expect(result.error == nil)
         #expect(result.turns.count == 2)
@@ -92,8 +107,10 @@ struct ResponsesEvaluationDriversTests {
         let restored = try JSONDecoder().decode(MemoryRecallTurn.self, from: JSONEncoder().encode(result.turns[0]))
         #expect(restored.tokenCount == 17)
         #expect(restored.decodeTokensPerSecond == 43.123456789)
-        let old = try JSONDecoder().decode(MemoryRecallTurn.self,
-            from: Data(#"{"visibleText":"old","memoryInjected":false}"#.utf8))
+        let old = try JSONDecoder().decode(
+            MemoryRecallTurn.self,
+            from: Data(#"{"visibleText":"old","memoryInjected":false}"#.utf8)
+        )
         #expect(old.tokenCount == nil && old.decodeTokensPerSecond == nil)
     }
 
@@ -102,8 +119,11 @@ struct ResponsesEvaluationDriversTests {
         let status: ResponsesGenerationCompletion.Status = cancelled ? .cancelled : .incomplete
         let reasoningEngine = Engine([row("partial", status: status)])
         let reasoning = await ReasoningChannelEvaluator.runConversation(
-            queries: ["one", "two"], model: "selected-eval-model", maxTokens: 96,
-            supportsThinking: true, engine: reasoningEngine
+            queries: ["one", "two"],
+            model: "selected-eval-model",
+            maxTokens: 96,
+            supportsThinking: true,
+            engine: reasoningEngine
         )
         #expect(reasoning.error != nil)
         #expect(reasoning.turns.count == 1)
@@ -111,8 +131,12 @@ struct ResponsesEvaluationDriversTests {
         #expect(await reasoningEngine.requests.count == 1)
         let memoryEngine = Engine([row("partial", status: status)])
         let memory = await MemoryRecallEvaluator.runConversation(
-            queries: ["one", "two"], agentId: "eval-agent", model: "selected-eval-model", maxTokens: 96,
-            engine: memoryEngine, memorySectionProvider: { _, _ in nil }
+            queries: ["one", "two"],
+            agentId: "eval-agent",
+            model: "selected-eval-model",
+            maxTokens: 96,
+            engine: memoryEngine,
+            memorySectionProvider: { _, _ in nil }
         )
         #expect(memory.error != nil)
         #expect(memory.turns.count == 1)
@@ -122,8 +146,12 @@ struct ResponsesEvaluationDriversTests {
     @Test func explicitEvaluationTemperatureIsPreserved() async {
         let engine = Engine([row("answer")])
         _ = await ReasoningChannelEvaluator.runConversation(
-            queries: ["one"], model: "selected-eval-model", maxTokens: 96, temperature: 0,
-            supportsThinking: true, engine: engine
+            queries: ["one"],
+            model: "selected-eval-model",
+            maxTokens: 96,
+            temperature: 0,
+            supportsThinking: true,
+            engine: engine
         )
         #expect(await engine.requests.first?.generation.temperature == 0)
     }

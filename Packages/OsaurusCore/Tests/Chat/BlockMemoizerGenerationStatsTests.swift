@@ -57,17 +57,25 @@ struct BlockMemoizerGenerationStatsTests {
             let status = "Generating image… \(step)/16"
             turn.content = status
             let blocks = memoizer.blocks(
-                from: [turn], streamingTurnId: turn.id, activeTurnId: turn.id,
+                from: [turn],
+                streamingTurnId: turn.id,
+                activeTurnId: turn.id,
                 agentName: "Assistant"
             )
-            #expect(blocks.contains {
-                if case let .paragraph(_, text, _, _) = $0.kind { return text == status }
-                return false
-            })
-            #expect(memoizer.blocks(
-                from: [turn], streamingTurnId: turn.id, activeTurnId: turn.id,
-                agentName: "Assistant"
-            ) == blocks)
+            #expect(
+                blocks.contains {
+                    if case let .paragraph(_, text, _, _) = $0.kind { return text == status }
+                    return false
+                }
+            )
+            #expect(
+                memoizer.blocks(
+                    from: [turn],
+                    streamingTurnId: turn.id,
+                    activeTurnId: turn.id,
+                    agentName: "Assistant"
+                ) == blocks
+            )
         }
     }
 
@@ -81,10 +89,12 @@ struct BlockMemoizerGenerationStatsTests {
         for expected in ["gold!", "green"] {
             turn.content = expected
             let blocks = memoizer.blocks(from: [turn], streamingTurnId: turn.id, agentName: "Assistant")
-            #expect(blocks.contains {
-                if case let .paragraph(_, text, _, _) = $0.kind { return text == expected }
-                return false
-            })
+            #expect(
+                blocks.contains {
+                    if case let .paragraph(_, text, _, _) = $0.kind { return text == expected }
+                    return false
+                }
+            )
         }
     }
 

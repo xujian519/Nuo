@@ -26,15 +26,20 @@ struct AgentScopePolicyTests {
     /// (default off, matching a fresh install) so the policy is exercised in
     /// both positions without touching UserDefaults.
     private func rejection(
-        _ method: HTTPMethod, _ path: String,
+        _ method: HTTPMethod,
+        _ path: String,
         audience: String? = "0x00000000000000000000000000000000cafebabe",
         master: Bool = false,
         legacy: Bool = false,
         sharing: Bool = false
     ) -> (code: String, message: String)? {
         HTTPHandler.agentScopedRouteRejection(
-            method: method, path: path, authedAudience: audience, authedScopeIsMaster: master,
-            isWorkspaceMintedKey: !legacy, peerInferenceEnabled: sharing
+            method: method,
+            path: path,
+            authedAudience: audience,
+            authedScopeIsMaster: master,
+            isWorkspaceMintedKey: !legacy,
+            peerInferenceEnabled: sharing
         )
     }
 
@@ -192,7 +197,12 @@ struct AgentScopePolicyTests {
             for sharing in [false, true] {
                 for (method, path) in routes {
                     let master = rejection(
-                        method, path, audience: "0xmaster", master: true, legacy: legacy, sharing: sharing
+                        method,
+                        path,
+                        audience: "0xmaster",
+                        master: true,
+                        legacy: legacy,
+                        sharing: sharing
                     )
                     #expect(master == nil, "master key: \(method) \(path)")
                     #expect(
@@ -210,7 +220,9 @@ struct AgentScopePolicyTests {
     @Test func modelCatalogIsHiddenFromPeersOnlyWhileSharingIsOff() {
         func hidden(_ audience: String?, master: Bool = false, sharing: Bool) -> Bool {
             HTTPHandler.peerModelCatalogIsHidden(
-                authedAudience: audience, authedScopeIsMaster: master, peerInferenceEnabled: sharing
+                authedAudience: audience,
+                authedScopeIsMaster: master,
+                peerInferenceEnabled: sharing
             )
         }
         #expect(hidden(agentAudience, sharing: false))
@@ -245,7 +257,9 @@ struct AgentScopePolicyTests {
 
         func check(_ header: String?, audience: String? = myAddress.lowercased(), master: Bool = false) -> String? {
             HTTPHandler.agentHeaderScopeRejection(
-                headerValue: header, authedAudience: audience, authedScopeIsMaster: master,
+                headerValue: header,
+                authedAudience: audience,
+                authedScopeIsMaster: master,
                 resolveAddress: { directory[$0] }
             )?.code
         }
@@ -264,7 +278,9 @@ struct AgentScopePolicyTests {
 
     @Test func rejectionShapeMatchesPerAgentCheck() {
         let perAgent = HTTPHandler.agentScopeRejection(
-            forAgentId: UUID(), authedAudience: agentAudience, authedScopeIsMaster: false
+            forAgentId: UUID(),
+            authedAudience: agentAudience,
+            authedScopeIsMaster: false
         )
         let perRoute = rejection(.GET, "/agents")
         #expect(perAgent?.code == perRoute?.code)
@@ -281,15 +297,20 @@ struct DispatchTaskOwnershipTests {
         let task = UUID()
         registry.record(taskId: task, audience: "0xAAAA", keyNonce: "key-a")
 
-        #expect(registry.rejection(taskId: task, authedAudience: "0xaaaa", authedScopeIsMaster: false, keyNonce: "key-a") == nil)
         #expect(
-            registry.rejection(taskId: task, authedAudience: "0xbbbb", authedScopeIsMaster: false, keyNonce: "key-a")?.code
+            registry.rejection(taskId: task, authedAudience: "0xaaaa", authedScopeIsMaster: false, keyNonce: "key-a")
+                == nil
+        )
+        #expect(
+            registry.rejection(taskId: task, authedAudience: "0xbbbb", authedScopeIsMaster: false, keyNonce: "key-a")?
+                .code
                 == "agent_scope_denied"
         )
         // A task nobody recorded (created by loopback or a master key) is
         // off-limits to every agent-scoped key.
         #expect(
-            registry.rejection(taskId: UUID(), authedAudience: "0xaaaa", authedScopeIsMaster: false, keyNonce: "key-a")?.code
+            registry.rejection(taskId: UUID(), authedAudience: "0xaaaa", authedScopeIsMaster: false, keyNonce: "key-a")?
+                .code
                 == "agent_scope_denied"
         )
     }
@@ -317,9 +338,17 @@ struct DispatchTaskOwnershipTests {
         let registry = HTTPHandler.DispatchTaskOwnership(capacity: 8)
         let task = UUID()
         registry.record(taskId: task, audience: "0xaaaa", keyNonce: "key-a")
-        #expect(registry.rejection(taskId: task, authedAudience: "0xmaster", authedScopeIsMaster: true, keyNonce: "key-a") == nil)
-        #expect(registry.rejection(taskId: task, authedAudience: nil, authedScopeIsMaster: false, keyNonce: "key-a") == nil)
-        #expect(registry.rejection(taskId: UUID(), authedAudience: nil, authedScopeIsMaster: false, keyNonce: "key-a") == nil)
+        #expect(
+            registry.rejection(taskId: task, authedAudience: "0xmaster", authedScopeIsMaster: true, keyNonce: "key-a")
+                == nil
+        )
+        #expect(
+            registry.rejection(taskId: task, authedAudience: nil, authedScopeIsMaster: false, keyNonce: "key-a") == nil
+        )
+        #expect(
+            registry.rejection(taskId: UUID(), authedAudience: nil, authedScopeIsMaster: false, keyNonce: "key-a")
+                == nil
+        )
     }
 
     @Test func boundedFIFOEvictsOldest() {
@@ -427,7 +456,14 @@ struct PairInviteHardeningTests {
         var last: String?
         for i in 0 ..< (WorkspaceAgentAccessHost.maxPendingChallenges + 44) {
             let outcome = await host.handle(
-                .init(v: 1, agentAddress: agent, attestation: attestation, nonce: nil, walletSignature: nil, encPub: nil)
+                .init(
+                    v: 1,
+                    agentAddress: agent,
+                    attestation: attestation,
+                    nonce: nil,
+                    walletSignature: nil,
+                    encPub: nil
+                )
             )
             guard case .challenge(let nonce, _) = outcome else {
                 Issue.record("step one \(i) did not issue a challenge: \(outcome)")
@@ -438,8 +474,12 @@ struct PairInviteHardeningTests {
         }
         let evicted = await host.handle(
             .init(
-                v: 1, agentAddress: agent, attestation: attestation,
-                nonce: try #require(first), walletSignature: "0x" + String(repeating: "1", count: 130), encPub: nil
+                v: 1,
+                agentAddress: agent,
+                attestation: attestation,
+                nonce: try #require(first),
+                walletSignature: "0x" + String(repeating: "1", count: 130),
+                encPub: nil
             )
         )
         guard case .rejected(.unknownChallenge) = evicted else {
@@ -448,8 +488,12 @@ struct PairInviteHardeningTests {
         }
         let recent = await host.handle(
             .init(
-                v: 1, agentAddress: agent, attestation: attestation,
-                nonce: try #require(last), walletSignature: "0x" + String(repeating: "1", count: 130), encPub: nil
+                v: 1,
+                agentAddress: agent,
+                attestation: attestation,
+                nonce: try #require(last),
+                walletSignature: "0x" + String(repeating: "1", count: 130),
+                encPub: nil
             )
         )
         guard case .rejected(.badWalletSignature) = recent else {

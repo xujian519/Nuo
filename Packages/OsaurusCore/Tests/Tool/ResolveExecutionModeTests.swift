@@ -223,7 +223,7 @@ struct ResolveExecutionModeTests {
             let mode = ToolRegistry.shared.resolveExecutionMode(
                 folderContext: sampleFolderContext(),
                 autonomousEnabled: true
-                // preferHostFolder defaults false
+                    // preferHostFolder defaults false
             )
             #expect(mode.usesSandboxTools)
             #expect(!mode.usesHostFolderTools)

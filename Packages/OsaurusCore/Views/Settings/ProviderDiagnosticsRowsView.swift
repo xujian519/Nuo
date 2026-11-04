@@ -73,8 +73,8 @@ struct ProviderDiagnosticsRowsView: View {
                         } icon: {
                             Image(systemName: "chevron.up")
                         }
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(theme.accentColor)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(theme.accentColor)
                     }
                     .buttonStyle(PlainButtonStyle())
                 }

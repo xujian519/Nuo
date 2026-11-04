@@ -92,30 +92,31 @@ struct ModelPickerOptionsControl {
         let availableWidth: CGFloat = 352
         // Thinking row: icon container + title/description stack + padding.
         let thinkingHeight: CGFloat = thinking != nil ? 50 : 0
-        return thinkingHeight + options.reduce(CGFloat(0)) { total, option in
-            switch option.kind {
-            case .segmented(let segments):
-                var lines: CGFloat = 1
-                var lineWidth: CGFloat = 0
-                for segment in segments {
-                    // chip ≈ label width (~6.5pt/char) + horizontal padding + spacing
-                    let chipWidth = CGFloat(segment.label.count) * 6.5 + 26
-                    if lineWidth + chipWidth > availableWidth {
-                        lines += 1
-                        lineWidth = chipWidth
-                    } else {
-                        lineWidth += chipWidth
+        return thinkingHeight
+            + options.reduce(CGFloat(0)) { total, option in
+                switch option.kind {
+                case .segmented(let segments):
+                    var lines: CGFloat = 1
+                    var lineWidth: CGFloat = 0
+                    for segment in segments {
+                        // chip ≈ label width (~6.5pt/char) + horizontal padding + spacing
+                        let chipWidth = CGFloat(segment.label.count) * 6.5 + 26
+                        if lineWidth + chipWidth > availableWidth {
+                            lines += 1
+                            lineWidth = chipWidth
+                        } else {
+                            lineWidth += chipWidth
+                        }
                     }
+                    // header + chip lines + row padding (+ description line when
+                    // the catalog publishes level copy)
+                    let descriptionHeight: CGFloat =
+                        (option.id == "reasoningEffort" && capabilities != nil) ? 16 : 0
+                    return total + 28 + lines * 31 + 20 + descriptionHeight
+                case .toggle:
+                    return total + 44
                 }
-                // header + chip lines + row padding (+ description line when
-                // the catalog publishes level copy)
-                let descriptionHeight: CGFloat =
-                    (option.id == "reasoningEffort" && capabilities != nil) ? 16 : 0
-                return total + 28 + lines * 31 + 20 + descriptionHeight
-            case .toggle:
-                return total + 44
             }
-        }
     }
 }
 

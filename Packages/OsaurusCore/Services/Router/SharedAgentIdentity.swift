@@ -184,11 +184,14 @@ struct SharedAgentIdentity: Equatable {
     /// pinned effective model for the currently connected remote agent, when
     /// the caller has one (it beats the pairing's last-known model).
     @MainActor
-    static func resolve(address: String, workspaceId: String? = nil, liveEffectiveModel: String? = nil) -> SharedAgentIdentity {
+    static func resolve(address: String, workspaceId: String? = nil, liveEffectiveModel: String? = nil)
+        -> SharedAgentIdentity
+    {
         let roster = WorkspaceRosterStore.shared
         let rosterAgent =
             workspaceId.map { roster.agent(forAddress: address, workspaceId: $0) } ?? roster.agent(forAddress: address)
-        let paired = RemoteAgentManager.shared.remoteAgent(forAddress: address,
+        let paired = RemoteAgentManager.shared.remoteAgent(
+            forAddress: address,
             workspaceId: workspaceId?.isEmpty == false ? workspaceId : nil
         )
         let localAgent = AgentManager.shared.agent(byAddress: address)
@@ -483,8 +486,11 @@ enum SharedAgentStatus: Equatable {
             return Self.sentence(reason) + " " + L("You can still read this conversation.")
         case .readOnlyTeammate(let callerName):
             return String(
-                format: L("%@'s conversation with %@ through your workspace. Replying here would inject into their chat."),
-                callerName ?? L("A teammate"), agentName
+                format: L(
+                    "%@'s conversation with %@ through your workspace. Replying here would inject into their chat."
+                ),
+                callerName ?? L("A teammate"),
+                agentName
             )
         }
     }
@@ -502,7 +508,7 @@ enum SharedAgentStatus: Equatable {
     static func sentence(_ fragment: String) -> String {
         var text = fragment.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let first = text.first else { return text }
-        text.replaceSubrange(text.startIndex...text.startIndex, with: String(first).uppercased())
+        text.replaceSubrange(text.startIndex ... text.startIndex, with: String(first).uppercased())
         if let last = text.last, !".!?…".contains(last) { text += "." }
         return text
     }

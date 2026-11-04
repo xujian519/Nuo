@@ -696,20 +696,24 @@ public struct StorageSettingsView: View {
                     self.desiredEncrypted = enabled
                     if !report.locked.isEmpty {
                         let count = report.locked.count
-                        self.errorMessage = count == 1
+                        self.errorMessage =
+                            count == 1
                             ? L("1 store couldn't be converted because the encryption key is unavailable.")
                             : L("\(count) stores couldn't be converted because the encryption key is unavailable.")
                     } else if !report.failed.isEmpty {
                         let count = report.failed.count
-                        self.errorMessage = count == 1
+                        self.errorMessage =
+                            count == 1
                             ? L("1 store failed to convert.")
                             : L("\(count) stores failed to convert.")
                     } else if enabled {
-                        self.lastSummary = report.converted == 1
+                        self.lastSummary =
+                            report.converted == 1
                             ? L("Encrypted 1 store at rest.")
                             : L("Encrypted \(report.converted) stores at rest.")
                     } else {
-                        self.lastSummary = report.converted == 1
+                        self.lastSummary =
+                            report.converted == 1
                             ? L("Decrypted 1 store; now plaintext at rest.")
                             : L("Decrypted \(report.converted) stores; now plaintext at rest.")
                     }

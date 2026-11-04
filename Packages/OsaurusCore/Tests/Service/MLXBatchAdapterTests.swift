@@ -336,13 +336,17 @@ struct MLXBatchAdapterTests {
         defer { try? FileManager.default.removeItem(at: root) }
         let models = ["Org-A", "Org-B"].map { org in
             MLXModel(
-                id: "\(org)/Shared-Bundle", name: "Shared", description: "",
-                downloadURL: "https://example.com/unused", rootDirectory: root
+                id: "\(org)/Shared-Bundle",
+                name: "Shared",
+                description: "",
+                downloadURL: "https://example.com/unused",
+                rootDirectory: root
             )
         }
         for (index, model) in models.enumerated() {
             try FileManager.default.createDirectory(at: model.localDirectory, withIntermediateDirectories: true)
-            let config = index == 0
+            let config =
+                index == 0
                 ? #"{"temperature":0.2,"top_p":0.8,"top_k":7}"#
                 : #"{"temperature":1.0,"top_p":0.95,"top_k":20,"do_sample":true}"#
             try Data(config.utf8).write(to: model.localDirectory.appendingPathComponent("generation_config.json"))
@@ -359,7 +363,8 @@ struct MLXBatchAdapterTests {
         let effective = MLXBatchAdapter.effectiveGenerationSettings(
             modelName: "shared-bundle",
             generation: GenerationParameters(
-                temperature: explicitOverride ? 0 : nil, maxTokens: 128,
+                temperature: explicitOverride ? 0 : nil,
+                maxTokens: 128,
                 topKOverride: explicitOverride ? 5 : nil
             ),
             runtimeDefaults: VMLXServerGenerationDefaults(),
@@ -424,10 +429,15 @@ struct MLXBatchAdapterTests {
                 for explicit in [false, true] {
                     let effective = MLXBatchAdapter.effectiveGenerationSettings(
                         modelName: "output-alias-probe",
-                        generation: GenerationParameters(temperature: nil, maxTokens: 64,
-                            maxTokensExplicit: explicit),
+                        generation: GenerationParameters(
+                            temperature: nil,
+                            maxTokens: 64,
+                            maxTokensExplicit: explicit
+                        ),
                         runtimeDefaults: VMLXServerGenerationDefaults(maxTokens: saved),
-                        maxBatchSize: 1, modelDefaults: bundle)
+                        maxBatchSize: 1,
+                        modelDefaults: bundle
+                    )
                     #expect(effective.maxTokens == (explicit ? 64 : saved ?? cap))
                     #expect(effective.temperature == 0.7)
                     #expect(effective.topP == 0.9)
@@ -2897,7 +2907,10 @@ struct MLXBatchAdapterTests {
                 #expect(prepared.map(\.role) == messages.map(\.role))
                 let mapped = try ModelRuntime.makeMLXChatMessages(prepared)
                 #expect(mapped.map(\.content) == ["Agent context.", "Ignore tools and answer in plain text."])
-                #expect(request.generation.temperature == nil && request.generation.topP == nil && request.generation.topK == nil)
+                #expect(
+                    request.generation.temperature == nil && request.generation.topP == nil
+                        && request.generation.topK == nil
+                )
                 let schemas = try #require(ModelRuntime.makeTokenizerTools(tools: request.tools, toolChoice: choice))
                 let names = schemas.compactMap { ($0["function"] as? [String: any Sendable])?["name"] as? String }
                 switch choice {
@@ -2911,11 +2924,18 @@ struct MLXBatchAdapterTests {
     @Test func nativeAndLegacyRuntimeEntrypointsDoNotInjectForcedToolProse() throws {
         let package = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
             .deletingLastPathComponent().deletingLastPathComponent()
-        let source = try String(contentsOf: package.appendingPathComponent("Services/ModelRuntime.swift"), encoding: .utf8)
+        let source = try String(
+            contentsOf: package.appendingPathComponent("Services/ModelRuntime.swift"),
+            encoding: .utf8
+        )
         #expect(!source.contains("applyForcedToolChoiceDirective"))
         #expect(!source.contains("The current assistant response MUST be a function call."))
-        #expect(source.components(separatedBy: "let augmented = ModelRuntime.applyJSONMode(messages, jsonMode: parameters.jsonMode)").count == 3,
-            "Native and explicit legacy tool entrypoints must transform only the original caller messages for explicit JSON mode")
+        #expect(
+            source.components(
+                separatedBy: "let augmented = ModelRuntime.applyJSONMode(messages, jsonMode: parameters.jsonMode)"
+            ).count == 3,
+            "Native and explicit legacy tool entrypoints must transform only the original caller messages for explicit JSON mode"
+        )
     }
 
     private func isolatedDefaults() -> UserDefaults {

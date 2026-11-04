@@ -70,7 +70,9 @@ struct RuntimePolicySourceTests {
                 prefillStepSize: ModelPrefillTuningStore.tunedStepSize(for: modelName)
                                 ?? runtime.concurrency.prefillStepSize
                                 ?? container.recommendedPrefillStepSize,
-                """))
+                """
+            )
+        )
     }
 
     @Test("HTTP max tokens does not invent a hidden reasoning budget")
@@ -890,8 +892,10 @@ struct RuntimePolicySourceTests {
         #expect(preparation.contains("await ModelLease.shared.release(name)"))
         let returnedLoad = try #require(preparation.range(of: "let holder = try await loadContainer("))
         let acquiredLease = try #require(preparation.range(of: "await ModelLease.shared.acquire(name)"))
-        #expect(!preparation[returnedLoad.upperBound ..< acquiredLease.lowerBound].contains("Task.checkCancellation"),
-            "A published holder must reach post-load cancellation cleanup, never be orphaned by a throw before its lease")
+        #expect(
+            !preparation[returnedLoad.upperBound ..< acquiredLease.lowerBound].contains("Task.checkCancellation"),
+            "A published holder must reach post-load cancellation cleanup, never be orphaned by a throw before its lease"
+        )
 
         #expect(postLoadWindow.contains("if Task.isCancelled"))
         #expect(postLoadWindow.contains("await ModelResidencyManager.shared.cancel(modelName: modelName)"))
@@ -1587,7 +1591,9 @@ struct RuntimePolicySourceTests {
         // the block under test runs from that function through the cap
         // branch that calls it.
         let start = try #require(
-            chat.range(of: "func streamToolFreeWrapUp(notice: String, emptyText: String, failurePrefix: String) async {")
+            chat.range(
+                of: "func streamToolFreeWrapUp(notice: String, emptyText: String, failurePrefix: String) async {"
+            )
         )
         let end = try #require(
             chat.range(
@@ -1769,7 +1775,10 @@ struct RuntimePolicySourceTests {
             #expect(route.contains("try accumulator.result()"))
             #expect(route.contains("response.inputTokenCount"))
             #expect(route.contains("response.completion"))
-            #expect(!route.contains("StreamingToolHint.isSentinel"), "Typed routes must not reinterpret string sentinels")
+            #expect(
+                !route.contains("StreamingToolHint.isSentinel"),
+                "Typed routes must not reinterpret string sentinels"
+            )
         }
     }
 
@@ -1797,7 +1806,11 @@ struct RuntimePolicySourceTests {
         #expect(agentRun.contains("try response.completedAssistantInput()"))
         #expect(agentRun.contains("try batchHistory.begin(assistant)"))
         #expect(agentRun.contains("batchHistory.record(callID: outcome.callId, result: recordedResult)"))
-        #expect(agentRun.contains("if let commit = batchHistory.complete([]) { messages.append(contentsOf: commit.messages) }"))
+        #expect(
+            agentRun.contains(
+                "if let commit = batchHistory.complete([]) { messages.append(contentsOf: commit.messages) }"
+            )
+        )
         #expect(agentRun.contains("batchHistory.finish(runExit:"))
         let history = try Self.source("Services/Inference/ResponsesToolBatchHistory.swift")
         #expect(history.contains("var messages: [ChatMessage] { [assistant] + results }"))
@@ -1947,7 +1960,10 @@ struct RuntimePolicySourceTests {
             #expect(route.contains(bridge), "\(signature) must honor the effective stream interval")
             #expect(route.contains("contentCoalescer.append("))
             #expect(route.contains("contentCoalescer.flush()"))
-            #expect(route.contains("writerBound.value.writeContent(chunk") || route.contains("writerBound.value.writeTextDelta(chunk"))
+            #expect(
+                route.contains("writerBound.value.writeContent(chunk")
+                    || route.contains("writerBound.value.writeTextDelta(chunk")
+            )
         }
     }
 
@@ -2117,8 +2133,12 @@ struct RuntimePolicySourceTests {
             #expect(cancellation.lowerBound < dispatch.lowerBound, "\(signature) must cancel before load/dispatch")
             let normalizedRoute = route.components(separatedBy: "\n")
                 .map { $0.trimmingCharacters(in: .whitespaces) }.joined(separator: "\n")
-            #expect(normalizedRoute.contains("try Task.checkCancellation()\nif disconnected.value { throw CancellationError() }\ntry accumulator.consume(event)"),
-                "\(signature) must cancel before consuming each typed event")
+            #expect(
+                normalizedRoute.contains(
+                    "try Task.checkCancellation()\nif disconnected.value { throw CancellationError() }\ntry accumulator.consume(event)"
+                ),
+                "\(signature) must cancel before consuming each typed event"
+            )
             #expect(!route.contains(".streamChat(request:"))
         }
         let collector = try Self.source("Services/Inference/ResponsesGenerationResult.swift")
@@ -2844,8 +2864,12 @@ struct RuntimePolicySourceTests {
 
         #expect(runtime.contains("MTPBundleInspector.inspect("))
         let loadSettingsStart = try #require(runtime.range(of: "let serverSettings: VMLXServerRuntimeSettings = {"))
-        let loadSettingsEnd = try #require(runtime.range(
-            of: "Self.applyPerformancePolicy(serverSettings)", range: loadSettingsStart.upperBound ..< runtime.endIndex))
+        let loadSettingsEnd = try #require(
+            runtime.range(
+                of: "Self.applyPerformancePolicy(serverSettings)",
+                range: loadSettingsStart.upperBound ..< runtime.endIndex
+            )
+        )
         let loadSettings = String(runtime[loadSettingsStart.lowerBound ..< loadSettingsEnd.lowerBound])
         #expect(loadSettings.contains("var settings = ServerRuntimeSettingsStore.snapshot()"))
         #expect(loadSettings.contains("if let mtp { settings.mtp = mtp }"))
@@ -3439,7 +3463,9 @@ struct RuntimePolicySourceTests {
         let evaluator = try Self.source("Services/Context/AgentLoopEvaluator.swift")
         let requestTypes = try Self.source("Services/Inference/ResponsesInferenceRequest.swift")
         let requestStart = try #require(evaluator.range(of: "func makeRequest("))
-        let requestEnd = try #require(evaluator.range(of: "func diagnosticPreview(", range: requestStart.upperBound ..< evaluator.endIndex))
+        let requestEnd = try #require(
+            evaluator.range(of: "func diagnosticPreview(", range: requestStart.upperBound ..< evaluator.endIndex)
+        )
         let makeRequest = String(evaluator[requestStart.lowerBound ..< requestEnd.lowerBound])
 
         #expect(
@@ -3456,11 +3482,15 @@ struct RuntimePolicySourceTests {
             ("topP", "var topP: Float? = nil"), ("topK", "var topK: Int? = nil"),
         ] {
             #expect(requestTypes.contains(declaration))
-            #expect(!makeRequest.contains("request.generation.\(field) ="),
-                "The eval harness must preserve the bundle's omitted \(field) default")
+            #expect(
+                !makeRequest.contains("request.generation.\(field) ="),
+                "The eval harness must preserve the bundle's omitted \(field) default"
+            )
         }
-        #expect(makeRequest.contains("request.generation.maxOutputTokens = resolvedMaxTokens"),
-            "Explicit diagnostic output budgets must still reach the runtime")
+        #expect(
+            makeRequest.contains("request.generation.maxOutputTokens = resolvedMaxTokens"),
+            "Explicit diagnostic output budgets must still reach the runtime"
+        )
         #expect(
             !evaluator.contains("temperature: 0.0"),
             "The eval harness must not silently force greedy decoding for bundles tuned for sampling."
@@ -3470,11 +3500,19 @@ struct RuntimePolicySourceTests {
             "Agent-loop tools must see the exact invoking parent model so residency handoff stays production-equivalent."
         )
         let runStart = try #require(evaluator.range(of: "    public static func run("))
-        let runEnd = try #require(evaluator.range(of: "    static func runConversation(",
-            range: runStart.upperBound ..< evaluator.endIndex))
+        let runEnd = try #require(
+            evaluator.range(
+                of: "    static func runConversation(",
+                range: runStart.upperBound ..< evaluator.endIndex
+            )
+        )
         let publicRun = String(evaluator[runStart.lowerBound ..< runEnd.lowerBound])
-        let evaluationScope = try #require(publicRun.range(of:
-            "ChatExecutionContext.$inferenceSourceOverride.withValue(inferenceSource)"))
+        let evaluationScope = try #require(
+            publicRun.range(
+                of:
+                    "ChatExecutionContext.$inferenceSourceOverride.withValue(inferenceSource)"
+            )
+        )
         let wholeConversation = try #require(publicRun.range(of: "await runConversation("))
         let engineConstruction = try #require(publicRun.range(of: "engine: ChatEngine(source: inferenceSource)"))
         #expect(evaluationScope.lowerBound < wholeConversation.lowerBound)
@@ -3488,9 +3526,15 @@ struct RuntimePolicySourceTests {
                 && evaluator.contains("let sessionSource: SessionSource = .chat")
                 && evaluator.contains("ChatExecutionContext.$currentSessionSource.withValue(")
                 && dispatch.contains("request.inferenceSourceOverride = ChatExecutionContext.inferenceSourceOverride")
-                && background.contains("ChatExecutionContext.$inferenceSourceOverride.withValue(request.inferenceSourceOverride)")
-                && background.contains("await context.start(prompt: request.prompt, taskIntent: request.taskIntent, generationOverrides: request.generationOverrides)")
-                && execution.contains("source == .chatUI && inferenceSourceOverride == .evaluation ? .evaluation : source")
+                && background.contains(
+                    "ChatExecutionContext.$inferenceSourceOverride.withValue(request.inferenceSourceOverride)"
+                )
+                && background.contains(
+                    "await context.start(prompt: request.prompt, taskIntent: request.taskIntent, generationOverrides: request.generationOverrides)"
+                )
+                && execution.contains(
+                    "source == .chatUI && inferenceSourceOverride == .evaluation ? .evaluation : source"
+                )
                 && engine.contains("ChatExecutionContext.resolvedInferenceSource(baseInferenceSource)"),
             "The whole evaluation conversation and detached delegated start must carry scoped headless ownership without rewriting persisted Chat/Agent provenance, borrowing HTTP protection or leaving a reused engine sticky."
         )
@@ -3778,7 +3822,10 @@ struct RuntimePolicySourceTests {
             "Family-specific reasoning profiles must not force enable_thinking=false by writing a false boolean when no positive effort was requested."
         )
         let defaultGuard = try #require(
-            adapter.range(of: "guard normalizedReasoningEffort != nil || disableThinking != nil else {\n            return context\n        }")
+            adapter.range(
+                of:
+                    "guard normalizedReasoningEffort != nil || disableThinking != nil else {\n            return context\n        }"
+            )
         )
         let firstFamilyOverride = try #require(adapter.range(of: "if DSV4ReasoningProfile.matches(modelId: modelName)"))
         #expect(
@@ -4089,15 +4136,19 @@ struct RuntimePolicySourceTests {
         let app = try Self.source("AppDelegate.swift")
         let bridge = try Self.source("Utils/VolumeAvailableCapacityCache+DiskCache.swift")
         let invocation = "VolumeAvailableCapacityCache.installAsDiskCacheFreeSpaceProvider()"
-        #expect(app.components(separatedBy: invocation).count == 2,
-                "The runtime must receive the shared capacity provider exactly once at launch")
+        #expect(
+            app.components(separatedBy: invocation).count == 2,
+            "The runtime must receive the shared capacity provider exactly once at launch"
+        )
         let recovery = try #require(app.range(of: "MLXErrorRecovery.installGlobalHandler()"))
         let provider = try #require(app.range(of: invocation))
         #expect(recovery.upperBound < provider.lowerBound)
         #expect(bridge.contains("DiskCacheVolumeSnapshot.setPurgeableInclusiveFreeBytesProvider"))
         #expect(bridge.contains("shared.cachedBytes(forPath: path)"))
-        #expect(!bridge.contains("volumeAvailableCapacityForImportantUsageKey"),
-                "The runtime callback must not issue the blocking volume query")
+        #expect(
+            !bridge.contains("volumeAvailableCapacityForImportantUsageKey"),
+            "The runtime callback must not issue the blocking volume query"
+        )
     }
 
 }

@@ -234,7 +234,8 @@ public struct ScreenContextDistiller: Sendable {
         // 2. The app the user was on right before Osaurus took focus.
         if let preferredPid,
             let match = apps.first(where: { $0.pid == preferredPid }),
-            !identity.owns(match) {
+            !identity.owns(match)
+        {
             return WorkingApp(pid: match.pid, name: match.name, windowTitle: nil)
         }
         // 3. Best-effort: the first visible non-Osaurus app, else any non-Osaurus app.
@@ -302,7 +303,8 @@ public struct ScreenContextDistiller: Sendable {
             let label = labelValue(direct.label, limit: maxItemChars)
             let placeholder = labelValue(direct.placeholder, limit: maxItemChars)
             if viewing != nil || value != nil || selected != nil || label != nil
-                || placeholder != nil {
+                || placeholder != nil
+            {
                 return ScreenContextSnapshot.FocusedElement(
                     role: friendlyRole(direct.role),
                     label: label,
@@ -337,7 +339,8 @@ public struct ScreenContextDistiller: Sendable {
         let label = labelValue(element.label, limit: maxItemChars)
         let placeholder = labelValue(element.placeholder, limit: maxItemChars)
         if value == nil, selected == nil, label == nil, placeholder == nil,
-            !Self.rawInputRoles.contains(element.role.lowercased()) {
+            !Self.rawInputRoles.contains(element.role.lowercased())
+        {
             return nil
         }
         return ScreenContextSnapshot.FocusedElement(
@@ -802,7 +805,8 @@ public struct ScreenContextDistiller: Sendable {
         // Pure noise: versions, commit hashes, ARIA booleans, AX sentinels, bare
         // counts, icon-only / shortcut glyphs.
         if isLowSignal(status) || isBooleanToken(status) || looksLikeBareToken(status)
-            || looksLikeHashToken(status) || isUnavailablePlaceholder(status) {
+            || looksLikeHashToken(status) || isUnavailablePlaceholder(status)
+        {
             return nil
         }
         // A generic feature button with no state ("remote", "Notifications",

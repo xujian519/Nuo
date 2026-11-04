@@ -247,7 +247,7 @@ public final class StreamingUnscrubber {
             case 0x0a: result += "\\n"
             case 0x0d: result += "\\r"
             case 0x09: result += "\\t"
-            case 0..<0x20: result += String(format: "\\u%04x", scalar.value)
+            case 0 ..< 0x20: result += String(format: "\\u%04x", scalar.value)
             default: result.unicodeScalars.append(scalar)
             }
         }

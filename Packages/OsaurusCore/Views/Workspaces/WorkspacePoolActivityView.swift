@@ -237,7 +237,8 @@ struct WorkspacePoolActivityView: View {
     /// name the person by (rows then read like personal usage).
     private func actorName(_ actor: OsaurusRouterUsageItem.Actor) -> String? {
         if WorkspacesService.shared.isSelf(actor) { return L("you") }
-        let hasName = (actor.displayName?.isEmpty == false)
+        let hasName =
+            (actor.displayName?.isEmpty == false)
             || (actor.walletAddress?.isEmpty == false)
             || (actor.accountId?.isEmpty == false)
         return hasName ? actor.friendlyName : nil
@@ -335,7 +336,8 @@ struct WorkspacePoolActivityView: View {
         async let balanceTask = try? WorkspacesService.shared.fetchWorkspaceBalance(workspaceId: workspace.id)
         async let usageTask = try? WorkspacesService.shared.fetchWorkspaceUsage(workspaceId: workspace.id)
         async let transactionsTask = try? WorkspacesService.shared.fetchWorkspaceTransactions(
-            workspaceId: workspace.id)
+            workspaceId: workspace.id
+        )
 
         let (balance, usage, txns) = await (balanceTask, usageTask, transactionsTask)
         self.balance = balance ?? self.balance
@@ -348,7 +350,8 @@ struct WorkspacePoolActivityView: View {
         }
         if balance == nil, usage == nil, txns == nil {
             errorMessage = L(
-                "Couldn't load the workspace's activity. Check your connection and try again.")
+                "Couldn't load the workspace's activity. Check your connection and try again."
+            )
         }
     }
 
@@ -358,7 +361,9 @@ struct WorkspacePoolActivityView: View {
         defer { isLoadingMore = false }
         guard
             let page = try? await WorkspacesService.shared.fetchWorkspaceUsage(
-                workspaceId: workspace.id, cursor: cursor)
+                workspaceId: workspace.id,
+                cursor: cursor
+            )
         else { return }
         let known = Set(usageItems.map(\.id))
         usageItems.append(contentsOf: page.data.filter { !known.contains($0.id) })

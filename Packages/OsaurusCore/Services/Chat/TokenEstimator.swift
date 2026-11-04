@@ -70,6 +70,7 @@ public enum TokenEstimator {
         max(
             1,
             (name.utf8.count + arguments.utf8.count + id.utf8.count + toolCallEnvelopeChars)
-                / charsPerToken)
+                / charsPerToken
+        )
     }
 }

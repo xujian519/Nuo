@@ -175,10 +175,12 @@ enum TelegramSettingsSavePolicy {
             return true
         }
 
-        let writeOnlyReady = diagnostics.writeEnabled
+        let writeOnlyReady =
+            diagnostics.writeEnabled
             && !diagnostics.writableChatIds.isEmpty
             && !diagnostics.longPollingEnabled
-        let storedReadConfigured = diagnostics.receiveStorageEnabled
+        let storedReadConfigured =
+            diagnostics.receiveStorageEnabled
             && !diagnostics.readableChatIds.isEmpty
             && !diagnostics.senderAllowlist.isEmpty
             && !diagnostics.longPollingEnabled
@@ -343,17 +345,19 @@ enum TelegramUpdateNormalizer {
             (message.voice, .audio),
             (message.animation, .video),
         ]
-        attachments.append(contentsOf: media.compactMap { file, kind in
-            file.map {
-                AgentChannelStoredAttachment(
-                    providerId: $0.fileId,
-                    kind: kind,
-                    filename: $0.fileName,
-                    contentType: $0.mimeType,
-                    sizeBytes: $0.fileSize
-                )
+        attachments.append(
+            contentsOf: media.compactMap { file, kind in
+                file.map {
+                    AgentChannelStoredAttachment(
+                        providerId: $0.fileId,
+                        kind: kind,
+                        filename: $0.fileName,
+                        contentType: $0.mimeType,
+                        sizeBytes: $0.fileSize
+                    )
+                }
             }
-        })
+        )
         return attachments
     }
 
@@ -570,15 +574,19 @@ final class TelegramConnectionService: @unchecked Sendable {
         }
 
         let receiveStorageDisabled = !config.receiveStorageEnabled
-        let receiveLongPollingDisabled = config.receiveStorageEnabled
+        let receiveLongPollingDisabled =
+            config.receiveStorageEnabled
             && !config.longPollingEnabled
-        let receiveNeedsReadableChats = config.receiveStorageEnabled
+        let receiveNeedsReadableChats =
+            config.receiveStorageEnabled
             && config.longPollingEnabled
             && config.readableChatIds.isEmpty
-        let receiveNeedsSenderAllowlist = config.receiveStorageEnabled
+        let receiveNeedsSenderAllowlist =
+            config.receiveStorageEnabled
             && config.longPollingEnabled
             && config.senderAllowlist.isEmpty
-        let webhookBlocksLongPolling = config.receiveStorageEnabled
+        let webhookBlocksLongPolling =
+            config.receiveStorageEnabled
             && config.longPollingEnabled
             && webhook?.registered == true
 
@@ -691,9 +699,11 @@ final class TelegramConnectionService: @unchecked Sendable {
         guard let token = credentialStore.botToken() else { return nil }
         guard let info = try? await client.getWebhookInfo(token: token) else { return nil }
         if info.isRegistered {
-            return "A webhook is registered for this bot (\(TelegramSecurity.redact(info.url, token: token))). Remove the webhook in Telegram settings or disable long polling."
+            return
+                "A webhook is registered for this bot (\(TelegramSecurity.redact(info.url, token: token))). Remove the webhook in Telegram settings or disable long polling."
         }
-        return "Another getUpdates consumer is polling this bot token (for example a plugin or a second Nuo instance). Stop the other consumer and retry."
+        return
+            "Another getUpdates consumer is polling this bot token (for example a plugin or a second Nuo instance). Stop the other consumer and retry."
     }
 
     private func chatDiagnostics(
@@ -989,8 +999,9 @@ final class TelegramConnectionService: @unchecked Sendable {
         }
         let reactionKey = "\(chatId):\(messageId)"
         if !adding,
-           let recorded = botReactionLock.withLock({ botReactionByMessage[reactionKey] }),
-           recorded != payload {
+            let recorded = botReactionLock.withLock({ botReactionByMessage[reactionKey] }),
+            recorded != payload
+        {
             throw TelegramConnectionServiceError.api(
                 "The bot's reaction on this message is \(recorded.displayValue), not \(payload.displayValue). Telegram bots keep one reaction per message; removal was skipped so the existing reaction is not cleared."
             )
@@ -1035,7 +1046,8 @@ final class TelegramConnectionService: @unchecked Sendable {
         expectedSecretToken: String? = nil
     ) async throws -> TelegramReceiveBatchResult {
         if let expectedSecretToken,
-           !Self.constantTimeEquals(secretTokenHeader ?? "", expectedSecretToken) {
+            !Self.constantTimeEquals(secretTokenHeader ?? "", expectedSecretToken)
+        {
             throw TelegramConnectionServiceError.invalidWebhookSecret
         }
         let update = try JSONDecoder().decode(TelegramUpdate.self, from: data)
@@ -1328,7 +1340,8 @@ final class TelegramConnectionService: @unchecked Sendable {
         }
         // Long sends are split into up to `maxChunksPerSend` native messages
         // of 4,096 UTF-16 units each; cap the raw input accordingly.
-        let maxInput = AgentChannelMessageFormatter.telegramChunkLimit
+        let maxInput =
+            AgentChannelMessageFormatter.telegramChunkLimit
             * AgentChannelMessageFormatter.maxChunksPerSend
         guard trimmed.utf16.count <= maxInput else {
             throw TelegramConnectionServiceError.messageTooLong

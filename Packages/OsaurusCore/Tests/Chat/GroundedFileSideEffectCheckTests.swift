@@ -21,20 +21,21 @@ private enum LiveReadOnlyFileRegression {
     // Exact first final answer from the native 9aac/877 SQL transcript,
     // session D97F5BFB-F49E-4C8E-92DA-D59008FF7BCF. The old bare "to file"
     // regex misclassified the closing memory comparison as a write claim.
-    static let answer = "\n\n" + #"""
-        I read `probe.json` in the working folder. Here are its contents (unmodified):
+    static let answer =
+        "\n\n" + #"""
+            I read `probe.json` in the working folder. Here are its contents (unmodified):
 
-        **probe.json**
-        ```json
-        {"nonce":"responses-integrated-20261025","value":42}
-        ```
+            **probe.json**
+            ```json
+            {"nonce":"responses-integrated-20261025","value":42}
+            ```
 
-        **Reported values:**
-        - **Nonce:** `responses-integrated-20261025`
-        - **Integer value:** `42`
+            **Reported values:**
+            - **Nonce:** `responses-integrated-20261025`
+            - **Integer value:** `42`
 
-        The file is 53 bytes, one line, valid JSON, and was read without any modification. (Note: the file's actual `value` is 42, which matches the "Integer value: 42" memory entry; the "Current integer value in probe.json is 43" memory entry appears stale relative to the file on disk.)
-        """#
+            The file is 53 bytes, one line, valid JSON, and was read without any modification. (Note: the file's actual `value` is 42, which matches the "Integer value: 42" memory entry; the "Current integer value in probe.json is 43" memory entry appears stale relative to the file on disk.)
+            """#
 }
 
 @Suite
@@ -165,7 +166,9 @@ struct GroundedFileSideEffectCheckTests {
         ]
         func grounded() -> Bool {
             GroundedFileSideEffectCheck.isGroundedFileWriteOutcome(
-                toolName: tool, result: ToolEnvelope.success(tool: tool, result: payload))
+                toolName: tool,
+                result: ToolEnvelope.success(tool: tool, result: payload)
+            )
         }
         #expect(grounded())
         payload["status"] = "queued"
@@ -176,9 +179,12 @@ struct GroundedFileSideEffectCheckTests {
         payload["images"] = [["path": ""]]
         payload["media"] = ["path": ""]
         #expect(!grounded())
-        #expect(!GroundedFileSideEffectCheck.isGroundedFileWriteOutcome(
-            toolName: tool,
-            result: ToolEnvelope.failure(kind: .invalidArgs, message: "invalid size", tool: tool)))
+        #expect(
+            !GroundedFileSideEffectCheck.isGroundedFileWriteOutcome(
+                toolName: tool,
+                result: ToolEnvelope.failure(kind: .invalidArgs, message: "invalid size", tool: tool)
+            )
+        )
     }
 
     @Test
@@ -313,7 +319,9 @@ struct FileClaimLoopDriverTests {
     ])
     func readOnlyExchangeExecutesOneReadAndAcceptsItsFirstFinalWithoutRetry(answer: String) async throws {
         let call = ServiceToolInvocation(
-            toolName: "file_read", jsonArguments: #"{"path":"probe.json"}"#, toolCallId: "call_live_read"
+            toolName: "file_read",
+            jsonArguments: #"{"path":"probe.json"}"#,
+            toolCallId: "call_live_read"
         )
         let readPayload: [String: Any] = [
             "path": "probe.json", "text": #"{"nonce":"responses-integrated-20261025","value":42}"#,
@@ -330,7 +338,9 @@ struct FileClaimLoopDriverTests {
         let hooks = AgentLoopHooks(
             buildMessages: { notices in
                 deliveredNotices.append(notices)
-                return AgentLoopIterationInput(messages: AgentLoopBudget.appendingTransientNotices(notices, to: history))
+                return AgentLoopIterationInput(
+                    messages: AgentLoopBudget.appendingTransientNotices(notices, to: history)
+                )
             },
             modelStep: { messages, _ in
                 modelInputs.append(messages)
@@ -344,10 +354,23 @@ struct FileClaimLoopDriverTests {
                 return AgentLoopToolExecution(result: readResult)
             },
             onBatchComplete: { outcomes in
-                history.append(ChatMessage(role: "assistant", content: nil, tool_calls: outcomes.map {
-                    ToolCall(id: $0.callId, type: "function", function: ToolCallFunction(
-                        name: $0.invocation.toolName, arguments: $0.invocation.jsonArguments))
-                }, tool_call_id: nil))
+                history.append(
+                    ChatMessage(
+                        role: "assistant",
+                        content: nil,
+                        tool_calls: outcomes.map {
+                            ToolCall(
+                                id: $0.callId,
+                                type: "function",
+                                function: ToolCallFunction(
+                                    name: $0.invocation.toolName,
+                                    arguments: $0.invocation.jsonArguments
+                                )
+                            )
+                        },
+                        tool_call_id: nil
+                    )
+                )
                 history += outcomes.map {
                     ChatMessage(role: "tool", content: $0.result, tool_calls: nil, tool_call_id: $0.callId)
                 }

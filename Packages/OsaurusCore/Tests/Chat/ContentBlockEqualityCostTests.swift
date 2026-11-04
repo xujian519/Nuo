@@ -93,8 +93,10 @@ struct ContentBlockEqualityCostTests {
         let decomposed = "cafe\u{0301}"
         #expect(composed == decomposed)
         #expect(composed.utf8.count != decomposed.utf8.count)
-        #expect(paragraph(composed, turn: turn, index: 0)
-            == paragraph(decomposed, turn: turn, index: 0))
+        #expect(
+            paragraph(composed, turn: turn, index: 0)
+                == paragraph(decomposed, turn: turn, index: 0)
+        )
     }
 
 }

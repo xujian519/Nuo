@@ -460,8 +460,10 @@ struct DSV4ParserPipelineTests {
         let visible = events.compactMap(\.chunk).joined()
         let calls = events.compactMap(\.toolCall)
 
-        #expect(visible.trimmingCharacters(in: .whitespacesAndNewlines)
-            == output.trimmingCharacters(in: .whitespacesAndNewlines))
+        #expect(
+            visible.trimmingCharacters(in: .whitespacesAndNewlines)
+                == output.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
         #expect(calls.isEmpty)
     }
 
@@ -496,8 +498,10 @@ struct DSV4ParserPipelineTests {
         let visible = events.compactMap(\.chunk).joined()
         let calls = events.compactMap(\.toolCall)
 
-        #expect(visible.trimmingCharacters(in: .whitespacesAndNewlines)
-            == output.trimmingCharacters(in: .whitespacesAndNewlines))
+        #expect(
+            visible.trimmingCharacters(in: .whitespacesAndNewlines)
+                == output.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
         #expect(calls.isEmpty)
     }
 
@@ -532,8 +536,10 @@ struct DSV4ParserPipelineTests {
         let visible = events.compactMap(\.chunk).joined()
         let calls = events.compactMap(\.toolCall)
 
-        #expect(visible.trimmingCharacters(in: .whitespacesAndNewlines)
-            == output.trimmingCharacters(in: .whitespacesAndNewlines))
+        #expect(
+            visible.trimmingCharacters(in: .whitespacesAndNewlines)
+                == output.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
         #expect(calls.isEmpty)
     }
 
@@ -569,8 +575,10 @@ struct DSV4ParserPipelineTests {
         let calls = events.compactMap(\.toolCall)
 
         #expect(calls.isEmpty)
-        #expect(visible.trimmingCharacters(in: .whitespacesAndNewlines)
-            == output.trimmingCharacters(in: .whitespacesAndNewlines))
+        #expect(
+            visible.trimmingCharacters(in: .whitespacesAndNewlines)
+                == output.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
     }
 
     private struct DSMLToolFixture {

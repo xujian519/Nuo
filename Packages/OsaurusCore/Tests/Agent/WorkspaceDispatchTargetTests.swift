@@ -60,8 +60,11 @@ struct WorkspaceTargetStoredModelTests {
     @Test("schedule targeting a workspace agent round-trips and leaves agentId unset")
     func workspaceScheduleRoundTrips() throws {
         let schedule = Schedule(
-            name: "Daily digest", instructions: "Summarize", target: .workspace(wsRef),
-            frequency: .daily(hour: 8, minute: 0))
+            name: "Daily digest",
+            instructions: "Summarize",
+            target: .workspace(wsRef),
+            frequency: .daily(hour: 8, minute: 0)
+        )
         #expect(schedule.agentId == nil)
         #expect(schedule.workspaceTarget == wsRef)
 
@@ -78,7 +81,11 @@ struct WorkspaceTargetStoredModelTests {
     func localScheduleWritesBothKeys() throws {
         let id = UUID()
         let schedule = Schedule(
-            name: "s", instructions: "i", agentId: id, frequency: .daily(hour: 8, minute: 0))
+            name: "s",
+            instructions: "i",
+            agentId: id,
+            frequency: .daily(hour: 8, minute: 0)
+        )
         let object = try json(schedule)
         #expect(object["agentId"] as? String == id.uuidString)
         let target = try #require(object["target"] as? [String: Any])
@@ -89,8 +96,11 @@ struct WorkspaceTargetStoredModelTests {
     @Test("setting agentId on a schedule replaces the target with a local one")
     func scheduleAgentIdSetterRewritesTarget() {
         var schedule = Schedule(
-            name: "s", instructions: "i", target: .workspace(wsRef),
-            frequency: .daily(hour: 8, minute: 0))
+            name: "s",
+            instructions: "i",
+            target: .workspace(wsRef),
+            frequency: .daily(hour: 8, minute: 0)
+        )
         let id = UUID()
         schedule.agentId = id
         #expect(schedule.target == .local(id))
@@ -132,7 +142,9 @@ struct WorkspaceTargetStoredModelTests {
         let object = try json(route)
         #expect(object["agentId"] == nil)
         let decoded = try JSONDecoder().decode(
-            AgentChannelDispatchRoute.self, from: JSONEncoder().encode(route))
+            AgentChannelDispatchRoute.self,
+            from: JSONEncoder().encode(route)
+        )
         #expect(decoded == route)
 
         #expect(throws: DecodingError.self) {
@@ -166,7 +178,9 @@ struct WorkspaceTargetStoredModelTests {
         #expect(config.referencedAgentIds == [localRoute], "local-only readers must not see workspace refs")
 
         let decoded = try JSONDecoder().decode(
-            AgentChannelInboundDispatchConfiguration.self, from: JSONEncoder().encode(config))
+            AgentChannelInboundDispatchConfiguration.self,
+            from: JSONEncoder().encode(config)
+        )
         #expect(decoded == config)
     }
 
@@ -215,7 +229,9 @@ struct WorkspaceTargetStoredModelTests {
         #expect(config.anyWorkspaceAgentSpawnable)
 
         let roundTrip = try JSONDecoder().decode(
-            SubagentConfiguration.self, from: JSONEncoder().encode(config))
+            SubagentConfiguration.self,
+            from: JSONEncoder().encode(config)
+        )
         #expect(roundTrip.spawnableWorkspaceAgents == [wsRef])
 
         // Older files have no key at all; an empty pool is also not written.
@@ -236,32 +252,62 @@ struct WorkspaceTargetStoredModelTests {
         settings.spawnDelegationEnabled = true
         settings.spawnableWorkspaceAgents = [wsRef]
         let decodedSettings = try JSONDecoder().decode(
-            AgentSettings.self, from: JSONEncoder().encode(settings))
+            AgentSettings.self,
+            from: JSONEncoder().encode(settings)
+        )
         #expect(decodedSettings.spawnableWorkspaceAgents == [wsRef])
     }
 
     @Test("effective workspace pool: Default uses the shared pool, custom agents their own list behind the toggle")
     func effectiveWorkspacePool() {
         let config = SubagentConfiguration(spawnableWorkspaceAgents: [wsRef])
-        let other = WorkspaceAgentRef(workspaceId: "ws-other", agentAddress: "0xbbbb0000000000000000000000000000000000e2")
+        let other = WorkspaceAgentRef(
+            workspaceId: "ws-other",
+            agentAddress: "0xbbbb0000000000000000000000000000000000e2"
+        )
 
         #expect(
             SubagentToolVisibility.effectiveSpawnableWorkspaceAgents(
-                isDefault: true, config: config, perAgentEnabled: false, perAgentTargets: [other]) == [wsRef])
+                isDefault: true,
+                config: config,
+                perAgentEnabled: false,
+                perAgentTargets: [other]
+            ) == [wsRef]
+        )
         #expect(
             SubagentToolVisibility.effectiveSpawnableWorkspaceAgents(
-                isDefault: false, config: config, perAgentEnabled: true, perAgentTargets: [other]) == [other])
+                isDefault: false,
+                config: config,
+                perAgentEnabled: true,
+                perAgentTargets: [other]
+            ) == [other]
+        )
         #expect(
             SubagentToolVisibility.effectiveSpawnableWorkspaceAgents(
-                isDefault: false, config: config, perAgentEnabled: false, perAgentTargets: [other]).isEmpty,
-            "a custom agent with delegation off spawns nothing")
+                isDefault: false,
+                config: config,
+                perAgentEnabled: false,
+                perAgentTargets: [other]
+            ).isEmpty,
+            "a custom agent with delegation off spawns nothing"
+        )
         #expect(
             SubagentToolVisibility.spawnWorkspaceAgentAllowed(
-                wsRef, isDefault: true, config: config, perAgentTargets: []))
+                wsRef,
+                isDefault: true,
+                config: config,
+                perAgentTargets: []
+            )
+        )
         #expect(
             !SubagentToolVisibility.spawnWorkspaceAgentAllowed(
-                wsRef, isDefault: false, config: config, perAgentTargets: [other]),
-            "the shared pool never widens a custom agent's own list")
+                wsRef,
+                isDefault: false,
+                config: config,
+                perAgentTargets: [other]
+            ),
+            "the shared pool never widens a custom agent's own list"
+        )
     }
 }
 
@@ -337,7 +383,11 @@ struct WorkspaceDispatchFunnelTests {
             let manager = BackgroundTaskManager.shared
             let before = manager.backgroundTasks.count
             let request = DispatchRequest(
-                prompt: "Summarize", target: .workspace(wsRef), title: "t", source: .schedule)
+                prompt: "Summarize",
+                target: .workspace(wsRef),
+                title: "t",
+                source: .schedule
+            )
             let handle = await manager.dispatchChat(request)
             #expect(handle == nil)
             #expect(manager.backgroundTasks.count == before, "no task may be registered for a refused run")
@@ -399,17 +449,23 @@ struct WorkspaceDispatchFunnelTests {
         SubagentConfigurationStore.save(SubagentConfiguration(spawnableWorkspaceAgents: [wsRef]))
 
         try await WorkspaceRosterTestLock.shared.run {
-            let workspace = try decode(OsaurusRouterWorkspaceSummary.self, """
+            let workspace = try decode(
+                OsaurusRouterWorkspaceSummary.self,
+                """
                 {"id":"ws-target","name":"Probe workspace","role":"member","source":"subscription",
                  "active":true,"members_active":2,"agents_shared":1,"created_at":"2026-01-01T00:00:00Z"}
-                """)
-            let agent = try decode(OsaurusRouterWorkspaceAgent.self, """
+                """
+            )
+            let agent = try decode(
+                OsaurusRouterWorkspaceAgent.self,
+                """
                 {"agent_address":"\(wsAddress)","display_name":"Research Agent",
                  "description":"Finds papers for a separately requested research task.",
                  "owner":{"account_id":"acct-probe","wallet_address":"0xowner","display_name":"Owner"},
                  "relay_url":"wss://relay.example","online":true,"last_seen":null,
                  "shared_at":"2026-01-01T00:00:00Z"}
-                """)
+                """
+            )
             WorkspaceRosterStore.shared.apply(rosters: [.init(workspace: workspace, agents: [agent])])
             let kind = TextSubagentKind(workspaceAgent: wsRef, input: "x")
             let scope = SubagentScope(sessionId: "s", toolCallId: "t", agentId: Agent.defaultId)

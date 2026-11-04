@@ -18,7 +18,11 @@ struct LocalReasoningCapabilityTests {
             {% if add_generation_prompt %}{{ '<|im_start|>assistant\\n' }}
             {% if enable_thinking is false %}{{ '<think></think>' }}{% endif %}{% endif %}
             """
-        try template.write(to: directory.appendingPathComponent("chat_template.jinja"), atomically: true, encoding: .utf8)
+        try template.write(
+            to: directory.appendingPathComponent("chat_template.jinja"),
+            atomically: true,
+            encoding: .utf8
+        )
         for enabled in [false, true] {
             let data = try JSONSerialization.data(withJSONObject: [
                 "chat": ["thinking": ["supported": true, "template_flag": "enable_thinking", "default": enabled]]
@@ -28,14 +32,16 @@ struct LocalReasoningCapabilityTests {
             #expect(capability.declaredDefaultThinkingOn == enabled)
             #expect(capability.defaultThinkingOn == enabled)
             for explicit: Bool? in [nil, false, true] {
-                #expect(AgentReasoningPolicy.defaultEnableThinking(
-                    isAgentOrToolRequest: true,
-                    explicitEnableThinking: explicit,
-                    explicitReasoningEffort: nil,
-                    modelOptions: [:],
-                    usesReasoningEffortControl: false,
-                    capability: capability
-                ) == explicit)
+                #expect(
+                    AgentReasoningPolicy.defaultEnableThinking(
+                        isAgentOrToolRequest: true,
+                        explicitEnableThinking: explicit,
+                        explicitReasoningEffort: nil,
+                        modelOptions: [:],
+                        usesReasoningEffortControl: false,
+                        capability: capability
+                    ) == explicit
+                )
             }
         }
         let generation = Data(#"{"default_chat_template_kwargs":{"enable_thinking":false}}"#.utf8)

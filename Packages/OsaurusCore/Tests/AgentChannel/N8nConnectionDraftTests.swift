@@ -144,7 +144,9 @@ struct N8nConnectionDraftTests {
         #expect(json.contains("\"callerLocation\":\"remote\""))
         let legacy = try JSONDecoder().decode(
             AgentChannelN8nConfiguration.self,
-            from: Data(#"{"inboundVerification":{"method":"hmac_sha256"},"remoteTransportPolicy":"plaintext_allowed"}"#.utf8)
+            from: Data(
+                #"{"inboundVerification":{"method":"hmac_sha256"},"remoteTransportPolicy":"plaintext_allowed"}"#.utf8
+            )
         )
         #expect(legacy.callerLocation == nil)
         #expect(legacy.effectiveCallerLocation == .lan)
@@ -275,7 +277,9 @@ struct N8nConnectionDraftTests {
     }
 
     @Test func callerLocationCopyExplainsTheConsequence() {
-        #expect(AgentChannelN8nCallerLocation.allCases.map(\.rawValue) == ["this_mac", "docker_desktop", "lan", "remote"])
+        #expect(
+            AgentChannelN8nCallerLocation.allCases.map(\.rawValue) == ["this_mac", "docker_desktop", "lan", "remote"]
+        )
         #expect(AgentChannelN8nCallerLocation.remote.summary.contains("relay"))
         #expect(AgentChannelN8nCallerLocation.lan.summary.contains("exposed"))
         #expect(AgentChannelN8nCallerLocation.dockerDesktop.summary.contains("host.docker.internal"))

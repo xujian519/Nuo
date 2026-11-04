@@ -298,7 +298,8 @@ actor OsaurusRouterAPIClient {
     {
         struct Body: Encodable { let price_id: String? }
         return try await post(
-            "/workspaces/\(try routerPathComponent(id))/upgrade", body: Body(price_id: priceId)
+            "/workspaces/\(try routerPathComponent(id))/upgrade",
+            body: Body(price_id: priceId)
         )
     }
 
@@ -469,7 +470,8 @@ actor OsaurusRouterAPIClient {
     /// ($5–$500, whole cents). Nothing is credited by the redirect — the
     /// webhook posts the `workspace_topup` ledger entry.
     func workspacePoolCheckout(
-        id: String, amountMicro: Int64
+        id: String,
+        amountMicro: Int64
     ) async throws -> OsaurusRouterWorkspaceTopUpCheckoutResponse {
         struct Body: Encodable { let amount_micro: String }
         return try await post(
@@ -487,7 +489,8 @@ actor OsaurusRouterAPIClient {
     /// failure count; enabling needs an active owner subscription with a
     /// saved card (`AUTO_RELOAD_UNAVAILABLE` otherwise).
     func updateWorkspaceAutoReload(
-        id: String, _ update: OsaurusRouterWorkspaceAutoReloadUpdate
+        id: String,
+        _ update: OsaurusRouterWorkspaceAutoReloadUpdate
     ) async throws -> OsaurusRouterWorkspaceAutoReload {
         try await send(
             method: "PUT",
@@ -687,7 +690,11 @@ actor OsaurusRouterAPIClient {
         session: URLSession? = nil
     ) async throws -> T {
         try await send(
-            method: "POST", path: path, body: body, idempotencyKey: idempotencyKey, session: session
+            method: "POST",
+            path: path,
+            body: body,
+            idempotencyKey: idempotencyKey,
+            session: session
         )
     }
 
@@ -751,16 +758,25 @@ actor OsaurusRouterAPIClient {
             let result = try await (overrideSession ?? session).data(for: request)
             if logged {
                 Self.logControlPlaneCall(
-                    request: request, response: result.1 as? HTTPURLResponse,
-                    responseBytes: result.0.count, error: nil,
-                    durationMs: Date().timeIntervalSince(started) * 1000, attribution: attribution)
+                    request: request,
+                    response: result.1 as? HTTPURLResponse,
+                    responseBytes: result.0.count,
+                    error: nil,
+                    durationMs: Date().timeIntervalSince(started) * 1000,
+                    attribution: attribution
+                )
             }
             return result
         } catch {
             if logged {
                 Self.logControlPlaneCall(
-                    request: request, response: nil, responseBytes: nil, error: error.localizedDescription,
-                    durationMs: Date().timeIntervalSince(started) * 1000, attribution: attribution)
+                    request: request,
+                    response: nil,
+                    responseBytes: nil,
+                    error: error.localizedDescription,
+                    durationMs: Date().timeIntervalSince(started) * 1000,
+                    attribution: attribution
+                )
             }
             throw OsaurusRouterAPIError.transport(error.localizedDescription)
         }

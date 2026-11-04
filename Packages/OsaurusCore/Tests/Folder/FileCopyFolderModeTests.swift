@@ -58,7 +58,9 @@ struct FileCopyFolderModeTests {
         let refused = try await env.run(
             FileCopyTool(rootPath: root),
             FileHistoryTestEnv.json(["source": "new.docx", "destination": "old.docx"]),
-            sessionId: sessionId, folder: root)
+            sessionId: sessionId,
+            folder: root
+        )
         #expect(ToolEnvelope.isError(refused))
         #expect(EnvelopeAssertions.failureField(refused) == "overwrite")
         #expect(await env.journal.changeSets(for: sessionId).isEmpty)
@@ -66,7 +68,9 @@ struct FileCopyFolderModeTests {
         let result = try await env.run(
             FileCopyTool(rootPath: root),
             FileHistoryTestEnv.json(["source": "new.docx", "destination": "old.docx", "overwrite": true]),
-            sessionId: sessionId, folder: root)
+            sessionId: sessionId,
+            folder: root
+        )
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
         let payload = try #require(EnvelopeAssertions.successPayload(result))
         #expect(payload["overwrote"] as? Bool == true)
@@ -95,7 +99,9 @@ struct FileCopyFolderModeTests {
         let result = try await env.run(
             FileCopyTool(rootPath: root),
             FileHistoryTestEnv.json(["source": "a.txt", "destination": "b.txt"]),
-            sessionId: sessionId, folder: root)
+            sessionId: sessionId,
+            folder: root
+        )
         let payload = try #require(EnvelopeAssertions.successPayload(result))
         let opId = try #require(UUID(uuidString: payload["operation_id"] as? String ?? ""))
         #expect(FileManager.default.fileExists(atPath: root.appendingPathComponent("b.txt").path))

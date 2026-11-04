@@ -89,14 +89,24 @@ struct ChatWindowStateInspectorTests {
     @Test("an unpinned File Changes falls back to History while the chat has no change sets")
     func fileChangesFallsBackToHistory() {
         #expect(ChatWindowState.effectiveInspectorPane(requested: nil, fileChangeSetCount: 0, isPinned: false) == nil)
-        #expect(ChatWindowState.effectiveInspectorPane(requested: .history, fileChangeSetCount: 0, isPinned: false) == .history)
         #expect(
-            ChatWindowState.effectiveInspectorPane(requested: .fileChanges, fileChangeSetCount: 0, isPinned: false) == .history,
-            "nothing to show yet: History is the useful pane")
+            ChatWindowState.effectiveInspectorPane(requested: .history, fileChangeSetCount: 0, isPinned: false)
+                == .history
+        )
         #expect(
-            ChatWindowState.effectiveInspectorPane(requested: .fileChanges, fileChangeSetCount: 0, isPinned: true) == .fileChanges,
-            "the user asked for it: show the empty state, not a different pane")
-        #expect(ChatWindowState.effectiveInspectorPane(requested: .fileChanges, fileChangeSetCount: 2, isPinned: false) == .fileChanges)
+            ChatWindowState.effectiveInspectorPane(requested: .fileChanges, fileChangeSetCount: 0, isPinned: false)
+                == .history,
+            "nothing to show yet: History is the useful pane"
+        )
+        #expect(
+            ChatWindowState.effectiveInspectorPane(requested: .fileChanges, fileChangeSetCount: 0, isPinned: true)
+                == .fileChanges,
+            "the user asked for it: show the empty state, not a different pane"
+        )
+        #expect(
+            ChatWindowState.effectiveInspectorPane(requested: .fileChanges, fileChangeSetCount: 2, isPinned: false)
+                == .fileChanges
+        )
     }
 
     @Test("the lens bar pins the pane; the toggle reopens unpinned; a new tab on screen unpins")
@@ -173,12 +183,23 @@ struct ChatWindowStateInspectorTests {
 
     @Test("the toolbar badge counts changed files only while the rail is closed, for local chats")
     func badgeCount() {
-        #expect(ChatWindowState.inspectorBadgeCount(fileChangesCount: 0, isInspectorOpen: false, isRemoteAgentChat: false) == nil)
-        #expect(ChatWindowState.inspectorBadgeCount(fileChangesCount: 3, isInspectorOpen: false, isRemoteAgentChat: false) == 3)
         #expect(
-            ChatWindowState.inspectorBadgeCount(fileChangesCount: 3, isInspectorOpen: true, isRemoteAgentChat: false) == nil,
-            "open, the lens bar carries the count")
-        #expect(ChatWindowState.inspectorBadgeCount(fileChangesCount: 3, isInspectorOpen: false, isRemoteAgentChat: true) == nil)
+            ChatWindowState.inspectorBadgeCount(fileChangesCount: 0, isInspectorOpen: false, isRemoteAgentChat: false)
+                == nil
+        )
+        #expect(
+            ChatWindowState.inspectorBadgeCount(fileChangesCount: 3, isInspectorOpen: false, isRemoteAgentChat: false)
+                == 3
+        )
+        #expect(
+            ChatWindowState.inspectorBadgeCount(fileChangesCount: 3, isInspectorOpen: true, isRemoteAgentChat: false)
+                == nil,
+            "open, the lens bar carries the count"
+        )
+        #expect(
+            ChatWindowState.inspectorBadgeCount(fileChangesCount: 3, isInspectorOpen: false, isRemoteAgentChat: true)
+                == nil
+        )
     }
 
     @Test("the rail hides on the project page and keeps its pane for the chat's return")

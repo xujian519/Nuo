@@ -250,7 +250,8 @@ enum Keychain {
         // With the entry, a watchdog breach names "keychain.mutation-sync"
         // instead of logging a generic hang.
         return MainThreadOperationLedger.shared.withMainThreadOperation(
-            subsystem: "keychain", operation: "mutation-sync"
+            subsystem: "keychain",
+            operation: "mutation-sync"
         ) {
             writeQueue.sync(execute: work)
         }
@@ -375,7 +376,8 @@ enum Keychain {
         // seconds under contention (Sentry APPLE-MACOS-1B5). Naming it here
         // makes any watchdog breach attribute to "keychain.read".
         let (status, result) = MainThreadOperationLedger.shared.withMainThreadOperation(
-            subsystem: "keychain", operation: "read"
+            subsystem: "keychain",
+            operation: "read"
         ) {
             backend.copyMatching(query)
         }
@@ -486,7 +488,10 @@ enum Keychain {
             merged[account] = item
         }
         return KeychainEnumerationOutcome(
-            items: Array(merged.values), status: status, isDefinitive: true)
+            items: Array(merged.values),
+            status: status,
+            isDefinitive: true
+        )
     }
 
     // MARK: - Legacy-compatible CRUD

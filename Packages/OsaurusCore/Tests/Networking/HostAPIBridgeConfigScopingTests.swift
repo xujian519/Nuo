@@ -50,9 +50,13 @@ struct HostAPIBridgeConfigScopingTests {
             let agentA = UUID()
             let agentB = UUID()
             let filesA = HostAPIBridgeConfigStore.files(
-                pluginName: "scoping-probe", agentId: agentA)
+                pluginName: "scoping-probe",
+                agentId: agentA
+            )
             let filesB = HostAPIBridgeConfigStore.files(
-                pluginName: "scoping-probe", agentId: agentB)
+                pluginName: "scoping-probe",
+                agentId: agentB
+            )
 
             HostAPIBridgeConfigStore.write(key: "city", value: "Tokyo", files: filesA)
             HostAPIBridgeConfigStore.write(key: "city", value: "Lisbon", files: filesB)
@@ -67,7 +71,9 @@ struct HostAPIBridgeConfigScopingTests {
         try await withCleanPluginDir("legacy-probe") {
             let agent = UUID()
             let files = HostAPIBridgeConfigStore.files(
-                pluginName: "legacy-probe", agentId: agent)
+                pluginName: "legacy-probe",
+                agentId: agent
+            )
 
             // Simulate a pre-scoping install: values in the shared file.
             try OsaurusPaths.ensureExists(files.legacy.deletingLastPathComponent())

@@ -169,10 +169,10 @@ struct DatabaseSavedViewsView: View {
                                     ? L("Preview shows the first row.")
                                     : L("Preview shows the first \(preview.rows.count) rows.")
                             )
-                                .font(.system(size: 10))
-                                .foregroundColor(theme.tertiaryText)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
+                            .font(.system(size: 10))
+                            .foregroundColor(theme.tertiaryText)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
                         }
                     }
                 } else if let error = loadError {

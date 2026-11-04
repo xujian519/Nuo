@@ -44,7 +44,7 @@ struct SandboxStartupMetricsTests {
     @Test
     func record_roundTripsAndCapsAtMaxSamples() async {
         await withStore {
-            for _ in 0..<(SandboxStartupMetricsStore.maxSamples + 5) {
+            for _ in 0 ..< (SandboxStartupMetricsStore.maxSamples + 5) {
                 SandboxStartupMetricsStore.record(makeSample())
             }
 
@@ -93,7 +93,7 @@ struct SandboxStartupMetricsTests {
     @Test
     func failureSamples_areSanitizedAndCapped() async {
         await withStore {
-            for index in 0..<(SandboxStartupMetricsStore.maxSamples + 2) {
+            for index in 0 ..< (SandboxStartupMetricsStore.maxSamples + 2) {
                 SandboxStartupMetricsStore.recordFailure(
                     SandboxStartupFailureSample(
                         recordedAt: Date(timeIntervalSince1970: Double(index)),

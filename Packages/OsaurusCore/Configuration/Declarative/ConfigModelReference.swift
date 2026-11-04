@@ -129,7 +129,8 @@ enum ConfigModelReference {
         if candidates.count > 1 {
             return .invalid(
                 "`\(trimmed)` is offered by multiple providers — use the prefixed form: "
-                    + candidates.joined(separator: ", ") + ".")
+                    + candidates.joined(separator: ", ") + "."
+            )
         }
         return .invalid(
             "`\(trimmed)` is not `foundation`, not an installed local model, and no cloud "
@@ -137,6 +138,7 @@ enum ConfigModelReference {
                 + "`anthropic/claude-...`); use osaurus_inspect {action: \"describe\", "
                 + "scope: \"providers\", id: \"<name>\"} to see each provider's model ids. "
                 + "For a local model that is not installed yet, list it under `models:` "
-                + "in the same document to download it.")
+                + "in the same document to download it."
+        )
     }
 }

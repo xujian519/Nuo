@@ -144,14 +144,15 @@ public struct MTPLayoutAdvisory: Equatable, Sendable {
         // Case 1: withdrawn dedicated MTP shard / MTP index at the root.
         let withdrawnShardName = "mtp-00001-of-00001.safetensors"
         if fileManager.fileExists(
-            atPath: bundleDirectory.appendingPathComponent(withdrawnShardName).path)
-        {
+            atPath: bundleDirectory.appendingPathComponent(withdrawnShardName).path
+        ) {
             findings.append(.withdrawnMTPShard)
         }
         if fileManager.fileExists(
-            atPath: bundleDirectory
-                .appendingPathComponent("mtp.safetensors.index.json").path)
-        {
+            atPath:
+                bundleDirectory
+                .appendingPathComponent("mtp.safetensors.index.json").path
+        ) {
             findings.append(.withdrawnMTPIndex)
         }
 
@@ -168,11 +169,12 @@ public struct MTPLayoutAdvisory: Equatable, Sendable {
             let mtpFiles = Set(
                 weightMap.compactMap { key, file in
                     key.hasPrefix("mtp.") ? file : nil
-                })
+                }
+            )
             for file in mtpFiles
             where !fileManager.fileExists(
-                atPath: bundleDirectory.appendingPathComponent(file).path)
-            {
+                atPath: bundleDirectory.appendingPathComponent(file).path
+            ) {
                 findings.append(.brokenIndexEntry)
                 break
             }
@@ -184,8 +186,8 @@ public struct MTPLayoutAdvisory: Equatable, Sendable {
         if let entries = try? fileManager.contentsOfDirectory(
             at: bundleDirectory,
             includingPropertiesForKeys: [.isDirectoryKey],
-            options: [.skipsHiddenFiles])
-        {
+            options: [.skipsHiddenFiles]
+        ) {
             for entry in entries {
                 let name = entry.lastPathComponent
                 guard name.hasSuffix(".safetensors") else { continue }
@@ -217,14 +219,17 @@ public struct MTPLayoutAdvisory: Equatable, Sendable {
             let file = artifact["file"] as? String,
             !file.isEmpty,
             !fileManager.fileExists(
-                atPath: bundleDirectory.appendingPathComponent(file).path)
+                atPath: bundleDirectory.appendingPathComponent(file).path
+            )
         {
             findings.append(.missingCalibratedDraft)
         }
 
         guard !findings.isEmpty else { return nil }
         return MTPLayoutAdvisory(
-            bundlePath: bundleDirectory.path, findings: findings)
+            bundlePath: bundleDirectory.path,
+            findings: findings
+        )
     }
 
     /// `model.safetensors` (single-file) or `model-XXXXX-of-YYYYY.safetensors`
@@ -246,12 +251,14 @@ public struct MTPLayoutAdvisory: Equatable, Sendable {
             return String(
                 localized:
                     "MTP loading for Qwen 3.8 Flash-Next (JANG) was fixed; this copy uses a superseded bundle layout, so the MTP speed-up may fail to load. Re-download to restore MTP.",
-                bundle: .module)
+                bundle: .module
+            )
         case .missingCalibratedDraft:
             return String(
                 localized:
                     "MTP loading for Qwen 3.8 Flash-Next (JANG) was fixed; this copy is missing the calibrated MTP draft head, so drafting quality is reduced. Re-download to restore the calibrated MTP draft head.",
-                bundle: .module)
+                bundle: .module
+            )
         }
     }
 
@@ -262,12 +269,14 @@ public struct MTPLayoutAdvisory: Equatable, Sendable {
             return String(
                 localized:
                     "You can keep using this copy — worst case the MTP speed-up stays off.",
-                bundle: .module)
+                bundle: .module
+            )
         case .missingCalibratedDraft:
             return String(
                 localized:
                     "You can keep using this copy — responses are unaffected, drafting is just less effective.",
-                bundle: .module)
+                bundle: .module
+            )
         }
     }
 
@@ -295,13 +304,15 @@ public enum MTPLayoutAdvisoryDismissals {
     static let maxStored = 32
 
     public static func isDismissed(
-        _ fingerprint: String, defaults: UserDefaults = .standard
+        _ fingerprint: String,
+        defaults: UserDefaults = .standard
     ) -> Bool {
         (defaults.stringArray(forKey: defaultsKey) ?? []).contains(fingerprint)
     }
 
     public static func recordDismissal(
-        _ fingerprint: String, defaults: UserDefaults = .standard
+        _ fingerprint: String,
+        defaults: UserDefaults = .standard
     ) {
         var stored = defaults.stringArray(forKey: defaultsKey) ?? []
         guard !stored.contains(fingerprint) else { return }

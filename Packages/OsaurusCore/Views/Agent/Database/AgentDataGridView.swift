@@ -290,9 +290,11 @@ extension AgentDataGridRepresentable {
         /// refreshed in place when the bound selection changes.
         private func refreshVisibleSelectionCheckboxes() {
             guard let tableView, showsSelectionColumn else { return }
-            guard let columnIndex = tableView.tableColumns.firstIndex(where: {
-                $0.identifier.rawValue == Self.selectionColumnId
-            }) else { return }
+            guard
+                let columnIndex = tableView.tableColumns.firstIndex(where: {
+                    $0.identifier.rawValue == Self.selectionColumnId
+                })
+            else { return }
             let visible = tableView.rows(in: tableView.visibleRect)
             guard visible.length > 0 else { return }
             for row in visible.location ..< (visible.location + visible.length) {

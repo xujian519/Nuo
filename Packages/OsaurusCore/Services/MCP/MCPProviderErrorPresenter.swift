@@ -37,9 +37,17 @@ public enum MCPProviderErrorPresenter {
         if has("insufficient_scope", "http 403", "status 403", "forbidden") {
             return L("\(name) didn't allow this. Your account may not have access, or you may need to sign in again.")
         }
-        if has("invalid_token", "http 401", "status 401", "unauthorized", "session expired",
-            "authentication required", "requires sign in", "requires an api token", "rejected the saved api token")
-        {
+        if has(
+            "invalid_token",
+            "http 401",
+            "status 401",
+            "unauthorized",
+            "session expired",
+            "authentication required",
+            "requires sign in",
+            "requires an api token",
+            "rejected the saved api token"
+        ) {
             return L("\(name) needs you to sign in again.")
         }
         if has("http 402", "status 402", "payment required", "subscription", "upgrade your plan") {
@@ -48,10 +56,17 @@ public enum MCPProviderErrorPresenter {
         if has("timed out", "timeout", "deadline") {
             return L("\(name) took too long to respond. Try again in a moment.")
         }
-        if has("not connected to the internet", "network connection was lost", "could not connect",
-            "cannot connect", "hostname could not be found", "cannot find host", "offline",
-            "dns", "nsurlerrordomain")
-        {
+        if has(
+            "not connected to the internet",
+            "network connection was lost",
+            "could not connect",
+            "cannot connect",
+            "hostname could not be found",
+            "cannot find host",
+            "offline",
+            "dns",
+            "nsurlerrordomain"
+        ) {
             return L("Couldn't reach \(name). Check your internet connection and try again.")
         }
         if has("client disconnected", "connection not initialized", "connection reset", "broken pipe") {

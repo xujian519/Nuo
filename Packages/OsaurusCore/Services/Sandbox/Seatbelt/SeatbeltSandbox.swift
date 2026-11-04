@@ -98,7 +98,7 @@ public enum SeatbeltSandbox {
         var existing = URL(fileURLWithPath: raw).standardizedFileURL
         var missingComponents: [String] = []
         while existing.path != "/",
-              !FileManager.default.fileExists(atPath: existing.path)
+            !FileManager.default.fileExists(atPath: existing.path)
         {
             missingComponents.append(existing.lastPathComponent)
             existing.deleteLastPathComponent()
@@ -110,7 +110,9 @@ public enum SeatbeltSandbox {
         defer { free(resolved) }
 
         var canonical = URL(
-            fileURLWithPath: String(cString: resolved), isDirectory: true)
+            fileURLWithPath: String(cString: resolved),
+            isDirectory: true
+        )
         for component in missingComponents.reversed() {
             canonical.appendPathComponent(component)
         }
@@ -136,16 +138,18 @@ public enum SeatbeltSandbox {
         guard !trimmed.isEmpty else { return nil }
         let path = URL(fileURLWithPath: trimmed, isDirectory: true)
             .standardizedFileURL.path
-        let isXcodeBundle = path.hasSuffix(".app/Contents/Developer")
+        let isXcodeBundle =
+            path.hasSuffix(".app/Contents/Developer")
             && (path.hasPrefix("/Applications/")
                 || path.hasPrefix("/System/Applications/")
                 || path.hasPrefix("/Volumes/"))
-        let hasExpectedShape = isXcodeBundle
+        let hasExpectedShape =
+            isXcodeBundle
             || path == "/Library/Developer/CommandLineTools"
         var isDirectory: ObjCBool = false
         guard hasExpectedShape,
-              FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory),
-              isDirectory.boolValue
+            FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory),
+            isDirectory.boolValue
         else { return nil }
         return path
     }
@@ -351,7 +355,8 @@ public enum SeatbeltPathMapper {
 
     /// Map a dictionary of environment values.
     public static func mapEnvToHost(
-        _ env: [String: String], workspaceRoot: String
+        _ env: [String: String],
+        workspaceRoot: String
     ) -> [String: String] {
         env.mapValues { mapToHost($0, workspaceRoot: workspaceRoot) }
     }

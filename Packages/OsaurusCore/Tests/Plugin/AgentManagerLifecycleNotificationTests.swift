@@ -164,12 +164,14 @@ struct AgentManagerLifecycleNotificationTests {
             try fm.createDirectory(at: agents, withIntermediateDirectories: true)
 
             let originalId = UUID()
-            AgentStore.save(Agent(
-                id: originalId,
-                name: "CanonicalNotify",
-                systemPrompt: "canonical through manager",
-                autonomousExec: AutonomousExecConfig(enabled: false)
-            ))
+            AgentStore.save(
+                Agent(
+                    id: originalId,
+                    name: "CanonicalNotify",
+                    systemPrompt: "canonical through manager",
+                    autonomousExec: AutonomousExecConfig(enabled: false)
+                )
+            )
 
             let backupURL = agents.appendingPathComponent("\(originalId.uuidString).json.bak")
             let backup = Agent(

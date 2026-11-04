@@ -51,8 +51,10 @@ public final class FileObjectStore: @unchecked Sendable {
         let fm = FileManager.default
         for dir in [root, objectsDir, tmpDir] where !fm.fileExists(atPath: dir.path) {
             try fm.createDirectory(
-                at: dir, withIntermediateDirectories: true,
-                attributes: [.posixPermissions: 0o700])
+                at: dir,
+                withIntermediateDirectories: true,
+                attributes: [.posixPermissions: 0o700]
+            )
         }
     }
 
@@ -77,8 +79,11 @@ public final class FileObjectStore: @unchecked Sendable {
             let size = (attrs[.size] as? NSNumber)?.int64Value ?? 0
             if size > Self.maxCopiedObjectBytes, !Self.canClone(from: url, to: root) {
                 return FilePathState(
-                    type: .file, signature: Self.bigSignature(size: size, attrs: attrs), mode: mode,
-                    size: size)
+                    type: .file,
+                    signature: Self.bigSignature(size: size, attrs: attrs),
+                    mode: mode,
+                    size: size
+                )
             }
             do {
                 let hash = try store(fileAt: url)
@@ -88,8 +93,11 @@ public final class FileObjectStore: @unchecked Sendable {
                     "capture failed for \(url.lastPathComponent, privacy: .private): \(error.localizedDescription, privacy: .public)"
                 )
                 return FilePathState(
-                    type: .file, signature: Self.bigSignature(size: size, attrs: attrs), mode: mode,
-                    size: size)
+                    type: .file,
+                    signature: Self.bigSignature(size: size, attrs: attrs),
+                    mode: mode,
+                    size: size
+                )
             }
         }
     }
@@ -120,11 +128,19 @@ public final class FileObjectStore: @unchecked Sendable {
             let size = (attrs[.size] as? NSNumber)?.int64Value ?? 0
             if size > maxCopiedObjectBytes, let storeRoot, !canClone(from: url, to: storeRoot) {
                 return FilePathState(
-                    type: .file, signature: bigSignature(size: size, attrs: attrs), mode: mode, size: size)
+                    type: .file,
+                    signature: bigSignature(size: size, attrs: attrs),
+                    mode: mode,
+                    size: size
+                )
             }
             guard let hash = sha256Hex(of: url) else {
                 return FilePathState(
-                    type: .file, signature: bigSignature(size: size, attrs: attrs), mode: mode, size: size)
+                    type: .file,
+                    signature: bigSignature(size: size, attrs: attrs),
+                    mode: mode,
+                    size: size
+                )
             }
             return FilePathState(type: .file, signature: "sha256:\(hash)", mode: mode, size: size)
         }
@@ -162,8 +178,10 @@ public final class FileObjectStore: @unchecked Sendable {
         let dest = url(forHash: hash)
         if fm.fileExists(atPath: dest.path) { return }
         try fm.createDirectory(
-            at: dest.deletingLastPathComponent(), withIntermediateDirectories: true,
-            attributes: [.posixPermissions: 0o700])
+            at: dest.deletingLastPathComponent(),
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: 0o700]
+        )
         Self.fsync(temp)
         try? fm.setAttributes([.posixPermissions: 0o600], ofItemAtPath: temp.path)
         do {
@@ -198,7 +216,9 @@ public final class FileObjectStore: @unchecked Sendable {
             throw FileObjectStoreError.corruptObject(hash)
         }
         try? FileManager.default.setAttributes(
-            [.posixPermissions: NSNumber(value: mode ?? 0o644)], ofItemAtPath: temp.path)
+            [.posixPermissions: NSNumber(value: mode ?? 0o644)],
+            ofItemAtPath: temp.path
+        )
         return temp
     }
 
@@ -237,7 +257,8 @@ public final class FileObjectStore: @unchecked Sendable {
             guard let names = try? fm.contentsOfDirectory(atPath: dir.path) else { continue }
             for name in names where !referenced.contains(prefix + name) {
                 let file = dir.appendingPathComponent(name)
-                let size = ((try? fm.attributesOfItem(atPath: file.path))?[.size] as? NSNumber)?
+                let size =
+                    ((try? fm.attributesOfItem(atPath: file.path))?[.size] as? NSNumber)?
                     .int64Value ?? 0
                 if (try? fm.removeItem(at: file)) != nil { freed += size }
             }
@@ -290,7 +311,8 @@ public final class FileObjectStore: @unchecked Sendable {
     /// Whether `src` and `dir` live on the same clone-capable volume.
     static func canClone(from src: URL, to dir: URL) -> Bool {
         let keys: Set<URLResourceKey> = [.volumeIdentifierKey, .volumeSupportsFileCloningKey]
-        let probeDir = FileManager.default.fileExists(atPath: dir.path)
+        let probeDir =
+            FileManager.default.fileExists(atPath: dir.path)
             ? dir : dir.deletingLastPathComponent()
         guard let a = try? src.resourceValues(forKeys: keys),
             let b = try? probeDir.resourceValues(forKeys: keys),

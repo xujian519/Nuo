@@ -9,9 +9,20 @@ import vMLXFlux
 struct ImageGenerationProducerLifetimeTests {
     @Test func imagesStartSequentiallyAndPreserveSeedsAndOrder() async throws {
         let fixture = ImageProducerFixture(held: [0, 1], heldCheckpoints: [.willDrain(0)])
-        defer { Task { await fixture.probe.releaseAll(); await fixture.checkpoints.releaseAll() } }
-        let stream = await fixture.service.generate(.init(model: fixture.first,
-            prompt: "two images", seed: 7, numImages: 2), jobID: "ordered")
+        defer {
+            Task {
+                await fixture.probe.releaseAll(); await fixture.checkpoints.releaseAll()
+            }
+        }
+        let stream = await fixture.service.generate(
+            .init(
+                model: fixture.first,
+                prompt: "two images",
+                seed: 7,
+                numImages: 2
+            ),
+            jobID: "ordered"
+        )
         let consumer = Task { try await collectImageEvents(stream) }
         try await waitForImageProbe { await fixture.probe.startCount >= 1 }
         await fixture.checkpoints.waitUntilReached(.willDrain(0))
@@ -31,19 +42,32 @@ struct ImageGenerationProducerLifetimeTests {
         #expect(final.maximumActive == 1)
         #expect(final.starts.map(\.seed) == [7, 8])
         #expect(final.starts.allSatisfy { $0.numImages == 1 })
-        #expect(events.compactMap { event -> [UInt64]? in
-            if case .completed(let images) = event { return images.map(\.seed) }
-            return nil
-        } == [[7, 8]])
+        #expect(
+            events.compactMap { event -> [UInt64]? in
+                if case .completed(let images) = event { return images.map(\.seed) }
+                return nil
+            } == [[7, 8]]
+        )
         #expect(final.active == 0 && !final.loadWhileActive)
         await fixture.service.unload()
     }
 
     @Test func consumerTerminationDrainsBeforeUnloadAndNextLoad() async throws {
         let fixture = ImageProducerFixture(held: [0])
-        defer { Task { await fixture.probe.releaseAll(); await fixture.checkpoints.releaseAll() } }
-        let stream = await fixture.service.generate(.init(model: fixture.first,
-            prompt: "cancel consumer", seed: 11, numImages: 2), jobID: "terminated")
+        defer {
+            Task {
+                await fixture.probe.releaseAll(); await fixture.checkpoints.releaseAll()
+            }
+        }
+        let stream = await fixture.service.generate(
+            .init(
+                model: fixture.first,
+                prompt: "cancel consumer",
+                seed: 11,
+                numImages: 2
+            ),
+            jobID: "terminated"
+        )
         let consumer = Task { try await collectImageEvents(stream) }
         try await waitForImageProbe { await fixture.probe.startCount == 1 }
         consumer.cancel()
@@ -53,8 +77,12 @@ struct ImageGenerationProducerLifetimeTests {
             fixture.log.record("joined")
             await fixture.service.unload()
             fixture.log.record("unloaded")
-            return try await collectImageEvents(await fixture.service.generate(
-                .init(model: fixture.second, prompt: "after drain", seed: 21), jobID: "next"))
+            return try await collectImageEvents(
+                await fixture.service.generate(
+                    .init(model: fixture.second, prompt: "after drain", seed: 21),
+                    jobID: "next"
+                )
+            )
         }
         // All completion assertions below are event-order assertions after
         // controlled release, rather than timed absence checks.
@@ -62,10 +90,14 @@ struct ImageGenerationProducerLifetimeTests {
         _ = try await handoff.value
         await fixture.service.waitForJobDrain(jobID: "next")
         let final = await fixture.probe.snapshot()
-        #expect(final.starts.map(\.seed) == [11, 21]) // cancelled image two never starts
+        #expect(final.starts.map(\.seed) == [11, 21])  // cancelled image two never starts
         #expect(final.loads == [fixture.first, fixture.second])
         #expect(final.maximumActive == 1 && !final.loadWhileActive)
-        #expect(!clientEvents.contains { if case .completed = $0 { return true }; return false })
+        #expect(
+            !clientEvents.contains {
+                if case .completed = $0 { return true }; return false
+            }
+        )
         let order = fixture.log.events
         let end = try #require(order.firstIndex(of: "end:0"))
         let join = try #require(order.firstIndex(of: "joined"))
@@ -75,15 +107,26 @@ struct ImageGenerationProducerLifetimeTests {
         // At least one production cleanup call is dispatched after the concrete
         // leaf ends and before the service join resolves. This is a fake barrier
         // callback ordering check, not a Metal completion proof.
-        #expect(order[(end + 1)..<join].contains("cleanup"))
+        #expect(order[(end + 1) ..< join].contains("cleanup"))
         await fixture.service.unload()
     }
 
     @Test func jobCancelDrainsActiveAndSuppressesRemainingImages() async throws {
         let fixture = ImageProducerFixture(held: [0])
-        defer { Task { await fixture.probe.releaseAll(); await fixture.checkpoints.releaseAll() } }
-        let stream = await fixture.service.generate(.init(model: fixture.first,
-            prompt: "job cancel", seed: 31, numImages: 2), jobID: "cancel-by-id")
+        defer {
+            Task {
+                await fixture.probe.releaseAll(); await fixture.checkpoints.releaseAll()
+            }
+        }
+        let stream = await fixture.service.generate(
+            .init(
+                model: fixture.first,
+                prompt: "job cancel",
+                seed: 31,
+                numImages: 2
+            ),
+            jobID: "cancel-by-id"
+        )
         let consumer = Task { try await collectImageEvents(stream) }
         try await waitForImageProbe { await fixture.probe.startCount == 1 }
         await fixture.service.cancel(jobID: "cancel-by-id")
@@ -97,17 +140,39 @@ struct ImageGenerationProducerLifetimeTests {
         let final = await fixture.probe.snapshot()
         #expect(final.starts.map(\.seed) == [31])
         #expect(final.active == 0 && final.maximumActive == 1)
-        #expect(events.contains { if case .cancelled = $0 { return true }; return false })
-        #expect(!events.contains { if case .completed = $0 { return true }; return false })
+        #expect(
+            events.contains {
+                if case .cancelled = $0 { return true }; return false
+            }
+        )
+        #expect(
+            !events.contains {
+                if case .completed = $0 { return true }; return false
+            }
+        )
         await fixture.service.unload()
     }
 
     @Test func upscaleCancellationReachesProducerAndStillDrains() async throws {
-        let fixture = ImageProducerFixture(held: [0], kind: .imageUpscale,
-            capabilities: .init(textToImage: false, imageEdit: false, upscale: true))
-        defer { Task { await fixture.probe.releaseAll(); await fixture.service.unload() } }
-        let stream = await fixture.service.upscale(.init(model: fixture.first,
-            sourceImage: Data([1, 2, 3]), scale: 4, seed: 7), jobID: "upscale-cancel")
+        let fixture = ImageProducerFixture(
+            held: [0],
+            kind: .imageUpscale,
+            capabilities: .init(textToImage: false, imageEdit: false, upscale: true)
+        )
+        defer {
+            Task {
+                await fixture.probe.releaseAll(); await fixture.service.unload()
+            }
+        }
+        let stream = await fixture.service.upscale(
+            .init(
+                model: fixture.first,
+                sourceImage: Data([1, 2, 3]),
+                scale: 4,
+                seed: 7
+            ),
+            jobID: "upscale-cancel"
+        )
         let consumer = Task { try await collectImageEvents(stream) }
         try await waitForImageProbe { await fixture.probe.startCount == 1 }
         await fixture.service.cancel(jobID: "upscale-cancel")
@@ -115,12 +180,20 @@ struct ImageGenerationProducerLifetimeTests {
         let request = try #require(beforeDrain.upscales.first)
         #expect(request.interrupt?.isCancelled == true)
         #expect(request.scale == 4 && request.seed == 7 && request.steps == 1)
-        #expect(beforeDrain.active == 1) // cancel has not released the GPU owner
+        #expect(beforeDrain.active == 1)  // cancel has not released the GPU owner
         await fixture.probe.release(0)
         let events = try await consumer.value
         await fixture.service.waitForJobDrain(jobID: "upscale-cancel")
-        #expect(events.contains { if case .cancelled = $0 { return true }; return false })
-        #expect(!events.contains { if case .completed = $0 { return true }; return false })
+        #expect(
+            events.contains {
+                if case .cancelled = $0 { return true }; return false
+            }
+        )
+        #expect(
+            !events.contains {
+                if case .completed = $0 { return true }; return false
+            }
+        )
         #expect(await fixture.probe.snapshot().active == 0)
     }
 
@@ -129,15 +202,24 @@ struct ImageGenerationProducerLifetimeTests {
         let fixture = ImageProducerFixture(held: [], gate: gate)
         try await gate.enterImageGeneration()
         defer { Task { await gate.exitImageGeneration() } }
-        let stream = await fixture.service.generate(.init(model: fixture.first,
-            prompt: "queued"), jobID: "queued")
+        let stream = await fixture.service.generate(
+            .init(
+                model: fixture.first,
+                prompt: "queued"
+            ),
+            jobID: "queued"
+        )
         let consumer = Task { try await collectImageEvents(stream) }
         await fixture.service.cancel(jobID: "queued")
         let events = try await consumer.value
         await fixture.service.waitForJobDrain(jobID: "queued")
         let snapshot = await fixture.probe.snapshot()
         #expect(snapshot.loads.isEmpty && snapshot.starts.isEmpty)
-        #expect(events.contains { if case .cancelled = $0 { return true }; return false })
+        #expect(
+            events.contains {
+                if case .cancelled = $0 { return true }; return false
+            }
+        )
         // Retention of a different owner's acquisition is covered by the
         // MetalGate suite; no scheduler-absence claim is made by this test.
 
@@ -156,12 +238,18 @@ struct ImageProducerFixture: Sendable {
     let first: String
     let second: String
 
-    init(held: Set<Int>, gate: MetalGate = .makeForTesting(),
-         canonical: String? = nil, kind: ModelKind = .imageGen,
-         capabilities: ImageModelCapabilities? = nil, identityStem: String? = nil,
-         heldCheckpoints: Set<ImageGenerationService.StreamCheckpoint> = [],
-         effectiveParameters: EffectiveImageParameters? = nil, limits: FluxModelLimits? = nil,
-         failAfterImages: Int? = nil) {
+    init(
+        held: Set<Int>,
+        gate: MetalGate = .makeForTesting(),
+        canonical: String? = nil,
+        kind: ModelKind = .imageGen,
+        capabilities: ImageModelCapabilities? = nil,
+        identityStem: String? = nil,
+        heldCheckpoints: Set<ImageGenerationService.StreamCheckpoint> = [],
+        effectiveParameters: EffectiveImageParameters? = nil,
+        limits: FluxModelLimits? = nil,
+        failAfterImages: Int? = nil
+    ) {
         let newLog = ImageProducerLog()
         let newProbe = ImageProducerProbe(held: held, log: newLog)
         let newCheckpoints = ImageProducerCheckpoints(held: heldCheckpoints)
@@ -176,32 +264,63 @@ struct ImageProducerFixture: Sendable {
         }
         var targets: [String: ImageGenerationService.LoadTarget] = [:]
         for name in [nameA, nameB] {
-            ModelRegistry.register(ModelEntry(name: name, displayName: name,
-                kind: kind, defaultSteps: 40, defaultGuidance: 1,
-                limits: metadata,
-                loader: { [weak newProbe] _, _ in
-                    guard let newProbe else { throw CancellationError() }
-                    await newProbe.loaded(name)
-                    return ControlledImageProducer(probe: newProbe, effectiveParameters: effectiveParameters,
-                        failAfterImages: failAfterImages)
-                }))
-            let info = ImageModelInfo(id: name, canonicalName: canonical ?? name,
-                displayName: name, kind: kind.rawValue, ready: true,
-                quantizationBits: nil, defaultSteps: 40, defaultGuidance: 1,
-                capabilities: capabilities ?? .init(textToImage: kind == .imageGen,
-                    imageEdit: kind == .imageEdit), blockedReasons: [], totalBytes: 0)
-            targets[name] = .init(info: info, directory: URL(fileURLWithPath: "/fixture/\(name)"),
-                engineName: name, kind: kind)
+            ModelRegistry.register(
+                ModelEntry(
+                    name: name,
+                    displayName: name,
+                    kind: kind,
+                    defaultSteps: 40,
+                    defaultGuidance: 1,
+                    limits: metadata,
+                    loader: { [weak newProbe] _, _ in
+                        guard let newProbe else { throw CancellationError() }
+                        await newProbe.loaded(name)
+                        return ControlledImageProducer(
+                            probe: newProbe,
+                            effectiveParameters: effectiveParameters,
+                            failAfterImages: failAfterImages
+                        )
+                    }
+                )
+            )
+            let info = ImageModelInfo(
+                id: name,
+                canonicalName: canonical ?? name,
+                displayName: name,
+                kind: kind.rawValue,
+                ready: true,
+                quantizationBits: nil,
+                defaultSteps: 40,
+                defaultGuidance: 1,
+                capabilities: capabilities
+                    ?? .init(
+                        textToImage: kind == .imageGen,
+                        imageEdit: kind == .imageEdit
+                    ),
+                blockedReasons: [],
+                totalBytes: 0
+            )
+            targets[name] = .init(
+                info: info,
+                directory: URL(fileURLWithPath: "/fixture/\(name)"),
+                engineName: name,
+                kind: kind
+            )
         }
         let resolved = targets
-        service = ImageGenerationService(testingEngine: FluxEngine(), gate: gate,
-            cleanup: { newLog.record("cleanup") }, resolve: { name in
+        service = ImageGenerationService(
+            testingEngine: FluxEngine(),
+            gate: gate,
+            cleanup: { newLog.record("cleanup") },
+            resolve: { name in
                 newLog.record("resolve:\(name)")
                 guard let target = resolved[name] else { throw ImageGenerationError.modelNotFound(name) }
                 return target
-            }, peakEstimate: { 0 }, // Tensor-free fixture owns no model/workspace buffers.
+            },
+            peakEstimate: { 0 },  // Tensor-free fixture owns no model/workspace buffers.
             streamCheckpoint: { await newCheckpoints.reached($0) },
-            errorSince: { _ in newError.message })
+            errorSince: { _ in newError.message }
+        )
         log = newLog; probe = newProbe; checkpoints = newCheckpoints; error = newError
         first = nameA; second = nameB
     }
@@ -260,8 +379,17 @@ actor ImageProducerProbe {
         for waiter in pending { waiter.resume() }
     }
     func ended(_ index: Int) { active -= 1; log.record("end:\(index)") }
-    func snapshot() -> Snapshot { .init(starts: starts, edits: edits, upscales: upscales, loads: loads,
-        maximumActive: maximumActive, active: active, loadWhileActive: loadWhileActive) }
+    func snapshot() -> Snapshot {
+        .init(
+            starts: starts,
+            edits: edits,
+            upscales: upscales,
+            loads: loads,
+            maximumActive: maximumActive,
+            active: active,
+            loadWhileActive: loadWhileActive
+        )
+    }
 }
 
 struct ControlledImageProducer: ImageGenerator, ImageEditor, ImageUpscaler {
@@ -286,13 +414,23 @@ struct ControlledImageProducer: ImageGenerator, ImageEditor, ImageUpscaler {
                             continuation.finish()
                             return
                         }
-                        continuation.yield(.imageCompleted(
-                            url: request.outputDir.appendingPathComponent("fixture-\(index)-\(imageIndex).png"),
-                            seed: seed, index: imageIndex, effectiveParameters: effectiveParameters))
+                        continuation.yield(
+                            .imageCompleted(
+                                url: request.outputDir.appendingPathComponent("fixture-\(index)-\(imageIndex).png"),
+                                seed: seed,
+                                index: imageIndex,
+                                effectiveParameters: effectiveParameters
+                            )
+                        )
                     }
                 } else {
-                    continuation.yield(.completed(url: request.outputDir.appendingPathComponent("fixture-\(index).png"),
-                        seed: request.seed ?? 0, effectiveParameters: effectiveParameters))
+                    continuation.yield(
+                        .completed(
+                            url: request.outputDir.appendingPathComponent("fixture-\(index).png"),
+                            seed: request.seed ?? 0,
+                            effectiveParameters: effectiveParameters
+                        )
+                    )
                 }
                 continuation.finish()
             }
@@ -302,14 +440,21 @@ struct ControlledImageProducer: ImageGenerator, ImageEditor, ImageUpscaler {
         AsyncThrowingStream { continuation in
             Task {
                 await probe.upscaled(request)
-                let index = await probe.start(.init(prompt: "fixture", seed: request.seed, outputDir: request.outputDir))
+                let index = await probe.start(
+                    .init(prompt: "fixture", seed: request.seed, outputDir: request.outputDir)
+                )
                 continuation.yield(.step(step: 1, total: 1, etaSeconds: nil))
                 await probe.wait(index)
                 await probe.ended(index)
                 if request.interrupt?.isCancelled == true {
                     continuation.yield(.cancelled)
                 } else {
-                    continuation.yield(.completed(url: request.outputDir.appendingPathComponent("upscale.png"), seed: request.seed ?? 0))
+                    continuation.yield(
+                        .completed(
+                            url: request.outputDir.appendingPathComponent("upscale.png"),
+                            seed: request.seed ?? 0
+                        )
+                    )
                 }
                 continuation.finish()
             }
@@ -319,15 +464,22 @@ struct ControlledImageProducer: ImageGenerator, ImageEditor, ImageUpscaler {
         AsyncThrowingStream { continuation in
             Task {
                 await probe.edited(request)
-                continuation.yield(.completed(url: request.outputDir.appendingPathComponent("fixture-edit.png"),
-                    seed: request.seed ?? 0, effectiveParameters: effectiveParameters))
+                continuation.yield(
+                    .completed(
+                        url: request.outputDir.appendingPathComponent("fixture-edit.png"),
+                        seed: request.seed ?? 0,
+                        effectiveParameters: effectiveParameters
+                    )
+                )
                 continuation.finish()
             }
         }
     }
 }
 
-func collectImageEvents(_ stream: AsyncThrowingStream<ImageGenerationEvent, Error>) async throws -> [ImageGenerationEvent] {
+func collectImageEvents(_ stream: AsyncThrowingStream<ImageGenerationEvent, Error>) async throws
+    -> [ImageGenerationEvent]
+{
     var events: [ImageGenerationEvent] = []
     for try await event in stream { events.append(event) }
     return events
@@ -335,7 +487,7 @@ func collectImageEvents(_ stream: AsyncThrowingStream<ImageGenerationEvent, Erro
 
 private enum ImageProbeTimeout: Error { case notReached }
 private func waitForImageProbe(_ predicate: @Sendable () async -> Bool) async throws {
-    for _ in 0..<2000 {
+    for _ in 0 ..< 2000 {
         if await predicate() { return }
         try await Task.sleep(for: .milliseconds(1))
     }

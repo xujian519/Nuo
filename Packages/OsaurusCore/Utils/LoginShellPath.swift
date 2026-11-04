@@ -53,14 +53,14 @@ public actor LoginShellPath {
 
     private static let marker = "__OSAURUS_LOGIN_PATH__"
 
-
     /// Runs `<shell> -ilc` (interactive, because nvm/mise/asdf activate in `.zshrc`/`.bashrc`) and extracts
     /// PATH between sentinels, so anything the startup files print cannot corrupt it. Bounded by `timeout`; a
     /// hung or failing shell yields `nil`, never a block.
     static func probe(shell: String, timeout: TimeInterval) -> [String]? {
         guard FileManager.default.isExecutableFile(atPath: shell) else { return nil }
         let isFish = (shell as NSString).lastPathComponent == "fish"
-        let script = isFish
+        let script =
+            isFish
             ? "printf '%s%s%s' \(marker) (string join : $PATH) \(marker)"
             : "printf '%s%s%s' \(marker) \"$PATH\" \(marker)"
         let process = Process()
@@ -106,8 +106,7 @@ public actor LoginShellPath {
                 let grace = Date().addingTimeInterval(0.2)
                 while process.isRunning && Date() < grace { usleep(10_000) }
                 // Kill remaining owned descendants too, even if the shell exited on TERM.
-                if ownsGroup { _ = kill(-pid, SIGKILL) }
-                else if process.isRunning { _ = kill(pid, SIGKILL) }
+                if ownsGroup { _ = kill(-pid, SIGKILL) } else if process.isRunning { _ = kill(pid, SIGKILL) }
                 process.waitUntilExit()
                 return nil
             }

@@ -21,7 +21,8 @@ struct AppleScriptStringContentsPromotionTests {
     @Test("a string `contents` becomes `content`")
     func promotesStringContents() {
         let out = AppleScriptToolDispatch.promotingStringContents(
-            #"{"question":"does the note body match?","contents":"the exact body text"}"#)
+            #"{"question":"does the note body match?","contents":"the exact body text"}"#
+        )
         let o = object(out)
         #expect(o["content"] as? String == "the exact body text")
         #expect(o["contents"] == nil)
@@ -67,7 +68,8 @@ struct AppleScriptStringContentsPromotionTests {
     @Test("mac_query normalizes a string `contents` before validation")
     func macQueryNormalizes() {
         let out = MacQueryTool().normalizeArgumentsBeforeValidation(
-            #"{"question":"is the body equal to this?","contents":"exact block"}"#)
+            #"{"question":"is the body equal to this?","contents":"exact block"}"#
+        )
         let o = object(out)
         #expect(o["content"] as? String == "exact block")
         #expect(o["contents"] == nil)
@@ -80,7 +82,8 @@ struct AppleScriptStringContentsPromotionTests {
     func promotesToRequiredFieldWhenAbsent() {
         let out = AppleScriptToolDispatch.promotingStringContents(
             #"{"contents":"what is the frontmost application's name"}"#,
-            requiredField: "question")
+            requiredField: "question"
+        )
         let o = object(out)
         #expect(o["question"] as? String == "what is the frontmost application's name")
         #expect(o["contents"] == nil)
@@ -91,7 +94,8 @@ struct AppleScriptStringContentsPromotionTests {
     func promotesToContentWhenRequiredFieldPresent() {
         let out = AppleScriptToolDispatch.promotingStringContents(
             #"{"question":"does the body match?","contents":"exact block"}"#,
-            requiredField: "question")
+            requiredField: "question"
+        )
         let o = object(out)
         #expect(o["question"] as? String == "does the body match?")
         #expect(o["content"] as? String == "exact block")
@@ -101,7 +105,8 @@ struct AppleScriptStringContentsPromotionTests {
     @Test("mac_query routes a lone string to `question` end to end")
     func macQueryRoutesLoneStringToQuestion() {
         let out = MacQueryTool().normalizeArgumentsBeforeValidation(
-            #"{"contents":"what is the frontmost application's name"}"#)
+            #"{"contents":"what is the frontmost application's name"}"#
+        )
         let o = object(out)
         #expect(o["question"] as? String == "what is the frontmost application's name")
         #expect(o["contents"] == nil)

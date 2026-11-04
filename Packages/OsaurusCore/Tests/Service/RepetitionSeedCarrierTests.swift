@@ -18,10 +18,14 @@ struct RepetitionSeedCarrierTests {
     }
 
     @Test func chatDecodeCopyEncodingAndCanonicalRoundTripKeepSeparatePenalties() throws {
-        let request = try chat(["repetition_penalty": 1.25, "seed": -1,
-            "frequency_penalty": -0.5, "presence_penalty": 0.25])
-        for copy in [request, request.withModel("other"),
-            request.withContext(messages: request.messages, tools: nil, toolChoice: nil)] {
+        let request = try chat([
+            "repetition_penalty": 1.25, "seed": -1,
+            "frequency_penalty": -0.5, "presence_penalty": 0.25,
+        ])
+        for copy in [
+            request, request.withModel("other"),
+            request.withContext(messages: request.messages, tools: nil, toolChoice: nil),
+        ] {
             #expect(copy.repetition_penalty == 1.25)
             #expect(copy.seed == -1)
             #expect(copy.frequency_penalty == -0.5 && copy.presence_penalty == 0.25)
@@ -57,8 +61,12 @@ struct RepetitionSeedCarrierTests {
             #expect(request.seed == nil && request.repetition_penalty == nil)
             #expect(wire.seed == nil && wire.repetition_penalty == nil)
             #expect(try wire.toResponsesInferenceRequest().generation.repetitionPenalty == nil)
-            let chatBody = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any])
-            let responseBody = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(wire)) as? [String: Any])
+            let chatBody = try #require(
+                JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any]
+            )
+            let responseBody = try #require(
+                JSONSerialization.jsonObject(with: JSONEncoder().encode(wire)) as? [String: Any]
+            )
             #expect(chatBody["seed"] == nil && chatBody["repetition_penalty"] == nil)
             #expect(responseBody["seed"] == nil && responseBody["repetition_penalty"] == nil)
         }
@@ -76,26 +84,45 @@ struct RepetitionSeedCarrierTests {
         var id: String { base.id }
         func isAvailable() -> Bool { true }
         func handles(requestedModel: String?) -> Bool { base.handles(requestedModel: requestedModel) }
-        func generateOneShot(messages: [ChatMessage], parameters: GenerationParameters,
-            requestedModel: String?) async throws -> String { throw CancellationError() }
-        func streamDeltas(messages: [ChatMessage], parameters: GenerationParameters,
-            requestedModel: String?, stopSequences: [String]) async throws -> AsyncThrowingStream<String, Error> {
+        func generateOneShot(
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?
+        ) async throws -> String { throw CancellationError() }
+        func streamDeltas(
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?,
+            stopSequences: [String]
+        ) async throws -> AsyncThrowingStream<String, Error> {
             await capture.append(parameters)
-            return try await base.streamDeltas(messages: messages, parameters: parameters,
-                requestedModel: requestedModel, stopSequences: stopSequences)
+            return try await base.streamDeltas(
+                messages: messages,
+                parameters: parameters,
+                requestedModel: requestedModel,
+                stopSequences: stopSequences
+            )
         }
     }
 
     private func engine(_ capture: Capture) -> ChatEngine {
-        ChatEngine(services: [RecordingService(capture: capture)], installedModelsProvider: { [] },
-            remoteServicesProvider: { [] }, source: .httpAPI)
+        ChatEngine(
+            services: [RecordingService(capture: capture)],
+            installedModelsProvider: { [] },
+            remoteServicesProvider: { [] },
+            source: .httpAPI
+        )
     }
 
     @Test func actualEngineDispatchRetainsExplicitValuesAndDoesNotLeakToNextRequest() async throws {
         let capture = Capture()
         let engine = engine(capture)
-        let first = ResponsesInferenceRequest(chatCompletion: try chat(["seed": 0, "repetition_penalty": 1.25,
-            "frequency_penalty": -0.5, "presence_penalty": 0.25]))
+        let first = ResponsesInferenceRequest(
+            chatCompletion: try chat([
+                "seed": 0, "repetition_penalty": 1.25,
+                "frequency_penalty": -0.5, "presence_penalty": 0.25,
+            ])
+        )
         let second = try responses(["seed": -1, "repetition_penalty": 1]).toResponsesInferenceRequest()
         let third = try responses().toResponsesInferenceRequest()
         for request in [first, second, third] {
@@ -112,8 +139,15 @@ struct RepetitionSeedCarrierTests {
     }
 
     @Test func localSamplerReceivesIndependentPenaltyAndSeed() {
-        let runtime = ModelRuntime.makeGenerateParameters(temperature: 0.7, maxTokens: 16, topP: 0.9,
-            repetitionPenalty: 1.25, presencePenalty: 0.25, frequencyPenalty: -0.5, randomSeed: UInt64.max)
+        let runtime = ModelRuntime.makeGenerateParameters(
+            temperature: 0.7,
+            maxTokens: 16,
+            topP: 0.9,
+            repetitionPenalty: 1.25,
+            presencePenalty: 0.25,
+            frequencyPenalty: -0.5,
+            randomSeed: UInt64.max
+        )
         #expect(runtime.repetitionPenalty == 1.25)
         #expect(runtime.presencePenalty == 0.25 && runtime.frequencyPenalty == -0.5)
         #expect(runtime.randomSeed == UInt64.max)
@@ -142,17 +176,35 @@ struct RepetitionSeedCarrierTests {
     }
 
     private func service(_ type: RemoteProviderType = .openaiLegacy) -> RemoteProviderService {
-        RemoteProviderService(provider: RemoteProvider(name: "fixture", host: "localhost", providerProtocol: .http,
-            port: 8000, basePath: "/v1", authType: .none, providerType: type), models: ["carrier"], resolvedHeaders: [:])
+        RemoteProviderService(
+            provider: RemoteProvider(
+                name: "fixture",
+                host: "localhost",
+                providerProtocol: .http,
+                port: 8000,
+                basePath: "/v1",
+                authType: .none,
+                providerType: type
+            ),
+            models: ["carrier"],
+            resolvedHeaders: [:]
+        )
     }
 
     @Test func omittedRemoteControlsKeepBothWireFormatsUnchanged() async throws {
-        let request = await service().buildChatRequest(messages: [ChatMessage(role: "user", content: "fixture")],
+        let request = await service().buildChatRequest(
+            messages: [ChatMessage(role: "user", content: "fixture")],
             parameters: GenerationParameters(temperature: nil, maxTokens: 16),
-            model: "carrier", stream: false, tools: nil, toolChoice: nil)
+            model: "carrier",
+            stream: false,
+            tools: nil,
+            toolChoice: nil
+        )
         let chatBody = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any])
         let wire = try request.toOpenResponsesRequest()
-        let responseBody = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(wire)) as? [String: Any])
+        let responseBody = try #require(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(wire)) as? [String: Any]
+        )
         #expect(request.seed == nil && request.repetition_penalty == nil)
         #expect(wire.seed == nil && wire.repetition_penalty == nil)
         #expect(chatBody["seed"] == nil && chatBody["repetition_penalty"] == nil)
@@ -161,9 +213,19 @@ struct RepetitionSeedCarrierTests {
 
     @Test(arguments: [Int.min, -1, 0, Int.max])
     func remoteChatAndCompatibleResponsesEncodeSameSignedSeed(seed: Int) async throws {
-        let request = await service().buildChatRequest(messages: [ChatMessage(role: "user", content: "fixture")],
-            parameters: GenerationParameters(temperature: nil, maxTokens: 16, repetitionPenalty: 1.25,
-                seed: UInt64(bitPattern: Int64(seed))), model: "carrier", stream: true, tools: nil, toolChoice: nil)
+        let request = await service().buildChatRequest(
+            messages: [ChatMessage(role: "user", content: "fixture")],
+            parameters: GenerationParameters(
+                temperature: nil,
+                maxTokens: 16,
+                repetitionPenalty: 1.25,
+                seed: UInt64(bitPattern: Int64(seed))
+            ),
+            model: "carrier",
+            stream: true,
+            tools: nil,
+            toolChoice: nil
+        )
         let body = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any])
         #expect(body["seed"] as? Int == seed)
         #expect(body["repetition_penalty"] as? Double == 1.25)
@@ -179,9 +241,14 @@ struct RepetitionSeedCarrierTests {
     @Test(arguments: [RemoteProviderType.anthropic, .gemini, .openAICodex])
     func unsupportedRemotePenaltyFailsBeforeHTTPRequest(type: RemoteProviderType) async throws {
         let provider = service(type)
-        let request = await provider.buildChatRequest(messages: [ChatMessage(role: "user", content: "fixture")],
+        let request = await provider.buildChatRequest(
+            messages: [ChatMessage(role: "user", content: "fixture")],
             parameters: GenerationParameters(temperature: nil, maxTokens: 16, repetitionPenalty: 1.25),
-            model: "carrier", stream: false, tools: nil, toolChoice: nil)
+            model: "carrier",
+            stream: false,
+            tools: nil,
+            toolChoice: nil
+        )
         do {
             _ = try await provider.buildURLRequest(for: request)
             Issue.record("Unsupported penalty accepted for \(type)")
@@ -194,9 +261,14 @@ struct RepetitionSeedCarrierTests {
     @Test(arguments: [RemoteProviderType.anthropic, .openAICodex])
     func unsupportedRemoteSeedFailsBeforeHTTPRequest(type: RemoteProviderType) async throws {
         let provider = service(type)
-        let request = await provider.buildChatRequest(messages: [ChatMessage(role: "user", content: "fixture")],
+        let request = await provider.buildChatRequest(
+            messages: [ChatMessage(role: "user", content: "fixture")],
             parameters: GenerationParameters(temperature: nil, maxTokens: 16, seed: 0),
-            model: "carrier", stream: false, tools: nil, toolChoice: nil)
+            model: "carrier",
+            stream: false,
+            tools: nil,
+            toolChoice: nil
+        )
         do {
             _ = try await provider.buildURLRequest(for: request)
             Issue.record("Unsupported seed accepted for \(type)")
@@ -207,11 +279,18 @@ struct RepetitionSeedCarrierTests {
     }
 
     @Test func codexRejectsExtensionsWhileGeminiKeepsSupportedSeed() async throws {
-        var request = await service().buildChatRequest(messages: [ChatMessage(role: "user", content: "fixture")],
+        var request = await service().buildChatRequest(
+            messages: [ChatMessage(role: "user", content: "fixture")],
             parameters: GenerationParameters(temperature: nil, maxTokens: 16, seed: 42),
-            model: "carrier", stream: false, tools: nil, toolChoice: nil)
+            model: "carrier",
+            stream: false,
+            tools: nil,
+            toolChoice: nil
+        )
         #expect(throws: RemoteProviderServiceError.self) { try request.toCodexOpenResponsesRequest() }
-        let gemini = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(request.toGeminiRequest())) as? [String: Any])
+        let gemini = try #require(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(request.toGeminiRequest())) as? [String: Any]
+        )
         #expect((gemini["generationConfig"] as? [String: Any])?["seed"] as? Int == 42)
         request.seed = nil
         request.repetition_penalty = 1.25
@@ -220,23 +299,49 @@ struct RepetitionSeedCarrierTests {
 
     @Test func remoteAgentOwnedSettingsCannotSilentlyDropExplicitControls() async throws {
         let provider = service(.osaurus)
-        let request = await provider.buildChatRequest(messages: [ChatMessage(role: "user", content: "fixture")],
-            parameters: GenerationParameters(temperature: nil, maxTokens: 16, repetitionPenalty: 1.25,
-                seed: 0, runAsRemoteAgent: true), model: "carrier", stream: false, tools: nil, toolChoice: nil)
+        let request = await provider.buildChatRequest(
+            messages: [ChatMessage(role: "user", content: "fixture")],
+            parameters: GenerationParameters(
+                temperature: nil,
+                maxTokens: 16,
+                repetitionPenalty: 1.25,
+                seed: 0,
+                runAsRemoteAgent: true
+            ),
+            model: "carrier",
+            stream: false,
+            tools: nil,
+            toolChoice: nil
+        )
         #expect(request.seed == 0 && request.repetition_penalty == 1.25)
         #expect(throws: RemoteProviderServiceError.self) { try request.validateSamplingExtensions(for: .osaurus) }
     }
 
     @Test func foundationRejectsUnsupportedControlsButOmissionRemainsValid() throws {
         let foundation = FoundationModelService()
-        try ChatEngine.validateSamplingExtensions(GenerationParameters(temperature: nil, maxTokens: 16), for: foundation)
+        try ChatEngine.validateSamplingExtensions(
+            GenerationParameters(temperature: nil, maxTokens: 16),
+            for: foundation
+        )
         #expect(throws: ChatEngine.EngineError.self) {
-            try ChatEngine.validateSamplingExtensions(GenerationParameters(temperature: nil, maxTokens: 16,
-                repetitionPenalty: 1), for: foundation)
+            try ChatEngine.validateSamplingExtensions(
+                GenerationParameters(
+                    temperature: nil,
+                    maxTokens: 16,
+                    repetitionPenalty: 1
+                ),
+                for: foundation
+            )
         }
         #expect(throws: ChatEngine.EngineError.self) {
-            try ChatEngine.validateSamplingExtensions(GenerationParameters(temperature: nil, maxTokens: 16,
-                seed: 0), for: foundation)
+            try ChatEngine.validateSamplingExtensions(
+                GenerationParameters(
+                    temperature: nil,
+                    maxTokens: 16,
+                    seed: 0
+                ),
+                for: foundation
+            )
         }
     }
 
@@ -254,7 +359,6 @@ struct RepetitionSeedCarrierTests {
         #expect(HTTPHandler.openAIErrorType(for: unrelated) == "internal_error")
         #expect(HTTPHandler.localRuntimeHTTPStatus(for: CancellationError()).code == 499)
     }
-
 
     @Test func canonicalReservedTemplateErrorIsTypedBadRequestBeforeDispatch() async throws {
         let capture = Capture()
@@ -285,10 +389,16 @@ struct RepetitionSeedCarrierTests {
             for path in ["/v1/chat/completions", "/v1/responses"] {
                 for invalidField in ["repetition_penalty", "chat_template_kwargs"] {
                     var body: [String: Any] = ["model": "carrier", "stream": streaming, "seed": 0]
-                    if path.hasSuffix("responses") { body["input"] = "fixture" }
-                    else { body["messages"] = [["role": "user", "content": "fixture"]] }
-                    if invalidField == "repetition_penalty" { body[invalidField] = 0 }
-                    else { body[invalidField] = ["messages": []] as [String: [String]] }
+                    if path.hasSuffix("responses") {
+                        body["input"] = "fixture"
+                    } else {
+                        body["messages"] = [["role": "user", "content": "fixture"]]
+                    }
+                    if invalidField == "repetition_penalty" {
+                        body[invalidField] = 0
+                    } else {
+                        body[invalidField] = ["messages": []] as [String: [String]]
+                    }
                     var request = URLRequest(url: URL(string: "http://\(server.host):\(server.port)\(path)")!)
                     request.httpMethod = "POST"
                     request.timeoutInterval = 10
@@ -303,8 +413,10 @@ struct RepetitionSeedCarrierTests {
                     let error = try #require(object["error"] as? [String: Any])
                     #expect(error[path.hasSuffix("responses") ? "code" : "type"] as? String == "invalid_request_error")
                     let text = String(decoding: data, as: UTF8.self)
-                    #expect((error["message"] as? String)?.contains(invalidField) == true,
-                        "\(path) \(invalidField) stream=\(streaming) response=\(text)")
+                    #expect(
+                        (error["message"] as? String)?.contains(invalidField) == true,
+                        "\(path) \(invalidField) stream=\(streaming) response=\(text)"
+                    )
                     #expect(!text.contains("data: ") && !text.contains("response.completed"))
                     #expect(!text.contains("[DONE]"))
                     #expect(await capture.values().isEmpty)
@@ -313,8 +425,10 @@ struct RepetitionSeedCarrierTests {
             let marker = "private-fixture-body-must-not-echo"
             let malformedBodies = [
                 Data("{\"stream\":\(streaming),\"content\":\"\(marker)".utf8),
-                try JSONSerialization.data(withJSONObject: ["model": "carrier", "messages": [],
-                    "stream": streaming, "temperature": marker]),
+                try JSONSerialization.data(withJSONObject: [
+                    "model": "carrier", "messages": [],
+                    "stream": streaming, "temperature": marker,
+                ]),
             ]
             for body in malformedBodies {
                 var request = URLRequest(url: URL(string: "http://\(server.host):\(server.port)/v1/chat/completions")!)
@@ -358,17 +472,27 @@ struct RepetitionSeedCarrierTests {
         let unrelatedErrors: [Error] = [
             NSError(domain: "fixture", code: 400, userInfo: [NSLocalizedDescriptionKey: secret]),
             DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: secret)),
-            DecodingError.dataCorrupted(.init(codingPath: [FixtureCodingKey(stringValue: "repetition_penalty")],
-                debugDescription: secret)),
-            DecodingError.dataCorrupted(.init(codingPath: [FixtureCodingKey(stringValue: "other")],
-                debugDescription: "Parameter 'repetition_penalty' must be a finite number greater than zero.")),
+            DecodingError.dataCorrupted(
+                .init(
+                    codingPath: [FixtureCodingKey(stringValue: "repetition_penalty")],
+                    debugDescription: secret
+                )
+            ),
+            DecodingError.dataCorrupted(
+                .init(
+                    codingPath: [FixtureCodingKey(stringValue: "other")],
+                    debugDescription: "Parameter 'repetition_penalty' must be a finite number greater than zero."
+                )
+            ),
         ]
         for error in unrelatedErrors {
             #expect(RequestValidator.chatRequestDecodingMessage(for: error) == "Invalid request format")
             #expect(!RequestValidator.chatRequestDecodingMessage(for: error).contains(secret))
         }
-        for data in [Data("{\"content\":\"\(secret)".utf8),
-            try JSONSerialization.data(withJSONObject: ["model": "carrier", "messages": [], "temperature": secret])] {
+        for data in [
+            Data("{\"content\":\"\(secret)".utf8),
+            try JSONSerialization.data(withJSONObject: ["model": "carrier", "messages": [], "temperature": secret]),
+        ] {
             do {
                 _ = try JSONDecoder().decode(ChatCompletionRequest.self, from: data)
                 Issue.record("Malformed fixture unexpectedly decoded")

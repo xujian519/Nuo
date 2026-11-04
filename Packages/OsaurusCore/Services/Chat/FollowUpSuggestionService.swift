@@ -195,7 +195,7 @@ public actor FollowUpSuggestionService {
         // Once an array starts, malformed/truncated JSON is not a plain list.
         // Reject it rather than exposing JSON fragments as clickable prompts.
         guard let end = text.lastIndex(of: "]"), start < end else { return [] }
-        let slice = String(text[start...end])
+        let slice = String(text[start ... end])
         guard
             let data = slice.data(using: .utf8),
             let array = try? JSONDecoder().decode([String].self, from: data)

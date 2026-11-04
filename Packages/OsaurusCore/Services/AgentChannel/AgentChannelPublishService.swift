@@ -541,12 +541,13 @@ actor AgentChannelPublishService {
         guard (try? store.openIfNeeded()) != nil else { return false }
         reconcileAndPruneIfNeeded()
         guard let intent = try? store.outboundIntent(id: id) else { return false }
-        let resolved = (try? store.transitionOutboundIntent(
-            id: id,
-            from: .deliveryUnknown,
-            to: markSent ? .sent : .cancelled,
-            updatedAt: now()
-        )) == true
+        let resolved =
+            (try? store.transitionOutboundIntent(
+                id: id,
+                from: .deliveryUnknown,
+                to: markSent ? .sent : .cancelled,
+                updatedAt: now()
+            )) == true
         if resolved {
             auditIntent(
                 status: markSent ? .accepted : .denied,
@@ -685,12 +686,14 @@ actor AgentChannelPublishService {
                 self.auditIntent(status: .denied, reason: denial.code, intent: intent, binding: binding)
                 return .denied(code: denial.code, message: denial.message, retryable: denial.retryable)
             }
-            guard (try? self.store.transitionOutboundIntent(
-                id: id,
-                from: expectedStatus,
-                to: .sending,
-                updatedAt: self.now()
-            )) == true else {
+            guard
+                (try? self.store.transitionOutboundIntent(
+                    id: id,
+                    from: expectedStatus,
+                    to: .sending,
+                    updatedAt: self.now()
+                )) == true
+            else {
                 return .denied(
                     code: "intent_in_flight",
                     message: "This intent is already being processed.",
@@ -845,7 +848,8 @@ actor AgentChannelPublishService {
                 )
             }
             if binding.ratePolicy.minSecondsBetweenSends > 0,
-                let lastSent = try store.lastSentOutboundIntentAt(bindingId: binding.id) {
+                let lastSent = try store.lastSentOutboundIntentAt(bindingId: binding.id)
+            {
                 let elapsed = now().timeIntervalSince(lastSent)
                 guard elapsed >= Double(binding.ratePolicy.minSecondsBetweenSends) else {
                     return SendPolicyDenial(
@@ -937,13 +941,14 @@ actor AgentChannelPublishService {
         do {
             let providerMessageId = try await sender(binding, content)
             logDelivery(outcome: "sent", providerMessageId: providerMessageId, error: nil)
-            let recorded = (try? store.transitionOutboundIntent(
-                id: intentId,
-                from: .sending,
-                to: .sent,
-                providerMessageId: providerMessageId,
-                updatedAt: now()
-            )) == true
+            let recorded =
+                (try? store.transitionOutboundIntent(
+                    id: intentId,
+                    from: .sending,
+                    to: .sent,
+                    providerMessageId: providerMessageId,
+                    updatedAt: now()
+                )) == true
             audit(
                 status: .accepted,
                 reason: recorded ? "proactive_send_completed" : "proactive_send_completed_unrecorded",
@@ -1230,13 +1235,15 @@ actor AgentChannelPublishService {
     private func reconcileAndPruneIfNeeded() {
         guard !didRunStartupReconciliation else { return }
         didRunStartupReconciliation = true
-        let interrupted = (try? store.reconcileInterruptedOutboundIntents(
-            before: startedAt,
-            updatedAt: now()
-        )) ?? 0
-        let pruned = (try? store.pruneTerminalOutboundIntents(
-            olderThan: now().addingTimeInterval(-Self.terminalRetention)
-        )) ?? 0
+        let interrupted =
+            (try? store.reconcileInterruptedOutboundIntents(
+                before: startedAt,
+                updatedAt: now()
+            )) ?? 0
+        let pruned =
+            (try? store.pruneTerminalOutboundIntents(
+                olderThan: now().addingTimeInterval(-Self.terminalRetention)
+            )) ?? 0
         if interrupted > 0 {
             _ = try? store.recordAuditEvent(
                 AgentChannelAuditRecord(

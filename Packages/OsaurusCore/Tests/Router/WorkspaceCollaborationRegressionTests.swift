@@ -304,7 +304,6 @@ extension WorkspaceCollaborationRegressionTests {
     }
 }
 
-
 extension WorkspaceCollaborationRegressionTests {
     @Test func automaticPairingBoundsConcurrencyWithoutSerializingHosts() async throws {
         let service = WorkspaceAgentConnectService.shared
@@ -321,7 +320,7 @@ extension WorkspaceCollaborationRegressionTests {
             try await Task.sleep(for: .milliseconds(20))
             throw URLError(.cannotConnectToHost)
         }
-        let agents = try (0..<7).map { index in
+        let agents = try (0 ..< 7).map { index in
             try JSONDecoder().decode(
                 OsaurusRouterWorkspaceAgent.self,
                 from: Data("{\"agent_address\":\"parallel-test-\(index)\",\"online\":true}".utf8)
@@ -333,7 +332,6 @@ extension WorkspaceCollaborationRegressionTests {
         #expect(active == 0)
     }
 }
-
 
 extension WorkspaceCollaborationRegressionTests {
     /// The router's steady-state `/workspaces/sync` tick is 15 s ± 20 %, so a
@@ -363,7 +361,8 @@ extension WorkspaceCollaborationRegressionTests {
         #expect(WorkspaceSyncService.connectionIsPending(startedAt: started, now: started.addingTimeInterval(3)))
         #expect(
             !WorkspaceSyncService.connectionIsPending(
-                startedAt: started, now: started.addingTimeInterval(WorkspaceSyncService.firstFrameDeadline)
+                startedAt: started,
+                now: started.addingTimeInterval(WorkspaceSyncService.firstFrameDeadline)
             )
         )
         #expect(WorkspaceSyncService.firstFrameDeadline < WorkspaceSyncService.verificationLease)
@@ -380,8 +379,12 @@ extension WorkspaceCollaborationRegressionTests {
             let workspace = "description-refresh-\(UUID())"
             let siblingWorkspace = "description-sibling-\(UUID())"
             let sibling = manager.upsertPairedAgent(
-                agentAddress: address, name: "Other workspace", description: "Unchanged sibling description.",
-                relayBaseURL: "https://test.invalid", apiKey: "test-key", note: nil,
+                agentAddress: address,
+                name: "Other workspace",
+                description: "Unchanged sibling description.",
+                relayBaseURL: "https://test.invalid",
+                apiKey: "test-key",
+                note: nil,
                 workspaceId: siblingWorkspace
             )
             var calls = 0
@@ -390,9 +393,11 @@ extension WorkspaceCollaborationRegressionTests {
                 #expect(incomingAddress == address)
                 calls += 1
                 return .init(
-                    agentAddress: address, agentName: "Host name",
+                    agentAddress: address,
+                    agentName: "Host name",
                     agentDescription: calls == 1 ? "Old description." : description,
-                    agentModel: "test-model", apiKey: "test-key-\(calls)",
+                    agentModel: "test-model",
+                    apiKey: "test-key-\(calls)",
                     attestationExpiresAt: calls == 1 ? Date().addingTimeInterval(0.2) : nil
                 )
             }
@@ -403,9 +408,14 @@ extension WorkspaceCollaborationRegressionTests {
                 }
                 _ = manager.remove(id: sibling.id)
             }
-            let paired = try #require(await service.connect(
-                workspaceId: workspace, agentAddress: address, displayName: "Shared display name", silent: true
-            ))
+            let paired = try #require(
+                await service.connect(
+                    workspaceId: workspace,
+                    agentAddress: address,
+                    displayName: "Shared display name",
+                    silent: true
+                )
+            )
             let deadline = Date().addingTimeInterval(3)
             while calls < 2 && Date() < deadline { try await Task.sleep(for: .milliseconds(20)) }
             #expect(calls == 2)
@@ -414,7 +424,10 @@ extension WorkspaceCollaborationRegressionTests {
             #expect(refreshed.providerId == paired.providerId)
             #expect(refreshed.name == "Shared display name")
             #expect(refreshed.description == description)
-            #expect(manager.remoteAgent(forAddress: address, workspaceId: siblingWorkspace)?.description == "Unchanged sibling description.")
+            #expect(
+                manager.remoteAgent(forAddress: address, workspaceId: siblingWorkspace)?.description
+                    == "Unchanged sibling description."
+            )
         }
     }
 }

@@ -24,7 +24,7 @@ struct ConfigDiskWriterFlushTests {
         defer { try? FileManager.default.removeItem(at: directory) }
 
         var urls: [URL] = []
-        for index in 0..<20 {
+        for index in 0 ..< 20 {
             let url = directory.appendingPathComponent("config-\(index).json")
             urls.append(url)
             ConfigDiskWriter.write(Data("{\"index\":\(index)}".utf8), to: url, synchronous: false)
@@ -44,7 +44,7 @@ struct ConfigDiskWriterFlushTests {
         defer { try? FileManager.default.removeItem(at: directory) }
         let url = directory.appendingPathComponent("remote.json")
 
-        for revision in 0..<50 {
+        for revision in 0 ..< 50 {
             ConfigDiskWriter.write(Data("rev-\(revision)".utf8), to: url, synchronous: false)
         }
         ConfigDiskWriter.flushPendingWrites()

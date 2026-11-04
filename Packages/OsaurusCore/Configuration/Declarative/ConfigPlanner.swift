@@ -113,7 +113,7 @@ enum ConfigRisk {
     }
     static func deleteKnowledgeCollection(_ name: String) -> String {
         "Deletes knowledge collection `\(name)` and its search index (prune). "
-        + "Documents in the folder are not touched."
+            + "Documents in the folder are not touched."
     }
     static func deleteAgent(_ name: String) -> String {
         "Deletes agent `\(name)` (prune)."
@@ -242,7 +242,8 @@ enum ConfigPlanner {
     /// document declares `agents:`, unlisted current agents are DELETED by
     /// apply, so only the document's names count as post-apply state.
     private static func effectiveAgentNames(
-        document: OsaurusConfigDocument, prune: Bool
+        document: OsaurusConfigDocument,
+        prune: Bool
     ) -> Set<String> {
         let docNames = Set((document.agents ?? []).map { $0.name.lowercased() })
         if prune, document.agents != nil {
@@ -264,7 +265,8 @@ enum ConfigPlanner {
     /// schedule or watcher pointing at a deleted agent: the user must delete
     /// or reassign it in the same document.
     private static func validatePruneAgentReferences(
-        document: OsaurusConfigDocument, into issues: inout [String]
+        document: OsaurusConfigDocument,
+        into issues: inout [String]
     ) {
         guard let docAgents = document.agents else { return }
         let keptNames = Set(docAgents.map { $0.name.lowercased() })
@@ -299,7 +301,8 @@ enum ConfigPlanner {
             issues.append(
                 "prune: schedule `\(schedule.name)` still runs on agent `\(agentName)`, "
                     + "which this prune would delete. Delete or reassign the schedule "
-                    + "in the same document.")
+                    + "in the same document."
+            )
         }
 
         let listedWatchers: [String: WatcherEntry]? = document.watchers.map { entries in
@@ -319,7 +322,8 @@ enum ConfigPlanner {
             issues.append(
                 "prune: watcher `\(watcher.name)` still runs on agent `\(agentName)`, "
                     + "which this prune would delete. Delete or reassign the watcher "
-                    + "in the same document.")
+                    + "in the same document."
+            )
         }
     }
 
@@ -332,7 +336,8 @@ enum ConfigPlanner {
     /// even when a stored model has gone stale (provider removed, model
     /// uninstalled), so only new or changed references are grounded.
     private static func validateModelReferences(
-        document: OsaurusConfigDocument, into issues: inout [String]
+        document: OsaurusConfigDocument,
+        into issues: inout [String]
     ) {
         let catalog = ConfigModelReference.liveCatalog()
         let pending = document.models ?? []
@@ -342,8 +347,10 @@ enum ConfigPlanner {
             else { return }
             if let current, current.caseInsensitiveCompare(value) == .orderedSame { return }
             if case .invalid(let message) = ConfigModelReference.resolve(
-                value, catalog: catalog, pendingLocalIds: pending)
-            {
+                value,
+                catalog: catalog,
+                pendingLocalIds: pending
+            ) {
                 issues.append("\(label): \(message)")
             }
         }
@@ -351,7 +358,8 @@ enum ConfigPlanner {
             check(
                 section.model,
                 current: DefaultAgentConfigurationStore.load().defaultModel,
-                label: "default_agent.model")
+                label: "default_agent.model"
+            )
         }
         let existingAgents = AgentManager.shared.agents.filter { !$0.isBuiltIn }
         for entry in document.agents ?? [] {
@@ -359,8 +367,10 @@ enum ConfigPlanner {
                 $0.name.lowercased() == entry.name.lowercased()
             }
             check(
-                entry.model, current: existing?.defaultModel,
-                label: "agents[\(entry.name)].model")
+                entry.model,
+                current: existing?.defaultModel,
+                label: "agents[\(entry.name)].model"
+            )
         }
     }
 
@@ -376,8 +386,10 @@ enum ConfigPlanner {
         func canonical(_ field: ConfigField<String>) -> ConfigField<String> {
             guard let value = field.valueOrNil else { return field }
             if case .resolved(let id) = ConfigModelReference.resolve(
-                value, catalog: catalog, pendingLocalIds: pending)
-            {
+                value,
+                catalog: catalog,
+                pendingLocalIds: pending
+            ) {
                 return .value(id)
             }
             return field
@@ -398,27 +410,34 @@ enum ConfigPlanner {
     }
 
     private static func validate(
-        document: OsaurusConfigDocument, prune: Bool, into issues: inout [String]
+        document: OsaurusConfigDocument,
+        prune: Bool,
+        into issues: inout [String]
     ) {
         if let version = document.version, version != 1 {
             issues.append("version: only schema version 1 is supported (got \(version)).")
         }
 
         if let memory = document.memory {
-            if let v = memory.budgetTokens, !(100...4000).contains(v) {
+            if let v = memory.budgetTokens, !(100 ... 4000).contains(v) {
                 issues.append("memory.budget_tokens: must be in 100...4000.")
             }
-            if let v = memory.retentionDays, !(0...3650).contains(v) {
+            if let v = memory.retentionDays, !(0 ... 3650).contains(v) {
                 issues.append("memory.retention_days: must be in 0...3650 (0 = forever).")
             }
         }
         validateHarnessRuntimes(document: document, prune: prune, into: &issues)
         if let section = document.defaultAgent {
-            checkRange(section.temperature, 0.0...2.0, "default_agent.temperature", &issues)
-            checkRange(section.maxTokens, 1...10_000_000, "default_agent.max_tokens", &issues)
+            checkRange(section.temperature, 0.0 ... 2.0, "default_agent.temperature", &issues)
+            checkRange(section.maxTokens, 1 ... 10_000_000, "default_agent.max_tokens", &issues)
             checkRuntimeReference(
-                section.runtime, claudeCode: section.claudeCode, label: "default_agent",
-                document: document, prune: prune, into: &issues)
+                section.runtime,
+                claudeCode: section.claudeCode,
+                label: "default_agent",
+                document: document,
+                prune: prune,
+                into: &issues
+            )
         }
 
         if let agents = document.agents {
@@ -432,44 +451,56 @@ enum ConfigPlanner {
                 if key == "default" {
                     issues.append(
                         "agents[\(entry.name)]: the Default agent is configured via the "
-                            + "`default_agent` section, not `agents`.")
+                            + "`default_agent` section, not `agents`."
+                    )
                 }
                 if !seen.insert(key).inserted {
                     issues.append("agents[\(entry.name)]: duplicate agent name in document.")
                 }
-                checkRange(entry.temperature, 0.0...2.0, "agents[\(entry.name)].temperature", &issues)
-                checkRange(entry.maxTokens, 1...10_000_000, "agents[\(entry.name)].max_tokens", &issues)
-                do { try entry.generationSettings.valueOrNil?.validate() }
-                catch { issues.append("agents[\(entry.name)].generation_settings: \(error.localizedDescription)") }
+                checkRange(entry.temperature, 0.0 ... 2.0, "agents[\(entry.name)].temperature", &issues)
+                checkRange(entry.maxTokens, 1 ... 10_000_000, "agents[\(entry.name)].max_tokens", &issues)
+                do { try entry.generationSettings.valueOrNil?.validate() } catch {
+                    issues.append("agents[\(entry.name)].generation_settings: \(error.localizedDescription)")
+                }
                 checkRuntimeReference(
-                    entry.runtime, claudeCode: entry.claudeCode, label: "agents[\(entry.name)]",
-                    document: document, prune: prune, into: &issues)
+                    entry.runtime,
+                    claudeCode: entry.claudeCode,
+                    label: "agents[\(entry.name)]",
+                    document: document,
+                    prune: prune,
+                    into: &issues
+                )
                 if entry.claudeCode?.allowOsaurusConfigWrites != nil {
                     issues.append(
                         "agents[\(entry.name)].claude_code.allow_osaurus_config_writes: only the "
-                            + "Default agent can change Nuo configuration.")
+                            + "Default agent can change Nuo configuration."
+                    )
                 }
                 if let ids = entry.capabilities?.knowledgeCollectionIds {
                     for raw in ids where UUID(uuidString: raw) == nil {
                         issues.append(
                             "agents[\(entry.name)].capabilities.knowledge_collection_ids: "
-                                + "`\(raw)` is not a UUID.")
+                                + "`\(raw)` is not a UUID."
+                        )
                     }
                 }
                 if let mode = entry.tools?.mode, ToolSelectionMode(rawValue: mode) == nil {
                     issues.append(
-                        "agents[\(entry.name)].tools.mode: must be `auto` or `manual` (got `\(mode)`).")
+                        "agents[\(entry.name)].tools.mode: must be `auto` or `manual` (got `\(mode)`)."
+                    )
                 }
-                if let v = entry.sandbox?.maxCommandsPerTurn, !(1...500).contains(v) {
+                if let v = entry.sandbox?.maxCommandsPerTurn, !(1 ... 500).contains(v) {
                     issues.append(
-                        "agents[\(entry.name)].sandbox.max_commands_per_turn: must be in 1...500.")
+                        "agents[\(entry.name)].sandbox.max_commands_per_turn: must be in 1...500."
+                    )
                 }
                 if let apps = entry.capabilities?.appleApps {
                     for raw in apps where AppleApp.parse(raw) == nil {
                         issues.append(
                             "agents[\(entry.name)].capabilities.apple_apps: `\(raw)` is not a "
                                 + "built-in Apple app. Allowed: "
-                                + AppleApp.allCases.map(\.rawValue).joined(separator: ", ") + ".")
+                                + AppleApp.allCases.map(\.rawValue).joined(separator: ", ") + "."
+                        )
                     }
                 }
                 // A doc name colliding with a built-in (non-default) agent
@@ -479,7 +510,8 @@ enum ConfigPlanner {
                 }), existing.isBuiltIn {
                     issues.append(
                         "agents[\(entry.name)]: `\(existing.name)` is a built-in agent and "
-                            + "cannot be managed declaratively.")
+                            + "cannot be managed declaratively."
+                    )
                 }
             }
         }
@@ -488,7 +520,8 @@ enum ConfigPlanner {
             let key = active.lowercased()
             if key != "default" && !effectiveAgentNames(document: document, prune: prune).contains(key) {
                 issues.append(
-                    "new_chat_agent: no agent named `\(active)` exists or is created by this document.")
+                    "new_chat_agent: no agent named `\(active)` exists or is created by this document."
+                )
             }
         }
 
@@ -506,50 +539,65 @@ enum ConfigPlanner {
             checkEnum(
                 section.applescriptExecutionMode,
                 ConfigAppBehaviorEnums.applescriptExecutionModes,
-                "delegation.applescript_execution_mode", &issues)
+                "delegation.applescript_execution_mode",
+                &issues
+            )
             for (kind, raw) in (section.permissionDefaults ?? [:]).sorted(by: { $0.key < $1.key }) {
                 if !ConfigAppBehaviorEnums.permissionKindIds.contains(kind.lowercased()) {
                     issues.append(
                         "delegation.permission_defaults[\(kind)]: unknown kind — one of: "
-                            + ConfigAppBehaviorEnums.permissionKindIds.joined(separator: ", ") + ".")
+                            + ConfigAppBehaviorEnums.permissionKindIds.joined(separator: ", ") + "."
+                    )
                 }
                 if !ConfigAppBehaviorEnums.permissionPolicies.contains(raw.lowercased()) {
                     issues.append(
                         "delegation.permission_defaults[\(kind)]: must be one of: "
-                            + ConfigAppBehaviorEnums.permissionPolicies.joined(separator: ", ") + ".")
+                            + ConfigAppBehaviorEnums.permissionPolicies.joined(separator: ", ") + "."
+                    )
                 }
             }
             func checkBudget(_ value: Int?, _ bounds: ClosedRange<Int>, _ label: String) {
                 if let value, !bounds.contains(value) {
                     issues.append(
                         "delegation.\(label): must be in "
-                            + "\(bounds.lowerBound)...\(bounds.upperBound).")
+                            + "\(bounds.lowerBound)...\(bounds.upperBound)."
+                    )
                 }
             }
             checkBudget(section.budgetMaxTokens, SubagentBudgets.tokenBounds, "budget_max_tokens")
             checkBudget(section.budgetMaxTurns, SubagentBudgets.turnBounds, "budget_max_turns")
             checkBudget(
-                section.budgetMaxSeconds, SubagentBudgets.elapsedBounds, "budget_max_seconds")
+                section.budgetMaxSeconds,
+                SubagentBudgets.elapsedBounds,
+                "budget_max_seconds"
+            )
             checkBudget(
-                section.budgetMaxParallelSpawns, SubagentBudgets.parallelSpawnBounds,
-                "budget_max_parallel_spawns")
+                section.budgetMaxParallelSpawns,
+                SubagentBudgets.parallelSpawnBounds,
+                "budget_max_parallel_spawns"
+            )
             checkBudget(
-                section.budgetMaxRemoteParallelSpawns, SubagentBudgets.remoteParallelSpawnBounds,
-                "budget_max_remote_parallel_spawns")
+                section.budgetMaxRemoteParallelSpawns,
+                SubagentBudgets.remoteParallelSpawnBounds,
+                "budget_max_remote_parallel_spawns"
+            )
             // Spawn targets may be custom agents (existing or created by this
             // document) or built-in library agents — never the Default agent.
             var spawnTargets = effectiveAgentNames(document: document, prune: prune)
             spawnTargets.formUnion(
-                AgentManager.shared.agents.filter { $0.isBuiltIn }.map { $0.name.lowercased() })
+                AgentManager.shared.agents.filter { $0.isBuiltIn }.map { $0.name.lowercased() }
+            )
             for name in section.spawnableAgents ?? [] {
                 let key = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
                 if key == "default" {
                     issues.append(
-                        "delegation.spawnable_agents: the Default agent cannot spawn itself.")
+                        "delegation.spawnable_agents: the Default agent cannot spawn itself."
+                    )
                 } else if !spawnTargets.contains(key) {
                     issues.append(
                         "delegation.spawnable_agents: no agent named `\(name)` exists or is "
-                            + "created by this document.")
+                            + "created by this document."
+                    )
                 }
             }
             // Workspace targets: the durable `<workspace_id>:<address>` key is
@@ -584,16 +632,19 @@ enum ConfigPlanner {
                 if key.contains(where: { $0.isWhitespace }) || key.hasPrefix("/") {
                     issues.append(
                         "commands[\(entry.name)]: the name is typed as /name — no spaces or "
-                            + "leading slash.")
+                            + "leading slash."
+                    )
                 }
                 if reserved.contains(key) {
                     issues.append(
                         "commands[\(entry.name)]: `/\(key)` is a built-in command and cannot "
-                            + "be managed declaratively.")
+                            + "be managed declaratively."
+                    )
                 }
                 if (entry.template ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     issues.append(
-                        "commands[\(entry.name)]: `template` is required to create a command.")
+                        "commands[\(entry.name)]: `template` is required to create a command."
+                    )
                 }
             }
         }
@@ -609,12 +660,14 @@ enum ConfigPlanner {
                 }
                 if !seen.insert(key).inserted {
                     issues.append(
-                        "knowledge_collections[\(entry.name)]: duplicate collection name in document.")
+                        "knowledge_collections[\(entry.name)]: duplicate collection name in document."
+                    )
                 }
                 let current = existing.first { $0.name.lowercased() == key }
                 if current == nil && entry.folderPath == nil {
                     issues.append(
-                        "knowledge_collections[\(entry.name)]: `folder_path` is required to create.")
+                        "knowledge_collections[\(entry.name)]: `folder_path` is required to create."
+                    )
                 }
                 if let raw = entry.folderPath {
                     let expanded = (raw as NSString).expandingTildeInPath
@@ -622,7 +675,8 @@ enum ConfigPlanner {
                         if expanded != (current.folderPath as NSString).expandingTildeInPath {
                             issues.append(
                                 "knowledge_collections[\(entry.name)].folder_path: immutable after "
-                                    + "create — delete and re-add the collection to move it.")
+                                    + "create — delete and re-add the collection to move it."
+                            )
                         }
                         // Existence gates CREATES only: an already-registered
                         // collection whose folder went missing must not make
@@ -634,7 +688,8 @@ enum ConfigPlanner {
                         {
                             issues.append(
                                 "knowledge_collections[\(entry.name)].folder_path: `\(expanded)` is "
-                                    + "not an existing directory.")
+                                    + "not an existing directory."
+                            )
                         }
                     }
                 }
@@ -646,7 +701,7 @@ enum ConfigPlanner {
             for platform in ConfigChannelPlatform.allCases {
                 guard let section = platform.section(in: channels) else { continue }
                 let label = "channels.\(platform.rawValue)"
-                if let v = section.defaultReadLimit, !(1...100).contains(v) {
+                if let v = section.defaultReadLimit, !(1 ... 100).contains(v) {
                     issues.append("\(label).default_read_limit: must be in 1...100.")
                 }
                 if let name = section.inboundAgent.valueOrNil {
@@ -654,14 +709,16 @@ enum ConfigPlanner {
                     if key == "default" || key.isEmpty {
                         issues.append(
                             "\(label).inbound_agent: channel dispatch needs a CUSTOM agent "
-                                + "(never the Default agent); null clears it.")
+                                + "(never the Default agent); null clears it."
+                        )
                     } else if ConfigAgentTargetReference.workspaceRef(name) != nil {
                         // Shared workspace agent (`<workspaceId>:<address>`);
                         // only the key shape is checked here.
                     } else if !customAgents.contains(key) {
                         issues.append(
                             "\(label).inbound_agent: no custom agent named `\(name)` exists or "
-                                + "is created by this document.")
+                                + "is created by this document."
+                        )
                     }
                 }
                 if let raw = section.botTokenRef {
@@ -670,7 +727,8 @@ enum ConfigPlanner {
                     } else {
                         issues.append(
                             "\(label).bot_token_ref: \(platform.rawValue) has no bot token — "
-                                + "iMessage needs none and WhatsApp links interactively.")
+                                + "iMessage needs none and WhatsApp links interactively."
+                        )
                     }
                 }
                 if let raw = section.appTokenRef {
@@ -707,7 +765,8 @@ enum ConfigPlanner {
                 if let current, let declared, declared != current.transport.rawValue {
                     issues.append(
                         "mcp_servers[\(entry.name)].transport: immutable after create — remove "
-                            + "and re-add the server to change it.")
+                            + "and re-add the server to change it."
+                    )
                     continue
                 }
                 let transport =
@@ -718,18 +777,21 @@ enum ConfigPlanner {
                 case .http:
                     if current == nil && entry.url == nil {
                         issues.append(
-                            "mcp_servers[\(entry.name)]: `url` is required to add a new server.")
+                            "mcp_servers[\(entry.name)]: `url` is required to add a new server."
+                        )
                     }
                     if let url = entry.url {
                         let scheme = URL(string: url)?.scheme?.lowercased()
                         if scheme != "http" && scheme != "https" {
                             issues.append(
-                                "mcp_servers[\(entry.name)].url: must be a valid http(s) URL.")
+                                "mcp_servers[\(entry.name)].url: must be a valid http(s) URL."
+                            )
                         }
                     }
                     if let auth = entry.auth, ConfigMCPAuth.auth(forKey: auth) == nil {
                         issues.append(
-                            "mcp_servers[\(entry.name)].auth: must be one of: none, bearer, oauth.")
+                            "mcp_servers[\(entry.name)].auth: must be one of: none, bearer, oauth."
+                        )
                     }
                     if entry.command != nil || entry.args != nil || entry.env != nil
                         || entry.workingDirectory != nil || entry.executionHost != nil
@@ -737,15 +799,20 @@ enum ConfigPlanner {
                     {
                         issues.append(
                             "mcp_servers[\(entry.name)]: command/args/env/working_directory/"
-                                + "execution_host/secret_env_refs only apply to transport: stdio.")
+                                + "execution_host/secret_env_refs only apply to transport: stdio."
+                        )
                     }
                     if let raw = entry.tokenRef {
                         validateSecretRef(
-                            raw, label: "mcp_servers[\(entry.name)].token_ref", into: &issues)
+                            raw,
+                            label: "mcp_servers[\(entry.name)].token_ref",
+                            into: &issues
+                        )
                         if entry.auth?.lowercased() == "oauth" {
                             issues.append(
                                 "mcp_servers[\(entry.name)].token_ref: an oauth server signs in "
-                                    + "interactively — token_ref only fits bearer auth.")
+                                    + "interactively — token_ref only fits bearer auth."
+                            )
                         }
                     }
                     if let refs = entry.secretHeaderRefs {
@@ -753,13 +820,15 @@ enum ConfigPlanner {
                             if header.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                 issues.append(
                                     "mcp_servers[\(entry.name)].secret_header_refs: header names "
-                                        + "must be non-empty.")
+                                        + "must be non-empty."
+                                )
                                 continue
                             }
                             validateSecretRef(
                                 raw,
                                 label: "mcp_servers[\(entry.name)].secret_header_refs[\(header)]",
-                                into: &issues)
+                                into: &issues
+                            )
                         }
                     }
                 case .stdio:
@@ -768,33 +837,38 @@ enum ConfigPlanner {
                     {
                         issues.append(
                             "mcp_servers[\(entry.name)]: `command` is required to add a stdio "
-                                + "server.")
+                                + "server."
+                        )
                     }
                     if let host = entry.executionHost,
                         MCPProviderExecutionHost(rawValue: host.lowercased()) == nil
                     {
                         issues.append(
-                            "mcp_servers[\(entry.name)].execution_host: must be sandbox or host.")
+                            "mcp_servers[\(entry.name)].execution_host: must be sandbox or host."
+                        )
                     }
                     if entry.url != nil || entry.auth != nil || entry.tokenRef != nil
                         || entry.secretHeaderRefs != nil
                     {
                         issues.append(
                             "mcp_servers[\(entry.name)]: url/auth/token_ref/secret_header_refs only "
-                                + "apply to transport: http.")
+                                + "apply to transport: http."
+                        )
                     }
                     if let refs = entry.secretEnvRefs {
                         for (envKey, raw) in refs.sorted(by: { $0.key < $1.key }) {
                             if envKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                 issues.append(
                                     "mcp_servers[\(entry.name)].secret_env_refs: env keys must "
-                                        + "be non-empty.")
+                                        + "be non-empty."
+                                )
                                 continue
                             }
                             validateSecretRef(
                                 raw,
                                 label: "mcp_servers[\(entry.name)].secret_env_refs[\(envKey)]",
-                                into: &issues)
+                                into: &issues
+                            )
                         }
                     }
                 }
@@ -818,13 +892,15 @@ enum ConfigPlanner {
                     guard let raw = entry.provider else {
                         issues.append(
                             "providers[\(entry.name)]: `provider` is required to add a new provider. "
-                                + "One of: \(ConfigProviderPresets.canonicalIdsList).")
+                                + "One of: \(ConfigProviderPresets.canonicalIdsList)."
+                        )
                         continue
                     }
                     if ConfigProviderPresets.resolve(raw) == nil {
                         issues.append(
                             "providers[\(entry.name)].provider: must be one of: "
-                                + ConfigProviderPresets.canonicalIdsList + ".")
+                                + ConfigProviderPresets.canonicalIdsList + "."
+                        )
                     }
                 }
                 if let raw = entry.providerProtocol,
@@ -832,25 +908,30 @@ enum ConfigPlanner {
                 {
                     issues.append("providers[\(entry.name)].protocol: must be http or https.")
                 }
-                if case .value(let port) = entry.port, !(1...65535).contains(port) {
+                if case .value(let port) = entry.port, !(1 ... 65535).contains(port) {
                     issues.append("providers[\(entry.name)].port: must be in 1...65535.")
                 }
-                if let v = entry.timeoutSeconds, !(1...600).contains(v) {
+                if let v = entry.timeoutSeconds, !(1 ... 600).contains(v) {
                     issues.append("providers[\(entry.name)].timeout_seconds: must be in 1...600.")
                 }
                 if let raw = entry.apiKeyRef {
                     validateSecretRef(
-                        raw, label: "providers[\(entry.name)].api_key_ref", into: &issues)
+                        raw,
+                        label: "providers[\(entry.name)].api_key_ref",
+                        into: &issues
+                    )
                     if entry.setApiKey == true {
                         issues.append(
                             "providers[\(entry.name)]: use either set_api_key (interactive sheet) "
-                                + "or api_key_ref (secret reference), not both.")
+                                + "or api_key_ref (secret reference), not both."
+                        )
                     }
                     switch ConfigProviderPresets.resolve(entry.provider) {
                     case .codexOAuth, .osaurusAgent:
                         issues.append(
                             "providers[\(entry.name)].api_key_ref: `\(entry.provider ?? "")` signs "
-                                + "in via OAuth/pairing — an API key does not apply.")
+                                + "in via OAuth/pairing — an API key does not apply."
+                        )
                     case .preset, nil:
                         break
                     }
@@ -863,7 +944,8 @@ enum ConfigPlanner {
                         issues.append(
                             "providers[\(entry.name)].\(field): the endpoint of an existing "
                                 + "provider cannot be changed — remove and re-add the provider "
-                                + "to move it.")
+                                + "to move it."
+                        )
                     }
                     if let host = entry.host, host != current.host { refuse("host") }
                     if let raw = entry.providerProtocol,
@@ -903,7 +985,8 @@ enum ConfigPlanner {
                 }
                 if !seen.insert(entry.id.lowercased()).inserted {
                     issues.append(
-                        "search_providers.providers[\(entry.id)]: duplicate provider id in document.")
+                        "search_providers.providers[\(entry.id)]: duplicate provider id in document."
+                    )
                 }
             }
             for id in section.ranking ?? [] {
@@ -932,7 +1015,8 @@ enum ConfigPlanner {
                     if entry.agent == nil {
                         issues.append(
                             "schedules[\(entry.name)]: `agent` (custom agent name) is required to "
-                                + "create a schedule.")
+                                + "create a schedule."
+                        )
                     }
                     if entry.instructions == nil {
                         issues.append("schedules[\(entry.name)]: `instructions` is required to create.")
@@ -944,7 +1028,8 @@ enum ConfigPlanner {
                 if let agent = entry.agent {
                     if agent.lowercased() == "default" {
                         issues.append(
-                            "schedules[\(entry.name)].agent: schedules cannot target the Default agent.")
+                            "schedules[\(entry.name)].agent: schedules cannot target the Default agent."
+                        )
                     } else if ConfigAgentTargetReference.workspaceRef(agent) != nil {
                         // A shared workspace agent (`<workspaceId>:<address>`).
                         // Membership is live relay state, checked when the
@@ -952,7 +1037,8 @@ enum ConfigPlanner {
                     } else if !agentNames.contains(agent.lowercased()) {
                         issues.append(
                             "schedules[\(entry.name)].agent: no custom agent named `\(agent)` exists "
-                                + "or is created by this document.")
+                                + "or is created by this document."
+                        )
                     }
                 }
                 if let frequency = entry.frequency {
@@ -983,7 +1069,8 @@ enum ConfigPlanner {
                 if isNew {
                     if entry.agent == nil {
                         issues.append(
-                            "watchers[\(entry.name)]: `agent` (custom agent name) is required to create.")
+                            "watchers[\(entry.name)]: `agent` (custom agent name) is required to create."
+                        )
                     }
                     if entry.instructions == nil {
                         issues.append("watchers[\(entry.name)]: `instructions` is required to create.")
@@ -995,13 +1082,15 @@ enum ConfigPlanner {
                 if let agent = entry.agent {
                     if agent.lowercased() == "default" {
                         issues.append(
-                            "watchers[\(entry.name)].agent: watchers cannot run on the Default agent.")
+                            "watchers[\(entry.name)].agent: watchers cannot run on the Default agent."
+                        )
                     } else if ConfigAgentTargetReference.workspaceRef(agent) != nil {
                         // Shared workspace agent; see the schedules note above.
                     } else if !agentNames.contains(agent.lowercased()) {
                         issues.append(
                             "watchers[\(entry.name)].agent: no custom agent named `\(agent)` exists "
-                                + "or is created by this document.")
+                                + "or is created by this document."
+                        )
                     }
                 }
                 if let raw = entry.path {
@@ -1011,20 +1100,25 @@ enum ConfigPlanner {
                         || !isDirectory.boolValue
                     {
                         issues.append(
-                            "watchers[\(entry.name)].path: `\(expanded)` is not an existing directory.")
+                            "watchers[\(entry.name)].path: `\(expanded)` is not an existing directory."
+                        )
                     }
                 }
                 if let raw = entry.responsiveness, Responsiveness(rawValue: raw.lowercased()) == nil {
                     issues.append(
                         "watchers[\(entry.name)].responsiveness: must be one of: fast, balanced, "
-                            + "patient, relaxed, deferred, extended.")
+                            + "patient, relaxed, deferred, extended."
+                    )
                 }
             }
         }
     }
 
     private static func checkRange<T: Comparable & Sendable & Equatable>(
-        _ field: ConfigField<T>, _ range: ClosedRange<T>, _ label: String, _ issues: inout [String]
+        _ field: ConfigField<T>,
+        _ range: ClosedRange<T>,
+        _ label: String,
+        _ issues: inout [String]
     ) {
         if case .value(let v) = field, !range.contains(v) {
             issues.append("\(label): must be in \(range.lowerBound)...\(range.upperBound).")
@@ -1033,7 +1127,10 @@ enum ConfigPlanner {
 
     /// Case-insensitive membership check for string-enum document keys.
     private static func checkEnum(
-        _ raw: String?, _ allowed: [String], _ label: String, _ issues: inout [String]
+        _ raw: String?,
+        _ allowed: [String],
+        _ label: String,
+        _ issues: inout [String]
     ) {
         guard let raw else { return }
         if !allowed.contains(raw.lowercased()) {
@@ -1046,7 +1143,10 @@ enum ConfigPlanner {
     /// Appends `key: old -> new` when the document specifies a different
     /// value than the current one.
     private static func diff<T: Equatable>(
-        _ key: String, desired: T?, current: T?, into changes: inout [String]
+        _ key: String,
+        desired: T?,
+        current: T?,
+        into changes: inout [String]
     ) {
         guard let desired, desired != current else { return }
         changes.append("\(key): \(display(current)) -> \(display(desired))")
@@ -1057,7 +1157,9 @@ enum ConfigPlanner {
     /// only format-checked here — resolving one can show a macOS dialog,
     /// which planning must never trigger.
     private static func validateSecretRef(
-        _ raw: String, label: String, into issues: inout [String]
+        _ raw: String,
+        label: String,
+        into issues: inout [String]
     ) {
         switch ConfigSecretRef.parse(raw) {
         case .failure(let message):
@@ -1070,7 +1172,10 @@ enum ConfigPlanner {
     }
 
     private static func diff<T: Equatable>(
-        _ key: String, desired: ConfigField<T>, current: ConfigField<T>, into changes: inout [String]
+        _ key: String,
+        desired: ConfigField<T>,
+        current: ConfigField<T>,
+        into changes: inout [String]
     ) {
         switch desired {
         case .absent:
@@ -1094,7 +1199,10 @@ enum ConfigPlanner {
     }
 
     private static func diff(
-        _ key: String, desired: Double?, current: Double?, into changes: inout [String]
+        _ key: String,
+        desired: Double?,
+        current: Double?,
+        into changes: inout [String]
     ) {
         guard let desired else { return }
         if let current, nearlyEqual(desired, current) { return }
@@ -1102,7 +1210,9 @@ enum ConfigPlanner {
     }
 
     private static func diff(
-        _ key: String, desired: ConfigField<Double>, current: ConfigField<Double>,
+        _ key: String,
+        desired: ConfigField<Double>,
+        current: ConfigField<Double>,
         into changes: inout [String]
     ) {
         switch desired {
@@ -1129,8 +1239,11 @@ enum ConfigPlanner {
     /// Merge-map diff: only keys listed in the document are compared.
     /// `defaultValue` is what an absent current key means (nil -> "(unset)").
     private static func diffMap<T: Equatable>(
-        _ prefix: String, desired: [String: T]?, current: [String: T]?,
-        defaultValue: T? = nil, into changes: inout [String]
+        _ prefix: String,
+        desired: [String: T]?,
+        current: [String: T]?,
+        defaultValue: T? = nil,
+        into changes: inout [String]
     ) {
         for (key, value) in (desired ?? [:]).sorted(by: { $0.key < $1.key }) {
             let currentValue = current?[key] ?? defaultValue
@@ -1142,7 +1255,10 @@ enum ConfigPlanner {
     /// Replace-list diff (`allowlist`, `spawnable_agents`, ...): the document
     /// value replaces the whole list, compared case-insensitively.
     private static func diffList(
-        _ key: String, desired: [String]?, current: [String]?, into changes: inout [String]
+        _ key: String,
+        desired: [String]?,
+        current: [String]?,
+        into changes: inout [String]
     ) {
         guard let desired else { return }
         let currentList = current ?? []
@@ -1155,22 +1271,29 @@ enum ConfigPlanner {
     // MARK: - Settings scopes
 
     private static func planMemory(
-        _ desired: MemorySection, current: MemorySection?, into actions: inout [ConfigPlanAction]
+        _ desired: MemorySection,
+        current: MemorySection?,
+        into actions: inout [ConfigPlanAction]
     ) {
         let current = current ?? MemorySection()
         var changes: [String] = []
         diff("enabled", desired: desired.enabled, current: current.enabled, into: &changes)
         diff("budget_tokens", desired: desired.budgetTokens, current: current.budgetTokens, into: &changes)
         diff(
-            "retention_days", desired: desired.retentionDays,
-            current: current.retentionDays, into: &changes)
+            "retention_days",
+            desired: desired.retentionDays,
+            current: current.retentionDays,
+            into: &changes
+        )
         guard !changes.isEmpty else { return }
         actions.append(
-            ConfigPlanAction(section: "memory", target: "memory", kind: .update, changes: changes))
+            ConfigPlanAction(section: "memory", target: "memory", kind: .update, changes: changes)
+        )
     }
 
     private static func planDefaultAgent(
-        _ desired: DefaultAgentSection, current: DefaultAgentSection?,
+        _ desired: DefaultAgentSection,
+        current: DefaultAgentSection?,
         into actions: inout [ConfigPlanAction]
     ) {
         let current = current ?? DefaultAgentSection()
@@ -1180,27 +1303,44 @@ enum ConfigPlanner {
         diff("temperature", desired: desired.temperature, current: current.temperature, into: &changes)
         diff("max_tokens", desired: desired.maxTokens, current: current.maxTokens, into: &changes)
         diff(
-            "system_prompt", desired: desired.systemPrompt,
-            current: current.systemPrompt, into: &changes)
+            "system_prompt",
+            desired: desired.systemPrompt,
+            current: current.systemPrompt,
+            into: &changes
+        )
         var risks: [String] = []
         let stored = DefaultAgentConfigurationStore.load()
         diffRuntime(
-            desired.runtime, claudeCode: desired.claudeCode,
-            currentRuntime: stored.runtime, currentClaudeCode: stored.claudeCode ?? .default,
-            agent: "default", into: &changes, risks: &risks)
+            desired.runtime,
+            claudeCode: desired.claudeCode,
+            currentRuntime: stored.runtime,
+            currentClaudeCode: stored.claudeCode ?? .default,
+            agent: "default",
+            into: &changes,
+            risks: &risks
+        )
         guard !changes.isEmpty else { return }
         actions.append(
             ConfigPlanAction(
-                section: "default_agent", target: "default_agent", kind: .update,
-                changes: changes, risks: risks))
+                section: "default_agent",
+                target: "default_agent",
+                kind: .update,
+                changes: changes,
+                risks: risks
+            )
+        )
     }
 
     /// Plan lines and risks for an agent's `runtime` and `claude_code` keys.
     @MainActor
     private static func diffRuntime(
-        _ runtime: String?, claudeCode: AgentClaudeCodeEntry?,
-        currentRuntime: AgentRuntime?, currentClaudeCode: ClaudeCodeAgentConfig,
-        agent: String, into changes: inout [String], risks: inout [String]
+        _ runtime: String?,
+        claudeCode: AgentClaudeCodeEntry?,
+        currentRuntime: AgentRuntime?,
+        currentClaudeCode: ClaudeCodeAgentConfig,
+        agent: String,
+        into changes: inout [String],
+        risks: inout [String]
     ) {
         if let runtime {
             let currentKey = ConfigHarness.runtimeKey(for: currentRuntime)
@@ -1214,19 +1354,26 @@ enum ConfigPlanner {
         }
         if let claudeCode {
             changes.append(
-                contentsOf: ConfigHarness.changes(claudeCode, current: currentClaudeCode, prefix: "claude_code"))
+                contentsOf: ConfigHarness.changes(claudeCode, current: currentClaudeCode, prefix: "claude_code")
+            )
             risks.append(contentsOf: ConfigHarness.risks(claudeCode, current: currentClaudeCode, agent: agent))
         }
     }
 
     private static func planActiveAgent(
-        _ desired: String, current: String, into actions: inout [ConfigPlanAction]
+        _ desired: String,
+        current: String,
+        into actions: inout [ConfigPlanAction]
     ) {
         guard desired.lowercased() != current.lowercased() else { return }
         actions.append(
             ConfigPlanAction(
-                section: ConfigSectionID.activeAgent.rawValue, target: desired, kind: .update,
-                changes: ["new-chat agent: \(current) -> \(desired)"]))
+                section: ConfigSectionID.activeAgent.rawValue,
+                target: desired,
+                kind: .update,
+                changes: ["new-chat agent: \(current) -> \(desired)"]
+            )
+        )
     }
 
     // MARK: - Agents
@@ -1238,7 +1385,9 @@ enum ConfigPlanner {
     /// alter this agent.
     @MainActor
     private static func diffPortableSettings(
-        _ entry: AgentEntry, agent: Agent, into changes: inout [String]
+        _ entry: AgentEntry,
+        agent: Agent,
+        into changes: inout [String]
     ) {
         if let tools = entry.tools {
             let currentMode = (agent.toolSelectionMode ?? .auto).rawValue
@@ -1246,7 +1395,9 @@ enum ConfigPlanner {
             if let enabled = tools.enabled {
                 let groups = ToolRegistry.shared.portableToolGroups()
                 let current = AgentToolSelectionResolver.export(
-                    manualToolNames: agent.manualToolNames ?? [], groups: groups)
+                    manualToolNames: agent.manualToolNames ?? [],
+                    groups: groups
+                )
                 if Set(enabled) != Set(current.toolNames) {
                     changes.append("tools.enabled: \(enabled.count) tool(s)")
                 }
@@ -1255,18 +1406,28 @@ enum ConfigPlanner {
         if let mcp = entry.mcpServers {
             let groups = ToolRegistry.shared.portableToolGroups()
             let current = AgentToolSelectionResolver.export(
-                manualToolNames: agent.manualToolNames ?? [], groups: groups)
+                manualToolNames: agent.manualToolNames ?? [],
+                groups: groups
+            )
             diffGroupList(
-                "mcp_servers", desired: mcp,
-                currentEnabled: current.enabledMCPServers, into: &changes)
+                "mcp_servers",
+                desired: mcp,
+                currentEnabled: current.enabledMCPServers,
+                into: &changes
+            )
         }
         if let plugins = entry.plugins {
             let groups = ToolRegistry.shared.portableToolGroups()
             let current = AgentToolSelectionResolver.export(
-                manualToolNames: agent.manualToolNames ?? [], groups: groups)
+                manualToolNames: agent.manualToolNames ?? [],
+                groups: groups
+            )
             diffGroupList(
-                "plugins", desired: plugins,
-                currentEnabled: current.enabledPlugins, into: &changes)
+                "plugins",
+                desired: plugins,
+                currentEnabled: current.enabledPlugins,
+                into: &changes
+            )
         }
         switch entry.skills {
         case .absent:
@@ -1282,8 +1443,12 @@ enum ConfigPlanner {
         }
         if let instructions = entry.pluginInstructions {
             diffMap(
-                "plugin_instructions", desired: instructions,
-                current: agent.pluginInstructions, defaultValue: "", into: &changes)
+                "plugin_instructions",
+                desired: instructions,
+                current: agent.pluginInstructions,
+                defaultValue: "",
+                into: &changes
+            )
         }
         if let sandbox = entry.sandbox {
             let exec =
@@ -1293,25 +1458,37 @@ enum ConfigPlanner {
             let effectiveOn = AgentManager.shared.effectiveAutonomousExec(for: agent.id)?.enabled ?? false
             diff("sandbox.enabled", desired: sandbox.enabled, current: effectiveOn, into: &changes)
             diff(
-                "sandbox.network_enabled", desired: sandbox.networkEnabled,
-                current: exec.sandboxNetworkEnabled, into: &changes)
+                "sandbox.network_enabled",
+                desired: sandbox.networkEnabled,
+                current: exec.sandboxNetworkEnabled,
+                into: &changes
+            )
             if let domains = sandbox.allowedDomains,
                 Set(domains) != Set(exec.sandboxAllowedDomains ?? [])
             {
                 changes.append("sandbox.allowed_domains: \(domains.count) domain(s)")
             }
             diff(
-                "sandbox.max_commands_per_turn", desired: sandbox.maxCommandsPerTurn,
-                current: exec.maxCommandsPerTurn, into: &changes)
+                "sandbox.max_commands_per_turn",
+                desired: sandbox.maxCommandsPerTurn,
+                current: exec.maxCommandsPerTurn,
+                into: &changes
+            )
             diff(
-                "sandbox.background_process_enabled", desired: sandbox.backgroundProcessEnabled,
-                current: exec.backgroundProcessEnabled, into: &changes)
+                "sandbox.background_process_enabled",
+                desired: sandbox.backgroundProcessEnabled,
+                current: exec.backgroundProcessEnabled,
+                into: &changes
+            )
             diff("sandbox.plugin_create", desired: sandbox.pluginCreate, current: exec.pluginCreate, into: &changes)
         }
         if let subagents = entry.subagents {
             diff(
-                "subagents.enabled", desired: subagents.enabled,
-                current: agent.settings.spawnDelegationEnabled, into: &changes)
+                "subagents.enabled",
+                desired: subagents.enabled,
+                current: agent.settings.spawnDelegationEnabled,
+                into: &changes
+            )
             if let names = subagents.agents {
                 let currentNames = agent.settings.spawnableAgentIDs.compactMap { id in
                     AgentManager.shared.agents.first { $0.id == id }?.name.lowercased()
@@ -1339,7 +1516,9 @@ enum ConfigPlanner {
     }
 
     private static func diffGroupList(
-        _ key: String, desired: AgentToolGroupsEntry, currentEnabled: [String],
+        _ key: String,
+        desired: AgentToolGroupsEntry,
+        currentEnabled: [String],
         into changes: inout [String]
     ) {
         let current = Set(currentEnabled.map { $0.lowercased() })
@@ -1372,7 +1551,8 @@ enum ConfigPlanner {
         if let subagents = entry.subagents, subagents.enabled == true {
             let targets = subagents.agents ?? []
             changes.append(
-                "subagents: on" + (targets.isEmpty ? "" : " (\(targets.joined(separator: ", ")))"))
+                "subagents: on" + (targets.isEmpty ? "" : " (\(targets.joined(separator: ", ")))")
+            )
         }
         if let folder = entry.workingFolder.valueOrNil {
             changes.append("working_folder: \(folder)")
@@ -1380,8 +1560,10 @@ enum ConfigPlanner {
     }
 
     private static func planAgents(
-        _ entries: [AgentEntry], prune: Bool,
-        into actions: inout [ConfigPlanAction], notes: inout [String]
+        _ entries: [AgentEntry],
+        prune: Bool,
+        into actions: inout [ConfigPlanAction],
+        notes: inout [String]
     ) {
         let existing = AgentManager.shared.agents.filter { !$0.isBuiltIn }
         var matchedIds = Set<UUID>()
@@ -1395,21 +1577,35 @@ enum ConfigPlanner {
                 var risks: [String] = []
                 diff("description", desired: entry.description, current: agent.description, into: &changes)
                 diff(
-                    "system_prompt", desired: entry.systemPrompt,
-                    current: agent.systemPrompt, into: &changes)
+                    "system_prompt",
+                    desired: entry.systemPrompt,
+                    current: agent.systemPrompt,
+                    into: &changes
+                )
                 diff(
-                    "model", desired: entry.model,
-                    current: agent.defaultModel.map { ConfigField.value($0) } ?? .null, into: &changes)
+                    "model",
+                    desired: entry.model,
+                    current: agent.defaultModel.map { ConfigField.value($0) } ?? .null,
+                    into: &changes
+                )
                 diff(
-                    "temperature", desired: entry.temperature,
+                    "temperature",
+                    desired: entry.temperature,
                     current: agent.temperature.map { ConfigField.value(Double($0)) } ?? .null,
-                    into: &changes)
+                    into: &changes
+                )
                 diff(
-                    "max_tokens", desired: entry.maxTokens,
-                    current: agent.maxTokens.map { ConfigField.value($0) } ?? .null, into: &changes)
+                    "max_tokens",
+                    desired: entry.maxTokens,
+                    current: agent.maxTokens.map { ConfigField.value($0) } ?? .null,
+                    into: &changes
+                )
                 diff(
-                    "generation_settings", desired: entry.generationSettings,
-                    current: agent.generationSettings.map { ConfigField.value($0) } ?? .null, into: &changes)
+                    "generation_settings",
+                    desired: entry.generationSettings,
+                    current: agent.generationSettings.map { ConfigField.value($0) } ?? .null,
+                    into: &changes
+                )
                 if let show = entry.showResponseMetrics, show != agent.settings.showResponseMetrics {
                     changes.append("show_response_metrics: \(agent.settings.showResponseMetrics) -> \(show)")
                 }
@@ -1418,16 +1614,26 @@ enum ConfigPlanner {
                 }
                 diffPortableSettings(entry, agent: agent, into: &changes)
                 diffRuntime(
-                    entry.runtime, claudeCode: entry.claudeCode,
-                    currentRuntime: agent.runtime, currentClaudeCode: agent.claudeCode ?? .default,
-                    agent: entry.name, into: &changes, risks: &risks)
+                    entry.runtime,
+                    claudeCode: entry.claudeCode,
+                    currentRuntime: agent.runtime,
+                    currentClaudeCode: agent.claudeCode ?? .default,
+                    agent: entry.name,
+                    into: &changes,
+                    risks: &risks
+                )
                 if changes.isEmpty {
                     unchanged += 1
                 } else {
                     actions.append(
                         ConfigPlanAction(
-                            section: "agents", target: entry.name, kind: .update,
-                            changes: changes, risks: risks))
+                            section: "agents",
+                            target: entry.name,
+                            kind: .update,
+                            changes: changes,
+                            risks: risks
+                        )
+                    )
                 }
             } else {
                 var changes: [String] = ["create custom agent `\(entry.name)`"]
@@ -1442,7 +1648,8 @@ enum ConfigPlanner {
                     if caps.relayEnabled == true { risks.append(ConfigRisk.relayEnabled(entry.name)) }
                     if let apps = Self.appleApps(from: caps), !apps.isEmpty {
                         changes.append(
-                            "apple_apps: enable " + AppleApp.sorted(apps).map(\.displayName).joined(separator: ", "))
+                            "apple_apps: enable " + AppleApp.sorted(apps).map(\.displayName).joined(separator: ", ")
+                        )
                         risks.append(contentsOf: ConfigRisk.appleAppRisks(entry.name, current: [], desired: apps))
                     }
                 }
@@ -1451,13 +1658,23 @@ enum ConfigPlanner {
                     changes.append("not added to the Orchestrator's delegation list")
                 }
                 diffRuntime(
-                    entry.runtime, claudeCode: entry.claudeCode,
-                    currentRuntime: nil, currentClaudeCode: .default,
-                    agent: entry.name, into: &changes, risks: &risks)
+                    entry.runtime,
+                    claudeCode: entry.claudeCode,
+                    currentRuntime: nil,
+                    currentClaudeCode: .default,
+                    agent: entry.name,
+                    into: &changes,
+                    risks: &risks
+                )
                 actions.append(
                     ConfigPlanAction(
-                        section: "agents", target: entry.name, kind: .create,
-                        changes: changes, risks: risks))
+                        section: "agents",
+                        target: entry.name,
+                        kind: .create,
+                        changes: changes,
+                        risks: risks
+                    )
+                )
             }
         }
 
@@ -1465,9 +1682,13 @@ enum ConfigPlanner {
             for agent in existing where !matchedIds.contains(agent.id) {
                 actions.append(
                     ConfigPlanAction(
-                        section: "agents", target: agent.name, kind: .delete,
+                        section: "agents",
+                        target: agent.name,
+                        kind: .delete,
                         changes: ["delete custom agent `\(agent.name)`"],
-                        risks: [ConfigRisk.deleteAgent(agent.name)]))
+                        risks: [ConfigRisk.deleteAgent(agent.name)]
+                    )
+                )
             }
         }
         if unchanged > 0 {
@@ -1476,20 +1697,31 @@ enum ConfigPlanner {
     }
 
     private static func diffCapabilities(
-        _ caps: AgentCapabilitiesEntry, agent: Agent,
-        into changes: inout [String], risks: inout [String]
+        _ caps: AgentCapabilitiesEntry,
+        agent: Agent,
+        into changes: inout [String],
+        risks: inout [String]
     ) {
         diff("tools_enabled", desired: caps.toolsEnabled, current: agent.toolsEnabled, into: &changes)
         diff("memory_enabled", desired: caps.memoryEnabled, current: agent.memoryEnabled, into: &changes)
         diff(
-            "search_memory_enabled", desired: caps.searchMemoryEnabled,
-            current: agent.settings.searchMemoryEnabled, into: &changes)
+            "search_memory_enabled",
+            desired: caps.searchMemoryEnabled,
+            current: agent.settings.searchMemoryEnabled,
+            into: &changes
+        )
         diff(
-            "web_search_enabled", desired: caps.webSearchEnabled,
-            current: agent.settings.webSearchEnabled, into: &changes)
+            "web_search_enabled",
+            desired: caps.webSearchEnabled,
+            current: agent.settings.webSearchEnabled,
+            into: &changes
+        )
         diff(
-            "knowledge_enabled", desired: caps.knowledgeEnabled,
-            current: agent.settings.knowledgeEnabled, into: &changes)
+            "knowledge_enabled",
+            desired: caps.knowledgeEnabled,
+            current: agent.settings.knowledgeEnabled,
+            into: &changes
+        )
         if let ids = caps.knowledgeCollectionIds {
             let desired = ids.compactMap(UUID.init(uuidString:))
             if desired != agent.settings.knowledgeCollectionIds {
@@ -1498,26 +1730,47 @@ enum ConfigPlanner {
         }
         diff("db_enabled", desired: caps.dbEnabled, current: agent.settings.dbEnabled, into: &changes)
         diff(
-            "self_scheduling_enabled", desired: caps.selfSchedulingEnabled,
-            current: agent.settings.selfSchedulingEnabled, into: &changes)
+            "self_scheduling_enabled",
+            desired: caps.selfSchedulingEnabled,
+            current: agent.settings.selfSchedulingEnabled,
+            into: &changes
+        )
         diff(
-            "computer_use_enabled", desired: caps.computerUseEnabled,
-            current: agent.settings.computerUseEnabled, into: &changes)
+            "computer_use_enabled",
+            desired: caps.computerUseEnabled,
+            current: agent.settings.computerUseEnabled,
+            into: &changes
+        )
         diff(
-            "browser_use_enabled", desired: caps.browserUseEnabled,
-            current: agent.settings.browserUseEnabled, into: &changes)
+            "browser_use_enabled",
+            desired: caps.browserUseEnabled,
+            current: agent.settings.browserUseEnabled,
+            into: &changes
+        )
         diff(
-            "image_enabled", desired: caps.imageEnabled,
-            current: agent.settings.imageEnabled, into: &changes)
+            "image_enabled",
+            desired: caps.imageEnabled,
+            current: agent.settings.imageEnabled,
+            into: &changes
+        )
         diff(
-            "applescript_enabled", desired: caps.applescriptEnabled,
-            current: agent.settings.appleScriptEnabled, into: &changes)
+            "applescript_enabled",
+            desired: caps.applescriptEnabled,
+            current: agent.settings.appleScriptEnabled,
+            into: &changes
+        )
         diff(
-            "speak_enabled", desired: caps.speakEnabled,
-            current: agent.settings.speakEnabled, into: &changes)
+            "speak_enabled",
+            desired: caps.speakEnabled,
+            current: agent.settings.speakEnabled,
+            into: &changes
+        )
         diff(
-            "render_chart_enabled", desired: caps.renderChartEnabled,
-            current: agent.settings.renderChartEnabled, into: &changes)
+            "render_chart_enabled",
+            desired: caps.renderChartEnabled,
+            current: agent.settings.renderChartEnabled,
+            into: &changes
+        )
         let currentRelay = RelayConfigurationStore.load().isEnabled(for: agent.id)
         diff("relay_enabled", desired: caps.relayEnabled, current: currentRelay, into: &changes)
         if let desiredApps = Self.appleApps(from: caps) {
@@ -1563,7 +1816,9 @@ enum ConfigPlanner {
     // MARK: - Tools
 
     private static func planTools(
-        _ desired: ToolsSection, into actions: inout [ConfigPlanAction], notes: inout [String]
+        _ desired: ToolsSection,
+        into actions: inout [ConfigPlanAction],
+        notes: inout [String]
     ) {
         let registry = ToolRegistry.shared
         var changes: [String] = []
@@ -1600,31 +1855,49 @@ enum ConfigPlanner {
         guard !changes.isEmpty else { return }
         actions.append(
             ConfigPlanAction(
-                section: "tools", target: "tools", kind: .update, changes: changes, risks: risks))
+                section: "tools",
+                target: "tools",
+                kind: .update,
+                changes: changes,
+                risks: risks
+            )
+        )
     }
 
     // MARK: - App behavior (Wave 3b)
 
     private static func planDelegation(
-        _ desired: DelegationSection, current: DelegationSection?,
+        _ desired: DelegationSection,
+        current: DelegationSection?,
         into actions: inout [ConfigPlanAction]
     ) {
         let current = current ?? DelegationSection()
         var changes: [String] = []
         var risks: [String] = []
         diff(
-            "local_text_enabled", desired: desired.localTextEnabled,
-            current: current.localTextEnabled, into: &changes)
+            "local_text_enabled",
+            desired: desired.localTextEnabled,
+            current: current.localTextEnabled,
+            into: &changes
+        )
         diff(
-            "applescript_execution_mode", desired: desired.applescriptExecutionMode?.lowercased(),
-            current: current.applescriptExecutionMode, into: &changes)
+            "applescript_execution_mode",
+            desired: desired.applescriptExecutionMode?.lowercased(),
+            current: current.applescriptExecutionMode,
+            into: &changes
+        )
         diffList(
-            "spawnable_agents", desired: desired.spawnableAgents,
-            current: current.spawnableAgents, into: &changes)
+            "spawnable_agents",
+            desired: desired.spawnableAgents,
+            current: current.spawnableAgents,
+            into: &changes
+        )
         diffList(
             "spawnable_workspace_agents",
             desired: desired.spawnableWorkspaceAgents?.map { $0.lowercased() },
-            current: current.spawnableWorkspaceAgents?.map { $0.lowercased() }, into: &changes)
+            current: current.spawnableWorkspaceAgents?.map { $0.lowercased() },
+            into: &changes
+        )
         for (key, autoJoin) in (desired.workspaceAutoJoin ?? [:]).sorted(by: { $0.key < $1.key }) {
             let currentValue = current.workspaceAutoJoin?[key] ?? true
             if autoJoin != currentValue {
@@ -1635,32 +1908,58 @@ enum ConfigPlanner {
         let normalizedDefaults = desired.permissionDefaults.map { map in
             Dictionary(
                 map.map { ($0.key.lowercased(), $0.value.lowercased()) },
-                uniquingKeysWith: { first, _ in first })
+                uniquingKeysWith: { first, _ in first }
+            )
         }
         diffMap(
-            "permission_defaults", desired: normalizedDefaults,
-            current: current.permissionDefaults, defaultValue: "ask", into: &changes)
+            "permission_defaults",
+            desired: normalizedDefaults,
+            current: current.permissionDefaults,
+            defaultValue: "ask",
+            into: &changes
+        )
         diff(
-            "budget_max_tokens", desired: desired.budgetMaxTokens,
-            current: current.budgetMaxTokens, into: &changes)
+            "budget_max_tokens",
+            desired: desired.budgetMaxTokens,
+            current: current.budgetMaxTokens,
+            into: &changes
+        )
         diff(
-            "budget_max_turns", desired: desired.budgetMaxTurns,
-            current: current.budgetMaxTurns, into: &changes)
+            "budget_max_turns",
+            desired: desired.budgetMaxTurns,
+            current: current.budgetMaxTurns,
+            into: &changes
+        )
         diff(
-            "budget_max_seconds", desired: desired.budgetMaxSeconds,
-            current: current.budgetMaxSeconds, into: &changes)
+            "budget_max_seconds",
+            desired: desired.budgetMaxSeconds,
+            current: current.budgetMaxSeconds,
+            into: &changes
+        )
         diff(
-            "budget_max_parallel_spawns", desired: desired.budgetMaxParallelSpawns,
-            current: current.budgetMaxParallelSpawns, into: &changes)
+            "budget_max_parallel_spawns",
+            desired: desired.budgetMaxParallelSpawns,
+            current: current.budgetMaxParallelSpawns,
+            into: &changes
+        )
         diff(
-            "budget_max_remote_parallel_spawns", desired: desired.budgetMaxRemoteParallelSpawns,
-            current: current.budgetMaxRemoteParallelSpawns, into: &changes)
+            "budget_max_remote_parallel_spawns",
+            desired: desired.budgetMaxRemoteParallelSpawns,
+            current: current.budgetMaxRemoteParallelSpawns,
+            into: &changes
+        )
         diff(
-            "ram_safety_preflight", desired: desired.ramSafetyPreflight,
-            current: current.ramSafetyPreflight, into: &changes)
+            "ram_safety_preflight",
+            desired: desired.ramSafetyPreflight,
+            current: current.ramSafetyPreflight,
+            into: &changes
+        )
         diff(
-            "coexistence_enabled", desired: desired.coexistenceEnabled,
-            current: current.coexistenceEnabled, into: &changes)
+            "coexistence_enabled",
+            desired: desired.coexistenceEnabled,
+            current: current.coexistenceEnabled,
+            into: &changes
+        )
         guard !changes.isEmpty else { return }
 
         for (kind, raw) in normalizedDefaults ?? [:]
@@ -1695,8 +1994,13 @@ enum ConfigPlanner {
         }
         actions.append(
             ConfigPlanAction(
-                section: "delegation", target: "delegation", kind: .update,
-                changes: changes, risks: risks.sorted()))
+                section: "delegation",
+                target: "delegation",
+                kind: .update,
+                changes: changes,
+                risks: risks.sorted()
+            )
+        )
     }
 
     // MARK: - MCP servers
@@ -1704,7 +2008,9 @@ enum ConfigPlanner {
     // MARK: - Commands / Knowledge / Channels (Wave 3c)
 
     private static func planCommands(
-        _ entries: [CommandEntry], prune: Bool, into actions: inout [ConfigPlanAction]
+        _ entries: [CommandEntry],
+        prune: Bool,
+        into actions: inout [ConfigPlanAction]
     ) {
         let existing = ConfigExporter.manageableCommands()
         var matched = Set<UUID>()
@@ -1715,23 +2021,37 @@ enum ConfigPlanner {
                 matched.insert(command.id)
                 var changes: [String] = []
                 diff(
-                    "description", desired: entry.description,
-                    current: command.description, into: &changes)
+                    "description",
+                    desired: entry.description,
+                    current: command.description,
+                    into: &changes
+                )
                 diff("icon", desired: entry.icon, current: command.icon, into: &changes)
                 diff(
-                    "template", desired: entry.template,
-                    current: command.template ?? "", into: &changes)
+                    "template",
+                    desired: entry.template,
+                    current: command.template ?? "",
+                    into: &changes
+                )
                 if !changes.isEmpty {
                     actions.append(
                         ConfigPlanAction(
-                            section: "commands", target: entry.name, kind: .update,
-                            changes: changes))
+                            section: "commands",
+                            target: entry.name,
+                            kind: .update,
+                            changes: changes
+                        )
+                    )
                 }
             } else {
                 actions.append(
                     ConfigPlanAction(
-                        section: "commands", target: entry.name, kind: .create,
-                        changes: ["add template command /\(entry.name)"]))
+                        section: "commands",
+                        target: entry.name,
+                        kind: .create,
+                        changes: ["add template command /\(entry.name)"]
+                    )
+                )
             }
         }
 
@@ -1739,15 +2059,20 @@ enum ConfigPlanner {
             for command in existing where !matched.contains(command.id) {
                 actions.append(
                     ConfigPlanAction(
-                        section: "commands", target: command.name, kind: .delete,
+                        section: "commands",
+                        target: command.name,
+                        kind: .delete,
                         changes: ["delete slash command /\(command.name)"],
-                        risks: [ConfigRisk.deleteCommand(command.name)]))
+                        risks: [ConfigRisk.deleteCommand(command.name)]
+                    )
+                )
             }
         }
     }
 
     private static func planKnowledgeCollections(
-        _ entries: [KnowledgeCollectionEntry], prune: Bool,
+        _ entries: [KnowledgeCollectionEntry],
+        prune: Bool,
         into actions: inout [ConfigPlanAction]
     ) {
         let existing = KnowledgeCollectionStore.loadAll()
@@ -1761,23 +2086,37 @@ enum ConfigPlanner {
                 diff("summary", desired: entry.summary, current: collection.summary, into: &changes)
                 diff("enabled", desired: entry.enabled, current: collection.isEnabled, into: &changes)
                 diffList(
-                    "include_globs", desired: entry.includeGlobs,
-                    current: collection.includeGlobs, into: &changes)
+                    "include_globs",
+                    desired: entry.includeGlobs,
+                    current: collection.includeGlobs,
+                    into: &changes
+                )
                 diffList(
-                    "exclude_globs", desired: entry.excludeGlobs,
-                    current: collection.excludeGlobs, into: &changes)
+                    "exclude_globs",
+                    desired: entry.excludeGlobs,
+                    current: collection.excludeGlobs,
+                    into: &changes
+                )
                 if !changes.isEmpty {
                     actions.append(
                         ConfigPlanAction(
-                            section: "knowledge_collections", target: entry.name, kind: .update,
-                            changes: changes + ["re-index after update"]))
+                            section: "knowledge_collections",
+                            target: entry.name,
+                            kind: .update,
+                            changes: changes + ["re-index after update"]
+                        )
+                    )
                 }
             } else {
                 actions.append(
                     ConfigPlanAction(
-                        section: "knowledge_collections", target: entry.name, kind: .create,
+                        section: "knowledge_collections",
+                        target: entry.name,
+                        kind: .create,
                         changes: ["register collection at \(entry.folderPath ?? "?") and index it"],
-                        longRunning: true))
+                        longRunning: true
+                    )
+                )
             }
         }
 
@@ -1785,15 +2124,20 @@ enum ConfigPlanner {
             for collection in existing where !matched.contains(collection.id) {
                 actions.append(
                     ConfigPlanAction(
-                        section: "knowledge_collections", target: collection.name, kind: .delete,
+                        section: "knowledge_collections",
+                        target: collection.name,
+                        kind: .delete,
                         changes: ["deregister collection and delete its search index"],
-                        risks: [ConfigRisk.deleteKnowledgeCollection(collection.name)]))
+                        risks: [ConfigRisk.deleteKnowledgeCollection(collection.name)]
+                    )
+                )
             }
         }
     }
 
     private static func planChannels(
-        _ desired: ChannelsSection, current: ChannelsSection?,
+        _ desired: ChannelsSection,
+        current: ChannelsSection?,
         into actions: inout [ConfigPlanAction]
     ) {
         let current = current ?? ChannelsSection()
@@ -1803,9 +2147,13 @@ enum ConfigPlanner {
             if v { risks.append(ConfigRisk.channelWritesGlobal) }
             actions.append(
                 ConfigPlanAction(
-                    section: "channels", target: "channels", kind: .update,
+                    section: "channels",
+                    target: "channels",
+                    kind: .update,
                     changes: ["write_enabled: \(display(current.writeEnabled)) -> \(v)"],
-                    risks: risks))
+                    risks: risks
+                )
+            )
         }
 
         for platform in ConfigChannelPlatform.allCases {
@@ -1814,29 +2162,50 @@ enum ConfigPlanner {
             var changes: [String] = []
             var risks: [String] = []
             diff(
-                "write_enabled", desired: section.writeEnabled,
-                current: currentSection.writeEnabled, into: &changes)
+                "write_enabled",
+                desired: section.writeEnabled,
+                current: currentSection.writeEnabled,
+                into: &changes
+            )
             if section.writeEnabled == true && currentSection.writeEnabled != true {
                 risks.append(ConfigRisk.channelWrites(platform.rawValue))
             }
             diff(
-                "default_read_limit", desired: section.defaultReadLimit,
-                current: currentSection.defaultReadLimit, into: &changes)
+                "default_read_limit",
+                desired: section.defaultReadLimit,
+                current: currentSection.defaultReadLimit,
+                into: &changes
+            )
             diffList(
-                "space_allowlist", desired: section.spaceAllowlist,
-                current: currentSection.spaceAllowlist, into: &changes)
+                "space_allowlist",
+                desired: section.spaceAllowlist,
+                current: currentSection.spaceAllowlist,
+                into: &changes
+            )
             diffList(
-                "read_allowlist", desired: section.readAllowlist,
-                current: currentSection.readAllowlist, into: &changes)
+                "read_allowlist",
+                desired: section.readAllowlist,
+                current: currentSection.readAllowlist,
+                into: &changes
+            )
             diffList(
-                "write_allowlist", desired: section.writeAllowlist,
-                current: currentSection.writeAllowlist, into: &changes)
+                "write_allowlist",
+                desired: section.writeAllowlist,
+                current: currentSection.writeAllowlist,
+                into: &changes
+            )
             diffList(
-                "sender_allowlist", desired: section.senderAllowlist,
-                current: currentSection.senderAllowlist, into: &changes)
+                "sender_allowlist",
+                desired: section.senderAllowlist,
+                current: currentSection.senderAllowlist,
+                into: &changes
+            )
             diff(
-                "inbound_enabled", desired: section.inboundEnabled,
-                current: currentSection.inboundEnabled, into: &changes)
+                "inbound_enabled",
+                desired: section.inboundEnabled,
+                current: currentSection.inboundEnabled,
+                into: &changes
+            )
             let desiredAgent: ConfigField<String> =
                 section.inboundAgent.valueOrNil.map { .value($0.lowercased()) }
                 ?? section.inboundAgent
@@ -1845,14 +2214,23 @@ enum ConfigPlanner {
                 ?? currentSection.inboundAgent
             diff("inbound_agent", desired: desiredAgent, current: currentAgent, into: &changes)
             diff(
-                "require_mention", desired: section.requireMention,
-                current: currentSection.requireMention, into: &changes)
+                "require_mention",
+                desired: section.requireMention,
+                current: currentSection.requireMention,
+                into: &changes
+            )
             diff(
-                "continue_threads", desired: section.continueThreads,
-                current: currentSection.continueThreads, into: &changes)
+                "continue_threads",
+                desired: section.continueThreads,
+                current: currentSection.continueThreads,
+                into: &changes
+            )
             diff(
-                "auto_reply_enabled", desired: section.autoReplyEnabled,
-                current: currentSection.autoReplyEnabled, into: &changes)
+                "auto_reply_enabled",
+                desired: section.autoReplyEnabled,
+                current: currentSection.autoReplyEnabled,
+                into: &changes
+            )
             if section.autoReplyEnabled == true && currentSection.autoReplyEnabled != true {
                 risks.append(ConfigRisk.channelAutoReply(platform.rawValue))
             }
@@ -1865,8 +2243,13 @@ enum ConfigPlanner {
             guard !changes.isEmpty else { continue }
             actions.append(
                 ConfigPlanAction(
-                    section: "channels", target: platform.rawValue, kind: .update,
-                    changes: changes, risks: risks))
+                    section: "channels",
+                    target: platform.rawValue,
+                    kind: .update,
+                    changes: changes,
+                    risks: risks
+                )
+            )
         }
     }
 
@@ -1874,7 +2257,9 @@ enum ConfigPlanner {
 
     @MainActor
     private static func validateHarnessRuntimes(
-        document: OsaurusConfigDocument, prune: Bool, into issues: inout [String]
+        document: OsaurusConfigDocument,
+        prune: Bool,
+        into issues: inout [String]
     ) {
         guard let entries = document.harnessRuntimes else { return }
         var seen = Set<String>()
@@ -1897,11 +2282,13 @@ enum ConfigPlanner {
                     if let current, current.kind != kind {
                         issues.append(
                             "\(label).kind: immutable after create — remove and re-add the runtime "
-                                + "to change its protocol.")
+                                + "to change its protocol."
+                        )
                     }
                 } else {
                     issues.append(
-                        "\(label).kind: must be one of: \(ConfigHarness.kindKeys.joined(separator: ", ")).")
+                        "\(label).kind: must be one of: \(ConfigHarness.kindKeys.joined(separator: ", "))."
+                    )
                 }
             } else if current == nil {
                 issues.append("\(label): `kind` is required to add a new runtime.")
@@ -1923,8 +2310,12 @@ enum ConfigPlanner {
     /// meant for a harness would silently run somewhere else.
     @MainActor
     private static func checkRuntimeReference(
-        _ runtime: String?, claudeCode: AgentClaudeCodeEntry?, label: String,
-        document: OsaurusConfigDocument, prune: Bool, into issues: inout [String]
+        _ runtime: String?,
+        claudeCode: AgentClaudeCodeEntry?,
+        label: String,
+        document: OsaurusConfigDocument,
+        prune: Bool,
+        into issues: inout [String]
     ) {
         if let runtime {
             let key = ConfigHarness.normalizedName(runtime)
@@ -1933,22 +2324,27 @@ enum ConfigPlanner {
             {
                 issues.append(
                     "\(label).runtime: runtime `\(runtime)` is not registered; add it under "
-                        + "harness_runtimes, or use `builtin`.")
+                        + "harness_runtimes, or use `builtin`."
+                )
             }
         }
         if let raw = claudeCode?.mode, ConfigHarness.mode(forKey: raw) == nil {
             issues.append(
-                "\(label).claude_code.mode: must be one of: \(ConfigHarness.modeKeys.joined(separator: ", ")).")
+                "\(label).claude_code.mode: must be one of: \(ConfigHarness.modeKeys.joined(separator: ", "))."
+            )
         }
         if let raw = claudeCode?.effort, ConfigHarness.effort(forKey: raw) == nil {
             issues.append(
-                "\(label).claude_code.effort: must be one of: \(ConfigHarness.effortKeys.joined(separator: ", ")).")
+                "\(label).claude_code.effort: must be one of: \(ConfigHarness.effortKeys.joined(separator: ", "))."
+            )
         }
     }
 
     @MainActor
     private static func planHarnessRuntimes(
-        _ entries: [HarnessRuntimeEntry], prune: Bool, into actions: inout [ConfigPlanAction]
+        _ entries: [HarnessRuntimeEntry],
+        prune: Bool,
+        into actions: inout [ConfigPlanAction]
     ) {
         let existing = HarnessRuntimeStore.shared.all()
         var matched = Set<UUID>()
@@ -1969,7 +2365,8 @@ enum ConfigPlanner {
                 }
                 if executable != runtime.executable || arguments != runtime.arguments {
                     risks.append(
-                        ConfigRisk.harnessCommand(entry.name, ([executable] + arguments).joined(separator: " ")))
+                        ConfigRisk.harnessCommand(entry.name, ([executable] + arguments).joined(separator: " "))
+                    )
                 }
                 let envBefore = changes.count
                 diffMap("environment", desired: entry.environment, current: runtime.environment, into: &changes)
@@ -1977,8 +2374,13 @@ enum ConfigPlanner {
                 if !changes.isEmpty {
                     actions.append(
                         ConfigPlanAction(
-                            section: "harness_runtimes", target: entry.name, kind: .update,
-                            changes: changes, risks: risks))
+                            section: "harness_runtimes",
+                            target: entry.name,
+                            kind: .update,
+                            changes: changes,
+                            risks: risks
+                        )
+                    )
                 }
             } else {
                 // Validation guarantees a kind for new runtimes.
@@ -1992,8 +2394,13 @@ enum ConfigPlanner {
                 }
                 actions.append(
                     ConfigPlanAction(
-                        section: "harness_runtimes", target: entry.name, kind: .create,
-                        changes: changes, risks: [ConfigRisk.harnessCommand(entry.name, commandLine)]))
+                        section: "harness_runtimes",
+                        target: entry.name,
+                        kind: .create,
+                        changes: changes,
+                        risks: [ConfigRisk.harnessCommand(entry.name, commandLine)]
+                    )
+                )
             }
         }
 
@@ -2001,15 +2408,21 @@ enum ConfigPlanner {
             for runtime in existing where !matched.contains(runtime.id) {
                 actions.append(
                     ConfigPlanAction(
-                        section: "harness_runtimes", target: runtime.displayName, kind: .delete,
+                        section: "harness_runtimes",
+                        target: runtime.displayName,
+                        kind: .delete,
                         changes: ["remove runtime \(runtime.executable)"],
-                        risks: [ConfigRisk.deleteHarnessRuntime(runtime.displayName)]))
+                        risks: [ConfigRisk.deleteHarnessRuntime(runtime.displayName)]
+                    )
+                )
             }
         }
     }
 
     private static func planMCPServers(
-        _ entries: [MCPServerEntry], prune: Bool, into actions: inout [ConfigPlanAction]
+        _ entries: [MCPServerEntry],
+        prune: Bool,
+        into actions: inout [ConfigPlanAction]
     ) {
         let existing = ConfigExporter.manageableMCPProviders()
         var matched = Set<UUID>()
@@ -2032,7 +2445,8 @@ enum ConfigPlanner {
                     {
                         changes.append(
                             "auth: \(ConfigMCPAuth.key(for: provider.authType)) -> "
-                                + ConfigMCPAuth.key(for: desired))
+                                + ConfigMCPAuth.key(for: desired)
+                        )
                     }
                 case .stdio:
                     if let command = entry.command, command != provider.command {
@@ -2044,18 +2458,24 @@ enum ConfigPlanner {
                         risks.append(
                             ConfigRisk.stdioCommand(
                                 entry.name,
-                                "\(entry.command ?? provider.command) \(args.joined(separator: " "))"))
+                                "\(entry.command ?? provider.command) \(args.joined(separator: " "))"
+                            )
+                        )
                     }
                     diffMap("env", desired: entry.env, current: provider.env, into: &changes)
                     diff(
-                        "working_directory", desired: entry.workingDirectory,
-                        current: provider.workingDirectory, into: &changes)
+                        "working_directory",
+                        desired: entry.workingDirectory,
+                        current: provider.workingDirectory,
+                        into: &changes
+                    )
                     if let raw = entry.executionHost,
                         let desired = MCPProviderExecutionHost(rawValue: raw.lowercased()),
                         desired != provider.executionHost
                     {
                         changes.append(
-                            "execution_host: \(provider.executionHost.rawValue) -> \(desired.rawValue)")
+                            "execution_host: \(provider.executionHost.rawValue) -> \(desired.rawValue)"
+                        )
                         if desired == .host {
                             risks.append(ConfigRisk.stdioOnHost(entry.name))
                         }
@@ -2082,8 +2502,13 @@ enum ConfigPlanner {
                 if !changes.isEmpty {
                     actions.append(
                         ConfigPlanAction(
-                            section: "mcp_servers", target: entry.name, kind: .update,
-                            changes: changes, risks: risks))
+                            section: "mcp_servers",
+                            target: entry.name,
+                            kind: .update,
+                            changes: changes,
+                            risks: risks
+                        )
+                    )
                 }
             } else if entry.transport?.lowercased() == "stdio" {
                 // Validation guarantees `command` for new stdio servers.
@@ -2108,8 +2533,13 @@ enum ConfigPlanner {
                 }
                 actions.append(
                     ConfigPlanAction(
-                        section: "mcp_servers", target: entry.name, kind: .create,
-                        changes: changes, risks: risks))
+                        section: "mcp_servers",
+                        target: entry.name,
+                        kind: .create,
+                        changes: changes,
+                        risks: risks
+                    )
+                )
             } else {
                 // Validation guarantees `url` for new HTTP servers.
                 let url = entry.url ?? ""
@@ -2121,7 +2551,8 @@ enum ConfigPlanner {
                 } else if auth != .none {
                     changes.append(
                         "auth: \(ConfigMCPAuth.key(for: auth)) — finish sign-in in "
-                            + "Settings → Tools & MCP → Services (secrets never travel through the document)")
+                            + "Settings → Tools & MCP → Services (secrets never travel through the document)"
+                    )
                 }
                 for (header, raw) in (entry.secretHeaderRefs ?? [:]).sorted(by: { $0.key < $1.key }) {
                     guard case .success(let ref) = ConfigSecretRef.parse(raw) else { continue }
@@ -2129,8 +2560,13 @@ enum ConfigPlanner {
                 }
                 actions.append(
                     ConfigPlanAction(
-                        section: "mcp_servers", target: entry.name, kind: .create,
-                        changes: changes, risks: risks))
+                        section: "mcp_servers",
+                        target: entry.name,
+                        kind: .create,
+                        changes: changes,
+                        risks: risks
+                    )
+                )
             }
         }
 
@@ -2140,9 +2576,13 @@ enum ConfigPlanner {
                     provider.transport == .stdio ? provider.command : provider.url
                 actions.append(
                     ConfigPlanAction(
-                        section: "mcp_servers", target: provider.name, kind: .delete,
+                        section: "mcp_servers",
+                        target: provider.name,
+                        kind: .delete,
                         changes: ["remove MCP server \(location)"],
-                        risks: [ConfigRisk.deleteMCPServer(provider.name)]))
+                        risks: [ConfigRisk.deleteMCPServer(provider.name)]
+                    )
+                )
             }
         }
     }
@@ -2150,25 +2590,35 @@ enum ConfigPlanner {
     // MARK: - Models / Plugins
 
     private static func planModels(
-        _ desired: [String], prune: Bool,
-        into actions: inout [ConfigPlanAction], notes: inout [String]
+        _ desired: [String],
+        prune: Bool,
+        into actions: inout [ConfigPlanAction],
+        notes: inout [String]
     ) {
         let installed = Set(ModelManager.shared.installedModels().map { $0.id })
         for id in desired where !installed.contains(id) {
             actions.append(
                 ConfigPlanAction(
-                    section: "models", target: id, kind: .create,
+                    section: "models",
+                    target: id,
+                    kind: .create,
                     changes: ["download from Hugging Face (MLX compatibility checked during apply)"],
-                    longRunning: true))
+                    longRunning: true
+                )
+            )
         }
         if prune {
             let wanted = Set(desired)
             for id in installed.subtracting(wanted).sorted() {
                 actions.append(
                     ConfigPlanAction(
-                        section: "models", target: id, kind: .delete,
+                        section: "models",
+                        target: id,
+                        kind: .delete,
                         changes: ["delete model files from disk"],
-                        risks: [ConfigRisk.deleteModel(id)]))
+                        risks: [ConfigRisk.deleteModel(id)]
+                    )
+                )
             }
         }
         let already = desired.filter { installed.contains($0) }.count
@@ -2176,23 +2626,33 @@ enum ConfigPlanner {
     }
 
     private static func planPlugins(
-        _ desired: [String], prune: Bool, into actions: inout [ConfigPlanAction]
+        _ desired: [String],
+        prune: Bool,
+        into actions: inout [ConfigPlanAction]
     ) {
         let installed = Set(PluginManager.shared.plugins.map { $0.plugin.id })
         for id in desired where !installed.contains(id) {
             actions.append(
                 ConfigPlanAction(
-                    section: "plugins", target: id, kind: .create,
-                    changes: ["install from the plugin registry"]))
+                    section: "plugins",
+                    target: id,
+                    kind: .create,
+                    changes: ["install from the plugin registry"]
+                )
+            )
         }
         if prune {
             let wanted = Set(desired)
             for id in installed.subtracting(wanted).sorted() {
                 actions.append(
                     ConfigPlanAction(
-                        section: "plugins", target: id, kind: .delete,
+                        section: "plugins",
+                        target: id,
+                        kind: .delete,
                         changes: ["uninstall plugin"],
-                        risks: [ConfigRisk.uninstallPlugin(id)]))
+                        risks: [ConfigRisk.uninstallPlugin(id)]
+                    )
+                )
             }
         }
     }
@@ -2200,8 +2660,10 @@ enum ConfigPlanner {
     // MARK: - Cloud providers
 
     private static func planProviders(
-        _ entries: [ProviderEntry], prune: Bool,
-        into actions: inout [ConfigPlanAction], notes: inout [String]
+        _ entries: [ProviderEntry],
+        prune: Bool,
+        into actions: inout [ConfigPlanAction],
+        notes: inout [String]
     ) {
         // Ephemeral providers are memory-only runtime state: never matched,
         // never pruned by a declarative document.
@@ -2215,28 +2677,46 @@ enum ConfigPlanner {
                 var changes: [String] = []
                 diff("enabled", desired: entry.enabled, current: provider.enabled, into: &changes)
                 diff(
-                    "auto_connect", desired: entry.autoConnect,
-                    current: provider.autoConnect, into: &changes)
+                    "auto_connect",
+                    desired: entry.autoConnect,
+                    current: provider.autoConnect,
+                    into: &changes
+                )
                 diff(
-                    "timeout_seconds", desired: entry.timeoutSeconds,
-                    current: provider.timeout, into: &changes)
+                    "timeout_seconds",
+                    desired: entry.timeoutSeconds,
+                    current: provider.timeout,
+                    into: &changes
+                )
                 diff(
-                    "disable_timeout", desired: entry.disableTimeout,
-                    current: provider.disableTimeout, into: &changes)
+                    "disable_timeout",
+                    desired: entry.disableTimeout,
+                    current: provider.disableTimeout,
+                    into: &changes
+                )
                 diffList(
-                    "manual_model_ids", desired: entry.manualModelIds,
-                    current: provider.manualModelIds, into: &changes)
+                    "manual_model_ids",
+                    desired: entry.manualModelIds,
+                    current: provider.manualModelIds,
+                    into: &changes
+                )
                 if let raw = entry.provider,
                     raw.lowercased() != ConfigProviderPresets.exportId(for: provider)
                 {
                     notes.append(
                         "providers[\(entry.name)]: `provider` is immutable after creation — remove "
-                            + "and re-add to change the vendor. Ignored.")
+                            + "and re-add to change the vendor. Ignored."
+                    )
                 }
                 if !changes.isEmpty {
                     actions.append(
                         ConfigPlanAction(
-                            section: "providers", target: entry.name, kind: .update, changes: changes))
+                            section: "providers",
+                            target: entry.name,
+                            kind: .update,
+                            changes: changes
+                        )
+                    )
                 }
                 // A secret reference stores the key non-interactively; like
                 // `set_api_key` it always plans (rotation intent), but never
@@ -2244,11 +2724,15 @@ enum ConfigPlanner {
                 if let raw = entry.apiKeyRef, case .success(let ref) = ConfigSecretRef.parse(raw) {
                     actions.append(
                         ConfigPlanAction(
-                            section: "providers", target: entry.name, kind: .update,
+                            section: "providers",
+                            target: entry.name,
+                            kind: .update,
                             changes: [
                                 "credentials: store API key from \(ref.display) "
                                     + "(resolved at apply; never in the document)"
-                            ]))
+                            ]
+                        )
+                    )
                 } else
                 // An explicit `set_api_key: true` always plans a credential
                 // prompt — the user is asking to set/rotate the key even when
@@ -2258,11 +2742,15 @@ enum ConfigPlanner {
                 if entry.setApiKey == true {
                     actions.append(
                         ConfigPlanAction(
-                            section: "providers", target: entry.name, kind: .needsUserInput,
+                            section: "providers",
+                            target: entry.name,
+                            kind: .needsUserInput,
                             changes: [
                                 "set/rotate credentials — opens the secure credential sheet "
                                     + "during apply (keys never travel through the document)"
-                            ]))
+                            ]
+                        )
+                    )
                 } else {
                     // A registered provider with no stored secret is not
                     // "already configured" — apply will open the credential
@@ -2271,12 +2759,16 @@ enum ConfigPlanner {
                     case .absent, .corrupt:
                         actions.append(
                             ConfigPlanAction(
-                                section: "providers", target: entry.name, kind: .needsUserInput,
+                                section: "providers",
+                                target: entry.name,
+                                kind: .needsUserInput,
                                 changes: [
                                     "restore missing credentials — opens the secure credential "
                                         + "sheet during apply (keys never travel through the "
                                         + "document)"
-                                ]))
+                                ]
+                            )
+                        )
                     case .present, .unavailable:
                         break
                     }
@@ -2286,19 +2778,27 @@ enum ConfigPlanner {
             {
                 actions.append(
                     ConfigPlanAction(
-                        section: "providers", target: entry.name, kind: .create,
+                        section: "providers",
+                        target: entry.name,
+                        kind: .create,
                         changes: [
                             "add \(entry.provider ?? "?") provider with API key from "
                                 + "\(ref.display) (resolved at apply; never in the document)"
-                        ]))
+                        ]
+                    )
+                )
             } else {
                 actions.append(
                     ConfigPlanAction(
-                        section: "providers", target: entry.name, kind: .needsUserInput,
+                        section: "providers",
+                        target: entry.name,
+                        kind: .needsUserInput,
                         changes: [
                             "add \(entry.provider ?? "?") provider — opens the secure credential "
                                 + "sheet during apply (keys never travel through the document)"
-                        ]))
+                        ]
+                    )
+                )
             }
         }
 
@@ -2306,9 +2806,13 @@ enum ConfigPlanner {
             for provider in existing where !matched.contains(provider.id) {
                 actions.append(
                     ConfigPlanAction(
-                        section: "providers", target: provider.name, kind: .delete,
+                        section: "providers",
+                        target: provider.name,
+                        kind: .delete,
                         changes: ["remove provider and its stored credentials"],
-                        risks: [ConfigRisk.deleteProvider(provider.name)]))
+                        risks: [ConfigRisk.deleteProvider(provider.name)]
+                    )
+                )
             }
         }
     }
@@ -2316,7 +2820,9 @@ enum ConfigPlanner {
     // MARK: - Search providers
 
     private static func planSearchProviders(
-        _ desired: SearchProvidersSection, prune: Bool, into actions: inout [ConfigPlanAction]
+        _ desired: SearchProvidersSection,
+        prune: Bool,
+        into actions: inout [ConfigPlanAction]
     ) {
         let manager = SearchProviderManager.shared
         let ranked = manager.rankedProviders
@@ -2329,8 +2835,12 @@ enum ConfigPlanner {
                 if !changes.isEmpty {
                     actions.append(
                         ConfigPlanAction(
-                            section: "search_providers", target: entry.id, kind: .update,
-                            changes: changes))
+                            section: "search_providers",
+                            target: entry.id,
+                            kind: .update,
+                            changes: changes
+                        )
+                    )
                 }
             } else {
                 var changes = ["add search provider"]
@@ -2339,7 +2849,12 @@ enum ConfigPlanner {
                 }
                 actions.append(
                     ConfigPlanAction(
-                        section: "search_providers", target: entry.id, kind: .create, changes: changes))
+                        section: "search_providers",
+                        target: entry.id,
+                        kind: .create,
+                        changes: changes
+                    )
+                )
             }
         }
 
@@ -2348,9 +2863,13 @@ enum ConfigPlanner {
             for id in configuredIds.subtracting(wanted).sorted() {
                 actions.append(
                     ConfigPlanAction(
-                        section: "search_providers", target: id, kind: .delete,
+                        section: "search_providers",
+                        target: id,
+                        kind: .delete,
                         changes: ["remove search provider"],
-                        risks: [ConfigRisk.deleteSearchProvider(id)]))
+                        risks: [ConfigRisk.deleteSearchProvider(id)]
+                    )
+                )
             }
         }
 
@@ -2359,9 +2878,15 @@ enum ConfigPlanner {
             if ranking != Array(currentRanking.prefix(ranking.count)) {
                 actions.append(
                     ConfigPlanAction(
-                        section: "search_providers", target: "ranking", kind: .update,
-                        changes: ["ranking: \(currentRanking.joined(separator: " > ")) -> "
-                            + "\(ranking.joined(separator: " > ")) (unlisted keep relative order)"]))
+                        section: "search_providers",
+                        target: "ranking",
+                        kind: .update,
+                        changes: [
+                            "ranking: \(currentRanking.joined(separator: " > ")) -> "
+                                + "\(ranking.joined(separator: " > ")) (unlisted keep relative order)"
+                        ]
+                    )
+                )
             }
         }
     }
@@ -2369,7 +2894,9 @@ enum ConfigPlanner {
     // MARK: - Schedules
 
     private static func planSchedules(
-        _ entries: [ScheduleEntry], document: OsaurusConfigDocument, prune: Bool,
+        _ entries: [ScheduleEntry],
+        document: OsaurusConfigDocument,
+        prune: Bool,
         into actions: inout [ConfigPlanAction]
     ) {
         let existing = ScheduleManager.shared.schedules
@@ -2387,8 +2914,11 @@ enum ConfigPlanner {
                     }
                 }
                 diff(
-                    "instructions", desired: entry.instructions,
-                    current: schedule.instructions, into: &changes)
+                    "instructions",
+                    desired: entry.instructions,
+                    current: schedule.instructions,
+                    into: &changes
+                )
                 if let frequency = entry.frequency {
                     // Canonicalize BOTH sides through parse -> components so
                     // lenient input ("Daily", "Monday", hourly `0`) never
@@ -2409,25 +2939,37 @@ enum ConfigPlanner {
                     if desiredParts != currentParts {
                         changes.append(
                             "frequency: \(describeTriple(currentParts)) -> "
-                                + describeTriple(desiredParts))
+                                + describeTriple(desiredParts)
+                        )
                     }
                 }
                 diff("enabled", desired: entry.enabled, current: schedule.isEnabled, into: &changes)
                 if !changes.isEmpty {
                     actions.append(
                         ConfigPlanAction(
-                            section: "schedules", target: entry.name, kind: .update, changes: changes))
+                            section: "schedules",
+                            target: entry.name,
+                            kind: .update,
+                            changes: changes
+                        )
+                    )
                 }
             } else {
                 var changes = ["create schedule for agent `\(entry.agent ?? "?")`"]
                 if let frequency = entry.frequency {
                     changes.append(
                         "frequency: "
-                            + describeTriple((frequency, entry.frequencyValue, entry.frequencyTimeOfDay)))
+                            + describeTriple((frequency, entry.frequencyValue, entry.frequencyTimeOfDay))
+                    )
                 }
                 actions.append(
                     ConfigPlanAction(
-                        section: "schedules", target: entry.name, kind: .create, changes: changes))
+                        section: "schedules",
+                        target: entry.name,
+                        kind: .create,
+                        changes: changes
+                    )
+                )
             }
         }
 
@@ -2435,9 +2977,13 @@ enum ConfigPlanner {
             for schedule in existing where !matched.contains(schedule.id) {
                 actions.append(
                     ConfigPlanAction(
-                        section: "schedules", target: schedule.name, kind: .delete,
+                        section: "schedules",
+                        target: schedule.name,
+                        kind: .delete,
                         changes: ["delete schedule"],
-                        risks: [ConfigRisk.deleteSchedule(schedule.name)]))
+                        risks: [ConfigRisk.deleteSchedule(schedule.name)]
+                    )
+                )
             }
         }
     }
@@ -2454,7 +3000,9 @@ enum ConfigPlanner {
     // MARK: - Watchers
 
     private static func planWatchers(
-        _ entries: [WatcherEntry], document: OsaurusConfigDocument, prune: Bool,
+        _ entries: [WatcherEntry],
+        document: OsaurusConfigDocument,
+        prune: Bool,
         into actions: inout [ConfigPlanAction]
     ) {
         let existing = WatcherManager.shared.watchers
@@ -2472,21 +3020,32 @@ enum ConfigPlanner {
                     }
                 }
                 diff(
-                    "instructions", desired: entry.instructions,
-                    current: watcher.instructions, into: &changes)
+                    "instructions",
+                    desired: entry.instructions,
+                    current: watcher.instructions,
+                    into: &changes
+                )
                 if let raw = entry.path {
                     let expanded = (raw as NSString).expandingTildeInPath
                     diff("path", desired: expanded, current: watcher.watchPath, into: &changes)
                 }
                 diff("recursive", desired: entry.recursive, current: watcher.recursive, into: &changes)
                 diff(
-                    "responsiveness", desired: entry.responsiveness?.lowercased(),
-                    current: watcher.responsiveness.rawValue, into: &changes)
+                    "responsiveness",
+                    desired: entry.responsiveness?.lowercased(),
+                    current: watcher.responsiveness.rawValue,
+                    into: &changes
+                )
                 diff("enabled", desired: entry.enabled, current: watcher.isEnabled, into: &changes)
                 if !changes.isEmpty {
                     actions.append(
                         ConfigPlanAction(
-                            section: "watchers", target: entry.name, kind: .update, changes: changes))
+                            section: "watchers",
+                            target: entry.name,
+                            kind: .update,
+                            changes: changes
+                        )
+                    )
                 }
             } else {
                 let path = (entry.path.map { ($0 as NSString).expandingTildeInPath }) ?? "?"
@@ -2517,12 +3076,17 @@ enum ConfigPlanner {
                     changes.append(
                         "note: watcher `\(duplicate.name)` already watches this path — if you "
                             + "meant to change it, reuse that exact name to update it instead "
-                            + "of creating a duplicate.")
+                            + "of creating a duplicate."
+                    )
                 }
                 actions.append(
                     ConfigPlanAction(
-                        section: "watchers", target: entry.name, kind: .create,
-                        changes: changes))
+                        section: "watchers",
+                        target: entry.name,
+                        kind: .create,
+                        changes: changes
+                    )
+                )
             }
         }
 
@@ -2530,9 +3094,13 @@ enum ConfigPlanner {
             for watcher in existing where !matched.contains(watcher.id) {
                 actions.append(
                     ConfigPlanAction(
-                        section: "watchers", target: watcher.name, kind: .delete,
+                        section: "watchers",
+                        target: watcher.name,
+                        kind: .delete,
                         changes: ["delete watcher"],
-                        risks: [ConfigRisk.deleteWatcher(watcher.name)]))
+                        risks: [ConfigRisk.deleteWatcher(watcher.name)]
+                    )
+                )
             }
         }
     }

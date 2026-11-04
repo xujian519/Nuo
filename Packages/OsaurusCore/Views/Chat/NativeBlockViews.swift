@@ -177,7 +177,8 @@ final class NativeTypingIndicatorView: NSView {
             return
         }
         prefillTitleLabel.stringValue = progress.stage.localizedDisplayTitle
-        prefillCountLabel.stringValue = "\(progress.completedUnitCount)/\(progress.totalUnitCount) · \(Int(progress.percentCompleted))%"
+        prefillCountLabel.stringValue =
+            "\(progress.completedUnitCount)/\(progress.totalUnitCount) · \(Int(progress.percentCompleted))%"
         prefillBadge.isHidden = false
         // The counter lives inside the RAM stack, so make sure that stack is
         // visible even if the periodic memory poll hasn't fired yet.
@@ -377,7 +378,10 @@ final class NativePendingToolCallView: NSView {
         // tag and a long file-write otherwise renders a motionless card.
         shimmerLabel.configure(
             text: ToolDisplayName.friendly(
-                for: toolName, running: true, pendingBytes: argSize),
+                for: toolName,
+                running: true,
+                pendingBytes: argSize
+            ),
             font: NSFont.systemFont(ofSize: 12, weight: .semibold),
             baseColor: NSColor(theme.primaryText).withAlphaComponent(0.4),
             highlightColor: NSColor(theme.primaryText)
@@ -818,7 +822,8 @@ final class NativeCodeBlockView: NSView {
 
     private func idleTick() {
         guard idleTimer != nil else { return }
-        let elapsed = lastCodeRevealAt.map { Date().timeIntervalSince($0) }
+        let elapsed =
+            lastCodeRevealAt.map { Date().timeIntervalSince($0) }
             ?? (Self.cursorPauseThreshold + 1)
         if elapsed > Self.cursorPauseThreshold {
             if streamingCursor == nil, let color = cursorColor {

@@ -530,7 +530,8 @@ final class TelegramAPIClient: TelegramAPIClientProtocol, @unchecked Sendable {
         guard !method.contains("/") else {
             throw TelegramAPIError.invalidResponse("Telegram method name is invalid.")
         }
-        let url = baseURL
+        let url =
+            baseURL
             .appendingPathComponent("bot\(token)")
             .appendingPathComponent(method)
         var request = URLRequest(url: url)

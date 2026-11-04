@@ -51,9 +51,9 @@ final class ChatWarmupController: ObservableObject {
     var runtimeResidencySnapshot: @MainActor () async -> ModelRuntimeResidencySnapshot = {
         await ModelRuntime.shared.residencySnapshot()
     }
-    var chatActivationResidencySnapshot:
-        @MainActor (String?) async -> ModelRuntimeChatActivationResidencySnapshot = { model in
-            await ModelRuntime.shared.chatActivationResidencySnapshot(selectedModel: model)
+    var chatActivationResidencySnapshot: @MainActor (String?) async -> ModelRuntimeChatActivationResidencySnapshot = {
+        model in
+        await ModelRuntime.shared.chatActivationResidencySnapshot(selectedModel: model)
     }
 
     @Published private(set) var state: WarmState = .cold

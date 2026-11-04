@@ -18,13 +18,19 @@ struct MailScriptsTests {
     @Test("cached resolve uses `first message … whose id is <int>` and verifies the RFC id")
     func cachedResolveUsesWhoseId() throws {
         let script = try MailScripts.resolve(
-            messageId: "<abc@example.com>", mailboxPath: nil, cached: (path: "iCloud/INBOX", internalId: 4242)
+            messageId: "<abc@example.com>",
+            mailboxPath: nil,
+            cached: (path: "iCloud/INBOX", internalId: 4242)
         )
         #expect(script.contains("first message of (mailbox \"INBOX\" of account \"iCloud\") whose id is 4242"))
         #expect(!script.contains("message id 4242"))
         #expect(script.contains("if (message id of msg) is not \"<abc@example.com>\" then set msg to missing value"))
         // Falls back to a whose-scan of the cached mailbox, then the inbox.
-        #expect(script.contains("first message of (mailbox \"INBOX\" of account \"iCloud\") whose message id is \"<abc@example.com>\""))
+        #expect(
+            script.contains(
+                "first message of (mailbox \"INBOX\" of account \"iCloud\") whose message id is \"<abc@example.com>\""
+            )
+        )
         #expect(script.contains("first message of inbox whose message id is \"<abc@example.com>\""))
         #expect(script.hasSuffix("number -1728"))
     }
@@ -56,7 +62,8 @@ struct MailScriptsTests {
         #expect(try MailboxPath.reference("Local/Receipts/2026") == "mailbox \"2026\" of mailbox \"Receipts\"")
         #expect(
             try MailboxPath.reference("Work/Clients/Acme\\/Beta")
-                == "mailbox \"Acme/Beta\" of mailbox \"Clients\" of account \"Work\"")
+                == "mailbox \"Acme/Beta\" of mailbox \"Clients\" of account \"Work\""
+        )
         #expect(MailboxPath.segments("A\\/B/C") == ["A/B", "C"])
         #expect(MailboxPath.join(["A/B", "C"]) == "A\\/B/C")
         #expect(MailboxPath.isUnified("Junk"))
@@ -77,7 +84,11 @@ struct MailScriptsTests {
 
     @Test("filtered listing uses a whose clause and takeRecent")
     func selectRecentFiltered() {
-        let script = MailScripts.selectRecent(ref: "inbox", conditions: ["read status is false", "subject contains \"x\""], limit: 3)
+        let script = MailScripts.selectRecent(
+            ref: "inbox",
+            conditions: ["read status is false", "subject contains \"x\""],
+            limit: 3
+        )
         #expect(script.contains("(messages of (inbox) whose read status is false and subject contains \"x\")"))
         #expect(script.contains("my takeRecent(hits, 3)"))
     }
@@ -95,7 +106,16 @@ struct MailScriptsTests {
     @Test("sortedNewestFirst orders by parsed date and sinks undated rows")
     func sortNewestFirst() {
         func row(_ id: String, _ date: String?) -> MailMessageSummary {
-            MailMessageSummary(id: id, subject: "", sender: "", dateReceived: date, dateSent: nil, isRead: false, isFlagged: false, mailboxPath: "INBOX")
+            MailMessageSummary(
+                id: id,
+                subject: "",
+                sender: "",
+                dateReceived: date,
+                dateSent: nil,
+                isRead: false,
+                isFlagged: false,
+                mailboxPath: "INBOX"
+            )
         }
         let sorted = AppleScriptMailService.sortedNewestFirst([
             row("old", "2026-01-01T10:00:00+00:00"), row("none", nil), row("new", "2026-03-01T10:00:00+00:00"),

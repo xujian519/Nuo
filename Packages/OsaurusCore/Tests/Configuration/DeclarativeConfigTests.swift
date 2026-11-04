@@ -172,7 +172,8 @@ struct ConfigYAMLStrictDecodeTests {
         // The teach must name the real keys in one step.
         do {
             _ = try ConfigYAML.decode(
-                "schedules:\n  - name: Brief\n    agent: A\n    cadence: daily\n")
+                "schedules:\n  - name: Brief\n    agent: A\n    cadence: daily\n"
+            )
             Issue.record("expected rejection of cadence")
         } catch let error as ConfigYAMLError {
             #expect(error.messages.joined().contains("Use `frequency`"))
@@ -182,7 +183,8 @@ struct ConfigYAMLStrictDecodeTests {
 
         do {
             _ = try ConfigYAML.decode(
-                "schedules:\n  - name: Brief\n    agent: A\n    cron: \"0 8 * * *\"\n")
+                "schedules:\n  - name: Brief\n    agent: A\n    cron: \"0 8 * * *\"\n"
+            )
             Issue.record("expected rejection of cron")
         } catch let error as ConfigYAMLError {
             let joined = error.messages.joined()
@@ -194,7 +196,8 @@ struct ConfigYAMLStrictDecodeTests {
 
         do {
             _ = try ConfigYAML.decode(
-                "schedules:\n  - name: Brief\n    agent: A\n    time: \"08:00\"\n")
+                "schedules:\n  - name: Brief\n    agent: A\n    time: \"08:00\"\n"
+            )
             Issue.record("expected rejection of time")
         } catch let error as ConfigYAMLError {
             #expect(error.messages.joined().contains("Use `frequency_time_of_day`"))
@@ -406,7 +409,8 @@ struct ConfigTemplateStoreSecurityTests {
     func loadMissingTemplate_failsWithHint() {
         guard
             case .failure(let message) = ConfigTemplateStore.load(
-                name: "definitely-missing-\(UUID().uuidString.prefix(8))")
+                name: "definitely-missing-\(UUID().uuidString.prefix(8))"
+            )
         else {
             Issue.record("expected missing-template failure")
             return
@@ -434,7 +438,8 @@ struct ConfigTemplateStoreSecurityTests {
         case .success(let contents):
             #expect(
                 contents != "outside-secret",
-                "symlink escape: template load read a file outside the templates dir")
+                "symlink escape: template load read a file outside the templates dir"
+            )
         case .failure:
             // Rejected — the confinement held.
             break
@@ -532,7 +537,9 @@ struct ConfigPlannerTests {
         #expect(plan.actions.contains { $0.section == "mcp_servers" && $0.kind == .create })
         #expect(
             plan.risks.contains(
-                ConfigRisk.mcpEndpoint("Planner Probe MCP", "https://mcp.example.test/sse")))
+                ConfigRisk.mcpEndpoint("Planner Probe MCP", "https://mcp.example.test/sse")
+            )
+        )
     }
 
     @Test
@@ -607,8 +614,11 @@ struct ConfigPlannerTests {
         // never opened. `set_api_key: true` must plan the prompt regardless.
         let name = "Planner Probe Provider \(UUID().uuidString.prefix(6))"
         let provider = RemoteProvider(
-            id: UUID(), name: name, host: "api.example.test",
-            enabled: true, autoConnect: false
+            id: UUID(),
+            name: name,
+            host: "api.example.test",
+            enabled: true,
+            autoConnect: false
         )
         RemoteProviderManager.shared.addProvider(provider, apiKey: nil, isEphemeral: false)
         defer { RemoteProviderManager.shared.removeProvider(id: provider.id) }
@@ -627,7 +637,8 @@ struct ConfigPlannerTests {
         document.providers = [entry]
         let plan = try ConfigPlanner.plan(document: document, prune: false)
         let action = try #require(
-            plan.actions.first { $0.section == "providers" && $0.target == name })
+            plan.actions.first { $0.section == "providers" && $0.target == name }
+        )
         #expect(action.kind == .needsUserInput)
         #expect(action.changes.joined().contains("credential sheet"))
     }
@@ -662,7 +673,9 @@ struct ConfigPlannerPruneIntegrityTests {
     ) async throws {
         let agent = AgentManager.shared.create(
             name: "Prune Probe Agent \(UUID().uuidString.prefix(6))",
-            description: "Exercises agent configuration in this isolated test.", systemPrompt: "")
+            description: "Exercises agent configuration in this isolated test.",
+            systemPrompt: ""
+        )
         do {
             try await body(agent)
         } catch {
@@ -818,7 +831,9 @@ struct ConfigPlanFidelityTests {
     func equivalentFrequencySpellings_doNotPlanAnUpdate() async throws {
         let agent = AgentManager.shared.create(
             name: "Fidelity Probe Agent \(UUID().uuidString.prefix(6))",
-            description: "Exercises agent configuration in this isolated test.", systemPrompt: "")
+            description: "Exercises agent configuration in this isolated test.",
+            systemPrompt: ""
+        )
         let schedule = ScheduleManager.shared.create(
             name: "Fidelity Probe Schedule \(UUID().uuidString.prefix(6))",
             instructions: "do things",
@@ -847,7 +862,8 @@ struct ConfigPlanFidelityTests {
         }
         #expect(
             !plan.actions.contains { $0.section == "schedules" && $0.kind == .update },
-            "equivalent frequency spellings planned an update:\n\(plan.summaryText())")
+            "equivalent frequency spellings planned an update:\n\(plan.summaryText())"
+        )
     }
 
     @Test
@@ -856,7 +872,9 @@ struct ConfigPlanFidelityTests {
         // the last bits. The planner must treat them as equal.
         var agent = AgentManager.shared.create(
             name: "Fidelity Probe Agent \(UUID().uuidString.prefix(6))",
-            description: "Exercises agent configuration in this isolated test.", systemPrompt: "")
+            description: "Exercises agent configuration in this isolated test.",
+            systemPrompt: ""
+        )
         agent.temperature = Float(0.7)
         AgentManager.shared.update(agent)
 
@@ -877,7 +895,8 @@ struct ConfigPlanFidelityTests {
             !plan.actions.contains {
                 $0.section == "agents" && $0.changes.contains { $0.hasPrefix("temperature:") }
             },
-            "Float/Double temperature false positive:\n\(plan.summaryText())")
+            "Float/Double temperature false positive:\n\(plan.summaryText())"
+        )
     }
 
     @Test
@@ -1054,7 +1073,8 @@ struct OsaurusConfigToolHighRiskGateTests {
         let keepList = (before.commands ?? []).map { "  - name: \($0.name)" }
         let probe = "zz-prune-probe-\(UUID().uuidString.prefix(8))"
         let yaml =
-            "commands:\n" + (keepList + ["  - name: \(probe)\n    template: \"probe\""])
+            "commands:\n"
+            + (keepList + ["  - name: \(probe)\n    template: \"probe\""])
             .joined(separator: "\n")
         let args: [String: Any] = ["action": "apply", "yaml": yaml, "prune": true]
         let data = try JSONSerialization.data(withJSONObject: args)

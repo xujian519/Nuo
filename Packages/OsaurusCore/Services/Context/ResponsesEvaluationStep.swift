@@ -12,7 +12,8 @@ enum ResponsesEvaluationStep {
         var errorDescription: String? {
             switch self {
             case .upstreamCancelled: return "The upstream model or provider cancelled the evaluation step."
-            case .incomplete(let reason): return "The evaluation response was incomplete (\(reason ?? "unknown reason"))."
+            case .incomplete(let reason):
+                return "The evaluation response was incomplete (\(reason ?? "unknown reason"))."
             case .invalidCallIDs: return "The evaluation response contains missing or duplicate tool-call identities."
             }
         }
@@ -57,19 +58,24 @@ enum ResponsesEvaluationStep {
             guard ids.allSatisfy({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }),
                 Set(ids).count == ids.count
             else { throw Failure.invalidCallIDs }
-            return .toolCalls(calls.map {
-                ServiceToolInvocation(
-                    toolName: $0.name, jsonArguments: $0.arguments,
-                    toolCallId: $0.callID, geminiThoughtSignature: $0.geminiThoughtSignature
-                )
-            })
+            return .toolCalls(
+                calls.map {
+                    ServiceToolInvocation(
+                        toolName: $0.name,
+                        jsonArguments: $0.arguments,
+                        toolCallId: $0.callID,
+                        geminiThoughtSignature: $0.geminiThoughtSignature
+                    )
+                }
+            )
         }
         return AgentLoopModelStep.classifyTerminal(
             contentIsBlank: response.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
             thinkingIsBlank: response.reasoning.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
             stopReason: response.completion.stopReason,
             unclosedReasoning: response.completion.unclosedReasoning,
-            requiresVisibleFinalResponse: true, toolsWereOffered: toolsWereOffered,
+            requiresVisibleFinalResponse: true,
+            toolsWereOffered: toolsWereOffered,
             content: response.text
         )
     }

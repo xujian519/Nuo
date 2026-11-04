@@ -178,7 +178,7 @@ public enum AppRecipes {
                     "When the verify view shows the new value in that same window, finish with done.",
                     "Do not save, close, format, create a file, or repeat the edit unless the goal explicitly requests it.",
                 ]
-            )
+            ),
         ]
     )
 

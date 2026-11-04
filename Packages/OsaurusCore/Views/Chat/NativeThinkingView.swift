@@ -261,7 +261,11 @@ final class NativeThinkingView: NSView {
         chevronView.translatesAutoresizingMaskIntoConstraints = false
         chevronView.wantsLayer = true
         chevronView.image = SymbolImageCache.image(
-            "chevron.right", accessibilityDescription: nil, pointSize: 10, weight: .semibold)
+            "chevron.right",
+            accessibilityDescription: nil,
+            pointSize: 10,
+            weight: .semibold
+        )
         chevronView.contentTintColor = .tertiaryLabelColor
         // Down-only scaling + a fixed symbol point size keep the right and
         // down chevrons visually the same size; proportional up-scaling into
@@ -359,7 +363,11 @@ final class NativeThinkingView: NSView {
             expanded
             ? SymbolImageCache.rotatedDownChevron(pointSize: 10, weight: .semibold)
             : SymbolImageCache.image(
-                "chevron.right", accessibilityDescription: nil, pointSize: 10, weight: .semibold)
+                "chevron.right",
+                accessibilityDescription: nil,
+                pointSize: 10,
+                weight: .semibold
+            )
     }
 
     @objc private func headerTapped() { onToggle?() }

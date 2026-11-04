@@ -181,7 +181,8 @@ protocol DiscordAPIClientProtocol: Sendable {
     func messages(channelId: String, token: String, limit: Int) async throws -> [DiscordMessage]
     func messages(channelId: String, token: String, limit: Int, after: String?) async throws -> [DiscordMessage]
     func sendMessage(channelId: String, content: String, token: String) async throws -> DiscordMessage
-    func updateMessage(channelId: String, messageId: String, content: String, token: String) async throws -> DiscordMessage
+    func updateMessage(channelId: String, messageId: String, content: String, token: String) async throws
+        -> DiscordMessage
     func deleteMessage(channelId: String, messageId: String, token: String) async throws
     func addReaction(channelId: String, messageId: String, reaction: String, token: String) async throws
     func removeReaction(channelId: String, messageId: String, reaction: String, token: String) async throws
@@ -242,7 +243,7 @@ final class DiscordAPIClient: DiscordAPIClientProtocol, @unchecked Sendable {
     func gatewayURL(token: String) async throws -> URL {
         let info: DiscordGatewayInfo = try await get(["gateway", "bot"], token: token)
         guard var components = URLComponents(string: info.url),
-              components.scheme == "wss"
+            components.scheme == "wss"
         else {
             throw DiscordAPIError.invalidResponse("Discord returned an invalid Gateway URL.")
         }

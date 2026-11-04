@@ -142,10 +142,11 @@ struct OsaurusRouterAPIClientTests {
         let client = try makeClient { request in
             #expect(request.url?.path == "/credits/redeem")
             #expect(request.httpMethod == "POST")
-            let body = String(
-                data: request.httpBodyStreamData ?? request.httpBody ?? Data(),
-                encoding: .utf8
-            ) ?? ""
+            let body =
+                String(
+                    data: request.httpBodyStreamData ?? request.httpBody ?? Data(),
+                    encoding: .utf8
+                ) ?? ""
             #expect(body == #"{"code":"LAUNCH25"}"#)
             return json(
                 """
@@ -325,8 +326,10 @@ struct OsaurusRouterAPIClientTests {
     @Test func announcements_omitsEmptyAppVersionAndMapsRateLimit() async throws {
         let client = try makeClient { request in
             #expect(request.url?.query == nil)
-            return (429, Data(#"{"error":{"code":"RATE_LIMITED","message":"slow down"}}"#.utf8),
-                ["content-type": "application/json", "retry-after": "120"])
+            return (
+                429, Data(#"{"error":{"code":"RATE_LIMITED","message":"slow down"}}"#.utf8),
+                ["content-type": "application/json", "retry-after": "120"]
+            )
         }
 
         do {

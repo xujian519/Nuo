@@ -116,7 +116,7 @@ public enum ContextOptimizerSearch {
         // Warm the gated stores (see EvalRunnerPromptSurface) so the
         // baseline is order-independent.
         var warmHash = ""
-        for _ in 0..<10 {
+        for _ in 0 ..< 10 {
             let warm = await PromptSurfaceEvaluator.census(workspace: workspace, model: modelId)
             if warm.promptHash == warmHash { break }
             warmHash = warm.promptHash
@@ -586,7 +586,8 @@ public struct ParetoRanking: Sendable, Codable {
         // competes (a candidate dominated by the baseline saves nothing).
         let eligible = candidates.filter(\.gatePassed)
         let field = eligible + [baseline]
-        return eligible
+        return
+            eligible
             .filter { candidate in
                 !field.contains { other in
                     other.name != candidate.name && dominates(other, candidate)

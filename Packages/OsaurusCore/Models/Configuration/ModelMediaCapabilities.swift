@@ -147,8 +147,11 @@ public enum ModelMediaCapabilities {
     ) -> Capabilities {
         if let localCapabilities { return localCapabilities }
         if localModelType != nil { return .textOnly }
-        return Capabilities(supportsImage: fallbackSupportsImages, supportsVideo: false,
-                            supportsAudio: localHasAudioTensors)
+        return Capabilities(
+            supportsImage: fallbackSupportsImages,
+            supportsVideo: false,
+            supportsAudio: localHasAudioTensors
+        )
     }
 
     public static func descriptor(modelId: String) -> Descriptor {
@@ -176,7 +179,8 @@ public enum ModelMediaCapabilities {
             localHasAudioTensors: localHasAudioTensors,
             localCapabilities: localCapabilities
         )
-        let source = localCapabilities != nil || localModelType != nil
+        let source =
+            localCapabilities != nil || localModelType != nil
             ? "installed bundle evidence" : "provider capability metadata"
         let built = buildDescriptor(
             modelId: displayId,
@@ -227,9 +231,17 @@ public enum ModelMediaCapabilities {
         let evidence = LocalVisionEvidence.inspect(directory, refresh: refresh)
         let caps = capabilities(evidence)
         let base = buildDescriptor(modelId: modelId, capabilities: caps, source: "installed bundle evidence")
-        return Descriptor(modelId: modelId, capabilities: caps,
-            image: .init(modality: .image, status: caps.supportsImage ? .supported : .unsupported,
-                         reason: evidence.reason), video: base.video, audio: base.audio)
+        return Descriptor(
+            modelId: modelId,
+            capabilities: caps,
+            image: .init(
+                modality: .image,
+                status: caps.supportsImage ? .supported : .unsupported,
+                reason: evidence.reason
+            ),
+            video: base.video,
+            audio: base.audio
+        )
     }
 
     public static func bundleCarriesAudio(directory: URL) -> Bool {
@@ -318,7 +330,8 @@ public enum ModelMediaCapabilities {
             )
         }
         return ModalityDescriptor(
-            modality: .audio, status: .unsupported,
+            modality: .audio,
+            status: .unsupported,
             reason: "Audio input is not backed by the installed bundle or provider metadata."
         )
     }

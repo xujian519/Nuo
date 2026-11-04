@@ -94,16 +94,34 @@ struct EvalMatrixTests {
     @Test func chatModelAndSubsystemTotalsSplit() {
         let cases: [EvalCaseReport] = [
             .init(
-                id: "agent_loop.ok", label: "ok", domain: "agent_loop", query: nil,
-                outcome: .passed, notes: [], modelId: "m", latencyMs: 0
+                id: "agent_loop.ok",
+                label: "ok",
+                domain: "agent_loop",
+                query: nil,
+                outcome: .passed,
+                notes: [],
+                modelId: "m",
+                latencyMs: 0
             ),
             .init(
-                id: "apple_script.live-value-query", label: "live", domain: "apple_script",
-                query: nil, outcome: .failed, notes: [], modelId: "m", latencyMs: 0
+                id: "apple_script.live-value-query",
+                label: "live",
+                domain: "apple_script",
+                query: nil,
+                outcome: .failed,
+                notes: [],
+                modelId: "m",
+                latencyMs: 0
             ),
             .init(
-                id: "subagent.image-generate-live", label: "image", domain: "subagent",
-                query: nil, outcome: .passed, notes: [], modelId: "m", latencyMs: 0
+                id: "subagent.image-generate-live",
+                label: "image",
+                domain: "subagent",
+                query: nil,
+                outcome: .passed,
+                notes: [],
+                modelId: "m",
+                latencyMs: 0
             ),
         ]
         let col = EvalMatrixBuilder.build(from: [
@@ -112,7 +130,7 @@ struct EvalMatrixTests {
                 startedAt: "2026-06-19T00:00:00Z",
                 cases: cases,
                 environment: nil
-            ),
+            )
         ]).models[0]
         #expect(col.chatModelPassed == 1)
         #expect(col.chatModelScored == 1)
@@ -126,18 +144,26 @@ struct EvalMatrixTests {
     @Test func marketHarnessMetricsAggregateAgentLoopEfficiencyAndDelivery() {
         let cases: [EvalCaseReport] = [
             .init(
-                id: "agent_loop.delivery-ok", label: "ok", domain: "agent_loop", query: nil,
+                id: "agent_loop.delivery-ok",
+                label: "ok",
+                domain: "agent_loop",
+                query: nil,
                 outcome: .passed,
                 notes: ["summary: toolCalls=[file_write] iters=2 exit=finalResponse"],
-                modelId: "m", latencyMs: 1_000,
+                modelId: "m",
+                latencyMs: 1_000,
                 toolUsage: [.init(tool: "file_write", calls: 1, errors: 0, deduped: 0)],
                 telemetry: .init(firstActionMs: 100, modelSteps: 2)
             ),
             .init(
-                id: "agent_loop.delivery-loop", label: "loop", domain: "agent_loop", query: nil,
+                id: "agent_loop.delivery-loop",
+                label: "loop",
+                domain: "agent_loop",
+                query: nil,
                 outcome: .failed,
                 notes: ["summary: toolCalls=[todo,file_write,file_read] iters=4 exit=iterationCapReached"],
-                modelId: "m", latencyMs: 500,
+                modelId: "m",
+                latencyMs: 500,
                 toolUsage: [
                     .init(tool: "todo", calls: 1, errors: 0, deduped: 0),
                     .init(tool: "file_write", calls: 1, errors: 0, deduped: 0),
@@ -165,44 +191,66 @@ struct EvalMatrixTests {
     @Test func loopMetricsPenalizeNoActionOversizedAndExecutedDuplicates() {
         let cases: [EvalCaseReport] = [
             .init(
-                id: "agent_loop.clean", label: "clean", domain: "agent_loop", query: nil,
+                id: "agent_loop.clean",
+                label: "clean",
+                domain: "agent_loop",
+                query: nil,
                 outcome: .passed,
                 notes: ["summary: toolCalls=[file_write] iters=2 exit=finalResponse"],
-                modelId: "m", latencyMs: 1,
+                modelId: "m",
+                latencyMs: 1,
                 toolUsage: [.init(tool: "file_write", calls: 1, errors: 0, deduped: 0)]
             ),
             .init(
-                id: "agent_loop.no-action", label: "no action", domain: "agent_loop", query: nil,
+                id: "agent_loop.no-action",
+                label: "no action",
+                domain: "agent_loop",
+                query: nil,
                 outcome: .failed,
                 notes: ["summary: toolCalls=[] iters=1 exit=lengthExhausted"],
-                modelId: "m", latencyMs: 1, toolUsage: []
+                modelId: "m",
+                latencyMs: 1,
+                toolUsage: []
             ),
             .init(
-                id: "agent_loop.recovered", label: "recovered", domain: "agent_loop", query: nil,
+                id: "agent_loop.recovered",
+                label: "recovered",
+                domain: "agent_loop",
+                query: nil,
                 outcome: .passed,
                 notes: [
                     "summary: toolCalls=[file_write] iters=2 exit=finalResponse",
                     "oversized tool call recoveries: 1",
                 ],
-                modelId: "m", latencyMs: 1,
+                modelId: "m",
+                latencyMs: 1,
                 toolUsage: [.init(tool: "file_write", calls: 1, errors: 0, deduped: 0)]
             ),
             .init(
-                id: "agent_loop.exhausted", label: "exhausted", domain: "agent_loop", query: nil,
+                id: "agent_loop.exhausted",
+                label: "exhausted",
+                domain: "agent_loop",
+                query: nil,
                 outcome: .failed,
                 notes: [
                     "summary: toolCalls=[] iters=1 exit=oversizedToolCallExhausted"
                 ],
-                modelId: "m", latencyMs: 1, toolUsage: []
+                modelId: "m",
+                latencyMs: 1,
+                toolUsage: []
             ),
             .init(
-                id: "agent_loop.duplicate", label: "duplicate", domain: "agent_loop", query: nil,
+                id: "agent_loop.duplicate",
+                label: "duplicate",
+                domain: "agent_loop",
+                query: nil,
                 outcome: .failed,
                 notes: [
                     "1 duplicate call(s)",
                     "summary: toolCalls=[file_read,file_read] iters=3 exit=finalResponse",
                 ],
-                modelId: "m", latencyMs: 1,
+                modelId: "m",
+                latencyMs: 1,
                 toolUsage: [.init(tool: "file_read", calls: 2, errors: 0, deduped: 0)]
             ),
         ]
@@ -217,19 +265,35 @@ struct EvalMatrixTests {
     @Test func missingRequiredFileCountsAsFailedDeliveryWithoutWriteCall() {
         let cases: [EvalCaseReport] = [
             .init(
-                id: "agent_loop.delivered", label: "delivered", domain: "agent_loop",
-                query: nil, outcome: .passed,
-                notes: ["file 'report.md' contains 'done'"], modelId: "m", latencyMs: 1
+                id: "agent_loop.delivered",
+                label: "delivered",
+                domain: "agent_loop",
+                query: nil,
+                outcome: .passed,
+                notes: ["file 'report.md' contains 'done'"],
+                modelId: "m",
+                latencyMs: 1
             ),
             .init(
-                id: "agent_loop.missing", label: "missing", domain: "agent_loop",
-                query: nil, outcome: .failed,
-                notes: ["file 'index.html' missing"], modelId: "m", latencyMs: 1,
+                id: "agent_loop.missing",
+                label: "missing",
+                domain: "agent_loop",
+                query: nil,
+                outcome: .failed,
+                notes: ["file 'index.html' missing"],
+                modelId: "m",
+                latencyMs: 1,
                 toolUsage: []
             ),
             .init(
-                id: "agent_loop.escape", label: "escape", domain: "agent_loop",
-                query: nil, outcome: .passed, notes: [], modelId: "m", latencyMs: 1,
+                id: "agent_loop.escape",
+                label: "escape",
+                domain: "agent_loop",
+                query: nil,
+                outcome: .passed,
+                notes: [],
+                modelId: "m",
+                latencyMs: 1,
                 toolUsage: [.init(tool: "file_write", calls: 1, errors: 1, deduped: 0)]
             ),
         ]
@@ -248,8 +312,13 @@ struct EvalMatrixTests {
                 startedAt: "2026-06-19T00:00:00Z",
                 cases: [
                     .init(
-                        id: "agent_loop.task", label: "task", domain: "agent_loop",
-                        query: nil, outcome: outcome, notes: [], modelId: "provider/same-model",
+                        id: "agent_loop.task",
+                        label: "task",
+                        domain: "agent_loop",
+                        query: nil,
+                        outcome: outcome,
+                        notes: [],
+                        modelId: "provider/same-model",
                         latencyMs: 1
                     )
                 ],
@@ -306,20 +375,38 @@ struct EvalMatrixTests {
     @Test func skipReasonsBuildFromSkippedCaseNotes() throws {
         let cases: [EvalCaseReport] = [
             .init(
-                id: "agent_loop.ok", label: "ok", domain: "agent_loop", query: nil,
-                outcome: .passed, notes: [], modelId: "m", latencyMs: 0
+                id: "agent_loop.ok",
+                label: "ok",
+                domain: "agent_loop",
+                query: nil,
+                outcome: .passed,
+                notes: [],
+                modelId: "m",
+                latencyMs: 0
             ),
             .terminal(
-                id: "agent_loop.sb1", label: "sb1", domain: "agent_loop",
-                outcome: .skipped, notes: ["sandbox unavailable: OS too old"], modelId: "m"
+                id: "agent_loop.sb1",
+                label: "sb1",
+                domain: "agent_loop",
+                outcome: .skipped,
+                notes: ["sandbox unavailable: OS too old"],
+                modelId: "m"
             ),
             .terminal(
-                id: "agent_loop.sb2", label: "sb2", domain: "agent_loop",
-                outcome: .skipped, notes: ["sandbox unavailable: OS too old"], modelId: "m"
+                id: "agent_loop.sb2",
+                label: "sb2",
+                domain: "agent_loop",
+                outcome: .skipped,
+                notes: ["sandbox unavailable: OS too old"],
+                modelId: "m"
             ),
             .terminal(
-                id: "agent_loop.plugin", label: "plugin", domain: "agent_loop",
-                outcome: .skipped, notes: [], modelId: "m"
+                id: "agent_loop.plugin",
+                label: "plugin",
+                domain: "agent_loop",
+                outcome: .skipped,
+                notes: [],
+                modelId: "m"
             ),
         ]
         let col = EvalMatrixBuilder.build(from: [
@@ -405,33 +492,47 @@ struct EvalMatrixTests {
     @Test func errorCategoriesAreStableAndDoNotPublishRawNotes() {
         let cases: [EvalCaseReport] = [
             .init(
-                id: "agent_loop.timeout", label: "timeout", domain: "agent_loop",
-                query: nil, outcome: .errored,
+                id: "agent_loop.timeout",
+                label: "timeout",
+                domain: "agent_loop",
+                query: nil,
+                outcome: .errored,
                 notes: ["watchdog timeout at /Users/private/secret.txt"],
-                modelId: "m", latencyMs: 1
+                modelId: "m",
+                latencyMs: 1
             ),
             .init(
-                id: "agent_loop.load", label: "load", domain: "agent_loop",
-                query: nil, outcome: .errored,
+                id: "agent_loop.load",
+                label: "load",
+                domain: "agent_loop",
+                query: nil,
+                outcome: .errored,
                 notes: ["failed to load unhandled keys from /private/model"],
-                modelId: "m", latencyMs: 1
+                modelId: "m",
+                latencyMs: 1
             ),
             .init(
-                id: "agent_loop.parse", label: "parse", domain: "agent_loop",
-                query: nil, outcome: .errored,
+                id: "agent_loop.parse",
+                label: "parse",
+                domain: "agent_loop",
+                query: nil,
+                outcome: .errored,
                 notes: ["malformed tool call contained private arguments"],
-                modelId: "m", latencyMs: 1
+                modelId: "m",
+                latencyMs: 1
             ),
         ]
         let matrix = EvalMatrixBuilder.build(from: [
             EvalReport(modelId: "m", startedAt: "2026-08-29T00:00:00Z", cases: cases)
         ])
         let categories = matrix.models[0].perDomain["agent_loop"]?.errorCategories
-        #expect(categories == [
-            "model_load": 1,
-            "parser_or_protocol": 1,
-            "watchdog_timeout": 1,
-        ])
+        #expect(
+            categories == [
+                "model_load": 1,
+                "parser_or_protocol": 1,
+                "watchdog_timeout": 1,
+            ]
+        )
         let markdown = matrix.formatMarkdown()
         #expect(markdown.contains("## Error Categories"))
         #expect(markdown.contains("model_load=1"))
@@ -442,8 +543,14 @@ struct EvalMatrixTests {
     @Test func matrixPreservesAgentExitCacheAndMTPTaxonomy() throws {
         let cases: [EvalCaseReport] = [
             .init(
-                id: "agent_loop.clean", label: "clean", domain: "agent_loop", query: nil,
-                outcome: .passed, notes: [], modelId: "m", latencyMs: 1,
+                id: "agent_loop.clean",
+                label: "clean",
+                domain: "agent_loop",
+                query: nil,
+                outcome: .passed,
+                notes: [],
+                modelId: "m",
+                latencyMs: 1,
                 telemetry: .init(
                     loopExit: "finalResponse",
                     loopExitOrigin: "modelFinalResponse",
@@ -467,8 +574,14 @@ struct EvalMatrixTests {
                 )
             ),
             .init(
-                id: "agent_loop.cap", label: "cap", domain: "agent_loop", query: nil,
-                outcome: .failed, notes: [], modelId: "m", latencyMs: 1,
+                id: "agent_loop.cap",
+                label: "cap",
+                domain: "agent_loop",
+                query: nil,
+                outcome: .failed,
+                notes: [],
+                modelId: "m",
+                latencyMs: 1,
                 telemetry: .init(
                     loopExit: "iterationCapReached",
                     loopExitOrigin: "iterationBudgetExhausted",
@@ -499,12 +612,16 @@ struct EvalMatrixTests {
 
         #expect(col.agentLoopDiagnostics?.measuredRows == 2)
         #expect(col.agentLoopDiagnostics?.rowsWithExitTelemetry == 2)
-        #expect(col.agentLoopDiagnostics?.exitCounts == [
-            "finalResponse": 1, "iterationCapReached": 1,
-        ])
-        #expect(col.agentLoopDiagnostics?.exitOriginCounts == [
-            "iterationBudgetExhausted": 1, "modelFinalResponse": 1,
-        ])
+        #expect(
+            col.agentLoopDiagnostics?.exitCounts == [
+                "finalResponse": 1, "iterationCapReached": 1,
+            ]
+        )
+        #expect(
+            col.agentLoopDiagnostics?.exitOriginCounts == [
+                "iterationBudgetExhausted": 1, "modelFinalResponse": 1,
+            ]
+        )
         #expect(col.agentLoopDiagnostics?.recoveryRetriesTotal == 2)
         #expect(col.cacheTotals?.kvPrefixHits == 16)
         #expect(col.cacheTotals?.kvPrefixMisses == 1)

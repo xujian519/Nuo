@@ -24,7 +24,9 @@ public enum BundleSettingValue: Codable, Sendable, Equatable, Hashable, CustomSt
             self = .strings(list)
         } else {
             throw DecodingError.dataCorruptedError(
-                in: c, debugDescription: "expected true, false, or a list of strings.")
+                in: c,
+                debugDescription: "expected true, false, or a list of strings."
+            )
         }
     }
 
@@ -75,14 +77,16 @@ public struct BundleSetting: Sendable, Equatable {
         catalogId: "server.localAccessKey",
         title: "Require Access Key for Local Admin Routes",
         location: "Server → Settings → Authentication",
-        kind: .toggle)
+        kind: .toggle
+    )
 
     public static let allowedOrigins = BundleSetting(
         id: .allowedOrigins,
         catalogId: "server.cors",
         title: "Allowed Origins (CORS)",
         location: "Server → Settings → Connection",
-        kind: .origins)
+        kind: .origins
+    )
 
     public static let all: [BundleSetting] = [requireLocalAccessKey, allowedOrigins]
 

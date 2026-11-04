@@ -36,14 +36,18 @@ struct AgentChannelDispatchRouterTests {
             defaultAgent: defaultAgent
         )
         let resolved = AgentChannelDispatchRouter.resolve(
-            settings: config, roomId: "C-SALES", content: "how are numbers?"
+            settings: config,
+            roomId: "C-SALES",
+            content: "how are numbers?"
         )
         #expect(resolved?.agentId == salesAgent)
         #expect(resolved?.matchedRule == "room:C-SALES")
         #expect(resolved?.content == "how are numbers?")
 
         let other = AgentChannelDispatchRouter.resolve(
-            settings: config, roomId: "C-OTHER", content: "hello"
+            settings: config,
+            roomId: "C-OTHER",
+            content: "hello"
         )
         #expect(other?.agentId == defaultAgent)
         #expect(other?.matchedRule == "default")
@@ -55,20 +59,26 @@ struct AgentChannelDispatchRouterTests {
             routes: [
                 AgentChannelDispatchRoute(roomId: "C-SHARED", agentId: salesAgent),
                 AgentChannelDispatchRoute(
-                    roomId: "C-SHARED", agentId: supportAgent, nameAliases: ["support"]
+                    roomId: "C-SHARED",
+                    agentId: supportAgent,
+                    nameAliases: ["support"]
                 ),
             ],
             defaultAgent: defaultAgent
         )
         let aliased = AgentChannelDispatchRouter.resolve(
-            settings: config, roomId: "C-SHARED", content: "support: reset my password"
+            settings: config,
+            roomId: "C-SHARED",
+            content: "support: reset my password"
         )
         #expect(aliased?.agentId == supportAgent)
         #expect(aliased?.matchedRule == "alias:support")
         #expect(aliased?.content == "reset my password")
 
         let plain = AgentChannelDispatchRouter.resolve(
-            settings: config, roomId: "C-SHARED", content: "what changed this week?"
+            settings: config,
+            roomId: "C-SHARED",
+            content: "what changed this week?"
         )
         #expect(plain?.agentId == salesAgent)
         #expect(plain?.matchedRule == "room:C-SHARED")
@@ -83,7 +93,9 @@ struct AgentChannelDispatchRouterTests {
         )
         for content in ["SUPPORT: hi", "@support hi", "support, hi", "support hi"] {
             let resolved = AgentChannelDispatchRouter.resolve(
-                settings: config, roomId: "C-ANY", content: content
+                settings: config,
+                roomId: "C-ANY",
+                content: content
             )
             #expect(resolved?.agentId == supportAgent, "content: \(content)")
             #expect(resolved?.content == "hi", "content: \(content)")
@@ -99,7 +111,9 @@ struct AgentChannelDispatchRouterTests {
             defaultAgent: defaultAgent
         )
         let resolved = AgentChannelDispatchRouter.resolve(
-            settings: config, roomId: "C-ANY", content: "salesforce is down"
+            settings: config,
+            roomId: "C-ANY",
+            content: "salesforce is down"
         )
         #expect(resolved?.agentId == defaultAgent)
         #expect(resolved?.matchedRule == "default")
@@ -115,7 +129,9 @@ struct AgentChannelDispatchRouterTests {
             ]
         )
         let resolved = AgentChannelDispatchRouter.resolve(
-            settings: config, roomId: "C-ANY", content: "sales-eu: forecast?"
+            settings: config,
+            roomId: "C-ANY",
+            content: "sales-eu: forecast?"
         )
         #expect(resolved?.agentId == euAgent)
 
@@ -126,7 +142,9 @@ struct AgentChannelDispatchRouterTests {
             ]
         )
         let scopedResolved = AgentChannelDispatchRouter.resolve(
-            settings: scoped, roomId: "C-ROOM", content: "bot: hi"
+            settings: scoped,
+            roomId: "C-ROOM",
+            content: "bot: hi"
         )
         #expect(scopedResolved?.agentId == supportAgent)
     }
@@ -136,12 +154,16 @@ struct AgentChannelDispatchRouterTests {
         let config = settings(
             routes: [
                 AgentChannelDispatchRoute(
-                    roomId: "C-ROOM", agentId: supportAgent, nameAliases: ["support"]
+                    roomId: "C-ROOM",
+                    agentId: supportAgent,
+                    nameAliases: ["support"]
                 )
             ]
         )
         let resolved = AgentChannelDispatchRouter.resolve(
-            settings: config, roomId: "C-ROOM", content: "hello there"
+            settings: config,
+            roomId: "C-ROOM",
+            content: "hello there"
         )
         #expect(resolved == nil)
     }
@@ -191,7 +213,8 @@ struct AgentChannelDispatchRouterTests {
             """.utf8
         )
         let decoded = try JSONDecoder().decode(
-            AgentChannelInboundDispatchConfiguration.self, from: legacy
+            AgentChannelInboundDispatchConfiguration.self,
+            from: legacy
         )
         #expect(decoded.enabled)
         #expect(decoded.targetAgentId == defaultAgent)
@@ -204,7 +227,9 @@ struct AgentChannelDispatchRouterTests {
                 settings(
                     routes: [
                         AgentChannelDispatchRoute(
-                            roomId: "C-A", agentId: salesAgent, nameAliases: [" Sales ", "sales"]
+                            roomId: "C-A",
+                            agentId: salesAgent,
+                            nameAliases: [" Sales ", "sales"]
                         )
                     ]
                 )

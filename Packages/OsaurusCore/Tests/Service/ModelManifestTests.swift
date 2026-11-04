@@ -10,7 +10,8 @@ struct ModelManifestTests {
     /// real bundle version always wins over the environment.
     @Test func hostVersionFallsBackToExplicitEnvironmentOnlyOutsideABundle() throws {
         let manifest = try ModelManifest.decode(
-            Data(#"{"required_osaurus_version":"0.25.0","model_version":"1"}"#.utf8))
+            Data(#"{"required_osaurus_version":"0.25.0","model_version":"1"}"#.utf8)
+        )
 
         let none = ModelManifest.resolveHostVersion(bundled: nil, environment: [:])
         #expect(none == "")
@@ -27,11 +28,14 @@ struct ModelManifestTests {
         // Inside the app the bundle's version is authoritative.
         #expect(
             ModelManifest.resolveHostVersion(bundled: "0.26.0", environment: ["OSAURUS_HOST_VERSION": "0.24.9"])
-                == "0.26.0")
+                == "0.26.0"
+        )
     }
 
     @Test func legacyAutomaticChecksRequireRegisteredOfficialRepository() {
-        let registered: Set<String> = ["osaurusai/model", "other/model", "osaurusai.evil/model", "osaurusai/model/extra"]
+        let registered: Set<String> = [
+            "osaurusai/model", "other/model", "osaurusai.evil/model", "osaurusai/model/extra",
+        ]
         #expect(ModelManager.isRegisteredOfficialUpdateRepository("OsaurusAI/model", registered: registered))
         for id in ["OsaurusAI/unknown", "other/model", "osaurusai.evil/model", "OsaurusAI/model/extra", "OsaurusAI/"] {
             #expect(!ModelManager.isRegisteredOfficialUpdateRepository(id, registered: registered))
@@ -43,7 +47,8 @@ struct ModelManifestTests {
         let check = ModelManifestCheck(
             local: .absent,
             remote: .init(revision: String(repeating: "a", count: 40), manifest: available),
-            error: nil, checkedAt: Date()
+            error: nil,
+            checkedAt: Date()
         )
         #expect(check.status == .verificationRequired)
         #expect(check.verificationRequired)
@@ -51,7 +56,8 @@ struct ModelManifestTests {
         let legacy = ModelManifestCheck(
             local: .absent,
             remote: .init(revision: String(repeating: "a", count: 40), manifest: nil),
-            error: nil, checkedAt: Date()
+            error: nil,
+            checkedAt: Date()
         )
         #expect(legacy.status == .unversionedPublisher)
         #expect(!legacy.updateAvailable)
@@ -59,11 +65,17 @@ struct ModelManifestTests {
 
     @Test func failedAndMalformedChecksCannotReportCurrent() {
         let manifest = ModelManifest(requiredOsaurusVersion: "0.25.0", modelVersion: "1")
-        let remote = HuggingFaceService.ManifestSnapshot(revision: String(repeating: "a", count: 40), manifest: manifest)
+        let remote = HuggingFaceService.ManifestSnapshot(
+            revision: String(repeating: "a", count: 40),
+            manifest: manifest
+        )
         let failed = ModelManifestCheck(local: .present(manifest), remote: remote, error: "offline", checkedAt: Date())
         #expect(failed.status == .unavailable)
         let invalid = ModelManifestCheck(
-            local: .invalid(ModelManifest.invalid("broken file")), remote: remote, error: nil, checkedAt: Date()
+            local: .invalid(ModelManifest.invalid("broken file")),
+            remote: remote,
+            error: nil,
+            checkedAt: Date()
         )
         #expect(invalid.status == .invalidLocal)
         #expect(!invalid.updateAvailable)
@@ -77,7 +89,8 @@ struct ModelManifestTests {
                 revision: String(repeating: "a", count: 40),
                 manifest: ModelManifest(requiredOsaurusVersion: "0.25.0", modelVersion: "2")
             ),
-            error: nil, checkedAt: Date()
+            error: nil,
+            checkedAt: Date()
         )
         let expected: ModelManifestCheck.Status =
             installed == "2" ? .current : installed == "10" ? .installedNewer : .updateAvailable

@@ -26,7 +26,8 @@ struct CompactionDialogView: View {
     init(session: ChatSession) {
         self.session = session
         _selectedModelId = State(
-            initialValue: ContextCompactionService.configuredModelIdentifier())
+            initialValue: ContextCompactionService.configuredModelIdentifier()
+        )
     }
 
     var body: some View {
@@ -123,7 +124,8 @@ struct CompactionDialogView: View {
                 Image(systemName: "cube.fill")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(
-                        selectedModelId == nil ? theme.tertiaryText : theme.accentColor)
+                        selectedModelId == nil ? theme.tertiaryText : theme.accentColor
+                    )
                 if let currentItem {
                     Text(currentItem.displayName)
                         .font(.system(size: 13, weight: .medium))
@@ -271,7 +273,8 @@ struct CompactionDialogView: View {
                         .background(
                             Capsule().fill(
                                 selectedModelId == nil
-                                    ? theme.accentColor.opacity(0.35) : theme.accentColor)
+                                    ? theme.accentColor.opacity(0.35) : theme.accentColor
+                            )
                         )
                         .foregroundColor(.white)
                 }

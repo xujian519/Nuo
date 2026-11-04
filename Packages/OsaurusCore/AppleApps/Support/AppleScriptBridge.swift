@@ -88,7 +88,8 @@ enum AppleScriptBridge {
             }
             throw AppleToolError.permissionDenied(
                 permission,
-                detail: "macOS shows the \"Nuo wants access to control \(appName)\" dialog on the first attempt; if it was dismissed, re-enable it under Automation → Nuo → \(appName)."
+                detail:
+                    "macOS shows the \"Nuo wants access to control \(appName)\" dialog on the first attempt; if it was dismissed, re-enable it under Automation → Nuo → \(appName)."
             )
         case .timedOut:
             if isWrite {
@@ -106,7 +107,10 @@ enum AppleScriptBridge {
             )
         case .runtimeError:
             throw mapRuntimeError(
-                number: result.errorNumber, message: result.errorMessage, appName: appName, timeout: timeout
+                number: result.errorNumber,
+                message: result.errorMessage,
+                appName: appName,
+                timeout: timeout
             )
         }
     }
@@ -129,7 +133,10 @@ enum AppleScriptBridge {
     }
 
     private static func mapRuntimeError(
-        number: Int?, message: String?, appName: String, timeout: TimeInterval
+        number: Int?,
+        message: String?,
+        appName: String,
+        timeout: TimeInterval
     ) -> AppleToolError {
         let text = message ?? "\(appName) reported an error."
         switch number {
@@ -149,7 +156,10 @@ enum AppleScriptBridge {
             // missing item.
             let lowered = text.lowercased()
             if lowered.contains("isn't running") || lowered.contains("is not running") {
-                return .unavailable("\(appName) is not running (\(text)). Open \(appName) and try again.", retryable: true)
+                return .unavailable(
+                    "\(appName) is not running (\(text)). Open \(appName) and try again.",
+                    retryable: true
+                )
             }
             let suffix = number.map { " [\($0)]" } ?? ""
             return .execution("\(appName) error\(suffix): \(text)")
@@ -201,11 +211,14 @@ enum AppleScriptBridge {
     /// it and retry exactly once. Writes are never retried (they may have
     /// landed) — callers pass `isWrite: true` to opt out.
     static func runRetryingIfAppGone<T>(
-        bundleIdentifier: String, appName: String, isWrite: Bool, _ body: () async throws -> T
+        bundleIdentifier: String,
+        appName: String,
+        isWrite: Bool,
+        _ body: () async throws -> T
     ) async throws -> T {
         do {
             return try await body()
-        } catch where !isWrite && isAppGoneError(error) {
+        } catch  where !isWrite && isAppGoneError(error) {
             try Task.checkCancellation()
             guard await ensureRunning(bundleIdentifier: bundleIdentifier, appName: appName) else { throw error }
             return try await body()

@@ -44,7 +44,12 @@ struct HarnessSessionLifecycleTests {
         }
 
         func context(chatId: UUID, agentId: UUID = UUID(), folder: URL? = nil) -> HarnessLaunchContext {
-            HarnessFixtures.context(runtime: runtime, chatId: chatId, agentId: agentId, workingDirectory: folder ?? directory)
+            HarnessFixtures.context(
+                runtime: runtime,
+                chatId: chatId,
+                agentId: agentId,
+                workingDirectory: folder ?? directory
+            )
         }
     }
 

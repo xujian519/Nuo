@@ -75,24 +75,38 @@ public struct BenchCommand: Command {
         for target in options.promptTokens {
             var uncached: [Sample] = []
             var cached: [Sample] = []
-            for run in 0..<options.runs {
+            for run in 0 ..< options.runs {
                 // A unique prefix guarantees the first request cannot reuse a
                 // cached prefix from an earlier run; re-sending the identical
                 // prompt immediately afterwards measures the cache-hit path.
                 let prompt = makePrompt(targetTokens: target, nonce: "run\(run)-\(UUID().uuidString)")
                 do {
                     let first = try await measureOnce(
-                        base: base, model: model, prompt: prompt, maxTokens: options.maxTokens)
+                        base: base,
+                        model: model,
+                        prompt: prompt,
+                        maxTokens: options.maxTokens
+                    )
                     let second = try await measureOnce(
-                        base: base, model: model, prompt: prompt, maxTokens: options.maxTokens)
+                        base: base,
+                        model: model,
+                        prompt: prompt,
+                        maxTokens: options.maxTokens
+                    )
                     uncached.append(first)
                     cached.append(second)
                     fputs(
                         String(
                             format:
                                 "  prompt≈%d run %d: uncached TTFT %.0f ms → cached %.0f ms, decode %.1f tok/s\n",
-                            target, run + 1, first.ttftMs, second.ttftMs, first.decodeTps),
-                        stderr)
+                            target,
+                            run + 1,
+                            first.ttftMs,
+                            second.ttftMs,
+                            first.decodeTps
+                        ),
+                        stderr
+                    )
                 } catch {
                     fputs("  prompt≈\(target) run \(run + 1) failed: \(error.localizedDescription)\n", stderr)
                 }
@@ -131,7 +145,9 @@ public struct BenchCommand: Command {
         let data: Data
         do {
             data = try JSONSerialization.data(
-                withJSONObject: report, options: [.prettyPrinted, .sortedKeys])
+                withJSONObject: report,
+                options: [.prettyPrinted, .sortedKeys]
+            )
         } catch {
             fputs("Failed to encode report: \(error.localizedDescription)\n", stderr)
             exit(EXIT_FAILURE)
@@ -139,7 +155,9 @@ public struct BenchCommand: Command {
         if let path = options.jsonPath {
             let url = URL(fileURLWithPath: path)
             try? FileManager.default.createDirectory(
-                at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
             do {
                 try data.write(to: url)
                 fputs("Wrote \(path)\n", stderr)
@@ -165,7 +183,10 @@ public struct BenchCommand: Command {
     /// 22–24% faster at 2048. Hence a measured per-model value instead of a
     /// global setting.
     static func tunePrefill(
-        options: Options, model: String, base: URL, health: [String: Any]
+        options: Options,
+        model: String,
+        base: URL,
+        health: [String: Any]
     ) async -> Never {
         // Chunking matters most on long prompts; tune at the largest
         // requested size.
@@ -182,7 +203,9 @@ public struct BenchCommand: Command {
         // record (or remove the key when none existed) and exit non-zero.
         do {
             try FileManager.default.createDirectory(
-                at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+                at: file.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
             let originalData = (try? Data(contentsOf: file)) ?? Data("{}".utf8)
             try originalData.write(to: backup, options: .atomic)
         } catch {
@@ -199,21 +222,28 @@ public struct BenchCommand: Command {
             _Exit(EXIT_FAILURE)
         }
 
-        fputs("Tuning prefill step for \(model) at ~\(target) prompt tokens (candidates \(options.tuneCandidates), \(options.runs) run(s) each; backup: \(backup.path))…\n", stderr)
+        fputs(
+            "Tuning prefill step for \(model) at ~\(target) prompt tokens (candidates \(options.tuneCandidates), \(options.runs) run(s) each; backup: \(backup.path))…\n",
+            stderr
+        )
 
         // Warm the model (and its engine) so the first candidate doesn't
         // absorb the cold model load.
         _ = try? await measureOnce(
-            base: base, model: model,
+            base: base,
+            model: model,
             prompt: makePrompt(targetTokens: 256, nonce: "tune-warm-\(UUID().uuidString)"),
-            maxTokens: 8)
+            maxTokens: 8
+        )
 
         var results: [(step: Int, medianTTFTMs: Double)] = []
         for step in options.tuneCandidates {
             do {
                 try writeTuningRecord(
-                    at: file, model: model,
-                    record: ["prefillStepSize": step, "note": "candidate under test"])
+                    at: file,
+                    model: model,
+                    record: ["prefillStepSize": step, "note": "candidate under test"]
+                )
             } catch {
                 // Leave no half-tuned candidate behind on this exit either.
                 tuneSweepAbortRestore()
@@ -221,13 +251,17 @@ public struct BenchCommand: Command {
                 exit(EXIT_FAILURE)
             }
             var ttfts: [Double] = []
-            for run in 0..<options.runs {
+            for run in 0 ..< options.runs {
                 do {
                     let sample = try await measureOnce(
-                        base: base, model: model,
+                        base: base,
+                        model: model,
                         prompt: makePrompt(
-                            targetTokens: target, nonce: "tune-\(step)-\(run)-\(UUID().uuidString)"),
-                        maxTokens: 32)
+                            targetTokens: target,
+                            nonce: "tune-\(step)-\(run)-\(UUID().uuidString)"
+                        ),
+                        maxTokens: 32
+                    )
                     ttfts.append(sample.ttftMs)
                 } catch {
                     fputs("  step \(step) run \(run + 1) failed: \(error.localizedDescription)\n", stderr)
@@ -236,8 +270,15 @@ public struct BenchCommand: Command {
             guard !ttfts.isEmpty else { continue }
             let med = median(ttfts)
             results.append((step, med))
-            fputs(String(format: "  step %4d: median uncached TTFT %.0f ms %@\n", step, med,
-                         ttfts.map { String(format: "%.0f", $0) }.joined(separator: "/")), stderr)
+            fputs(
+                String(
+                    format: "  step %4d: median uncached TTFT %.0f ms %@\n",
+                    step,
+                    med,
+                    ttfts.map { String(format: "%.0f", $0) }.joined(separator: "/")
+                ),
+                stderr
+            )
         }
 
         guard let winner = selectTuneWinner(results) else {
@@ -267,9 +308,16 @@ public struct BenchCommand: Command {
         signal(SIGINT, SIG_DFL)
         signal(SIGTERM, SIG_DFL)
         try? FileManager.default.removeItem(at: backup)
-        fputs(String(
-            format: "Winner: prefillStepSize=%d (median TTFT %.0f ms). Persisted to %@ — applies to the next request, no restart needed.\n",
-            winner.step, winner.medianTTFTMs, file.path), stderr)
+        fputs(
+            String(
+                format:
+                    "Winner: prefillStepSize=%d (median TTFT %.0f ms). Persisted to %@ — applies to the next request, no restart needed.\n",
+                winner.step,
+                winner.medianTTFTMs,
+                file.path
+            ),
+            stderr
+        )
         exit(EXIT_SUCCESS)
     }
 
@@ -278,8 +326,7 @@ public struct BenchCommand: Command {
     /// State the SIGINT/SIGTERM handlers need to undo a half-finished sweep.
     /// A C signal handler cannot capture context, so it lives in static
     /// storage that the (non-capturing) handler closures read.
-    nonisolated(unsafe) static var tuneSweepRestore:
-        (file: URL, model: String, previous: [String: Any]?, backup: URL)?
+    nonisolated(unsafe) static var tuneSweepRestore: (file: URL, model: String, previous: [String: Any]?, backup: URL)?
 
     /// Restores the pre-sweep tuning record (or removes the key when none
     /// existed) and deletes the sidecar backup. Called from every early-exit
@@ -325,19 +372,27 @@ public struct BenchCommand: Command {
     }
 
     static func writeTuningRecord(
-        at url: URL, model: String, record: [String: Any]
+        at url: URL,
+        model: String,
+        record: [String: Any]
     ) throws {
         var records = readTuningRecords(at: url)
         records[model] = record
         try FileManager.default.createDirectory(
-            at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
         let data = try JSONSerialization.data(
-            withJSONObject: records, options: [.prettyPrinted, .sortedKeys])
+            withJSONObject: records,
+            options: [.prettyPrinted, .sortedKeys]
+        )
         try data.write(to: url, options: .atomic)
     }
 
     static func restoreTuningRecord(
-        at url: URL, model: String, previous: [String: Any]?
+        at url: URL,
+        model: String,
+        previous: [String: Any]?
     ) {
         var records = readTuningRecords(at: url)
         if let previous {
@@ -346,7 +401,9 @@ public struct BenchCommand: Command {
             records.removeValue(forKey: model)
         }
         if let data = try? JSONSerialization.data(
-            withJSONObject: records, options: [.prettyPrinted, .sortedKeys]) {
+            withJSONObject: records,
+            options: [.prettyPrinted, .sortedKeys]
+        ) {
             try? data.write(to: url, options: .atomic)
         }
     }
@@ -376,7 +433,10 @@ public struct BenchCommand: Command {
     }
 
     static func measureOnce(
-        base: URL, model: String, prompt: String, maxTokens: Int
+        base: URL,
+        model: String,
+        prompt: String,
+        maxTokens: Int
     ) async throws -> Sample {
         var request = URLRequest(url: base.appendingPathComponent("v1/chat/completions"))
         request.httpMethod = "POST"
@@ -407,12 +467,14 @@ public struct BenchCommand: Command {
             if payload == "[DONE]" { break }
             guard
                 let obj = try? JSONSerialization.jsonObject(
-                    with: Data(payload.utf8)) as? [String: Any]
+                    with: Data(payload.utf8)
+                ) as? [String: Any]
             else { continue }
 
             if let u = obj["usage"] as? [String: Any],
                 let promptTokens = u["prompt_tokens"] as? Int,
-                let completionTokens = u["completion_tokens"] as? Int {
+                let completionTokens = u["completion_tokens"] as? Int
+            {
                 usage = (promptTokens, completionTokens)
             }
             // Reasoning models stream `reasoning_content` deltas (often for
@@ -420,7 +482,8 @@ public struct BenchCommand: Command {
             // max_tokens run can be reasoning-only. Both delta kinds are
             // generated tokens, so both count for TTFT and the decode window.
             if let choices = obj["choices"] as? [[String: Any]],
-                let delta = choices.first?["delta"] as? [String: Any] {
+                let delta = choices.first?["delta"] as? [String: Any]
+            {
                 let content = delta["content"] as? String
                 let reasoning = delta["reasoning_content"] as? String
                 if (content?.isEmpty == false) || (reasoning?.isEmpty == false) {
@@ -565,6 +628,8 @@ public struct BenchCommand: Command {
             step size and persists the per-model winner (the optimum is
             model-architecture-dependent); the server applies it immediately.
 
-            """, stderr)
+            """,
+            stderr
+        )
     }
 }

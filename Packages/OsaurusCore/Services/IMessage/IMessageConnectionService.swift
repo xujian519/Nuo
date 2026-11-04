@@ -146,9 +146,11 @@ enum IMessageConnectionServiceError: LocalizedError, Equatable, Sendable {
         case .configurationSaveFailed(let message):
             return "iMessage configuration could not be saved: \(message)"
         case .advancedActionDisabled(let action):
-            return "The iMessage advanced action `\(action)` is disabled. Enable it in iMessage settings and acknowledge the private-API security warning first."
+            return
+                "The iMessage advanced action `\(action)` is disabled. Enable it in iMessage settings and acknowledge the private-API security warning first."
         case .advancedActionUnavailable(let action):
-            return "The iMessage advanced action `\(action)` needs the private-API bridge, which is not active on this Mac (SIP + Library Validation must be disabled by the operator)."
+            return
+                "The iMessage advanced action `\(action)` needs the private-API bridge, which is not active on this Mac (SIP + Library Validation must be disabled by the operator)."
         case .invalidAdvancedParameter(let detail):
             return "Invalid iMessage advanced-action parameter: \(detail)."
         case .attachmentNotAllowed(let path):
@@ -739,7 +741,8 @@ final class IMessageConnectionService: @unchecked Sendable {
         guard !trimmedQuestion.isEmpty else {
             throw IMessageConnectionServiceError.invalidAdvancedParameter("poll question must not be empty")
         }
-        let trimmedOptions = options
+        let trimmedOptions =
+            options
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
         guard Self.pollOptionRange.contains(trimmedOptions.count) else {
@@ -949,7 +952,10 @@ final class IMessageConnectionService: @unchecked Sendable {
         // apply to a running session without an app restart.
         let config = configuration()
         let empty = AgentChannelReceiveBatchSummary(
-            received: 0, stored: 0, dispatchAttempted: 0, dispatchSuppressed: 0
+            received: 0,
+            stored: 0,
+            dispatchAttempted: 0,
+            dispatchSuppressed: 0
         )
         guard config.canStartReceive() else { return empty }
         let rowId = (payload["id"] as? Int64) ?? (payload["id"] as? Int).map(Int64.init) ?? 0
@@ -957,7 +963,8 @@ final class IMessageConnectionService: @unchecked Sendable {
         // The watch stream covers every chat in Messages; rows from chats
         // outside the read allowlist are dropped before authorization so
         // non-allowlisted conversations never reach storage or Activity.
-        let chatGuid = (payload["chat_guid"] as? String)
+        let chatGuid =
+            (payload["chat_guid"] as? String)
             ?? (payload["chat_identifier"] as? String) ?? ""
         let roomId = IMessageConnectionConfiguration.normalizedId(chatGuid)
         guard !roomId.isEmpty, config.canRead(chatId: roomId) else {
@@ -999,10 +1006,11 @@ final class IMessageConnectionService: @unchecked Sendable {
         messageStore: AgentChannelMessageStore
     ) throws {
         guard rowId > 0 else { return }
-        let current = try messageStore.cursor(
-            connectionId: Self.nativeConnectionId,
-            roomId: Self.updatesCursorRoomId
-        ).flatMap(Int64.init) ?? 0
+        let current =
+            try messageStore.cursor(
+                connectionId: Self.nativeConnectionId,
+                roomId: Self.updatesCursorRoomId
+            ).flatMap(Int64.init) ?? 0
         guard rowId > current else { return }
         try messageStore.upsertCursor(
             connectionId: Self.nativeConnectionId,
@@ -1180,7 +1188,8 @@ final class IMessageConnectionService: @unchecked Sendable {
         // text is decoration ("Loved …"), not conversation content.
         if (row["is_reaction"] as? Bool) == true { return nil }
         // Upstream `MessagePayload`: `id` is the chat.db message rowid.
-        let rowId = (row["id"] as? Int64)
+        let rowId =
+            (row["id"] as? Int64)
             ?? (row["id"] as? Int).map(Int64.init)
             ?? 0
         guard let chatGuid = (row["chat_guid"] as? String) ?? (row["chat_identifier"] as? String)
@@ -1264,7 +1273,8 @@ final class IMessageConnectionService: @unchecked Sendable {
 
     private func recordOutbound(chatId: String, content: String, result: [String: Any]) {
         guard let messageStore else { return }
-        let providerMessageId = (result["guid"] as? String)
+        let providerMessageId =
+            (result["guid"] as? String)
             ?? (result["message_id"] as? String)
             ?? UUID().uuidString
         let message = AgentChannelStoredMessage(
@@ -1325,7 +1335,8 @@ final class IMessageConnectionService: @unchecked Sendable {
         guard !trimmed.isEmpty else {
             throw IMessageConnectionServiceError.emptyMessage
         }
-        let maxInput = AgentChannelMessageFormatter.plainTextChunkLimit
+        let maxInput =
+            AgentChannelMessageFormatter.plainTextChunkLimit
             * AgentChannelMessageFormatter.maxChunksPerSend
         guard trimmed.utf16.count <= maxInput else {
             throw IMessageConnectionServiceError.messageTooLong

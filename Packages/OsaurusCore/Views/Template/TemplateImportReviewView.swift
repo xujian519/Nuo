@@ -62,7 +62,8 @@ struct TemplateImportReviewView: View {
         let (icon, color): (String, Color) = {
             switch status {
             case .unsigned: return ("seal", theme.tertiaryText)
-            case .signed(_, let known): return ("checkmark.seal.fill", known == nil ? theme.infoColor : theme.successColor)
+            case .signed(_, let known):
+                return ("checkmark.seal.fill", known == nil ? theme.infoColor : theme.successColor)
             case .invalid: return ("exclamationmark.triangle.fill", theme.warningColor)
             }
         }()
@@ -128,15 +129,21 @@ struct TemplateImportReviewView: View {
                     case .stdio: line(hint.name, L("Runs \(([hint.command ?? ""] + hint.args).joined(separator: " "))"))
                     }
                 }
-                Text("Setup offers these when a server isn't on this Mac. Nothing connects or runs until you save it, and keys are never included.", bundle: .module)
-                    .font(.system(size: 10))
-                    .foregroundColor(theme.tertiaryText)
+                Text(
+                    "Setup offers these when a server isn't on this Mac. Nothing connects or runs until you save it, and keys are never included.",
+                    bundle: .module
+                )
+                .font(.system(size: 10))
+                .foregroundColor(theme.tertiaryText)
             }
         }
     }
 
     private func box<Content: View>(
-        icon: String, title: String, tint: Color, @ViewBuilder content: () -> Content
+        icon: String,
+        title: String,
+        tint: Color,
+        @ViewBuilder content: () -> Content
     ) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {

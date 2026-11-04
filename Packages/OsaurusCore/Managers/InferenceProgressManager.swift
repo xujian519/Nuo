@@ -156,7 +156,8 @@ final class InferenceProgressManager: ObservableObject, @unchecked Sendable {
         recentLoadIntervals.append(DateInterval(start: start, end: at))
         if recentLoadIntervals.count > Self.maxRetainedLoadIntervals {
             recentLoadIntervals.removeFirst(
-                recentLoadIntervals.count - Self.maxRetainedLoadIntervals)
+                recentLoadIntervals.count - Self.maxRetainedLoadIntervals
+            )
         }
     }
 

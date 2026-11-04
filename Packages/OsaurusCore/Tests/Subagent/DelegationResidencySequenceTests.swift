@@ -106,7 +106,9 @@ struct DelegationResidencySequenceTests {
 
     // MARK: (a) main chat model loaded
 
-    @Test("(a) main loaded, different local delegate: unload main → load delegate → run → unload delegate → reload main")
+    @Test(
+        "(a) main loaded, different local delegate: unload main → load delegate → run → unload delegate → reload main"
+    )
     func mainLoadedFullSequence() async throws {
         let plan = try SubagentResidency.decidePlan(
             isLocal: true,

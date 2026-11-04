@@ -342,7 +342,8 @@ struct AgentsView: View {
             deeplinkTab = (target.id, "configure")
             selectedAgent = target
             NotificationCenter.default.post(
-                name: .agentDetailDeeplink, object: nil,
+                name: .agentDetailDeeplink,
+                object: nil,
                 userInfo: ["agentId": target.id, "tab": "configure"]
             )
             return
@@ -366,7 +367,8 @@ struct AgentsView: View {
                 // Already mounted: the detail view flips its own tab via
                 // the deeplink notification, same as the What's New CTA.
                 NotificationCenter.default.post(
-                    name: .agentDetailDeeplink, object: nil,
+                    name: .agentDetailDeeplink,
+                    object: nil,
                     userInfo: ["agentId": target.id, "tab": Self.appleAppsLandingTabRaw]
                 )
             } else {
@@ -625,7 +627,8 @@ struct AgentsView: View {
     /// back; a `preferred` policy makes that step advisory.
     private func useTemplate(_ template: AgentTemplate) {
         var entry = template.resolvedEntry()
-        if case .available = template.modelResolution() {} else if let requested = template.agent.model.valueOrNil {
+        if case .available = template.modelResolution() {
+        } else if let requested = template.agent.model.valueOrNil {
             entry.model = .value(requested)
         }
         var draft = ConfigApplier.draftAgent(from: entry).agent
@@ -709,7 +712,8 @@ struct AgentsView: View {
             !WorkspaceRosterStore.shared.workspacesSharing(agentAddress: address).isEmpty
         {
             ToastManager.shared.errorLocalized(
-                "Agent is shared", message: "Unshare it from its workspace before deleting."
+                "Agent is shared",
+                message: "Unshare it from its workspace before deleting."
             )
             return
         }
@@ -1052,11 +1056,14 @@ private struct AgentCard: View {
                 ListFormatter.localizedString(byJoining: sharedWorkspaces.map(\.name))
             ),
             primaryButton: sharedWorkspaces.count == 1
-                ? .primary(L("Open workspace"), action: {
-                    if let workspace = sharedWorkspaces.first {
-                        RemoteAgentWorkspaceAttribution.openWorkspace(id: workspace.id)
+                ? .primary(
+                    L("Open workspace"),
+                    action: {
+                        if let workspace = sharedWorkspaces.first {
+                            RemoteAgentWorkspaceAttribution.openWorkspace(id: workspace.id)
+                        }
                     }
-                })
+                )
                 : .primary(L("OK"), action: {}),
             secondaryButton: sharedWorkspaces.count == 1 ? .cancel(L("OK")) : nil
         )
@@ -1289,7 +1296,9 @@ private enum DetailTab: String, CaseIterable {
                 "Everything this agent can do. Context impact updates as you turn abilities on or off."
             )
         case .capabilities:
-            return L("Pick which tools this agent can use. Skills come from the shared library and are always available.")
+            return L(
+                "Pick which tools this agent can use. Skills come from the shared library and are always available."
+            )
         case .subagents:
             return L(
                 "Let this agent delegate work — control your Mac, delegate tasks to other agents or models, or generate images."
@@ -1820,11 +1829,11 @@ struct AgentDetailView: View {
                     abilityPreviewAppleApps = appleApps
                 }
             )
-                .environment(\.theme, themeManager.currentTheme)
-                // Built-in Apple apps live in this picker (one group per
-                // app); the `agents.appleApps[.<app>]` catalog rows land here.
-                .settingsLandingAnchor(appleAppsLandingAnchorId)
-                .id(selectedTab)
+            .environment(\.theme, themeManager.currentTheme)
+            // Built-in Apple apps live in this picker (one group per
+            // app); the `agents.appleApps[.<app>]` catalog rows land here.
+            .settingsLandingAnchor(appleAppsLandingAnchorId)
+            .id(selectedTab)
         case .builtIn(.database):
             DatabaseWorkspaceView(
                 agentId: agent.id,
@@ -2318,11 +2327,14 @@ struct AgentDetailView: View {
             isPresented: $showDeleteBlockedByShare,
             message: deleteBlockedMessage,
             primaryButton: sharedWorkspaces.count == 1
-                ? .primary(L("Open workspace"), action: {
-                    if let workspace = sharedWorkspaces.first {
-                        RemoteAgentWorkspaceAttribution.openWorkspace(id: workspace.id)
+                ? .primary(
+                    L("Open workspace"),
+                    action: {
+                        if let workspace = sharedWorkspaces.first {
+                            RemoteAgentWorkspaceAttribution.openWorkspace(id: workspace.id)
+                        }
                     }
-                })
+                )
                 : .primary(L("OK"), action: {}),
             secondaryButton: sharedWorkspaces.count == 1 ? .cancel(L("OK")) : nil
         )
@@ -2970,7 +2982,10 @@ struct AgentDetailView: View {
         let menu = NSMenu()
 
         let invite = NSMenuItem(
-            title: L("Send Invite Link…"), action: #selector(HeaderMenuTarget.fire(_:)), keyEquivalent: "")
+            title: L("Send Invite Link…"),
+            action: #selector(HeaderMenuTarget.fire(_:)),
+            keyEquivalent: ""
+        )
         let inviteTarget = HeaderMenuTarget { showingShareSheet = true }
         invite.target = inviteTarget
         invite.representedObject = inviteTarget  // keeps the target alive with the item
@@ -2986,7 +3001,10 @@ struct AgentDetailView: View {
             let submenu = NSMenu()
             for workspace in workspaces {
                 let item = NSMenuItem(
-                    title: workspace.name, action: #selector(HeaderMenuTarget.fire(_:)), keyEquivalent: "")
+                    title: workspace.name,
+                    action: #selector(HeaderMenuTarget.fire(_:)),
+                    keyEquivalent: ""
+                )
                 let target = HeaderMenuTarget {
                     RemoteAgentWorkspaceAttribution.shareAgent(agentId, toWorkspace: workspace.id)
                 }
@@ -3002,7 +3020,10 @@ struct AgentDetailView: View {
         // same action as the grid card's Save as Template.
         menu.addItem(.separator())
         let templateItem = NSMenuItem(
-            title: L("Save as Template"), action: #selector(HeaderMenuTarget.fire(_:)), keyEquivalent: "")
+            title: L("Save as Template"),
+            action: #selector(HeaderMenuTarget.fire(_:)),
+            keyEquivalent: ""
+        )
         let templateTarget = HeaderMenuTarget { showingSaveTemplateSheet = true }
         templateItem.target = templateTarget
         templateItem.representedObject = templateTarget
@@ -3304,7 +3325,8 @@ struct AgentDetailView: View {
                 ) {
                     claudeCodePermissionLabel(
                         title: "Allow file changes",
-                        detail: "Auto-approve Edit, Write, and NotebookEdit inside the chat folder, or the chat's private scratch folder when none is set."
+                        detail:
+                            "Auto-approve Edit, Write, and NotebookEdit inside the chat folder, or the chat's private scratch folder when none is set."
                     )
                 }
                 .disabled(claudeCodeConfig.mode != .agent)
@@ -3317,7 +3339,8 @@ struct AgentDetailView: View {
                 ) {
                     claudeCodePermissionLabel(
                         title: "Allow shell commands",
-                        detail: "Auto-approve Bash under your macOS account. Nuo can't confine shell commands to the chat folder, and this is not the Nuo sandbox."
+                        detail:
+                            "Auto-approve Bash under your macOS account. Nuo can't confine shell commands to the chat folder, and this is not the Nuo sandbox."
                     )
                 }
                 .disabled(claudeCodeConfig.mode != .agent)
@@ -3335,7 +3358,8 @@ struct AgentDetailView: View {
                 ) {
                     claudeCodePermissionLabel(
                         title: "Allow Nuo read tools",
-                        detail: "Attach osaurus_inspect and osaurus_help over an MCP bridge scoped to this agent. Needs the Nuo server running."
+                        detail:
+                            "Attach osaurus_inspect and osaurus_help over an MCP bridge scoped to this agent. Needs the Nuo server running."
                     )
                 }
                 .disabled(claudeCodeConfig.mode != .agent)
@@ -3429,7 +3453,9 @@ struct AgentDetailView: View {
             )
         case .missing:
             runtimeNote(
-                L("The runtime this agent used was deleted, so its chats can't start. Pick another runtime or switch back to built-in."),
+                L(
+                    "The runtime this agent used was deleted, so its chats can't start. Pick another runtime or switch back to built-in."
+                ),
                 isWarning: true
             )
         case .resolved(let runtime):
@@ -3444,11 +3470,15 @@ struct AgentDetailView: View {
                 )
                 if runtime.kind == .piRPC {
                     runtimeNote(
-                        L("Nuo can't confine this runtime's tools. Narrow them with --tools in the runtime's arguments.")
+                        L(
+                            "Nuo can't confine this runtime's tools. Narrow them with --tools in the runtime's arguments."
+                        )
                     )
                     if !runtime.wantsSystemPromptFile {
                         runtimeNote(
-                            L("The system prompt below reaches it only when the runtime's arguments include {system_prompt_file}.")
+                            L(
+                                "The system prompt below reaches it only when the runtime's arguments include {system_prompt_file}."
+                            )
                         )
                     }
                 }
@@ -3710,15 +3740,20 @@ struct AgentDetailView: View {
         Group {
             if agentRuntime != .builtIn {
                 AgentDetailSection(title: L("Generation Overrides"), icon: "slider.horizontal.3") {
-                    Text("These generation defaults apply to Nuo (built-in). The selected external runtime owns its generation settings.", bundle: .module)
-                        .font(.system(size: 11)).foregroundColor(theme.tertiaryText)
+                    Text(
+                        "These generation defaults apply to Nuo (built-in). The selected external runtime owns its generation settings.",
+                        bundle: .module
+                    )
+                    .font(.system(size: 11)).foregroundColor(theme.tertiaryText)
                 }
             } else {
                 AgentGenerationSettingsEditor(
                     modelID: generationModelID,
                     modelIsLocal: pickerItems.first(where: { $0.id == generationModelID })?.source == .local,
-                    catalogCapabilities: pickerItems.first(where: { $0.id == generationModelID })?.reasoningCapabilities,
-                    savedTemperature: Float(temperature), savedMaxTokens: Int(maxTokens),
+                    catalogCapabilities: pickerItems.first(where: { $0.id == generationModelID })?
+                        .reasoningCapabilities,
+                    savedTemperature: Float(temperature),
+                    savedMaxTokens: Int(maxTokens),
                     savedSettings: generationSettings
                 ) { values in
                     temperature = values.temperature.map { String($0) } ?? ""
@@ -4452,7 +4487,9 @@ struct AgentDetailView: View {
             case .legacyV1:
                 return (
                     "key",
-                    L("This agent uses a legacy (non device-scoped) address. It is kept as-is; rotate the key later to move it to the current layout.")
+                    L(
+                        "This agent uses a legacy (non device-scoped) address. It is kept as-is; rotate the key later to move it to the current layout."
+                    )
                 )
             }
         }()
@@ -6399,7 +6436,8 @@ struct AgentDetailView: View {
     }
 
     private func commitSandboxAllowedDomains(execConfig: AutonomousExecConfig?) {
-        let raw = sandboxAllowedDomainsText
+        let raw =
+            sandboxAllowedDomainsText
             .split(separator: ",")
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
@@ -8652,7 +8690,8 @@ private struct AgentEditorSheet: View {
 
     private var canSave: Bool {
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-            let values = try? generationDraft.validated() else { return false }
+            let values = try? generationDraft.validated()
+        else { return false }
         if let settings = values.settings,
             settings.reasoningEffort != nil || settings.enableThinking != nil || settings.speculativeDecoding != nil
         {
@@ -8686,9 +8725,13 @@ private struct AgentEditorSheet: View {
                 AgentGenerationSettingsEditor(
                     modelID: generationModelID,
                     modelIsLocal: pickerItems.first(where: { $0.id == generationModelID })?.source == .local,
-                    catalogCapabilities: pickerItems.first(where: { $0.id == generationModelID })?.reasoningCapabilities,
-                    savedTemperature: nil, savedMaxTokens: nil, savedSettings: nil,
-                    onSave: { _ in }, showsSaveButton: false,
+                    catalogCapabilities: pickerItems.first(where: { $0.id == generationModelID })?
+                        .reasoningCapabilities,
+                    savedTemperature: nil,
+                    savedMaxTokens: nil,
+                    savedSettings: nil,
+                    onSave: { _ in },
+                    showsSaveButton: false,
                     onDraftChange: { generationDraft = $0 },
                     onReasoningChoicesChange: { generationChoices = $0 },
                     initialDraft: generationDraft

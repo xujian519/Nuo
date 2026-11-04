@@ -120,7 +120,8 @@ enum PrivacyFilterPipelineError: Error, Equatable, LocalizedError {
                 ? "Privacy Filter: 1 approved redaction didn't apply (substitution mismatch). The message was not sent. This is a bug — please report."
                 : "Privacy Filter: \(count) approved redactions didn't apply (substitution mismatch). The message was not sent. This is a bug — please report."
         case .signedReasoningRedactionUnsupported:
-            return "Privacy Filter cannot redact signed provider reasoning without invalidating its signature. The message was not sent. Start a new conversation or change the privacy setting explicitly."
+            return
+                "Privacy Filter cannot redact signed provider reasoning without invalidating its signature. The message was not sent. Start a new conversation or change the privacy setting explicitly."
         case .scrubLeaked(let counts):
             return Self.formatScrubLeaked(categoryCounts: counts)
         case .reviewRequiresInteractive(let count):
@@ -375,7 +376,8 @@ enum PrivacyFilterPipeline {
         // Run whichever backend is actually on disk: the user's default
         // if installed, else the other one. Only fail-closed when
         // nothing is installed at all.
-        let backend = config.resolvedAIBackend(isInstalled: PrivacyAIBackend.isBundleInstalled)
+        let backend =
+            config.resolvedAIBackend(isInstalled: PrivacyAIBackend.isBundleInstalled)
             ?? config.aiDetectionBackend
         if useModel {
             // Warm the resolved backend, bounded to a single lazy-load
@@ -398,7 +400,8 @@ enum PrivacyFilterPipeline {
                             loadError = error.localizedDescription
                         }
                     } else {
-                        loadError = "no privacy model installed (looked for OpenAI Privacy Filter at \(bundleDir.path) and Rampart)"
+                        loadError =
+                            "no privacy model installed (looked for OpenAI Privacy Filter at \(bundleDir.path) and Rampart)"
                     }
                 }
                 ready = isLoaded
@@ -596,11 +599,13 @@ enum PrivacyFilterPipeline {
             )
         case .autoScrub:
             print("[PrivacyFilter] Review: auto-scrubbing \(newDetections.count) detections for a delegated loop step.")
-            outcome = .approved(newDetections.map { entity in
-                var approved = entity
-                approved.approved = true
-                return approved
-            })
+            outcome = .approved(
+                newDetections.map { entity in
+                    var approved = entity
+                    approved.approved = true
+                    return approved
+                }
+            )
         }
         let approvedFromReview: [DetectedEntity]
         switch outcome {
@@ -872,13 +877,20 @@ enum PrivacyFilterPipeline {
     }
 
     static func scrubOutboundMessages(_ messages: [ChatMessage], approved: [DetectedEntity]) throws -> [ChatMessage] {
-        let mapping = Dictionary(approved.filter { $0.approved }.map { ($0.original, $0.placeholder.token) }, uniquingKeysWith: { _, last in last })
+        let mapping = Dictionary(
+            approved.filter { $0.approved }.map { ($0.original, $0.placeholder.token) },
+            uniquingKeysWith: { _, last in last }
+        )
         let order = mapping.keys.sorted { $0.count > $1.count }
         if messages.contains(where: {
             ResponsesItemPayload.signedThinkingWouldChange(
-                ($0.responses_output_items ?? []) + ($0.anthropic_thinking_blocks ?? []), mapping: mapping, order: order
+                ($0.responses_output_items ?? []) + ($0.anthropic_thinking_blocks ?? []),
+                mapping: mapping,
+                order: order
             )
-        }) { throw PrivacyFilterPipelineError.signedReasoningRedactionUnsupported }
+        }) {
+            throw PrivacyFilterPipelineError.signedReasoningRedactionUnsupported
+        }
         return messages.applyingScrub(approved: approved)
     }
 

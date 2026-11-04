@@ -144,17 +144,20 @@ final class AgentChannelConnectionManager: @unchecked Sendable {
             .map(AgentChannelConnection.normalizedId)
             .flatMap { $0.isEmpty ? nil : $0 }
         if let normalizedOriginalId,
-            Self.reservedConnectionIds.contains(normalizedOriginalId.lowercased()) {
+            Self.reservedConnectionIds.contains(normalizedOriginalId.lowercased())
+        {
             throw AgentChannelConnectionManagerError.reservedConnectionId(normalizedOriginalId)
         }
         var configuration = loadConfiguration()
         if let normalizedOriginalId,
             normalizedOriginalId != validated.id,
-            configuration.connections.contains(where: { $0.id == validated.id }) {
+            configuration.connections.contains(where: { $0.id == validated.id })
+        {
             throw AgentChannelConnectionManagerError.duplicateConnectionId(validated.id)
         }
         if normalizedOriginalId == nil,
-            configuration.connections.contains(where: { $0.id == validated.id }) {
+            configuration.connections.contains(where: { $0.id == validated.id })
+        {
             throw AgentChannelConnectionManagerError.duplicateConnectionId(validated.id)
         }
         configuration.connections.removeAll { existing in
@@ -283,7 +286,8 @@ final class AgentChannelConnectionManager: @unchecked Sendable {
             .flatMap { $0.isEmpty ? nil : $0 }
         var configuration = loadConfiguration()
         if normalizedOriginalId != validated.id,
-            configuration.bindings.contains(where: { $0.id == validated.id }) {
+            configuration.bindings.contains(where: { $0.id == validated.id })
+        {
             throw AgentChannelConnectionManagerError.duplicateBindingId(validated.id)
         }
         configuration.bindings.removeAll { existing in

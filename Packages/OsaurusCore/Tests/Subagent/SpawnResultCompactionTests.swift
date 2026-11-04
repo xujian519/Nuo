@@ -92,7 +92,7 @@ struct SpawnResultCompactionTests {
 
     @Test("a compact launcher gets a capped digest; a full launcher keeps the 8k envelope cap")
     func digestScalesWithTheLauncher() throws {
-        let long = (0..<400).map { "line \($0): " + String(repeating: "x", count: 12) }
+        let long = (0 ..< 400).map { "line \($0): " + String(repeating: "x", count: 12) }
             .joined(separator: "\n")
         #expect(long.count > SpawnResultCompaction.compactDigestMaxChars)
         let raw = Self.envelope(summary: long)
@@ -105,7 +105,8 @@ struct SpawnResultCompactionTests {
         #expect(digest.hasSuffix(SpawnResultCompaction.truncationNotice))
         #expect(
             digest.count <= SpawnResultCompaction.compactDigestMaxChars
-                + SpawnResultCompaction.truncationNotice.count)
+                + SpawnResultCompaction.truncationNotice.count
+        )
         // Cut on a line boundary, not mid-line.
         let body = digest.dropLast(SpawnResultCompaction.truncationNotice.count)
         #expect(body.hasSuffix("xxxxxxxxxxxx"))
@@ -114,13 +115,18 @@ struct SpawnResultCompactionTests {
     @Test("failures, acks and other tools pass through untouched")
     func nonResultsPassThrough() {
         let failure = ToolEnvelope.failure(
-            kind: .unavailable, message: "Agent is offline.", tool: "spawn_agent", retryable: true)
+            kind: .unavailable,
+            message: "Agent is offline.",
+            tool: "spawn_agent",
+            retryable: true
+        )
         #expect(!SpawnResultCompaction.applies(to: failure))
         #expect(SpawnResultCompaction.modelVisible(failure, prefersCompactPrompt: true) == failure)
 
         let ack = ToolEnvelope.success(
             tool: "spawn_agent",
-            result: ["dispatched": true, "background": true, "helper": "Writer"])
+            result: ["dispatched": true, "background": true, "helper": "Writer"]
+        )
         #expect(!SpawnResultCompaction.applies(to: ack))
         #expect(SpawnResultCompaction.modelVisible(ack, prefersCompactPrompt: true) == ack)
 
@@ -131,13 +137,20 @@ struct SpawnResultCompactionTests {
     @Test("artifact_paths lists created/modified files; deleted and directories are skipped; capped")
     func artifactPathsFromNetChanges() {
         func change(
-            _ path: String, kind root: SandboxWorkspaceRootKind = .hostFolder,
-            rootId: String = "/Users/me/Reports", before: FilePathState? = nil,
+            _ path: String,
+            kind root: SandboxWorkspaceRootKind = .hostFolder,
+            rootId: String = "/Users/me/Reports",
+            before: FilePathState? = nil,
             after: FilePathState? = FilePathState(type: .file, signature: "b")
         ) -> FileNetChange {
             FileNetChange(
                 key: FilePathKey(rootKind: root, rootId: rootId, path: path),
-                original: before, latest: after, setIds: [], lastChangedAt: Date(), lastTool: "file_write")
+                original: before,
+                latest: after,
+                setIds: [],
+                lastChangedAt: Date(),
+                lastTool: "file_write"
+            )
         }
         let changes = [
             change("q3.md"),
@@ -152,7 +165,7 @@ struct SpawnResultCompactionTests {
         #expect(paths.contains("/Users/me/Reports/draft.md"))
         #expect(paths.contains { $0.hasSuffix("/out/report.md") && !$0.hasPrefix("/Users/me/Reports") })
 
-        let many = (0..<30).map { change("f\($0).md") }
+        let many = (0 ..< 30).map { change("f\($0).md") }
         let capped = SpawnResultCompaction.artifactPaths(from: many)
         #expect(capped.count == SpawnResultCompaction.artifactPathsLimit + 1)
         #expect(capped.last == "… +10 more")

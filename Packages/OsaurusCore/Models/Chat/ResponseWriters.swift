@@ -582,7 +582,9 @@ final class SSEResponseWriter: ResponseWriter {
             total_tokens: promptTokens + completionTokens,
             tokens_per_second: tokensPerSecond,
             prompt_tokens_details: Usage.cachedPromptDetails(
-                cachedPromptTokens, promptTokens: promptTokens)
+                cachedPromptTokens,
+                promptTokens: promptTokens
+            )
         )
         writeSSEChunk(chunk, context: context)
     }
@@ -590,8 +592,11 @@ final class SSEResponseWriter: ResponseWriter {
     /// Osaurus extension for measurements that do not form a complete
     /// protocol usage tuple. No missing count or rate is synthesized.
     func writeGenerationMetrics(
-        _ metrics: [String: JSONValue], model: String, responseId: String,
-        created: Int, context: ChannelHandlerContext
+        _ metrics: [String: JSONValue],
+        model: String,
+        responseId: String,
+        created: Int,
+        context: ChannelHandlerContext
     ) {
         struct Chunk: Encodable {
             let id: String
@@ -601,8 +606,15 @@ final class SSEResponseWriter: ResponseWriter {
             let choices: [StreamChoice] = []
             let generation_metrics: [String: JSONValue]
         }
-        writeSSEChunk(Chunk(id: responseId, created: created, model: model,
-            generation_metrics: metrics), context: context)
+        writeSSEChunk(
+            Chunk(
+                id: responseId,
+                created: created,
+                model: model,
+                generation_metrics: metrics
+            ),
+            context: context
+        )
     }
 
     /// Emit the `osaurus_artifacts` extension chunk of a hosted shared-agent
@@ -696,8 +708,13 @@ final class NDJSONResponseWriter: ResponseWriter {
 
     func writeThinking(_ text: String, model: String, context: ChannelHandlerContext) {
         guard !text.isEmpty else { return }
-        writeJSONObject(["model": model, "created_at": Date().ISO8601Format(),
-            "message": ["role": "assistant", "content": "", "thinking": text], "done": false], context: context)
+        writeJSONObject(
+            [
+                "model": model, "created_at": Date().ISO8601Format(),
+                "message": ["role": "assistant", "content": "", "thinking": text], "done": false,
+            ],
+            context: context
+        )
     }
 
     @inline(__always)
@@ -845,8 +862,13 @@ final class OllamaGenerateNDJSONResponseWriter {
 
     func writeThinking(_ text: String, model: String, context: ChannelHandlerContext) {
         guard !text.isEmpty else { return }
-        writeJSONObject(["model": model, "created_at": Date().ISO8601Format(),
-            "response": "", "thinking": text, "done": false], context: context)
+        writeJSONObject(
+            [
+                "model": model, "created_at": Date().ISO8601Format(),
+                "response": "", "thinking": text, "done": false,
+            ],
+            context: context
+        )
     }
 
     func writeFinish(
@@ -1031,7 +1053,6 @@ final class AnthropicSSEResponseWriter {
             writeTextBlockStart(context: context)
         }
 
-
         let event = ContentBlockDeltaEvent(index: currentBlockIndex, text: text)
         writeSSEEvent("content_block_delta", payload: event, context: context)
     }
@@ -1074,7 +1095,6 @@ final class AnthropicSSEResponseWriter {
             writeThinkingBlockStart(context: context)
         }
 
-
         accumulatedThinking += thinking
         let event = ContentBlockDeltaEvent(thinkingAt: currentBlockIndex, text: thinking)
         writeSSEEvent("content_block_delta", payload: event, context: context)
@@ -1088,15 +1108,24 @@ final class AnthropicSSEResponseWriter {
         }
         if type == "thinking", case .string(let text) = fields["thinking"] {
             guard text.hasPrefix(accumulatedThinking) else {
-                throw NSError(domain: "OsaurusAnthropicProtocol", code: 502,
-                    userInfo: [NSLocalizedDescriptionKey: "Signed thinking differs from the streamed thinking block."])
+                throw NSError(
+                    domain: "OsaurusAnthropicProtocol",
+                    code: 502,
+                    userInfo: [NSLocalizedDescriptionKey: "Signed thinking differs from the streamed thinking block."]
+                )
             }
             let remainder = String(text.dropFirst(accumulatedThinking.count))
             if !hasStartedThinkingBlock { writeThinkingBlockStart(context: context) }
             if !remainder.isEmpty { writeThinkingDelta(remainder, context: context) }
             if case .string(let signature) = fields["signature"] {
-                writeSSEEvent("content_block_delta", payload: ContentBlockDeltaEvent(signatureAt: currentBlockIndex,
-                    signature: signature), context: context)
+                writeSSEEvent(
+                    "content_block_delta",
+                    payload: ContentBlockDeltaEvent(
+                        signatureAt: currentBlockIndex,
+                        signature: signature
+                    ),
+                    context: context
+                )
             }
             writeBlockStop(context: context)
         } else if type == "redacted_thinking" {
@@ -1106,11 +1135,18 @@ final class AnthropicSSEResponseWriter {
                 let index: Int
                 let content_block: JSONValue
             }
-            writeSSEEvent("content_block_start", payload: Block(index: currentBlockIndex, content_block: value), context: context)
+            writeSSEEvent(
+                "content_block_start",
+                payload: Block(index: currentBlockIndex, content_block: value),
+                context: context
+            )
             writeBlockStop(context: context)
         } else {
-            throw NSError(domain: "OsaurusAnthropicProtocol", code: 502,
-                userInfo: [NSLocalizedDescriptionKey: "Unsupported Anthropic thinking block type: \(type)."])
+            throw NSError(
+                domain: "OsaurusAnthropicProtocol",
+                code: 502,
+                userInfo: [NSLocalizedDescriptionKey: "Unsupported Anthropic thinking block type: \(type)."]
+            )
         }
     }
 
@@ -1157,8 +1193,11 @@ final class AnthropicSSEResponseWriter {
         // usage splits the cached prefix out of `input_tokens` the way Anthropic reports it.
         let split = AnthropicUsage.split(promptTokens: inputTokens, cachedPromptTokens: cachedInputTokens)
         let event = MessageDeltaEvent(
-            stopReason: stopReason, outputTokens: outputTokens, inputTokens: split.input,
-            cacheReadInputTokens: split.cacheRead)
+            stopReason: stopReason,
+            outputTokens: outputTokens,
+            inputTokens: split.input,
+            cacheReadInputTokens: split.cacheRead
+        )
         writeSSEEvent("message_delta", payload: event, context: context)
     }
 
@@ -1632,7 +1671,12 @@ final class OpenResponsesSSEWriter {
     /// are never converted into estimated usage.
     private var reportedUsage: OpenResponsesUsage? {
         guard let inputTokens, let outputTokens else { return nil }
-        return .init(inputTokens: inputTokens, outputTokens: outputTokens, tokensPerSecond: tokensPerSecond, cachedInputTokens: cachedInputTokens)
+        return .init(
+            inputTokens: inputTokens,
+            outputTokens: outputTokens,
+            tokensPerSecond: tokensPerSecond,
+            cachedInputTokens: cachedInputTokens
+        )
     }
 
     func writeResponseCompleted(context: ChannelHandlerContext) {
@@ -1645,16 +1689,27 @@ final class OpenResponsesSSEWriter {
         metadata: [String: String]? = nil,
         context: ChannelHandlerContext
     ) {
-        let response = OpenResponsesResponse(id: responseId, createdAt: createdAt, status: status,
-            model: model, output: completedOutput, usage: reportedUsage,
-            metadata: metadata, incompleteReason: incompleteReason)
+        let response = OpenResponsesResponse(
+            id: responseId,
+            createdAt: createdAt,
+            status: status,
+            model: model,
+            output: completedOutput,
+            usage: reportedUsage,
+            metadata: metadata,
+            incompleteReason: incompleteReason
+        )
         let name = "response." + status.rawValue
         struct Terminal: Encodable {
             let type: String
             let sequence_number: Int
             let response: OpenResponsesResponse
         }
-        writeSSEEvent(name, payload: Terminal(type: name, sequence_number: nextSequenceNumber(), response: response), context: context)
+        writeSSEEvent(
+            name,
+            payload: Terminal(type: name, sequence_number: nextSequenceNumber(), response: response),
+            context: context
+        )
     }
 
     /// The typed remote adapter supplies privacy-processed native SSE JSON
@@ -1662,13 +1717,17 @@ final class OpenResponsesSSEWriter {
     /// terminal lifecycle instead of opening a second synthetic response.
     func writeProviderEvent(_ value: JSONValue, context: ChannelHandlerContext) throws {
         guard case .object(let fields) = value, case .string(let type) = fields["type"], !type.isEmpty else {
-            throw NSError(domain: "OsaurusResponsesProtocol", code: 502,
-                userInfo: [NSLocalizedDescriptionKey: "Native Responses event is missing its type."])
+            throw NSError(
+                domain: "OsaurusResponsesProtocol",
+                code: 502,
+                userInfo: [NSLocalizedDescriptionKey: "Native Responses event is missing its type."]
+            )
         }
         proxyingProviderEvents = true
         func integer(_ value: JSONValue?) -> Int? {
             guard case .number(let number) = value, number.isFinite, number >= 0,
-                number < Double(Int.max), number.rounded(.towardZero) == number else { return nil }
+                number < Double(Int.max), number.rounded(.towardZero) == number
+            else { return nil }
             return Int(number)
         }
         if let sequence = integer(fields["sequence_number"]) { sequenceNumber = max(sequenceNumber, sequence) }
@@ -1691,8 +1750,15 @@ final class OpenResponsesSSEWriter {
             let response_id: String
             let progress: PrefillProgressState
         }
-        writeSSEEvent("response.prefill_progress", payload: Progress(sequence_number: nextSequenceNumber(),
-            response_id: responseId, progress: progress), context: context)
+        writeSSEEvent(
+            "response.prefill_progress",
+            payload: Progress(
+                sequence_number: nextSequenceNumber(),
+                response_id: responseId,
+                progress: progress
+            ),
+            context: context
+        )
     }
 
     /// Write error event
@@ -1703,7 +1769,8 @@ final class OpenResponsesSSEWriter {
     func writeErrorFromThrown(_ error: Error, context: ChannelHandlerContext) {
         if proxyingProviderEvents, responseId.isEmpty,
             let actualID = (error as NSError).userInfo["response_id"] as? String,
-            !actualID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            !actualID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        {
             responseId = actualID
         }
         if let pfError = error as? PrivacyFilterPipelineError {
@@ -1738,8 +1805,16 @@ final class OpenResponsesSSEWriter {
                 let param: JSONValue = .null
                 let response_id: String?
             }
-            writeSSEEvent("error", payload: Event(sequence_number: nextSequenceNumber(), code: code,
-                message: message, response_id: responseId.isEmpty ? nil : responseId), context: context)
+            writeSSEEvent(
+                "error",
+                payload: Event(
+                    sequence_number: nextSequenceNumber(),
+                    code: code,
+                    message: message,
+                    response_id: responseId.isEmpty ? nil : responseId
+                ),
+                context: context
+            )
             return
         }
         let response = OpenResponsesResponse(

@@ -286,7 +286,8 @@ private struct StageChipProgress: View {
         }
         .onAppear {
             guard running else { return }
-            let seconds = Double(duration.components.seconds)
+            let seconds =
+                Double(duration.components.seconds)
                 + Double(duration.components.attoseconds) / 1e18
             withAnimation(.linear(duration: seconds)) {
                 fraction = 1
@@ -503,7 +504,8 @@ private struct WorkspacesIntroCanvas: View {
     /// stage 1, so the regrouping reads as one quick gesture.
     private static let columnStaggerInterval: Double = 0.1
     private func columnMove(for lane: Lane) -> Animation? {
-        reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.86).delay(Double(lane.id) * Self.columnStaggerInterval)
+        reduceMotion
+            ? nil : .spring(response: 0.42, dampingFraction: 0.86).delay(Double(lane.id) * Self.columnStaggerInterval)
     }
 
     private func laneStagger(for lane: Lane, extra: Double = 0) -> Animation? {
@@ -516,7 +518,10 @@ private struct WorkspacesIntroCanvas: View {
         // 2, so the team visibly inherits a working setup.
         let visible = stage == .setUp || stage == .handOut
         return pill(
-            label: lane.service.label, glyph: lane.service.glyph, width: Layout.serviceWidth, tint: theme.infoColor,
+            label: lane.service.label,
+            glyph: lane.service.glyph,
+            width: Layout.serviceWidth,
+            tint: theme.infoColor,
             subtle: true
         )
         .scaleEffect(visible ? 1 : 0.7)

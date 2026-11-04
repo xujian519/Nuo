@@ -248,14 +248,16 @@ private final class ResourceSampler: @unchecked Sendable {
         // also count the same capacity twice. Keep the host gauge separate from
         // appMemoryMB: GPU-resident mapped weights can raise system wired memory
         // without appearing in the process's phys_footprint ledger.
-        let availableMemory = Double(ChatResidencyHandoff.reclaimableMemoryBytes(
-            physicalBytes: Int64(ProcessInfo.processInfo.physicalMemory),
-            pageSize: Int64(pageSize),
-            wiredPages: Int64(vmInfo.wire_count),
-            compressorPages: Int64(vmInfo.compressor_page_count),
-            internalPages: Int64(vmInfo.internal_page_count),
-            purgeablePages: Int64(vmInfo.purgeable_count)
-        ))
+        let availableMemory = Double(
+            ChatResidencyHandoff.reclaimableMemoryBytes(
+                physicalBytes: Int64(ProcessInfo.processInfo.physicalMemory),
+                pageSize: Int64(pageSize),
+                wiredPages: Int64(vmInfo.wire_count),
+                compressorPages: Int64(vmInfo.compressor_page_count),
+                internalPages: Int64(vmInfo.internal_page_count),
+                purgeablePages: Int64(vmInfo.purgeable_count)
+            )
+        )
 
         let usedMemory = max(0.0, totalMemory - availableMemory)
         let percentage = (usedMemory / totalMemory) * 100.0

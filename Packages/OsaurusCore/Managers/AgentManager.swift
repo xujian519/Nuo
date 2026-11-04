@@ -114,12 +114,9 @@ public final class AgentManager: ObservableObject {
     /// restore must still invalidate work prepared through the transient
     /// authority. Presentation-only fields are absent from these projections.
     private var observedSpawnAuthorityAgentIDs: Set<UUID> = []
-    private var cachedSpawnLauncherAuthorities:
-        [UUID: SpawnCustomLauncherAgentAuthority] = [:]
-    private var cachedSpawnPermissions:
-        [UUID: SubagentPermissionPolicy] = [:]
-    private var cachedSpawnTargetAuthorities:
-        [UUID: SpawnTargetAuthority] = [:]
+    private var cachedSpawnLauncherAuthorities: [UUID: SpawnCustomLauncherAgentAuthority] = [:]
+    private var cachedSpawnPermissions: [UUID: SubagentPermissionPolicy] = [:]
+    private var cachedSpawnTargetAuthorities: [UUID: SpawnTargetAuthority] = [:]
     private var spawnLauncherAuthorityRevisions: [UUID: UInt64] = [:]
     private var spawnPermissionAuthorityRevisions: [UUID: UInt64] = [:]
     private var spawnTargetAuthorityRevisions: [UUID: UInt64] = [:]
@@ -1093,7 +1090,8 @@ public final class AgentManager: ObservableObject {
     /// current model (falling back to the chat default). Same-model workers
     /// never trigger a local model swap out of the box.
     public func orchestratorModelForNewAgents() -> String? {
-        let model = DefaultAgentConfigurationStore.load().defaultModel
+        let model =
+            DefaultAgentConfigurationStore.load().defaultModel
             ?? ChatConfigurationStore.load().defaultModel
         let trimmed = model?.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed?.isEmpty == false ? trimmed : nil
@@ -1534,7 +1532,8 @@ extension AgentManager {
     }
 
     private func updateGenerationSettings(
-        for agentId: UUID, _ update: (inout AgentGenerationSettings) -> Void
+        for agentId: UUID,
+        _ update: (inout AgentGenerationSettings) -> Void
     ) {
         guard var agent = agent(for: agentId), !agent.isBuiltIn else { return }
         var settings = agent.generationSettings ?? AgentGenerationSettings()
@@ -1809,8 +1808,10 @@ extension AgentManager {
     public func growEnabledToolNames(_ liveNames: Set<String>) {
         var config = DefaultAgentConfigurationStore.load()
         if let grown = Self.grownManualToolNames(
-            current: config.manualToolNames, mode: config.toolSelectionMode, live: liveNames)
-        {
+            current: config.manualToolNames,
+            mode: config.toolSelectionMode,
+            live: liveNames
+        ) {
             config.manualToolNames = grown
             DefaultAgentConfigurationStore.save(config)
             NotificationCenter.default.post(name: .agentUpdated, object: Agent.defaultId)
@@ -1820,7 +1821,10 @@ extension AgentManager {
         for agent in agents where !agent.isBuiltIn {
             guard
                 let grown = Self.grownManualToolNames(
-                    current: agent.manualToolNames, mode: agent.toolSelectionMode, live: liveNames)
+                    current: agent.manualToolNames,
+                    mode: agent.toolSelectionMode,
+                    live: liveNames
+                )
             else { continue }
             var updated = agent
             updated.manualToolNames = grown

@@ -33,10 +33,13 @@ struct ServerRuntimeSettingsStoreTests {
                 legacy.schemaVersion = nil
                 legacy.mtp = .init(mode: .off)
                 try JSONEncoder().encode(legacy).write(
-                    to: dir.appendingPathComponent("server-runtime.json"), options: .atomic)
+                    to: dir.appendingPathComponent("server-runtime.json"),
+                    options: .atomic
+                )
                 ServerRuntimeSettingsStore.invalidateSnapshot()
                 let automatic = try #require(
-                    viaSnapshot ? ServerRuntimeSettingsStore.snapshot() : ServerRuntimeSettingsStore.load())
+                    viaSnapshot ? ServerRuntimeSettingsStore.snapshot() : ServerRuntimeSettingsStore.load()
+                )
                 #expect(automatic.mtp.mode == .off)
                 #expect(!defaults.bool(forKey: NativeMTPSelectionDefault.userChoseKey))
 
@@ -64,7 +67,7 @@ struct ServerRuntimeSettingsStoreTests {
             defaults.set(true, forKey: NativeMTPSelectionDefault.userChoseKey)
             defaults.set(false, forKey: NativeMTPSelectionDefault.familyDefaultKey)
             for mode in [VMLXMTPServerMode.off, .auto, .forceOn] {
-                for depth in 1...3 {
+                for depth in 1 ... 3 {
                     var original = VMLXServerRuntimeSettings()
                     original.generation.diffusionMaxDenoisingSteps = 16
                     original.mtp = .init(mode: mode, draftTokenLimit: depth, explicitDepth: depth)
@@ -245,10 +248,15 @@ struct ServerRuntimeSettingsStoreTests {
             // A profile's load allowance must not be mislabeled as the
             // persistent inference maximum. Keep the existing runtime policy.
             let runtimeCap = ModelRuntime.explicitAllocatorCacheLimitBytes(
-                customAllocatorCacheBytes: settings.memorySafety.customAllocatorCacheBytes)
+                customAllocatorCacheBytes: settings.memorySafety.customAllocatorCacheBytes
+            )
             #expect(runtimeCap == nil)
-            #expect(ModelRuntime.effectiveMLXCacheLimit(
-                dynamicLimit: 5_421_024_670, configuredLimits: [runtimeCap]) == 5_421_024_670)
+            #expect(
+                ModelRuntime.effectiveMLXCacheLimit(
+                    dynamicLimit: 5_421_024_670,
+                    configuredLimits: [runtimeCap]
+                ) == 5_421_024_670
+            )
         }
     }
 
@@ -264,10 +272,15 @@ struct ServerRuntimeSettingsStoreTests {
             #expect(plan.displaySummary.contains("inference_allocator=custom_max:67108864"))
             #expect(!plan.displaySummary.contains("inference_allocator=runtime_managed"))
             let runtimeCap = ModelRuntime.explicitAllocatorCacheLimitBytes(
-                customAllocatorCacheBytes: settings.memorySafety.customAllocatorCacheBytes)
+                customAllocatorCacheBytes: settings.memorySafety.customAllocatorCacheBytes
+            )
             #expect(runtimeCap == Int(custom))
-            #expect(ModelRuntime.effectiveMLXCacheLimit(
-                dynamicLimit: 5_421_024_670, configuredLimits: [runtimeCap]) == Int(custom))
+            #expect(
+                ModelRuntime.effectiveMLXCacheLimit(
+                    dynamicLimit: 5_421_024_670,
+                    configuredLimits: [runtimeCap]
+                ) == Int(custom)
+            )
         }
     }
 
@@ -573,7 +586,8 @@ struct ServerRuntimeSettingsStoreTests {
             #expect(ServerRuntimeSettingsStore.snapshot() == expected)
             #expect(
                 loaded?.schemaVersion == VMLXServerRuntimeSettings.contractVersion,
-                "a saved value must not come back needing migration")
+                "a saved value must not come back needing migration"
+            )
         }
     }
 
@@ -599,9 +613,12 @@ struct ServerRuntimeSettingsStoreTests {
 
     @Test func oldPerformanceJSON_defaultsDSV4ActivationQATOff() throws {
         let data = Data(
-            #"{"tiedHeadCodec":"q6","compiledDecode":false}"#.utf8)
+            #"{"tiedHeadCodec":"q6","compiledDecode":false}"#.utf8
+        )
         let decoded = try JSONDecoder().decode(
-            VMLXServerPerformanceSettings.self, from: data)
+            VMLXServerPerformanceSettings.self,
+            from: data
+        )
 
         #expect(decoded.tiedHeadCodec == .q6)
         #expect(decoded.compiledDecode == false)
@@ -641,7 +658,7 @@ struct ServerRuntimeSettingsStoreTests {
             ServerRuntimeSettingsStore.invalidateSnapshot()
             let loaded = try #require(ServerRuntimeSettingsStore.load())
             #expect(loaded.mtp.mode == .off)
-            #expect(loaded.mtp.draftTokenLimit == nil) // Native depth controls retire even while Off.
+            #expect(loaded.mtp.draftTokenLimit == nil)  // Native depth controls retire even while Off.
         }
     }
 

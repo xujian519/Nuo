@@ -27,7 +27,9 @@ final class OsaurusBundleTests: XCTestCase {
     private func write(_ text: String, to relative: String) throws {
         let url = root.appendingPathComponent(relative)
         try FileManager.default.createDirectory(
-            at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
         try text.write(to: url, atomically: true, encoding: .utf8)
     }
 
@@ -62,15 +64,20 @@ final class OsaurusBundleTests: XCTestCase {
         try manifest()
         try write(
             "---\nname: release-notes\ndescription: Write release notes.\n---\n\n# Release notes\n",
-            to: "skills/release-notes/SKILL.md")
+            to: "skills/release-notes/SKILL.md"
+        )
         try write(
             #"""
             {"format":"osaurus.template","format_version":1,"name":"Support",
              "agent":{"name":"Support","skills":["release-notes"],
                       "mcp_servers":{"enabled":["Tickets"]}}}
-            """#, to: "agents/support.json")
+            """#,
+            to: "agents/support.json"
+        )
         try write(
-            #"{"name":"Writer","capabilities":{"computer_use_enabled":true}}"#, to: "agents/writer.json")
+            #"{"name":"Writer","capabilities":{"computer_use_enabled":true}}"#,
+            to: "agents/writer.json"
+        )
     }
 
     private func issues(_ body: () throws -> Void) -> [String] {
@@ -154,7 +161,8 @@ final class OsaurusBundleTests: XCTestCase {
         try writeFixture()
         try FileManager.default.createSymbolicLink(
             at: root.appendingPathComponent("skills/release-notes/link"),
-            withDestinationURL: URL(fileURLWithPath: "/etc/hosts"))
+            withDestinationURL: URL(fileURLWithPath: "/etc/hosts")
+        )
         let found = issues { _ = try OsaurusBundle.load(from: root) }
         XCTAssertTrue(found.contains { $0.contains("symbolic link") }, "\(found)")
     }
@@ -179,7 +187,8 @@ final class OsaurusBundleTests: XCTestCase {
         try writeFixture()
         try write(
             #"{"name":"Writer","skills":["not-shipped"],"mcp_servers":{"enabled":["Elsewhere"]}}"#,
-            to: "agents/writer.json")
+            to: "agents/writer.json"
+        )
         let bundle = try OsaurusBundle.load(from: root)
         XCTAssertTrue(bundle.warnings.contains { $0.contains("\"not-shipped\" is not in this bundle") })
         XCTAssertTrue(bundle.warnings.contains { $0.contains("\"Elsewhere\" is not in this bundle") })
@@ -197,18 +206,22 @@ final class OsaurusBundleTests: XCTestCase {
                 BundleItemRef(kind: .skill, name: "release-notes", explicit: false),
                 BundleItemRef(kind: .mcp, name: "Tickets", explicit: false),
                 BundleItemRef(kind: .agent, name: "Support", explicit: true),
-            ])
+            ]
+        )
     }
 
     func testExactToolNamesMakeTheirServerADependency() throws {
         try writeFixture()
         try write(
             #"{"name":"Writer","tools":{"mode":"manual","enabled":["files_read_file","get_current_time"]}}"#,
-            to: "agents/writer.json")
+            to: "agents/writer.json"
+        )
         let bundle = try OsaurusBundle.load(from: root)
         XCTAssertEqual(bundle.agent(named: "Writer")?.mcpServers, ["Files"])
         XCTAssertEqual(
-            try bundle.select(kind: .agent, names: ["Writer"]).map(\.name), ["Files", "Writer"])
+            try bundle.select(kind: .agent, names: ["Writer"]).map(\.name),
+            ["Files", "Writer"]
+        )
         XCTAssertEqual(OsaurusBundle.mcpToolPrefix(for: "Acme Tickets"), "acme_tickets")
         XCTAssertEqual(OsaurusBundle.mcpToolPrefix(for: "my-server"), "my_server")
     }
@@ -225,7 +238,9 @@ final class OsaurusBundleTests: XCTestCase {
     func testAmbiguousAndUnknownNamesFail() throws {
         try writeFixture()
         try write(
-            "---\nname: support\ndescription: x\n---\n", to: "skills/support/SKILL.md")
+            "---\nname: support\ndescription: x\n---\n",
+            to: "skills/support/SKILL.md"
+        )
         try manifest([
             "skills": [
                 ["name": "release-notes", "path": "skills/release-notes"],
@@ -237,7 +252,8 @@ final class OsaurusBundleTests: XCTestCase {
         XCTAssertTrue(found.contains { $0.contains("names more than one item") }, "\(found)")
         XCTAssertTrue(
             found.contains { $0.contains("no agent, skill, MCP server, harness runtime or setting named \"nope\"") },
-            "\(found)")
+            "\(found)"
+        )
         XCTAssertEqual(try bundle.select(kind: .skill, names: ["Support"]).map(\.kind), [.skill])
     }
 
@@ -267,7 +283,8 @@ final class OsaurusBundleTests: XCTestCase {
         XCTAssertEqual(try bundle.select(kind: .setting, names: []).map(\.name), bundle.settings.map(\.setting.key))
         XCTAssertEqual(
             try bundle.select(kind: nil, names: ["allowed_origins"]),
-            [BundleItemRef(kind: .setting, name: "allowed_origins", explicit: true)])
+            [BundleItemRef(kind: .setting, name: "allowed_origins", explicit: true)]
+        )
         XCTAssertEqual(BundleItemKind(argument: "settings"), .setting)
 
         let hash = try XCTUnwrap(bundle.contentHash(kind: .setting, name: "require_local_access_key"))
@@ -284,7 +301,10 @@ final class OsaurusBundleTests: XCTestCase {
 
         try manifest([:], drop: ["skills", "mcp_servers", "agents"])
         let found = issues { _ = try OsaurusBundle.load(from: root) }
-        XCTAssertTrue(found.contains { $0.contains("no agents, skills, MCP servers, harness runtimes or settings") }, "\(found)")
+        XCTAssertTrue(
+            found.contains { $0.contains("no agents, skills, MCP servers, harness runtimes or settings") },
+            "\(found)"
+        )
     }
 
     func testRejectsUnknownSettingsWrongTypesAndBadOrigins() throws {
@@ -292,12 +312,19 @@ final class OsaurusBundleTests: XCTestCase {
         try manifest(["settings": ["require_local_acess_key": true, "port": 1337]])
         var found = issues { _ = try OsaurusBundle.load(from: root) }
         XCTAssertTrue(
-            found.contains { $0.contains("settings: unknown key `require_local_acess_key`") && $0.contains("`require_local_access_key`") },
-            "\(found)")
+            found.contains {
+                $0.contains("settings: unknown key `require_local_acess_key`")
+                    && $0.contains("`require_local_access_key`")
+            },
+            "\(found)"
+        )
 
         try manifest(["settings": ["require_local_access_key": ["yes"], "allowed_origins": true]])
         found = issues { _ = try OsaurusBundle.load(from: root) }
-        XCTAssertTrue(found.contains { $0.contains("settings.require_local_access_key: must be true or false") }, "\(found)")
+        XCTAssertTrue(
+            found.contains { $0.contains("settings.require_local_access_key: must be true or false") },
+            "\(found)"
+        )
         XCTAssertTrue(found.contains { $0.contains("settings.allowed_origins: must be a list of origins") }, "\(found)")
 
         try manifest([
@@ -338,7 +365,8 @@ final class OsaurusBundleTests: XCTestCase {
         XCTAssertTrue(bundle.risks(for: [on]).isEmpty)
         XCTAssertEqual(
             bundle.risks(for: [origins]),
-            ["Lets web pages from https://app.example.com call Osaurus on this Mac from a browser"])
+            ["Lets web pages from https://app.example.com call Osaurus on this Mac from a browser"]
+        )
 
         try manifest(["settings": ["require_local_access_key": false]])
         bundle = try OsaurusBundle.load(from: root)
@@ -363,11 +391,17 @@ final class OsaurusBundleTests: XCTestCase {
     func testSettingReceiptRoundTripsItsValue() throws {
         ToolsPaths.overrideRoot = root.appendingPathComponent("tools-root", isDirectory: true)
         let receipt = ImportReceipt(
-            bundleId: "com.example.starter", bundleName: nil, bundleVersion: "1.0.0", kind: .setting,
-            name: "allowed_origins", explicit: true, contentHash: "abc",
+            bundleId: "com.example.starter",
+            bundleName: nil,
+            bundleVersion: "1.0.0",
+            kind: .setting,
+            name: "allowed_origins",
+            explicit: true,
+            contentHash: "abc",
             installedAt: Date(timeIntervalSince1970: 1_800_000_000),
             updatedAt: Date(timeIntervalSince1970: 1_800_000_000),
-            settingValue: .strings(["https://app.example.com"]))
+            settingValue: .strings(["https://app.example.com"])
+        )
         try ImportQueue.saveReceipts([receipt])
         XCTAssertEqual(ImportQueue.loadReceipts(), [receipt])
         let text = try String(contentsOf: ImportQueue.receiptsURL(), encoding: .utf8)
@@ -392,9 +426,14 @@ final class OsaurusBundleTests: XCTestCase {
         let items = try bundle.select(kind: nil, names: ["Support"])
         let request = ImportRequest(
             createdAt: Date(timeIntervalSince1970: 1_800_000_000),
-            bundleId: bundle.id, bundleName: bundle.manifest.name, bundleVersion: bundle.manifest.version,
-            operations: items.map { ImportOperation(action: .install, kind: $0.kind, name: $0.name, explicit: $0.explicit) },
-            confirmHighRisk: true)
+            bundleId: bundle.id,
+            bundleName: bundle.manifest.name,
+            bundleVersion: bundle.manifest.version,
+            operations: items.map {
+                ImportOperation(action: .install, kind: $0.kind, name: $0.name, explicit: $0.explicit)
+            },
+            confirmHighRisk: true
+        )
         try ImportQueue.enqueue(request, bundle: bundle)
 
         let pending = try XCTUnwrap(ImportQueue.pending(id: request.id))
@@ -410,17 +449,28 @@ final class OsaurusBundleTests: XCTestCase {
         let copied = try OsaurusBundle.load(from: copy)
         XCTAssertEqual(
             copied.contentHash(kind: .skill, name: "release-notes"),
-            bundle.contentHash(kind: .skill, name: "release-notes"))
+            bundle.contentHash(kind: .skill, name: "release-notes")
+        )
         XCTAssertEqual(
-            copied.contentHash(kind: .mcp, name: "tickets"), bundle.contentHash(kind: .mcp, name: "Tickets"))
+            copied.contentHash(kind: .mcp, name: "tickets"),
+            bundle.contentHash(kind: .mcp, name: "Tickets")
+        )
 
         let result = ImportResult(
-            requestId: request.id, bundleId: bundle.id,
+            requestId: request.id,
+            bundleId: bundle.id,
             items: [
                 ImportItemResult(kind: .agent, name: "Support", action: .install, status: .done),
                 ImportItemResult(
-                    kind: .mcp, name: "Tickets", action: .install, status: .needsUserAction, message: "token"),
-            ], finishedAt: Date(timeIntervalSince1970: 1_800_000_100))
+                    kind: .mcp,
+                    name: "Tickets",
+                    action: .install,
+                    status: .needsUserAction,
+                    message: "token"
+                ),
+            ],
+            finishedAt: Date(timeIntervalSince1970: 1_800_000_100)
+        )
         try ImportQueue.complete(pending, result: result)
         XCTAssertNil(ImportQueue.pending(id: request.id))
         XCTAssertEqual(ImportQueue.result(id: request.id), result)
@@ -441,19 +491,28 @@ final class OsaurusBundleTests: XCTestCase {
         ToolsPaths.overrideRoot = root.appendingPathComponent("tools-root", isDirectory: true)
 
         let receipt = ImportReceipt(
-            bundleId: bundle.id, bundleName: "Example", bundleVersion: "1.0.0", kind: .skill,
-            name: "Release Notes", explicit: true, contentHash: "abc",
+            bundleId: bundle.id,
+            bundleName: "Example",
+            bundleVersion: "1.0.0",
+            kind: .skill,
+            name: "Release Notes",
+            explicit: true,
+            contentHash: "abc",
             installedAt: Date(timeIntervalSince1970: 1_800_000_000),
-            updatedAt: Date(timeIntervalSince1970: 1_800_000_000))
+            updatedAt: Date(timeIntervalSince1970: 1_800_000_000)
+        )
         try ImportQueue.saveReceipts([receipt])
         XCTAssertEqual(ImportQueue.loadReceipts(), [receipt])
         XCTAssertTrue(receipt.matches(kind: .skill, name: "release-notes"))
         XCTAssertFalse(receipt.matches(kind: .agent, name: "Release Notes"))
 
         let request = ImportRequest(
-            bundleId: bundle.id, bundleName: nil, bundleVersion: nil,
+            bundleId: bundle.id,
+            bundleName: nil,
+            bundleVersion: nil,
             operations: [ImportOperation(action: .remove, kind: .skill, name: "release-notes", explicit: true)],
-            confirmHighRisk: false)
+            confirmHighRisk: false
+        )
         try ImportQueue.enqueue(request, bundle: nil)
         XCTAssertEqual(ImportQueue.cancelPending(bundleId: bundle.id), [request.id])
         XCTAssertTrue(ImportQueue.pending().isEmpty)
@@ -493,12 +552,16 @@ final class OsaurusBundleTests: XCTestCase {
                 "keychain:com.example.acme-support/tickets-token",
                 "keychain:com.example.acme-support/tickets-workspace-key",
                 "keychain:com.example.acme-support/github-token",
-            ])
+            ]
+        )
         XCTAssertEqual(
             try bundle.select(kind: .agent, names: ["Support Desk"]).map(\.name),
-            ["triage-ticket", "Acme Tickets", "Support Desk"])
+            ["triage-ticket", "Acme Tickets", "Support Desk"]
+        )
         XCTAssertEqual(
-            try bundle.select(kind: .agent, names: ["Acme Coder"]).map(\.name), ["Acme Pi", "Acme Coder"])
+            try bundle.select(kind: .agent, names: ["Acme Coder"]).map(\.name),
+            ["Acme Pi", "Acme Coder"]
+        )
         // Two MCP servers, the runtime, and the agent that runs on it.
         XCTAssertEqual(bundle.risks(for: try bundle.select(kind: nil, names: [])).count, 4)
     }
@@ -523,9 +586,14 @@ final class OsaurusBundleTests: XCTestCase {
                 ["name": "Typo", "kind": "pi_rpc", "argumnts": []],
                 ["name": "Twice", "kind": "pi_rpc"],
                 ["name": "twice", "kind": "pi_rpc"],
-            ], agentRuntime: nil)
+            ],
+            agentRuntime: nil
+        )
         let found = issues { _ = try OsaurusBundle.load(from: root) }
-        XCTAssertTrue(found.contains { $0.contains("harness_runtimes[builtin]") && $0.contains("reserved") }, "\(found)")
+        XCTAssertTrue(
+            found.contains { $0.contains("harness_runtimes[builtin]") && $0.contains("reserved") },
+            "\(found)"
+        )
         XCTAssertTrue(found.contains { $0.contains("harness_runtimes[Weird].kind") }, "\(found)")
         XCTAssertTrue(found.contains { $0.contains("harness_runtimes[Blank].executable") }, "\(found)")
         XCTAssertTrue(found.contains { $0.contains("unknown key `argumnts`") && $0.contains("arguments") }, "\(found)")
@@ -534,9 +602,14 @@ final class OsaurusBundleTests: XCTestCase {
 
     func testAgentRuntimeIsADependencyAndARisk() throws {
         try writeRuntimeFixture(
-            [["name": "Spotlight", "kind": "pi_rpc", "executable": "~/.local/bin/spotlight",
-              "arguments": ["--mode", "rpc"]]],
-            agentRuntime: "spotlight")
+            [
+                [
+                    "name": "Spotlight", "kind": "pi_rpc", "executable": "~/.local/bin/spotlight",
+                    "arguments": ["--mode", "rpc"],
+                ]
+            ],
+            agentRuntime: "spotlight"
+        )
         let bundle = try OsaurusBundle.load(from: root)
         XCTAssertEqual(bundle.warnings, [])
         let refs = try bundle.select(kind: .agent, names: ["Coder"])

@@ -26,8 +26,10 @@ struct SpawnBatchDelegatedAdmissionTests {
 
     private func delegatedEstimate(ceiling: Int) -> SubagentChildRequestEstimate {
         SubagentChildRequestEstimate(
-            seedCharacters: nil, maxOutputTokens: nil,
-            enforcedPositionCeiling: ceiling)
+            seedCharacters: nil,
+            maxOutputTokens: nil,
+            enforcedPositionCeiling: ceiling
+        )
     }
 
     // MARK: Wave envelope (the production combiner)
@@ -52,7 +54,9 @@ struct SpawnBatchDelegatedAdmissionTests {
     @Test("heterogeneous wave prices at the larger independent bound")
     func heterogeneousWaveNeverUnderpriced() {
         let bare = SubagentChildRequestEstimate(
-            seedCharacters: 60_000, maxOutputTokens: 10_000)
+            seedCharacters: 60_000,
+            maxOutputTokens: 10_000
+        )
         // Independent bound: ceil(60,000×3/8)=22,500 + 10,000 = 32,500.
         #expect(bare.boundedPositionBudget() == 32_500)
         let delegated = delegatedEstimate(ceiling: 8_192)
@@ -71,12 +75,14 @@ struct SpawnBatchDelegatedAdmissionTests {
         #expect(
             SubagentChildRequestEstimate.waveEnvelope(of: [
                 delegatedEstimate(ceiling: 13_713), nil,
-            ]) == nil)
+            ]) == nil
+        )
         #expect(
             SubagentChildRequestEstimate.waveEnvelope(of: [
                 delegatedEstimate(ceiling: 13_713),
                 SubagentChildRequestEstimate(seedCharacters: nil, maxOutputTokens: nil),
-            ]) == nil)
+            ]) == nil
+        )
     }
 
     // MARK: Planner behavior for a bounded same-resident wave
@@ -122,8 +128,11 @@ struct SpawnBatchDelegatedAdmissionTests {
         let bounded = 600 * mib
         let plan = SubagentBatchAdmissionPlanner.plan(
             batchInput(
-                jobs: 3, continuousBatching: true,
-                facts: sameResidentFacts(boundedChildBytes: bounded)))
+                jobs: 3,
+                continuousBatching: true,
+                facts: sameResidentFacts(boundedChildBytes: bounded)
+            )
+        )
         #expect(plan.verdict == .admitted)
         #expect(plan.incrementalWeightChargeBytes == 0, "resident weights are never re-charged")
         #expect(plan.perActiveChildHeadroomBytes == bounded)
@@ -139,8 +148,11 @@ struct SpawnBatchDelegatedAdmissionTests {
     func continuousBatchingOffSerializes() {
         let plan = SubagentBatchAdmissionPlanner.plan(
             batchInput(
-                jobs: 3, continuousBatching: false,
-                facts: sameResidentFacts(boundedChildBytes: 600 * mib)))
+                jobs: 3,
+                continuousBatching: false,
+                facts: sameResidentFacts(boundedChildBytes: 600 * mib)
+            )
+        )
         #expect(plan.verdict == .admitted)
         #expect(plan.engineSlots == 1)
         #expect(plan.localParallelism == 1)
@@ -154,16 +166,23 @@ struct SpawnBatchDelegatedAdmissionTests {
         // Engine-bound: engine window 2 < agent 3 < ram 5.
         let engineBound = SubagentBatchAdmissionPlanner.plan(
             batchInput(
-                jobs: 3, engineLimit: 2, continuousBatching: true,
-                facts: sameResidentFacts(boundedChildBytes: 600 * mib)))
+                jobs: 3,
+                engineLimit: 2,
+                continuousBatching: true,
+                facts: sameResidentFacts(boundedChildBytes: 600 * mib)
+            )
+        )
         #expect(engineBound.localParallelism == 2)
         #expect(engineBound.localSubwaveSizes == [2, 1])
 
         // RAM-bound: residual 3 GiB / 1.4 GiB = 2 slots < agent/engine 3.
         let ramBound = SubagentBatchAdmissionPlanner.plan(
             batchInput(
-                jobs: 3, continuousBatching: true,
-                facts: sameResidentFacts(boundedChildBytes: 1_400 * mib)))
+                jobs: 3,
+                continuousBatching: true,
+                facts: sameResidentFacts(boundedChildBytes: 1_400 * mib)
+            )
+        )
         #expect(ramBound.ramSlots == 2)
         #expect(ramBound.localParallelism == 2)
         #expect(ramBound.localSubwaveSizes == [2, 1])
@@ -171,8 +190,12 @@ struct SpawnBatchDelegatedAdmissionTests {
         // Agent-bound: agent limit 1.
         let agentBound = SubagentBatchAdmissionPlanner.plan(
             batchInput(
-                jobs: 1, agentLimit: 1, continuousBatching: true,
-                facts: sameResidentFacts(boundedChildBytes: 600 * mib)))
+                jobs: 1,
+                agentLimit: 1,
+                continuousBatching: true,
+                facts: sameResidentFacts(boundedChildBytes: 600 * mib)
+            )
+        )
         #expect(agentBound.localParallelism == 1)
     }
 
@@ -184,13 +207,17 @@ struct SpawnBatchDelegatedAdmissionTests {
     func droppedCeilingReintroducesRefusal() {
         let priced = SubagentBatchAdmissionPlanner.plan(
             batchInput(
-                jobs: 2, continuousBatching: true,
-                facts: sameResidentFacts(boundedChildBytes: 600 * mib)))
+                jobs: 2,
+                continuousBatching: true,
+                facts: sameResidentFacts(boundedChildBytes: 600 * mib)
+            )
+        )
         #expect(priced.verdict == .admitted)
 
         let unpriced = SubagentBatchAdmissionPlanner.plan(
             batchInput(
-                jobs: 2, continuousBatching: true,
+                jobs: 2,
+                continuousBatching: true,
                 facts: SubagentBatchMemoryFacts(
                     canonicalModelKey: "osaurusai/gemma-4-e2b-it-qat",
                     targetAlreadyResident: true,
@@ -201,7 +228,9 @@ struct SpawnBatchDelegatedAdmissionTests {
                     releasableParentBytes: 0,
                     resolvedLoadBudgetBytes: 13 * gib,
                     osHeadroomBytes: 3 * gib
-                )))
+                )
+            )
+        )
         guard case .rejected(let reason) = unpriced.verdict else {
             Issue.record("expected the cap-priced wave to reject, got \(unpriced.verdict)")
             return

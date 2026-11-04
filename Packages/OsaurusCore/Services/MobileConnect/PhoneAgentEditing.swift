@@ -93,8 +93,8 @@ enum PhoneAgentEditing {
         var isEmpty: Bool { self == Patch() }
     }
 
-    static let temperatureRange: ClosedRange<Float> = 0...2
-    static let maxTokensRange: ClosedRange<Int> = 1...1_000_000
+    static let temperatureRange: ClosedRange<Float> = 0 ... 2
+    static let maxTokensRange: ClosedRange<Int> = 1 ... 1_000_000
 
     // MARK: Reading
 

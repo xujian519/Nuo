@@ -48,7 +48,8 @@ import Testing
     @Test func requiredArgumentsMatchThePluginContract() throws {
         func requiredFields(_ toolName: String) throws -> Set<String> {
             let tool = try #require(
-                BrowserChildTools.all.first { $0.function.name == toolName })
+                BrowserChildTools.all.first { $0.function.name == toolName }
+            )
             guard case .object(let schema)? = tool.function.parameters,
                 case .array(let required)? = schema["required"]
             else { return [] }
@@ -56,7 +57,8 @@ import Testing
                 required.compactMap {
                     if case .string(let s) = $0 { return s }
                     return nil
-                })
+                }
+            )
         }
         #expect(try requiredFields("browser_navigate") == ["url"])
         #expect(try requiredFields("browser_type") == ["text"])

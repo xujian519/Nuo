@@ -31,10 +31,13 @@ struct AddChatsToProjectSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Pick chats to move into this project. They'll share its instructions, knowledge, and memory.", bundle: .module)
-                .font(.system(size: 12))
-                .foregroundColor(theme.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
+            Text(
+                "Pick chats to move into this project. They'll share its instructions, knowledge, and memory.",
+                bundle: .module
+            )
+            .font(.system(size: 12))
+            .foregroundColor(theme.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
 
             if candidates.isEmpty {
                 emptyState

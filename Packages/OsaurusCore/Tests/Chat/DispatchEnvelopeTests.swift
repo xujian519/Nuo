@@ -25,10 +25,16 @@ struct DispatchEnvelopeTests {
     func partialMarkers_returnNil() {
         // Opener without a closer, closer without an opener, a quoted marker
         // in the middle of a normal message.
-        #expect(DispatchEnvelope.parse("[Untrusted external channel message]\nsource_json: \"x\"", sessionSource: .channel) == nil)
+        #expect(
+            DispatchEnvelope.parse("[Untrusted external channel message]\nsource_json: \"x\"", sessionSource: .channel)
+                == nil
+        )
         #expect(DispatchEnvelope.parse("do the thing\n[/Delegated task]", sessionSource: .delegation) == nil)
         #expect(DispatchEnvelope.parse("I saw [Delegated task] in a log once", sessionSource: .delegation) == nil)
-        #expect(DispatchEnvelope.parse("[Self-scheduled run] but no instructions header", sessionSource: .selfSchedule) == nil)
+        #expect(
+            DispatchEnvelope.parse("[Self-scheduled run] but no instructions header", sessionSource: .selfSchedule)
+                == nil
+        )
     }
 
     // MARK: - Channel
@@ -259,8 +265,11 @@ struct DispatchEnvelopeTests {
 
     private func watcher(_ instructions: String) -> Watcher {
         Watcher(
-            name: "Downloads tidy", instructions: instructions,
-            agentId: UUID(), watchPath: nil, watchBookmark: Data([0x01])
+            name: "Downloads tidy",
+            instructions: instructions,
+            agentId: UUID(),
+            watchPath: nil,
+            watchBookmark: Data([0x01])
         )
     }
 
@@ -301,7 +310,7 @@ struct DispatchEnvelopeTests {
 
     @Test
     func watcherRun_overflowCountsAllChangedFiles() throws {
-        let many = (0..<(WatcherManager.dispatchPromptChangedPathCap + 5)).map { "file-\($0).txt" }
+        let many = (0 ..< (WatcherManager.dispatchPromptChangedPathCap + 5)).map { "file-\($0).txt" }
         let raw = WatcherManager.shared.buildDispatchPrompt(
             for: watcher("Organise."),
             iteration: 1,
@@ -332,7 +341,8 @@ struct DispatchEnvelopeTests {
 
     @Test
     func folderPreambleAlone_yieldsErrorChipAndPrompt() throws {
-        let raw = ExecutionContext.folderUnreadablePreamble(path: "/Volumes/Missing") + "\n\n" + "Run the nightly report."
+        let raw =
+            ExecutionContext.folderUnreadablePreamble(path: "/Volumes/Missing") + "\n\n" + "Run the nightly report."
         let env = try #require(DispatchEnvelope.parse(raw, sessionSource: .schedule))
         #expect(env.kind == nil)
         #expect(env.folderUnreadablePath == "/Volumes/Missing")
@@ -347,7 +357,8 @@ struct DispatchEnvelopeTests {
     func folderPreambleStackedOnEveryProducer() throws {
         let preamble = ExecutionContext.folderUnreadablePreamble(path: "/gone") + "\n\n"
 
-        let delegated = preamble + AgentDelegationDispatcher.delegatedPrompt(input: "Task A", workingFolderPath: "/gone")
+        let delegated =
+            preamble + AgentDelegationDispatcher.delegatedPrompt(input: "Task A", workingFolderPath: "/gone")
         let d = try #require(DispatchEnvelope.parse(delegated, sessionSource: .delegation))
         #expect(d.displayText == "Task A")
         #expect(d.folderUnreadablePath == "/gone")
@@ -361,7 +372,11 @@ struct DispatchEnvelopeTests {
 
         let watched =
             preamble
-            + WatcherManager.shared.buildDispatchPrompt(for: watcher("Task C"), iteration: 1, resolvedWatchPath: "/gone")
+            + WatcherManager.shared.buildDispatchPrompt(
+                for: watcher("Task C"),
+                iteration: 1,
+                resolvedWatchPath: "/gone"
+            )
         let w = try #require(DispatchEnvelope.parse(watched, sessionSource: .watcher))
         #expect(w.displayText == "Task C")
         #expect(w.folderUnreadablePath == "/gone")
@@ -374,8 +389,14 @@ struct DispatchEnvelopeTests {
 
     @Test
     func emptyAfterStrip_returnsNil() {
-        #expect(DispatchEnvelope.parse(AgentDelegationDispatcher.delegatedPrompt(input: ""), sessionSource: .delegation) == nil)
-        #expect(DispatchEnvelope.parse(AgentDelegationDispatcher.delegatedPrompt(input: "  \n"), sessionSource: .delegation) == nil)
+        #expect(
+            DispatchEnvelope.parse(AgentDelegationDispatcher.delegatedPrompt(input: ""), sessionSource: .delegation)
+                == nil
+        )
+        #expect(
+            DispatchEnvelope.parse(AgentDelegationDispatcher.delegatedPrompt(input: "  \n"), sessionSource: .delegation)
+                == nil
+        )
         #expect(
             DispatchEnvelope.parse(
                 NextRunScheduler.composeDispatchPrompt(entry: entry(""), previousRun: nil),

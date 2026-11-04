@@ -26,12 +26,20 @@ struct FileDiffEngineTests {
 
     /// Write `args` through `file_write` under capture; return the entry for `path`.
     private func writeEntry(
-        _ env: FileHistoryTestEnv, root: URL, _ args: [String: Any]
+        _ env: FileHistoryTestEnv,
+        root: URL,
+        _ args: [String: Any]
     ) async throws -> FileChangeEntry {
         let result = try await env.run(
-            FileWriteTool(rootPath: root), FileHistoryTestEnv.json(args), sessionId: session, folder: root)
+            FileWriteTool(rootPath: root),
+            FileHistoryTestEnv.json(args),
+            sessionId: session,
+            folder: root
+        )
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
-        let id = try #require(UUID(uuidString: EnvelopeAssertions.successPayload(result)?["operation_id"] as? String ?? ""))
+        let id = try #require(
+            UUID(uuidString: EnvelopeAssertions.successPayload(result)?["operation_id"] as? String ?? "")
+        )
         let set = try #require(await env.journal.changeSet(id: id, sessionId: session))
         return try #require(set.entries.first { $0.path == args["path"] as? String })
     }
@@ -45,7 +53,7 @@ struct FileDiffEngineTests {
         defer { env.cleanup() }
         let root = try tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
-        let original = (1...40).map { "line \($0)" }.joined(separator: "\n")
+        let original = (1 ... 40).map { "line \($0)" }.joined(separator: "\n")
         try original.write(to: root.appendingPathComponent("a.txt"), atomically: true, encoding: .utf8)
         let changed = original.replacingOccurrences(of: "line 20\n", with: "line twenty\n")
 
@@ -83,9 +91,15 @@ struct FileDiffEngineTests {
         let root = try tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         _ = try await writeEntry(
-            env, root: root, ["path": "brief.docx", "content": "# Brief\n\nThe target is 40.\n\nKeep this line."])
+            env,
+            root: root,
+            ["path": "brief.docx", "content": "# Brief\n\nThe target is 40.\n\nKeep this line."]
+        )
         let entry = try await writeEntry(
-            env, root: root, ["path": "brief.docx", "content": "# Brief\n\nThe target is 42.\n\nKeep this line."])
+            env,
+            root: root,
+            ["path": "brief.docx", "content": "# Brief\n\nThe target is 42.\n\nKeep this line."]
+        )
 
         let content = await diff(env, entry)
         #expect(content.caption == "Showing changed paragraphs")
@@ -123,12 +137,16 @@ struct FileDiffEngineTests {
         defer { env.cleanup() }
         let home = env.agentHome
         let token = await env.journal.beginCapture(
-            sessionId: session, toolName: "sandbox_exec",
-            targets: [.init(kind: .agentHome, rootId: FileHistoryTestEnv.agent, declaredPaths: nil)])
+            sessionId: session,
+            toolName: "sandbox_exec",
+            targets: [.init(kind: .agentHome, rootId: FileHistoryTestEnv.agent, declaredPaths: nil)]
+        )
         try Data([0x89, 0x50, 0x4E, 0x47, 0, 1, 2]).write(to: home.appendingPathComponent("pic.png"))
         try Data([0, 1, 2, 3, 0xFF]).write(to: home.appendingPathComponent("blob.bin"))
         try FileManager.default.createDirectory(
-            at: home.appendingPathComponent("dir"), withIntermediateDirectories: true)
+            at: home.appendingPathComponent("dir"),
+            withIntermediateDirectories: true
+        )
         let set = try #require(await env.journal.endCapture(token))
 
         func body(_ path: String) async throws -> FileDiffContent.Body {
@@ -151,7 +169,7 @@ struct FileDiffEngineTests {
     /// ~80 of a long file showed "truncated" with no visible change. The
     /// panel diff folds context first and only budgets changed lines.
     @Test func deepEditInLongFileIsVisible() {
-        let old = (1...5000).map { "line \($0)" }.joined(separator: "\n")
+        let old = (1 ... 5000).map { "line \($0)" }.joined(separator: "\n")
         let new = old.replacingOccurrences(of: "line 4800\n", with: "line 4800 edited\n")
         let diff = FileDiffEngine.textDiff(old: old, new: new, path: "big.txt", existed: true)
         #expect(!diff.truncated)
@@ -163,8 +181,8 @@ struct FileDiffEngineTests {
     }
 
     @Test func hugeRewriteIsCappedOnChangedLinesOnly() {
-        let old = (1...4000).map { "a \($0)" }.joined(separator: "\n")
-        let new = (1...4000).map { "b \($0)" }.joined(separator: "\n")
+        let old = (1 ... 4000).map { "a \($0)" }.joined(separator: "\n")
+        let new = (1 ... 4000).map { "b \($0)" }.joined(separator: "\n")
         let diff = FileDiffEngine.textDiff(old: old, new: new, path: "r.txt", existed: true)
         #expect(diff.truncated)
         #expect(diff.addedCount == 4000 && diff.removedCount == 4000)

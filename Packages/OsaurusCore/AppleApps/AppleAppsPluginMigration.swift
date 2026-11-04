@@ -265,20 +265,26 @@ public enum AppleAppsPluginMigration {
         let message: String
         if migratedAgents.isEmpty {
             message = String(
-                format: L("%@ no longer need a plugin. Turn each app on per agent under Agents → Abilities → Tools → Apple Apps."),
+                format: L(
+                    "%@ no longer need a plugin. Turn each app on per agent under Agents → Abilities → Tools → Apple Apps."
+                ),
                 list
             )
         } else {
             message = String(
-                format: L("%@ no longer need a plugin. Already turned on for %@; for other agents use Agents → Abilities → Tools → Apple Apps."),
-                list, ListFormatter.localizedString(byJoining: migratedAgents)
+                format: L(
+                    "%@ no longer need a plugin. Already turned on for %@; for other agents use Agents → Abilities → Tools → Apple Apps."
+                ),
+                list,
+                ListFormatter.localizedString(byJoining: migratedAgents)
             )
         }
         if let present {
             present(title, message)
         } else {
             ToastManager.shared.action(
-                title, message: message,
+                title,
+                message: message,
                 action: .openSettings(tab: ManagementTab.agents.rawValue),
                 buttonTitle: L("Open Agents"),
                 timeout: 20

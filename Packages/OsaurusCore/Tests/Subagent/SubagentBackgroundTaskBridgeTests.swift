@@ -221,7 +221,7 @@ struct SubagentBackgroundTaskBridgeTests {
 
         // Six running mirrors — past the per-agent cap of five — must not
         // block admission of a real dispatched task for the same agent.
-        for index in 0..<6 {
+        for index in 0 ..< 6 {
             let state = BackgroundTaskState(
                 subagentMirrorId: UUID(),
                 toolCallId: "slot-test-\(index)-\(UUID().uuidString)",

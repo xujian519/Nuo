@@ -9,11 +9,19 @@ struct InputTokenUsageHTTPTests {
     func preparedAndTerminalCountsReachTheWire(path: String, streaming: Bool) async throws {
         let service = FakeModelService(deltas: [
             StreamingInputTokenHint.encode(257), "visible answer",
-            StreamingStatsHint.encode(tokenCount: 59, tokensPerSecond: 17.5,
-                                      stopReason: "stop", inputTokenCount: 263),
+            StreamingStatsHint.encode(
+                tokenCount: 59,
+                tokensPerSecond: 17.5,
+                stopReason: "stop",
+                inputTokenCount: 263
+            ),
         ])
-        let server = try await startChatStreamingTestServer(with: ChatEngine(
-            services: [service], installedModelsProvider: { [] }))
+        let server = try await startChatStreamingTestServer(
+            with: ChatEngine(
+                services: [service],
+                installedModelsProvider: { [] }
+            )
+        )
         defer { Task { await server.shutdown() } }
         var body: [String: Any] = ["model": "fake", "stream": streaming, "max_tokens": 128]
         switch path {
@@ -84,8 +92,12 @@ struct InputTokenUsageHTTPTests {
         let service = FakeModelService(deltas: [
             StreamingInputTokenHint.encode(257), "visible partial answer",
         ])
-        let server = try await startChatStreamingTestServer(with: ChatEngine(
-            services: [service], installedModelsProvider: { [] }))
+        let server = try await startChatStreamingTestServer(
+            with: ChatEngine(
+                services: [service],
+                installedModelsProvider: { [] }
+            )
+        )
         defer { Task { await server.shutdown() } }
         var request = URLRequest(url: URL(string: "http://\(server.host):\(server.port)/messages")!)
         request.httpMethod = "POST"
@@ -113,7 +125,10 @@ struct InputTokenUsageHTTPTests {
             #expect(frames.contains { $0["type"] as? String == "error" })
             #expect(!frames.contains { $0["type"] as? String == "message_delta" })
             #expect(!frames.contains { $0["type"] as? String == "message_stop" })
-            #expect(!frames.contains { $0["usage"] != nil }, "unknown terminal usage must not become a synthetic final frame")
+            #expect(
+                !frames.contains { $0["usage"] != nil },
+                "unknown terminal usage must not become a synthetic final frame"
+            )
         } else {
             // Preserve the current compatibility error-status contract. The
             // missing-usage error is mapped to the standard internal error.

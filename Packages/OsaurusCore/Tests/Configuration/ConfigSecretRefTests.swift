@@ -160,7 +160,8 @@ struct ConfigSecretRefPlannerTests {
         #expect(
             issues.contains {
                 $0.contains("[Stdio Header Ref Probe]: url/auth/token_ref/secret_header_refs only apply")
-            })
+            }
+        )
         #expect(issues.contains { $0.contains("secret_header_refs[X-API-Key]") })
         #expect(issues.contains { $0.contains("secret_env_refs only apply to transport: stdio") })
         #expect(issues.contains { $0.contains("token_ref only fits bearer auth") })
@@ -218,7 +219,8 @@ struct ConfigSecretRefPlannerTests {
 struct ConfigSecretRefApplyTests {
 
     private static func apply(
-        prune: Bool = false, options: ConfigApplyOptions = .default,
+        prune: Bool = false,
+        options: ConfigApplyOptions = .default,
         _ mutate: (inout OsaurusConfigDocument) -> Void
     ) async -> [ConfigApplyResult] {
         var document = OsaurusConfigDocument()

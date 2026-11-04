@@ -128,8 +128,14 @@ private final class OpenResponsesContextStore: @unchecked Sendable {
         guard let responseId, !responseId.isEmpty else { return [] }
         return try lock.withLock {
             guard let entry = entries[responseId], entry.model == model else {
-                throw NSError(domain: "OsaurusResponsesContext", code: 404,
-                    userInfo: [NSLocalizedDescriptionKey: "The previous response is unavailable for this model. Send the complete input history to continue."])
+                throw NSError(
+                    domain: "OsaurusResponsesContext",
+                    code: 404,
+                    userInfo: [
+                        NSLocalizedDescriptionKey:
+                            "The previous response is unavailable for this model. Send the complete input history to continue."
+                    ]
+                )
             }
             return entry.messages
         }
@@ -701,14 +707,17 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 }
                 presentedAppToken =
                     isPhysicalLoopbackConnection(context)
-                    && LocalAPIKeyPolicy.isAppSessionToken(head.headers.first(name: LocalAPIKeyPolicy.appTokenHeaderName))
+                    && LocalAPIKeyPolicy.isAppSessionToken(
+                        head.headers.first(name: LocalAPIKeyPolicy.appTokenHeaderName)
+                    )
             }
 
             // Access key authentication gate (all data snapshotted at server start, zero locks)
             // Plugin routes handle their own auth per-route, so skip the global gate.
             // Loopback connections (CLI / local tools) are trusted without a token.
             let publicPaths: Set<String> = [
-                "/", "/health", "/pair", "/pair/hello", "/pair/challenge", "/pair/code", "/pair/confirm", "/pair-invite",
+                "/", "/health", "/pair", "/pair/hello", "/pair/challenge", "/pair/code", "/pair/confirm",
+                "/pair-invite",
                 "/secure/session",
             ]
             let isPluginRoute = path.hasPrefix("/plugins/")
@@ -1139,7 +1148,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             } else if head.method == .GET, path == "/pair/hello" {
                 handlePairHelloEndpoint(head: head, context: context, startTime: startTime, userAgent: userAgent)
             } else if head.method == .POST, path == "/pair/code" || path == "/pair/confirm" {
-                handlePairCodeEndpoint(head: head, context: context, path: path, startTime: startTime, userAgent: userAgent)
+                handlePairCodeEndpoint(
+                    head: head,
+                    context: context,
+                    path: path,
+                    startTime: startTime,
+                    userAgent: userAgent
+                )
             } else if head.method == .POST, path == "/pair/unpair" {
                 handlePairUnpairEndpoint(head: head, context: context, startTime: startTime, userAgent: userAgent)
             } else if head.method == .POST, path == "/pair-invite" {
@@ -2334,7 +2349,8 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             case .export:
                 guard
                     let format = ConfigDocumentFormat.parse(
-                        Self.queryParameter("format", in: requestURI))
+                        Self.queryParameter("format", in: requestURI)
+                    )
                 else {
                     respondError(status: .badRequest, message: "`format` must be yaml or json.")
                     return
@@ -2359,7 +2375,8 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             case .schema:
                 guard
                     let format = ConfigDocumentFormat.parse(
-                        Self.queryParameter("format", in: requestURI))
+                        Self.queryParameter("format", in: requestURI)
+                    )
                 else {
                     respondError(status: .badRequest, message: "`format` must be yaml or json.")
                     return
@@ -2371,14 +2388,16 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                         body: Self.configAdminBody([
                             "schema": ConfigSchemaReference.text,
                             "sections": ConfigSectionID.allNames,
-                        ]))
+                        ])
+                    )
                 case .json:
                     respond(
                         status: .ok,
                         body: Self.configAdminBody([
                             "json_schema": ConfigManifest.jsonSchema(),
                             "sections": ConfigSectionID.allNames,
-                        ]))
+                        ])
+                    )
                 }
 
             case .plan, .apply:
@@ -2541,18 +2560,21 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 var notes: [String] = []
                 if !cancelled.isEmpty {
                     notes.append(
-                        "\(cancelled.count) change(s) were cancelled by the user and did not land.")
+                        "\(cancelled.count) change(s) were cancelled by the user and did not land."
+                    )
                 }
                 let needsAction = results.filter { $0.status == .needsUserAction }
                 if !needsAction.isEmpty {
                     notes.append(
                         "\(needsAction.count) change(s) need a step finished in the Nuo app "
-                            + "(credentials never travel through this endpoint).")
+                            + "(credentials never travel through this endpoint)."
+                    )
                 }
                 if !started.isEmpty {
                     notes.append(
                         "\(started.count) download(s) started — poll `osaurus status` "
-                            + "or the app for completion.")
+                            + "or the app for completion."
+                    )
                 }
                 if !notes.isEmpty { payload["note"] = notes.joined(separator: " ") }
                 respond(status: .ok, body: Self.configAdminBody(payload))
@@ -2593,7 +2615,12 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 [("Content-Type", "application/json; charset=utf-8")] + cors
             hop {
                 logSelf.sendResponse(
-                    context: ctx.value, version: version, status: status, headers: headers, body: body)
+                    context: ctx.value,
+                    version: version,
+                    status: status,
+                    headers: headers,
+                    body: body
+                )
             }
             logSelf.logRequest(
                 method: method,
@@ -2613,7 +2640,8 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         guard isLoopback else {
             respondError(
                 status: .forbidden,
-                message: "/admin/import/* is restricted to local (loopback) callers. Run `osaurus import` on this Mac.")
+                message: "/admin/import/* is restricted to local (loopback) callers. Run `osaurus import` on this Mac."
+            )
             return
         }
         guard !parsedBody.data.isEmpty, parsedBody.data.count <= 256 * 1024,
@@ -2638,10 +2666,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     return ImportOperation(action: action, kind: kind, name: name, explicit: true)
                 }
                 let checked = await PendingImportProcessor.shared.plan(
-                    bundleAt: URL(fileURLWithPath: bundlePath, isDirectory: true), operations: operations)
+                    bundleAt: URL(fileURLWithPath: bundlePath, isDirectory: true),
+                    operations: operations
+                )
                 respond(
                     status: .ok,
-                    body: Self.jsonObjectString(["issues": checked.issues, "warnings": checked.warnings]))
+                    body: Self.jsonObjectString(["issues": checked.issues, "warnings": checked.warnings])
+                )
                 return
             }
 
@@ -2652,7 +2683,8 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             guard let result = await PendingImportProcessor.shared.process(requestId: id) else {
                 respondError(
                     status: .unprocessableEntity,
-                    message: "No queued import request \(id). It may have been cancelled with `osaurus import remove`.")
+                    message: "No queued import request \(id). It may have been cancelled with `osaurus import remove`."
+                )
                 return
             }
             guard let data = try? ImportQueue.encoder().encode(result) else {
@@ -2783,8 +2815,10 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             "block_disk_max_size_percent": cache.blockDisk.maxSizePercent as Any? ?? NSNull(),
             "block_disk_requested_size_gb": cache.blockDisk.maxSizeGB as Any? ?? NSNull(),
             "block_disk_max_size_gb": ModelRuntime.diskCacheCap(
-                for: cache, directory: ModelRuntime.cacheDiskDirectoryOverride(for: cache)
-                    ?? OsaurusPaths.diskKVCache()).capGB,
+                for: cache,
+                directory: ModelRuntime.cacheDiskDirectoryOverride(for: cache)
+                    ?? OsaurusPaths.diskKVCache()
+            ).capGB,
             "block_disk_directory": cache.blockDisk.directory as Any? ?? NSNull(),
             "legacy_disk_enabled": cache.legacyDisk.enabled,
             "live_kv_codec": cache.liveKVCodec.rawValue,
@@ -4159,7 +4193,9 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
     ) -> (code: String, message: String)? {
         guard authedAudience != nil, !authedScopeIsMaster else { return nil }
         if let inferenceRejection = Self.peerInferenceRouteRejection(
-            method: method, path: path, peerInferenceEnabled: peerInferenceEnabled
+            method: method,
+            path: path,
+            peerInferenceEnabled: peerInferenceEnabled
         ) {
             return inferenceRejection
         }
@@ -4292,12 +4328,14 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             }
             return false
         default:
-            return false }
+            return false
+        }
     }
 
     static func dispatchSessionKey(_ supplied: String?, audience: String?, keyNonce: String?) -> String? {
         guard let supplied else {
-                return nil }
+            return nil
+        }
         guard let audience else { return supplied }
         guard let keyNonce, !keyNonce.isEmpty else { return nil }
         // Encode a tuple: separators in user input cannot collide with scope.
@@ -5075,7 +5113,10 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             var headers = [("Content-Type", "application/json; charset=utf-8")]
             headers.append(contentsOf: cors)
             sendResponse(
-                context: context, version: head.version, status: .forbidden, headers: headers,
+                context: context,
+                version: head.version,
+                status: .forbidden,
+                headers: headers,
                 body: #"{"error":"lan_only"}"#
             )
             return
@@ -5100,8 +5141,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 headers.append(contentsOf: cors)
                 self.sendResponse(context: ctx.value, version: head.version, status: .ok, headers: headers, body: body)
                 self.logRequest(
-                    method: "GET", path: path, userAgent: userAgent, requestBody: nil,
-                    responseBody: body, responseStatus: 200, startTime: startTime
+                    method: "GET",
+                    path: path,
+                    userAgent: userAgent,
+                    requestBody: nil,
+                    responseBody: body,
+                    responseStatus: 200,
+                    startTime: startTime
                 )
             }
         }
@@ -5457,8 +5503,11 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 steps: item.imageDefaultSteps,
                 guidance: item.imageDefaultGuidance.map { Double($0) }
             )
-            limits = ImageHTTPParameterBuilder.limits(canonicalName: item.imageCanonicalName,
-                capabilities: caps, runtime: item.imageRequestLimits)
+            limits = ImageHTTPParameterBuilder.limits(
+                canonicalName: item.imageCanonicalName,
+                capabilities: caps,
+                runtime: item.imageRequestLimits
+            )
             maxGuidance = 20
         }
     }
@@ -5469,7 +5518,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         isLoopbackConnection(context) || stateRef.value.authedScopeIsMaster
     }
 
-    private func sendOwnerOnlyForbidden(head: HTTPRequestHead, context: ChannelHandlerContext, path: String, startTime: Date, userAgent: String?) {
+    private func sendOwnerOnlyForbidden(
+        head: HTTPRequestHead,
+        context: ChannelHandlerContext,
+        path: String,
+        startTime: Date,
+        userAgent: String?
+    ) {
         var headers = [("Content-Type", "application/json; charset=utf-8")]
         headers.append(contentsOf: stateRef.value.corsHeaders)
         let body = #"{"error":"owner_only","message":"Only this Mac's owner can do that."}"#
@@ -5494,7 +5549,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         userAgent: String?
     ) {
         guard callerOwnsThisMac(context) else {
-            sendOwnerOnlyForbidden(head: head, context: context, path: "/models/picker", startTime: startTime, userAgent: userAgent)
+            sendOwnerOnlyForbidden(
+                head: head,
+                context: context,
+                path: "/models/picker",
+                startTime: startTime,
+                userAgent: userAgent
+            )
             return
         }
         let loop = context.eventLoop
@@ -5511,7 +5572,8 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             let began = clock.now
             let allItems = await ModelPickerItemCache.shared.currentItems()
             let gathered = clock.now
-            let items = allItems
+            let items =
+                allItems
                 .filter { $0.isLikelyChatCapable || $0.isPhoneImageModel || PickerCloudImageDTO($0) != nil }
             let favorites = await MainActor.run { FavoriteModelsStore.shared.favoriteKeys }
             let privacyConfig = PrivacyFilterStore.snapshot()
@@ -6751,7 +6813,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             )
             return
         }
-        if requiresOwnerChannel(head: head, context: context, path: "/agents", startTime: startTime, userAgent: userAgent) {
+        if requiresOwnerChannel(
+            head: head,
+            context: context,
+            path: "/agents",
+            startTime: startTime,
+            userAgent: userAgent
+        ) {
             return
         }
         let cors = stateRef.value.corsHeaders
@@ -6775,7 +6843,10 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             data = Data(body.readBytes(length: body.readableBytes) ?? [])
         }
         guard let request = try? JSONDecoder().decode(CreateAgentRequest.self, from: data) else {
-            reply(.badRequest, #"{"error":"bad_request","message":"Expected {name, description?, system_prompt?, model?}"}"#)
+            reply(
+                .badRequest,
+                #"{"error":"bad_request","message":"Expected {name, description?, system_prompt?, model?}"}"#
+            )
             return
         }
         let name = request.name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -7130,7 +7201,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             hop {
                 var headers = [("Content-Type", "application/json; charset=utf-8")]
                 headers.append(contentsOf: cors)
-                self.sendResponse(context: ctx.value, version: head.version, status: status, headers: headers, body: json)
+                self.sendResponse(
+                    context: ctx.value,
+                    version: head.version,
+                    status: status,
+                    headers: headers,
+                    body: json
+                )
                 self.logRequest(
                     method: "POST",
                     path: path,
@@ -7281,7 +7358,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             hop {
                 var headers = [("Content-Type", "application/json; charset=utf-8")]
                 headers.append(contentsOf: cors)
-                self.sendResponse(context: ctx.value, version: head.version, status: status, headers: headers, body: json)
+                self.sendResponse(
+                    context: ctx.value,
+                    version: head.version,
+                    status: status,
+                    headers: headers,
+                    body: json
+                )
                 self.logRequest(
                     method: "POST",
                     path: path,
@@ -7591,7 +7674,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         userAgent: String?
     ) {
         guard callerOwnsThisMac(context) else {
-            sendOwnerOnlyForbidden(head: head, context: context, path: "/projects", startTime: startTime, userAgent: userAgent)
+            sendOwnerOnlyForbidden(
+                head: head,
+                context: context,
+                path: "/projects",
+                startTime: startTime,
+                userAgent: userAgent
+            )
             return
         }
         let cors = stateRef.value.corsHeaders
@@ -7614,7 +7703,9 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 )
             }
             let json =
-                (try? JSONEncoder.osaurusCanonical().encode(ProjectsResponse(projects: projects, plugins: plugins, workspaces: workspaces)))
+                (try? JSONEncoder.osaurusCanonical().encode(
+                    ProjectsResponse(projects: projects, plugins: plugins, workspaces: workspaces)
+                ))
                 .map { String(decoding: $0, as: UTF8.self) } ?? #"{"projects":[]}"#
             hop {
                 var headers = [("Content-Type", "application/json; charset=utf-8")]
@@ -7749,7 +7840,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         userAgent: String?
     ) {
         guard callerOwnsThisMac(context) else {
-            sendOwnerOnlyForbidden(head: head, context: context, path: "/sessions", startTime: startTime, userAgent: userAgent)
+            sendOwnerOnlyForbidden(
+                head: head,
+                context: context,
+                path: "/sessions",
+                startTime: startTime,
+                userAgent: userAgent
+            )
             return
         }
         let query = Self.queryItems(from: head.uri)
@@ -9455,7 +9552,8 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         }
 
         func replyRejected(status: Int, message rawMessage: String) {
-            let message = rawMessage
+            let message =
+                rawMessage
                 .replacingOccurrences(of: "\\", with: "")
                 .replacingOccurrences(of: "\"", with: "'")
             reply(
@@ -9723,10 +9821,17 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         let logUserAgent = userAgent
 
         guard method == expectedMethod else {
-            let body = #"{"error":{"code":"method_not_allowed","message":"Use \#(expectedMethod.rawValue) for this channel route.","type":"invalid_request_error"}}"#
+            let body =
+                #"{"error":{"code":"method_not_allowed","message":"Use \#(expectedMethod.rawValue) for this channel route.","type":"invalid_request_error"}}"#
             var headers = [("Content-Type", "application/json; charset=utf-8"), ("Allow", expectedMethod.rawValue)]
             headers.append(contentsOf: cors)
-            sendResponse(context: context, version: head.version, status: .methodNotAllowed, headers: headers, body: body)
+            sendResponse(
+                context: context,
+                version: head.version,
+                status: .methodNotAllowed,
+                headers: headers,
+                body: body
+            )
             logRequest(
                 method: method.rawValue,
                 path: path,
@@ -9752,10 +9857,12 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         // verification header IS the credential.
         let redactedHeaders = AgentChannelWebhookIngress.redactedHeaders(headerMap)
         let logRequestBody: String? = {
-            var summary: [String: Any] = ["headers": redactedHeaders.filter { key, _ in
-                let lowered = key.lowercased()
-                return lowered.hasPrefix("x-osaurus") || lowered == "content-type" || lowered == "idempotency-key"
-            }]
+            var summary: [String: Any] = [
+                "headers": redactedHeaders.filter { key, _ in
+                    let lowered = key.lowercased()
+                    return lowered.hasPrefix("x-osaurus") || lowered == "content-type" || lowered == "idempotency-key"
+                }
+            ]
             summary["body_bytes"] = data.count
             return (try? JSONSerialization.data(withJSONObject: summary, options: [.sortedKeys]))
                 .map { String(decoding: $0, as: UTF8.self) }
@@ -9884,7 +9991,8 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             let pickerItems = await ModelPickerItemCache.shared.currentItems()
             let items = agents.map { agent in
                 let modelId = effectiveModels[agent.id] ?? agent.defaultModel
-                let supportsVision = modelId.map { ChatSession.modelSupportsImages(modelId: $0, pickerItems: pickerItems) } ?? false
+                let supportsVision =
+                    modelId.map { ChatSession.modelSupportsImages(modelId: $0, pickerItems: pickerItems) } ?? false
                 let supportsThinking =
                     modelId.flatMap { ModelProfileRegistry.profile(for: $0)?.thinkingOption } != nil
                 return AgentListItem(
@@ -9904,8 +10012,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     updated_at: formatter.string(from: agent.updatedAt),
                     address: agent.id == Agent.defaultId ? connectAddress : agent.agentAddress?.lowercased(),
                     relay_url: relayEnabled.contains(agent.id)
-                        ? agent.agentAddress.map(RelayTunnelManager.publicURL(forAddress:)) : nil
-                    ,
+                        ? agent.agentAddress.map(RelayTunnelManager.publicURL(forAddress:)) : nil,
                     custom_avatar: agent.customAvatarURL != nil ? true : nil,
                     system_prompt: nil
                 )
@@ -10036,7 +10143,8 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     AgentManager.shared.effectiveModel(for: agent.id)
                 } ?? agent.defaultModel
             let pickerItems = await ModelPickerItemCache.shared.currentItems()
-            let supportsVision = effectiveModelId.map { ChatSession.modelSupportsImages(modelId: $0, pickerItems: pickerItems) } ?? false
+            let supportsVision =
+                effectiveModelId.map { ChatSession.modelSupportsImages(modelId: $0, pickerItems: pickerItems) } ?? false
             let supportsThinking =
                 effectiveModelId.flatMap { ModelProfileRegistry.profile(for: $0)?.thinkingOption } != nil
             // Same stored-memory count as the `/agents` listing (episodes +
@@ -10064,8 +10172,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 created_at: formatter.string(from: agent.createdAt),
                 updated_at: formatter.string(from: agent.updatedAt),
                 address: agent.agentAddress?.lowercased(),
-                relay_url: relayOn ? agent.agentAddress.map(RelayTunnelManager.publicURL(forAddress:)) : nil
-                ,
+                relay_url: relayOn ? agent.agentAddress.map(RelayTunnelManager.publicURL(forAddress:)) : nil,
                 custom_avatar: agent.customAvatarURL != nil ? true : nil,
                 system_prompt: nil
             )
@@ -11133,11 +11240,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     }
                     iterationReq.generation.reasoningEffort = req.reasoning_effort
                     iterationReq.context.isAgentRequest = true
-                    iterationReq.context.idempotencyKey = "\(idempotencyBase)-s\(msgs.count)-"
+                    iterationReq.context.idempotencyKey =
+                        "\(idempotencyBase)-s\(msgs.count)-"
                         + AgentToolLoop.stepIdempotencyFingerprint(messages: msgs)
                     responseContent = ""
                     var contentCoalescer = Self.StreamDeltaCoalescer(
-                        interval: ServerRuntimeSettingsStore.snapshot().generation.streamInterval)
+                        interval: ServerRuntimeSettingsStore.snapshot().generation.streamInterval
+                    )
                     if let inboundRun {
                         Task { @MainActor in InboundSharedRunBridge.shared.step(inboundRun.handle, "Thinking…") }
                     }
@@ -11180,60 +11289,125 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                             }
                         case .reasoningDelta(let reasoning):
                             if let inboundRun {
-                                await MainActor.run { InboundSharedRunBridge.shared.streamDelta(inboundRun.handle, reasoning: reasoning) }
+                                await MainActor.run {
+                                    InboundSharedRunBridge.shared.streamDelta(inboundRun.handle, reasoning: reasoning)
+                                }
                             }
                             if let pending = contentCoalescer.flush() {
-                                hop { writerBound.value.writeContent(pending, model: model, responseId: responseId, created: created, context: ctx.value) }
+                                hop {
+                                    writerBound.value.writeContent(
+                                        pending,
+                                        model: model,
+                                        responseId: responseId,
+                                        created: created,
+                                        context: ctx.value
+                                    )
+                                }
                             }
-                            hop { writerBound.value.writeReasoning(reasoning, model: model, responseId: responseId, created: created, context: ctx.value) }
+                            hop {
+                                writerBound.value.writeReasoning(
+                                    reasoning,
+                                    model: model,
+                                    responseId: responseId,
+                                    created: created,
+                                    context: ctx.value
+                                )
+                            }
                         case .outputTextDelta(let text):
                             responseContent += text
                             loggedResponseText += text
                             if let inboundRun {
-                                await MainActor.run { InboundSharedRunBridge.shared.streamDelta(inboundRun.handle, content: text) }
+                                await MainActor.run {
+                                    InboundSharedRunBridge.shared.streamDelta(inboundRun.handle, content: text)
+                                }
                             }
                             if let inboundRun, !inboundStepMarkedWriting {
                                 inboundStepMarkedWriting = true
                                 Task { @MainActor in InboundSharedRunBridge.shared.step(inboundRun.handle, "Writing…") }
                             }
                             if let chunk = contentCoalescer.append(text) {
-                                hop { writerBound.value.writeContent(chunk, model: model, responseId: responseId, created: created, context: ctx.value) }
+                                hop {
+                                    writerBound.value.writeContent(
+                                        chunk,
+                                        model: model,
+                                        responseId: responseId,
+                                        created: created,
+                                        context: ctx.value
+                                    )
+                                }
                             }
                         case .prefillProgress(let progress):
-                            hop { writerBound.value.writePrefillProgress(progress, model: model, responseId: responseId,
-                                created: created, context: ctx.value) }
+                            hop {
+                                writerBound.value.writePrefillProgress(
+                                    progress,
+                                    model: model,
+                                    responseId: responseId,
+                                    created: created,
+                                    context: ctx.value
+                                )
+                            }
                         case .responseCompleted: break generation
                         default: break
                         }
                     }
                     if let pending = contentCoalescer.flush() {
-                        hop { writerBound.value.writeContent(pending, model: model, responseId: responseId, created: created, context: ctx.value) }
+                        hop {
+                            writerBound.value.writeContent(
+                                pending,
+                                model: model,
+                                responseId: responseId,
+                                created: created,
+                                context: ctx.value
+                            )
+                        }
                     }
                     let response = try accumulator.result()
-                    runUsage.append(promptTokens: response.inputTokenCount, completionTokens: response.completion.tokenCount,
+                    runUsage.append(
+                        promptTokens: response.inputTokenCount,
+                        completionTokens: response.completion.tokenCount,
                         tokensPerSecond: response.completion.tokensPerSecond,
-                        cachedPromptTokens: response.completion.cachedInputTokenCount)
+                        cachedPromptTokens: response.completion.cachedInputTokenCount
+                    )
                     switch response.completion.status {
                     case .cancelled:
-                        throw NSError(domain: "OsaurusUpstreamCancellation", code: 499,
-                            userInfo: [NSLocalizedDescriptionKey: "The upstream model or provider cancelled generation."])
+                        throw NSError(
+                            domain: "OsaurusUpstreamCancellation",
+                            code: 499,
+                            userInfo: [
+                                NSLocalizedDescriptionKey: "The upstream model or provider cancelled generation."
+                            ]
+                        )
                     case .incomplete:
                         if response.completion.stopReason == "length" { return .lengthExhausted }
                         throw ResponsesGenerationResult.CollectionError.incomplete(response.completion.stopReason)
                     case .completed: break
                     }
                     let calls = response.completion.dispatchableFunctionCalls
-                    let assistant = SecretArgumentScrubber.recordedAssistantMessage(try response.completedAssistantInput())
+                    let assistant = SecretArgumentScrubber.recordedAssistantMessage(
+                        try response.completedAssistantInput()
+                    )
                     if !calls.isEmpty {
                         try batchHistory.begin(assistant)
-                        return .toolCalls(calls.map { ServiceToolInvocation(toolName: $0.name,
-                            jsonArguments: $0.arguments, toolCallId: $0.callID, geminiThoughtSignature: $0.geminiThoughtSignature) })
+                        return .toolCalls(
+                            calls.map {
+                                ServiceToolInvocation(
+                                    toolName: $0.name,
+                                    jsonArguments: $0.arguments,
+                                    toolCallId: $0.callID,
+                                    geminiThoughtSignature: $0.geminiThoughtSignature
+                                )
+                            }
+                        )
                     }
                     let step = AgentLoopModelStep.classifyTerminal(
                         contentIsBlank: response.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                         thinkingIsBlank: response.reasoning.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-                        stopReason: response.completion.stopReason, unclosedReasoning: response.completion.unclosedReasoning,
-                        requiresVisibleFinalResponse: true, toolsWereOffered: !tools.isEmpty, content: response.text)
+                        stopReason: response.completion.stopReason,
+                        unclosedReasoning: response.completion.unclosedReasoning,
+                        requiresVisibleFinalResponse: true,
+                        toolsWereOffered: !tools.isEmpty,
+                        content: response.text
+                    )
                     if case .finalResponse = step {
                         messages.append(assistant)
                         await mirrorNewMessages(messages)
@@ -11487,31 +11661,31 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 let callPrivacy = remoteReviewer ? req.osaurus_privacy.flatMap(VoiceCallPrivacy.init(rawValue:)) : nil
                 let runResult = try await ChatExecutionContext.$isVoiceCall
                     .withValue(voiceCall) {
-                    try await ChatExecutionContext.$voiceCallPrivacy
-                    .withValue(callPrivacy) {
-                    try await ChatExecutionContext.$hasRemoteReviewer
-                    .withValue(remoteReviewer) {
-                    try await ChatExecutionContext.$workspaceBillingContext
-                    .withValue(workspaceBilling) {
-                        try await ChatExecutionContext.$currentFolderRoot
-                            .withValue(hostFolder?.url) {
-                                try await ChatExecutionContext.$authenticatedHostFolderRoot
-                                    .withValue(hostFolder?.url) {
-                                        try await AgentToolLoop.run(
-                                            policy: AgentLoopPolicy(
-                                                maxIterations: maxIterations,
-                                                stopOnToolRejection: false,
-                                                dedupeNoticeEnabled: false,
-                                                maxDataMovementSteps: min(16, maxIterations)
-                                            ),
-                                            state: taskState,
-                                            hooks: hooks
-                                        )
+                        try await ChatExecutionContext.$voiceCallPrivacy
+                            .withValue(callPrivacy) {
+                                try await ChatExecutionContext.$hasRemoteReviewer
+                                    .withValue(remoteReviewer) {
+                                        try await ChatExecutionContext.$workspaceBillingContext
+                                            .withValue(workspaceBilling) {
+                                                try await ChatExecutionContext.$currentFolderRoot
+                                                    .withValue(hostFolder?.url) {
+                                                        try await ChatExecutionContext.$authenticatedHostFolderRoot
+                                                            .withValue(hostFolder?.url) {
+                                                                try await AgentToolLoop.run(
+                                                                    policy: AgentLoopPolicy(
+                                                                        maxIterations: maxIterations,
+                                                                        stopOnToolRejection: false,
+                                                                        dedupeNoticeEnabled: false,
+                                                                        maxDataMovementSteps: min(16, maxIterations)
+                                                                    ),
+                                                                    state: taskState,
+                                                                    hooks: hooks
+                                                                )
+                                                            }
+                                                    }
+                                            }
                                     }
                             }
-                    }
-                    }
-                    }
                     }
                 exitState = runResult.exit
                 RemoteAgentRunLog.server(
@@ -11667,7 +11841,10 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 if !returnedArtifacts.isEmpty {
                     writerBound.value.writeArtifactsChunk(
                         returnedArtifacts,
-                        model: model, responseId: responseId, created: created, context: ctx.value
+                        model: model,
+                        responseId: responseId,
+                        created: created,
+                        context: ctx.value
                     )
                 }
                 writerBound.value.writeFinish(model, responseId: responseId, created: created, context: ctx.value)
@@ -11677,7 +11854,10 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                         completionTokens: finalUsage.completionTokens,
                         tokensPerSecond: finalUsage.tokensPerSecond,
                         cachedPromptTokens: finalUsage.cachedPromptTokens,
-                        model: model, responseId: responseId, created: created, context: ctx.value
+                        model: model,
+                        responseId: responseId,
+                        created: created,
+                        context: ctx.value
                     )
                 }
                 writerBound.value.writeEnd(ctx.value)
@@ -12189,7 +12369,9 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 // Agent-scoped keys may only poll / cancel the tasks they
                 // created (see `DispatchTaskOwnership`).
                 if let authedAudience, !authedScopeIsMaster, let authedKeyNonce {
-                    DispatchTaskOwnership.shared.record(taskId: handle.id, audience: authedAudience,
+                    DispatchTaskOwnership.shared.record(
+                        taskId: handle.id,
+                        audience: authedAudience,
                         keyNonce: authedKeyNonce
                     )
                 }
@@ -12548,29 +12730,51 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
     // MARK: - Embeddings
 
     private func handleDecisionModels(head: HTTPRequestHead, context: ChannelHandlerContext) {
-        let hidden = Self.peerModelCatalogIsHidden(authedAudience: stateRef.value.authedAudience,
-            authedScopeIsMaster: stateRef.value.authedScopeIsMaster, peerInferenceEnabled: peerInferenceEnabled)
+        let hidden = Self.peerModelCatalogIsHidden(
+            authedAudience: stateRef.value.authedAudience,
+            authedScopeIsMaster: stateRef.value.authedScopeIsMaster,
+            peerInferenceEnabled: peerInferenceEnabled
+        )
         let cors = stateRef.value.corsHeaders
         let loop = context.eventLoop
         let ctx = NIOLoopBound(context, eventLoop: loop)
         let hop = Self.makeHop(channel: context.channel, loop: loop)
         runRequestTask {
-            let models: [JSONValue] = hidden ? [] : ModelManager.discoverLocalModels().filter {
-                $0.isDecision && ModelExposureStore.shared.isExposed(
-                    id: DecisionService.exposureID(for: $0.id), kind: .local)
-            }.map { model in
-                .object(["id": .string(model.id), "object": .string("model"),
-                    "capabilities": .array([.string("decision")]), "generates_text": .bool(false)])
-            }
+            let models: [JSONValue] =
+                hidden
+                ? []
+                : ModelManager.discoverLocalModels().filter {
+                    $0.isDecision
+                        && ModelExposureStore.shared.isExposed(
+                            id: DecisionService.exposureID(for: $0.id),
+                            kind: .local
+                        )
+                }.map { model in
+                    .object([
+                        "id": .string(model.id), "object": .string("model"),
+                        "capabilities": .array([.string("decision")]), "generates_text": .bool(false),
+                    ])
+                }
             let payload = JSONValue.object(["object": .string("list"), "data": .array(models)])
             let body = String(decoding: (try? JSONEncoder().encode(payload)) ?? Data(), as: UTF8.self)
-            hop { self.sendResponse(context: ctx.value, version: head.version, status: .ok,
-                headers: [("Content-Type", "application/json; charset=utf-8")] + cors, body: body) }
+            hop {
+                self.sendResponse(
+                    context: ctx.value,
+                    version: head.version,
+                    status: .ok,
+                    headers: [("Content-Type", "application/json; charset=utf-8")] + cors,
+                    body: body
+                )
+            }
         }
     }
 
-    private func handleSystemOne(head: HTTPRequestHead, context: ChannelHandlerContext,
-        startTime: Date, userAgent: String?) {
+    private func handleSystemOne(
+        head: HTTPRequestHead,
+        context: ChannelHandlerContext,
+        startTime: Date,
+        userAgent: String?
+    ) {
         var buffer = stateRef.value.requestBodyBuffer
         let count = buffer?.readableBytes ?? 0
         let data = Data(buffer?.readBytes(length: count) ?? [])
@@ -12583,23 +12787,50 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 let result = try await DecisionService.shared.respond(data: data)
                 let body = String(decoding: result, as: UTF8.self)
                 hop {
-                    self.sendResponse(context: ctx.value, version: head.version, status: .ok,
-                        headers: [("Content-Type", "application/json; charset=utf-8")] + cors, body: body)
+                    self.sendResponse(
+                        context: ctx.value,
+                        version: head.version,
+                        status: .ok,
+                        headers: [("Content-Type", "application/json; charset=utf-8")] + cors,
+                        body: body
+                    )
                 }
-                self.logRequest(method: "POST", path: "/systemone", userAgent: userAgent,
-                    requestBody: nil, responseBody: body,
-                    responseStatus: 200, startTime: startTime)
+                self.logRequest(
+                    method: "POST",
+                    path: "/systemone",
+                    userAgent: userAgent,
+                    requestBody: nil,
+                    responseBody: body,
+                    responseStatus: 200,
+                    startTime: startTime
+                )
             } catch {
-                let payload = JSONValue.object(["error": .object(["type": .string("decision_error"),
-                    "message": .string(error.localizedDescription)])])
+                let payload = JSONValue.object([
+                    "error": .object([
+                        "type": .string("decision_error"),
+                        "message": .string(error.localizedDescription),
+                    ])
+                ])
                 let body = String(decoding: (try? JSONEncoder().encode(payload)) ?? Data(), as: UTF8.self)
                 hop {
-                    self.sendResponse(context: ctx.value, version: head.version, status: .badRequest,
-                        headers: [("Content-Type", "application/json; charset=utf-8")] + cors, body: body)
+                    self.sendResponse(
+                        context: ctx.value,
+                        version: head.version,
+                        status: .badRequest,
+                        headers: [("Content-Type", "application/json; charset=utf-8")] + cors,
+                        body: body
+                    )
                 }
-                self.logRequest(method: "POST", path: "/systemone", userAgent: userAgent,
-                    requestBody: nil, responseBody: body, responseStatus: 400, startTime: startTime,
-                    errorMessage: error.localizedDescription)
+                self.logRequest(
+                    method: "POST",
+                    path: "/systemone",
+                    userAgent: userAgent,
+                    requestBody: nil,
+                    responseBody: body,
+                    responseStatus: 400,
+                    startTime: startTime,
+                    errorMessage: error.localizedDescription
+                )
             }
         }
     }
@@ -12653,24 +12884,33 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             try EmbeddingService.validateAPIModel(request.model)
         } catch {
             let message = error.localizedDescription
-            let payload: [String: Any] = ollamaFormat
+            let payload: [String: Any] =
+                ollamaFormat
                 ? ["error": message]
-                : ["error": [
-                    "message": message, "type": "invalid_request_error",
-                    "param": "model", "code": "unsupported_embedding_model",
-                ]]
+                : [
+                    "error": [
+                        "message": message, "type": "invalid_request_error",
+                        "param": "model", "code": "unsupported_embedding_model",
+                    ]
+                ]
             // Model IDs are caller-controlled; encode rather than interpolate
             // so quotes, newlines and backslashes remain valid JSON.
-            let json = (try? JSONSerialization.data(withJSONObject: payload))
+            let json =
+                (try? JSONSerialization.data(withJSONObject: payload))
                 .map { String(decoding: $0, as: UTF8.self) }
                 ?? #"{"error":"Unsupported embedding model"}"#
             var headers = [("Content-Type", "application/json; charset=utf-8")]
             headers.append(contentsOf: stateRef.value.corsHeaders)
             sendResponse(context: context, version: head.version, status: .badRequest, headers: headers, body: json)
             logRequest(
-                method: "POST", path: logPath, userAgent: userAgent,
-                requestBody: requestBodyString, responseBody: json, responseStatus: 400,
-                startTime: startTime, errorMessage: message
+                method: "POST",
+                path: logPath,
+                userAgent: userAgent,
+                requestBody: requestBodyString,
+                responseBody: json,
+                responseStatus: 400,
+                startTime: startTime,
+                errorMessage: message
             )
             return
         }
@@ -12920,9 +13160,19 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
     /// Build the per-image result object honoring `response_format`.
     private static func imageResult(for image: GeneratedImage, responseFormat: String) -> ImageResultDTO {
         if responseFormat == "b64_json", let data = try? Data(contentsOf: image.url) {
-            return ImageResultDTO(url: nil, b64_json: data.base64EncodedString(), seed: image.seed, effective_parameters: image.effectiveParameters)
+            return ImageResultDTO(
+                url: nil,
+                b64_json: data.base64EncodedString(),
+                seed: image.seed,
+                effective_parameters: image.effectiveParameters
+            )
         }
-        return ImageResultDTO(url: image.url.absoluteString, b64_json: nil, seed: image.seed, effective_parameters: image.effectiveParameters)
+        return ImageResultDTO(
+            url: image.url.absoluteString,
+            b64_json: nil,
+            seed: image.seed,
+            effective_parameters: image.effectiveParameters
+        )
     }
 
     static func imageErrorStatus(message: String, hfAuth: Bool) -> HTTPResponseStatus {
@@ -13051,11 +13301,17 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             return
         }
         if selectedTarget.backend != .local {
-            do { try ImageHTTPParameterBuilder.validateRemoteBatch(req) }
-            catch {
-                sendImageError(head: head, context: context, status: .badRequest,
-                    message: String(describing: error), path: "/images/generations",
-                    startTime: startTime, userAgent: userAgent, requestBody: loggedBody)
+            do { try ImageHTTPParameterBuilder.validateRemoteBatch(req) } catch {
+                sendImageError(
+                    head: head,
+                    context: context,
+                    status: .badRequest,
+                    message: String(describing: error),
+                    path: "/images/generations",
+                    startTime: startTime,
+                    userAgent: userAgent,
+                    requestBody: loggedBody
+                )
                 return
             }
             guard req.allow_remote_media_spend == true else {
@@ -13094,8 +13350,14 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             let phoneJob = phoneImageJob(req.osaurus_job_id, streaming: req.stream ?? false, context: context)
             if case .follow(let job) = phoneJob {
                 streamDetachedRun(
-                    job, after: 0, head: head, context: context, path: "/images/generations",
-                    startTime: startTime, userAgent: userAgent)
+                    job,
+                    after: 0,
+                    head: head,
+                    context: context,
+                    path: "/images/generations",
+                    startTime: startTime,
+                    userAgent: userAgent
+                )
                 return
             }
             handleRemoteImageGeneration(
@@ -13119,15 +13381,26 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         )
         if continuedSession != nil,
             requiresOwnerChannel(
-                head: head, context: context, path: "/images/generations", startTime: startTime, userAgent: userAgent)
+                head: head,
+                context: context,
+                path: "/images/generations",
+                startTime: startTime,
+                userAgent: userAgent
+            )
         {
             return
         }
         let phoneJob = phoneImageJob(req.osaurus_job_id, streaming: req.stream ?? false, context: context)
         if case .follow(let job) = phoneJob {
             streamDetachedRun(
-                job, after: 0, head: head, context: context, path: "/images/generations",
-                startTime: startTime, userAgent: userAgent)
+                job,
+                after: 0,
+                head: head,
+                context: context,
+                path: "/images/generations",
+                startTime: startTime,
+                userAgent: userAgent
+            )
             return
         }
         let jobID = phoneJob.started?.id ?? Self.shortId(prefix: "img")
@@ -13142,7 +13415,11 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             responseFormat: req.response_format ?? "url",
             jobID: jobID,
             onCompleted: Self.imageSessionAppender(
-                continuedSession, prompt: req.prompt, sourceImages: [], model: modelId),
+                continuedSession,
+                prompt: req.prompt,
+                sourceImages: [],
+                model: modelId
+            ),
             detached: phoneJob.started
         ) { await ImageGenerationService.shared.generateHTTP(req, modelID: modelId, jobID: jobID) }
     }
@@ -13300,7 +13577,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                         )
                     }
                     emit(ImageStreamEventDTO(type: "completed", job_id: jobID, images: results))
-                } catch where Task.isCancelled {
+                } catch  where Task.isCancelled {
                     // Stopped (`/images/cancel`): said as the local path says it.
                     status = 499
                     emit(ImageStreamEventDTO(type: "cancelled", job_id: jobID))
@@ -13374,9 +13651,15 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     startTime: startTime,
                     model: target.modelID,
                     details: Self.mediaActivityDetails(
-                        kind: "image", operation: "generate", backend: target.backend,
-                        count: generated.count, width: width, height: height,
-                        aspect: req.aspect_ratio, resolution: req.resolution)
+                        kind: "image",
+                        operation: "generate",
+                        backend: target.backend,
+                        count: generated.count,
+                        width: width,
+                        height: height,
+                        aspect: req.aspect_ratio,
+                        resolution: req.resolution
+                    )
                 )
             } catch {
                 let status = Self.mediaErrorStatus(error)
@@ -13458,10 +13741,16 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     startTime: startTime,
                     model: request.target.modelID,
                     details: Self.mediaActivityDetails(
-                        kind: "video", operation: "quote", backend: request.target.backend,
-                        count: nil, width: nil, height: nil,
-                        aspect: request.aspectRatio, resolution: request.resolution,
-                        extra: ["duration": request.duration, "quote_usd": String(format: "%.4f", quote.usd)])
+                        kind: "video",
+                        operation: "quote",
+                        backend: request.target.backend,
+                        count: nil,
+                        width: nil,
+                        height: nil,
+                        aspect: request.aspectRatio,
+                        resolution: request.resolution,
+                        extra: ["duration": request.duration, "quote_usd": String(format: "%.4f", quote.usd)]
+                    )
                 )
             } catch {
                 let status = Self.mediaErrorStatus(error)
@@ -13560,10 +13849,16 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     startTime: startTime,
                     model: request.target.modelID,
                     details: Self.mediaActivityDetails(
-                        kind: "video", operation: "generate", backend: request.target.backend,
-                        count: 1, width: nil, height: nil,
-                        aspect: request.aspectRatio, resolution: request.resolution,
-                        extra: ["duration": request.duration, "job_id": job.id.uuidString])
+                        kind: "video",
+                        operation: "generate",
+                        backend: request.target.backend,
+                        count: 1,
+                        width: nil,
+                        height: nil,
+                        aspect: request.aspectRatio,
+                        resolution: request.resolution,
+                        extra: ["duration": request.duration, "job_id": job.id.uuidString]
+                    )
                 )
             } catch {
                 let status = Self.mediaErrorStatus(error)
@@ -13838,15 +14133,26 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         )
         if continuedSession != nil,
             requiresOwnerChannel(
-                head: head, context: context, path: "/images/edits", startTime: startTime, userAgent: userAgent)
+                head: head,
+                context: context,
+                path: "/images/edits",
+                startTime: startTime,
+                userAgent: userAgent
+            )
         {
             return
         }
         let phoneJob = phoneImageJob(req.osaurus_job_id, streaming: req.stream ?? false, context: context)
         if case .follow(let job) = phoneJob {
             streamDetachedRun(
-                job, after: 0, head: head, context: context, path: "/images/edits",
-                startTime: startTime, userAgent: userAgent)
+                job,
+                after: 0,
+                head: head,
+                context: context,
+                path: "/images/edits",
+                startTime: startTime,
+                userAgent: userAgent
+            )
             return
         }
         let jobID = phoneJob.started?.id ?? Self.shortId(prefix: "img")
@@ -13862,16 +14168,30 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             jobID: jobID,
             model: editModelId,
             activityDetails: Self.mediaActivityDetails(
-                kind: "image", operation: "edit", backend: .local,
-                count: nil, width: nil, height: nil,
-                aspect: nil, resolution: nil,
-                extra: ["source_images": String(rawSources.count), "job_id": jobID]),
+                kind: "image",
+                operation: "edit",
+                backend: .local,
+                count: nil,
+                width: nil,
+                height: nil,
+                aspect: nil,
+                resolution: nil,
+                extra: ["source_images": String(rawSources.count), "job_id": jobID]
+            ),
             onCompleted: Self.imageSessionAppender(
-                continuedSession, prompt: req.prompt, sourceImages: sources, model: editModelId),
+                continuedSession,
+                prompt: req.prompt,
+                sourceImages: sources,
+                model: editModelId
+            ),
             detached: phoneJob.started
         ) {
-            await ImageGenerationService.shared.editHTTP(req, modelID: editModelId,
-                decodedSources: decodedSources, jobID: jobID)
+            await ImageGenerationService.shared.editHTTP(
+                req,
+                modelID: editModelId,
+                decodedSources: decodedSources,
+                jobID: jobID
+            )
         }
     }
 
@@ -13898,10 +14218,18 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             return
         }
         if let format = req.output_format,
-           !["png", "jpeg", "jpg", "webp"].contains(format.lowercased()) {
-            sendImageError(head: head, context: context, status: .badRequest,
+            !["png", "jpeg", "jpg", "webp"].contains(format.lowercased())
+        {
+            sendImageError(
+                head: head,
+                context: context,
+                status: .badRequest,
                 message: "Invalid output_format: use png, jpeg, jpg or webp as supported by the model",
-                path: "/images/upscale", startTime: startTime, userAgent: userAgent, requestBody: bodyString)
+                path: "/images/upscale",
+                startTime: startTime,
+                userAgent: userAgent,
+                requestBody: bodyString
+            )
             return
         }
         let params = ImageUpscaleParameters(
@@ -13925,9 +14253,16 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             jobID: jobID,
             model: req.model,
             activityDetails: Self.mediaActivityDetails(
-                kind: "image", operation: "upscale", backend: .local,
-                count: nil, width: nil, height: nil, aspect: nil, resolution: nil,
-                extra: ["scale": String(params.scale), "job_id": jobID])
+                kind: "image",
+                operation: "upscale",
+                backend: .local,
+                count: nil,
+                width: nil,
+                height: nil,
+                aspect: nil,
+                resolution: nil,
+                extra: ["scale": String(params.scale), "job_id": jobID]
+            )
         ) { ImageHTTPPreparedJob(stream: await ImageGenerationService.shared.upscale(params, jobID: jobID)) }
     }
 
@@ -14053,8 +14388,14 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                             emit(ImageStreamEventDTO(type: "preview", job_id: jobID, step: step, image: uri))
                         case .imageCompleted(let image, let index):
                             produced.append(image)
-                            emit(ImageStreamEventDTO(type: "image_completed", job_id: jobID,
-                                images: [Self.imageResult(for: image, responseFormat: responseFormat)], index: index))
+                            emit(
+                                ImageStreamEventDTO(
+                                    type: "image_completed",
+                                    job_id: jobID,
+                                    images: [Self.imageResult(for: image, responseFormat: responseFormat)],
+                                    index: index
+                                )
+                            )
                         case .completed(let images):
                             produced = images
                             await onCompleted?(images)
@@ -14087,7 +14428,9 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     startTime: startTime,
                     model: model,
                     details: ImageEffectiveParameters.activityDetails(
-                        activityDetails.merging(prepared.activityDetails) { _, actual in actual }, images: produced)
+                        activityDetails.merging(prepared.activityDetails) { _, actual in actual },
+                        images: produced
+                    )
                 )
             }
             return
@@ -14151,8 +14494,10 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 let status = Self.imageErrorStatus(message: failure.message, hfAuth: failure.hfAuth)
                 let response = ImagePartialFailureDTO(
                     error: .init(message: failure.message, type: "image_generation_error"),
-                    data: produced.map { Self.imageResult(for: $0, responseFormat: responseFormat) })
-                let body = (try? JSONEncoder.osaurusCanonical().encode(response))
+                    data: produced.map { Self.imageResult(for: $0, responseFormat: responseFormat) }
+                )
+                let body =
+                    (try? JSONEncoder.osaurusCanonical().encode(response))
                     .map { String(decoding: $0, as: UTF8.self) }
                     ?? #"{"error":{"message":"Image generation failed","type":"image_generation_error"}}"#
                 hop {
@@ -14192,7 +14537,9 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 self.sendResponse(context: ctx.value, version: head.version, status: .ok, headers: headers, body: json)
             }
             var details = ImageEffectiveParameters.activityDetails(
-                activityDetails.merging(prepared.activityDetails) { _, actual in actual }, images: produced)
+                activityDetails.merging(prepared.activityDetails) { _, actual in actual },
+                images: produced
+            )
             details["count"] = String(produced.count)
             logSelf.logRequest(
                 method: "POST",
@@ -14425,9 +14772,15 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                         writerBound.value.writeEnd(ctx.value)
                     }
                     logSelf.logRequest(
-                        method: "POST", path: "/completions", userAgent: logUserAgent,
-                        requestBody: logRequestBody, responseStatus: 200, startTime: startTime,
-                        model: model, finishReason: .error, errorMessage: error.localizedDescription
+                        method: "POST",
+                        path: "/completions",
+                        userAgent: logUserAgent,
+                        requestBody: logRequestBody,
+                        responseStatus: 200,
+                        startTime: startTime,
+                        model: model,
+                        finishReason: .error,
+                        errorMessage: error.localizedDescription
                     )
                     return
                 }
@@ -14677,19 +15030,35 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
     /// Choice admission uses the same side-effect-free canonical gate as the
     /// engine, before any streaming headers or inference slot are committed.
     private func rejectInvalidHTTPToolChoice(
-        _ request: ResponsesInferenceRequest, head: HTTPRequestHead,
-        context: ChannelHandlerContext, flavor: HTTPErrorFlavor,
-        path: String, startTime: Date, userAgent: String?, requestBody: String?
+        _ request: ResponsesInferenceRequest,
+        head: HTTPRequestHead,
+        context: ChannelHandlerContext,
+        flavor: HTTPErrorFlavor,
+        path: String,
+        startTime: Date,
+        userAgent: String?,
+        requestBody: String?
     ) -> Bool {
-        do { try ResponsesToolChoiceContract.preflight(request); return false }
-        catch {
+        do { try ResponsesToolChoiceContract.preflight(request); return false } catch {
             let status = Self.localRuntimeHTTPStatus(for: error)
-            sendResponse(context: context, version: head.version, status: status,
+            sendResponse(
+                context: context,
+                version: head.version,
+                status: status,
                 headers: [("Content-Type", "application/json; charset=utf-8")] + stateRef.value.corsHeaders,
-                body: Self.errorBody(flavor, message: error.localizedDescription))
-            logRequest(method: "POST", path: path, userAgent: userAgent, requestBody: requestBody,
-                responseStatus: Int(status.code), startTime: startTime, model: request.model,
-                finishReason: .error, errorMessage: error.localizedDescription)
+                body: Self.errorBody(flavor, message: error.localizedDescription)
+            )
+            logRequest(
+                method: "POST",
+                path: path,
+                userAgent: userAgent,
+                requestBody: requestBody,
+                responseStatus: Int(status.code),
+                startTime: startTime,
+                model: request.model,
+                finishReason: .error,
+                errorMessage: error.localizedDescription
+            )
             return true
         }
     }
@@ -14713,9 +15082,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         }
 
         if let reason = RequestValidator.rawResponseSchemaReason(data, responses: false) {
-            sendResponse(context: context, version: head.version, status: .badRequest,
+            sendResponse(
+                context: context,
+                version: head.version,
+                status: .badRequest,
                 headers: [("Content-Type", "application/json; charset=utf-8")],
-                body: Self.errorBody(.openai(type: "invalid_request_error"), message: reason))
+                body: Self.errorBody(.openai(type: "invalid_request_error"), message: reason)
+            )
             return
         }
 
@@ -14771,9 +15144,18 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             return
         }
 
-        if rejectInvalidHTTPToolChoice(ResponsesInferenceRequest(chatCompletion: req), head: head,
-            context: context, flavor: .openai(type: "invalid_request_error"), path: "/chat/completions",
-            startTime: startTime, userAgent: userAgent, requestBody: requestBodyString) { return }
+        if rejectInvalidHTTPToolChoice(
+            ResponsesInferenceRequest(chatCompletion: req),
+            head: head,
+            context: context,
+            flavor: .openai(type: "invalid_request_error"),
+            path: "/chat/completions",
+            startTime: startTime,
+            userAgent: userAgent,
+            requestBody: requestBodyString
+        ) {
+            return
+        }
 
         let accept = head.headers.first(name: "Accept") ?? ""
         let wantsSSE = (req.stream ?? false) || accept.contains("text/event-stream")
@@ -14929,13 +15311,24 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     httpTrace.set("http_enriched_message_count", enrichedReq.messages.count)
                     let prefixHash = ModelRuntime.computePrefixHash(
                         systemContent: enrichedReq.messages.first(where: { $0.role == "system" })?.content ?? "",
-                        tools: enrichedReq.tools ?? [])
-                    hop { writerBound.value.writeRole("assistant", model: model, responseId: responseId,
-                        created: created, prefixHash: prefixHash, context: ctx.value) }
+                        tools: enrichedReq.tools ?? []
+                    )
+                    hop {
+                        writerBound.value.writeRole(
+                            "assistant",
+                            model: model,
+                            responseId: responseId,
+                            created: created,
+                            prefixHash: prefixHash,
+                            context: ctx.value
+                        )
+                    }
                     httpTrace.mark("http_sse_role_written")
                     httpTrace.mark("http_stream_responses_start")
                     try Task.checkCancellation()
-                    let stream = try await self.chatEngine.streamResponses(request: ResponsesInferenceRequest(chatCompletion: enrichedReq))
+                    let stream = try await self.chatEngine.streamResponses(
+                        request: ResponsesInferenceRequest(chatCompletion: enrichedReq)
+                    )
                     httpTrace.mark("http_stream_responses_ready")
                     var accumulator = ResponsesGenerationAccumulator()
                     generation: for try await event in stream {
@@ -14948,17 +15341,49 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                             markSemanticDeltaIfConnected()
                             accumulatedReasoning += reasoning
                             if let pending = contentCoalescer.flush() {
-                                hop { writerBound.value.writeContent(pending, model: model, responseId: responseId, created: created, context: ctx.value) }
+                                hop {
+                                    writerBound.value.writeContent(
+                                        pending,
+                                        model: model,
+                                        responseId: responseId,
+                                        created: created,
+                                        context: ctx.value
+                                    )
+                                }
                             }
-                            hop { writerBound.value.writeReasoning(reasoning, model: model, responseId: responseId, created: created, context: ctx.value) }
+                            hop {
+                                writerBound.value.writeReasoning(
+                                    reasoning,
+                                    model: model,
+                                    responseId: responseId,
+                                    created: created,
+                                    context: ctx.value
+                                )
+                            }
                         case .prefillProgress(let progress):
-                            hop { writerBound.value.writePrefillProgress(progress, model: model, responseId: responseId, created: created, context: ctx.value) }
+                            hop {
+                                writerBound.value.writePrefillProgress(
+                                    progress,
+                                    model: model,
+                                    responseId: responseId,
+                                    created: created,
+                                    context: ctx.value
+                                )
+                            }
                         case .outputTextDelta(let text):
                             httpTrace.markFirstSemanticDelta("content")
                             markSemanticDeltaIfConnected()
                             accumulatedContent += text
                             if let chunk = contentCoalescer.append(text) {
-                                hop { writerBound.value.writeContent(chunk, model: model, responseId: responseId, created: created, context: ctx.value) }
+                                hop {
+                                    writerBound.value.writeContent(
+                                        chunk,
+                                        model: model,
+                                        responseId: responseId,
+                                        created: created,
+                                        context: ctx.value
+                                    )
+                                }
                             }
                         case .responseCompleted: break generation
                         default: break
@@ -14966,14 +15391,27 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     }
                     if disconnected.value { throw CancellationError() }
                     if let pending = contentCoalescer.flush() {
-                        hop { writerBound.value.writeContent(pending, model: model, responseId: responseId, created: created, context: ctx.value) }
+                        hop {
+                            writerBound.value.writeContent(
+                                pending,
+                                model: model,
+                                responseId: responseId,
+                                created: created,
+                                context: ctx.value
+                            )
+                        }
                     }
                     let response = try accumulator.result()
                     let completion = response.completion
                     switch completion.status {
                     case .cancelled:
-                        throw NSError(domain: "OsaurusUpstreamCancellation", code: 499,
-                            userInfo: [NSLocalizedDescriptionKey: "The upstream model or provider cancelled generation."])
+                        throw NSError(
+                            domain: "OsaurusUpstreamCancellation",
+                            code: 499,
+                            userInfo: [
+                                NSLocalizedDescriptionKey: "The upstream model or provider cancelled generation."
+                            ]
+                        )
                     case .incomplete:
                         guard completion.stopReason == "length" else {
                             throw ResponsesGenerationResult.CollectionError.incomplete(completion.stopReason)
@@ -14983,11 +15421,21 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     let calls = completion.dispatchableFunctionCalls
                     if case .completed = completion.status {
                         let assistant = try response.completedAssistantInput()
-                        if let error = Self.emptyToolTaskCompletionError(requestMessages: enrichedReq.messages, responseMessage: assistant) { throw error }
+                        if let error = Self.emptyToolTaskCompletionError(
+                            requestMessages: enrichedReq.messages,
+                            responseMessage: assistant
+                        ) {
+                            throw error
+                        }
                         if persistOnSuccess {
-                            ChatHistoryWriter.persistInBackground(source: .http, sourcePluginId: nil,
-                                agentId: resolvedAgentUUID, externalKey: externalSessionKey,
-                                finalMessages: priorMessages + [assistant], model: model)
+                            ChatHistoryWriter.persistInBackground(
+                                source: .http,
+                                sourcePluginId: nil,
+                                agentId: resolvedAgentUUID,
+                                externalKey: externalSessionKey,
+                                finalMessages: priorMessages + [assistant],
+                                model: model
+                            )
                         }
                     }
                     let finish = Self.openResponsesFinishReason(completion).rawValue
@@ -14999,30 +15447,68 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     if !calls.isEmpty { markSemanticDeltaIfConnected(); httpTrace.markFirstSemanticDelta("tool_calls") }
                     hop {
                         for (index, call) in calls.enumerated() {
-                            self.writeOpenAIToolCallSSE(ServiceToolInvocation(toolName: call.name, jsonArguments: call.arguments,
-                                toolCallId: call.callID, geminiThoughtSignature: call.geminiThoughtSignature), index: index,
-                                writer: writerBound.value, model: model, responseId: responseId, created: created, context: ctx.value)
+                            self.writeOpenAIToolCallSSE(
+                                ServiceToolInvocation(
+                                    toolName: call.name,
+                                    jsonArguments: call.arguments,
+                                    toolCallId: call.callID,
+                                    geminiThoughtSignature: call.geminiThoughtSignature
+                                ),
+                                index: index,
+                                writer: writerBound.value,
+                                model: model,
+                                responseId: responseId,
+                                created: created,
+                                context: ctx.value
+                            )
                         }
-                        writerBound.value.writeFinishWithReason(finish, model: model, responseId: responseId, created: created, context: ctx.value)
+                        writerBound.value.writeFinishWithReason(
+                            finish,
+                            model: model,
+                            responseId: responseId,
+                            created: created,
+                            context: ctx.value
+                        )
                         if includeUsage {
-                            writerBound.value.writeGenerationMetrics(generationMetrics, model: model,
-                                responseId: responseId, created: created, context: ctx.value)
+                            writerBound.value.writeGenerationMetrics(
+                                generationMetrics,
+                                model: model,
+                                responseId: responseId,
+                                created: created,
+                                context: ctx.value
+                            )
                         }
                         if includeUsage, let usage {
-                            writerBound.value.writeUsageChunk(promptTokens: usage.prompt_tokens, completionTokens: usage.completion_tokens,
-                                tokensPerSecond: usage.tokens_per_second, cachedPromptTokens: usage.cachedPromptTokens,
-                                model: model, responseId: responseId, created: created, context: ctx.value)
+                            writerBound.value.writeUsageChunk(
+                                promptTokens: usage.prompt_tokens,
+                                completionTokens: usage.completion_tokens,
+                                tokensPerSecond: usage.tokens_per_second,
+                                cachedPromptTokens: usage.cachedPromptTokens,
+                                model: model,
+                                responseId: responseId,
+                                created: created,
+                                context: ctx.value
+                            )
                         }
                         writerBound.value.writeEnd(ctx.value)
                     }
                     httpTrace.mark("http_sse_finish_written")
                     httpTrace.emit(finishReason: finish, responseStatus: 200)
-                    logSelf.logRequest(method: "POST", path: "/chat/completions", userAgent: logUserAgent,
-                        requestBody: logRequestBody, responseStatus: 200, startTime: logStartTime, model: logModel,
-                        tokensInput: response.inputTokenCount, tokensOutput: completion.tokenCount,
+                    logSelf.logRequest(
+                        method: "POST",
+                        path: "/chat/completions",
+                        userAgent: logUserAgent,
+                        requestBody: logRequestBody,
+                        responseStatus: 200,
+                        startTime: logStartTime,
+                        model: logModel,
+                        tokensInput: response.inputTokenCount,
+                        tokensOutput: completion.tokenCount,
                         toolCalls: calls.map { ToolCallLog(name: $0.name, arguments: $0.arguments) },
-                        temperature: logTemperature, maxTokens: logMaxTokens,
-                        finishReason: Self.openResponsesFinishReason(completion))
+                        temperature: logTemperature,
+                        maxTokens: logMaxTokens,
+                        finishReason: Self.openResponsesFinishReason(completion)
+                    )
                 } catch {
                     // SSE response head was already written as 200 — the
                     // failure surfaces as an in-band SSE error chunk. Log
@@ -15080,20 +15566,33 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     httpTrace.set("http_enriched_message_count", enrichedReq.messages.count)
                     httpTrace.mark("http_complete_chat_start")
                     try Task.checkCancellation()
-                    let response = try await chatEngine.completeResponse(request: ResponsesInferenceRequest(chatCompletion: enrichedReq))
+                    let response = try await chatEngine.completeResponse(
+                        request: ResponsesInferenceRequest(chatCompletion: enrichedReq)
+                    )
                     try Task.checkCancellation()
                     httpTrace.mark("http_complete_responses_done")
                     let sysContent = enrichedReq.messages.first(where: { $0.role == "system" })?.content ?? ""
-                    let prefixHash = ModelRuntime.computePrefixHash(systemContent: sysContent, tools: enrichedReq.tools ?? [])
+                    let prefixHash = ModelRuntime.computePrefixHash(
+                        systemContent: sysContent,
+                        tools: enrichedReq.tools ?? []
+                    )
                     if case .completed = response.completion.status {
                         let assistant = try response.completedAssistantInput()
-                        if let error = Self.emptyToolTaskCompletionError(requestMessages: enrichedReq.messages, responseMessage: assistant) {
+                        if let error = Self.emptyToolTaskCompletionError(
+                            requestMessages: enrichedReq.messages,
+                            responseMessage: assistant
+                        ) {
                             throw error
                         }
                         if persistOnSuccess {
-                            ChatHistoryWriter.persistInBackground(source: .http, sourcePluginId: nil,
-                                agentId: resolvedAgentUUID, externalKey: externalSessionKey,
-                                finalMessages: priorMessages + [assistant], model: model)
+                            ChatHistoryWriter.persistInBackground(
+                                source: .http,
+                                sourcePluginId: nil,
+                                agentId: resolvedAgentUUID,
+                                externalKey: externalSessionKey,
+                                finalMessages: priorMessages + [assistant],
+                                model: model
+                            )
                         }
                     }
                     let body = try response.chatCompletionsHTTPBody(model: model, prefixHash: prefixHash)
@@ -15211,8 +15710,10 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             throw NSError(domain: "OsaurusOllamaRequest", code: 400)
         }
         if let options = object["options"] as? [String: Any] {
-            for (source, target) in ["num_predict": "max_tokens", "temperature": "temperature",
-                "top_p": "top_p", "top_k": "top_k", "min_p": "min_p", "seed": "seed", "stop": "stop"]
+            for (source, target) in [
+                "num_predict": "max_tokens", "temperature": "temperature",
+                "top_p": "top_p", "top_k": "top_k", "min_p": "min_p", "seed": "seed", "stop": "stop",
+            ]
             where object[target] == nil {
                 object[target] = options[source]
             }
@@ -15220,10 +15721,17 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         if object["enable_thinking"] == nil {
             if let flag = object["think"] as? NSNumber, CFGetTypeID(flag) == CFBooleanGetTypeID() {
                 object["enable_thinking"] = flag.boolValue
-            } else if let effort = object["think"] as? String { object["reasoning_effort"] = effort }
-            else if let value = object["think"], !(value is NSNull) {
-                throw NSError(domain: "OsaurusOllamaRequest", code: 400,
-                    userInfo: [NSLocalizedDescriptionKey: "Ollama think must be a boolean, model-defined effort string, or null."])
+            } else if let effort = object["think"] as? String {
+                object["reasoning_effort"] = effort
+            } else if let value = object["think"], !(value is NSNull) {
+                throw NSError(
+                    domain: "OsaurusOllamaRequest",
+                    code: 400,
+                    userInfo: [
+                        NSLocalizedDescriptionKey:
+                            "Ollama think must be a boolean, model-defined effort string, or null."
+                    ]
+                )
             }
         }
         if var messages = object["messages"] as? [[String: Any]] {
@@ -15233,15 +15741,22 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 }
                 if let images = messages[index]["images"] as? [String], !images.isEmpty {
                     var parts = messages[index]["content"] as? [[String: Any]] ?? []
-                    if let text = messages[index]["content"] as? String { parts.insert(["type": "text", "text": text], at: 0) }
+                    if let text = messages[index]["content"] as? String {
+                        parts.insert(["type": "text", "text": text], at: 0)
+                    }
                     for encoded in images {
                         guard let bytes = Data(base64Encoded: encoded),
                             let source = CGImageSourceCreateWithData(bytes as CFData, nil),
                             let identifier = CGImageSourceGetType(source),
                             let mime = UTType(identifier as String)?.preferredMIMEType
                         else {
-                            throw NSError(domain: "OsaurusOllamaRequest", code: 400,
-                                userInfo: [NSLocalizedDescriptionKey: "An Ollama images entry is not a supported base64 image."])
+                            throw NSError(
+                                domain: "OsaurusOllamaRequest",
+                                code: 400,
+                                userInfo: [
+                                    NSLocalizedDescriptionKey: "An Ollama images entry is not a supported base64 image."
+                                ]
+                            )
                         }
                         parts.append(["type": "image_url", "image_url": ["url": "data:\(mime);base64,\(encoded)"]])
                     }
@@ -15250,8 +15765,10 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             }
             object["messages"] = messages
         }
-        return try JSONDecoder().decode(ChatCompletionRequest.self,
-            from: JSONSerialization.data(withJSONObject: object, options: .osaurusCanonical))
+        return try JSONDecoder().decode(
+            ChatCompletionRequest.self,
+            from: JSONSerialization.data(withJSONObject: object, options: .osaurusCanonical)
+        )
     }
 
     private func handleChatNDJSON(
@@ -15294,9 +15811,18 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         decodedReq.idempotencyKey = Self.httpIdempotencyKey(head: head)
         let req = decodedReq
 
-        if rejectInvalidHTTPToolChoice(ResponsesInferenceRequest(chatCompletion: req), head: head,
-            context: context, flavor: .ollama(type: "invalid_request_error"), path: "/chat",
-            startTime: startTime, userAgent: userAgent, requestBody: requestBodyString) { return }
+        if rejectInvalidHTTPToolChoice(
+            ResponsesInferenceRequest(chatCompletion: req),
+            head: head,
+            context: context,
+            flavor: .ollama(type: "invalid_request_error"),
+            path: "/chat",
+            startTime: startTime,
+            userAgent: userAgent,
+            requestBody: requestBodyString
+        ) {
+            return
+        }
 
         guard
             let admissionToken = acquireInferenceAdmissionOrReject(
@@ -15367,7 +15893,9 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             do {
                 let chatEngine = self.chatEngine
                 try Task.checkCancellation()
-                let stream = try await chatEngine.streamResponses(request: ResponsesInferenceRequest(chatCompletion: req))
+                let stream = try await chatEngine.streamResponses(
+                    request: ResponsesInferenceRequest(chatCompletion: req)
+                )
                 var accumulator = ResponsesGenerationAccumulator()
                 generation: for try await event in stream {
                     try Task.checkCancellation()
@@ -15380,14 +15908,30 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     case .outputTextDelta(let text):
                         if let chunk = contentCoalescer.append(text) {
                             markSemanticDeltaIfChannelActive()
-                            hop { writerBound.value.writeContent(chunk, model: req.model, responseId: "", created: Int(Date().timeIntervalSince1970), context: ctx.value) }
+                            hop {
+                                writerBound.value.writeContent(
+                                    chunk,
+                                    model: req.model,
+                                    responseId: "",
+                                    created: Int(Date().timeIntervalSince1970),
+                                    context: ctx.value
+                                )
+                            }
                         }
                     case .responseCompleted: break generation
                     default: break
                     }
                 }
                 if let pending = contentCoalescer.flush() {
-                    hop { writerBound.value.writeContent(pending, model: req.model, responseId: "", created: Int(Date().timeIntervalSince1970), context: ctx.value) }
+                    hop {
+                        writerBound.value.writeContent(
+                            pending,
+                            model: req.model,
+                            responseId: "",
+                            created: Int(Date().timeIntervalSince1970),
+                            context: ctx.value
+                        )
+                    }
                 }
                 let response = try accumulator.result()
                 let finish = Self.openResponsesFinishReason(response.completion)
@@ -15395,23 +15939,45 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     throw ResponsesGenerationResult.CollectionError.incomplete(response.completion.stopReason)
                 }
                 let calls = response.completion.dispatchableFunctionCalls.map {
-                    ServiceToolInvocation(toolName: $0.name, jsonArguments: $0.arguments, toolCallId: $0.callID,
-                        geminiThoughtSignature: $0.geminiThoughtSignature)
+                    ServiceToolInvocation(
+                        toolName: $0.name,
+                        jsonArguments: $0.arguments,
+                        toolCallId: $0.callID,
+                        geminiThoughtSignature: $0.geminiThoughtSignature
+                    )
                 }
                 let input = response.inputTokenCount, output = response.completion.tokenCount
                 hop {
                     if let input { writerBound.value.setInputTokens(input) }
                     if let output { writerBound.value.setOutputTokens(output) }
                     writerBound.value.setDoneReason(finish == .length ? "length" : "stop")
-                    if !calls.isEmpty { writerBound.value.writeToolCalls(calls, model: req.model, context: ctx.value) }
-                    else { writerBound.value.writeFinish(req.model, responseId: "", created: Int(Date().timeIntervalSince1970), context: ctx.value) }
+                    if !calls.isEmpty {
+                        writerBound.value.writeToolCalls(calls, model: req.model, context: ctx.value)
+                    } else {
+                        writerBound.value.writeFinish(
+                            req.model,
+                            responseId: "",
+                            created: Int(Date().timeIntervalSince1970),
+                            context: ctx.value
+                        )
+                    }
                     writerBound.value.writeEnd(ctx.value)
                 }
-                logSelf.logRequest(method: "POST", path: "/chat", userAgent: logUserAgent,
-                    requestBody: logRequestBody, responseStatus: 200, startTime: logStartTime, model: logModel,
-                    tokensInput: input, tokensOutput: output,
+                logSelf.logRequest(
+                    method: "POST",
+                    path: "/chat",
+                    userAgent: logUserAgent,
+                    requestBody: logRequestBody,
+                    responseStatus: 200,
+                    startTime: logStartTime,
+                    model: logModel,
+                    tokensInput: input,
+                    tokensOutput: output,
                     toolCalls: calls.map { ToolCallLog(name: $0.toolName, arguments: $0.jsonArguments) },
-                    temperature: logTemperature, maxTokens: logMaxTokens, finishReason: finish)
+                    temperature: logTemperature,
+                    maxTokens: logMaxTokens,
+                    finishReason: finish
+                )
             } catch {
                 // NDJSON response head was already 200 — surface as in-band
                 // NDJSON error chunk and log actual on-wire status.
@@ -15454,7 +16020,9 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             defer { admissionToken.release() }
             do {
                 try Task.checkCancellation()
-                let response = try await self.chatEngine.completeResponse(request: ResponsesInferenceRequest(chatCompletion: request))
+                let response = try await self.chatEngine.completeResponse(
+                    request: ResponsesInferenceRequest(chatCompletion: request)
+                )
                 let message = try response.compatibilityAssistantMessage()
                 let body = Self.ollamaChatJSON(
                     model: request.model,
@@ -15659,9 +16227,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             defer { admissionToken.release() }
             do {
                 try Task.checkCancellation()
-                let stream = try await self.chatEngine.streamResponses(request: ResponsesInferenceRequest(chatCompletion: chatRequest))
+                let stream = try await self.chatEngine.streamResponses(
+                    request: ResponsesInferenceRequest(chatCompletion: chatRequest)
+                )
                 var accumulator = ResponsesGenerationAccumulator()
-                var contentCoalescer = Self.StreamDeltaCoalescer(interval: ServerRuntimeSettingsStore.snapshot().generation.streamInterval)
+                var contentCoalescer = Self.StreamDeltaCoalescer(
+                    interval: ServerRuntimeSettingsStore.snapshot().generation.streamInterval
+                )
                 generation: for try await event in stream {
                     try Task.checkCancellation()
                     if disconnected.value { throw CancellationError() }
@@ -15671,14 +16243,28 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                         hop { writerBound.value.writeThinking(text, model: chatRequest.model, context: ctx.value) }
                     case .outputTextDelta(let text):
                         if let chunk = contentCoalescer.append(text) {
-                            hop { writerBound.value.writeContent(chunk, model: chatRequest.model, created: Int(Date().timeIntervalSince1970), context: ctx.value) }
+                            hop {
+                                writerBound.value.writeContent(
+                                    chunk,
+                                    model: chatRequest.model,
+                                    created: Int(Date().timeIntervalSince1970),
+                                    context: ctx.value
+                                )
+                            }
                         }
                     case .responseCompleted: break generation
                     default: break
                     }
                 }
                 if let pending = contentCoalescer.flush() {
-                    hop { writerBound.value.writeContent(pending, model: chatRequest.model, created: Int(Date().timeIntervalSince1970), context: ctx.value) }
+                    hop {
+                        writerBound.value.writeContent(
+                            pending,
+                            model: chatRequest.model,
+                            created: Int(Date().timeIntervalSince1970),
+                            context: ctx.value
+                        )
+                    }
                 }
                 let response = try accumulator.result()
                 let finish = Self.openResponsesFinishReason(response.completion)
@@ -15690,13 +16276,27 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     if let input { writerBound.value.setInputTokens(input) }
                     if let output { writerBound.value.setOutputTokens(output) }
                     writerBound.value.setDoneReason(finish == .length ? "length" : "stop")
-                    writerBound.value.writeFinish(chatRequest.model, created: Int(Date().timeIntervalSince1970), context: ctx.value)
+                    writerBound.value.writeFinish(
+                        chatRequest.model,
+                        created: Int(Date().timeIntervalSince1970),
+                        context: ctx.value
+                    )
                     writerBound.value.writeEnd(ctx.value)
                 }
-                logSelf.logRequest(method: "POST", path: "/generate", userAgent: logUserAgent,
-                    requestBody: logRequestBody, responseStatus: 200, startTime: logStartTime, model: logModel,
-                    tokensInput: input, tokensOutput: output, temperature: logTemperature,
-                    maxTokens: logMaxTokens, finishReason: finish)
+                logSelf.logRequest(
+                    method: "POST",
+                    path: "/generate",
+                    userAgent: logUserAgent,
+                    requestBody: logRequestBody,
+                    responseStatus: 200,
+                    startTime: logStartTime,
+                    model: logModel,
+                    tokensInput: input,
+                    tokensOutput: output,
+                    temperature: logTemperature,
+                    maxTokens: logMaxTokens,
+                    finishReason: finish
+                )
             } catch {
                 hop {
                     writerBound.value.writeErrorFromThrown(error, context: ctx.value)
@@ -15737,7 +16337,9 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             defer { admissionToken.release() }
             do {
                 try Task.checkCancellation()
-                let response = try await self.chatEngine.completeResponse(request: ResponsesInferenceRequest(chatCompletion: request))
+                let response = try await self.chatEngine.completeResponse(
+                    request: ResponsesInferenceRequest(chatCompletion: request)
+                )
                 let content = try response.compatibilityAssistantMessage().content ?? ""
                 let body = Self.ollamaGenerateJSON(
                     model: request.model,
@@ -15802,8 +16404,14 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         }
     }
 
-    private static func ollamaGenerateJSON(model: String, response: String, done: Bool, usage: Usage? = nil,
-        thinking: String? = nil, doneReason: String = "stop") -> String {
+    private static func ollamaGenerateJSON(
+        model: String,
+        response: String,
+        done: Bool,
+        usage: Usage? = nil,
+        thinking: String? = nil,
+        doneReason: String = "stop"
+    ) -> String {
         var object: [String: Any] = [
             "model": model,
             "created_at": Date().ISO8601Format(),
@@ -15958,11 +16566,11 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
     nonisolated static func unsupportedSamplerReason(_ req: ChatCompletionRequest) -> String? {
         RequestValidator.responseFormatReason(req.response_format)
             ?? RequestValidator.unsupportedSamplerReason(
-            n: req.n,
-            responseFormatType: req.response_format?.type,
-            logprobs: req.logprobs,
-            topLogprobs: req.top_logprobs
-        )
+                n: req.n,
+                responseFormatType: req.response_format?.type,
+                logprobs: req.logprobs,
+                topLogprobs: req.top_logprobs
+            )
     }
 
     // MARK: - Token estimation
@@ -17220,15 +17828,31 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             internalReq.context.idempotencyKey = Self.httpIdempotencyKey(head: head)
         } catch {
             let response = AnthropicError(message: error.localizedDescription, errorType: "invalid_request_error")
-            let body = (try? JSONEncoder.osaurusCanonical().encode(response)).map { String(decoding: $0, as: UTF8.self) } ?? "{}"
-            sendResponse(context: context, version: head.version, status: .badRequest,
-                headers: [("Content-Type", "application/json; charset=utf-8")] + stateRef.value.corsHeaders, body: body)
+            let body =
+                (try? JSONEncoder.osaurusCanonical().encode(response)).map { String(decoding: $0, as: UTF8.self) }
+                ?? "{}"
+            sendResponse(
+                context: context,
+                version: head.version,
+                status: .badRequest,
+                headers: [("Content-Type", "application/json; charset=utf-8")] + stateRef.value.corsHeaders,
+                body: body
+            )
             return
         }
 
-        if rejectInvalidHTTPToolChoice(internalReq, head: head, context: context,
-            flavor: .anthropic(errorType: "invalid_request_error"), path: "/messages",
-            startTime: startTime, userAgent: userAgent, requestBody: requestBodyString) { return }
+        if rejectInvalidHTTPToolChoice(
+            internalReq,
+            head: head,
+            context: context,
+            flavor: .anthropic(errorType: "invalid_request_error"),
+            path: "/messages",
+            startTime: startTime,
+            userAgent: userAgent,
+            requestBody: requestBodyString
+        ) {
+            return
+        }
 
         // Generate response ID
         let messageId = Self.shortId(prefix: "msg_")
@@ -17300,8 +17924,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
 
         hop {
             writerBound.value.writeHeaders(ctx.value, extraHeaders: cors)
-            writerBound.value.writeMessageStart(messageId: messageId, model: model, inputTokens: nil,
-                context: ctx.value, deferUntilInput: true)
+            writerBound.value.writeMessageStart(
+                messageId: messageId,
+                model: model,
+                inputTokens: nil,
+                context: ctx.value,
+                deferUntilInput: true
+            )
         }
 
         // Capture for logging
@@ -17344,7 +17973,9 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     switch event {
                     case .reasoningDelta(let text):
                         markSemanticDeltaIfChannelActive()
-                        if let chunk = contentCoalescer.flush() { hop { writerBound.value.writeTextDelta(chunk, context: ctx.value) } }
+                        if let chunk = contentCoalescer.flush() {
+                            hop { writerBound.value.writeTextDelta(chunk, context: ctx.value) }
+                        }
                         hop { writerBound.value.writeThinkingDelta(text, context: ctx.value) }
                     case .anthropicThinkingBlock(let block):
                         try await loop.submit {
@@ -17376,8 +18007,14 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 }
                 let response = try accumulator.result()
                 guard let usage = response.reportedChatUsage else {
-                    throw NSError(domain: "OsaurusProtocolUsage", code: 502,
-                        userInfo: [NSLocalizedDescriptionKey: "Anthropic compatibility requires reported input and output token counts; this model or provider did not report them."])
+                    throw NSError(
+                        domain: "OsaurusProtocolUsage",
+                        code: 502,
+                        userInfo: [
+                            NSLocalizedDescriptionKey:
+                                "Anthropic compatibility requires reported input and output token counts; this model or provider did not report them."
+                        ]
+                    )
                 }
                 let finish = Self.openResponsesFinishReason(response.completion)
                 guard finish != .cancelled, finish != .error else {
@@ -17393,21 +18030,39 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     hop { writerBound.value.writeTextDelta(chunk, context: ctx.value) }
                 }
                 let calls = response.completion.dispatchableFunctionCalls.map {
-                    ServiceToolInvocation(toolName: $0.name, jsonArguments: $0.arguments, toolCallId: $0.callID,
-                        geminiThoughtSignature: $0.geminiThoughtSignature)
+                    ServiceToolInvocation(
+                        toolName: $0.name,
+                        jsonArguments: $0.arguments,
+                        toolCallId: $0.callID,
+                        geminiThoughtSignature: $0.geminiThoughtSignature
+                    )
                 }
                 hop {
                     writerBound.value.setInputTokens(usage.prompt_tokens, context: ctx.value)
                     writerBound.value.setOutputTokens(usage.completion_tokens)
                     writerBound.value.setCachedInputTokens(usage.cachedPromptTokens)
-                    for call in calls { self.writeAnthropicToolUse(call, writer: writerBound.value, context: ctx.value) }
-                    writerBound.value.writeFinish(stopReason: finish == .length ? "max_tokens" : (calls.isEmpty ? "end_turn" : "tool_use"), context: ctx.value)
+                    for call in calls {
+                        self.writeAnthropicToolUse(call, writer: writerBound.value, context: ctx.value)
+                    }
+                    writerBound.value.writeFinish(
+                        stopReason: finish == .length ? "max_tokens" : (calls.isEmpty ? "end_turn" : "tool_use"),
+                        context: ctx.value
+                    )
                     writerBound.value.writeEnd(ctx.value)
                 }
-                logSelf.logRequest(method: "POST", path: "/messages", userAgent: logUserAgent,
-                    requestBody: logRequestBody, responseStatus: 200, startTime: logStartTime, model: logModel,
-                    tokensInput: response.inputTokenCount, tokensOutput: response.completion.tokenCount,
-                    toolCalls: calls.map { ToolCallLog(name: $0.toolName, arguments: $0.jsonArguments) }, finishReason: finish)
+                logSelf.logRequest(
+                    method: "POST",
+                    path: "/messages",
+                    userAgent: logUserAgent,
+                    requestBody: logRequestBody,
+                    responseStatus: 200,
+                    startTime: logStartTime,
+                    model: logModel,
+                    tokensInput: response.inputTokenCount,
+                    tokensOutput: response.completion.tokenCount,
+                    toolCalls: calls.map { ToolCallLog(name: $0.toolName, arguments: $0.jsonArguments) },
+                    finishReason: finish
+                )
             } catch {
                 // SSE response head was already 200 — surface as in-band
                 // SSE error chunk and log actual on-wire status.
@@ -17461,8 +18116,14 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 try Task.checkCancellation()
                 let response = try await chatEngine.completeResponse(request: internalReq)
                 guard let usage = response.reportedChatUsage else {
-                    throw NSError(domain: "OsaurusProtocolUsage", code: 502,
-                        userInfo: [NSLocalizedDescriptionKey: "Anthropic compatibility requires reported input and output token counts; this model or provider did not report them."])
+                    throw NSError(
+                        domain: "OsaurusProtocolUsage",
+                        code: 502,
+                        userInfo: [
+                            NSLocalizedDescriptionKey:
+                                "Anthropic compatibility requires reported input and output token counts; this model or provider did not report them."
+                        ]
+                    )
                 }
                 let finish = Self.openResponsesFinishReason(response.completion)
                 guard finish != .cancelled, finish != .error else {
@@ -17471,8 +18132,12 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 var blocks: [AnthropicResponseContentBlock] = []
                 if !response.anthropicThinkingBlocks.isEmpty {
                     for block in response.anthropicThinkingBlocks {
-                        blocks.append(try JSONDecoder().decode(AnthropicResponseContentBlock.self,
-                            from: JSONEncoder.osaurusCanonical().encode(block)))
+                        blocks.append(
+                            try JSONDecoder().decode(
+                                AnthropicResponseContentBlock.self,
+                                from: JSONEncoder.osaurusCanonical().encode(block)
+                            )
+                        )
                     }
                 } else if !response.reasoning.isEmpty {
                     blocks.append(.thinking(.init(thinking: response.reasoning)))
@@ -17482,17 +18147,35 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     guard let data = call.arguments.data(using: .utf8),
                         let arguments = try JSONSerialization.jsonObject(with: data) as? [String: Any]
                     else {
-                        throw NSError(domain: "OsaurusToolArguments", code: 422,
-                            userInfo: [NSLocalizedDescriptionKey: "The model returned non-object arguments for '\(call.name)'."])
+                        throw NSError(
+                            domain: "OsaurusToolArguments",
+                            code: 422,
+                            userInfo: [
+                                NSLocalizedDescriptionKey: "The model returned non-object arguments for '\(call.name)'."
+                            ]
+                        )
                     }
-                    blocks.append(.toolUseBlock(id: call.callID, name: call.name,
-                        input: arguments.mapValues { AnyCodableValue($0) }))
+                    blocks.append(
+                        .toolUseBlock(
+                            id: call.callID,
+                            name: call.name,
+                            input: arguments.mapValues { AnyCodableValue($0) }
+                        )
+                    )
                 }
                 if blocks.isEmpty { blocks.append(.textBlock("")) }
-                let anthropicResp = AnthropicMessagesResponse(id: messageId, model: model, content: blocks,
-                    stopReason: finish == .length ? "max_tokens" : (response.completion.functionCalls.isEmpty ? "end_turn" : "tool_use"),
-                    usage: AnthropicUsage(promptTokens: usage.prompt_tokens, outputTokens: usage.completion_tokens,
-                        cachedPromptTokens: usage.cachedPromptTokens))
+                let anthropicResp = AnthropicMessagesResponse(
+                    id: messageId,
+                    model: model,
+                    content: blocks,
+                    stopReason: finish == .length
+                        ? "max_tokens" : (response.completion.functionCalls.isEmpty ? "end_turn" : "tool_use"),
+                    usage: AnthropicUsage(
+                        promptTokens: usage.prompt_tokens,
+                        outputTokens: usage.completion_tokens,
+                        cachedPromptTokens: usage.cachedPromptTokens
+                    )
+                )
                 let json = try JSONEncoder.osaurusCanonical().encode(anthropicResp)
                 var headers: [(String, String)] = [("Content-Type", "application/json")]
                 headers.append(contentsOf: cors)
@@ -17527,7 +18210,9 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     model: logModel,
                     tokensInput: response.inputTokenCount,
                     tokensOutput: response.completion.tokenCount,
-                    toolCalls: response.completion.dispatchableFunctionCalls.map { ToolCallLog(name: $0.name, arguments: $0.arguments) },
+                    toolCalls: response.completion.dispatchableFunctionCalls.map {
+                        ToolCallLog(name: $0.name, arguments: $0.arguments)
+                    },
                     finishReason: finish
                 )
             } catch {
@@ -17807,8 +18492,11 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         if let perRequestInstructions, input.first?.role == "system", input.first?.content == perRequestInstructions {
             input.removeFirst()
         }
-        openResponsesContextStore.store(responseId: responseId, model: model,
-            messages: input + assistantMessages)
+        openResponsesContextStore.store(
+            responseId: responseId,
+            model: model,
+            messages: input + assistantMessages
+        )
     }
 
     private func handleOpenResponses(
@@ -17831,10 +18519,16 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
 
         if let reason = RequestValidator.rawResponseSchemaReason(data, responses: true) {
             let errorResponse = OpenResponsesErrorResponse(code: "invalid_request_error", message: reason)
-            let body = (try? JSONEncoder.osaurusCanonical().encode(errorResponse))
+            let body =
+                (try? JSONEncoder.osaurusCanonical().encode(errorResponse))
                 .map { String(decoding: $0, as: UTF8.self) } ?? "{}"
-            sendResponse(context: context, version: head.version, status: .badRequest,
-                headers: [("Content-Type", "application/json; charset=utf-8")], body: body)
+            sendResponse(
+                context: context,
+                version: head.version,
+                status: .badRequest,
+                headers: [("Content-Type", "application/json; charset=utf-8")],
+                body: body
+            )
             return
         }
 
@@ -17885,26 +18579,45 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             )
             internalReq.context.idempotencyKey = Self.httpIdempotencyKey(head: head)
             if let reason = RequestValidator.responseFormatReason(internalReq.generation.outputFormat)
-                ?? RequestValidator.unsupportedSamplerReason(n: nil,
-                    responseFormatType: internalReq.generation.outputFormat?.type)
+                ?? RequestValidator.unsupportedSamplerReason(
+                    n: nil,
+                    responseFormatType: internalReq.generation.outputFormat?.type
+                )
             {
-                throw NSError(domain: "OsaurusResponsesRequest", code: 400,
-                    userInfo: [NSLocalizedDescriptionKey: reason])
+                throw NSError(
+                    domain: "OsaurusResponsesRequest",
+                    code: 400,
+                    userInfo: [NSLocalizedDescriptionKey: reason]
+                )
             }
         } catch {
-            let errorResponse = OpenResponsesErrorResponse(code: "invalid_request_error", message: error.localizedDescription)
-            let body = (try? JSONEncoder.osaurusCanonical().encode(errorResponse))
+            let errorResponse = OpenResponsesErrorResponse(
+                code: "invalid_request_error",
+                message: error.localizedDescription
+            )
+            let body =
+                (try? JSONEncoder.osaurusCanonical().encode(errorResponse))
                 .map { String(decoding: $0, as: UTF8.self) } ?? "{}"
             var headers = [("Content-Type", "application/json; charset=utf-8")]
             headers.append(contentsOf: stateRef.value.corsHeaders)
-            let status: HTTPResponseStatus = (error as NSError).domain == "OsaurusResponsesContext" ? .notFound : .badRequest
+            let status: HTTPResponseStatus =
+                (error as NSError).domain == "OsaurusResponsesContext" ? .notFound : .badRequest
             sendResponse(context: context, version: head.version, status: status, headers: headers, body: body)
             return
         }
 
-        if rejectInvalidHTTPToolChoice(internalReq, head: head, context: context,
-            flavor: .openResponses(code: "invalid_request_error"), path: "/responses",
-            startTime: startTime, userAgent: userAgent, requestBody: requestBodyString) { return }
+        if rejectInvalidHTTPToolChoice(
+            internalReq,
+            head: head,
+            context: context,
+            flavor: .openResponses(code: "invalid_request_error"),
+            path: "/responses",
+            startTime: startTime,
+            userAgent: userAgent,
+            requestBody: requestBodyString
+        ) {
+            return
+        }
 
         // Determine if streaming
         let wantsStream = openResponsesReq.stream ?? false
@@ -17977,7 +18690,9 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             defer {
                 if !wasResidentBeforeStream && !emittedSemanticDelta
                     && (!self._isChannelActive.value || Task.isCancelled)
-                { Task { await ModelRuntime.shared.unload(name: model) } }
+                {
+                    Task { await ModelRuntime.shared.unload(name: model) }
+                }
             }
             var nativeProxy = false
             var nativeTerminal = false
@@ -17988,7 +18703,8 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             let messageItemOpen = AtomicBoolBox()
             var accumulator = ResponsesGenerationAccumulator()
             var contentCoalescer = Self.StreamDeltaCoalescer(
-                interval: ServerRuntimeSettingsStore.snapshot().generation.streamInterval)
+                interval: ServerRuntimeSettingsStore.snapshot().generation.streamInterval
+            )
             func beginPortable() {
                 guard !portableStarted else { return }
                 portableStarted = true
@@ -18021,27 +18737,48 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     switch event {
                     case .providerEvent(let raw):
                         guard !portableStarted else {
-                            throw NSError(domain: "OsaurusResponsesProtocol", code: 502,
-                                userInfo: [NSLocalizedDescriptionKey: "Native Responses lifecycle arrived after portable output."])
+                            throw NSError(
+                                domain: "OsaurusResponsesProtocol",
+                                code: 502,
+                                userInfo: [
+                                    NSLocalizedDescriptionKey:
+                                        "Native Responses lifecycle arrived after portable output."
+                                ]
+                            )
                         }
-                        guard case .object(let fields) = raw, case .string(let type) = fields["type"], !type.isEmpty else {
-                            throw NSError(domain: "OsaurusResponsesProtocol", code: 502,
-                                userInfo: [NSLocalizedDescriptionKey: "Native Responses event is missing its type."])
+                        guard case .object(let fields) = raw, case .string(let type) = fields["type"], !type.isEmpty
+                        else {
+                            throw NSError(
+                                domain: "OsaurusResponsesProtocol",
+                                code: 502,
+                                userInfo: [NSLocalizedDescriptionKey: "Native Responses event is missing its type."]
+                            )
                         }
                         nativeProxy = true
                         if case .object(let response) = fields["response"], case .string(let id) = response["id"] {
                             if let nativeResponseID, nativeResponseID != id {
-                                throw NSError(domain: "OsaurusResponsesProtocol", code: 502,
-                                    userInfo: [NSLocalizedDescriptionKey: "Native Responses identity changed during the stream."])
+                                throw NSError(
+                                    domain: "OsaurusResponsesProtocol",
+                                    code: 502,
+                                    userInfo: [
+                                        NSLocalizedDescriptionKey:
+                                            "Native Responses identity changed during the stream."
+                                    ]
+                                )
                             }
                             nativeResponseID = id
                         }
-                        nativeTerminal = nativeTerminal || ["response.completed", "response.incomplete",
-                            "response.cancelled", "response.failed", "error"].contains(type)
+                        nativeTerminal =
+                            nativeTerminal
+                            || [
+                                "response.completed", "response.incomplete",
+                                "response.cancelled", "response.failed", "error",
+                            ].contains(type)
                         if type.contains(".delta") { emittedSemanticDelta = self._isChannelActive.value }
                         hop {
-                            do { try writerBound.value.writeProviderEvent(raw, context: ctx.value) }
-                            catch { ctx.value.close(promise: nil) }
+                            do { try writerBound.value.writeProviderEvent(raw, context: ctx.value) } catch {
+                                ctx.value.close(promise: nil)
+                            }
                         }
                     case .outputTextDelta(let text):
                         if !nativeProxy, let chunk = contentCoalescer.append(text) { emitText(chunk) }
@@ -18050,7 +18787,13 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                         if let pending = contentCoalescer.flush() { emitText(pending) }
                         beginPortable()
                         emittedSemanticDelta = self._isChannelActive.value
-                        hop { writerBound.value.writeReasoningDelta(reasoning, itemId: reasoningItemId, context: ctx.value) }
+                        hop {
+                            writerBound.value.writeReasoningDelta(
+                                reasoning,
+                                itemId: reasoningItemId,
+                                context: ctx.value
+                            )
+                        }
                     case .prefillProgress(let progress):
                         guard !nativeProxy else { break }
                         beginPortable()
@@ -18063,21 +18806,38 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 let response = try accumulator.result()
                 let storedID = nativeResponseID ?? (nativeProxy ? response.completion.responseID : responseId)
                 if case .completed = response.completion.status {
-                    Self.storeOpenResponsesContext(responseId: storedID, model: model, request: internalReq,
-                        assistantMessages: [try response.completedAssistantInput()], perRequestInstructions: request.instructions)
+                    Self.storeOpenResponsesContext(
+                        responseId: storedID,
+                        model: model,
+                        request: internalReq,
+                        assistantMessages: [try response.completedAssistantInput()],
+                        perRequestInstructions: request.instructions
+                    )
                 }
                 if nativeProxy {
                     guard nativeTerminal else {
-                        throw NSError(domain: "OsaurusResponsesProtocol", code: 502,
-                            userInfo: [NSLocalizedDescriptionKey: "Native Responses stream completed without a native terminal event."])
+                        throw NSError(
+                            domain: "OsaurusResponsesProtocol",
+                            code: 502,
+                            userInfo: [
+                                NSLocalizedDescriptionKey:
+                                    "Native Responses stream completed without a native terminal event."
+                            ]
+                        )
                     }
                     hop { writerBound.value.writeEnd(ctx.value) }
                 } else {
                     // A late provider Item cannot retroactively replace the
                     // identity of already streamed local output.
                     guard response.providerOutputItems.isEmpty, response.reasoningItem == nil else {
-                        throw NSError(domain: "OsaurusResponsesProtocol", code: 502,
-                            userInfo: [NSLocalizedDescriptionKey: "Provider-native Responses Items require an ordered native event lifecycle."])
+                        throw NSError(
+                            domain: "OsaurusResponsesProtocol",
+                            code: 502,
+                            userInfo: [
+                                NSLocalizedDescriptionKey:
+                                    "Provider-native Responses Items require an ordered native event lifecycle."
+                            ]
+                        )
                     }
                     if let pending = contentCoalescer.flush() { emitText(pending) }
                     beginPortable()
@@ -18098,31 +18858,56 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                             writerBound.value.writeMessageItemDone(status: itemStatus, context: ctx.value)
                         }
                         for call in terminal.functionCalls {
-                            writerBound.value.writeFunctionCallItemAdded(itemId: call.id, callId: call.callID,
-                                name: call.name, context: ctx.value)
+                            writerBound.value.writeFunctionCallItemAdded(
+                                itemId: call.id,
+                                callId: call.callID,
+                                name: call.name,
+                                context: ctx.value
+                            )
                             Self.forEachStringChunk(call.arguments, size: 512) {
-                                writerBound.value.writeFunctionCallArgumentsDelta(callId: call.callID, delta: $0, context: ctx.value)
+                                writerBound.value.writeFunctionCallArgumentsDelta(
+                                    callId: call.callID,
+                                    delta: $0,
+                                    context: ctx.value
+                                )
                             }
                             writerBound.value.writeFunctionCallArgumentsDone(callId: call.callID, context: ctx.value)
-                            writerBound.value.writeFunctionCallItemDone(callId: call.callID, name: call.name,
-                                status: itemStatus, context: ctx.value)
+                            writerBound.value.writeFunctionCallItemDone(
+                                callId: call.callID,
+                                name: call.name,
+                                status: itemStatus,
+                                context: ctx.value
+                            )
                         }
                         if let inputCount { writerBound.value.setInputTokens(inputCount) }
                         if let count = terminal.tokenCount { writerBound.value.setOutputTokens(count) }
                         if let count = terminal.cachedInputTokenCount { writerBound.value.setCachedInputTokens(count) }
                         if let rate = terminal.tokensPerSecond { writerBound.value.setTokensPerSecond(rate) }
-                        writerBound.value.writeResponseTerminal(status: status,
+                        writerBound.value.writeResponseTerminal(
+                            status: status,
                             incompleteReason: status == .incomplete
                                 ? (terminal.stopReason == "length" ? "max_output_tokens" : terminal.stopReason) : nil,
-                            metadata: internalReq.providerOptions?.metadata, context: ctx.value)
+                            metadata: internalReq.providerOptions?.metadata,
+                            context: ctx.value
+                        )
                         writerBound.value.writeEnd(ctx.value)
                     }
                 }
-                self.logRequest(method: "POST", path: "/responses", userAgent: userAgent,
-                    requestBody: requestBodyString, responseStatus: 200, startTime: startTime, model: model,
-                    tokensInput: response.inputTokenCount, tokensOutput: response.completion.tokenCount,
-                    toolCalls: response.completion.functionCalls.map { ToolCallLog(name: $0.name, arguments: $0.arguments) },
-                    finishReason: Self.openResponsesFinishReason(response.completion))
+                self.logRequest(
+                    method: "POST",
+                    path: "/responses",
+                    userAgent: userAgent,
+                    requestBody: requestBodyString,
+                    responseStatus: 200,
+                    startTime: startTime,
+                    model: model,
+                    tokensInput: response.inputTokenCount,
+                    tokensOutput: response.completion.tokenCount,
+                    toolCalls: response.completion.functionCalls.map {
+                        ToolCallLog(name: $0.name, arguments: $0.arguments)
+                    },
+                    finishReason: Self.openResponsesFinishReason(response.completion)
+                )
             } catch {
                 if !nativeProxy { beginPortable() }
                 let needsError = !nativeTerminal
@@ -18130,10 +18915,17 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     if needsError { writerBound.value.writeErrorFromThrown(error, context: ctx.value) }
                     writerBound.value.writeEnd(ctx.value)
                 }
-                self.logRequest(method: "POST", path: "/responses", userAgent: userAgent,
-                    requestBody: requestBodyString, responseStatus: 200, startTime: startTime,
-                    model: model, finishReason: error is CancellationError ? .cancelled : .error,
-                    errorMessage: error.localizedDescription)
+                self.logRequest(
+                    method: "POST",
+                    path: "/responses",
+                    userAgent: userAgent,
+                    requestBody: requestBodyString,
+                    responseStatus: 200,
+                    startTime: startTime,
+                    model: model,
+                    finishReason: error is CancellationError ? .cancelled : .error,
+                    errorMessage: error.localizedDescription
+                )
             }
         }
     }
@@ -18239,10 +19031,19 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 try Task.checkCancellation()
                 let response = try await chatEngine.completeResponse(request: internalReq)
                 let actualResponseID = response.completion.responseID
-                let openResponsesResp = response.openResponsesResponse(responseID: actualResponseID, model: model, metadata: internalReq.providerOptions?.metadata)
+                let openResponsesResp = response.openResponsesResponse(
+                    responseID: actualResponseID,
+                    model: model,
+                    metadata: internalReq.providerOptions?.metadata
+                )
                 if case .completed = response.completion.status {
-                    Self.storeOpenResponsesContext(responseId: actualResponseID, model: model, request: internalReq,
-                        assistantMessages: [try response.completedAssistantInput()], perRequestInstructions: perRequestInstructions)
+                    Self.storeOpenResponsesContext(
+                        responseId: actualResponseID,
+                        model: model,
+                        request: internalReq,
+                        assistantMessages: [try response.completedAssistantInput()],
+                        perRequestInstructions: perRequestInstructions
+                    )
                 }
 
                 let json = try JSONEncoder.osaurusCanonical().encode(openResponsesResp)
@@ -18279,7 +19080,9 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                     model: logModel,
                     tokensInput: response.inputTokenCount,
                     tokensOutput: response.completion.tokenCount,
-                    toolCalls: response.completion.functionCalls.map { ToolCallLog(name: $0.name, arguments: $0.arguments) },
+                    toolCalls: response.completion.functionCalls.map {
+                        ToolCallLog(name: $0.name, arguments: $0.arguments)
+                    },
                     finishReason: Self.openResponsesFinishReason(response.completion)
                 )
             } catch {

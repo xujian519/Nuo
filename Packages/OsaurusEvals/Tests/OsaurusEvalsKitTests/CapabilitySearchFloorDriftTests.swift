@@ -59,13 +59,15 @@ final class CapabilitySearchFloorDriftTests: XCTestCase {
 
         let missingFloors = Set(fixtures.keys).subtracting(floors.keys).sorted()
         XCTAssertEqual(
-            missingFloors, [],
+            missingFloors,
+            [],
             "Suite cases with no caseFloors entry — --fail-on-floor is not gating them: \(missingFloors)"
         )
 
         let staleFloors = Set(floors.keys).subtracting(fixtures.keys).sorted()
         XCTAssertEqual(
-            staleFloors, [],
+            staleFloors,
+            [],
             "caseFloors entries whose fixture no longer exists (dead gates): \(staleFloors)"
         )
     }
@@ -77,7 +79,8 @@ final class CapabilitySearchFloorDriftTests: XCTestCase {
         for (id, declared) in fixtures {
             guard let declared, let floor = floors[id]?["minMatches"] else { continue }
             XCTAssertEqual(
-                floor, declared,
+                floor,
+                declared,
                 "\(id): floors.json says minMatches \(floor) but the fixture asserts \(declared) — one of them is lying about the contract"
             )
         }

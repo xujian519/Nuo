@@ -62,7 +62,10 @@ final class ModelLoadAccountingTests: XCTestCase {
         m._testEndModelLoad(at: t0.addingTimeInterval(6))
 
         XCTAssertEqual(
-            m.modelLoadSeconds(from: t0, to: t0.addingTimeInterval(10)), 3.0, accuracy: 0.01)
+            m.modelLoadSeconds(from: t0, to: t0.addingTimeInterval(10)),
+            3.0,
+            accuracy: 0.01
+        )
     }
 
     // MARK: - Clipping
@@ -75,7 +78,10 @@ final class ModelLoadAccountingTests: XCTestCase {
         m._testEndModelLoad(at: t0.addingTimeInterval(5))
 
         XCTAssertEqual(
-            m.modelLoadSeconds(from: t0, to: t0.addingTimeInterval(10)), 5.0, accuracy: 0.01)
+            m.modelLoadSeconds(from: t0, to: t0.addingTimeInterval(10)),
+            5.0,
+            accuracy: 0.01
+        )
     }
 
     /// A load still running when the first token arrives is the COLD case we
@@ -87,7 +93,10 @@ final class ModelLoadAccountingTests: XCTestCase {
         // deliberately never ended
 
         XCTAssertEqual(
-            m.modelLoadSeconds(from: t0, to: t0.addingTimeInterval(9)), 8.0, accuracy: 0.01)
+            m.modelLoadSeconds(from: t0, to: t0.addingTimeInterval(9)),
+            8.0,
+            accuracy: 0.01
+        )
     }
 
     func testLoadEntirelyOutsideTheWindowContributesNothing() {

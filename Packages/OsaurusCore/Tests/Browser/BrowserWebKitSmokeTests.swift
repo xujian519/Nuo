@@ -176,7 +176,9 @@ struct BrowserWebKitSmokeTests {
         try await withSmokeExecutor { executor, fixtures in
             let url = try SmokeFixtures.write(SmokeFixtures.loginForm, to: fixtures, name: "login")
             _ = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##
+            )
             let typed = await executor.execute(
                 name: "browser_type",
                 argumentsJSON: ##"{"selector": "#email", "text": "user@test.com", "detail": "standard"}"##
@@ -190,7 +192,9 @@ struct BrowserWebKitSmokeTests {
         try await withSmokeExecutor { executor, fixtures in
             let url = try SmokeFixtures.write(SmokeFixtures.loginForm, to: fixtures, name: "login")
             _ = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##
+            )
             let result = await executor.execute(
                 name: "browser_do",
                 argumentsJSON: """
@@ -213,7 +217,9 @@ struct BrowserWebKitSmokeTests {
         try await withSmokeExecutor { executor, fixtures in
             let url = try SmokeFixtures.write(SmokeFixtures.loginForm, to: fixtures, name: "login")
             _ = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##
+            )
             let result = await executor.execute(
                 name: "browser_do",
                 argumentsJSON: """
@@ -231,7 +237,9 @@ struct BrowserWebKitSmokeTests {
             #expect(result.contains("snapshot"), "failure must carry a recovery snapshot")
             // Fail-fast: the third action never ran.
             let snapshot = await executor.execute(
-                name: "browser_snapshot", argumentsJSON: ##"{"detail": "full"}"##)
+                name: "browser_snapshot",
+                argumentsJSON: ##"{"detail": "full"}"##
+            )
             #expect(!snapshot.contains("must not run"))
         }
     }
@@ -240,20 +248,26 @@ struct BrowserWebKitSmokeTests {
         try await withSmokeExecutor { executor, fixtures in
             let url = try SmokeFixtures.write(SmokeFixtures.loginForm, to: fixtures, name: "login")
             _ = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##
+            )
 
             let unknown = await executor.execute(
                 name: "browser_do",
-                argumentsJSON: ##"{"actions": [{"action": "fly", "selector": "#email"}]}"##)
+                argumentsJSON: ##"{"actions": [{"action": "fly", "selector": "#email"}]}"##
+            )
             #expect(unknown.contains("unknown action type"))
 
             let missing = await executor.execute(
                 name: "browser_do",
-                argumentsJSON: ##"{"actions": [{"action": "type", "selector": "#email"}]}"##)
+                argumentsJSON: ##"{"actions": [{"action": "type", "selector": "#email"}]}"##
+            )
             #expect(missing.contains("missing required 'text' parameter"))
 
             let empty = await executor.execute(
-                name: "browser_do", argumentsJSON: ##"{"actions": [], "detail": "none"}"##)
+                name: "browser_do",
+                argumentsJSON: ##"{"actions": [], "detail": "none"}"##
+            )
             #expect(empty.contains("browser_do completed (0 actions)"))
         }
     }
@@ -262,18 +276,26 @@ struct BrowserWebKitSmokeTests {
         try await withSmokeExecutor { executor, fixtures in
             let url = try SmokeFixtures.write(SmokeFixtures.interactive, to: fixtures, name: "interactive")
             _ = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(url)", "detail": "compact"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(url)", "detail": "compact"}"##
+            )
             // Re-snapshot: the generation advances, invalidating earlier refs.
             _ = await executor.execute(
-                name: "browser_snapshot", argumentsJSON: ##"{"detail": "compact"}"##)
+                name: "browser_snapshot",
+                argumentsJSON: ##"{"detail": "compact"}"##
+            )
             _ = await executor.execute(
-                name: "browser_snapshot", argumentsJSON: ##"{"detail": "compact"}"##)
+                name: "browser_snapshot",
+                argumentsJSON: ##"{"detail": "compact"}"##
+            )
             // A click by ref from an old generation is refused, not misfired —
             // BrowserSession pins each ref map to its snapshot generation.
             let session = BrowserSessionManager.shared.activeAgentIds()
             #expect(!session.isEmpty)
             let stale = await executor.execute(
-                name: "browser_click", argumentsJSON: ##"{"ref": "E999", "detail": "none"}"##)
+                name: "browser_click",
+                argumentsJSON: ##"{"ref": "E999", "detail": "none"}"##
+            )
             #expect(stale.contains("Element ref") || stale.contains("not found") || stale.contains("stale"))
         }
     }
@@ -282,9 +304,13 @@ struct BrowserWebKitSmokeTests {
         try await withSmokeExecutor { executor, fixtures in
             let url = try SmokeFixtures.write(SmokeFixtures.interactive, to: fixtures, name: "interactive")
             _ = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##
+            )
             let links = await executor.execute(
-                name: "browser_snapshot", argumentsJSON: ##"{"filter": "links", "detail": "standard"}"##)
+                name: "browser_snapshot",
+                argumentsJSON: ##"{"filter": "links", "detail": "standard"}"##
+            )
             #expect(links.contains("Page 1"))
             #expect(!links.contains("Primary Action"), "links filter must exclude buttons")
         }
@@ -299,7 +325,9 @@ struct BrowserWebKitSmokeTests {
             BrowserSession.allowFileURLsForTesting = false
             defer { BrowserSession.allowFileURLsForTesting = true }
             let result = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(url)"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(url)"}"##
+            )
             #expect(!ToolEnvelope.isSuccess(result))
             #expect(result.contains("Local file URLs are blocked"))
         }
@@ -309,7 +337,9 @@ struct BrowserWebKitSmokeTests {
         try await withSmokeExecutor { executor, fixtures in
             let url = try SmokeFixtures.write(SmokeFixtures.article, to: fixtures, name: "article")
             _ = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##
+            )
             let result = await executor.execute(name: "browser_read_page", argumentsJSON: "{}")
             #expect(ToolEnvelope.isSuccess(result))
             #expect(result.contains("The History of Fixtures"))
@@ -326,11 +356,17 @@ struct BrowserWebKitSmokeTests {
             let first = try SmokeFixtures.write(SmokeFixtures.interactive, to: fixtures, name: "interactive")
             let second = try SmokeFixtures.write(SmokeFixtures.loginForm, to: fixtures, name: "login")
             _ = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(first)", "detail": "none"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(first)", "detail": "none"}"##
+            )
             _ = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(second)", "detail": "none"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(second)", "detail": "none"}"##
+            )
             let back = await executor.execute(
-                name: "browser_navigate_back", argumentsJSON: ##"{"detail": "standard"}"##)
+                name: "browser_navigate_back",
+                argumentsJSON: ##"{"detail": "standard"}"##
+            )
             #expect(back.contains("navigate back succeeded"))
             #expect(back.contains("Interactive Fixture"), "back must land on the first page")
         }
@@ -340,7 +376,9 @@ struct BrowserWebKitSmokeTests {
         try await withSmokeExecutor { executor, fixtures in
             let url = try SmokeFixtures.write(SmokeFixtures.interactive, to: fixtures, name: "interactive")
             _ = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##
+            )
             let back = await executor.execute(name: "browser_navigate_back", argumentsJSON: "{}")
             #expect(!ToolEnvelope.isSuccess(back))
             #expect(back.contains("No back history"))
@@ -351,7 +389,9 @@ struct BrowserWebKitSmokeTests {
         try await withSmokeExecutor { executor, fixtures in
             let url = try SmokeFixtures.write(SmokeFixtures.shadowHost, to: fixtures, name: "shadow")
             let result = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(url)", "detail": "standard"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(url)", "detail": "standard"}"##
+            )
             #expect(result.contains("Shadow Button"), "open shadow roots must be pierced")
             #expect(result.contains("Light Button"), "light DOM must still be walked")
         }
@@ -362,12 +402,18 @@ struct BrowserWebKitSmokeTests {
             _ = try SmokeFixtures.write(SmokeFixtures.secondPage, to: fixtures, name: "second")
             let url = try SmokeFixtures.write(SmokeFixtures.blankLink, to: fixtures, name: "blank")
             _ = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##
+            )
             _ = await executor.execute(
-                name: "browser_click", argumentsJSON: ##"{"selector": "#blank-link", "detail": "none"}"##)
+                name: "browser_click",
+                argumentsJSON: ##"{"selector": "#blank-link", "detail": "none"}"##
+            )
             // The new-window request loads in the SAME webview (createWebViewWith).
             let arrived = await executor.execute(
-                name: "browser_wait_for", argumentsJSON: ##"{"text": "Arrived", "timeout": 10}"##)
+                name: "browser_wait_for",
+                argumentsJSON: ##"{"text": "Arrived", "timeout": 10}"##
+            )
             #expect(ToolEnvelope.isSuccess(arrived), "target=_blank must navigate the session")
         }
     }
@@ -423,19 +469,24 @@ struct BrowserWebKitSmokeTests {
         try await withSmokeExecutor { executor, _ in
             let set = await executor.execute(
                 name: "browser_cookies",
-                argumentsJSON: ##"{"action": "set", "cookie": {"name": "session", "value": "secret123", "domain": "example.com"}}"##
+                argumentsJSON:
+                    ##"{"action": "set", "cookie": {"name": "session", "value": "secret123", "domain": "example.com"}}"##
             )
             #expect(ToolEnvelope.isSuccess(set))
 
             let redacted = await executor.execute(
-                name: "browser_cookies", argumentsJSON: ##"{"action": "get"}"##)
+                name: "browser_cookies",
+                argumentsJSON: ##"{"action": "get"}"##
+            )
             #expect(ToolEnvelope.isSuccess(redacted))
             #expect(!redacted.contains("secret123"), "cookie values must never leak by default")
             #expect(redacted.contains("<redacted>"))
 
             // include_values is consequential; the smoke confirm auto-approves.
             let full = await executor.execute(
-                name: "browser_cookies", argumentsJSON: ##"{"action": "get", "include_values": true}"##)
+                name: "browser_cookies",
+                argumentsJSON: ##"{"action": "get", "include_values": true}"##
+            )
             #expect(full.contains("secret123"), "approved include_values must return values")
         }
     }
@@ -443,7 +494,9 @@ struct BrowserWebKitSmokeTests {
     @Test func screenshotPathsOutsideDownloadsAreRefused() async throws {
         try await withSmokeExecutor { executor, _ in
             let result = await executor.execute(
-                name: "browser_screenshot", argumentsJSON: ##"{"path": "/tmp/evil.png"}"##)
+                name: "browser_screenshot",
+                argumentsJSON: ##"{"path": "/tmp/evil.png"}"##
+            )
             #expect(!ToolEnvelope.isSuccess(result))
             #expect(result.contains("~/Downloads"))
             #expect(!FileManager.default.fileExists(atPath: "/tmp/evil.png"))
@@ -453,10 +506,15 @@ struct BrowserWebKitSmokeTests {
     @Test func pendingNavigationIsResolvedWhenSuperseded() async throws {
         try await withSmokeExecutor { executor, fixtures in
             let fixture = try SmokeFixtures.write(
-                SmokeFixtures.interactive, to: fixtures, name: "interactive")
+                SmokeFixtures.interactive,
+                to: fixtures,
+                name: "interactive"
+            )
             // Touch the executor once so the session exists in the pool.
             _ = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(fixture)", "detail": "none"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(fixture)", "detail": "none"}"##
+            )
             let manager = BrowserSessionManager.shared
             let agentId = try #require(manager.activeAgentIds().first)
             let session = manager.session(for: agentId)
@@ -478,7 +536,9 @@ struct BrowserWebKitSmokeTests {
         try await withSmokeExecutor { executor, fixtures in
             let url = try SmokeFixtures.write(SmokeFixtures.interactive, to: fixtures, name: "interactive")
             _ = await executor.execute(
-                name: "browser_navigate", argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##)
+                name: "browser_navigate",
+                argumentsJSON: ##"{"url": "\##(url)", "detail": "none"}"##
+            )
             let manager = BrowserSessionManager.shared
             let agentId = try #require(manager.activeAgentIds().first)
 

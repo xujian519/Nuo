@@ -98,7 +98,9 @@ public enum TerminationForensics {
 
         try? fm.removeItem(at: markerURL)
         try? fm.createDirectory(
-            at: OsaurusPaths.root(), withIntermediateDirectories: true)
+            at: OsaurusPaths.root(),
+            withIntermediateDirectories: true
+        )
         fm.createFile(atPath: sentinelURL.path, contents: Data())
 
         let record = VerdictRecord(verdict: verdict, at: Date(), previousReason: previousReason)
@@ -109,7 +111,8 @@ public enum TerminationForensics {
         if verdict == .unattributed {
             CrashReportingService.recordBreadcrumb(
                 category: "lifecycle.termination",
-                message: "previous instance ended without an intentional exit (no crash report expected — SIGKILL/watchdog/unmarked path)"
+                message:
+                    "previous instance ended without an intentional exit (no crash report expected — SIGKILL/watchdog/unmarked path)"
             )
         }
         return verdict

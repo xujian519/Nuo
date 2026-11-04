@@ -21,11 +21,15 @@ struct ConfigModelReferenceTests {
         localModelIds: ["OsaurusAI/Gemma-4-QAT", "mlx-community/Qwen-Local"],
         providers: [
             .init(
-                prefix: "anthropic", name: "Anthropic",
-                models: ["claude-fable-5", "claude-opus-5"]),
+                prefix: "anthropic",
+                name: "Anthropic",
+                models: ["claude-fable-5", "claude-opus-5"]
+            ),
             .init(
-                prefix: "openrouter", name: "OpenRouter",
-                models: ["claude-fable-5", "meta/llama-4"]),
+                prefix: "openrouter",
+                name: "OpenRouter",
+                models: ["claude-fable-5", "meta/llama-4"]
+            ),
             .init(prefix: "xai", name: "xAI", models: []),
         ]
     )
@@ -34,21 +38,25 @@ struct ConfigModelReferenceTests {
     func foundation_resolvesCaseInsensitively() {
         #expect(
             ConfigModelReference.resolve("Foundation", catalog: catalog)
-                == .resolved("foundation"))
+                == .resolved("foundation")
+        )
     }
 
     @Test
     func installedLocalId_resolvesToCanonicalCasing() {
         #expect(
             ConfigModelReference.resolve("osaurusai/gemma-4-qat", catalog: catalog)
-                == .resolved("OsaurusAI/Gemma-4-QAT"))
+                == .resolved("OsaurusAI/Gemma-4-QAT")
+        )
     }
 
     @Test
     func pendingLocalId_fromSameDocumentModelsList_isAccepted() {
         let result = ConfigModelReference.resolve(
-            "mlx-community/New-Download", catalog: catalog,
-            pendingLocalIds: ["mlx-community/New-Download"])
+            "mlx-community/New-Download",
+            catalog: catalog,
+            pendingLocalIds: ["mlx-community/New-Download"]
+        )
         #expect(result == .resolved("mlx-community/New-Download"))
     }
 
@@ -56,7 +64,8 @@ struct ConfigModelReferenceTests {
     func prefixedCloudId_resolvesToCanonicalForm() {
         #expect(
             ConfigModelReference.resolve("Anthropic/Claude-Opus-5", catalog: catalog)
-                == .resolved("anthropic/claude-opus-5"))
+                == .resolved("anthropic/claude-opus-5")
+        )
     }
 
     @Test
@@ -65,21 +74,25 @@ struct ConfigModelReferenceTests {
         // prefix keeps working (xAI has no discovered models here).
         #expect(
             ConfigModelReference.resolve("xai/grok-5", catalog: catalog)
-                == .resolved("xai/grok-5"))
+                == .resolved("xai/grok-5")
+        )
     }
 
     @Test
     func bareCloudId_uniqueAcrossProviders_isAutoPrefixed() {
         #expect(
             ConfigModelReference.resolve("meta/llama-4", catalog: catalog)
-                == .resolved("openrouter/meta/llama-4"))
+                == .resolved("openrouter/meta/llama-4")
+        )
     }
 
     @Test
     func bareCloudId_offeredByMultipleProviders_isRejectedWithCandidates() {
         guard
             case .invalid(let message) = ConfigModelReference.resolve(
-                "claude-fable-5", catalog: catalog)
+                "claude-fable-5",
+                catalog: catalog
+            )
         else {
             Issue.record("expected ambiguity rejection")
             return
@@ -92,7 +105,9 @@ struct ConfigModelReferenceTests {
     func unknownId_isRejectedWithGuidance() {
         guard
             case .invalid(let message) = ConfigModelReference.resolve(
-                "not-a-model", catalog: catalog)
+                "not-a-model",
+                catalog: catalog
+            )
         else {
             Issue.record("expected rejection")
             return
@@ -111,6 +126,7 @@ struct ConfigModelReferenceTests {
         )
         #expect(
             ConfigModelReference.resolve("anthropic/local-lookalike", catalog: catalog)
-                == .resolved("anthropic/local-lookalike"))
+                == .resolved("anthropic/local-lookalike")
+        )
     }
 }

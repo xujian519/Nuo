@@ -194,9 +194,9 @@ struct MLXModel: Identifiable, Codable {
 
         func boundedJSONData(at url: URL) -> Data? {
             guard let attrs = try? fm.attributesOfItem(atPath: url.path),
-                  let size = attrs[.size] as? NSNumber,
-                  size.int64Value > 0,
-                  size.int64Value <= maximumIndexBytes
+                let size = attrs[.size] as? NSNumber,
+                size.int64Value > 0,
+                size.int64Value <= maximumIndexBytes
             else { return nil }
             return try? Data(contentsOf: url, options: [.mappedIfSafe])
         }
@@ -215,11 +215,11 @@ struct MLXModel: Identifiable, Codable {
         ] {
             let indexURL = root.appendingPathComponent(indexName)
             guard let data = boundedJSONData(at: indexURL),
-                  let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
             else { continue }
 
             if let metadata = object["metadata"] as? [String: Any],
-               let total = positiveInt64(metadata["total_size"])
+                let total = positiveInt64(metadata["total_size"])
             {
                 return total
             }
@@ -236,8 +236,8 @@ struct MLXModel: Identifiable, Codable {
                     }
                     let path = shardURL.path
                     guard let attrs = try? fm.attributesOfItem(atPath: path),
-                          let size = attrs[.size] as? NSNumber,
-                          size.int64Value > 0
+                        let size = attrs[.size] as? NSNumber,
+                        size.int64Value > 0
                     else {
                         complete = false
                         break
@@ -261,23 +261,26 @@ struct MLXModel: Identifiable, Codable {
         ] {
             let path = root.appendingPathComponent(name).path
             if let attrs = try? fm.attributesOfItem(atPath: path),
-               let size = attrs[.size] as? NSNumber,
-               size.int64Value > 0
+                let size = attrs[.size] as? NSNumber,
+                size.int64Value > 0
             {
                 return size.int64Value
             }
         }
 
-        guard let entries = try? fm.contentsOfDirectory(
-            at: root,
-            includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
-            options: [.skipsHiddenFiles]
-        ) else { return nil }
+        guard
+            let entries = try? fm.contentsOfDirectory(
+                at: root,
+                includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey],
+                options: [.skipsHiddenFiles]
+            )
+        else { return nil }
         var total: Int64 = 0
         for entry in entries where entry.pathExtension.lowercased() == "safetensors" {
-            guard let values = try? entry.resourceValues(forKeys: [
-                .isRegularFileKey, .fileSizeKey,
-            ]),
+            guard
+                let values = try? entry.resourceValues(forKeys: [
+                    .isRegularFileKey, .fileSizeKey,
+                ]),
                 values.isRegularFile == true,
                 let size = values.fileSize,
                 size > 0

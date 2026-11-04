@@ -33,8 +33,11 @@ public struct MemoryRecallTurn: Sendable, Codable {
     public let decodeTokensPerSecond: Double?
 
     public init(
-        visibleText: String, memoryInjected: Bool, memorySection: String?,
-        tokenCount: Int? = nil, decodeTokensPerSecond: Double? = nil
+        visibleText: String,
+        memoryInjected: Bool,
+        memorySection: String?,
+        tokenCount: Int? = nil,
+        decodeTokensPerSecond: Double? = nil
     ) {
         self.visibleText = visibleText
         self.memoryInjected = memoryInjected
@@ -136,19 +139,30 @@ public enum MemoryRecallEvaluator {
     /// `assembleMemorySection` (gate + planner + budget) and prepend via
     /// `injectMemoryPrefix`, exactly like the chat surface.
     public static func run(
-        queries: [String], agentId: String, model: String? = nil,
-        maxTokens: Int = 512, temperature: Float? = nil
+        queries: [String],
+        agentId: String,
+        model: String? = nil,
+        maxTokens: Int = 512,
+        temperature: Float? = nil
     ) async -> MemoryRecallTranscript {
         let resolvedModel = model ?? ChatConfigurationStore.load().coreModelIdentifier ?? "foundation"
         return await runConversation(
-            queries: queries, agentId: agentId, model: resolvedModel, maxTokens: maxTokens,
-            temperature: temperature, engine: ChatEngine()
+            queries: queries,
+            agentId: agentId,
+            model: resolvedModel,
+            maxTokens: maxTokens,
+            temperature: temperature,
+            engine: ChatEngine()
         )
     }
 
     static func runConversation(
-        queries: [String], agentId: String, model: String, maxTokens: Int,
-        temperature: Float? = nil, engine: any ResponsesEngineProtocol,
+        queries: [String],
+        agentId: String,
+        model: String,
+        maxTokens: Int,
+        temperature: Float? = nil,
+        engine: any ResponsesEngineProtocol,
         memorySectionProvider: @MainActor (String, String) async -> String? = { agentId, query in
             await SystemPromptComposer.assembleMemorySection(agentId: agentId, query: query)
         }
@@ -162,25 +176,29 @@ public enum MemoryRecallEvaluator {
             var messages = history
             SystemPromptComposer.injectMemoryPrefix(memorySection, into: &messages)
             let request = ResponsesInferenceRequest(
-                model: model, input: messages,
+                model: model,
+                input: messages,
                 generation: ResponsesGenerationOptions(temperature: temperature, maxOutputTokens: maxTokens),
                 sessionID: sessionId
             )
             do {
                 let result = try await engine.completeResponse(request: request, endAt: .streamEnd)
-                turns.append(MemoryRecallTurn(
-                    visibleText: result.text,
-                    memoryInjected: !(memorySection ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-                    memorySection: memorySection,
-                    tokenCount: result.completion.tokenCount,
-                    decodeTokensPerSecond: result.completion.tokensPerSecond
-                ))
+                turns.append(
+                    MemoryRecallTurn(
+                        visibleText: result.text,
+                        memoryInjected: !(memorySection ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                        memorySection: memorySection,
+                        tokenCount: result.completion.tokenCount,
+                        decodeTokensPerSecond: result.completion.tokensPerSecond
+                    )
+                )
                 // Memory injection is transient. Raw user text and the full
                 // Responses assistant Items persist in history between turns.
                 history.append(try result.completedAssistantInput())
             } catch {
                 return MemoryRecallTranscript(
-                    turns: turns, error: "turn \(index + 1)/\(queries.count) failed: \(error)"
+                    turns: turns,
+                    error: "turn \(index + 1)/\(queries.count) failed: \(error)"
                 )
             }
         }

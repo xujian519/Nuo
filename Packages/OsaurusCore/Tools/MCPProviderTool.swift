@@ -228,7 +228,8 @@ final class MCPProviderTool: OsaurusTool, PermissionedTool, ArgumentAwarePerCall
     ) -> String {
         guard exposedName != mcpToolName else { return "" }
         var hint = "Exposed as `\(exposedName)` (server name `\(mcpToolName)`)."
-        let cited = siblingToolNames
+        let cited =
+            siblingToolNames
             .filter { $0 != mcpToolName && Self.mentionsWholeWord($0, in: description) }
             .prefix(maxCitedSiblings)
         if !cited.isEmpty {
@@ -256,7 +257,7 @@ final class MCPProviderTool: OsaurusTool, PermissionedTool, ArgumentAwarePerCall
     static func mentionsWholeWord(_ word: String, in text: String) -> Bool {
         guard !word.isEmpty else { return false }
         var searchStart = text.startIndex
-        while let found = text.range(of: word, range: searchStart..<text.endIndex) {
+        while let found = text.range(of: word, range: searchStart ..< text.endIndex) {
             let boundedBefore =
                 found.lowerBound == text.startIndex
                 || !isIdentifierCharacter(text[text.index(before: found.lowerBound)])
@@ -569,7 +570,7 @@ extension MCPProviderTool {
         guard output.utf8.count > cap else { return output }
         let warning = "MCP text exceeded the per-call output cap and was truncated; image references were preserved."
         var fraction = min(1, Double(cap) / Double(output.utf8.count))
-        for attempt in 0..<12 {
+        for attempt in 0 ..< 12 {
             try Task.checkCancellation()
             let bounded = parts.map { part -> [String: Any] in
                 var part = part
@@ -580,13 +581,20 @@ extension MCPProviderTool {
                 default: return part
                 }
                 guard let text = part[key] as? String else { return part }
-                part[key] = attempt == 11
+                part[key] =
+                    attempt == 11
                     ? "[MCP text omitted: per-call output cap]"
-                    : HeadTailTruncation.applyByteExact(text, byteCap: Int(Double(text.utf8.count) * fraction), headFraction: 2.0 / 3.0)
+                    : HeadTailTruncation.applyByteExact(
+                        text,
+                        byteCap: Int(Double(text.utf8.count) * fraction),
+                        headFraction: 2.0 / 3.0
+                    )
                 return part
             }
             output = ToolEnvelope.success(
-                tool: toolName, result: ["kind": "mcp_content", "content": bounded], warnings: [warning]
+                tool: toolName,
+                result: ["kind": "mcp_content", "content": bounded],
+                warnings: [warning]
             )
             if output.utf8.count <= cap { return output }
             fraction *= min(0.9, Double(cap) / Double(output.utf8.count))
@@ -603,7 +611,10 @@ extension MCPProviderTool {
 
     private static func stagedImage(_ encoded: String, mimeType: String) throws -> [String: Any] {
         guard mimeType.hasPrefix("image/"), let data = Data(base64Encoded: encoded), !data.isEmpty,
-            let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
+            let source = CGImageSourceCreateWithData(
+                data as CFData,
+                [kCGImageSourceShouldCache: false] as CFDictionary
+            ),
             let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
             let width = properties[kCGImagePropertyPixelWidth] as? Int, width > 0,
             let height = properties[kCGImagePropertyPixelHeight] as? Int, height > 0

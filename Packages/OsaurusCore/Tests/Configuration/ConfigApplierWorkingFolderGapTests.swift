@@ -54,7 +54,8 @@ struct ConfigApplierWorkingFolderGapTests {
                 modelCatalog: ConfigModelReference.Catalog(localModelIds: [], providers: []),
                 isPermissionGranted: { _ in true },
                 bookmarkResolves: { _ in true },
-                knowledgeCollectionExists: { _ in true })
+                knowledgeCollectionExists: { _ in true }
+            )
         )
         #expect(!report.isClean)
         #expect(report.hasBlockers)

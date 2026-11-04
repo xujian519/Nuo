@@ -51,7 +51,10 @@ struct HTTPSharedAgentExclusionTests {
     }
 
     private static func send(
-        _ method: String, _ path: String, server: ExclusionTestServer, body: Data? = nil
+        _ method: String,
+        _ path: String,
+        server: ExclusionTestServer,
+        body: Data? = nil
     ) async throws -> (status: Int, body: String) {
         var request = URLRequest(url: URL(string: "http://\(server.host):\(server.port)\(path)")!)
         request.httpMethod = method
@@ -90,7 +93,9 @@ struct HTTPSharedAgentExclusionTests {
             #expect(detail.status != 200, "GET /agents/{address} resolved a shared agent: \(detail.body)")
 
             let dispatch = try await Self.send(
-                "POST", "/agents/\(Self.sharedAddress)/dispatch", server: server,
+                "POST",
+                "/agents/\(Self.sharedAddress)/dispatch",
+                server: server,
                 body: Data(#"{"prompt":"hi"}"#.utf8)
             )
             #expect(dispatch.status == 404, "dispatch returned \(dispatch.status): \(dispatch.body)")
@@ -99,7 +104,9 @@ struct HTTPSharedAgentExclusionTests {
             // Same body shape as an unknown identifier: `/run` looks the
             // address up in the local identity registry and rejects the rest.
             let run = try await Self.send(
-                "POST", "/agents/\(Self.sharedAddress)/run", server: server,
+                "POST",
+                "/agents/\(Self.sharedAddress)/run",
+                server: server,
                 body: Data(#"{"messages":[{"role":"user","content":"hi"}]}"#.utf8)
             )
             #expect(run.status == 400 || run.status == 404, "run returned \(run.status): \(run.body)")

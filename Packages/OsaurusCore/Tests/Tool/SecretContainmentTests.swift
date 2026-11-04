@@ -372,7 +372,11 @@ struct SecretArgumentSurfaceWiringTests {
         let http = try source("Networking/HTTPHandler.swift")
         // Canonical Responses record the entire original assistant batch,
         // including native output Items, before any tool is dispatched.
-        #expect(http.contains("let assistant = SecretArgumentScrubber.recordedAssistantMessage(try response.completedAssistantInput())"))
+        #expect(
+            http.contains(
+                "let assistant = SecretArgumentScrubber.recordedAssistantMessage(try response.completedAssistantInput())"
+            )
+        )
         #expect(http.contains("try batchHistory.begin(assistant)"))
         #expect(http.contains("arguments: SecretArgumentScrubber.recordedArguments("))
 
@@ -386,7 +390,10 @@ struct SecretArgumentSurfaceWiringTests {
         // Both one-shot and streaming model steps stage a scrubbed whole
         // batch. The raw execution arguments still reach the registry; only
         // persisted history and streamed argument previews use recorded data.
-        #expect(plugin.components(separatedBy: "try batchHistory.begin(SecretArgumentScrubber.recordedAssistantMessage(").count - 1 == 2)
+        #expect(
+            plugin.components(separatedBy: "try batchHistory.begin(SecretArgumentScrubber.recordedAssistantMessage(")
+                .count - 1 == 2
+        )
         #expect(plugin.contains("try response.completedAssistantInput()"))
         #expect(plugin.contains("argumentsJSON: inv.jsonArguments"))
         #expect(plugin.contains("\"function\": [\"name\": inv.toolName, \"arguments\": recordedArgs]"))

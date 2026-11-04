@@ -82,7 +82,7 @@ struct AgentRequestQueueSchedulingTests {
     /// for a unique agent id, isolating capacity math from anything other
     /// suites may have in flight on the shared manager.
     private func fillAgentCap(_ agentId: UUID) -> [BackgroundTaskState] {
-        (0..<5).map { i in
+        (0 ..< 5).map { i in
             let state = makeTaskState(agentId: agentId, title: "filler-\(i)")
             mgr.registerTaskForTesting(state)
             return state
@@ -139,7 +139,7 @@ struct AgentRequestQueueSchedulingTests {
 
     @Test func waitingForInput_releasesSlotAndResumesWithoutRequeue() async throws {
         let agent = UUID()
-        var fillers = (0..<4).map { i in
+        var fillers = (0 ..< 4).map { i in
             let state = makeTaskState(agentId: agent, title: "filler-\(i)")
             mgr.registerTaskForTesting(state)
             return state
@@ -182,7 +182,7 @@ struct AgentRequestQueueSchedulingTests {
 
     @Test func naturalCompletion_promotesQueued() async throws {
         let agent = UUID()
-        var fillers = (0..<4).map { i in
+        var fillers = (0 ..< 4).map { i in
             let state = makeTaskState(agentId: agent, title: "filler-\(i)")
             mgr.registerTaskForTesting(state)
             return state
@@ -283,7 +283,7 @@ struct AgentRequestQueueSchedulingTests {
         let running = makeTaskState(agentId: agent, title: "running")
         mgr.registerTaskForTesting(running)
         // Saturate the agent so the second request queues.
-        let fillers = (0..<4).map { i in
+        let fillers = (0 ..< 4).map { i in
             let state = makeTaskState(agentId: agent, title: "filler-\(i)")
             mgr.registerTaskForTesting(state)
             return state

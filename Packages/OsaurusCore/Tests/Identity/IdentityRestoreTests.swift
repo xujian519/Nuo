@@ -161,10 +161,18 @@ struct RecoverFromMnemonicSheetLogicTests {
         let partial = Array(try aliceWords().prefix(23))
         #expect(
             !RecoverFromMnemonicSheet.canRestore(
-                words: partial, mode: .freshRestore, acknowledgedReplace: true))
+                words: partial,
+                mode: .freshRestore,
+                acknowledgedReplace: true
+            )
+        )
         #expect(
             !RecoverFromMnemonicSheet.canRestore(
-                words: [], mode: .freshRestore, acknowledgedReplace: true))
+                words: [],
+                mode: .freshRestore,
+                acknowledgedReplace: true
+            )
+        )
     }
 
     @Test("24 words enable Restore for drift repair and fresh restore")
@@ -173,10 +181,18 @@ struct RecoverFromMnemonicSheetLogicTests {
         let drift = IdentityDrift(mismatchedAgents: [], staleAccessKeys: [])
         #expect(
             RecoverFromMnemonicSheet.canRestore(
-                words: words, mode: .driftRepair(drift), acknowledgedReplace: false))
+                words: words,
+                mode: .driftRepair(drift),
+                acknowledgedReplace: false
+            )
+        )
         #expect(
             RecoverFromMnemonicSheet.canRestore(
-                words: words, mode: .freshRestore, acknowledgedReplace: false))
+                words: words,
+                mode: .freshRestore,
+                acknowledgedReplace: false
+            )
+        )
     }
 
     @Test("replace-existing additionally requires the acknowledgment")
@@ -185,10 +201,18 @@ struct RecoverFromMnemonicSheetLogicTests {
         let mode = RecoverFromMnemonicMode.replaceExisting(current: TestKeys.bobAddress)
         #expect(
             !RecoverFromMnemonicSheet.canRestore(
-                words: words, mode: mode, acknowledgedReplace: false))
+                words: words,
+                mode: mode,
+                acknowledgedReplace: false
+            )
+        )
         #expect(
             RecoverFromMnemonicSheet.canRestore(
-                words: words, mode: mode, acknowledgedReplace: true))
+                words: words,
+                mode: mode,
+                acknowledgedReplace: true
+            )
+        )
     }
 
     // MARK: Candidate address preview

@@ -490,7 +490,8 @@ public enum SubagentJobEvaluator {
                                                 spec: job.subagent,
                                                 overlapProbe: probe
                                             )
-                                            let envelope = await ChatExecutionContext
+                                            let envelope =
+                                                await ChatExecutionContext
                                                 .$currentToolCallId.withValue(callIds[index]) {
                                                     defer { SpawnWaveGate.settleCurrentCall() }
                                                     return await SubagentSession.run(
@@ -919,51 +920,52 @@ public enum SubagentJobEvaluator {
         handoffEnabled: Bool = true,
         _ body: @Sendable (UUID) async -> T
     ) async -> T {
-        let state: (
-            targetID: UUID,
-            createdAgentId: UUID?,
-            priorConfig: SubagentConfiguration,
-            configChanged: Bool
-        ) =
-            await MainActor.run {
-                let priorConfig = SubagentConfigurationStore.snapshot()
-                var createdAgentId: UUID? = nil
-                let matches = AgentManager.shared.agents.filter {
-                    $0.name.caseInsensitiveCompare(name) == .orderedSame
-                }
-                let targetID: UUID
-                if matches.count == 1, model == nil {
-                    targetID = matches[0].id
-                } else {
-                    var agent = Agent(
-                        id: UUID(),
-                        name: name,
-                        description: "Seeded by OsaurusEvals for the spawn lane; safe to delete.",
-                        systemPrompt:
-                            "You are a concise subagent. Answer the task directly and follow any "
-                            + "formatting instructions exactly. Do not add preamble or commentary."
-                    )
-                    if let model, !model.isEmpty { agent.defaultModel = model }
-                    AgentStore.save(agent)
-                    createdAgentId = agent.id
-                    targetID = agent.id
-                }
-                var updated = priorConfig
-                if !priorConfig.isAgentSpawnable(targetID) {
-                    updated.spawnableAgentIDs =
-                        SpawnableAgentIdentity.normalizedIDs(
-                            priorConfig.spawnableAgentIDs + [targetID]
+        let state:
+            (
+                targetID: UUID,
+                createdAgentId: UUID?,
+                priorConfig: SubagentConfiguration,
+                configChanged: Bool
+            ) =
+                await MainActor.run {
+                    let priorConfig = SubagentConfigurationStore.snapshot()
+                    var createdAgentId: UUID? = nil
+                    let matches = AgentManager.shared.agents.filter {
+                        $0.name.caseInsensitiveCompare(name) == .orderedSame
+                    }
+                    let targetID: UUID
+                    if matches.count == 1, model == nil {
+                        targetID = matches[0].id
+                    } else {
+                        var agent = Agent(
+                            id: UUID(),
+                            name: name,
+                            description: "Seeded by OsaurusEvals for the spawn lane; safe to delete.",
+                            systemPrompt:
+                                "You are a concise subagent. Answer the task directly and follow any "
+                                + "formatting instructions exactly. Do not add preamble or commentary."
                         )
+                        if let model, !model.isEmpty { agent.defaultModel = model }
+                        AgentStore.save(agent)
+                        createdAgentId = agent.id
+                        targetID = agent.id
+                    }
+                    var updated = priorConfig
+                    if !priorConfig.isAgentSpawnable(targetID) {
+                        updated.spawnableAgentIDs =
+                            SpawnableAgentIdentity.normalizedIDs(
+                                priorConfig.spawnableAgentIDs + [targetID]
+                            )
+                    }
+                    // The local handoff switch: ON lets a LOCAL run model spawn a
+                    // local agent (the chat model unloads to make room); the
+                    // residency lane sets it per case. Restored afterward.
+                    updated.localTextDelegationEnabled = handoffEnabled
+                    let configChanged = updated != priorConfig
+                    if configChanged { SubagentConfigurationStore.save(updated) }
+                    if createdAgentId != nil { AgentManager.shared.refresh() }
+                    return (targetID, createdAgentId, priorConfig, configChanged)
                 }
-                // The local handoff switch: ON lets a LOCAL run model spawn a
-                // local agent (the chat model unloads to make room); the
-                // residency lane sets it per case. Restored afterward.
-                updated.localTextDelegationEnabled = handoffEnabled
-                let configChanged = updated != priorConfig
-                if configChanged { SubagentConfigurationStore.save(updated) }
-                if createdAgentId != nil { AgentManager.shared.refresh() }
-                return (targetID, createdAgentId, priorConfig, configChanged)
-            }
         let result = await body(state.targetID)
         await MainActor.run {
             if let id = state.createdAgentId {

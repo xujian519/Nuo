@@ -47,7 +47,9 @@ extension EvalRunner {
         let label = testCase.label ?? testCase.id
         guard let exp = testCase.expect.reasoning else {
             return Self.errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "missing `expect.reasoning`"
             )
         }
@@ -200,9 +202,11 @@ extension EvalRunner {
 
         // Every generation row carries token/s when the runtime reported it.
         for (index, turn) in transcript.turns.enumerated() {
-            notes.append(turn.decodeTokensPerSecond.map {
-                String(format: "turn %d decode tok/s: %.3f", index + 1, $0)
-            } ?? "turn \(index + 1): runtime decode tok/s unavailable")
+            notes.append(
+                turn.decodeTokensPerSecond.map {
+                    String(format: "turn %d decode tok/s: %.3f", index + 1, $0)
+                } ?? "turn \(index + 1): runtime decode tok/s unavailable"
+            )
         }
 
         return EvalCaseReport(

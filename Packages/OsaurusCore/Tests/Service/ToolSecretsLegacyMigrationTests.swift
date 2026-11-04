@@ -35,7 +35,8 @@ struct ToolSecretsLegacyMigrationTests {
         // Subsequent reads hit the canonical account directly.
         #expect(
             ToolSecretsKeychain.getSecret(id: key, for: pluginId, agentId: Agent.defaultId)
-                == "sk-legacy")
+                == "sk-legacy"
+        )
     }
 
     @Test("canonical value wins over a stale legacy twin")
@@ -73,7 +74,10 @@ struct ToolSecretsLegacyMigrationTests {
         // The resolution policy still surfaces it: per-agent reads fall back
         // to Agent.defaultId, which triggers the migration.
         let resolved = ToolSecretsKeychain.resolvedSecret(
-            id: key, for: pluginId, agentId: otherAgent)
+            id: key,
+            for: pluginId,
+            agentId: otherAgent
+        )
         #expect(resolved == "sk-legacy")
         #expect(ToolSecretsKeychain._testRawAccountValue(canonicalAccount) == "sk-legacy")
         #expect(ToolSecretsKeychain._testRawAccountValue(legacyAccount) == nil)
@@ -86,6 +90,7 @@ struct ToolSecretsLegacyMigrationTests {
 
         #expect(ToolSecretsKeychain.hasSecret(id: key, for: pluginId, agentId: Agent.defaultId))
         #expect(
-            ToolSecretsKeychain.hasResolvedSecret(id: key, for: pluginId, agentId: Agent.defaultId))
+            ToolSecretsKeychain.hasResolvedSecret(id: key, for: pluginId, agentId: Agent.defaultId)
+        )
     }
 }

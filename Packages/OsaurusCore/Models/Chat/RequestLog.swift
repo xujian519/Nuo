@@ -50,8 +50,12 @@ struct ToolCallLog: Identifiable, Sendable, Codable, Equatable {
     }
 
     private init(
-        rawId: UUID, rawName: String, rawArguments: String, rawResult: String?,
-        rawDurationMs: Double?, rawIsError: Bool
+        rawId: UUID,
+        rawName: String,
+        rawArguments: String,
+        rawResult: String?,
+        rawDurationMs: Double?,
+        rawIsError: Bool
     ) {
         id = rawId
         name = rawName
@@ -96,10 +100,11 @@ struct ToolCallLog: Identifiable, Sendable, Codable, Equatable {
         for key in Array(object.keys) where sensitiveKeys.contains(key.lowercased()) {
             object[key] = "[REDACTED:AGENT_CHANNEL_MESSAGE_CONTENT]"
         }
-        guard let redactedData = try? JSONSerialization.data(
-            withJSONObject: object,
-            options: [.sortedKeys]
-        ),
+        guard
+            let redactedData = try? JSONSerialization.data(
+                withJSONObject: object,
+                options: [.sortedKeys]
+            ),
             let redacted = String(data: redactedData, encoding: .utf8)
         else {
             return #"{ "redaction": "agent_channel_arguments_redacted" }"#
@@ -814,7 +819,8 @@ struct RequestLog: Identifiable, Sendable, Codable {
             let kind = d["media_kind"] ?? "image"
             let op = d["operation"] ?? "generate"
             let count = d["count"].flatMap(Int.init) ?? 1
-            let noun = kind == "video" ? (count == 1 ? L("video") : L("videos")) : (count == 1 ? L("image") : L("images"))
+            let noun =
+                kind == "video" ? (count == 1 ? L("video") : L("videos")) : (count == 1 ? L("image") : L("images"))
             let verb: String
             switch op {
             case "edit": verb = L("Edited")
@@ -849,11 +855,20 @@ struct RequestLog: Identifiable, Sendable, Codable {
         switch event {
         case "cleared", "cleared_by_user":
             let removed = d["removed_rows"] ?? "?"
-            return String(format: L("The user cleared the activity log; %@ rows were removed and the chain anchor moved forward."), removed)
+            return String(
+                format: L(
+                    "The user cleared the activity log; %@ rows were removed and the chain anchor moved forward."
+                ),
+                removed
+            )
         case "pruned":
             let removed = d["removed_rows"] ?? "?"
             let cutoff = d["cutoff"] ?? "?"
-            return String(format: L("Retention removed %@ rows older than %@; the chain anchor moved forward."), removed, cutoff)
+            return String(
+                format: L("Retention removed %@ rows older than %@; the chain anchor moved forward."),
+                removed,
+                cutoff
+            )
         case "verified":
             let records = d["records"] ?? "?"
             if let problems = d["problems"], problems != "0" {
@@ -866,13 +881,21 @@ struct RequestLog: Identifiable, Sendable, Codable {
             let content = d["include_content"] == "true" ? L("with message content") : L("metadata only")
             return String(format: L("Exported %@ records as %@ (%@)."), records, format.uppercased(), content)
         case "settings_changed":
-            let retention = d["retention_days"].map { $0 == "forever" ? L("forever") : String(format: L("%@ days"), $0) } ?? "?"
+            let retention =
+                d["retention_days"].map { $0 == "forever" ? L("forever") : String(format: L("%@ days"), $0) } ?? "?"
             let store = d["store_content"] == "true" ? L("on") : L("off")
-            return String(format: L("Activity Log settings changed: keep %@, store prompts and responses %@."), retention, store)
+            return String(
+                format: L("Activity Log settings changed: keep %@, store prompts and responses %@."),
+                retention,
+                store
+            )
         case "recovered":
             return String(
-                format: L("On open the chain head (seq %@) disagreed with the database tail (seq %@); the log continues from the database."),
-                d["expected_seq"] ?? "?", d["found_seq"] ?? "?"
+                format: L(
+                    "On open the chain head (seq %@) disagreed with the database tail (seq %@); the log continues from the database."
+                ),
+                d["expected_seq"] ?? "?",
+                d["found_seq"] ?? "?"
             )
         default:
             return errorMessage
@@ -996,7 +1019,8 @@ struct RequestLog: Identifiable, Sendable, Codable {
         guard let body = requestBody, let data = body.data(using: .utf8) else { return requestBody }
         if let json = try? JSONSerialization.jsonObject(with: data, options: []),
             let prettyData = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys]),
-            let prettyString = String(data: prettyData, encoding: .utf8) {
+            let prettyString = String(data: prettyData, encoding: .utf8)
+        {
             return prettyString
         }
         return body
@@ -1007,7 +1031,8 @@ struct RequestLog: Identifiable, Sendable, Codable {
         guard let body = responseBody, let data = body.data(using: .utf8) else { return responseBody }
         if let json = try? JSONSerialization.jsonObject(with: data, options: []),
             let prettyData = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys]),
-            let prettyString = String(data: prettyData, encoding: .utf8) {
+            let prettyString = String(data: prettyData, encoding: .utf8)
+        {
             return prettyString
         }
         return body
@@ -1028,7 +1053,8 @@ struct RequestLog: Identifiable, Sendable, Codable {
                 withJSONObject: json,
                 options: [.prettyPrinted, .sortedKeys]
             ),
-            let prettyString = String(data: prettyData, encoding: .utf8) {
+            let prettyString = String(data: prettyData, encoding: .utf8)
+        {
             return prettyString
         }
         return body
@@ -1049,7 +1075,8 @@ struct RequestLog: Identifiable, Sendable, Codable {
                 withJSONObject: json,
                 options: [.prettyPrinted, .sortedKeys]
             ),
-            let prettyString = String(data: prettyData, encoding: .utf8) {
+            let prettyString = String(data: prettyData, encoding: .utf8)
+        {
             return prettyString
         }
         return body

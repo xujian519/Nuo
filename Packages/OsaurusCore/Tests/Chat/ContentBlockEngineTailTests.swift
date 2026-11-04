@@ -55,8 +55,16 @@ struct ContentBlockEngineTailTests {
         // The chip already signals progress — no second progress row on top.
         #expect(typingPhases(in: blocks).isEmpty)
         // Not a finished turn: no footer, no empty-turn notice.
-        #expect(!contains(blocks) { if case .assistantActions = $0 { return true }; return false })
-        #expect(!contains(blocks) { if case .paragraph = $0 { return true }; return false })
+        #expect(
+            !contains(blocks) {
+                if case .assistantActions = $0 { return true }; return false
+            }
+        )
+        #expect(
+            !contains(blocks) {
+                if case .paragraph = $0 { return true }; return false
+            }
+        )
     }
 
     @Test
@@ -75,9 +83,21 @@ struct ContentBlockEngineTailTests {
             agentName: "Assistant"
         )
 
-        #expect(contains(blocks) { if case .pendingToolCall = $0 { return true }; return false })
-        #expect(!contains(blocks) { if case .generationStats = $0 { return true }; return false })
-        #expect(!contains(blocks) { if case .assistantActions = $0 { return true }; return false })
+        #expect(
+            contains(blocks) {
+                if case .pendingToolCall = $0 { return true }; return false
+            }
+        )
+        #expect(
+            !contains(blocks) {
+                if case .generationStats = $0 { return true }; return false
+            }
+        )
+        #expect(
+            !contains(blocks) {
+                if case .assistantActions = $0 { return true }; return false
+            }
+        )
         #expect(typingPhases(in: blocks).isEmpty)
     }
 
@@ -93,7 +113,11 @@ struct ContentBlockEngineTailTests {
             agentName: "Assistant"
         )
 
-        #expect(!contains(blocks) { if case .pendingToolCall = $0 { return true }; return false })
+        #expect(
+            !contains(blocks) {
+                if case .pendingToolCall = $0 { return true }; return false
+            }
+        )
     }
 
     // MARK: - Typing indicator phases
@@ -125,7 +149,9 @@ struct ContentBlockEngineTailTests {
 
         #expect(typingPhases(in: blocks) == [.finishing])
         // Same block id across the phase flip so the cell is reconfigured, not replaced.
-        let id = blocks.first { if case .typingIndicator = $0.kind { return true }; return false }?.id
+        let id = blocks.first {
+            if case .typingIndicator = $0.kind { return true }; return false
+        }?.id
         #expect(id == "typing-\(assistant.id.uuidString)")
     }
 
@@ -149,15 +175,23 @@ struct ContentBlockEngineTailTests {
             agentName: "Assistant"
         )
 
-        let paragraphIndex = blocks.firstIndex { if case .paragraph = $0.kind { return true }; return false }
-        let typingIndex = blocks.firstIndex { if case .typingIndicator = $0.kind { return true }; return false }
+        let paragraphIndex = blocks.firstIndex {
+            if case .paragraph = $0.kind { return true }; return false
+        }
+        let typingIndex = blocks.firstIndex {
+            if case .typingIndicator = $0.kind { return true }; return false
+        }
         #expect(typingPhases(in: blocks) == [.finishing])
         #expect(paragraphIndex != nil && typingIndex != nil)
         if let paragraphIndex, let typingIndex {
             #expect(paragraphIndex < typingIndex, "the status row follows the painted answer")
         }
         // Stats land only when the stream closes (ttft is stamped after the loop).
-        #expect(!contains(blocks) { if case .generationStats = $0 { return true }; return false })
+        #expect(
+            !contains(blocks) {
+                if case .generationStats = $0 { return true }; return false
+            }
+        )
         // The paragraph itself is no longer streaming: the cursor stopped at the last letter.
         #expect(
             contains(blocks) {
@@ -193,7 +227,11 @@ struct ContentBlockEngineTailTests {
         )
 
         #expect(typingPhases(in: blocks).isEmpty)
-        #expect(contains(blocks) { if case .assistantActions = $0 { return true }; return false })
+        #expect(
+            contains(blocks) {
+                if case .assistantActions = $0 { return true }; return false
+            }
+        )
     }
 
     // MARK: - Progress already signalled elsewhere
@@ -216,7 +254,11 @@ struct ContentBlockEngineTailTests {
         )
 
         #expect(typingPhases(in: blocks).isEmpty)
-        #expect(contains(blocks) { if case .toolCallGroup = $0 { return true }; return false })
+        #expect(
+            contains(blocks) {
+                if case .toolCallGroup = $0 { return true }; return false
+            }
+        )
     }
 
     @Test
@@ -247,7 +289,11 @@ struct ContentBlockEngineTailTests {
             activeTurnId: assistant.id,
             agentName: "Assistant"
         )
-        #expect(!contains(openRun) { if case .paragraph = $0 { return true }; return false })
+        #expect(
+            !contains(openRun) {
+                if case .paragraph = $0 { return true }; return false
+            }
+        )
         #expect(typingPhases(in: openRun) == [.finishing])
 
         let closedRun = ContentBlock.generateBlocks(
@@ -279,8 +325,14 @@ struct ContentBlockEngineTailTests {
             agentName: "Assistant"
         )
 
-        #expect(!contains(blocks) { if case .pendingToolCall = $0 { return true }; return false })
-        let indicators = blocks.filter { if case .typingIndicator = $0.kind { return true }; return false }
+        #expect(
+            !contains(blocks) {
+                if case .pendingToolCall = $0 { return true }; return false
+            }
+        )
+        let indicators = blocks.filter {
+            if case .typingIndicator = $0.kind { return true }; return false
+        }
         #expect(indicators.map(\.turnId) == [current.id])
     }
 }
@@ -303,7 +355,11 @@ struct BlockMemoizerEngineTailTests {
             activeTurnId: assistant.id,
             agentName: "Assistant"
         )
-        #expect(streaming.contains { if case .pendingToolCall = $0.kind { return true }; return false })
+        #expect(
+            streaming.contains {
+                if case .pendingToolCall = $0.kind { return true }; return false
+            }
+        )
 
         // Output complete, run open: same turn, same content — only the ids
         // changed. The memoizer must not serve the cached array blindly.
@@ -313,7 +369,11 @@ struct BlockMemoizerEngineTailTests {
             activeTurnId: assistant.id,
             agentName: "Assistant"
         )
-        #expect(tail.contains { if case .pendingToolCall = $0.kind { return true }; return false })
+        #expect(
+            tail.contains {
+                if case .pendingToolCall = $0.kind { return true }; return false
+            }
+        )
 
         // Run closed: chip gone.
         let closed = memoizer.blocks(
@@ -322,7 +382,11 @@ struct BlockMemoizerEngineTailTests {
             activeTurnId: nil,
             agentName: "Assistant"
         )
-        #expect(!closed.contains { if case .pendingToolCall = $0.kind { return true }; return false })
+        #expect(
+            !closed.contains {
+                if case .pendingToolCall = $0.kind { return true }; return false
+            }
+        )
     }
 
     @Test

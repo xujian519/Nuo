@@ -376,7 +376,9 @@ public enum ModelIdleResidencyPolicy: Codable, Equatable, Hashable, Sendable {
             )
         case .afterSeconds(let seconds):
             return String(
-                format: L("Unloads after %d minutes without a request, or when the last chat window using the model closes. Active requests finish first."),
+                format: L(
+                    "Unloads after %d minutes without a request, or when the last chat window using the model closes. Active requests finish first."
+                ),
                 max(1, seconds / 60)
             )
         case .never:

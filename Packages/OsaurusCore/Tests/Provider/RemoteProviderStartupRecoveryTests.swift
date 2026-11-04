@@ -21,7 +21,8 @@ private final class Counter {
 struct RemoteProviderStartupRecoveryTests {
 
     private func installTransientlyFailedProvider(
-        _ manager: RemoteProviderManager, name: String
+        _ manager: RemoteProviderManager,
+        name: String
     ) -> RemoteProvider {
         let provider = RemoteProvider(name: name, host: "\(name).example.invalid")
         manager._testInstallConnectedProvider(provider, discoveredModels: [])

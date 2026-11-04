@@ -58,7 +58,8 @@ struct DirectoryPickerCLIBridgeTests {
         var changes = 0
         var stateAtChange: String?
         let service = DirectoryPickerService(
-            defaults: fixture.app, sharedDefaults: fixture.shared,
+            defaults: fixture.app,
+            sharedDefaults: fixture.shared,
             publishBookmarkCache: { cached = $0 },
             directoryChanged: {
                 changes += 1
@@ -75,7 +76,9 @@ struct DirectoryPickerCLIBridgeTests {
         let bookmark = try #require(fixture.app.data(forKey: bookmarkKey))
         var stale = false
         let resolved = try URL(
-            resolvingBookmarkData: bookmark, options: [], relativeTo: nil,
+            resolvingBookmarkData: bookmark,
+            options: [],
+            relativeTo: nil,
             bookmarkDataIsStale: &stale
         )
         #expect(resolved == selected)
@@ -90,8 +93,10 @@ struct DirectoryPickerCLIBridgeTests {
         var cached: URL?
         var changes = 0
         let service = DirectoryPickerService(
-            defaults: fixture.app, sharedDefaults: fixture.shared,
-            publishBookmarkCache: { cached = $0 }, directoryChanged: { changes += 1 }
+            defaults: fixture.app,
+            sharedDefaults: fixture.shared,
+            publishBookmarkCache: { cached = $0 },
+            directoryChanged: { changes += 1 }
         )
         #expect(service.selectedDirectory == selected)
         #expect(service.hasValidDirectory)
@@ -108,8 +113,10 @@ struct DirectoryPickerCLIBridgeTests {
         var cached: URL?
         var changes = 0
         let service = DirectoryPickerService(
-            defaults: fixture.app, sharedDefaults: fixture.shared,
-            publishBookmarkCache: { cached = $0 }, directoryChanged: { changes += 1 }
+            defaults: fixture.app,
+            sharedDefaults: fixture.shared,
+            publishBookmarkCache: { cached = $0 },
+            directoryChanged: { changes += 1 }
         )
         #expect(cached == selected)
         service.resetDirectory()
@@ -132,8 +139,10 @@ struct DirectoryPickerCLIBridgeTests {
         var cachePublications: [URL?] = []
         var changes = 0
         let service = DirectoryPickerService(
-            defaults: fixture.app, sharedDefaults: fixture.shared,
-            publishBookmarkCache: { cachePublications.append($0) }, directoryChanged: { changes += 1 }
+            defaults: fixture.app,
+            sharedDefaults: fixture.shared,
+            publishBookmarkCache: { cachePublications.append($0) },
+            directoryChanged: { changes += 1 }
         )
         #expect(service.selectedDirectory == nil)
         #expect(!service.hasValidDirectory)
@@ -158,8 +167,10 @@ struct DirectoryPickerCLIBridgeTests {
         var cached: URL?
         var changes = 0
         let service = DirectoryPickerService(
-            defaults: fixture.app, sharedDefaults: fixture.shared,
-            publishBookmarkCache: { cached = $0 }, directoryChanged: { changes += 1 }
+            defaults: fixture.app,
+            sharedDefaults: fixture.shared,
+            publishBookmarkCache: { cached = $0 },
+            directoryChanged: { changes += 1 }
         )
         let missing = fixture.root.appendingPathComponent("not-present", isDirectory: true)
         service.saveDirectoryFromFilePicker(missing)
@@ -179,8 +190,10 @@ struct DirectoryPickerCLIBridgeTests {
         var cachePublications: [URL?] = []
         var changes = 0
         let service = DirectoryPickerService(
-            defaults: fixture.app, sharedDefaults: fixture.shared,
-            publishBookmarkCache: { cachePublications.append($0) }, directoryChanged: { changes += 1 }
+            defaults: fixture.app,
+            sharedDefaults: fixture.shared,
+            publishBookmarkCache: { cachePublications.append($0) },
+            directoryChanged: { changes += 1 }
         )
         service.saveDirectoryFromFilePicker(first)
         service.saveDirectoryFromFilePicker(second)
@@ -188,8 +201,10 @@ struct DirectoryPickerCLIBridgeTests {
         #expect(fixture.shared.string(forKey: sharedPathKey) == second.path)
         #expect(changes == 2)
         let reopened = DirectoryPickerService(
-            defaults: fixture.app, sharedDefaults: fixture.shared,
-            publishBookmarkCache: { cachePublications.append($0) }, directoryChanged: { changes += 1 }
+            defaults: fixture.app,
+            sharedDefaults: fixture.shared,
+            publishBookmarkCache: { cachePublications.append($0) },
+            directoryChanged: { changes += 1 }
         )
         #expect(reopened.selectedDirectory == second)
         #expect(reopened.hasValidDirectory)
@@ -222,7 +237,8 @@ struct DirectoryPickerCLIBridgeTests {
         }
         defer { center.removeObserver(observer) }
         AppDelegate.reloadLocalModelsAfterCLIInstall(
-            invalidateCache: { events.append("invalidate") }, notifications: center
+            invalidateCache: { events.append("invalidate") },
+            notifications: center
         )
         #expect(events.snapshot() == ["invalidate", "changed"])
         #expect(AppDelegate.controlModelsReloadNotification.rawValue == "com.nuo.control.modelsReload")
@@ -242,8 +258,10 @@ struct DirectoryPickerCLIBridgeTests {
         #expect(source.contains("Notification.Name(Brand.controlNotification(action))"))
         #expect(source.contains("Notification.Name(Brand.Legacy.controlNotification(action))"))
         let start = try #require(source.range(of: "@objc private func handleModelsReloadCommand"))
-        let end = try #require(source.range(of: "/// Local process notification only", range: start.upperBound..<source.endIndex))
-        let handler = String(source[start.lowerBound..<end.lowerBound])
+        let end = try #require(
+            source.range(of: "/// Local process notification only", range: start.upperBound ..< source.endIndex)
+        )
+        let handler = String(source[start.lowerBound ..< end.lowerBound])
         #expect(handler.contains("Task { @MainActor in"))
         #expect(handler.contains("Self.reloadLocalModelsAfterCLIInstall()"))
         #expect(!handler.contains("HTTP"))

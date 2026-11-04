@@ -662,7 +662,8 @@ public final class SandboxPluginManager: ObservableObject {
             throw SandboxPluginError.dependencyInstallFailed(
                 "System `dependencies` require the Linux VM sandbox (macOS 26+). "
                     + "On this macOS sandbox, leave `dependencies` empty and install "
-                    + "Python/Node packages via `setup` (pip/npm) instead.")
+                    + "Python/Node packages via `setup` (pip/npm) instead."
+            )
         }
         if agentsWithSeededDeps.contains(agentId) {
             SandboxPackageManifest.shared.record(

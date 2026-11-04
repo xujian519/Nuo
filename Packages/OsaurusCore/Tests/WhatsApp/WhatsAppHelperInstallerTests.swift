@@ -243,7 +243,12 @@ struct WhatsAppHelperInstallerTests {
                 // Simulate a quarantined download source.
                 "0083;00000000;osaurus-test;".withCString { value in
                     _ = setxattr(
-                        executable.path, "com.apple.quarantine", value, strlen(value), 0, 0
+                        executable.path,
+                        "com.apple.quarantine",
+                        value,
+                        strlen(value),
+                        0,
+                        0
                     )
                 }
                 executableSHA256 = WhatsAppRuntimeAssets.sha256Hex(ofFileAt: executable) ?? ""

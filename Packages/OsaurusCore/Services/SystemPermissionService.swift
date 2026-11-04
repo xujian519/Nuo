@@ -58,7 +58,8 @@ enum SystemPermissionProbe {
         // one of them must be readable. With a real FDA grant all protected
         // files are readable, so any-readable added nothing except a
         // false-positive path through a file that lost its protection.
-        let existing = resources
+        let existing =
+            resources
             .map { $0.url(homeDirectory: homeDirectory) }
             .filter { isRegularFile($0, fileManager: fileManager) }
         guard !existing.isEmpty else { return false }
@@ -562,7 +563,9 @@ final class SystemPermissionService: NSObject, ObservableObject, CLLocationManag
     /// the status right away. Returns the status after the user responded,
     /// or the current status when `timeout` elapsed with the dialog still
     /// open. Already-decided statuses return immediately.
-    func requestLocationAuthorizationAndWait(timeout: TimeInterval = locationDialogTimeout) async -> CLAuthorizationStatus {
+    func requestLocationAuthorizationAndWait(timeout: TimeInterval = locationDialogTimeout) async
+        -> CLAuthorizationStatus
+    {
         if RuntimeEnvironment.isUnderTests { return .denied }
         let current = locationManager.authorizationStatus
         guard current == .notDetermined else { return current }
@@ -571,7 +574,9 @@ final class SystemPermissionService: NSObject, ObservableObject, CLLocationManag
             locationAuthorizationWaiters[token] = continuation
             Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: UInt64(max(timeout, 0) * 1_000_000_000))
-                guard let self, let pending = self.locationAuthorizationWaiters.removeValue(forKey: token) else { return }
+                guard let self, let pending = self.locationAuthorizationWaiters.removeValue(forKey: token) else {
+                    return
+                }
                 pending.resume(returning: self.locationManager.authorizationStatus)
             }
             requestLocationPermission()
@@ -631,7 +636,8 @@ final class SystemPermissionService: NSObject, ObservableObject, CLLocationManag
         // probe from stealing focus from the chat window.
         if let bundleId = Self.automationProbeBundleIdentifier(for: permission) {
             _ = await AppleScriptBridge.ensureRunning(
-                bundleIdentifier: bundleId, appName: permission.displayName
+                bundleIdentifier: bundleId,
+                appName: permission.displayName
             )
         }
         let granted = await Self.probe(permission).isGranted

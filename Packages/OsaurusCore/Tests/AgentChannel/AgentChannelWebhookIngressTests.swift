@@ -432,7 +432,7 @@ struct AgentChannelWebhookIngressTests {
 
     @Test func pendingContactsCoalesceRepeatsAndAreNotRecordedForBadSecrets() async throws {
         try await withHarness(connections: [Self.connection()]) { harness in
-            for index in 1...3 {
+            for index in 1 ... 3 {
                 _ = await harness.ingress.handleInbound(
                     Self.request(body: Self.envelope(eventId: "evt-\(index)", senderId: "newbie"))
                 )
@@ -567,7 +567,13 @@ struct AgentChannelWebhookIngressTests {
                 eventId: eventId
             )
         }
-        await center.record(connectionId: "n8n-a", conversationId: "room", senderId: "other", senderDisplay: nil, eventId: "e4")
+        await center.record(
+            connectionId: "n8n-a",
+            conversationId: "room",
+            senderId: "other",
+            senderDisplay: nil,
+            eventId: "e4"
+        )
         // Three repeats of one identity announce once; a second identity announces once more.
         #expect(announced.ids.count == 2)
         #expect(await center.pending(connectionId: "n8n-a").first?.eventCount == 3)
@@ -599,7 +605,13 @@ struct AgentChannelWebhookIngressTests {
         #expect(announced.ids.count == 3)
 
         // Clearing one connection leaves another connection's denials alone.
-        await center.record(connectionId: "n8n-b", conversationId: "room", senderId: "wf", senderDisplay: nil, eventId: "b1")
+        await center.record(
+            connectionId: "n8n-b",
+            conversationId: "room",
+            senderId: "wf",
+            senderDisplay: nil,
+            eventId: "b1"
+        )
         let deniedB = await center.pending(connectionId: "n8n-b").first!
         await center.deny(deniedB)
         await center.clear(connectionId: "n8n-a")
@@ -614,7 +626,9 @@ struct AgentChannelWebhookIngressTests {
     }
 
     @Test @MainActor func firstContactToastNamesTheChannelAndTheIdsToApprove() {
-        let notifier = AgentChannelN8nFirstContactNotifier(connectionName: { id in id == "n8n-local" ? "Accounting" : nil })
+        let notifier = AgentChannelN8nFirstContactNotifier(connectionName: { id in
+            id == "n8n-local" ? "Accounting" : nil
+        })
         let contact = AgentChannelN8nPendingContact(
             connectionId: "n8n-local",
             conversationId: "invoices",
@@ -640,7 +654,7 @@ struct AgentChannelWebhookIngressTests {
 
     @Test func pendingContactCenterCapsAtTwentyPerConnectionAndReconciles() async {
         let center = AgentChannelN8nPendingContactCenter(notify: {})
-        for index in 0..<25 {
+        for index in 0 ..< 25 {
             await center.record(
                 connectionId: "n8n-a",
                 conversationId: "room-\(index)",
@@ -1087,7 +1101,10 @@ struct AgentChannelWebhookIngressTests {
             AgentChannelWebhookIngress.route(for: "/channels/n8n/n8n-main/ping")
                 == .ping(kind: "n8n", connectionId: "n8n-main")
         )
-        #expect(AgentChannelWebhookIngress.pingPath(kind: "n8n", connectionId: " n8n-main ") == "/channels/n8n/n8n-main/ping")
+        #expect(
+            AgentChannelWebhookIngress.pingPath(kind: "n8n", connectionId: " n8n-main ")
+                == "/channels/n8n/n8n-main/ping"
+        )
         #expect(AgentChannelWebhookIngress.route(for: "/channels/n8n/n8n-main/ping/x") == nil)
         #expect(
             AgentChannelWebhookIngress.route(for: "/channels/n8n/n8n-main/tasks/abc")

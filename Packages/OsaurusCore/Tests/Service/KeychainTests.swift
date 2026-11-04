@@ -120,7 +120,8 @@ struct KeychainTests {
     private static let service = "ai.osaurus.test.keychain"
 
     private func withFakeBackend<T>(
-        _ backend: FakeKeychainBackend, _ body: () throws -> T
+        _ backend: FakeKeychainBackend,
+        _ body: () throws -> T
     ) rethrows -> T {
         Keychain._setBackendForTesting(backend)
         defer { Keychain._setBackendForTesting(nil) }
@@ -135,7 +136,10 @@ struct KeychainTests {
         backend.seed(service: Self.service, account: "a", data: Data("old".utf8))
         withFakeBackend(backend) {
             let outcome = Keychain.writeItem(
-                service: Self.service, account: "a", data: Data("new".utf8))
+                service: Self.service,
+                account: "a",
+                data: Data("new".utf8)
+            )
             #expect(outcome == .success)
         }
         #expect(backend.value(service: Self.service, account: "a") == Data("new".utf8))
@@ -147,7 +151,10 @@ struct KeychainTests {
         let backend = FakeKeychainBackend()
         withFakeBackend(backend) {
             let outcome = Keychain.writeItem(
-                service: Self.service, account: "a", data: Data("v".utf8))
+                service: Self.service,
+                account: "a",
+                data: Data("v".utf8)
+            )
             #expect(outcome == .success)
         }
         #expect(backend.value(service: Self.service, account: "a") == Data("v".utf8))
@@ -161,7 +168,10 @@ struct KeychainTests {
         backend.updateStatus = errSecParam
         withFakeBackend(backend) {
             let outcome = Keychain.writeItem(
-                service: Self.service, account: "a", data: Data("new".utf8))
+                service: Self.service,
+                account: "a",
+                data: Data("new".utf8)
+            )
             #expect(outcome == .failure(errSecParam))
         }
         // The add path must not run: it would report errSecDuplicateItem and
@@ -183,7 +193,10 @@ struct KeychainTests {
             backend.updateStatus = status
             withFakeBackend(backend) {
                 let outcome = Keychain.writeItem(
-                    service: Self.service, account: "a", data: Data("new".utf8))
+                    service: Self.service,
+                    account: "a",
+                    data: Data("new".utf8)
+                )
                 #expect(outcome == expected, "status \(status)")
             }
         }
@@ -199,7 +212,10 @@ struct KeychainTests {
         backend.updateStatus = errSecAuthFailed
         withFakeBackend(backend) {
             let outcome = Keychain.writeItem(
-                service: Self.service, account: "a", data: Data("new".utf8))
+                service: Self.service,
+                account: "a",
+                data: Data("new".utf8)
+            )
             #expect(outcome == .success)
         }
         #expect(backend.operations == ["update", "delete", "add"])
@@ -214,7 +230,10 @@ struct KeychainTests {
         backend.deleteStatus = errSecAuthFailed
         withFakeBackend(backend) {
             let outcome = Keychain.writeItem(
-                service: Self.service, account: "a", data: Data("new".utf8))
+                service: Self.service,
+                account: "a",
+                data: Data("new".utf8)
+            )
             #expect(outcome == .accessDenied(errSecAuthFailed))
         }
         // The add path must not run after a failed delete: the orphaned item
@@ -257,7 +276,8 @@ struct KeychainTests {
         withFakeBackend(backend) {
             #expect(
                 Keychain.readItem(service: Self.service, account: "present")
-                    == .found(Data("v".utf8)))
+                    == .found(Data("v".utf8))
+            )
             #expect(Keychain.readItem(service: Self.service, account: "absent") == .notFound)
         }
 
@@ -320,7 +340,8 @@ struct KeychainTests {
         withFakeBackend(failing) {
             #expect(
                 Keychain.deleteItem(service: Self.service, account: "a")
-                    == .unavailable(errSecInteractionNotAllowed))
+                    == .unavailable(errSecInteractionNotAllowed)
+            )
         }
     }
 
@@ -335,7 +356,8 @@ struct KeychainTests {
             let outcome = Keychain.fetchAllItems(service: Self.service, returnData: false)
             #expect(outcome.isDefinitive)
             #expect(
-                Set(Keychain.allAccounts(service: Self.service)) == ["a", "b"])
+                Set(Keychain.allAccounts(service: Self.service)) == ["a", "b"]
+            )
             let empty = Keychain.fetchAllItems(service: "ai.osaurus.test.empty", returnData: false)
             #expect(empty.isDefinitive)
             #expect(empty.items.isEmpty)
@@ -360,7 +382,10 @@ struct KeychainTests {
         let backend = FakeKeychainBackend()
         withFakeBackend(backend) {
             Keychain.writeInBackground(
-                service: Self.service, account: "bg", data: Data("queued".utf8))
+                service: Self.service,
+                account: "bg",
+                data: Data("queued".utf8)
+            )
             Keychain.flushPendingWrites()
         }
         #expect(backend.value(service: Self.service, account: "bg") == Data("queued".utf8))
@@ -372,7 +397,10 @@ struct KeychainTests {
         withFakeBackend(backend) {
             Keychain.performInBackground {
                 _ = Keychain.writeItem(
-                    service: Self.service, account: "nested", data: Data("v".utf8))
+                    service: Self.service,
+                    account: "nested",
+                    data: Data("v".utf8)
+                )
                 _ = Keychain.deleteItem(service: Self.service, account: "other")
             }
             Keychain.flushPendingWrites()
@@ -385,11 +413,17 @@ struct KeychainTests {
         let backend = FakeKeychainBackend()
         withFakeBackend(backend) {
             Keychain.writeInBackground(
-                service: Self.service, account: "ordered", data: Data("first".utf8))
+                service: Self.service,
+                account: "ordered",
+                data: Data("first".utf8)
+            )
             // The synchronous write joins the same serial queue, so it must
             // observe (and overwrite) the queued value, never lose to it.
             _ = Keychain.writeItem(
-                service: Self.service, account: "ordered", data: Data("second".utf8))
+                service: Self.service,
+                account: "ordered",
+                data: Data("second".utf8)
+            )
         }
         #expect(backend.value(service: Self.service, account: "ordered") == Data("second".utf8))
     }
@@ -406,7 +440,8 @@ struct KeychainTests {
         #expect(Keychain.read(service: Self.service, account: "a") == nil)
         #expect(
             Keychain.writeItem(service: Self.service, account: "a", data: Data("v".utf8))
-                == .disabled)
+                == .disabled
+        )
         #expect(!Keychain.write(service: Self.service, account: "a", data: Data("v".utf8)))
         #expect(Keychain.deleteItem(service: Self.service, account: "a") == .disabled)
         #expect(Keychain.delete(service: Self.service, account: "a"))

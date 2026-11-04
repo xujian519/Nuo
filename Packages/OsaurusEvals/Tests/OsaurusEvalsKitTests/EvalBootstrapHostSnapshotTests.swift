@@ -28,7 +28,10 @@ struct EvalBootstrapHostSnapshotTests {
             try? FileManager.default.removeItem(at: real)
             try? FileManager.default.removeItem(at: isolated)
         }
-        let original = Data(#"{"modelIdleResidencyPolicy":{"mode":"never"},"_modelIdleResidencyPolicyVersion":2,"port":9999,"host":"0.0.0.0","apiKey":"fixture-only"}"#.utf8)
+        let original = Data(
+            #"{"modelIdleResidencyPolicy":{"mode":"never"},"_modelIdleResidencyPolicyVersion":2,"port":9999,"host":"0.0.0.0","apiKey":"fixture-only"}"#
+                .utf8
+        )
         let source = real.appendingPathComponent("config/server.json")
         try original.write(to: source)
 

@@ -100,7 +100,8 @@ public enum AppleScriptAppKnowledge {
     /// frontmost-app handoff, while preserving the original task and literals.
     public static func groundingWorkingAppReference(task: String, resolvedApp: String?) -> String {
         guard mentionsWorkingApp(task), let resolvedApp else { return task }
-        let app = resolvedApp
+        let app =
+            resolvedApp
             .replacingOccurrences(of: "\n", with: " ")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard !app.isEmpty, wordRange(of: app, in: task) == nil else { return task }

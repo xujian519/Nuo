@@ -87,7 +87,7 @@ struct WriteKnowledgeToolTests {
     }
 
     @Test func tooManyDocumentsInOneCallIsRejected() {
-        let many = (0...WriteKnowledgeTool.maxDocumentsPerCall).map {
+        let many = (0 ... WriteKnowledgeTool.maxDocumentsPerCall).map {
             ["path": "doc-\($0).md", "content": "x"]
         }
         let result = documents(["documents": many])
@@ -262,7 +262,7 @@ struct DeleteKnowledgeToolTests {
     }
 
     @Test func tooManyPathsInOneCallIsRejected() {
-        let many = (0...DeleteKnowledgeTool.maxPathsPerCall).map { "doc-\($0).md" }
+        let many = (0 ... DeleteKnowledgeTool.maxPathsPerCall).map { "doc-\($0).md" }
         #expect(paths(["paths": many]).failureEnvelope?.contains("exceeds the limit") == true)
     }
 

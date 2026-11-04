@@ -41,7 +41,8 @@ struct MTPSection: View {
     /// selected, so the first-run path is "download, then choose folder"
     /// rather than "go find this yourself".
     static let drafterDownloadURL = URL(
-        string: "https://huggingface.co/incoai/Qwen3.8-27B-DFlash2")!
+        string: "https://huggingface.co/incoai/Qwen3.8-27B-DFlash2"
+    )!
 
     private var drafterProblem: String? {
         guard let path = draft.mtp.dflash2DrafterPath, !path.isEmpty else { return nil }
@@ -66,20 +67,23 @@ struct MTPSection: View {
                 hint:
                     "Default follows the model’s adaptive policy, including compatible bundled DFlash 2 or DSpark. Off disables speculation. On requests a compatible drafter or supported adaptive native MTP. Speed depends on the model and workload."
             ) {
-                Picker("", selection: Binding(
-                    get: {
-                        switch draft.mtp.mode {
-                        case .off: VMLXMTPServerMode.off
-                        case .familyDefault: VMLXMTPServerMode.familyDefault
-                        default: VMLXMTPServerMode.auto
+                Picker(
+                    "",
+                    selection: Binding(
+                        get: {
+                            switch draft.mtp.mode {
+                            case .off: VMLXMTPServerMode.off
+                            case .familyDefault: VMLXMTPServerMode.familyDefault
+                            default: VMLXMTPServerMode.auto
+                            }
+                        },
+                        set: { mode in
+                            var selection = draft.mtp
+                            selection.mode = mode
+                            draft.mtp = NativeMTPSelectionDefault.adaptiveSelection(selection)
                         }
-                    },
-                    set: { mode in
-                        var selection = draft.mtp
-                        selection.mode = mode
-                        draft.mtp = NativeMTPSelectionDefault.adaptiveSelection(selection)
-                    }
-                )) {
+                    )
+                ) {
                     Text(L("Off (AR)")).tag(VMLXMTPServerMode.off)
                     Text(L("Default")).tag(VMLXMTPServerMode.familyDefault)
                     Text(L("On (Adaptive)")).tag(VMLXMTPServerMode.auto)
@@ -227,7 +231,8 @@ struct MTPSection: View {
                         value: Self.resolvedValue(
                             depth: model.nativeMTPDepth,
                             strategy: model.draftStrategyDescription,
-                            dflash2BlockSize: model.dflash2BlockSize),
+                            dflash2BlockSize: model.dflash2BlockSize
+                        ),
                         detail: model.nativeMTPReason ?? model.nativeMTPStatus
                             ?? "Captured at this model's last load."
                     )

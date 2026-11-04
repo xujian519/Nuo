@@ -60,7 +60,8 @@ actor MLXService: ToolCapableService, ResponsesGenerationService {
 
     fileprivate nonisolated static func findModel(named name: String) -> LocalModelRef? {
         if let installed = ModelManager.findInstalledMLXModel(named: name), !installed.isDecision,
-            let found = ModelManager.findInstalledModel(named: name) {
+            let found = ModelManager.findInstalledModel(named: name)
+        {
             return LocalModelRef(name: found.name, modelId: found.id)
         }
         return nil
@@ -109,7 +110,8 @@ actor MLXService: ToolCapableService, ResponsesGenerationService {
     }
 
     nonisolated static func collectOneShot(
-        _ stream: AsyncThrowingStream<String, Error>, parameters: GenerationParameters
+        _ stream: AsyncThrowingStream<String, Error>,
+        parameters: GenerationParameters
     ) async throws -> String {
         var out = ""
         var stopReason: String?
@@ -133,7 +135,8 @@ actor MLXService: ToolCapableService, ResponsesGenerationService {
                     ProcessInfo.processInfo.environment["OSAURUS_UTILITY_GENERATION_TRACE"] == "1"
                 {
                     // Diagnostic metrics only: never log utility prompts, answers or reasoning.
-                    let row = "[osaurus][utility-generation] tokens=\(stats.tokenCount) "
+                    let row =
+                        "[osaurus][utility-generation] tokens=\(stats.tokenCount) "
                         + "tokens_per_second=\(stats.tokensPerSecond) "
                         + "prefill_tokens_per_second=\(stats.prefillTokensPerSecond ?? 0) "
                         + "stop=\(stats.stopReason ?? "unknown")\n"
@@ -376,8 +379,9 @@ actor MLXService: ToolCapableService, ResponsesGenerationService {
         // gauntlet run proving a fixed bundle) can clear it without a
         // release. See `ModelCapabilityLedger`.
         if let blockReason = ModelCapabilityLedger.productionServingBlockReason(
-            modelName: modelName, modelId: modelId)
-        {
+            modelName: modelName,
+            modelId: modelId
+        ) {
             issues.append(blockReason)
         }
 

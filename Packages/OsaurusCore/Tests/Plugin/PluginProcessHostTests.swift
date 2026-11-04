@@ -155,7 +155,10 @@ struct PluginProcessHostTests {
         let client = makeClient()
         defer { Task { await client.shutdown() } }
         let result = try await client.invoke(
-            type: "tool", id: "echo", payload: #"{"hello":"world"}"#, agentId: nil
+            type: "tool",
+            id: "echo",
+            payload: #"{"hello":"world"}"#,
+            agentId: nil
         )
         #expect(result == #"{"echo":{"hello":"world"}}"#)
     }
@@ -170,7 +173,10 @@ struct PluginProcessHostTests {
         let start = Date()
         do {
             _ = try await client.invoke(
-                type: "tool", id: "sleep", payload: "{}", agentId: nil,
+                type: "tool",
+                id: "sleep",
+                payload: "{}",
+                agentId: nil,
                 deadlineSeconds: 1.5
             )
             Issue.record("expected wedged invoke to throw")
@@ -184,7 +190,10 @@ struct PluginProcessHostTests {
         // the whole point of the process host — in-process, this plugin
         // would have wedged the accessibility queue until app restart.
         let result = try await client.invoke(
-            type: "tool", id: "echo", payload: #"{"after":"restart"}"#, agentId: nil
+            type: "tool",
+            id: "echo",
+            payload: #"{"after":"restart"}"#,
+            agentId: nil
         )
         #expect(result == #"{"echo":{"after":"restart"}}"#)
     }
@@ -198,7 +207,10 @@ struct PluginProcessHostTests {
         let client = makeClient()
         defer { Task { await client.shutdown() } }
         let result = try await client.invoke(
-            type: "tool", id: "config_probe", payload: "{}", agentId: nil,
+            type: "tool",
+            id: "config_probe",
+            payload: "{}",
+            agentId: nil,
             deadlineSeconds: 40  // must comfortably beat HostBridge's 30s timeout path
         )
         #expect(result == #"{"config":null}"#)
@@ -216,7 +228,10 @@ struct PluginProcessHostTests {
 
         // Next call after the process died must respawn cleanly.
         let result = try await client.invoke(
-            type: "tool", id: "echo", payload: #"{"x":1}"#, agentId: nil
+            type: "tool",
+            id: "echo",
+            payload: #"{"x":1}"#,
+            agentId: nil
         )
         #expect(result == #"{"echo":{"x":1}}"#)
     }

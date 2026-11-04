@@ -68,7 +68,9 @@ struct WorkspaceAgentPickerOption: Identifiable, Equatable {
     /// longer in any roster (unshared / left workspace) so the editor can
     /// still show — and let the user replace — the stale selection.
     @MainActor
-    static func resolve(_ ref: WorkspaceAgentRef, in options: [WorkspaceAgentPickerOption]) -> WorkspaceAgentPickerOption {
+    static func resolve(_ ref: WorkspaceAgentRef, in options: [WorkspaceAgentPickerOption])
+        -> WorkspaceAgentPickerOption
+    {
         if let hit = options.first(where: { $0.ref == ref }) { return hit }
         return WorkspaceAgentPickerOption(
             ref: ref,

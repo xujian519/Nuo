@@ -32,16 +32,20 @@ enum ContactsToolFactory {
         }
         guard let arr = raw as? [Any] else {
             throw AppleToolError.invalidArgs(
-                "`\(key)` must be an array of strings or of {label, value} objects.", field: key
+                "`\(key)` must be an array of strings or of {label, value} objects.",
+                field: key
             )
         }
         return try arr.map { item -> LabeledValue in
             if let s = item as? String { return LabeledValue(label: nil, value: s) }
-            if let d = item as? [String: Any], let v = (d["value"] as? String) ?? (d["number"] as? String) ?? (d["email"] as? String) {
+            if let d = item as? [String: Any],
+                let v = (d["value"] as? String) ?? (d["number"] as? String) ?? (d["email"] as? String)
+            {
                 return LabeledValue(label: d["label"] as? String, value: v)
             }
             throw AppleToolError.invalidArgs(
-                "`\(key)` entries must be strings or {label, value} objects.", field: key
+                "`\(key)` entries must be strings or {label, value} objects.",
+                field: key
             )
         }
     }
@@ -49,11 +53,17 @@ enum ContactsToolFactory {
     static func postalAddresses(_ args: [String: Any]) throws -> [PostalAddressInfo]? {
         guard let raw = args["postal_addresses"], !(raw is NSNull) else { return nil }
         guard let arr = raw as? [Any] else {
-            throw AppleToolError.invalidArgs("`postal_addresses` must be an array of address objects.", field: "postal_addresses")
+            throw AppleToolError.invalidArgs(
+                "`postal_addresses` must be an array of address objects.",
+                field: "postal_addresses"
+            )
         }
         return try arr.map { item in
             guard let d = item as? [String: Any] else {
-                throw AppleToolError.invalidArgs("`postal_addresses` entries must be objects.", field: "postal_addresses")
+                throw AppleToolError.invalidArgs(
+                    "`postal_addresses` entries must be objects.",
+                    field: "postal_addresses"
+                )
             }
             let street = (d["street"] as? String) ?? ""
             let city = (d["city"] as? String) ?? ""
@@ -61,7 +71,11 @@ enum ContactsToolFactory {
             let postal = (d["postal_code"] as? String) ?? (d["zip"] as? String) ?? ""
             let country = (d["country"] as? String) ?? ""
             return PostalAddressInfo(
-                label: d["label"] as? String, street: street, city: city, state: state, postalCode: postal,
+                label: d["label"] as? String,
+                street: street,
+                city: city,
+                state: state,
+                postalCode: postal,
                 country: country,
                 formatted: [street, city, state, postal, country].filter { !$0.isEmpty }.joined(separator: ", ")
             )
@@ -170,7 +184,8 @@ final class ContactsMeTool: AppleToolBase, @unchecked Sendable {
         super.init(
             app: .contacts,
             name: "contacts_me",
-            description: "Return the user's own contact card (name, phones, emails, addresses, birthday) when one is set in Contacts.",
+            description:
+                "Return the user's own contact card (name, phones, emails, addresses, birthday) when one is set in Contacts.",
             parameters: AppleSchema.object([:]),
             isWrite: false
         )
@@ -178,7 +193,10 @@ final class ContactsMeTool: AppleToolBase, @unchecked Sendable {
 
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
         guard let me = try await service.me() else {
-            return AppleToolPayload(["contact": NSNull(), "found": false], warnings: ["No \"My Card\" is set in Contacts."])
+            return AppleToolPayload(
+                ["contact": NSNull(), "found": false],
+                warnings: ["No \"My Card\" is set in Contacts."]
+            )
         }
         return AppleToolPayload(["contact": me, "found": true])
     }
@@ -200,7 +218,10 @@ final class ContactsSearchTool: AppleToolBase, @unchecked Sendable {
             parameters: AppleSchema.object(
                 [
                     "query": AppleSchema.string("Text, phone number, or email to find."),
-                    "field": AppleSchema.string("Which field to match (default any).", enum: ["any", "name", "phone", "email", "organization"]),
+                    "field": AppleSchema.string(
+                        "Which field to match (default any).",
+                        enum: ["any", "name", "phone", "email", "organization"]
+                    ),
                     "limit": AppleSchema.limit(default: Self.defaultLimit, max: 200),
                 ],
                 required: ["query"]
@@ -211,7 +232,12 @@ final class ContactsSearchTool: AppleToolBase, @unchecked Sendable {
 
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
         let query = try AppleArgs.requiredString(args, "query", expected: "text, a phone number, or an email")
-        let fieldRaw = try AppleArgs.enumeration(args, "field", allowed: ["any", "name", "phone", "email", "organization"], default: "any")
+        let fieldRaw = try AppleArgs.enumeration(
+            args,
+            "field",
+            allowed: ["any", "name", "phone", "email", "organization"],
+            default: "any"
+        )
         let field = ContactSearchField(rawValue: fieldRaw ?? "any") ?? .any
         let limit = try AppleArgs.limit(args, default: Self.defaultLimit, max: 200)
         let results = try await service.search(query: query, field: field)
@@ -238,7 +264,8 @@ final class ContactsListTool: AppleToolBase, @unchecked Sendable {
         super.init(
             app: .contacts,
             name: "contacts_list",
-            description: "Page through all contacts sorted by name (compact cards). Use `offset` + `limit`; the result reports `total` and `next_offset`.",
+            description:
+                "Page through all contacts sorted by name (compact cards). Use `offset` + `limit`; the result reports `total` and `next_offset`.",
             parameters: AppleSchema.object([
                 "offset": AppleSchema.integer("Skip this many contacts (default 0)."),
                 "limit": AppleSchema.limit(default: Self.defaultLimit, max: 200),
@@ -272,7 +299,8 @@ final class ContactsGetTool: AppleToolBase, @unchecked Sendable {
         super.init(
             app: .contacts,
             name: "contacts_get",
-            description: "Fetch one contact's full card by `id` (from contacts_search): all phones, emails, URLs, postal addresses, birthday, relations, social profiles.",
+            description:
+                "Fetch one contact's full card by `id` (from contacts_search): all phones, emails, URLs, postal addresses, birthday, relations, social profiles.",
             parameters: AppleSchema.object(
                 ["id": AppleSchema.string("Contact identifier from contacts_search / contacts_list.")],
                 required: ["id"]
@@ -297,7 +325,8 @@ final class ContactsCreateTool: AppleToolBase, @unchecked Sendable {
         super.init(
             app: .contacts,
             name: "contacts_create",
-            description: "Create a contact. Provide at least a name or an organization; phones/emails accept plain strings or {label, value} objects. Returns the created card with its id.",
+            description:
+                "Create a contact. Provide at least a name or an organization; phones/emails accept plain strings or {label, value} objects. Returns the created card with its id.",
             parameters: AppleSchema.object(ContactsToolFactory.draftProperties),
             isWrite: true
         )
@@ -305,11 +334,13 @@ final class ContactsCreateTool: AppleToolBase, @unchecked Sendable {
 
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
         let draft = try ContactsToolFactory.draft(from: args)
-        let hasName = !(draft.givenName ?? "").isEmpty || !(draft.familyName ?? "").isEmpty
+        let hasName =
+            !(draft.givenName ?? "").isEmpty || !(draft.familyName ?? "").isEmpty
             || !(draft.organization ?? "").isEmpty || !(draft.nickname ?? "").isEmpty
         guard hasName else {
             throw AppleToolError.invalidArgs(
-                "Provide at least `given_name`, `family_name`, `nickname`, or `organization`.", field: "given_name"
+                "Provide at least `given_name`, `family_name`, `nickname`, or `organization`.",
+                field: "given_name"
             )
         }
         let created = try await service.create(draft)
@@ -332,7 +363,9 @@ final class ContactsUpdateTool: AppleToolBase, @unchecked Sendable {
             parameters: AppleSchema.object(
                 ContactsToolFactory.draftProperties.merging([
                     "id": AppleSchema.string("Contact identifier from contacts_search."),
-                    "replace": AppleSchema.boolean("Replace phones/emails/urls/addresses instead of merging (default false)."),
+                    "replace": AppleSchema.boolean(
+                        "Replace phones/emails/urls/addresses instead of merging (default false)."
+                    ),
                 ]) { _, new in new },
                 required: ["id"]
             ),
@@ -383,7 +416,10 @@ final class ContactsOpenTool: AppleToolBase, @unchecked Sendable {
         }
         let opened = await AppleURLOpener.open(url)
         guard opened else {
-            throw AppleToolError.unavailable("Contacts could not be opened for `\(contact.displayName)`.", retryable: true)
+            throw AppleToolError.unavailable(
+                "Contacts could not be opened for `\(contact.displayName)`.",
+                retryable: true
+            )
         }
         return AppleToolPayload(["opened": true, "contact": contact])
     }

@@ -18,7 +18,7 @@ struct RemoteCompleteOutputTests {
             ]
         case .gemini:
             frames = [
-                #"{"candidates":[{"content":{"role":"model","parts":[{"text":"Partial summary"}]},"finishReason":"MAX_TOKENS"}]}"#,
+                #"{"candidates":[{"content":{"role":"model","parts":[{"text":"Partial summary"}]},"finishReason":"MAX_TOKENS"}]}"#
             ]
         default:
             frames = [
@@ -30,12 +30,21 @@ struct RemoteCompleteOutputTests {
         var finished = false
         for frame in frames {
             finished = RemoteProviderService.processEventPayload(
-                frame, state: &state, providerType: provider, tools: [], continuation: continuation)
+                frame,
+                state: &state,
+                providerType: provider,
+                tools: [],
+                continuation: continuation
+            )
             if finished { break }
         }
         if !finished {
             RemoteProviderService.dispatchFinal(
-                state: state, tools: [], finishMarker: "stream-end", continuation: continuation)
+                state: state,
+                tools: [],
+                finishMarker: "stream-end",
+                continuation: continuation
+            )
         }
         #expect(state.providerUsage == nil)
         #expect(state.yieldedTextCount > 0, "Exercise an actual partial visible answer, not just an empty refusal")
@@ -56,7 +65,11 @@ struct RemoteCompleteOutputTests {
             state.lastFinishReason = reason
             continuation.yield("Visible reply")
             RemoteProviderService.dispatchFinal(
-                state: state, tools: [], finishMarker: "[DONE]", continuation: continuation)
+                state: state,
+                tools: [],
+                finishMarker: "[DONE]",
+                continuation: continuation
+            )
             if required && reason == "length" {
                 do {
                     _ = try await RemoteProviderService.collectVisibleText(from: stream)
@@ -74,12 +87,20 @@ struct RemoteCompleteOutputTests {
         state.requireCompleteOutput = true
         let finished = RemoteProviderService.processEventPayload(
             #"{"id":"c","object":"chat.completion.chunk","created":1,"model":"m","choices":[{"index":0,"delta":{"content":"Partial summary"},"finish_reason":null}]}"#,
-            state: &state, providerType: .openaiLegacy, tools: [], continuation: continuation)
+            state: &state,
+            providerType: .openaiLegacy,
+            tools: [],
+            continuation: continuation
+        )
         #expect(!finished)
         #expect(state.yieldedTextCount > 0)
         #expect(state.lastFinishReason == nil)
         RemoteProviderService.dispatchFinal(
-            state: state, tools: [], finishMarker: "stream-end", continuation: continuation)
+            state: state,
+            tools: [],
+            finishMarker: "stream-end",
+            continuation: continuation
+        )
         do {
             _ = try await RemoteProviderService.collectVisibleText(from: stream)
             Issue.record("Abrupt EOF must not return a partial summary")
@@ -100,7 +121,11 @@ struct RemoteCompleteOutputTests {
             state.lastFinishReason = reason
             continuation.yield("Visible reply")
             RemoteProviderService.dispatchFinal(
-                state: state, tools: [], finishMarker: marker, continuation: continuation)
+                state: state,
+                tools: [],
+                finishMarker: marker,
+                continuation: continuation
+            )
             #expect(try await RemoteProviderService.collectVisibleText(from: stream) == "Visible reply")
         }
     }
@@ -119,9 +144,10 @@ struct RemoteCompleteOutputTests {
             }
             try RemoteProviderService.validateCompleteOutput(data, required: false)
         }
-        for json in [#"{"choices":[{"finish_reason":"stop"}]}"#,
-            #"{"candidates":[{"finishReason":"STOP"}]}"#, #"{"status":"completed"}"#]
-        {
+        for json in [
+            #"{"choices":[{"finish_reason":"stop"}]}"#,
+            #"{"candidates":[{"finishReason":"STOP"}]}"#, #"{"status":"completed"}"#,
+        ] {
             try RemoteProviderService.validateCompleteOutput(Data(json.utf8), required: true)
         }
     }

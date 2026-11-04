@@ -363,11 +363,16 @@ public enum EvalBootstrap {
                     let snapshot = settings.filter { keys.contains($0.key) }
                     try fm.createDirectory(at: isolatedConfig, withIntermediateDirectories: true)
                     try JSONSerialization.data(withJSONObject: snapshot).write(
-                        to: isolatedConfig.appendingPathComponent("server.json"), options: .atomic)
+                        to: isolatedConfig.appendingPathComponent("server.json"),
+                        options: .atomic
+                    )
                 }
             } catch {
-                FileHandle.standardError.write(Data(
-                    "[evals] could not snapshot model residency policy: \(error)\n".utf8))
+                FileHandle.standardError.write(
+                    Data(
+                        "[evals] could not snapshot model residency policy: \(error)\n".utf8
+                    )
+                )
             }
         }
 
@@ -375,21 +380,33 @@ public enum EvalBootstrap {
         if fm.fileExists(atPath: runtimeSource.path) {
             do {
                 var settings = try JSONDecoder().decode(
-                    VMLXServerRuntimeSettings.self, from: Data(contentsOf: runtimeSource))
+                    VMLXServerRuntimeSettings.self,
+                    from: Data(contentsOf: runtimeSource)
+                )
                 // Preserve the configured policy, never the host's writable
                 // cache locations (which can also point outside realRoot).
-                settings.cache.blockDisk.directory = isolatedRoot
+                settings.cache.blockDisk.directory =
+                    isolatedRoot
                     .appendingPathComponent("cache/kv_v2", isDirectory: true).path
-                settings.cache.legacyDisk.directory = isolatedRoot
+                settings.cache.legacyDisk.directory =
+                    isolatedRoot
                     .appendingPathComponent("cache/legacy-kv", isDirectory: true).path
                 try fm.createDirectory(at: isolatedConfig, withIntermediateDirectories: true)
                 try JSONEncoder().encode(settings).write(
-                    to: isolatedConfig.appendingPathComponent("server-runtime.json"), options: .atomic)
-                FileHandle.standardError.write(Data(
-                    "[evals] inherited server-runtime settings; writable KV storage isolated\n".utf8))
+                    to: isolatedConfig.appendingPathComponent("server-runtime.json"),
+                    options: .atomic
+                )
+                FileHandle.standardError.write(
+                    Data(
+                        "[evals] inherited server-runtime settings; writable KV storage isolated\n".utf8
+                    )
+                )
             } catch {
-                FileHandle.standardError.write(Data(
-                    "[evals] could not snapshot server-runtime settings: \(error)\n".utf8))
+                FileHandle.standardError.write(
+                    Data(
+                        "[evals] could not snapshot server-runtime settings: \(error)\n".utf8
+                    )
+                )
             }
         }
 
@@ -467,8 +484,7 @@ public enum EvalBootstrap {
     /// Where the isolated models store was seeded from, kept so a per-case
     /// repair can re-create symlinks a model-issued prune removed. Single
     /// assignment during bootstrap, read-only afterwards.
-    nonisolated(unsafe) private static var isolatedModelsRepairSource:
-        (real: URL, isolatedRoot: URL)?
+    nonisolated(unsafe) private static var isolatedModelsRepairSource: (real: URL, isolatedRoot: URL)?
 
     /// Re-seed any missing symlinks in the isolated models store. A models
     /// prune during a case unlinks symlinks (never real weights); without

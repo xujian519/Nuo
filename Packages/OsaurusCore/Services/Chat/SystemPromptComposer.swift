@@ -290,7 +290,8 @@ public struct SystemPromptComposer: Sendable {
             // readable: two banners for one session must show the same source
             // and the same staticPrefixHash, and `source=nil` on any live
             // session's banner is itself the bug (an unbound compose path).
-            let boundSource = ChatExecutionContext.currentSessionSource
+            let boundSource =
+                ChatExecutionContext.currentSessionSource
                 .map { String(describing: $0) } ?? "nil"
             PrefillDebugLog.shared.log(
                 "==== COMPOSE model=\(snapshot.model) sizeClass=\(window.sizeClass) "
@@ -380,7 +381,10 @@ public struct SystemPromptComposer: Sendable {
             ? nil
             : await assembleMemorySection(agentId: agentId.uuidString, query: query)
         let merged = await appendProjectMemory(
-            to: section, projectId: snapshot.projectId, query: query)
+            to: section,
+            projectId: snapshot.projectId,
+            query: query
+        )
         trace?.mark("memory_done")
         return merged
     }
@@ -429,7 +433,9 @@ public struct SystemPromptComposer: Sendable {
         var transcriptLines: [String] = []
         if !trimmedQuery.isEmpty {
             let hits = await MemorySearchService.shared.searchTranscript(
-                query: trimmedQuery, agentId: namespaceKey, topK: 4
+                query: trimmedQuery,
+                agentId: namespaceKey,
+                topK: 4
             )
             for hit in hits {
                 let text = hit.content.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -2061,7 +2067,8 @@ public struct SystemPromptComposer: Sendable {
         var description = oneLineToolDescription(tool.function.description)
         if name == SubagentCapabilityRegistry.spawnAgentToolName,
             let original = tool.function.description,
-            let boundary = original.range(of: SpawnAgentTool.routingMetadataMarker) {
+            let boundary = original.range(of: SpawnAgentTool.routingMetadataMarker)
+        {
             // Routing data is required even when a constrained schema is
             // compacted again by a downstream bootstrap consumer.
             description = (description ?? "") + String(original[boundary.lowerBound...])
@@ -3158,11 +3165,13 @@ public struct SystemPromptComposer: Sendable {
                 perAgentEnabled: snapshot.spawnDelegationEnabled,
                 perAgentTargets: snapshot.spawnableWorkspaceAgents
             )
-        let currentTargets = spawnTargets ?? SpawnDescriptors.resolveForPreview(
-            agentIDs: configuredAgentIDs,
-            launcherModelOverride: configuredSpawnPools(snapshot: snapshot).launcherModelOverride,
-            workspaceAgents: configuredWorkspaceAgents
-        )
+        let currentTargets =
+            spawnTargets
+            ?? SpawnDescriptors.resolveForPreview(
+                agentIDs: configuredAgentIDs,
+                launcherModelOverride: configuredSpawnPools(snapshot: snapshot).launcherModelOverride,
+                workspaceAgents: configuredWorkspaceAgents
+            )
         let allowedAgentIDs =
             currentTargets.runnableAgentIDs
             .filter { $0 != snapshot.agentId }

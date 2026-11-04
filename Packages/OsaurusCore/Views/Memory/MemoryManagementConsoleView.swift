@@ -355,8 +355,8 @@ struct MemoryManagementConsoleView: View {
                     "\(health.pendingSignals.totalSignals)",
                     footnote:
                         health.pendingSignals.deadLetteredSignals > 0
-                            ? "\(health.pendingSignals.deadLetteredSignals) dead"
-                            : "signals"
+                        ? "\(health.pendingSignals.deadLetteredSignals) dead"
+                        : "signals"
                 )
                 healthTile(
                     "Schema",

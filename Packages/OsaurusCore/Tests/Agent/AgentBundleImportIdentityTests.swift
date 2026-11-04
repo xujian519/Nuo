@@ -43,7 +43,9 @@ struct AgentBundleImportIdentityTests {
         let local = agent(name: "Local zero", index: 0, scope: "c3d4e5f6", address: "0xBBB1")
 
         let result = AgentBundleService.resolveImportIdentity(
-            agent: imported, localAgents: [local], currentDeviceScope: "c3d4e5f6"
+            agent: imported,
+            localAgents: [local],
+            currentDeviceScope: "c3d4e5f6"
         )
         #expect(result.note == .mintedOnAnotherDevice(scope: "a1b2c3d4"))
         #expect(result.agent.agentAddress == "0xAAA1")
@@ -56,7 +58,9 @@ struct AgentBundleImportIdentityTests {
         let local = agent(name: "Local zero", index: 0, scope: "c3d4e5f6", address: "0xBBB1")
 
         let result = AgentBundleService.resolveImportIdentity(
-            agent: imported, localAgents: [local], currentDeviceScope: "c3d4e5f6"
+            agent: imported,
+            localAgents: [local],
+            currentDeviceScope: "c3d4e5f6"
         )
         #expect(result.note == .collidesWithLocalAgent(name: "Local zero"))
         #expect(result.agent.agentAddress == nil)
@@ -74,7 +78,9 @@ struct AgentBundleImportIdentityTests {
         let local = agent(name: "Original", index: 9, scope: "c3d4e5f6", address: "0xsame")
 
         let result = AgentBundleService.resolveImportIdentity(
-            agent: imported, localAgents: [local], currentDeviceScope: "c3d4e5f6"
+            agent: imported,
+            localAgents: [local],
+            currentDeviceScope: "c3d4e5f6"
         )
         #expect(result.note == .collidesWithLocalAgent(name: "Original"))
         #expect(result.agent.agentAddress == nil)
@@ -87,7 +93,9 @@ struct AgentBundleImportIdentityTests {
         local.name = "Writer (older copy)"
 
         let result = AgentBundleService.resolveImportIdentity(
-            agent: imported, localAgents: [local], currentDeviceScope: "c3d4e5f6"
+            agent: imported,
+            localAgents: [local],
+            currentDeviceScope: "c3d4e5f6"
         )
         #expect(result.note == nil)
         #expect(result.agent.agentAddress == "0xAAA2")
@@ -99,7 +107,9 @@ struct AgentBundleImportIdentityTests {
 
         // Same index, but v1 vs v2 is a different derivation slot.
         let result = AgentBundleService.resolveImportIdentity(
-            agent: imported, localAgents: [localV2], currentDeviceScope: "c3d4e5f6"
+            agent: imported,
+            localAgents: [localV2],
+            currentDeviceScope: "c3d4e5f6"
         )
         #expect(result.note == .legacyV1)
         #expect(result.agent.agentAddress == "0xV1")
@@ -110,7 +120,9 @@ struct AgentBundleImportIdentityTests {
         let localV1 = agent(name: "Also old", index: 1, scope: nil, address: "0xV1b")
 
         let result = AgentBundleService.resolveImportIdentity(
-            agent: imported, localAgents: [localV1], currentDeviceScope: "c3d4e5f6"
+            agent: imported,
+            localAgents: [localV1],
+            currentDeviceScope: "c3d4e5f6"
         )
         #expect(result.note == .collidesWithLocalAgent(name: "Also old"))
     }
@@ -118,7 +130,9 @@ struct AgentBundleImportIdentityTests {
     @Test func mintedOnThisDevice_noCollision_hasNoNote() {
         let imported = agent(name: "Mine", index: 5, scope: "c3d4e5f6", address: "0xMINE")
         let result = AgentBundleService.resolveImportIdentity(
-            agent: imported, localAgents: [], currentDeviceScope: "c3d4e5f6"
+            agent: imported,
+            localAgents: [],
+            currentDeviceScope: "c3d4e5f6"
         )
         #expect(result.note == nil)
         #expect(result.agent.agentAddress == "0xMINE")
@@ -131,11 +145,15 @@ struct AgentBundleImportIdentityTests {
 
         #expect(
             AgentBundleService.resolveImportIdentity(
-                agent: bare, localAgents: [local], currentDeviceScope: "x"
+                agent: bare,
+                localAgents: [local],
+                currentDeviceScope: "x"
             ).note == nil
         )
         let b = AgentBundleService.resolveImportIdentity(
-            agent: builtIn, localAgents: [local], currentDeviceScope: "x"
+            agent: builtIn,
+            localAgents: [local],
+            currentDeviceScope: "x"
         )
         #expect(b.note == nil)
         #expect(b.agent.agentAddress == "0x1")
@@ -145,7 +163,9 @@ struct AgentBundleImportIdentityTests {
         let imported = agent(name: "Writer", index: 0, scope: nil, address: "0xAAA")
         let builtInLocal = agent(name: "Default", index: 0, scope: nil, address: "0xAAA", builtIn: true)
         let result = AgentBundleService.resolveImportIdentity(
-            agent: imported, localAgents: [builtInLocal], currentDeviceScope: nil
+            agent: imported,
+            localAgents: [builtInLocal],
+            currentDeviceScope: nil
         )
         #expect(result.note == .legacyV1)
     }

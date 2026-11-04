@@ -360,7 +360,10 @@ public enum AgentTargetResolver {
         {
             return name
         }
-        if let paired = RemoteAgentManager.shared.remoteAgent(forAddress: ref.agentAddress, workspaceId: ref.workspaceId),
+        if let paired = RemoteAgentManager.shared.remoteAgent(
+            forAddress: ref.agentAddress,
+            workspaceId: ref.workspaceId
+        ),
             !paired.name.isEmpty
         {
             return paired.name

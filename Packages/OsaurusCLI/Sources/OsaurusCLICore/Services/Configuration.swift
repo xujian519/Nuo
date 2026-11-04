@@ -102,7 +102,8 @@ public struct Configuration {
         home: URL = FileManager.default.homeDirectoryForCurrentUser
     ) -> ModelsDirectoryResolution {
         if let raw = environment["OSU_MODELS_DIR"]?
-            .trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty {
+            .trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty
+        {
             return .init(
                 url: URL(fileURLWithPath: (raw as NSString).expandingTildeInPath, isDirectory: true),
                 source: "environment"
@@ -129,7 +130,9 @@ public struct Configuration {
         let current = home.appendingPathComponent("MLXModels", isDirectory: true)
         let legacy = home.appendingPathComponent("Documents/MLXModels", isDirectory: true)
         if directoryHasVisibleContents(current, fileManager: fm) { return .init(url: current, source: "app_default") }
-        if directoryHasVisibleContents(legacy, fileManager: fm) { return .init(url: legacy, source: "legacy_app_default") }
+        if directoryHasVisibleContents(legacy, fileManager: fm) {
+            return .init(url: legacy, source: "legacy_app_default")
+        }
         if fm.fileExists(atPath: current.path) { return .init(url: current, source: "app_default") }
         if fm.fileExists(atPath: legacy.path) { return .init(url: legacy, source: "legacy_app_default") }
         return .init(url: current, source: "app_default")
@@ -155,11 +158,13 @@ public struct Configuration {
     }
 
     private static func directoryHasVisibleContents(_ url: URL, fileManager: FileManager) -> Bool {
-        guard let contents = try? fileManager.contentsOfDirectory(
-            at: url,
-            includingPropertiesForKeys: nil,
-            options: [.skipsHiddenFiles]
-        ) else { return false }
+        guard
+            let contents = try? fileManager.contentsOfDirectory(
+                at: url,
+                includingPropertiesForKeys: nil,
+                options: [.skipsHiddenFiles]
+            )
+        else { return false }
         return !contents.isEmpty
     }
 }

@@ -75,9 +75,14 @@ struct SubagentAdmissionSettingsMatrixTests {
             input(
                 ramSafety: true,
                 memory: facts(
-                    resident: true, targetFootprint: 3 * gib,
-                    childBytes: 500 * mib, reclaimable: 6 * gib,
-                    releasableParent: 0)))
+                    resident: true,
+                    targetFootprint: 3 * gib,
+                    childBytes: 500 * mib,
+                    reclaimable: 6 * gib,
+                    releasableParent: 0
+                )
+            )
+        )
         #expect(plan.verdict == .admitted)
         #expect(plan.incrementalWeightChargeBytes == 0)
     }
@@ -89,9 +94,14 @@ struct SubagentAdmissionSettingsMatrixTests {
             input(
                 ramSafety: true,
                 memory: facts(
-                    resident: true, targetFootprint: 3 * gib,
-                    childBytes: 4 * gib, reclaimable: 6 * gib,
-                    releasableParent: 0)))
+                    resident: true,
+                    targetFootprint: 3 * gib,
+                    childBytes: 4 * gib,
+                    reclaimable: 6 * gib,
+                    releasableParent: 0
+                )
+            )
+        )
         guard case .rejected(let reason) = plan.verdict else {
             Issue.record("expected rejection, got \(plan.verdict)")
             return
@@ -108,9 +118,14 @@ struct SubagentAdmissionSettingsMatrixTests {
             input(
                 ramSafety: true,
                 memory: facts(
-                    resident: false, targetFootprint: 5 * gib,
-                    childBytes: 500 * mib, reclaimable: 4 * gib,
-                    releasableParent: 6 * gib)))
+                    resident: false,
+                    targetFootprint: 5 * gib,
+                    childBytes: 500 * mib,
+                    reclaimable: 4 * gib,
+                    releasableParent: 6 * gib
+                )
+            )
+        )
         #expect(plan.verdict == .admitted)
         #expect(plan.incrementalWeightChargeBytes == 5 * gib)
     }
@@ -123,9 +138,14 @@ struct SubagentAdmissionSettingsMatrixTests {
             input(
                 ramSafety: true,
                 memory: facts(
-                    resident: false, targetFootprint: 8 * gib,
-                    childBytes: 500 * mib, reclaimable: 4 * gib,
-                    releasableParent: 6 * gib)))
+                    resident: false,
+                    targetFootprint: 8 * gib,
+                    childBytes: 500 * mib,
+                    reclaimable: 4 * gib,
+                    releasableParent: 6 * gib
+                )
+            )
+        )
         guard case .rejected(let reason) = plan.verdict else {
             Issue.record("expected rejection, got \(plan.verdict)")
             return
@@ -142,9 +162,14 @@ struct SubagentAdmissionSettingsMatrixTests {
             input(
                 ramSafety: true,
                 memory: facts(
-                    resident: false, targetFootprint: 5 * gib,
-                    childBytes: 500 * mib, reclaimable: 10 * gib,
-                    releasableParent: 0)))
+                    resident: false,
+                    targetFootprint: 5 * gib,
+                    childBytes: 500 * mib,
+                    reclaimable: 10 * gib,
+                    releasableParent: 0
+                )
+            )
+        )
         #expect(plan.verdict == .admitted)
         #expect(plan.incrementalWeightChargeBytes == 5 * gib)
     }
@@ -158,9 +183,14 @@ struct SubagentAdmissionSettingsMatrixTests {
             input(
                 ramSafety: true,
                 memory: facts(
-                    resident: false, targetFootprint: 5 * gib,
-                    childBytes: 500 * mib, reclaimable: 6 * gib,
-                    releasableParent: 0)))
+                    resident: false,
+                    targetFootprint: 5 * gib,
+                    childBytes: 500 * mib,
+                    reclaimable: 6 * gib,
+                    releasableParent: 0
+                )
+            )
+        )
         guard case .rejected(let reason) = plan.verdict else {
             Issue.record("expected rejection, got \(plan.verdict)")
             return
@@ -172,7 +202,8 @@ struct SubagentAdmissionSettingsMatrixTests {
     @Test("safety ON · unknown estimate → rejected (fail closed)")
     func safetyOnUnknownEstimate() {
         let plan = SubagentBatchAdmissionPlanner.plan(
-            input(ramSafety: true, memory: nil))
+            input(ramSafety: true, memory: nil)
+        )
         guard case .rejected(let reason) = plan.verdict else {
             Issue.record("expected rejection, got \(plan.verdict)")
             return
@@ -189,19 +220,32 @@ struct SubagentAdmissionSettingsMatrixTests {
     func safetyOffAdmitsAllShapes() {
         let shapes: [SubagentBatchMemoryFacts?] = [
             facts(
-                resident: true, targetFootprint: 3 * gib,
-                childBytes: 4 * gib, reclaimable: 6 * gib, releasableParent: 0),
+                resident: true,
+                targetFootprint: 3 * gib,
+                childBytes: 4 * gib,
+                reclaimable: 6 * gib,
+                releasableParent: 0
+            ),
             facts(
-                resident: false, targetFootprint: 8 * gib,
-                childBytes: 500 * mib, reclaimable: 4 * gib, releasableParent: 6 * gib),
+                resident: false,
+                targetFootprint: 8 * gib,
+                childBytes: 500 * mib,
+                reclaimable: 4 * gib,
+                releasableParent: 6 * gib
+            ),
             facts(
-                resident: false, targetFootprint: 5 * gib,
-                childBytes: 500 * mib, reclaimable: 6 * gib, releasableParent: 0),
+                resident: false,
+                targetFootprint: 5 * gib,
+                childBytes: 500 * mib,
+                reclaimable: 6 * gib,
+                releasableParent: 0
+            ),
             nil,  // even an unknown estimate cannot veto with safety off
         ]
         for shape in shapes {
             let plan = SubagentBatchAdmissionPlanner.plan(
-                input(ramSafety: false, memory: shape))
+                input(ramSafety: false, memory: shape)
+            )
             #expect(plan.verdict == .admitted, "safety OFF must not veto: \(String(describing: shape))")
             #expect(plan.localParallelism == 1)
         }

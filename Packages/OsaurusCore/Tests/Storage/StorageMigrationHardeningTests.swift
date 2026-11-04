@@ -81,7 +81,8 @@ struct StorageMigrationHardeningTests {
     /// their original root and resident key. Call under StoragePathsTestLock.
     private func withIsolatedCatalog(_ body: (URL) async throws -> Void) async throws {
         let previousRoot = OsaurusPaths.overrideRoot
-        let previousKey = StorageKeyManager.shared.hasCachedKey
+        let previousKey =
+            StorageKeyManager.shared.hasCachedKey
             ? try StorageKeyManager.shared.currentKey() : nil
         let handles = OsaurusDatabaseHandle.allOpenHandles
         for handle in handles { handle.closer() }

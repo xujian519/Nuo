@@ -63,10 +63,12 @@ struct SubagentScopeReasoningTests {
     @Test func missingParentOrChildMeansNoInheritance() {
         #expect(
             scope(parentModel: nil, enableThinking: false)
-                .enableThinking(forDelegatedModel: "any") == nil)
+                .enableThinking(forDelegatedModel: "any") == nil
+        )
         #expect(
             scope(parentModel: "m", enableThinking: false)
-                .enableThinking(forDelegatedModel: nil) == nil)
+                .enableThinking(forDelegatedModel: nil) == nil
+        )
     }
 
     @Test func unsetParentChoiceStaysUnset() {

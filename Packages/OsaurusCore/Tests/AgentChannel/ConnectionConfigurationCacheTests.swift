@@ -20,8 +20,16 @@ struct ConnectionConfigurationCacheTests {
         let url = URL(fileURLWithPath: "/tmp/a.json")
         var loads = 0
 
-        #expect(cache.value(for: url) { loads += 1; return 1 } == 1)
-        #expect(cache.value(for: url) { loads += 1; return 2 } == 1)
+        #expect(
+            cache.value(for: url) {
+                loads += 1; return 1
+            } == 1
+        )
+        #expect(
+            cache.value(for: url) {
+                loads += 1; return 2
+            } == 1
+        )
         #expect(loads == 1)
     }
 

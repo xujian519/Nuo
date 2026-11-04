@@ -310,8 +310,12 @@ struct AgentChannelConnectionCenterView: View {
                     .foregroundColor(theme.primaryText)
                 Text(
                     focusChatOnInboundEnabled
-                        ? L("Every channel message brings its conversation forward: the tab is selected and the chat window comes to the front (opening one if needed).")
-                        : L("Channel messages run quietly in the background; watch them in Activity or open the tab yourself. Turn on for a dedicated machine you keep an eye on.")
+                        ? L(
+                            "Every channel message brings its conversation forward: the tab is selected and the chat window comes to the front (opening one if needed)."
+                        )
+                        : L(
+                            "Channel messages run quietly in the background; watch them in Activity or open the tab yourself. Turn on for a dedicated machine you keep an eye on."
+                        )
                 )
                 .font(.system(size: 11))
                 .foregroundColor(theme.tertiaryText)
@@ -521,8 +525,12 @@ struct AgentChannelConnectionCenterView: View {
                 }
                 Text(
                     globalWritesEnabled
-                        ? L("Master switch for replies and new messages. Agents may send to write-allowlisted destinations.")
-                        : L("Sending is paused everywhere — replies and new messages. Agents can still read allowlisted channels.")
+                        ? L(
+                            "Master switch for replies and new messages. Agents may send to write-allowlisted destinations."
+                        )
+                        : L(
+                            "Sending is paused everywhere — replies and new messages. Agents can still read allowlisted channels."
+                        )
                 )
                 .font(.system(size: 11))
                 .foregroundColor(theme.tertiaryText)
@@ -820,7 +828,8 @@ struct AgentChannelConnectionCenterView: View {
             && (!whatsappConfig.readableChatIds.isEmpty || !whatsappConfig.writableChatIds.isEmpty)
         let whatsappReceiveExpected = whatsappConfig.canStartReceive()
         let discordConfig = DiscordConnectionService.shared.configuration()
-        let discordReceiveExpected = discordConfigured
+        let discordReceiveExpected =
+            discordConfigured
             && !discordConfig.readableChannelIds.isEmpty
             && !discordConfig.senderAllowlist.isEmpty
         let telegramConfig = TelegramConnectionService.shared.configuration()
@@ -954,7 +963,8 @@ struct AgentChannelConnectionCenterView: View {
     ) -> AgentChannelStatusPresentation {
         if pendingApprovals > 0 {
             return AgentChannelStatusPresentation(
-                label: pendingApprovals == 1 ? L("1 waiting for approval") : L("\(pendingApprovals) waiting for approval"),
+                label: pendingApprovals == 1
+                    ? L("1 waiting for approval") : L("\(pendingApprovals) waiting for approval"),
                 tone: .warning
             )
         }
@@ -968,7 +978,8 @@ struct AgentChannelConnectionCenterView: View {
         let mode = N8nSetupRecipe.verifyModeChip(
             for: connection.n8n?.inboundVerification.method ?? .hmacSHA256
         )
-        let wantsPush = connection.n8n?.outbound.isConfigured == true
+        let wantsPush =
+            connection.n8n?.outbound.isConfigured == true
             || connection.writeEnabled
         if wantsPush && !writesEnabled {
             return AgentChannelStatusPresentation(

@@ -5,8 +5,12 @@ import XCTest
 /// The exact typed parser used after direct/delegated local model selection.
 final class Flux3KleinToolParameterTests: XCTestCase {
     private func parse(_ raw: String) throws -> ImageJobParams {
-        try ImageTool.paramsForResolvedLocalModel(ImageJobParams(prompt: "combine", sourcePaths: []),
-            argumentsJSON: raw, canonical: "flux3-image-klein", defaultGuidance: 1)
+        try ImageTool.paramsForResolvedLocalModel(
+            ImageJobParams(prompt: "combine", sourcePaths: []),
+            argumentsJSON: raw,
+            canonical: "flux3-image-klein",
+            defaultGuidance: 1
+        )
     }
 
     func testAllLegalSidesAndUncappedStepsSurviveDelegationParser() throws {
@@ -19,10 +23,13 @@ final class Flux3KleinToolParameterTests: XCTestCase {
     }
 
     func testUnsizedEditKeepsTenOrderedReferencesAndNegativePrompt() throws {
-        let paths = (1...10).map { "/tmp/ref-\($0).png" }
-        let raw = String(decoding: try JSONSerialization.data(withJSONObject: [
-            "source_paths": paths, "negative_prompt": "accepted and ignored",
-        ]), as: UTF8.self)
+        let paths = (1 ... 10).map { "/tmp/ref-\($0).png" }
+        let raw = String(
+            decoding: try JSONSerialization.data(withJSONObject: [
+                "source_paths": paths, "negative_prompt": "accepted and ignored",
+            ]),
+            as: UTF8.self
+        )
         let result = try parse(raw)
         XCTAssertEqual(result.sourcePaths, paths)
         XCTAssertTrue(result.isEdit)

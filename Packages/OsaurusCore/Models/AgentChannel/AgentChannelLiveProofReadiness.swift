@@ -344,13 +344,15 @@ enum AgentChannelLiveProofReadiness {
             return AgentChannelFeedbackRouting(
                 source: source,
                 appliesToNativeChannels: false,
-                guidance: "Investigate the legacy Telegram plugin separately. Do not claim the native Telegram Agent Channel fixed this path until the plugin is tested or a migration is complete."
+                guidance:
+                    "Investigate the legacy Telegram plugin separately. Do not claim the native Telegram Agent Channel fixed this path until the plugin is tested or a migration is complete."
             )
         case .unknown:
             return AgentChannelFeedbackRouting(
                 source: source,
                 appliesToNativeChannels: false,
-                guidance: "Clarify whether the report came from native Agent Channels or a legacy plugin before assigning it to the channel implementation."
+                guidance:
+                    "Clarify whether the report came from native Agent Channels or a legacy plugin before assigning it to the channel implementation."
             )
         }
     }

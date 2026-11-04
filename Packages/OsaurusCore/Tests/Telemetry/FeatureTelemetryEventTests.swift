@@ -627,7 +627,11 @@ struct FeatureTelemetryEventTests {
 
         FeatureTelemetry.announcementShown(slug: "raptor-launch", service: service)
         FeatureTelemetry.announcementClicked(
-            slug: "raptor-launch", action: "cta", ctaKind: "external_url", ctaIndex: 0, service: service
+            slug: "raptor-launch",
+            action: "cta",
+            ctaKind: "external_url",
+            ctaIndex: 0,
+            service: service
         )
         FeatureTelemetry.announcementClicked(slug: "raptor-launch", action: "dismiss", service: service)
 

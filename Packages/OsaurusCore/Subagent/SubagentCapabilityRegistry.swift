@@ -603,7 +603,9 @@ public enum SubagentToolVisibility {
         let allowedNames = local.map(\.name) + workspace.map(\.name)
         func result(_ target: AgentDispatchTarget?, ambiguous: Bool = false) -> SpawnableAgentTargetResolution {
             SpawnableAgentTargetResolution(
-                target: target, isAmbiguous: ambiguous, allowedNames: allowedNames
+                target: target,
+                isAmbiguous: ambiguous,
+                allowedNames: allowedNames
             )
         }
         guard !needle.isEmpty else { return result(nil) }

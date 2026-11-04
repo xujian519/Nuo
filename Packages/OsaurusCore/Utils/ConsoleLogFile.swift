@@ -49,7 +49,8 @@ enum ConsoleLogFile {
             // `print` arriving when it happens, not 4 KB later.
             setvbuf(stdout, nil, _IOLBF, 0)
             sink.appendLine(
-                "===== Nuo launched, pid \(ProcessInfo.processInfo.processIdentifier) =====")
+                "===== Nuo launched, pid \(ProcessInfo.processInfo.processIdentifier) ====="
+            )
             tee(STDOUT_FILENO)
         #endif
     }

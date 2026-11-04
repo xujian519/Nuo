@@ -53,9 +53,13 @@ public final class TemplateStore: ObservableObject {
             case .write(let detail): return L("Could not save template: \(detail)")
             case .builtInReadOnly: return L("Built-in templates cannot be changed. Save a copy to your library first.")
             case .signatureMismatch:
-                return L("The template's signature does not match its content. The file was changed after it was signed, so it was not imported.")
+                return L(
+                    "The template's signature does not match its content. The file was changed after it was signed, so it was not imported."
+                )
             case .signerMismatch(let address):
-                return L("Your copy of this template is signed by \(SharedAgentIdentity.shortAddress(address)) and this file is not. Import it as a copy under a new name instead.")
+                return L(
+                    "Your copy of this template is signed by \(SharedAgentIdentity.shortAddress(address)) and this file is not. Import it as a copy under a new name instead."
+                )
             case .conflictNeedsResolution:
                 return L("This version is already here with different content. Choose Keep both or Replace.")
             }
@@ -117,7 +121,9 @@ public final class TemplateStore: ObservableObject {
     nonisolated static func versionNumbers(_ id: UUID) -> [Int] {
         guard
             let files = try? FileManager.default.contentsOfDirectory(
-                at: templateDirectory(id), includingPropertiesForKeys: nil)
+                at: templateDirectory(id),
+                includingPropertiesForKeys: nil
+            )
         else { return [] }
         return files.compactMap { url -> Int? in
             let name = url.deletingPathExtension().lastPathComponent
@@ -143,7 +149,9 @@ public final class TemplateStore: ObservableObject {
     nonisolated static func loadLatest() -> [Template] {
         guard
             let dirs = try? FileManager.default.contentsOfDirectory(
-                at: directory, includingPropertiesForKeys: [.isDirectoryKey])
+                at: directory,
+                includingPropertiesForKeys: [.isDirectoryKey]
+            )
         else { return [] }
         var out: [Template] = []
         for dir in dirs {
@@ -250,7 +258,8 @@ public final class TemplateStore: ObservableObject {
     /// The template is sealed: requirements re-derived, hash recomputed.
     @discardableResult
     public func save(_ template: Template, changelog: String? = nil) throws -> Template {
-        let existing = Self.versionNumbers(template.id).last
+        let existing =
+            Self.versionNumbers(template.id).last
             ?? builtIn.first(where: { $0.id == template.id })?.version
         var copy = template
         copy.version = (existing ?? 0) + 1
@@ -364,8 +373,10 @@ public final class TemplateStore: ObservableObject {
             return .alreadyPresent
         }
         if let address = TemplateSigner.continuityBreak(
-            from: local, to: incoming, knownAgent: { AgentIdentityRegistry.shared.agentId(forAddress: $0) })
-        {
+            from: local,
+            to: incoming,
+            knownAgent: { AgentIdentityRegistry.shared.agentId(forAddress: $0) }
+        ) {
             return .signerMismatch(localAddress: address)
         }
         if local.contains(where: { $0.version == incoming.version }) { return .conflict }

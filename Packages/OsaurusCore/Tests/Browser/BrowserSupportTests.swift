@@ -21,7 +21,8 @@ import Testing
         #expect(browserEscapeSelector("button.primary") == "button.primary")
         #expect(
             browserEscapeSelector("#login-form input[name=email]")
-                == "#login-form input[name=email]")
+                == "#login-form input[name=email]"
+        )
     }
 
     @Test func escapesSingleQuotes() {
@@ -284,7 +285,8 @@ import Testing
 
     @Test @MainActor func fileURLsAreBlockedByDefault() {
         let reason = BrowserSession.navigationRefusalReason(
-            for: URL(string: "file:///Users/me/.ssh/id_rsa"))
+            for: URL(string: "file:///Users/me/.ssh/id_rsa")
+        )
         #expect(reason?.contains("Local file URLs are blocked") == true)
     }
 
@@ -377,34 +379,52 @@ import Testing
     @Test func detectsLoginPaths() {
         #expect(
             BrowserLoginDetector.loginHost(
-                finalURL: "https://github.com/login?return_to=/", title: "GitHub")
-                == "github.com")
+                finalURL: "https://github.com/login?return_to=/",
+                title: "GitHub"
+            )
+                == "github.com"
+        )
         #expect(
             BrowserLoginDetector.loginHost(
-                finalURL: "https://example.com/users/sign_in", title: "Example")
-                == "example.com")
+                finalURL: "https://example.com/users/sign_in",
+                title: "Example"
+            )
+                == "example.com"
+        )
     }
 
     @Test func detectsLoginTitles() {
         #expect(
             BrowserLoginDetector.loginHost(
-                finalURL: "https://example.com/dashboard", title: "Sign in to Example")
-                == "example.com")
+                finalURL: "https://example.com/dashboard",
+                title: "Sign in to Example"
+            )
+                == "example.com"
+        )
         #expect(
             BrowserLoginDetector.loginHost(
-                finalURL: "https://example.com/x", title: "Log in | Example")
-                == "example.com")
+                finalURL: "https://example.com/x",
+                title: "Log in | Example"
+            )
+                == "example.com"
+        )
     }
 
     @Test func ordinaryPagesAreNotLoginWalls() {
         // Conservative: false negatives fine, false positives nag the user.
         #expect(
             BrowserLoginDetector.loginHost(
-                finalURL: "https://example.com/products", title: "Products — Example")
-                == nil)
+                finalURL: "https://example.com/products",
+                title: "Products — Example"
+            )
+                == nil
+        )
         #expect(
             BrowserLoginDetector.loginHost(
-                finalURL: "https://example.com/blog/how-to-login-faster", title: "Blog")
-                == nil)
+                finalURL: "https://example.com/blog/how-to-login-faster",
+                title: "Blog"
+            )
+                == nil
+        )
     }
 }

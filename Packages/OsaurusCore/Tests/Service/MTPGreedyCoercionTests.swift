@@ -53,7 +53,9 @@ import Testing
     func mtpActivePreservesBundleSampler() {
         for modelName in ["JANGQ-AI/Qwen3.8-27B-JANG_4D", "JANGQ-AI/Qwen3.8-Flash-Next-JANG_4M"] {
             let effective = resolve(
-                draftStrategy: .nativeMTP(depth: 2), modelName: modelName)
+                draftStrategy: .nativeMTP(depth: 2),
+                modelName: modelName
+            )
             #expect(effective.temperature == 1)
             #expect(effective.topP == 0.95)
             #expect(effective.topK == 20)
@@ -78,7 +80,10 @@ import Testing
     func dflash2PreservesSampling() {
         let effective = resolve(
             draftStrategy: .dflash2(
-                drafterPath: URL(fileURLWithPath: "/dev/null"), blockSize: nil))
+                drafterPath: URL(fileURLWithPath: "/dev/null"),
+                blockSize: nil
+            )
+        )
         #expect(effective.temperature == 1.0)
         #expect(effective.topP == 0.95)
         #expect(effective.topK == 20)
@@ -106,7 +111,11 @@ import Testing
         runtime.topK = 15
         let effective = resolve(
             draftStrategy: .nativeMTP(depth: 3),
-            requestTemperature: 0.7, requestTopP: 0.9, requestTopK: 32, runtime: runtime)
+            requestTemperature: 0.7,
+            requestTopP: 0.9,
+            requestTopK: 32,
+            runtime: runtime
+        )
         #expect(effective.temperature == 0.7)
         #expect(effective.topP == 0.9)
         #expect(effective.topK == 32)

@@ -34,10 +34,14 @@ struct SubagentWarningPressureOptOutTests {
         batching: Bool = true
     ) -> SubagentBatchAdmissionInput {
         .init(
-            localJobCount: jobs, remoteJobCount: 0,
-            agentParallelLimit: agentLimit, engineParallelLimit: engineLimit,
-            continuousBatchingEnabled: batching, ramSafetyEnabled: enabled,
-            failClosedWhenEstimateUnknown: true, memory: memory
+            localJobCount: jobs,
+            remoteJobCount: 0,
+            agentParallelLimit: agentLimit,
+            engineParallelLimit: engineLimit,
+            continuousBatchingEnabled: batching,
+            ramSafetyEnabled: enabled,
+            failClosedWhenEstimateUnknown: true,
+            memory: memory
         )
     }
 
@@ -80,8 +84,12 @@ struct SubagentWarningPressureOptOutTests {
             var waits = 0
             let memory = await SubagentBatchAdmissionPlanner.memoryFactsAfterReclaimingIfNeeded(
                 ramSafetyEnabled: enabled,
-                sample: { samples += 1; return facts() },
-                reclaim: { trims += 1; return true },
+                sample: {
+                    samples += 1; return facts()
+                },
+                reclaim: {
+                    trims += 1; return true
+                },
                 waitForPostReclaimSample: { waits += 1 }
             )
             let plan = SubagentBatchAdmissionPlanner.plan(input(enabled: enabled, memory: memory))
@@ -91,8 +99,10 @@ struct SubagentWarningPressureOptOutTests {
             #expect(waits == (enabled ? 1 : 0))
             if !enabled {
                 let reserved = await admission.reserveLocalInPlace(
-                    modelKey: "gemma-4-e2b-it-8bit", requestedSlots: 2,
-                    slotCapacity: plan.localCapacity, timeoutSeconds: 0.1
+                    modelKey: "gemma-4-e2b-it-8bit",
+                    requestedSlots: 2,
+                    slotCapacity: plan.localCapacity,
+                    timeoutSeconds: 0.1
                 )
                 guard case .admitted(let slots) = reserved else {
                     Issue.record("OFF must admit after the preceding refusal/released wave")
@@ -115,8 +125,12 @@ struct SubagentWarningPressureOptOutTests {
         let memory = facts()
         let result = await SubagentBatchAdmissionPlanner.memoryFactsAfterReclaimingIfNeeded(
             ramSafetyEnabled: false,
-            sample: { samples += 1; return memory },
-            reclaim: { trims += 1; return true },
+            sample: {
+                samples += 1; return memory
+            },
+            reclaim: {
+                trims += 1; return true
+            },
             waitForPostReclaimSample: { waits += 1 }
         )
         #expect(result == memory)

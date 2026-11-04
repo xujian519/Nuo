@@ -30,16 +30,26 @@ struct RemoteChatRequestEncodingTests {
         for (type, path) in rows {
             let service = RemoteProviderService(
                 provider: RemoteProvider(
-                    name: "wire-fixture", host: "example.test", providerProtocol: .https,
-                    port: nil, basePath: "/v1", authType: .none, providerType: type
+                    name: "wire-fixture",
+                    host: "example.test",
+                    providerProtocol: .https,
+                    port: nil,
+                    basePath: "/v1",
+                    authType: .none,
+                    providerType: type
                 ),
-                models: ["fixture-model"], resolvedHeaders: [:]
+                models: ["fixture-model"],
+                resolvedHeaders: [:]
             )
             let probe = WireTransportProbe()
             let built = try await WireTransportProbe.$current.withValue(probe) {
-                try await service.buildURLRequest(for: Self.makeRequest(
-                    model: "fixture-model", maxTokens: nil, stream: true
-                ))
+                try await service.buildURLRequest(
+                    for: Self.makeRequest(
+                        model: "fixture-model",
+                        maxTokens: nil,
+                        stream: true
+                    )
+                )
             }
             #expect(built.url?.path == path)
             #expect(probe.requestEndpointURL?.path == path)
@@ -235,7 +245,9 @@ struct RemoteChatRequestEncodingTests {
     /// An effort the model does not document (3 Pro has no `medium`) and
     /// models with no contract send no thinkingConfig at all.
     @Test func geminiRequest_omitsThinkingConfig_whenEffortUnsupported() throws {
-        for (model, effort) in [("gemini-3-pro-preview", "medium"), ("gemini-2.0-flash", "high"), ("gemini-3.8-flash", nil)] {
+        for (model, effort) in [
+            ("gemini-3-pro-preview", "medium"), ("gemini-2.0-flash", "high"), ("gemini-3.8-flash", nil),
+        ] {
             let payload = try Self.encodeAsDictionary(
                 Self.makeRequest(model: model, maxTokens: 256, reasoningEffort: effort).toGeminiRequest()
             )
@@ -751,7 +763,8 @@ struct RemoteChatRequestEncodingTests {
             trackContent: false
         )
         let failure = Data(
-            #"{"type":"response.failed","response":{"error":{"code":"server_error","message":"backend unavailable"}}}"#.utf8
+            #"{"type":"response.failed","response":{"error":{"code":"server_error","message":"backend unavailable"}}}"#
+                .utf8
         )
         let failureOutcome = try RemoteProviderService.handleOpenResponsesEvent(
             failure,
@@ -1043,7 +1056,9 @@ struct RemoteChatRequestEncodingTests {
         let keptChat = try JSONDecoder().decode(OpenResponsesRequest.self, from: kept).toChatCompletionRequest()
         #expect(
             keptChat.tool_choice
-                == .function(ToolChoiceOption.FunctionName(type: "function", function: ToolChoiceOption.Name(name: "shell")))
+                == .function(
+                    ToolChoiceOption.FunctionName(type: "function", function: ToolChoiceOption.Name(name: "shell"))
+                )
         )
     }
 
@@ -1236,13 +1251,19 @@ struct RemoteChatRequestEncodingTests {
         let keyed = try JSONDecoder().decode(
             OpenResponsesRequest.self,
             from: Data(
-                #"{"model":"m","input":"hi","prompt_cache_key":"01a0c717-a8a2-74a1-9434-3d7c54e37a0b"}"#.utf8))
+                #"{"model":"m","input":"hi","prompt_cache_key":"01a0c717-a8a2-74a1-9434-3d7c54e37a0b"}"#.utf8
+            )
+        )
         #expect(keyed.toChatCompletionRequest().session_id == "01a0c717-a8a2-74a1-9434-3d7c54e37a0b")
         let blank = try JSONDecoder().decode(
-            OpenResponsesRequest.self, from: Data(#"{"model":"m","input":"hi","prompt_cache_key":"  "}"#.utf8))
+            OpenResponsesRequest.self,
+            from: Data(#"{"model":"m","input":"hi","prompt_cache_key":"  "}"#.utf8)
+        )
         #expect(blank.toChatCompletionRequest().session_id == nil)
         let absent = try JSONDecoder().decode(
-            OpenResponsesRequest.self, from: Data(#"{"model":"m","input":"hi"}"#.utf8))
+            OpenResponsesRequest.self,
+            from: Data(#"{"model":"m","input":"hi"}"#.utf8)
+        )
         #expect(absent.toChatCompletionRequest().session_id == nil)
     }
 
@@ -2071,7 +2092,8 @@ struct RemoteChatRequestEncodingTests {
 
     @Test func extractErrorMessage_surfacesOpenRouterUpstreamRaw() {
         let body = Data(
-            #"{"error":{"message":"Provider returned error","code":400,"metadata":{"raw":"{\"message\":\"tool_choice: type \\\"tool\\\" and \\\"any\\\" are not supported for this model.\"}","provider_name":"Amazon Bedrock"}}}"#.utf8
+            #"{"error":{"message":"Provider returned error","code":400,"metadata":{"raw":"{\"message\":\"tool_choice: type \\\"tool\\\" and \\\"any\\\" are not supported for this model.\"}","provider_name":"Amazon Bedrock"}}}"#
+                .utf8
         )
         let extracted = RemoteProviderService.extractErrorMessage(from: body, statusCode: 400)
         #expect(extracted.contains("Provider returned error"))

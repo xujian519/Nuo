@@ -83,26 +83,30 @@ struct DelegatedBudgetEnforcementTests {
             ChatMessage(role: "system", content: "delegated child system prompt"),
             ChatMessage(role: "user", content: "original delegated task"),
         ]
-        for i in 0..<3 {
+        for i in 0 ..< 3 {
             messages.append(ChatMessage(role: "assistant", content: "step \(i)"))
             messages.append(ChatMessage(role: "tool", content: bigResult))
         }
-        for i in 0..<3 {
+        for i in 0 ..< 3 {
             messages.append(ChatMessage(role: "user", content: "recent question \(i)"))
             messages.append(ChatMessage(role: "assistant", content: "recent answer \(i)"))
         }
 
         let result = AgentLoopBudget.trimPreservingSystemPrefixReportingOverflow(
-            messages, with: manager)
+            messages,
+            with: manager
+        )
         #expect(result.overBudget == false)
         #expect(result.messages.first?.role == "system", "system prefix is never trimmed")
         let joined = result.messages.dropFirst().compactMap(\.content).joined()
         #expect(
             ContextBudgetManager.estimateTokens(for: joined) <= manager.historyBudget,
-            "trimmed history must fit the contract-derived budget")
+            "trimmed history must fit the contract-derived budget"
+        )
         #expect(
             !result.messages.contains { ($0.content?.count ?? 0) >= 100_000 },
-            "no over-allowance tool result survives verbatim")
+            "no over-allowance tool result survives verbatim"
+        )
 
         // The SAME bloat sitting in the PROTECTED recent tail cannot be
         // trimmed away. Report the estimated overflow for diagnostics;
@@ -110,13 +114,15 @@ struct DelegatedBudgetEnforcementTests {
         var recentBloat: [ChatMessage] = [
             ChatMessage(role: "system", content: "delegated child system prompt")
         ]
-        for i in 0..<4 {
+        for i in 0 ..< 4 {
             recentBloat.append(ChatMessage(role: "user", content: "step \(i)"))
             recentBloat.append(ChatMessage(role: "tool", content: bigResult))
         }
         recentBloat.append(ChatMessage(role: "user", content: "final question"))
         let bloated = AgentLoopBudget.trimPreservingSystemPrefixReportingOverflow(
-            recentBloat, with: manager)
+            recentBloat,
+            with: manager
+        )
         #expect(bloated.overBudget == true, "protected-tail overrun must be REPORTED")
     }
 
@@ -157,7 +163,10 @@ struct DelegatedBudgetEnforcementTests {
             isCancelled: { false },
             buildMessages: { notices in
                 AgentLoopBudget.composeIterationMessages(
-                    messages, notices: notices, manager: manager)
+                    messages,
+                    notices: notices,
+                    manager: manager
+                )
             },
             modelStep: { _, _ in
                 modelSteps.count.withLock { $0 += 1 }
@@ -168,7 +177,8 @@ struct DelegatedBudgetEnforcementTests {
             onDedupedResult: { _, _, _ in },
             executeTool: { inv, _ in
                 AgentLoopToolExecution(
-                    result: ToolEnvelope.success(tool: inv.toolName, text: "ok"))
+                    result: ToolEnvelope.success(tool: inv.toolName, text: "ok")
+                )
             },
             onBatchComplete: { _ in }
         )
@@ -212,7 +222,10 @@ struct DelegatedBudgetEnforcementTests {
                 // Always ask for another tool — an unbounded appetite.
                 return .toolCalls([
                     ServiceToolInvocation(
-                        toolName: "probe", jsonArguments: "{}", toolCallId: nil)
+                        toolName: "probe",
+                        jsonArguments: "{}",
+                        toolCallId: nil
+                    )
                 ])
             },
             prepareIncompleteReasoningContinuation: {},
@@ -220,7 +233,8 @@ struct DelegatedBudgetEnforcementTests {
             onDedupedResult: { _, _, _ in },
             executeTool: { inv, _ in
                 AgentLoopToolExecution(
-                    result: ToolEnvelope.success(tool: inv.toolName, text: "ok"))
+                    result: ToolEnvelope.success(tool: inv.toolName, text: "ok")
+                )
             },
             onBatchComplete: { _ in }
         )

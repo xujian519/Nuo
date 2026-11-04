@@ -43,7 +43,8 @@ enum ShellSandboxProfile {
         if !tmpdir.isEmpty { writableSubpaths.append(tmpdir) }
         writableSubpaths.append("/private/tmp")
         writableSubpaths.append("/private/var/tmp")
-        let subpathClauses = writableSubpaths
+        let subpathClauses =
+            writableSubpaths
             .map { "(subpath \"\(escape($0))\")" }
             .joined(separator: " ")
         return """

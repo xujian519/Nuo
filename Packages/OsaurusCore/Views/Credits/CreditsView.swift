@@ -1227,7 +1227,8 @@ struct CreditsView: View {
             let data = try encoder.encode(diagnostics)
             try data.write(to: url, options: .atomic)
             let count = diagnostics.entries.count
-            diagnosticsMessage = count == 1
+            diagnosticsMessage =
+                count == 1
                 ? L("Exported 1 row to \(url.lastPathComponent).")
                 : L("Exported \(count) rows to \(url.lastPathComponent).")
         } catch {

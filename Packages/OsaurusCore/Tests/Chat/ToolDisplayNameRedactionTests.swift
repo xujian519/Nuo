@@ -17,19 +17,23 @@ struct ToolDisplayNameRedactionTests {
     @Test func detectPII_hasFriendlyLabels() {
         #expect(
             ToolDisplayName.friendly(for: "detect_pii", running: true)
-                == L("Scanning for personal information"))
+                == L("Scanning for personal information")
+        )
         #expect(
             ToolDisplayName.friendly(for: "detect_pii", running: false)
-                == L("Scanned for personal information"))
+                == L("Scanned for personal information")
+        )
     }
 
     @Test func redactFile_hasFriendlyLabels() {
         #expect(
             ToolDisplayName.friendly(for: "redact_file", running: true)
-                == L("Redacting personal information"))
+                == L("Redacting personal information")
+        )
         #expect(
             ToolDisplayName.friendly(for: "redact_file", running: false)
-                == L("Redacted personal information"))
+                == L("Redacted personal information")
+        )
     }
 
     @Test func humanizer_upcasesPIIAcronym() {

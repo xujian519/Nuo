@@ -98,7 +98,9 @@ final class NativeCompactionMarkerView: NSView {
         rightLine.layer?.backgroundColor = NSColor(theme.primaryBorder).withAlphaComponent(0.35).cgColor
         pillContainer.layer?.backgroundColor = NSColor(theme.tertiaryBackground).withAlphaComponent(0.5).cgColor
         pillContainer.layer?.borderColor = NSColor(theme.primaryBorder).withAlphaComponent(0.4).cgColor
-        toolTip = L("Summarized by \(modelName). The visible chat is unchanged; the model sees this summary in place of the messages above.")
+        toolTip = L(
+            "Summarized by \(modelName). The visible chat is unchanged; the model sees this summary in place of the messages above."
+        )
 
         let isSameBlock = configuredBlockId == blockId
         let expandTransition = isSameBlock && isExpanded && !self.isExpanded
@@ -170,8 +172,11 @@ final class NativeCompactionMarkerView: NSView {
 
         iconView.translatesAutoresizingMaskIntoConstraints = false
         iconView.image = SymbolImageCache.image(
-            "arrow.down.right.and.arrow.up.left", accessibilityDescription: nil,
-            pointSize: 8, weight: .semibold)
+            "arrow.down.right.and.arrow.up.left",
+            accessibilityDescription: nil,
+            pointSize: 8,
+            weight: .semibold
+        )
         iconView.imageScaling = .scaleProportionallyDown
         pillContainer.addSubview(iconView)
 
@@ -184,7 +189,11 @@ final class NativeCompactionMarkerView: NSView {
 
         chevronView.translatesAutoresizingMaskIntoConstraints = false
         chevronView.image = SymbolImageCache.image(
-            "chevron.right", accessibilityDescription: nil, pointSize: 8, weight: .semibold)
+            "chevron.right",
+            accessibilityDescription: nil,
+            pointSize: 8,
+            weight: .semibold
+        )
         chevronView.imageScaling = .scaleProportionallyDown
         pillContainer.addSubview(chevronView)
 
@@ -259,7 +268,11 @@ final class NativeCompactionMarkerView: NSView {
             expanded
             ? SymbolImageCache.rotatedDownChevron(pointSize: 8, weight: .semibold)
             : SymbolImageCache.image(
-                "chevron.right", accessibilityDescription: nil, pointSize: 8, weight: .semibold)
+                "chevron.right",
+                accessibilityDescription: nil,
+                pointSize: 8,
+                weight: .semibold
+            )
     }
 
     @objc private func headerTapped() { onToggle?() }

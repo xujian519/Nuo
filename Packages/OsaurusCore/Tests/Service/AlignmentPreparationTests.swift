@@ -10,21 +10,37 @@ struct AlignmentPreparationTests {
         #expect(!denied.authorizesAlignmentRepair(for: "chosen"))
         for source in RequestSource.allCases {
             let parameters = GenerationParameters(
-                temperature: nil, maxTokens: 1, requestSource: source, alignmentRepairModel: "chosen")
+                temperature: nil,
+                maxTokens: 1,
+                requestSource: source,
+                alignmentRepairModel: "chosen"
+            )
             #expect(parameters.authorizesAlignmentRepair(for: "chosen") == (source == .chatUI))
             #expect(!parameters.authorizesAlignmentRepair(for: "different"))
         }
         let background = GenerationParameters(
-            temperature: nil, maxTokens: 1, requestSource: .chatUI,
-            loadIntent: .background, alignmentRepairModel: "chosen")
+            temperature: nil,
+            maxTokens: 1,
+            requestSource: .chatUI,
+            loadIntent: .background,
+            alignmentRepairModel: "chosen"
+        )
         #expect(!background.authorizesAlignmentRepair(for: "chosen"))
         let child = GenerationParameters(
-            temperature: nil, maxTokens: 1, activitySource: .agent,
-            requestSource: .chatUI, alignmentRepairModel: "chosen")
+            temperature: nil,
+            maxTokens: 1,
+            activitySource: .agent,
+            requestSource: .chatUI,
+            alignmentRepairModel: "chosen"
+        )
         #expect(!child.authorizesAlignmentRepair(for: "chosen"))
         let auxiliary = GenerationParameters(
-            temperature: nil, maxTokens: 1, requestSource: .chatUI,
-            alignmentRepairModel: "chosen", auxiliaryCacheIntent: true)
+            temperature: nil,
+            maxTokens: 1,
+            requestSource: .chatUI,
+            alignmentRepairModel: "chosen",
+            auxiliaryCacheIntent: true
+        )
         #expect(!auxiliary.authorizesAlignmentRepair(for: "chosen"))
     }
 
@@ -44,8 +60,12 @@ struct AlignmentPreparationTests {
         let id = UUID(), session = UUID()
         let bundle = URL(fileURLWithPath: "/temporary-fixture")
         let copying = AlignmentRepairProgress(
-            bundle: bundle, shard: bundle.appendingPathComponent("model.safetensors"),
-            stage: .copying, copiedBytes: 4, totalBytes: 10)
+            bundle: bundle,
+            shard: bundle.appendingPathComponent("model.safetensors"),
+            stage: .copying,
+            copiedBytes: 4,
+            totalBytes: 10
+        )
         state.begin(id: id, modelID: "chosen", sessionID: session.uuidString)
         #expect(state.progress(modelID: "chosen", sessionID: session) == nil)
         state.update(id: id, progress: copying)

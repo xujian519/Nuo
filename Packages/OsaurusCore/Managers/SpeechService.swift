@@ -1110,13 +1110,20 @@ public final class SpeechService: ObservableObject {
                     self.currentTranscription = ""
                 }
                 activity?.finish(
-                    transcript: confirmedTranscription, language: nil, error: nil, audioSeconds: sessionSeconds)
+                    transcript: confirmedTranscription,
+                    language: nil,
+                    error: nil,
+                    audioSeconds: sessionSeconds
+                )
                 return finalText
             } catch {
                 print("[SpeechService] Final transcription error: \(error)")
                 activity?.finish(
-                    transcript: confirmedTranscription, language: nil, error: error.localizedDescription,
-                    audioSeconds: sessionSeconds)
+                    transcript: confirmedTranscription,
+                    language: nil,
+                    error: error.localizedDescription,
+                    audioSeconds: sessionSeconds
+                )
                 return currentTranscription
             }
         }

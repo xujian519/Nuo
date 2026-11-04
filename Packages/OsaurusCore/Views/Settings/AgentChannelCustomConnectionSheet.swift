@@ -250,7 +250,9 @@ struct AgentChannelCustomConnectionSheet: View {
 
                 AgentChannelSectionHeading(
                     L("HTTP endpoint"),
-                    detail: L("Requests only run for actions defined in Capabilities and are always confirmed before sending.")
+                    detail: L(
+                        "Requests only run for actions defined in Capabilities and are always confirmed before sending."
+                    )
                 )
 
                 StyledSettingsTextField(
@@ -624,7 +626,8 @@ struct AgentChannelCustomConnectionSheet: View {
             let issues = draft.validationIssues()
             if issues.isEmpty {
                 diagnosticsText = L(
-                    "Draft configuration looks valid. Save to run live diagnostics against the endpoint.")
+                    "Draft configuration looks valid. Save to run live diagnostics against the endpoint."
+                )
                 showStatus(L("Draft check passed"), isError: false)
             } else {
                 diagnosticsText = issues.map { "• \($0)" }.joined(separator: "\n")
@@ -872,9 +875,12 @@ private struct AgentChannelActionEditorRow: View {
             VStack(alignment: .leading, spacing: 6) {
                 fieldLabel(L("Body Template (optional)"))
                 bodyEditor
-                Text("Request body sent for this action. ${content} is replaced with the message text.", bundle: .module)
-                    .font(.system(size: 10))
-                    .foregroundColor(theme.tertiaryText)
+                Text(
+                    "Request body sent for this action. ${content} is replaced with the message text.",
+                    bundle: .module
+                )
+                .font(.system(size: 10))
+                .foregroundColor(theme.tertiaryText)
             }
         }
         .padding(12)

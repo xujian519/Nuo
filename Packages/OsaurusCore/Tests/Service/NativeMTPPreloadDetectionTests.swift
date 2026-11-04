@@ -40,7 +40,10 @@ struct NativeMTPPreloadDetectionTests {
                 settings.mtp.mode = .off
                 #expect(
                     settings.resolvedMTPDraftStrategy(
-                        configData: configData, jangConfig: nil, status: status, bundleDirectory: directory
+                        configData: configData,
+                        jangConfig: nil,
+                        status: status,
+                        bundleDirectory: directory
                     ) == nil
                 )
             }
@@ -54,14 +57,19 @@ struct NativeMTPPreloadDetectionTests {
                 let config = try JSONSerialization.data(withJSONObject: ["model_type": type])
                 #expect(ModelFamilyNames.isMiMoOrN2JANGRuntimeFamily(alias, configData: config))
             }
-            for config in [nil, Data("{broken".utf8), Data("{}".utf8),
-                Data(#"{"model_type":"mimo_v2","text_config":{"model_type":"qwen4_exp"}}"#.utf8)]
-            {
+            for config in [
+                nil, Data("{broken".utf8), Data("{}".utf8),
+                Data(#"{"model_type":"mimo_v2","text_config":{"model_type":"qwen4_exp"}}"#.utf8),
+            ] {
                 #expect(!ModelFamilyNames.isMiMoOrN2JANGRuntimeFamily(alias, configData: config))
             }
         }
-        #expect(!ModelFamilyNames.isMiMoOrN2JANGRuntimeFamily(
-            "MiMo-V2.5", configData: Data(#"{"model_type":"mimo_v2"}"#.utf8)))
+        #expect(
+            !ModelFamilyNames.isMiMoOrN2JANGRuntimeFamily(
+                "MiMo-V2.5",
+                configData: Data(#"{"model_type":"mimo_v2"}"#.utf8)
+            )
+        )
     }
 
     @Test("head tensors omitted from index remain visible in its referenced shard")
@@ -256,7 +264,7 @@ struct NativeMTPPreloadDetectionTests {
             ]).write(to: drafter.appendingPathComponent("config.json"))
             // Header-only discovery fixture. This does not exercise a drafter forward.
             let header = try JSONSerialization.data(withJSONObject: [
-                "lilicorr.context_proj.weight": ["dtype": "F32", "shape": [1, 1], "data_offsets": [0, 4]],
+                "lilicorr.context_proj.weight": ["dtype": "F32", "shape": [1, 1], "data_offsets": [0, 4]]
             ])
             var length = UInt64(header.count).littleEndian
             var weights = withUnsafeBytes(of: &length) { Data($0) }
@@ -279,8 +287,13 @@ struct NativeMTPPreloadDetectionTests {
     func drafterPresentationParity() {
         for strategy in ["dflash2", "selected", "uno", "dspark"] {
             var status = ModelRuntime.LoadingModelMTPStatus(
-                name: "local-alias", bundleHasMTP: false, isTargetMTPFamily: false,
-                isBlocked: true, measuredFamilyAutoDepth: nil, statusLine: "mtp: none")
+                name: "local-alias",
+                bundleHasMTP: false,
+                isTargetMTPFamily: false,
+                isBlocked: true,
+                measuredFamilyAutoDepth: nil,
+                statusLine: "mtp: none"
+            )
             switch strategy {
             case "dflash2": status.bundledDFlash2 = true
             case "selected": status.selectedDFlash2 = true

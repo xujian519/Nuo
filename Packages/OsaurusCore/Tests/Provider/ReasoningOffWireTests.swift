@@ -18,18 +18,32 @@ struct ReasoningOffWireTests {
     private static func service(host: String, port: Int = 8000) -> RemoteProviderService {
         RemoteProviderService(
             provider: RemoteProvider(
-                name: "p", host: host, providerProtocol: .http, port: port, basePath: "/v1",
-                authType: .none, providerType: .openaiLegacy),
-            models: ["m"], resolvedHeaders: [:])
+                name: "p",
+                host: host,
+                providerProtocol: .http,
+                port: port,
+                basePath: "/v1",
+                authType: .none,
+                providerType: .openaiLegacy
+            ),
+            models: ["m"],
+            resolvedHeaders: [:]
+        )
     }
 
     private static func wire(
-        host: String, model: String = "Qwen3.8-Flash-Next", options: [String: ModelOptionValue]
+        host: String,
+        model: String = "Qwen3.8-Flash-Next",
+        options: [String: ModelOptionValue]
     ) async throws -> [String: Any] {
         let request = await service(host: host).buildChatRequest(
             messages: [ChatMessage(role: "user", content: "summarize")],
             parameters: GenerationParameters(temperature: 0.2, maxTokens: 1024, modelOptions: options),
-            model: model, stream: false, tools: nil, toolChoice: nil)
+            model: model,
+            stream: false,
+            tools: nil,
+            toolChoice: nil
+        )
         let data = try JSONEncoder().encode(request)
         return try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
     }
@@ -65,8 +79,10 @@ struct ReasoningOffWireTests {
 
     @Test func deepSeekV4UsesItsThinkingObject() async throws {
         let payload = try await Self.wire(
-            host: "api.deepseek.com", model: "deepseek-v4-flash",
-            options: ["disableThinking": .bool(true)])
+            host: "api.deepseek.com",
+            model: "deepseek-v4-flash",
+            options: ["disableThinking": .bool(true)]
+        )
         #expect((payload["thinking"] as? [String: String]) == ["type": "disabled"])
         #expect(payload["chat_template_kwargs"] == nil)
     }
@@ -84,7 +100,10 @@ struct ReasoningOffWireTests {
 struct CompactionRequestContractTests {
     @Test func remoteSummaryRequestsReasoningOffAndCompleteOutput() {
         let params = ContextCompactionService.summaryParameters(
-            sessionId: UUID(), requestSource: .chatUI, remote: true)
+            sessionId: UUID(),
+            requestSource: .chatUI,
+            remote: true
+        )
         #expect(params.modelOptions["disableThinking"]?.boolValue == true)
         #expect(params.requireCompleteOutput)
         #expect(RemoteReasoningPolicy.requestsReasoningOff(params.modelOptions))
@@ -92,20 +111,28 @@ struct CompactionRequestContractTests {
 
     @Test func localSummaryWithoutThinkingSwitchKeepsModelOptionsUntouched() {
         let params = ContextCompactionService.summaryParameters(
-            sessionId: UUID(), requestSource: .chatUI, remote: false)
+            sessionId: UUID(),
+            requestSource: .chatUI,
+            remote: false
+        )
         #expect(params.modelOptions.isEmpty)
         #expect(params.requireCompleteOutput)
     }
 
     @Test func localSummaryUsesOnlyTheSupportedThinkingSwitch() {
-        let capability = LocalReasoningCapability.analyze(template: """
-            {% if enable_thinking is false %}{{ '<think></think>' }}
-            {% else %}{{ '<think>' }}{% endif %}
-            """)
+        let capability = LocalReasoningCapability.analyze(
+            template: """
+                {% if enable_thinking is false %}{{ '<think></think>' }}
+                {% else %}{{ '<think>' }}{% endif %}
+                """
+        )
         #expect(capability.isToggleableThinking)
         let params = ContextCompactionService.summaryParameters(
-            sessionId: UUID(), requestSource: .chatUI, remote: false,
-            localThinkingCapability: capability)
+            sessionId: UUID(),
+            requestSource: .chatUI,
+            remote: false,
+            localThinkingCapability: capability
+        )
         #expect(params.modelOptions == ["disableThinking": .bool(true)])
         #expect(params.requireCompleteOutput)
     }
@@ -114,8 +141,11 @@ struct CompactionRequestContractTests {
         let capability = LocalReasoningCapability.analyze(template: "{{ '<think>' }}")
         #expect(!capability.isToggleableThinking)
         let params = ContextCompactionService.summaryParameters(
-            sessionId: nil, requestSource: .chatUI, remote: false,
-            localThinkingCapability: capability)
+            sessionId: nil,
+            requestSource: .chatUI,
+            remote: false,
+            localThinkingCapability: capability
+        )
         #expect(params.modelOptions.isEmpty)
     }
 

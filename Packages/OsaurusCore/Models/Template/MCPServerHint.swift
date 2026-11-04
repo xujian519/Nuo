@@ -33,9 +33,16 @@ public struct MCPServerHint: Codable, Equatable, Sendable, Identifiable {
     public var id: String { name.lowercased() }
 
     public init(
-        name: String, directoryID: String? = nil, transport: MCPProviderTransport = .http, url: String? = nil,
-        auth: MCPProviderAuthType? = nil, command: String? = nil, args: [String] = [], envKeys: [String] = [],
-        headerKeys: [String] = [], workingDirectory: String? = nil
+        name: String,
+        directoryID: String? = nil,
+        transport: MCPProviderTransport = .http,
+        url: String? = nil,
+        auth: MCPProviderAuthType? = nil,
+        command: String? = nil,
+        args: [String] = [],
+        envKeys: [String] = [],
+        headerKeys: [String] = [],
+        workingDirectory: String? = nil
     ) {
         self.name = name
         self.directoryID = directoryID
@@ -95,13 +102,23 @@ public struct MCPServerHint: Codable, Equatable, Sendable, Identifiable {
         switch provider.transport {
         case .http:
             return MCPServerHint(
-                name: name, directoryID: directoryID, transport: .http, url: provider.url, auth: provider.authType,
-                headerKeys: names(provider.customHeaders, provider.secretHeaderKeys))
+                name: name,
+                directoryID: directoryID,
+                transport: .http,
+                url: provider.url,
+                auth: provider.authType,
+                headerKeys: names(provider.customHeaders, provider.secretHeaderKeys)
+            )
         case .stdio:
             return MCPServerHint(
-                name: name, directoryID: directoryID, transport: .stdio, command: provider.command,
-                args: provider.args, envKeys: names(provider.env, provider.secretEnvKeys),
-                workingDirectory: provider.workingDirectory)
+                name: name,
+                directoryID: directoryID,
+                transport: .stdio,
+                command: provider.command,
+                args: provider.args,
+                envKeys: names(provider.env, provider.secretEnvKeys),
+                workingDirectory: provider.workingDirectory
+            )
         }
     }
 }

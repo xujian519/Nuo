@@ -56,7 +56,10 @@ enum XLSXPreservation {
     /// `file_write` refuses. Returns the refusal envelope when that would happen, nil otherwise (including
     /// whenever the target cannot be resolved: the plugin then runs exactly as before).
     static func pluginOverwriteRefusal(
-        pluginId: String, toolName: String, argumentsJSON: String, folderRoot: URL?
+        pluginId: String,
+        toolName: String,
+        argumentsJSON: String,
+        folderRoot: URL?
     ) -> String? {
         guard pluginId == "osaurus.xlsx", toolName == "save_xlsx",
             let data = argumentsJSON.data(using: .utf8),

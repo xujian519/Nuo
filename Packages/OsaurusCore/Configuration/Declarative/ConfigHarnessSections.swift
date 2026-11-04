@@ -165,7 +165,9 @@ enum ConfigHarness {
 
     /// Plan lines for a `claude_code` block against the stored options.
     static func changes(
-        _ entry: AgentClaudeCodeEntry, current: ClaudeCodeAgentConfig, prefix: String
+        _ entry: AgentClaudeCodeEntry,
+        current: ClaudeCodeAgentConfig,
+        prefix: String
     ) -> [String] {
         var desired = current
         patch(&desired, from: entry)
@@ -188,14 +190,18 @@ enum ConfigHarness {
         flag("allow_shell", current.allowShell, desired.allowShell)
         flag("allow_osaurus_tools", current.allowOsaurusTools, desired.allowOsaurusTools)
         flag(
-            "allow_osaurus_config_writes", current.allowOsaurusConfigWrites,
-            desired.allowOsaurusConfigWrites)
+            "allow_osaurus_config_writes",
+            current.allowOsaurusConfigWrites,
+            desired.allowOsaurusConfigWrites
+        )
         return out
     }
 
     /// Risk lines for switches a `claude_code` block newly turns on.
     static func risks(
-        _ entry: AgentClaudeCodeEntry, current: ClaudeCodeAgentConfig, agent: String
+        _ entry: AgentClaudeCodeEntry,
+        current: ClaudeCodeAgentConfig,
+        agent: String
     ) -> [String] {
         var out: [String] = []
         if entry.allowShell == true, !current.allowShell {

@@ -376,15 +376,17 @@ public enum SubagentSession {
         // One recursion guard for the whole subagent family: a running
         // subagent (of any kind) cannot start another.
         if let active = activeKindId {
-            return .failure(ToolEnvelope.failure(
-                kind: .rejected,
-                message:
-                    "\(tool) cannot be called from inside a running subagent (\(active)). "
-                    + "Finish the current subagent and return its result first.",
-                tool: tool,
-                retryable: false,
-                metadata: ["recursion": true]
-            ))
+            return .failure(
+                ToolEnvelope.failure(
+                    kind: .rejected,
+                    message:
+                        "\(tool) cannot be called from inside a running subagent (\(active)). "
+                        + "Finish the current subagent and return its result first.",
+                    tool: tool,
+                    retryable: false,
+                    metadata: ["recursion": true]
+                )
+            )
         }
 
         let scope = explicitScope ?? SubagentScope.current()
@@ -447,19 +449,23 @@ public enum SubagentSession {
                 )
             )
         case .userDenied(let reason):
-            return .failure(ToolEnvelope.failure(
-                kind: .userDenied,
-                message: reason,
-                tool: tool,
-                retryable: false
-            ))
+            return .failure(
+                ToolEnvelope.failure(
+                    kind: .userDenied,
+                    message: reason,
+                    tool: tool,
+                    retryable: false
+                )
+            )
         case .unavailable(let reason):
-            return .failure(ToolEnvelope.failure(
-                kind: .unavailable,
-                message: reason,
-                tool: tool,
-                retryable: true
-            ))
+            return .failure(
+                ToolEnvelope.failure(
+                    kind: .unavailable,
+                    message: reason,
+                    tool: tool,
+                    retryable: true
+                )
+            )
         }
         if interrupt?.isInterrupted == true || Task.isCancelled {
             return .failure(
@@ -545,18 +551,20 @@ public enum SubagentSession {
             let ancestor = SubagentAdmissionContext.current,
             await ancestor.belongs(to: admissionController)
         {
-            let nestedPresentation = suppliedPresentation ?? SubagentRunPresentation(
-                feed: SubagentFeed(
-                    toolCallId: prepared.scope.toolCallId,
-                    kindId: prepared.kind.capability.id,
-                    title: prepared.kind.feedTitle,
-                    agentId: prepared.scope.agentId,
-                    parentSessionId: prepared.scope.sessionId,
-                    suppressActivityMirror: prepared.kind.suppressActivityMirror
-                ),
-                interrupt: InterruptToken(),
-                registerWithUI: true
-            )
+            let nestedPresentation =
+                suppliedPresentation
+                ?? SubagentRunPresentation(
+                    feed: SubagentFeed(
+                        toolCallId: prepared.scope.toolCallId,
+                        kindId: prepared.kind.capability.id,
+                        title: prepared.kind.feedTitle,
+                        agentId: prepared.scope.agentId,
+                        parentSessionId: prepared.scope.sessionId,
+                        suppressActivityMirror: prepared.kind.suppressActivityMirror
+                    ),
+                    interrupt: InterruptToken(),
+                    registerWithUI: true
+                )
             if nestedPresentation.registerWithUI {
                 SubagentFeedRegistry.shared.register(nestedPresentation.feed)
                 SubagentInterruptCenter.shared.register(nestedPresentation.interrupt, for: prepared.scope.toolCallId)
@@ -681,9 +689,10 @@ public enum SubagentSession {
                 let initialDecision = OwnedSubagentOperation {
                     await localInPlaceCapacityDecision(for: prepared)
                 }
-                let capacity = (try? await initialDecision.value(
-                    cancellationRequested: { interrupt.isInterrupted }
-                ))?.capacity ?? 0
+                let capacity =
+                    (try? await initialDecision.value(
+                        cancellationRequested: { interrupt.isInterrupted }
+                    ))?.capacity ?? 0
                 let reservation = await admissionController.reserveLocalInPlace(
                     modelKey: admissionModelKey,
                     requestedSlots: 1,
@@ -837,7 +846,8 @@ public enum SubagentSession {
         {
             let refreshedPlan: ResidencyPlan
             do {
-                refreshedPlan = try await replanningKind
+                refreshedPlan =
+                    try await replanningKind
                     .refreshedResidencyPlanAfterAdmission(
                         for: prepared.resolved
                     )
@@ -973,7 +983,8 @@ public enum SubagentSession {
                         prepared.scope,
                         resolved: prepared.resolved
                     )
-                    currentPlan = try await replanningKind
+                    currentPlan =
+                        try await replanningKind
                         .refreshedResidencyPlanAfterAdmission(
                             for: prepared.resolved
                         )
@@ -1050,12 +1061,14 @@ public enum SubagentSession {
                     !interrupt.isInterrupted, !Task.isCancelled
                 {
                     await admissionController.releaseLocalInPlace(
-                        modelKey: admissionModelKey, slots: admissionHeldSlots
+                        modelKey: admissionModelKey,
+                        slots: admissionHeldSlots
                     )
                     admissionHeld = false
                     admissionHeldSlots = 0
                     let drain = await admissionController.admit(
-                        .localExclusive, modelKey: admissionModelKey,
+                        .localExclusive,
+                        modelKey: admissionModelKey,
                         onWait: { [feed] active in
                             feed.emitPhase("waiting for local GPU", detail: active)
                         },
@@ -1067,19 +1080,23 @@ public enum SubagentSession {
                         admissionHeld = true
                     case .cancelled, .timedOut:
                         let cancelled = interrupt.isInterrupted || Task.isCancelled
-                        let message = cancelled
+                        let message =
+                            cancelled
                             ? "Run was cancelled while waiting for RAM-safety admission."
                             : "Local work did not drain before the RAM-safety admission timeout."
                         if presentation.finishFeed { feed.finish(success: false, summary: message) }
                         return ToolEnvelope.failure(
                             kind: cancelled ? .userDenied : .unavailable,
-                            message: message, tool: prepared.tool, retryable: !cancelled,
+                            message: message,
+                            tool: prepared.tool,
+                            retryable: !cancelled,
                             metadata: ["admission": cancelled ? "cancelled" : "timeout"]
                         )
                     }
                     let isolatedRecovery = OwnedSubagentOperation {
                         try await prepared.kind.validateExecutionAuthority(
-                            prepared.scope, resolved: prepared.resolved
+                            prepared.scope,
+                            resolved: prepared.resolved
                         )
                         let plan = try await replanningKind.refreshedResidencyPlanAfterAdmission(
                             for: prepared.resolved
@@ -1093,7 +1110,9 @@ public enum SubagentSession {
                             )
                         }
                         return await localInPlaceCapacityDecision(
-                            for: prepared, residencyPlan: plan, rejectUnsafeSingleRun: true
+                            for: prepared,
+                            residencyPlan: plan,
+                            rejectUnsafeSingleRun: true
                         )
                     }
                     do {
@@ -1118,7 +1137,8 @@ public enum SubagentSession {
                 if interrupt.isInterrupted || Task.isCancelled {
                     if admissionHeld {
                         await admissionController.release(
-                            admissionClass, modelKey: admissionModelKey
+                            admissionClass,
+                            modelKey: admissionModelKey
                         )
                         admissionHeld = false
                     }
@@ -1146,10 +1166,13 @@ public enum SubagentSession {
                     admissionHeld = admissionHeldSlots > 0
                 }
                 if refreshedCapacity > 0, !admissionHeld {
-                    let message = "Local batching capacity changed while waiting for admission. Retry after the running child finishes."
+                    let message =
+                        "Local batching capacity changed while waiting for admission. Retry after the running child finishes."
                     if presentation.finishFeed { feed.finish(success: false, summary: message) }
                     return ToolEnvelope.failure(
-                        kind: .unavailable, message: message, tool: prepared.tool,
+                        kind: .unavailable,
+                        message: message,
+                        tool: prepared.tool,
                         retryable: true,
                         metadata: ["admission": "capacity_changed", "refreshed_capacity": refreshedCapacity]
                     )
@@ -1203,10 +1226,13 @@ public enum SubagentSession {
                 effectiveHandoff = prepared.kind.makeHandoff()
             }
         }
-        let ownedAdmission = admissionHeld && admissionClass != .remote
+        let ownedAdmission =
+            admissionHeld && admissionClass != .remote
             ? SubagentAdmissionLease(
-                gate: admissionController, admissionClass: admissionClass,
-                modelKey: admissionModelKey, slots: admissionHeldSlots,
+                gate: admissionController,
+                admissionClass: admissionClass,
+                modelKey: admissionModelKey,
+                slots: admissionHeldSlots,
                 requiresCleanupAdmission: effectiveHandoff.requiresAdmissionForCleanup
             ) : nil
         let started = Date()
@@ -1220,51 +1246,52 @@ public enum SubagentSession {
                 try await ChatExecutionContext.$currentSessionId.withValue(
                     prepared.scope.sessionId
                 ) {
-                try await ChatExecutionContext.$currentAgentId.withValue(prepared.scope.agentId) {
-                    try await ChatExecutionContext.$currentReasoningEffort.withValue(prepared.scope.reasoningEffort) {
-                        try await ChatExecutionContext.$currentEnableThinking.withValue(
-                            prepared.scope.enableThinking
-                        ) {
-                            try await ChatExecutionContext.$currentToolCallId.withValue(
-                                prepared.scope.toolCallId
+                    try await ChatExecutionContext.$currentAgentId.withValue(prepared.scope.agentId) {
+                        try await ChatExecutionContext.$currentReasoningEffort.withValue(prepared.scope.reasoningEffort)
+                        {
+                            try await ChatExecutionContext.$currentEnableThinking.withValue(
+                                prepared.scope.enableThinking
                             ) {
-                                try await SubagentSession.$activeKindId.withValue(
-                                    prepared.kind.capability.id
+                                try await ChatExecutionContext.$currentToolCallId.withValue(
+                                    prepared.scope.toolCallId
                                 ) {
-                                    try await effectiveHandoff.around(
-                                        scope: prepared.scope,
-                                        resolved: prepared.resolved,
-                                        feed: feed
+                                    try await SubagentSession.$activeKindId.withValue(
+                                        prepared.kind.capability.id
                                     ) {
-                                        do {
-                                            let result = try await prepared.kind.run(
-                                                prepared.scope,
-                                                prepared.resolved,
-                                                feed: feed,
-                                                interrupt: interrupt
-                                            )
-                                            await ownedAdmission?.prepareForCleanup {
-                                                feed.emitPhase("waiting for local GPU", detail: "another subagent")
+                                        try await effectiveHandoff.around(
+                                            scope: prepared.scope,
+                                            resolved: prepared.resolved,
+                                            feed: feed
+                                        ) {
+                                            do {
+                                                let result = try await prepared.kind.run(
+                                                    prepared.scope,
+                                                    prepared.resolved,
+                                                    feed: feed,
+                                                    interrupt: interrupt
+                                                )
+                                                await ownedAdmission?.prepareForCleanup {
+                                                    feed.emitPhase("waiting for local GPU", detail: "another subagent")
+                                                }
+                                                if captureProcessCacheSnapshot,
+                                                    prepared.resolved.isLocal
+                                                {
+                                                    cacheCapture.value =
+                                                        await ModelRuntime.batchDiagnosticsSnapshot()
+                                                }
+                                                return result
+                                            } catch {
+                                                await ownedAdmission?.prepareForCleanup {
+                                                    feed.emitPhase("waiting for local GPU", detail: "another subagent")
+                                                }
+                                                throw error
                                             }
-                                            if captureProcessCacheSnapshot,
-                                                prepared.resolved.isLocal
-                                            {
-                                                cacheCapture.value =
-                                                    await ModelRuntime.batchDiagnosticsSnapshot()
-                                            }
-                                            return result
-                                        } catch {
-                                            await ownedAdmission?.prepareForCleanup {
-                                                feed.emitPhase("waiting for local GPU", detail: "another subagent")
-                                            }
-                                            throw error
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
                 }
             }
             if let ownedAdmission {
@@ -1400,7 +1427,8 @@ public enum SubagentSession {
             runtime: runtime
         )
         let engineSnapshot = await ModelRuntime.shared.batchEngineCapacitySnapshot(
-            for: prepared.resolved.name, reconcilingTo: configuredEngineSlots
+            for: prepared.resolved.name,
+            reconcilingTo: configuredEngineSlots
         )
         let engineSlots = min(configuredEngineSlots, engineSnapshot?.configuredMaximum ?? configuredEngineSlots)
         let engineWindow = SpawnFanOutPolicy.engineAdmissionWindow(
@@ -1441,8 +1469,10 @@ public enum SubagentSession {
             let requested = prepared.kind.admissionRequestEstimate()?.boundedPositionBudget(),
             let memory = memoryFacts,
             let fitted = await ModelRuntime.shared.affordableSubagentContext(
-                for: prepared.resolved.name, requested: requested,
-                minimum: minimum, memory: memory
+                for: prepared.resolved.name,
+                requested: requested,
+                minimum: minimum,
+                memory: memory
             ), adaptive.tightenAdmissionContextPositions(to: fitted.positions)
         {
             memoryFacts = fitted.facts

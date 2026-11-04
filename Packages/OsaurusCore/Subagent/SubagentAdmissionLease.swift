@@ -17,7 +17,13 @@ actor SubagentAdmissionLease {
     private var drainWaiters: [CheckedContinuation<Void, Never>] = []
     private var reclaimTask: Task<SubagentAdmission.Outcome, Never>?
 
-    init(gate: SubagentAdmission, admissionClass: SubagentAdmissionClass, modelKey: String?, slots: Int, requiresCleanupAdmission: Bool) {
+    init(
+        gate: SubagentAdmission,
+        admissionClass: SubagentAdmissionClass,
+        modelKey: String?,
+        slots: Int,
+        requiresCleanupAdmission: Bool
+    ) {
         self.gate = gate
         self.admissionClass = admissionClass
         self.modelKey = modelKey

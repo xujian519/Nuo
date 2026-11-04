@@ -70,7 +70,9 @@ extension CrossSelectableTextView {
         let glyphs = lm.glyphRange(forCharacterRange: range, actualCharacterRange: nil)
         let origin = textContainerOrigin
         lm.enumerateEnclosingRects(
-            forGlyphRange: glyphs, withinSelectedGlyphRange: glyphs, in: tc
+            forGlyphRange: glyphs,
+            withinSelectedGlyphRange: glyphs,
+            in: tc
         ) { rect, _ in
             rect.offsetBy(dx: origin.x, dy: origin.y).fill()
         }
@@ -135,7 +137,8 @@ final class ChatCrossSelection {
 
         let anchorPoint = documentPoint(of: event, in: anchorView)
         let anchorIndex = anchorView.characterIndexForInsertion(
-            at: anchorView.convert(event.locationInWindow, from: nil))
+            at: anchorView.convert(event.locationInWindow, from: nil)
+        )
 
         // Anchor keeps a caret so keyboard focus behaves; the visible
         // highlight is painted per view via crossSelectionRange.
@@ -222,7 +225,8 @@ final class ChatCrossSelection {
                     containsEnd
                     ? clampedIndex(in: view, documentPoint: end, documentView: documentView)
                     : storage.length
-                range = startIdx < endIdx
+                range =
+                    startIdx < endIdx
                     ? NSRange(location: startIdx, length: endIdx - startIdx) : nil
             }
 

@@ -297,7 +297,8 @@ struct TTSModeSettingsTab: View {
         SettingsAdvancedDisclosure(anchorIds: Self.advancedAnchorIds) {
             SettingsPickerRow(
                 title: "Engine",
-                description: "On-device PocketTTS needs no setup. Choose a server to use any OpenAI-compatible speech API.",
+                description:
+                    "On-device PocketTTS needs no setup. Choose a server to use any OpenAI-compatible speech API.",
                 anchorId: "voice.tts.engine",
                 style: .menu,
                 selection: $config.provider,
@@ -430,7 +431,8 @@ struct TTSModeSettingsTab: View {
                     RoundedRectangle(cornerRadius: 8)
                         .fill(
                             connectionTest == .testing
-                                ? theme.tertiaryBackground : theme.accentColor)
+                                ? theme.tertiaryBackground : theme.accentColor
+                        )
                 )
             }
             .buttonStyle(PlainButtonStyle())

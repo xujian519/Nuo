@@ -187,9 +187,16 @@ struct ResponsesSubagentRunnerTests {
 
     @Test func targetGenerationDefaultsAndTighterOutputCapSurviveEveryToolIteration() async throws {
         let settings = AgentGenerationSettings(
-            topP: 0, topK: 0, minP: 0.05, repetitionPenalty: 1.1,
-            frequencyPenalty: 0, presencePenalty: -0.25, seed: -7,
-            stop: ["END"], enableThinking: false, reasoningEffort: "low",
+            topP: 0,
+            topK: 0,
+            minP: 0.05,
+            repetitionPenalty: 1.1,
+            frequencyPenalty: 0,
+            presencePenalty: -0.25,
+            seed: -7,
+            stop: ["END"],
+            enableThinking: false,
+            reasoningEffort: "low",
             templateKwargs: ["custom": .object(["enabled": .bool(false), "value": .null])],
             speculativeDecoding: false
         )
@@ -240,7 +247,10 @@ struct ResponsesSubagentRunnerTests {
                 #expect(request.generation.reasoningEffort == "low")
                 #expect(request.context.speculativeDecoding == false)
                 #expect(request.generation.templateKwargs == settings.templateKwargs)
-                #expect(request.context.agentReasoningDefaults?.settings == AgentGenerationSettings(enableThinking: false, reasoningEffort: "low"))
+                #expect(
+                    request.context.agentReasoningDefaults?.settings
+                        == AgentGenerationSettings(enableThinking: false, reasoningEffort: "low")
+                )
                 let legacy = request.chatCompletionsCompatibilityRequest()
                 #expect(legacy.max_tokens == request.generation.maxOutputTokens)
                 #expect(legacy.top_p == 0)
@@ -274,12 +284,21 @@ struct ResponsesSubagentRunnerTests {
                 #expect(request.generation.enableThinking == true)
                 return AsyncThrowingStream { producer in
                     producer.yield(.reasoningDelta("Still considering the problem."))
-                    producer.yield(.responseCompleted(.init(
-                        responseID: "resp_reasoning_length", status: .incomplete,
-                        functionCalls: [], tokenCount: 16, tokensPerSecond: 40,
-                        unclosedReasoning: true, stopReason: "length",
-                        promptTokensPerSecond: nil, mtp: nil
-                    )))
+                    producer.yield(
+                        .responseCompleted(
+                            .init(
+                                responseID: "resp_reasoning_length",
+                                status: .incomplete,
+                                functionCalls: [],
+                                tokenCount: 16,
+                                tokensPerSecond: 40,
+                                unclosedReasoning: true,
+                                stopReason: "length",
+                                promptTokensPerSecond: nil,
+                                mtp: nil
+                            )
+                        )
+                    )
                     producer.yield(.drained)
                     producer.finish()
                 }

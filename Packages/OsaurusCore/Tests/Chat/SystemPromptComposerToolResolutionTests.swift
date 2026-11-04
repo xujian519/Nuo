@@ -26,10 +26,21 @@ struct SystemPromptComposerToolResolutionTests {
     /// These schema tests supply explicit request-local model availability;
     /// they never install or load a model to exercise metadata composition.
     private func runnableTargets(_ agents: [Agent]) -> SpawnTargetAvailabilitySnapshot {
-        SpawnTargetAvailabilitySnapshot(agentTargets: agents.map { agent in
-            .init(descriptor: .init(id: agent.id, name: agent.name, description: agent.description,
-                modelId: agent.defaultModel, isLocal: true, providerName: nil), state: .runnable)
-        })
+        SpawnTargetAvailabilitySnapshot(
+            agentTargets: agents.map { agent in
+                .init(
+                    descriptor: .init(
+                        id: agent.id,
+                        name: agent.name,
+                        description: agent.description,
+                        modelId: agent.defaultModel,
+                        isLocal: true,
+                        providerName: nil
+                    ),
+                    state: .runnable
+                )
+            }
+        )
     }
 
     private func withSandboxAgent(
@@ -1785,7 +1796,9 @@ struct SystemPromptComposerToolResolutionTests {
                     executionMode: .hostFolder(folder)
                 )
                 func properties(_ name: String) -> [String: JSONValue] {
-                    guard case .object(let schema)? = tools.first(where: { $0.function.name == name })?.function.parameters,
+                    guard
+                        case .object(let schema)? = tools.first(where: { $0.function.name == name })?.function
+                            .parameters,
                         case .object(let props)? = schema["properties"]
                     else { return [:] }
                     return props
@@ -2172,7 +2185,11 @@ struct SystemPromptComposerToolResolutionTests {
     func autoMode_customAgentSurfacesSpawnOnlyWithToggleAndTargets() async {
         await withSubagentSandbox {
             let helperID = UUID(uuidString: "40000000-0000-4000-8000-000000000001")!
-            let helper = Agent(id: helperID, name: "Description fixture", description: "Handles independent test tasks.")
+            let helper = Agent(
+                id: helperID,
+                name: "Description fixture",
+                description: "Handles independent test tasks."
+            )
             AgentManager.shared.add(helper)
             let tools = SystemPromptComposer.resolveTools(
                 snapshot: makeSnapshot(
@@ -2257,7 +2274,8 @@ struct SystemPromptComposerToolResolutionTests {
         await withSubagentSandbox {
             let manager = AgentManager.shared
             var worker = Agent(
-                name: "Legacy routing worker", description: "",
+                name: "Legacy routing worker",
+                description: "",
                 defaultModel: "local/repair-worker-model",
                 autonomousExec: AutonomousExecConfig(enabled: false)
             )
@@ -2265,23 +2283,31 @@ struct SystemPromptComposerToolResolutionTests {
             SubagentConfigurationStore.save(SubagentConfiguration(spawnableAgentIDs: [worker.id]))
             let snapshot = makeSnapshotForDefaultAgent()
             let first = SystemPromptComposer.resolveTools(
-                snapshot: snapshot, executionMode: .none, spawnTargets: runnableTargets([])
+                snapshot: snapshot,
+                executionMode: .none,
+                spawnTargets: runnableTargets([])
             )
             #expect(!first.contains { $0.function.name == "spawn_agent" })
             worker.description = "Checks arithmetic when a separate numerical review is requested."
             manager.update(worker)
             let repaired = SystemPromptComposer.resolveTools(
-                snapshot: snapshot, executionMode: .none,
+                snapshot: snapshot,
+                executionMode: .none,
                 frozenAlwaysLoadedNames: Set(first.map(\.function.name)),
-                frozenToolSpecs: first, spawnTargets: runnableTargets([worker])
+                frozenToolSpecs: first,
+                spawnTargets: runnableTargets([worker])
             )
             #expect(spawnAgentEnum(repaired).contains(worker.id.uuidString))
-            #expect(repaired.first { $0.function.name == "spawn_agent" }?
-                .function.description?.contains(worker.description) == true)
+            #expect(
+                repaired.first { $0.function.name == "spawn_agent" }?
+                    .function.description?.contains(worker.description) == true
+            )
             let unavailableAgain = SystemPromptComposer.resolveTools(
-                snapshot: snapshot, executionMode: .none,
+                snapshot: snapshot,
+                executionMode: .none,
                 frozenAlwaysLoadedNames: Set(repaired.map(\.function.name)),
-                frozenToolSpecs: repaired, spawnTargets: runnableTargets([])
+                frozenToolSpecs: repaired,
+                spawnTargets: runnableTargets([])
             )
             #expect(!unavailableAgain.contains { $0.function.name == "spawn_agent" })
             _ = await manager.delete(id: worker.id)
@@ -2302,14 +2328,18 @@ struct SystemPromptComposerToolResolutionTests {
             SubagentConfigurationStore.save(SubagentConfiguration(spawnableAgentIDs: [worker.id]))
             let snapshot = makeSnapshotForDefaultAgent()
             let first = SystemPromptComposer.resolveTools(
-                snapshot: snapshot, executionMode: .none, spawnTargets: runnableTargets([worker])
+                snapshot: snapshot,
+                executionMode: .none,
+                spawnTargets: runnableTargets([worker])
             )
             worker.description = "Checks documentation against supplied sources."
             manager.update(worker)
             let refreshed = SystemPromptComposer.resolveTools(
-                snapshot: snapshot, executionMode: .none,
+                snapshot: snapshot,
+                executionMode: .none,
                 frozenAlwaysLoadedNames: Set(first.map(\.function.name)),
-                frozenToolSpecs: first, spawnTargets: runnableTargets([worker])
+                frozenToolSpecs: first,
+                spawnTargets: runnableTargets([worker])
             )
             let description = refreshed.first { $0.function.name == "spawn_agent" }?.function.description ?? ""
             #expect(spawnAgentEnum(refreshed) == spawnAgentEnum(first))
@@ -2399,7 +2429,8 @@ struct SystemPromptComposerToolResolutionTests {
             // Server concurrency (2) wins over the stale Spawn mirror (7) for
             // the local lane; the remote lane keeps its own default ceiling.
             let limits = SpawnFanOutPolicy.effectiveFanOutLimits(
-                scope: SubagentScope(sessionId: "s", toolCallId: "t", agentId: Agent.defaultId))
+                scope: SubagentScope(sessionId: "s", toolCallId: "t", agentId: Agent.defaultId)
+            )
             #expect(limits.local == 2)
             #expect(limits.remote == SubagentBudgets.defaultMaxRemoteParallelSpawns)
             let guidance = SystemPromptTemplates.spawnGuidance(

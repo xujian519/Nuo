@@ -26,34 +26,71 @@ struct QwenImage21BridgeTests {
             try policy.validate(width: 1008, height: 1024, isEdit: false, guidance: 1, negativePrompt: nil)
         }
         try ImageModelRequestPolicy(canonical: "qwen-image").validate(
-            width: 1008, height: 1024, isEdit: false, guidance: 3.5, negativePrompt: nil)
+            width: 1008,
+            height: 1024,
+            isEdit: false,
+            guidance: 3.5,
+            negativePrompt: nil
+        )
     }
     @Test func nativeReferenceSizeAndOmittedStrengthRemainOmitted() throws {
         let policy = ImageModelRequestPolicy(canonical: "qwen-image-2.1")
         let params = ImageEditParameters(model: "q21", prompt: "edit", sourceImages: [Data()])
         #expect(params.width == nil && params.height == nil && params.strength == nil)
         #expect(policy.editStrength(params.strength) == 1)
-        try policy.validate(width: nil, height: nil, isEdit: true, guidance: 1,
-            negativePrompt: nil, sourceCount: 4)
+        try policy.validate(
+            width: nil,
+            height: nil,
+            isEdit: true,
+            guidance: 1,
+            negativePrompt: nil,
+            sourceCount: 4
+        )
     }
     @Test func unsupportedEditParametersReturnErrors() {
         let p = ImageModelRequestPolicy(canonical: "qwen-image-2.1")
         #expect(!p.supportsEditNegativePrompt && !p.supportsEditStrength)
         #expect(throws: ImageGenerationError.self) {
-            try p.validate(width: nil, height: nil, isEdit: true, guidance: 1,
-                negativePrompt: "blur", sourceCount: 1)
+            try p.validate(
+                width: nil,
+                height: nil,
+                isEdit: true,
+                guidance: 1,
+                negativePrompt: "blur",
+                sourceCount: 1
+            )
         }
         #expect(throws: ImageGenerationError.self) {
-            try p.validate(width: nil, height: nil, isEdit: true, guidance: 1,
-                negativePrompt: nil, strength: 0.75, sourceCount: 1)
+            try p.validate(
+                width: nil,
+                height: nil,
+                isEdit: true,
+                guidance: 1,
+                negativePrompt: nil,
+                strength: 0.75,
+                sourceCount: 1
+            )
         }
         #expect(throws: ImageGenerationError.self) {
-            try p.validate(width: nil, height: nil, isEdit: true, guidance: 1,
-                negativePrompt: nil, hasMask: true, sourceCount: 1)
+            try p.validate(
+                width: nil,
+                height: nil,
+                isEdit: true,
+                guidance: 1,
+                negativePrompt: nil,
+                hasMask: true,
+                sourceCount: 1
+            )
         }
         #expect(throws: ImageGenerationError.self) {
-            try p.validate(width: nil, height: nil, isEdit: true, guidance: 1,
-                negativePrompt: nil, sourceCount: 5)
+            try p.validate(
+                width: nil,
+                height: nil,
+                isEdit: true,
+                guidance: 1,
+                negativePrompt: nil,
+                sourceCount: 5
+            )
         }
     }
     @Test func negativePromptRequiresExplicitCFG() throws {
@@ -88,7 +125,9 @@ struct QwenImage21BridgeTests {
         }
     }
     @Test func turboCatalogIdentityAndLicense() {
-        for alias in ["Qwen-Image-2.1-Turbo-mflux-8bit", "OsaurusAI/Qwen-Image-2.1-Turbo-mflux-4bit", "qwen_image_21_turbo"] {
+        for alias in [
+            "Qwen-Image-2.1-Turbo-mflux-8bit", "OsaurusAI/Qwen-Image-2.1-Turbo-mflux-4bit", "qwen_image_21_turbo",
+        ] {
             #expect(ImageModelRequestPolicy.catalogCanonical(alias) == "qwen-image-2.1-turbo")
         }
         #expect(ImageModelRequestPolicy.catalogCanonical("Qwen-Image-2.1-mflux-6bit") == "qwen-image-2.1")

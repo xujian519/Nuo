@@ -363,11 +363,19 @@ struct OsaurusPersonasMigrationTests {
                 let occupiedRecoveredId = UUID()
                 try seedLoadableAgentJSON(
                     at: agents.appendingPathComponent("\(originalId.uuidString).json"),
-                    agent: Agent(id: originalId, name: "Canonical", autonomousExec: AutonomousExecConfig(enabled: false))
+                    agent: Agent(
+                        id: originalId,
+                        name: "Canonical",
+                        autonomousExec: AutonomousExecConfig(enabled: false)
+                    )
                 )
                 try seedLoadableAgentJSON(
                     at: agents.appendingPathComponent("\(occupiedRecoveredId.uuidString).json"),
-                    agent: Agent(id: occupiedRecoveredId, name: "Occupied", autonomousExec: AutonomousExecConfig(enabled: false))
+                    agent: Agent(
+                        id: occupiedRecoveredId,
+                        name: "Occupied",
+                        autonomousExec: AutonomousExecConfig(enabled: false)
+                    )
                 )
 
                 let legacy = Agent(
@@ -571,9 +579,11 @@ struct OsaurusPersonasMigrationTests {
                 }
 
                 #expect(fm.fileExists(atPath: backupURL.path))
-                #expect(!fm.fileExists(
-                    atPath: agents.appendingPathComponent("\(originalId.uuidString).json").path
-                ))
+                #expect(
+                    !fm.fileExists(
+                        atPath: agents.appendingPathComponent("\(originalId.uuidString).json").path
+                    )
+                )
                 #expect(fm.fileExists(atPath: databaseURL.path))
             }
         }

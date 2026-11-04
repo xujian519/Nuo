@@ -87,8 +87,8 @@ struct MemorySafetySection: View {
                             "The load allocator cap sets a freed-buffer reuse target while loading. Inference uses a separate process-wide target based on loaded models and the active execution path. An explicit Allocator Cache Cap bounds the selected target in both phases. The pool can exceed that target until the next allocation trims it. These targets do not cap live weights, KV state, or physical RAM."
                         )
                     )
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
 
                     ForEach(resolvedPlan.warnings, id: \.self) { warning in
                         Text(warning)

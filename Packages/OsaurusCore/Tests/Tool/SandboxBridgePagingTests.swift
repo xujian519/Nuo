@@ -16,7 +16,7 @@ import Testing
 @Suite(.serialized)
 struct SandboxBridgePagingTests {
 
-    private let ten = (1...10).map { "src/file\($0).swift:1: match" }.joined(separator: "\n")
+    private let ten = (1 ... 10).map { "src/file\($0).swift:1: match" }.joined(separator: "\n")
 
     @Test func middlePageDropsOffsetAndPointsAtTheNextOne() {
         let page = pageSandboxMatches(ten, offset: 3, maxResults: 4)

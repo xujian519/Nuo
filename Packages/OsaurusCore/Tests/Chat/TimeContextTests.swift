@@ -36,17 +36,21 @@ struct TimeContextTests {
         let zone = try #require(TimeZone(identifier: "Asia/Kolkata"))
         let a = SystemPromptTemplates.timeContext(now: fixedInstant, timeZone: zone)
         let b = SystemPromptTemplates.timeContext(
-            now: fixedInstant.addingTimeInterval(20), timeZone: zone)
+            now: fixedInstant.addingTimeInterval(20),
+            timeZone: zone
+        )
         #expect(a == b)
     }
 
     @Test func timeMetadataDoesNotAddAnExampleTaskToTheUserRequest() throws {
         let zone = try #require(TimeZone(identifier: "Asia/Kolkata"))
-        let prefix = try #require(SystemPromptComposer.composeInjectedUserPrefix(
-            memorySection: nil,
-            screenContext: nil,
-            timeContext: SystemPromptTemplates.timeContext(now: fixedInstant, timeZone: zone)
-        ))
+        let prefix = try #require(
+            SystemPromptComposer.composeInjectedUserPrefix(
+                memorySection: nil,
+                screenContext: nil,
+                timeContext: SystemPromptTemplates.timeContext(now: fixedInstant, timeZone: zone)
+            )
+        )
         // Native Gemma delegation copied the old imperative and its example
         // dates into Research instead of forwarding the tiny marker task.
         #expect(!prefix.contains("Resolve relative dates"))

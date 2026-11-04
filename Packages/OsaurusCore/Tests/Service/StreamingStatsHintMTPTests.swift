@@ -54,12 +54,21 @@ struct StreamingStatsHintMTPTests {
     /// The reason is optional — a healthy run has none.
     @Test func mtpFlagWithoutReasonRoundTrips() {
         let healthy = MTPStatsSummary(
-            depth: 2, activeDepth: 2, verifyCalls: 12,
-            acceptedDraftTokens: 12, bonusTokens: 12, rejectedTokens: 0,
-            arFallbackTokens: 0, adaptiveDownshifts: 0,
-            adaptiveFallbackReason: nil)
+            depth: 2,
+            activeDepth: 2,
+            verifyCalls: 12,
+            acceptedDraftTokens: 12,
+            bonusTokens: 12,
+            rejectedTokens: 0,
+            arFallbackTokens: 0,
+            adaptiveDownshifts: 0,
+            adaptiveFallbackReason: nil
+        )
         let wire = StreamingStatsHint.encode(
-            tokenCount: 25, tokensPerSecond: 40, mtp: healthy)
+            tokenCount: 25,
+            tokensPerSecond: 40,
+            mtp: healthy
+        )
         #expect(StreamingStatsHint.decode(wire)?.mtp == healthy)
     }
 

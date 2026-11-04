@@ -43,14 +43,20 @@ struct AgentChannelInboundRelayArtifactTests {
 
         let runStart = Date()
         let fresh = makeArtifact(
-            filename: "cat.png", hostPath: imagePath, createdAt: runStart.addingTimeInterval(1)
+            filename: "cat.png",
+            hostPath: imagePath,
+            createdAt: runStart.addingTimeInterval(1)
         )
         let duplicate = makeArtifact(
-            filename: "cat.png", hostPath: imagePath, createdAt: runStart.addingTimeInterval(2)
+            filename: "cat.png",
+            hostPath: imagePath,
+            createdAt: runStart.addingTimeInterval(2)
         )
         // Artifacts from a previous run of a reused channel session.
         let stale = makeArtifact(
-            filename: "old.png", hostPath: imagePath, createdAt: runStart.addingTimeInterval(-60)
+            filename: "old.png",
+            hostPath: imagePath,
+            createdAt: runStart.addingTimeInterval(-60)
         )
         // Backing file was cleaned up between completion and delivery.
         let missing = makeArtifact(
@@ -59,11 +65,15 @@ struct AgentChannelInboundRelayArtifactTests {
             createdAt: runStart.addingTimeInterval(1)
         )
         let directory = makeArtifact(
-            filename: "site", hostPath: dir.path, isDirectory: true,
+            filename: "site",
+            hostPath: dir.path,
+            isDirectory: true,
             createdAt: runStart.addingTimeInterval(1)
         )
         let pathless = makeArtifact(
-            filename: "inline.txt", hostPath: "", createdAt: runStart.addingTimeInterval(1)
+            filename: "inline.txt",
+            hostPath: "",
+            createdAt: runStart.addingTimeInterval(1)
         )
 
         let eligible = AgentChannelInboundRelay.replyArtifacts(

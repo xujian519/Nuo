@@ -100,7 +100,9 @@ struct ShellSandboxProfileTests {
         // NOT covered by that rule by pointing the profile at `root` and
         // writing to a decidedly non-temp outside path instead.
         let inside = try runConfined(
-            command: "echo ok > inside.txt", root: root)
+            command: "echo ok > inside.txt",
+            root: root
+        )
         #expect(inside == 0)
         #expect(fm.fileExists(atPath: root.appendingPathComponent("inside.txt").path))
 
@@ -110,13 +112,17 @@ struct ShellSandboxProfileTests {
             .appendingPathComponent(".osu-seatbelt-escape-\(UUID().uuidString)").path
         defer { try? fm.removeItem(atPath: escapePath) }
         let escaped = try runConfined(
-            command: "echo escape > '\(escapePath)'", root: root)
+            command: "echo escape > '\(escapePath)'",
+            root: root
+        )
         #expect(escaped != 0)
         #expect(!fm.fileExists(atPath: escapePath))
 
         // Child processes inherit the confinement (`bash -c` hop).
         let childEscape = try runConfined(
-            command: "/bin/bash -c \"echo escape > '\(escapePath)'\"", root: root)
+            command: "/bin/bash -c \"echo escape > '\(escapePath)'\"",
+            root: root
+        )
         #expect(childEscape != 0)
         #expect(!fm.fileExists(atPath: escapePath))
     }

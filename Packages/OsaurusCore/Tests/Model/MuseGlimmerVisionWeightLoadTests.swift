@@ -19,7 +19,8 @@ import Testing
 struct MuseGlimmerVisionWeightLoadTests {
 
     static let bundle: URL = {
-        let name = ProcessInfo.processInfo.environment["MUSE_VL_BUNDLE"]
+        let name =
+            ProcessInfo.processInfo.environment["MUSE_VL_BUNDLE"]
             ?? "Muse-Glimmer-30B-JANG_4M"
         return URL(fileURLWithPath: NSHomeDirectory())
             .appendingPathComponent("models/JANGQ-AI/\(name)")
@@ -28,13 +29,16 @@ struct MuseGlimmerVisionWeightLoadTests {
     static var enabled: Bool {
         ProcessInfo.processInfo.environment["MUSE_VL_LIVE"] == "1"
             && FileManager.default.fileExists(
-                atPath: bundle.appendingPathComponent("config.json").path)
+                atPath: bundle.appendingPathComponent("config.json").path
+            )
     }
 
     @Test("vision tower weights match the checkpoint", .enabled(if: enabled))
     func visionWeightsAreLoaded() async throws {
         let context = try await MLXVLM.VLMModelFactory.shared.load(
-            from: Self.bundle, using: SwiftTransformersTokenizerLoader())
+            from: Self.bundle,
+            using: SwiftTransformersTokenizerLoader()
+        )
 
         // Flatten the live module tree.
         let live = context.model.parameters().flattened()
@@ -46,7 +50,9 @@ struct MuseGlimmerVisionWeightLoadTests {
         // Load the checkpoint tensors straight off disk.
         var disk: [String: MLXArray] = [:]
         let files = try FileManager.default.contentsOfDirectory(
-            at: Self.bundle, includingPropertiesForKeys: nil)
+            at: Self.bundle,
+            includingPropertiesForKeys: nil
+        )
         for f in files where f.pathExtension == "safetensors" {
             guard let arrays = try? MLX.loadArrays(url: f) else { continue }
             for (k, v) in arrays where k.contains("vision") { disk[k] = v }
@@ -74,7 +80,9 @@ struct MuseGlimmerVisionWeightLoadTests {
         for m in mismatched.prefix(10) { print("[weights]   MISMATCH \(m)") }
 
         #expect(compared > 0, "no live vision parameter matched a checkpoint tensor by name")
-        #expect(mismatched.isEmpty,
-            "vision weights differ from the checkpoint — the tower is not running trained weights")
+        #expect(
+            mismatched.isEmpty,
+            "vision weights differ from the checkpoint — the tower is not running trained weights"
+        )
     }
 }

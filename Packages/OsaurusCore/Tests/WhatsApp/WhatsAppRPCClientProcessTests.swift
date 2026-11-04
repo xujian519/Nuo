@@ -119,7 +119,9 @@
                     let response = try await client.call(method: "quit", params: [:], timeout: 5)
                     #expect(response.bool("ok") == true)
                     await received.waitFor(WhatsAppRPCNotification.helperTerminated)
-                    #expect(received.methods.filter { $0 == WhatsAppRPCNotification.helperTerminated }.count == iteration)
+                    #expect(
+                        received.methods.filter { $0 == WhatsAppRPCNotification.helperTerminated }.count == iteration
+                    )
                     previousPid = pid
                 }
             }
@@ -158,7 +160,8 @@
                 let script = directory.appendingPathComponent("osaurus-wa")
                 try Data(Self.helperScript.utf8).write(to: script)
                 try FileManager.default.setAttributes(
-                    [.posixPermissions: 0o755], ofItemAtPath: script.path
+                    [.posixPermissions: 0o755],
+                    ofItemAtPath: script.path
                 )
                 let previousOverride = ProcessInfo.processInfo.environment[
                     WhatsAppRuntimeAssets.executableOverrideEnvKey

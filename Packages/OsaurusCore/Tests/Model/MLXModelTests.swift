@@ -67,11 +67,14 @@ struct MLXModelTests {
             rootDirectory: root
         )
         try FileManager.default.createDirectory(
-            at: local.localDirectory, withIntermediateDirectories: true)
+            at: local.localDirectory,
+            withIntermediateDirectories: true
+        )
         try Data("{}".utf8).write(to: local.localDirectory.appendingPathComponent("config.json"))
         try Data("{}".utf8).write(to: local.localDirectory.appendingPathComponent("tokenizer.json"))
         try Data("{}".utf8).write(
-            to: local.localDirectory.appendingPathComponent("model.safetensors.index.json"))
+            to: local.localDirectory.appendingPathComponent("model.safetensors.index.json")
+        )
 
         let catalog = MLXModel(
             id: local.id,

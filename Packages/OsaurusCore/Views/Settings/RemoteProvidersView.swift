@@ -714,7 +714,8 @@ private struct ProviderCardView: View {
 
                         if let primaryIssueKind = report.primaryIssueKind,
                             provider.enabled,
-                            report.hasAttention {
+                            report.hasAttention
+                        {
                             issueBadge(primaryIssueKind)
                         }
 

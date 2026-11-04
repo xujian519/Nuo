@@ -241,7 +241,8 @@ public struct ImportCommand: Command {
             }
             guard invocation.bundleId == nil else {
                 throw ImportUsageError(
-                    message: "\(subcommand.rawValue) reads the bundle id from the manifest; drop --bundle.")
+                    message: "\(subcommand.rawValue) reads the bundle id from the manifest; drop --bundle."
+                )
             }
         case .remove:
             guard invocation.bundleId != nil else {
@@ -329,12 +330,14 @@ public struct ImportCommand: Command {
             if let installedText = environment.appVersion(), let installed = lenientVersion(installedText) {
                 if installed < required {
                     report.issues.append(
-                        "This bundle needs Nuo \(required) or newer; Nuo \(installedText) is installed.")
+                        "This bundle needs Nuo \(required) or newer; Nuo \(installedText) is installed."
+                    )
                 }
             } else {
                 report.warnings.append(
                     "Could not find the installed Nuo version to check min_osaurus_version "
-                        + "(\(required)). Run the nuo binary inside Nuo.app/Contents/Helpers/.")
+                        + "(\(required)). Run the nuo binary inside Nuo.app/Contents/Helpers/."
+                )
             }
         }
 
@@ -377,7 +380,8 @@ public struct ImportCommand: Command {
             if environment.executableOnPath(program) == false {
                 report.warnings.append(
                     "harness_runtimes[\(runtime.name)].executable: \(program) was not found on PATH. Install it "
-                        + "before an agent runs on this runtime; Nuo looks it up on the login shell's PATH.")
+                        + "before an agent runs on this runtime; Nuo looks it up on the login shell's PATH."
+                )
             }
         }
 
@@ -386,11 +390,18 @@ public struct ImportCommand: Command {
     }
 
     private static func runValidate(
-        _ invocation: ImportInvocation, environment: ImportEnvironment, report: ImportReport
+        _ invocation: ImportInvocation,
+        environment: ImportEnvironment,
+        report: ImportReport
     ) async -> ImportReport {
         var report = report
-        guard let (bundle, items) = loadAndCheck(
-            invocation, environment: environment, report: &report, secretsAreErrors: false)
+        guard
+            let (bundle, items) = loadAndCheck(
+                invocation,
+                environment: environment,
+                report: &report,
+                secretsAreErrors: false
+            )
         else {
             report.state = "failed"
             report.exitCode = 1
@@ -412,7 +423,8 @@ public struct ImportCommand: Command {
             if let response, let refusal = keyRefusal(response) {
                 report.warnings.append(
                     "\(refusal) Agent and server entries were only checked for shape; pass --access-key KEY "
-                        + "or set OSAURUS_API_KEY for the full check.")
+                        + "or set OSAURUS_API_KEY for the full check."
+                )
             } else if let response,
                 let object = (try? JSONSerialization.jsonObject(with: response.body)) as? [String: Any]
             {
@@ -428,12 +440,14 @@ public struct ImportCommand: Command {
             } else {
                 report.warnings.append(
                     "The running Nuo could not check the agent and server entries; they are checked "
-                        + "again when the bundle is applied.")
+                        + "again when the bundle is applied."
+                )
             }
         } else {
             report.warnings.append(
                 "Nuo is not running, so agent and MCP server entries were only checked for shape. "
-                    + "Open Nuo and re-run validate for the full schema check.")
+                    + "Open Nuo and re-run validate for the full schema check."
+            )
         }
 
         report.state = report.issues.isEmpty ? "validated" : "failed"
@@ -442,11 +456,18 @@ public struct ImportCommand: Command {
     }
 
     private static func runInstallOrUpdate(
-        _ invocation: ImportInvocation, environment: ImportEnvironment, report: ImportReport
+        _ invocation: ImportInvocation,
+        environment: ImportEnvironment,
+        report: ImportReport
     ) async -> ImportReport {
         var report = report
-        guard let (bundle, items) = loadAndCheck(
-            invocation, environment: environment, report: &report, secretsAreErrors: true)
+        guard
+            let (bundle, items) = loadAndCheck(
+                invocation,
+                environment: environment,
+                report: &report,
+                secretsAreErrors: true
+            )
         else {
             report.state = "failed"
             report.exitCode = 1
@@ -456,7 +477,8 @@ public struct ImportCommand: Command {
         if !report.risks.isEmpty && !invocation.yes {
             report.state = "refused"
             report.issues.append(
-                "This bundle makes high-risk changes (listed under risks). Re-run with --yes to confirm.")
+                "This bundle makes high-risk changes (listed under risks). Re-run with --yes to confirm."
+            )
             report.exitCode = 1
             return report
         }
@@ -469,7 +491,8 @@ public struct ImportCommand: Command {
             operations: items.map {
                 ImportOperation(action: action, kind: $0.kind, name: $0.name, explicit: $0.explicit)
             },
-            confirmHighRisk: invocation.yes)
+            confirmHighRisk: invocation.yes
+        )
         do {
             try ImportQueue.enqueue(request, bundle: bundle)
         } catch {
@@ -481,7 +504,9 @@ public struct ImportCommand: Command {
     }
 
     private static func runRemove(
-        _ invocation: ImportInvocation, environment: ImportEnvironment, report: ImportReport
+        _ invocation: ImportInvocation,
+        environment: ImportEnvironment,
+        report: ImportReport
     ) async -> ImportReport {
         var report = report
         let bundleId = invocation.bundleId!
@@ -493,7 +518,8 @@ public struct ImportCommand: Command {
         if invocation.names.isEmpty {
             let cancelled = ImportQueue.cancelPending(bundleId: bundleId)
             if !cancelled.isEmpty { report.cancelledRequests = cancelled }
-            operations = receipts
+            operations =
+                receipts
                 .filter { invocation.kind == nil || $0.kind == invocation.kind }
                 .sorted { ($0.kind, $0.name) > ($1.kind, $1.name) }
                 .map { ImportOperation(action: .remove, kind: $0.kind, name: $0.name, explicit: true) }
@@ -506,8 +532,14 @@ public struct ImportCommand: Command {
                 }
                 for op in queuedNames where invocation.kind == nil || op.kind == invocation.kind {
                     let probe = ImportReceipt(
-                        bundleId: bundleId, bundleName: nil, bundleVersion: nil, kind: op.kind, name: op.name,
-                        explicit: true, contentHash: "")
+                        bundleId: bundleId,
+                        bundleName: nil,
+                        bundleVersion: nil,
+                        kind: op.kind,
+                        name: op.name,
+                        explicit: true,
+                        contentHash: ""
+                    )
                     if probe.matches(kind: op.kind, name: name) { kinds.insert(op.kind) }
                 }
                 switch kinds.count {
@@ -515,11 +547,13 @@ public struct ImportCommand: Command {
                     report.issues.append("\(bundleId) did not install anything named \"\(name)\".")
                 case 1:
                     operations.append(
-                        ImportOperation(action: .remove, kind: kinds.first!, name: name, explicit: true))
+                        ImportOperation(action: .remove, kind: kinds.first!, name: name, explicit: true)
+                    )
                 default:
                     report.issues.append(
                         "\"\(name)\" names more than one installed item. Say which: "
-                            + "nuo import remove --bundle \(bundleId) agent|skill|mcp|runtime|setting \"\(name)\".")
+                            + "nuo import remove --bundle \(bundleId) agent|skill|mcp|runtime|setting \"\(name)\"."
+                    )
                 }
             }
         }
@@ -542,7 +576,8 @@ public struct ImportCommand: Command {
             bundleName: receipts.first?.bundleName,
             bundleVersion: receipts.first?.bundleVersion,
             operations: operations,
-            confirmHighRisk: false)
+            confirmHighRisk: false
+        )
         do {
             try ImportQueue.enqueue(request, bundle: nil)
         } catch {
@@ -560,9 +595,12 @@ public struct ImportCommand: Command {
         report.installed = ImportQueue.loadReceipts().filter { matches($0.bundleId) }
         report.queued = ImportQueue.pending().filter { matches($0.request.bundleId) }.map {
             ImportReport.Queued(
-                requestId: $0.request.id, bundleId: $0.request.bundleId,
-                bundleVersion: $0.request.bundleVersion, createdAt: $0.request.createdAt,
-                operations: $0.request.operations)
+                requestId: $0.request.id,
+                bundleId: $0.request.bundleId,
+                bundleVersion: $0.request.bundleVersion,
+                createdAt: $0.request.createdAt,
+                operations: $0.request.operations
+            )
         }
         report.pendingSecrets = Array(Set((report.installed ?? []).flatMap { $0.pendingSecrets ?? [] })).sorted()
         report.state = "listed"
@@ -573,7 +611,9 @@ public struct ImportCommand: Command {
     /// Asks a running app to apply the request now; otherwise reports it
     /// as queued for the next launch.
     private static func applyOrReportQueued(
-        _ request: ImportRequest, environment: ImportEnvironment, report: ImportReport
+        _ request: ImportRequest,
+        environment: ImportEnvironment,
+        report: ImportReport
     ) async -> ImportReport {
         var report = report
         report.requestId = request.id
@@ -601,8 +641,13 @@ public struct ImportCommand: Command {
         {
             report.items = result.items.map {
                 ImportReport.Item(
-                    kind: $0.kind, name: $0.name, action: $0.action, status: $0.status.rawValue,
-                    message: $0.message, pendingSecrets: $0.pendingSecrets)
+                    kind: $0.kind,
+                    name: $0.name,
+                    action: $0.action,
+                    status: $0.status.rawValue,
+                    message: $0.message,
+                    pendingSecrets: $0.pendingSecrets
+                )
             }
             report.pendingSecrets = Array(Set(result.items.flatMap { $0.pendingSecrets ?? [] })).sorted()
             report.state = result.status.rawValue
@@ -615,7 +660,8 @@ public struct ImportCommand: Command {
             report.exitCode = 0
             report.warnings.append(
                 "The running Nuo is too old to apply imports live; the import applies after it is "
-                    + "updated and reopened.")
+                    + "updated and reopened."
+            )
             return report
         }
         if let refusal = keyRefusal(response) {
@@ -624,13 +670,16 @@ public struct ImportCommand: Command {
             report.exitCode = 0
             report.warnings.append(
                 "\(refusal) The import applies the next time Nuo opens; to apply it now, pass "
-                    + "--access-key KEY or set OSAURUS_API_KEY.")
+                    + "--access-key KEY or set OSAURUS_API_KEY."
+            )
             return report
         }
         let object = (try? JSONSerialization.jsonObject(with: response.body)) as? [String: Any]
         let error = object?["error"] as? [String: Any]
         report.items = queued
-        report.issues.append(error?["message"] as? String ?? "Nuo could not apply the import (HTTP \(response.status)).")
+        report.issues.append(
+            error?["message"] as? String ?? "Nuo could not apply the import (HTTP \(response.status))."
+        )
         report.issues += (error?["issues"] as? [String]) ?? []
         report.state = "failed"
         report.exitCode = 1
@@ -654,7 +703,7 @@ public struct ImportCommand: Command {
     static func lenientVersion(_ text: String) -> SemanticVersion? {
         if let version = SemanticVersion.parse(text) { return version }
         let parts = text.split(separator: ".").map(String.init)
-        guard (1...3).contains(parts.count), parts.allSatisfy({ Int($0) != nil }) else { return nil }
+        guard (1 ... 3).contains(parts.count), parts.allSatisfy({ Int($0) != nil }) else { return nil }
         return SemanticVersion.parse((parts + Array(repeating: "0", count: 3 - parts.count)).joined(separator: "."))
     }
 
@@ -710,7 +759,8 @@ public struct ImportCommand: Command {
         }
         if let installed = report.installed {
             if installed.isEmpty { print("Nothing installed from bundles.") }
-            for (bundleId, receipts) in Dictionary(grouping: installed, by: \.bundleId).sorted(by: { $0.key < $1.key }) {
+            for (bundleId, receipts) in Dictionary(grouping: installed, by: \.bundleId).sorted(by: { $0.key < $1.key })
+            {
                 let version = receipts.first?.bundleVersion.map { " \($0)" } ?? ""
                 print("\(bundleId)\(version)")
                 for receipt in receipts {

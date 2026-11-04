@@ -744,7 +744,8 @@ struct SubagentSessionAdmissionTests {
         let probe = DirectResidencyProbe()
         probe.setPlan(ResidencyPlan(shouldUnload: false, ramSafetyEnabled: true))
         let preparation = await SubagentSession.prepare(
-            DirectResidencyKind(probe: probe), tool: "direct-residency-test",
+            DirectResidencyKind(probe: probe),
+            tool: "direct-residency-test",
             scope: SubagentScope(sessionId: "stop-recovery", toolCallId: UUID().uuidString, agentId: Agent.defaultId)
         )
         guard case .ready(let prepared) = preparation else {
@@ -780,7 +781,8 @@ struct SubagentSessionAdmissionTests {
         let probe = DirectResidencyProbe()
         probe.setPlan(ResidencyPlan(shouldUnload: false, ramSafetyEnabled: true))
         let preparation = await SubagentSession.prepare(
-            DirectResidencyKind(probe: probe), tool: "direct-residency-test",
+            DirectResidencyKind(probe: probe),
+            tool: "direct-residency-test",
             scope: SubagentScope(sessionId: "parked-recovery", toolCallId: UUID().uuidString, agentId: Agent.defaultId)
         )
         guard case .ready(let prepared) = preparation else {
@@ -797,7 +799,8 @@ struct SubagentSessionAdmissionTests {
             prepared,
             presentation: SubagentRunPresentation(
                 feed: SubagentFeed(toolCallId: "parked-recovery", kindId: "direct-residency-test", title: "recovery"),
-                interrupt: interrupt, registerWithUI: false
+                interrupt: interrupt,
+                registerWithUI: false
             ),
             admissionController: admission,
             postAdmissionLocalCapacityOverride: { _, _ in
@@ -827,7 +830,8 @@ struct SubagentSessionAdmissionTests {
         let probe = DirectResidencyProbe()
         probe.setPlan(ResidencyPlan(shouldUnload: false, ramSafetyEnabled: true))
         let preparation = await SubagentSession.prepare(
-            DirectResidencyKind(probe: probe), tool: "direct-residency-test",
+            DirectResidencyKind(probe: probe),
+            tool: "direct-residency-test",
             scope: SubagentScope(sessionId: "sibling-recovery", toolCallId: UUID().uuidString, agentId: Agent.defaultId)
         )
         guard case .ready(let prepared) = preparation else {
@@ -835,13 +839,18 @@ struct SubagentSessionAdmissionTests {
             return
         }
         let result = await SubagentSession.runPrepared(
-            prepared, admissionController: admission,
+            prepared,
+            admissionController: admission,
             postAdmissionLocalCapacityOverride: { prepared, _ in
                 if await admission.snapshot().inPlace == 1 {
-                    #expect(await admission.reserveLocalInPlace(
-                        modelKey: prepared.admissionModelKey, requestedSlots: 1,
-                        slotCapacity: 2, timeoutSeconds: 0
-                    ) == .admitted(slots: 1))
+                    #expect(
+                        await admission.reserveLocalInPlace(
+                            modelKey: prepared.admissionModelKey,
+                            requestedSlots: 1,
+                            slotCapacity: 2,
+                            timeoutSeconds: 0
+                        ) == .admitted(slots: 1)
+                    )
                     Task {
                         try? await Task.sleep(for: .milliseconds(50))
                         await admission.releaseLocalInPlace(modelKey: prepared.admissionModelKey, slots: 1)
@@ -861,7 +870,7 @@ struct SubagentSessionAdmissionTests {
     @Test("two prepared same-model children recover memory and release admission before the next")
     func preparedChildrenRecoverSequentially() async {
         let admission = SubagentAdmission(pollNanoseconds: 1_000_000)
-        for index in 0..<2 {
+        for index in 0 ..< 2 {
             let probe = DirectResidencyProbe()
             probe.setPlan(ResidencyPlan(shouldUnload: false, ramSafetyEnabled: true))
             let preparation = await SubagentSession.prepare(
@@ -900,12 +909,18 @@ struct SubagentSessionAdmissionTests {
                         reclaim: { true }
                     )
                     #expect(samples == 2)
-                    return SubagentBatchAdmissionPlanner.plan(.init(
-                        localJobCount: 1, remoteJobCount: 0, agentParallelLimit: 1,
-                        engineParallelLimit: 1, continuousBatchingEnabled: true,
-                        ramSafetyEnabled: true, failClosedWhenEstimateUnknown: true,
-                        memory: memory
-                    )).localCapacity
+                    return SubagentBatchAdmissionPlanner.plan(
+                        .init(
+                            localJobCount: 1,
+                            remoteJobCount: 0,
+                            agentParallelLimit: 1,
+                            engineParallelLimit: 1,
+                            continuousBatchingEnabled: true,
+                            ramSafetyEnabled: true,
+                            failClosedWhenEstimateUnknown: true,
+                            memory: memory
+                        )
+                    ).localCapacity
                 }
             )
             #expect(ToolEnvelope.isSuccess(result))

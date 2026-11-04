@@ -635,7 +635,9 @@ extension MemoryView {
             return L("The model ran but returned no usable episode for at least one session.")
         }
         if processingStats.skippedCount > 0 && processingStats.successCount == 0 {
-            return L("Distillation has only skipped so far; common causes are no core model, model unavailable, or not resident.")
+            return L(
+                "Distillation has only skipped so far; common causes are no core model, model unavailable, or not resident."
+            )
         }
         return nil
     }
@@ -1019,7 +1021,10 @@ extension MemoryView {
                 return DiagnosticHeadline(text: L("Distillation ran but produced no usable episode."), color: .orange)
             }
             if processingStats.skippedCount > 0 && processingStats.successCount == 0 {
-                return DiagnosticHeadline(text: L("Turns reached memory, but distillation is skipping."), color: .orange)
+                return DiagnosticHeadline(
+                    text: L("Turns reached memory, but distillation is skipping."),
+                    color: .orange
+                )
             }
             return DiagnosticHeadline(
                 text: L("No buffered turns and no episodes — check per-agent memory."),
@@ -1030,13 +1035,22 @@ extension MemoryView {
             if let latest = recentLogs.first {
                 switch latest.status.lowercased() {
                 case "error":
-                    return DiagnosticHeadline(text: L("Buffered turns are blocked by a distillation error."), color: .red)
+                    return DiagnosticHeadline(
+                        text: L("Buffered turns are blocked by a distillation error."),
+                        color: .red
+                    )
                 case "dead_letter":
                     return DiagnosticHeadline(text: L("Buffered turns reached the retry cap."), color: .red)
                 case "empty":
-                    return DiagnosticHeadline(text: L("Latest distillation produced no usable episode."), color: .orange)
+                    return DiagnosticHeadline(
+                        text: L("Latest distillation produced no usable episode."),
+                        color: .orange
+                    )
                 case "skipped":
-                    return DiagnosticHeadline(text: L("Buffered turns are pending because distillation skipped."), color: .orange)
+                    return DiagnosticHeadline(
+                        text: L("Buffered turns are pending because distillation skipped."),
+                        color: .orange
+                    )
                 default:
                     break
                 }

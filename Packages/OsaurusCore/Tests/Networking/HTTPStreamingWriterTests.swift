@@ -20,14 +20,19 @@ struct HTTPStreamingWriterTests {
         writer.writeResponseCreated(responseId: "resp-proof", model: "fake", inputTokens: 2, context: context)
         writer.writeReasoningDelta("brief thought", itemId: "reasoning-proof", context: context)
         writer.writeReasoningItemDone(context: context)
-        writer.writeReasoningItemDone(context: context) // guarded repeated closure
+        writer.writeReasoningItemDone(context: context)  // guarded repeated closure
         writer.writeMessageItemAdded(itemId: "message-proof", context: context)
         writer.writeContentPartAdded(context: context)
         writer.writeTextDelta("café ", context: context)
         writer.writeTextDelta("雪", context: context)
         writer.writeTextDone(context: context)
         writer.writeMessageItemDone(context: context)
-        writer.writeFunctionCallItemAdded(itemId: "function-proof", callId: "call-proof", name: "lookup_fixture", context: context)
+        writer.writeFunctionCallItemAdded(
+            itemId: "function-proof",
+            callId: "call-proof",
+            name: "lookup_fixture",
+            context: context
+        )
         writer.writeFunctionCallArgumentsDelta(callId: "call-proof", delta: "{\"id\":\"alpha\"}", context: context)
         writer.writeFunctionCallArgumentsDone(callId: "call-proof", context: context)
         writer.writeFunctionCallItemDone(callId: "call-proof", name: "lookup_fixture", context: context)
@@ -43,12 +48,21 @@ struct HTTPStreamingWriterTests {
         let events = body.components(separatedBy: .newlines).filter { $0.hasPrefix("data: ") }.compactMap {
             (try? JSONSerialization.jsonObject(with: Data($0.dropFirst(6).utf8))) as? [String: Any]
         }
-        let terminal = try #require(events.last(where: { $0["type"] as? String == "response.completed" })?["response"] as? [String: Any])
+        let terminal = try #require(
+            events.last(where: { $0["type"] as? String == "response.completed" })?["response"] as? [String: Any]
+        )
         let output = try #require(terminal["output"] as? [[String: Any]])
         #expect(output.compactMap { $0["id"] as? String } == ["reasoning-proof", "message-proof", "function-proof"])
-        let completed = events.filter { $0["type"] as? String == "response.output_item.done" }.compactMap { $0["item"] as? [String: Any] }
-        #expect(try JSONSerialization.data(withJSONObject: output, options: [.sortedKeys]) == JSONSerialization.data(withJSONObject: completed, options: [.sortedKeys]))
-        let deltas = events.filter { $0["type"] as? String == "response.output_text.delta" }.compactMap { $0["delta"] as? String }.joined()
+        let completed = events.filter { $0["type"] as? String == "response.output_item.done" }.compactMap {
+            $0["item"] as? [String: Any]
+        }
+        #expect(
+            try JSONSerialization.data(withJSONObject: output, options: [.sortedKeys])
+                == JSONSerialization.data(withJSONObject: completed, options: [.sortedKeys])
+        )
+        let deltas = events.filter { $0["type"] as? String == "response.output_text.delta" }.compactMap {
+            $0["delta"] as? String
+        }.joined()
         #expect(terminal["output_text"] as? String == deltas)
         #expect(deltas == "café 雪")
         let usage = try #require(terminal["usage"] as? [String: Any])
@@ -62,8 +76,13 @@ struct HTTPStreamingWriterTests {
         let channel = EmbeddedChannel()
         let context = try channel.embeddedContext()
         let writer = AnthropicSSEResponseWriter()
-        writer.writeMessageStart(messageId: "msg_test", model: "test", inputTokens: 7,
-                                 context: context, deferUntilInput: true)
+        writer.writeMessageStart(
+            messageId: "msg_test",
+            model: "test",
+            inputTokens: 7,
+            context: context,
+            deferUntilInput: true
+        )
         #expect(try channel.readOutbound(as: HTTPServerResponsePart.self) == nil)
         if withPreparedCount { writer.setInputTokens(257, context: context) }
         writer.writeTextDelta("answer", context: context)
@@ -95,8 +114,13 @@ struct HTTPStreamingWriterTests {
         let channel = EmbeddedChannel()
         let context = try channel.embeddedContext()
         let writer = AnthropicSSEResponseWriter()
-        writer.writeMessageStart(messageId: "msg_cached", model: "test", inputTokens: nil,
-                                 context: context, deferUntilInput: true)
+        writer.writeMessageStart(
+            messageId: "msg_cached",
+            model: "test",
+            inputTokens: nil,
+            context: context,
+            deferUntilInput: true
+        )
         writer.setInputTokens(6012, context: context)
         writer.writeTextDelta("ok", context: context)
         writer.setOutputTokens(2)
@@ -122,8 +146,13 @@ struct HTTPStreamingWriterTests {
         let channel = EmbeddedChannel()
         let context = try channel.embeddedContext()
         let writer = AnthropicSSEResponseWriter()
-        writer.writeMessageStart(messageId: "msg_test", model: "test", inputTokens: 7,
-                                 context: context, deferUntilInput: true)
+        writer.writeMessageStart(
+            messageId: "msg_test",
+            model: "test",
+            inputTokens: 7,
+            context: context,
+            deferUntilInput: true
+        )
         writer.writeErrorFromThrown(NativeMTPAdmission.Refusal(reason: "Missing tuning"), context: context)
         var body = ""
         while let part = try channel.readOutbound(as: HTTPServerResponsePart.self) {

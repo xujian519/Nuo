@@ -334,10 +334,15 @@ struct FileChangesPanel: View {
         var lines: [String] = []
         if pending.preview.conflictCount > 0 {
             lines.append(
-                L("Files marked “edited since” were changed outside this chat after it touched them. Skip them to revert everything else, or overwrite them."))
+                L(
+                    "Files marked “edited since” were changed outside this chat after it touched them. Skip them to revert everything else, or overwrite them."
+                )
+            )
         }
         if pending.preview.unrestorableCount > 0 {
-            lines.append(L("Files marked “can't be restored” were too large to keep in history and will be left as they are."))
+            lines.append(
+                L("Files marked “can't be restored” were too large to keep in history and will be left as they are.")
+            )
         }
         lines.append(L("Every revert is recorded, so you can undo it afterwards."))
         return lines.joined(separator: "\n\n")
@@ -364,7 +369,8 @@ struct FileChangesPanel: View {
             buttons.append(
                 .destructive(L("Overwrite Edited Files")) {
                     Task { await perform(pending.scope, force: true) }
-                })
+                }
+            )
         }
         return buttons
     }
@@ -457,7 +463,8 @@ struct FileChangesPanel: View {
         return Toast(
             message: parts.joined(separator: " "),
             undoSetId: summary.revertSetId,
-            isWarning: summary.conflicted + summary.failed > 0)
+            isWarning: summary.conflicted + summary.failed > 0
+        )
     }
 }
 
@@ -605,7 +612,9 @@ private struct ChangeSetRow: View {
                         HStack(spacing: 6) {
                             Text(changeSet.displayTitle)
                                 .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(changeSet.status == .reverted ? theme.secondaryText : theme.primaryText)
+                                .foregroundColor(
+                                    changeSet.status == .reverted ? theme.secondaryText : theme.primaryText
+                                )
                                 .strikethrough(changeSet.status == .reverted && !isRevert, color: theme.tertiaryText)
                                 .lineLimit(1)
                             statusPill
@@ -631,7 +640,12 @@ private struct ChangeSetRow: View {
                 .buttonStyle(PanelPillButtonStyle(tint: theme.accentColor))
                 .disabled(actionsDisabled)
                 .opacity(isHovered || isFocused ? 1 : 0.7)
-                .help(Text(isRevert ? L("Put this change back") : L("Restore these files to how they were before this change")))
+                .help(
+                    Text(
+                        isRevert
+                            ? L("Put this change back") : L("Restore these files to how they were before this change")
+                    )
+                )
                 .accessibilityLabel(Text(isRevert ? L("Undo This Revert") : L("Revert This Change")))
             }
         }
@@ -1036,7 +1050,9 @@ struct DiffLinesView: View {
                 .font(.system(size: 10, weight: .medium, design: .monospaced))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
-                .accessibilityLabel(Text(L("\(diff.addedCount) lines added") + ", " + L("\(diff.removedCount) lines removed")))
+                .accessibilityLabel(
+                    Text(L("\(diff.addedCount) lines added") + ", " + L("\(diff.removedCount) lines removed"))
+                )
             }
             ForEach(Array(diff.lines.prefix(Self.maxRows).enumerated()), id: \.offset) { index, line in
                 row(line, ranges: highlighted[index] ?? [])
@@ -1056,7 +1072,10 @@ struct DiffLinesView: View {
             Rectangle().fill(bar(line.kind)).frame(width: 3)
             Text(attributed(line, ranges: ranges))
                 .font(.system(size: 10.5, design: .monospaced))
-                .foregroundColor(line.kind == .meta ? theme.tertiaryText : line.kind == .context ? theme.secondaryText : theme.primaryText)
+                .foregroundColor(
+                    line.kind == .meta
+                        ? theme.tertiaryText : line.kind == .context ? theme.secondaryText : theme.primaryText
+                )
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 1)
@@ -1075,8 +1094,8 @@ struct DiffLinesView: View {
             guard let lower = AttributedString.Index(range.lowerBound, within: out),
                 let upper = AttributedString.Index(range.upperBound, within: out)
             else { continue }
-            out[lower..<upper].backgroundColor = strong
-            out[lower..<upper].font = .system(size: 10.5, weight: .semibold, design: .monospaced)
+            out[lower ..< upper].backgroundColor = strong
+            out[lower ..< upper].font = .system(size: 10.5, weight: .semibold, design: .monospaced)
         }
         return out
     }

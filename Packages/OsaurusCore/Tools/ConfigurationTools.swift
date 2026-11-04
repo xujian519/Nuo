@@ -192,28 +192,28 @@ enum ConfigurationReadNextStep {
     /// "downloads happen in the UI" or "openrouter isn't a real provider".
     static let scopeCapabilityLines: [String: String] = [
         "models": """
-            # YOU can install models from right here: apply with `models:` listing \
-            the installed repo ids PLUS the new one — that STARTS the download. \
-            Never redirect the user to the UI or another assistant for this. \
-            Listing a model here only INSTALLS it — to make an agent USE a model, \
-            set default_agent.model (the Default agent) or agents[].model (a custom \
-            agent). `foundation` (the built-in Apple Foundation on-device model) \
-            never appears in this list but is ALWAYS a valid value for those model \
-            keys — never refuse it as "not installed".
-            """,
+        # YOU can install models from right here: apply with `models:` listing \
+        the installed repo ids PLUS the new one — that STARTS the download. \
+        Never redirect the user to the UI or another assistant for this. \
+        Listing a model here only INSTALLS it — to make an agent USE a model, \
+        set default_agent.model (the Default agent) or agents[].model (a custom \
+        agent). `foundation` (the built-in Apple Foundation on-device model) \
+        never appears in this list but is ALWAYS a valid value for those model \
+        keys — never refuse it as "not installed".
+        """,
         "providers": """
-            # EVERY id in the `provider` list above is a directly supported \
-            provider (openrouter included) — connect one by applying a providers \
-            entry with that id. Never claim a listed provider is unsupported.
-            """,
+        # EVERY id in the `provider` list above is a directly supported \
+        provider (openrouter included) — connect one by applying a providers \
+        entry with that id. Never claim a listed provider is unsupported.
+        """,
         "plugins": """
-            # The list above shows INSTALLED plugins only — it is NOT the \
-            registry. YOU install a registry plugin from right here: apply with \
-            `plugins:` listing the installed ids PLUS the new id. The registry is \
-            checked at apply (an unknown id fails with a clear error), so apply \
-            directly instead of trying to pre-verify. Never redirect the user to \
-            the UI or another assistant for this.
-            """,
+        # The list above shows INSTALLED plugins only — it is NOT the \
+        registry. YOU install a registry plugin from right here: apply with \
+        `plugins:` listing the installed ids PLUS the new id. The registry is \
+        checked at apply (an unknown id fails with a clear error), so apply \
+        directly instead of trying to pre-verify. Never redirect the user to \
+        the UI or another assistant for this.
+        """,
     ]
 
     /// The agents-scope capability line. Unlike the static ones this is
@@ -406,12 +406,14 @@ public final class OsaurusInspectTool: OsaurusTool, @unchecked Sendable {
                         + "harness_runtimes are settings "
                         + "document sections — list/describe returns the section's current "
                         + "values (change them with osaurus_config apply). server, chat, and "
-                        + "app are Settings-UI-only."),
+                        + "app are Settings-UI-only."
+                ),
             ]),
             "id": .object([
                 "type": .string("string"),
                 "description": .string(
-                    "Item id, or its exact name (case-insensitive). Required for describe."),
+                    "Item id, or its exact name (case-insensitive). Required for describe."
+                ),
             ]),
             "filter": .object([
                 "type": .string("string"),
@@ -539,7 +541,8 @@ public final class OsaurusInspectTool: OsaurusTool, @unchecked Sendable {
             }
             if !downloadingModels.isEmpty {
                 suggestions.append(
-                    "\(downloadingModels.count) model(s) downloading — poll osaurus_inspect({action: 'status'}) again.")
+                    "\(downloadingModels.count) model(s) downloading — poll osaurus_inspect({action: 'status'}) again."
+                )
             }
 
             // The Orchestrator's spawn pool. An empty pool is the one state
@@ -565,7 +568,8 @@ public final class OsaurusInspectTool: OsaurusTool, @unchecked Sendable {
                     "Spawn pool is EMPTY although \(customAgents.count) custom agent(s) exist — the "
                         + "Orchestrator has no spawn_agent tool. Restore delegation with "
                         + "osaurus_config apply `delegation: {spawnable_agents: [<names to allow>]}` "
-                        + "(the list replaces the pool) or Settings → Orchestrator → Add all agents.")
+                        + "(the list replaces the pool) or Settings → Orchestrator → Add all agents."
+                )
             }
 
             let snapshot: [String: Any] = [
@@ -575,7 +579,8 @@ public final class OsaurusInspectTool: OsaurusTool, @unchecked Sendable {
                     "workspace_agents": delegation.spawnableWorkspaceAgents.count,
                     "custom_agents_total": customAgents.count,
                     "max_parallel_local": SpawnBatchConcurrencyContract.configuredLimit(
-                        for: ServerRuntimeSettingsStore.snapshot()),
+                        for: ServerRuntimeSettingsStore.snapshot()
+                    ),
                 ],
                 "active_agent": [
                     "id": activeAgentId.uuidString,
@@ -809,8 +814,11 @@ public final class OsaurusInspectTool: OsaurusTool, @unchecked Sendable {
         do {
             mediaModels = scope == "models" ? try await ImageGenerationService.shared.availableModels() : []
         } catch {
-            return ToolEnvelope.failure(kind: .executionError,
-                message: "Could not inspect local media models: \(error.localizedDescription)", tool: name)
+            return ToolEnvelope.failure(
+                kind: .executionError,
+                message: "Could not inspect local media models: \(error.localizedDescription)",
+                tool: name
+            )
         }
 
         let envelope: String = await MainActor.run {
@@ -864,10 +872,13 @@ public final class OsaurusInspectTool: OsaurusTool, @unchecked Sendable {
                     if let bytes = model.totalSizeEstimateBytes { dict["size_bytes"] = bytes }
                     return dict
                 }
-                let mediaItems = ["", "installed", "all"].contains(filter)
+                let mediaItems =
+                    ["", "installed", "all"].contains(filter)
                     ? mediaModels.filter { filter == "all" || $0.ready }.map(Self.mediaModelPayload) : []
-                payload = ["scope": "models", "filter": filter.isEmpty ? "installed" : filter,
-                    "items": items + mediaItems]
+                payload = [
+                    "scope": "models", "filter": filter.isEmpty ? "installed" : filter,
+                    "items": items + mediaItems,
+                ]
             case "providers":
                 let providers = ConfigurationProviderReadVisibility.visibleProviders()
                 let items = providers.map { p -> [String: Any] in
@@ -998,7 +1009,8 @@ public final class OsaurusInspectTool: OsaurusTool, @unchecked Sendable {
             case "channels":
                 let configuration = AgentChannelConnectionManager.shared.loadConfiguration()
                 let bindingCounts = configuration.bindings.reduce(into: [String: Int]()) {
-                    counts, binding in
+                    counts,
+                    binding in
                     counts[binding.connectionId, default: 0] += 1
                 }
                 let connections = configuration.connections.map { c -> [String: Any] in
@@ -1060,7 +1072,9 @@ public final class OsaurusInspectTool: OsaurusTool, @unchecked Sendable {
                 return Self.unknownScopeFailure(scope: scope, tool: name)
             }
             return ConfigurationReadNextStep.success(
-                tool: name, result: payload, scope: scope,
+                tool: name,
+                result: payload,
+                scope: scope,
                 agentTemplateNames: Self.visibleAgentTemplateNames(forScope: scope)
             )
         }
@@ -1101,7 +1115,8 @@ public final class OsaurusInspectTool: OsaurusTool, @unchecked Sendable {
                     "`\(section.rawValue)` is a configuration document section (read-only here). "
                     + "Change it with osaurus_config {action: 'apply', yaml: ...}.",
             ],
-            scope: section.rawValue)
+            scope: section.rawValue
+        )
     }
 
     // MARK: action: describe
@@ -1124,7 +1139,8 @@ public final class OsaurusInspectTool: OsaurusTool, @unchecked Sendable {
                 kind: .invalidArgs,
                 message: "`describe` needs `id` (an entry's name or id). To browse the "
                     + "entries first, call {action: 'list', scope: '\(scope)'}.",
-                tool: name)
+                tool: name
+            )
         }
         let idReq = requireString(args, "id", expected: "identifier", tool: name)
         guard case .value(let idStr) = idReq else { return idReq.failureEnvelope ?? "" }
@@ -1293,9 +1309,11 @@ public final class OsaurusHelpTool: OsaurusTool, @unchecked Sendable {
 extension OsaurusInspectTool {
 
     static func mediaModelPayload(_ model: ImageModelInfo) -> [String: Any] {
-        ["id": model.id, "name": model.displayName, "kind": model.kind,
-         "installed": model.ready, "chat_model": false, "size_bytes": model.totalBytes,
-         "blocked_reasons": model.blockedReasons]
+        [
+            "id": model.id, "name": model.displayName, "kind": model.kind,
+            "installed": model.ready, "chat_model": false, "size_bytes": model.totalBytes,
+            "blocked_reasons": model.blockedReasons,
+        ]
     }
 
     fileprivate func describeItem(scope: String, idStr: String) async -> String {
@@ -1385,8 +1403,11 @@ extension OsaurusInspectTool {
         do {
             mediaModels = scope == "models" ? try await ImageGenerationService.shared.availableModels() : []
         } catch {
-            return ToolEnvelope.failure(kind: .executionError,
-                message: "Could not inspect local media models: \(error.localizedDescription)", tool: name)
+            return ToolEnvelope.failure(
+                kind: .executionError,
+                message: "Could not inspect local media models: \(error.localizedDescription)",
+                tool: name
+            )
         }
 
         let envelope: String = await MainActor.run {
@@ -1665,7 +1686,9 @@ extension OsaurusInspectTool {
             var result = payload
             result["scope"] = scope
             return ConfigurationReadNextStep.success(
-                tool: name, result: result, scope: scope,
+                tool: name,
+                result: result,
+                scope: scope,
                 agentTemplateNames: Self.visibleAgentTemplateNames(forScope: scope)
             )
         }

@@ -31,9 +31,16 @@ struct PromotionGateTests {
             )
         }
         return EvalCaseReport(
-            id: id, label: id, domain: domain, query: nil,
-            outcome: outcome, notes: [], modelId: "m", latencyMs: 10,
-            trials: trials, trialsPassed: trialsPassed,
+            id: id,
+            label: id,
+            domain: domain,
+            query: nil,
+            outcome: outcome,
+            notes: [],
+            modelId: "m",
+            latencyMs: 10,
+            trials: trials,
+            trialsPassed: trialsPassed,
             context: context
         )
     }
@@ -52,7 +59,8 @@ struct PromotionGateTests {
     @Test func identicalRunsArePromotable() {
         let rows = [row(id: "a"), row(id: "b")]
         let verdict = PromotionGate.evaluate(
-            baseline: report(rows), candidate: report(rows)
+            baseline: report(rows),
+            candidate: report(rows)
         )
         #expect(verdict.promotable)
         #expect(verdict.blocking.isEmpty)

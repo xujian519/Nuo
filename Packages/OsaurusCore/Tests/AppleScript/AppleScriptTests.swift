@@ -303,7 +303,7 @@ struct AppleScriptExecutorMappingTests {
     /// flaking on slow CI runners). Poll briefly; a leaked ref still fails
     /// the follow-up expectation after the deadline.
     static func waitForHeartbeatDisarm(attempts: Int = 100) async {
-        for _ in 0..<attempts where AppleScriptExecutor.isHeartbeatActiveForTesting {
+        for _ in 0 ..< attempts where AppleScriptExecutor.isHeartbeatActiveForTesting {
             try? await Task.sleep(nanoseconds: 20_000_000)
         }
     }
@@ -442,10 +442,12 @@ struct AppleScriptToolDispatchLiteralsTests {
             JSONSerialization.jsonObject(with: data) as? [String: Any]
         )
         let contents = try #require(object["contents"] as? [String: String])
-        #expect(contents == [
-            "oldText": "Hello from OracHQ",
-            "newText": "Hello again",
-        ])
+        #expect(
+            contents == [
+                "oldText": "Hello from OracHQ",
+                "newText": "Hello again",
+            ]
+        )
 
         let mismatched =
             #"{"contents":"oldText:other,newText:values","task":"Replace \"Hello from OracHQ\" with \"Hello again\" in the file"}"#
@@ -566,7 +568,7 @@ struct AppleScriptToolDispatchLiteralsTests {
         #expect(
             AppleScriptToolDispatch.taskForSubagent(exactTask, literals: exactValues)
                 == "Replace the entire exact text {{oldText}} with {{newText}} "
-                    + "in the front TextEdit document."
+                + "in the front TextEdit document."
         )
     }
 
@@ -760,7 +762,7 @@ struct AppleScriptToolDispatchLiteralsTests {
         #expect(
             AppleScriptToolDispatch.taskForSubagent(task, literals: inferred)
                 == "In the front TextEdit document, replace the entire text {{oldText}} "
-                    + "with {{newText}}."
+                + "with {{newText}}."
         )
     }
 
@@ -812,7 +814,7 @@ struct AppleScriptToolDispatchLiteralsTests {
         #expect(
             AppleScriptToolDispatch.taskForSubagent(task, literals: inferred)
                 == "Find the file containing {{oldText}} and replace that text with "
-                    + "{{newText}}, then save the changes."
+                + "{{newText}}, then save the changes."
         )
     }
 
@@ -1995,7 +1997,10 @@ struct AppleScriptLoopTests {
     @Test("TextEdit replacement enters read-only verification before another mutation")
     func textEditReplacementRequiresReadBack() async {
         let feed = SubagentFeed(
-            toolCallId: "t-replace-readback", kindId: "applescript", title: "task")
+            toolCallId: "t-replace-readback",
+            kindId: "applescript",
+            title: "task"
+        )
         let exec = ScriptedExec(results: [
             successResult("Hello from OracHQ"),
             successResult("Hello from OracHQ• malformed helper text"),

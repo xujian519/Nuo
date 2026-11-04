@@ -36,7 +36,10 @@ struct GroupedDispatchOwnershipTests {
     @Test(arguments: [SessionSource.schedule, .watcher, .http, .plugin, .delegation], [false, true])
     func lookupReusesActiveOrInactiveWindowOwner(source: SessionSource, inactive: Bool) async throws {
         try await ChatHistoryTestStorage.run {
-            let agent = Agent(name: "Grouped ownership window test", autonomousExec: AutonomousExecConfig(enabled: false))
+            let agent = Agent(
+                name: "Grouped ownership window test",
+                autonomousExec: AutonomousExecConfig(enabled: false)
+            )
             AgentManager.shared.add(agent)
             do {
                 let data = stored(agentId: agent.id, source: source)

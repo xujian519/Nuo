@@ -616,7 +616,8 @@ internal func sandboxBridgeSearch(
     guard !ToolEnvelope.isError(raw) else { return relabelToolEnvelope(raw, tool: "file_search") }
     let matches = (ToolEnvelope.successPayload(raw) as? [String: Any])?["matches"] as? String ?? ""
     let page = pageSandboxMatches(matches, offset: max(offset, 0), maxResults: max(maxResults, 1))
-    let text = page.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    let text =
+        page.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         ? (page.offsetPastEnd
             ? "No matches at offset \(offset): the sandbox search returned \(page.available) match(es) (offsets 0–\(max(page.available - 1, 0))). Re-issue with a smaller `offset`."
             : "No matches found for '\(pattern)'")
@@ -636,7 +637,8 @@ internal struct SandboxMatchesPage: Equatable {
     let offsetPastEnd: Bool
     var footer: String? {
         guard let nextOffset else { return nil }
-        return "[returned=\(returned), offset=\(nextOffset - returned), next_offset=\(nextOffset) — more matches exist. "
+        return
+            "[returned=\(returned), offset=\(nextOffset - returned), next_offset=\(nextOffset) — more matches exist. "
             + "Call file_search again with `offset: \(nextOffset)` (same pattern/path/max_results) to continue, "
             + "or narrow with `path` / `file_pattern`.]"
     }
@@ -645,19 +647,32 @@ internal struct SandboxMatchesPage: Equatable {
 internal func pageSandboxMatches(_ matches: String, offset: Int, maxResults: Int) -> SandboxMatchesPage {
     let lines = matches.split(separator: "\n", omittingEmptySubsequences: true).map(String.init)
     guard offset < lines.count else {
-        return SandboxMatchesPage(text: "", returned: 0, available: lines.count, nextOffset: nil, offsetPastEnd: !lines.isEmpty)
+        return SandboxMatchesPage(
+            text: "",
+            returned: 0,
+            available: lines.count,
+            nextOffset: nil,
+            offsetPastEnd: !lines.isEmpty
+        )
     }
     let end = min(offset + maxResults, lines.count)
-    let page = Array(lines[offset..<end])
+    let page = Array(lines[offset ..< end])
     let more = lines.count > end
     var text = page.joined(separator: "\n")
     let next = more ? end : nil
     if let next {
-        text += "\n\n[returned=\(page.count), offset=\(offset), next_offset=\(next) — more matches exist. "
+        text +=
+            "\n\n[returned=\(page.count), offset=\(offset), next_offset=\(next) — more matches exist. "
             + "Call file_search again with `offset: \(next)` (same pattern/path/max_results) to continue, "
             + "or narrow with `path` / `file_pattern`.]"
     }
-    return SandboxMatchesPage(text: text, returned: page.count, available: lines.count, nextOffset: next, offsetPastEnd: false)
+    return SandboxMatchesPage(
+        text: text,
+        returned: page.count,
+        available: lines.count,
+        nextOffset: next,
+        offsetPastEnd: false
+    )
 }
 
 /// Write or edit a sandbox file for a WRITABLE-combined-mode
@@ -677,7 +692,11 @@ internal func sandboxBridgeWrite(
     // Warnings (relaxed-match notes, dry-run PREVIEW ONLY) are part of the
     // edit contract; keep them when re-labelling.
     let warnings = ToolEnvelope.warnings(raw)
-    return ToolEnvelope.success(tool: tool, result: ToolEnvelope.successPayload(raw), warnings: warnings.isEmpty ? nil : warnings)
+    return ToolEnvelope.success(
+        tool: tool,
+        result: ToolEnvelope.successPayload(raw),
+        warnings: warnings.isEmpty ? nil : warnings
+    )
 }
 
 /// Route the public `shell_run` contract to the VM executor.
@@ -2108,7 +2127,9 @@ internal struct SandboxWriteFileTool: OsaurusTool, @unchecked Sendable {
                 ]),
                 "replace_all": .object([
                     "type": .string("boolean"),
-                    "description": .string("Edit only: replace every occurrence instead of requiring a unique match (default false)."),
+                    "description": .string(
+                        "Edit only: replace every occurrence instead of requiring a unique match (default false)."
+                    ),
                 ]),
                 "dry_run": .object([
                     "type": .string("boolean"),
@@ -2369,8 +2390,12 @@ internal struct SandboxWriteFileTool: OsaurusTool, @unchecked Sendable {
 
         let applied: FileEditTool.AppliedEdits
         switch FileEditTool.applyEdits(
-            requestedEdits, to: current.content, replaceAll: replaceAll, isBatch: isBatch,
-            relativePath: resolved, tool: name
+            requestedEdits,
+            to: current.content,
+            replaceAll: replaceAll,
+            isBatch: isBatch,
+            relativePath: resolved,
+            tool: name
         ) {
         case .success(let result): applied = result
         case .failureEnvelope(let envelope): return envelope
@@ -2391,10 +2416,17 @@ internal struct SandboxWriteFileTool: OsaurusTool, @unchecked Sendable {
         if dryRun {
             warnings.append(
                 "PREVIEW ONLY - nothing was written. The file is unchanged. "
-                    + "Repeat the same call WITHOUT dry_run to apply the edit.")
+                    + "Repeat the same call WITHOUT dry_run to apply the edit."
+            )
             return sandboxSuccess(
                 tool: name,
-                result: writeResult(resolved: resolved, before: current, after: applied.content, extra: extra, dryRun: true),
+                result: writeResult(
+                    resolved: resolved,
+                    before: current,
+                    after: applied.content,
+                    extra: extra,
+                    dryRun: true
+                ),
                 warnings: warnings
             )
         }
@@ -2474,7 +2506,10 @@ internal struct SandboxWriteFileTool: OsaurusTool, @unchecked Sendable {
         let beforeLines = before.split(separator: "\n", omittingEmptySubsequences: false).count
         let afterLines = after.split(separator: "\n", omittingEmptySubsequences: false).count
         let delta = afterLines - beforeLines
-        let change = delta == 0 ? "same line count" : (delta > 0 ? "+\(delta) line\(delta == 1 ? "" : "s")" : "\(delta) line\(delta == -1 ? "" : "s")")
+        let change =
+            delta == 0
+            ? "same line count"
+            : (delta > 0 ? "+\(delta) line\(delta == 1 ? "" : "s")" : "\(delta) line\(delta == -1 ? "" : "s")")
         return "applied \(edits) edit\(edits == 1 ? "" : "s") (\(change))"
     }
 

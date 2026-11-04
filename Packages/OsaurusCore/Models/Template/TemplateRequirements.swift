@@ -100,7 +100,11 @@ public struct SecretRequirement: Codable, Equatable, Sendable, Identifiable {
     public var id: String { key }
 
     public init(
-        key: String, label: String? = nil, help: String? = nil, oauth2: OAuth2Spec? = nil, service: String? = nil,
+        key: String,
+        label: String? = nil,
+        help: String? = nil,
+        oauth2: OAuth2Spec? = nil,
+        service: String? = nil,
         provider: String? = nil
     ) {
         self.key = key
@@ -159,8 +163,12 @@ public struct OAuth2Spec: Codable, Equatable, Sendable {
     public var authorizeParameters: [String: String]
 
     public init(
-        authorizeURL: String, tokenURL: String, scopes: [String] = [], clientID: String? = nil,
-        requiresClientSecret: Bool = false, authorizeParameters: [String: String] = [:]
+        authorizeURL: String,
+        tokenURL: String,
+        scopes: [String] = [],
+        clientID: String? = nil,
+        requiresClientSecret: Bool = false,
+        authorizeParameters: [String: String] = [:]
     ) {
         self.authorizeURL = authorizeURL
         self.tokenURL = tokenURL
@@ -358,10 +366,14 @@ public struct TemplateRequirements: Codable, Equatable, Sendable {
             out.append(
                 note(
                     TemplateRequirement(
-                        kind: .model, value: m.preferred ?? m.slot,
+                        kind: .model,
+                        value: m.preferred ?? m.slot,
                         label: m.slot == ModelRequirement.agentSlot ? nil : m.slot,
                         policy: m.strictness == .always ? .always : .preferred,
-                        slot: m.slot)))
+                        slot: m.slot
+                    )
+                )
+            )
         }
         for s in secrets {
             out.append(note(TemplateRequirement(kind: .secret, value: s.key, label: s.label)))
@@ -372,8 +384,12 @@ public struct TemplateRequirements: Codable, Equatable, Sendable {
             out.append(
                 note(
                     TemplateRequirement(
-                        kind: .systemPermission, value: raw,
-                        label: SystemPermission(rawValue: raw)?.displayName)))
+                        kind: .systemPermission,
+                        value: raw,
+                        label: SystemPermission(rawValue: raw)?.displayName
+                    )
+                )
+            )
         }
         for host in network { out.append(note(TemplateRequirement(kind: .network, value: host))) }
         for name in tools { out.append(note(TemplateRequirement(kind: .tool, value: name))) }
@@ -385,7 +401,12 @@ public struct TemplateRequirements: Codable, Equatable, Sendable {
             out.append(
                 note(
                     TemplateRequirement(
-                        kind: .workingFolder, value: folder.path, label: folder.label)))
+                        kind: .workingFolder,
+                        value: folder.path,
+                        label: folder.label
+                    )
+                )
+            )
         }
         return out
     }
@@ -422,7 +443,11 @@ public struct TemplateRequirement: Codable, Equatable, Sendable, Identifiable {
     }
 
     public init(
-        kind: Kind, value: String, label: String? = nil, policy: ModelPolicy? = nil, slot: String? = nil
+        kind: Kind,
+        value: String,
+        label: String? = nil,
+        policy: ModelPolicy? = nil,
+        slot: String? = nil
     ) {
         self.kind = kind
         self.value = value

@@ -34,7 +34,7 @@ struct ServerLifecycleLeakTests {
 
         let baseline = try #require(SharedEventLoopGroups.openFileDescriptorCount())
 
-        for _ in 0..<10 {
+        for _ in 0 ..< 10 {
             let server = OsaurusServer()
             try await server.start(.init(host: "127.0.0.1", port: 0), serverConfiguration: .default)
             #expect(await server.boundPort() != nil)
@@ -64,7 +64,8 @@ struct ServerLifecycleLeakTests {
         // Rebind on the SAME port that was just released — proves the
         // listener descriptor is actually closed, not merely forgotten.
         try await server.start(
-            .init(host: "127.0.0.1", port: firstPort), serverConfiguration: .default
+            .init(host: "127.0.0.1", port: firstPort),
+            serverConfiguration: .default
         )
         #expect(await server.boundPort() == firstPort)
         await server.stop(gracefully: false)

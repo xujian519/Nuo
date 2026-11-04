@@ -302,7 +302,7 @@ struct SubagentEvalTests {
                 expectRunsCompleted: 2,
                 expectRunsSettled: 3,
                 expectRunEnvelopeKinds: [
-                    "success", "execution_error", "success"
+                    "success", "execution_error", "success",
                 ],
                 expectWaveAggregateStatus: "partial_failure",
                 expectWaveJobIDs: ["ok-a", "failed", "ok-b"],

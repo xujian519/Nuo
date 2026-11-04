@@ -28,13 +28,17 @@ extension EvalRunner {
         let label = testCase.label ?? testCase.id
         guard let exp = testCase.expect.memory else {
             return Self.errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "missing `expect.memory`"
             )
         }
         guard let seeds = testCase.fixtures.seedMemory else {
             return Self.errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "memory case missing `fixtures.seedMemory` — nothing to recall"
             )
         }
@@ -58,7 +62,9 @@ extension EvalRunner {
             )
         } catch {
             return Self.errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "memory seeding failed: \(error.localizedDescription)"
             )
         }
@@ -138,9 +144,11 @@ extension EvalRunner {
         }
 
         for (index, turn) in transcript.turns.enumerated() {
-            notes.append(turn.decodeTokensPerSecond.map {
-                String(format: "turn %d decode tok/s: %.3f", index + 1, $0)
-            } ?? "turn \(index + 1): runtime decode tok/s unavailable")
+            notes.append(
+                turn.decodeTokensPerSecond.map {
+                    String(format: "turn %d decode tok/s: %.3f", index + 1, $0)
+                } ?? "turn \(index + 1): runtime decode tok/s unavailable"
+            )
         }
         return EvalCaseReport(
             id: testCase.id,

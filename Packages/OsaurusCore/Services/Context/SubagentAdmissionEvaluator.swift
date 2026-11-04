@@ -18,16 +18,19 @@ public enum SubagentAdmissionEvaluator {
         public let allocatorCacheAllowanceBytes: UInt64?
 
         fileprivate var memory: SubagentBatchMemoryFacts {
-            .init(canonicalModelKey: model, targetAlreadyResident: resident,
-                  targetLoadFootprintBytes: loadBytes,
-                  perActiveChildHeadroomBytes: childCapBytes,
-                  requestBoundedChildHeadroomBytes: childBytes,
-                  reclaimableBytes: availableBytes,
-                  releasableParentBytes: parentCreditBytes,
-                  resolvedLoadBudgetBytes: loadBudgetBytes,
-                  osHeadroomBytes: reserveBytes,
-                  memoryPressure: memoryPressure ?? .unknown,
-                  allocatorCacheAllowanceBytes: allocatorCacheAllowanceBytes)
+            .init(
+                canonicalModelKey: model,
+                targetAlreadyResident: resident,
+                targetLoadFootprintBytes: loadBytes,
+                perActiveChildHeadroomBytes: childCapBytes,
+                requestBoundedChildHeadroomBytes: childBytes,
+                reclaimableBytes: availableBytes,
+                releasableParentBytes: parentCreditBytes,
+                resolvedLoadBudgetBytes: loadBudgetBytes,
+                osHeadroomBytes: reserveBytes,
+                memoryPressure: memoryPressure ?? .unknown,
+                allocatorCacheAllowanceBytes: allocatorCacheAllowanceBytes
+            )
         }
     }
 
@@ -74,17 +77,23 @@ public enum SubagentAdmissionEvaluator {
                     samples += 1
                     return samples == 1 ? step.before?.memory : step.after?.memory
                 },
-                reclaim: { reclaims += 1; return step.reclaimSucceeds }
+                reclaim: {
+                    reclaims += 1; return step.reclaimSucceeds
+                }
             )
-            let plan = SubagentBatchAdmissionPlanner.plan(.init(
-                localJobCount: scenario.localJobs, remoteJobCount: scenario.remoteJobs,
-                agentParallelLimit: scenario.agentLimit,
-                engineParallelLimit: scenario.engineLimit,
-                engineSubmissionLimit: scenario.engineSubmissionLimit,
-                continuousBatchingEnabled: scenario.batching,
-                ramSafetyEnabled: scenario.ramSafety,
-                failClosedWhenEstimateUnknown: true, memory: facts
-            ))
+            let plan = SubagentBatchAdmissionPlanner.plan(
+                .init(
+                    localJobCount: scenario.localJobs,
+                    remoteJobCount: scenario.remoteJobs,
+                    agentParallelLimit: scenario.agentLimit,
+                    engineParallelLimit: scenario.engineLimit,
+                    engineSubmissionLimit: scenario.engineSubmissionLimit,
+                    continuousBatchingEnabled: scenario.batching,
+                    ramSafetyEnabled: scenario.ramSafety,
+                    failClosedWhenEstimateUnknown: true,
+                    memory: facts
+                )
+            )
             var subwaves: [Int] = []
             var reservationError = false
             if case .admitted = plan.verdict, scenario.localJobs > 0 {
@@ -93,7 +102,8 @@ public enum SubagentAdmissionEvaluator {
                     let result = await admission.reserveLocalInPlace(
                         modelKey: facts?.canonicalModelKey,
                         requestedSlots: min(remaining, plan.localParallelism),
-                        slotCapacity: plan.localCapacity, timeoutSeconds: 0.1
+                        slotCapacity: plan.localCapacity,
+                        timeoutSeconds: 0.1
                     )
                     guard case .admitted(let slots) = result else {
                         reservationError = true
@@ -106,14 +116,19 @@ public enum SubagentAdmissionEvaluator {
                 if remaining > 0 { reservationError = true }
             }
             let snapshot = await admission.snapshot()
-            observations.append(.init(
-                capacity: plan.localCapacity, width: plan.localParallelism,
-                weightCharge: plan.incrementalWeightChargeBytes,
-                limitingFactors: plan.limitingFactors.map(\.rawValue).sorted(),
-                samples: samples, reclaims: reclaims, subwaves: subwaves,
-                remainingReservations: snapshot.inPlace + snapshot.exclusive + snapshot.remote,
-                reservationError: reservationError
-            ))
+            observations.append(
+                .init(
+                    capacity: plan.localCapacity,
+                    width: plan.localParallelism,
+                    weightCharge: plan.incrementalWeightChargeBytes,
+                    limitingFactors: plan.limitingFactors.map(\.rawValue).sorted(),
+                    samples: samples,
+                    reclaims: reclaims,
+                    subwaves: subwaves,
+                    remainingReservations: snapshot.inPlace + snapshot.exclusive + snapshot.remote,
+                    reservationError: reservationError
+                )
+            )
         }
         return observations
     }

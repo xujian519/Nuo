@@ -145,7 +145,8 @@ final class VideoSubagentKind: SubagentKind, @unchecked Sendable {
         do {
             let media = try await MediaGenerationCoordinator.shared.generateVideo(
                 request,
-                approvedQuote: quote, interrupt: interrupt
+                approvedQuote: quote,
+                interrupt: interrupt
             ) { event in
                 switch event {
                 case .queued(let id):
@@ -182,7 +183,9 @@ final class VideoSubagentKind: SubagentKind, @unchecked Sendable {
                 ],
             ]
             if let effective = media.effectiveVideo {
-                payload["effective_parameters"] = try JSONSerialization.jsonObject(with: JSONEncoder().encode(effective))
+                payload["effective_parameters"] = try JSONSerialization.jsonObject(
+                    with: JSONEncoder().encode(effective)
+                )
             }
             return SubagentResult(payload: payload, summary: "Generated a video with \(resolved.name).")
         } catch let error as MediaGenerationError {
@@ -221,8 +224,13 @@ final class VideoSubagentKind: SubagentKind, @unchecked Sendable {
             aspectRatio: params.aspectRatio,
             resolution: params.resolution,
             audio: params.audio,
-            width: params.width, height: params.height, frameCount: params.frameCount,
-            fps: params.fps, steps: params.steps, guidance: params.guidance, seed: params.seed
+            width: params.width,
+            height: params.height,
+            frameCount: params.frameCount,
+            fps: params.fps,
+            steps: params.steps,
+            guidance: params.guidance,
+            seed: params.seed
         )
     }
 

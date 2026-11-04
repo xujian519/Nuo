@@ -107,7 +107,10 @@ public final class RemoteAgentManager: ObservableObject {
         avatar: String?,
         providerId: UUID? = nil
     ) {
-        guard var agent = providerId.flatMap({ remoteAgent(forProviderId: $0) }) ?? (providerId == nil ? remoteAgent(forAddress: address) : nil) else { return }
+        guard
+            var agent = providerId.flatMap({ remoteAgent(forProviderId: $0) })
+                ?? (providerId == nil ? remoteAgent(forAddress: address) : nil)
+        else { return }
         var changed = false
         // Workspace pairings are named by the sharer's router display name
         // (what every teammate sees); the host's local agent name must not
@@ -347,7 +350,9 @@ public final class RemoteAgentManager: ObservableObject {
     /// Record the model the host reported for a paired agent (Workspaces
     /// handshake/refresh). No-op when unchanged or no pairing exists.
     public func updateModel(_ model: String?, forAddress address: String, workspaceId: String? = nil) {
-        guard var agent = remoteAgent(forAddress: address, workspaceId: workspaceId), agent.model != model else { return }
+        guard var agent = remoteAgent(forAddress: address, workspaceId: workspaceId), agent.model != model else {
+            return
+        }
         agent.model = model
         RemoteAgentStore.save(agent)
         refresh()
@@ -384,7 +389,8 @@ public final class RemoteAgentManager: ObservableObject {
         guard let agent = remoteAgent(for: id) else { return false }
         // A workspace pairing has a live key-refresh loop; end it with the
         // pairing rather than letting it wake up against a deleted record.
-        WorkspaceAgentConnectService.shared.stopRefreshing(agentAddress: agent.agentAddress,
+        WorkspaceAgentConnectService.shared.stopRefreshing(
+            agentAddress: agent.agentAddress,
             workspaceId: agent.workspaceId
         )
         destroy(agent)

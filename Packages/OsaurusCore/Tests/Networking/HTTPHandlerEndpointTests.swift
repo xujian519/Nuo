@@ -56,9 +56,12 @@ struct HTTPHandlerEndpointTests {
         for responses in [false, true] {
             for number in ["9007199254740993", "1.0000000000000001", "9.007199254740993e15"] {
                 let suffix = "{\"const\":" + number + "}"
-                let body = responses
-                    ? "{\"model\":\"fake\",\"input\":\"test\",\"stream\":true,\"text\":{\"format\":{\"type\":\"json_schema\",\"name\":\"n\",\"schema\":" + suffix + "}}}"
-                    : "{\"model\":\"fake\",\"messages\":[],\"stream\":true,\"response_format\":{\"type\":\"json_schema\",\"json_schema\":{\"name\":\"n\",\"schema\":" + suffix + "}}}"
+                let body =
+                    responses
+                    ? "{\"model\":\"fake\",\"input\":\"test\",\"stream\":true,\"text\":{\"format\":{\"type\":\"json_schema\",\"name\":\"n\",\"schema\":"
+                        + suffix + "}}}"
+                    : "{\"model\":\"fake\",\"messages\":[],\"stream\":true,\"response_format\":{\"type\":\"json_schema\",\"json_schema\":{\"name\":\"n\",\"schema\":"
+                        + suffix + "}}}"
                 let path = responses ? "/v1/responses" : "/v1/chat/completions"
                 var request = URLRequest(url: URL(string: "http://\(server.host):\(server.port)\(path)")!)
                 request.httpMethod = "POST"
@@ -178,7 +181,8 @@ struct HTTPHandlerEndpointTests {
         try await withOverriddenRuntimeSettingsDirectory(dir) {
             var settings = VMLXServerRuntimeSettings()
             settings.performance = VMLXServerPerformanceSettings(
-                deepseekV4ActivationQAT: true)
+                deepseekV4ActivationQAT: true
+            )
             ServerRuntimeSettingsStore.save(settings)
 
             let server = try await startServer()
@@ -186,14 +190,19 @@ struct HTTPHandlerEndpointTests {
 
             let (data, resp) = try await URLSession.shared.data(
                 from: URL(
-                    string: "http://\(server.host):\(server.port)/admin/cache-stats")!)
+                    string: "http://\(server.host):\(server.port)/admin/cache-stats"
+                )!
+            )
             #expect((resp as? HTTPURLResponse)?.statusCode == 200)
             let object = try #require(
-                JSONSerialization.jsonObject(with: data) as? [String: Any])
+                JSONSerialization.jsonObject(with: data) as? [String: Any]
+            )
             let memorySafety = try #require(
-                object["memory_safety"] as? [String: Any])
+                object["memory_safety"] as? [String: Any]
+            )
             let loadConfiguration = try #require(
-                memorySafety["load_configuration"] as? [String: Any])
+                memorySafety["load_configuration"] as? [String: Any]
+            )
 
             #expect(loadConfiguration["deepseek_v4_activation_qat"] as? Bool == true)
         }
@@ -359,7 +368,9 @@ struct HTTPHandlerEndpointTests {
             let (qatData, qatResp) = try await putRuntimeSettings(qatOn, server: server)
             #expect((qatResp as? HTTPURLResponse)?.statusCode == 200)
             let qatDecoded = try JSONDecoder().decode(
-                RuntimeSettingsResponse.self, from: qatData)
+                RuntimeSettingsResponse.self,
+                from: qatData
+            )
             #expect(qatDecoded.effects?.loadedModelRefreshNeeded == true)
             #expect(qatDecoded.effects?.compiledDecodeRestartRequired == false)
             #expect(qatDecoded.settings.effectivePerformance.deepseekV4ActivationQAT == true)
@@ -474,14 +485,14 @@ struct HTTPHandlerEndpointTests {
             #expect(obj?["description_required"] == nil)
             #expect(obj?["description_validation"] == nil)
             let (listData, listResponse) = try await URLSession.shared.data(
-                from: URL(string: "http://\(server.host):\(server.port)/agents")!)
+                from: URL(string: "http://\(server.host):\(server.port)/agents")!
+            )
             #expect((listResponse as? HTTPURLResponse)?.statusCode == 200)
             let list = try JSONSerialization.jsonObject(with: listData) as? [String: Any]
             let rows = list?["agents"] as? [[String: Any]]
             let listed = rows?.first { $0["id"] as? String == hostAgentId.uuidString }
             #expect(listed != nil)
             #expect(listed?["description_required"] == nil)
-
 
             // An address with no registry mapping still fails closed.
             let unknown = "0xdead000000000000000000000000000000000000"

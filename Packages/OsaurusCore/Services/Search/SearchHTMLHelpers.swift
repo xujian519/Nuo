@@ -173,10 +173,12 @@ enum SearchHTML {
     }
 
     static func canonicalURL(in html: String, baseURL: URL? = nil) -> String? {
-        guard let regex = try? NSRegularExpression(
-            pattern: "<link\\b[^>]*>",
-            options: .caseInsensitive
-        ) else { return nil }
+        guard
+            let regex = try? NSRegularExpression(
+                pattern: "<link\\b[^>]*>",
+                options: .caseInsensitive
+            )
+        else { return nil }
         let matches = regex.matches(in: html, range: NSRange(html.startIndex..., in: html))
         for match in matches {
             guard let range = Range(match.range, in: html) else { continue }
@@ -226,7 +228,8 @@ enum SearchHTML {
 
     private static func blockedHostReason(_ host: String) -> String? {
         if host == "localhost" || host == "ip6-localhost" || host == "ip6-loopback"
-            || host.hasSuffix(".localhost") {
+            || host.hasSuffix(".localhost")
+        {
             return "localhost is blocked"
         }
         if let octets = parsedIPv4(host) {
@@ -295,13 +298,13 @@ enum SearchHTML {
             return "multicast IPv6 is blocked"
         }
         if octets.prefix(10).allSatisfy({ $0 == 0 }) && octets[10] == 0xff && octets[11] == 0xff {
-            let v4 = Array(octets[12...15])
+            let v4 = Array(octets[12 ... 15])
             if let blocked = blockedIPv4Reason(v4) {
                 return "IPv6-mapped \(blocked)"
             }
         }
         if octets.prefix(12).allSatisfy({ $0 == 0 }) {
-            let v4 = Array(octets[12...15])
+            let v4 = Array(octets[12 ... 15])
             if let blocked = blockedIPv4Reason(v4) {
                 return "IPv6-compatible \(blocked)"
             }
@@ -380,7 +383,10 @@ enum SearchHTML {
                 options: .caseInsensitive
             ) {
                 out = regex.stringByReplacingMatches(
-                    in: out, range: NSRange(out.startIndex..., in: out), withTemplate: " ")
+                    in: out,
+                    range: NSRange(out.startIndex..., in: out),
+                    withTemplate: " "
+                )
             }
         }
         return out
@@ -409,7 +415,10 @@ enum SearchHTML {
         ]
         for (tag, prefix, suffix) in blocks {
             s = s.replacingOccurrences(
-                of: "<\(tag)\\b[^>]*>", with: prefix, options: [.regularExpression, .caseInsensitive])
+                of: "<\(tag)\\b[^>]*>",
+                with: prefix,
+                options: [.regularExpression, .caseInsensitive]
+            )
             s = s.replacingOccurrences(of: "</\(tag)>", with: suffix, options: [.regularExpression, .caseInsensitive])
         }
         let inlines: [(String, String)] = [
@@ -419,11 +428,17 @@ enum SearchHTML {
         ]
         for (tag, marker) in inlines {
             s = s.replacingOccurrences(
-                of: "<\(tag)\\b[^>]*>", with: marker, options: [.regularExpression, .caseInsensitive])
+                of: "<\(tag)\\b[^>]*>",
+                with: marker,
+                options: [.regularExpression, .caseInsensitive]
+            )
             s = s.replacingOccurrences(of: "</\(tag)>", with: marker, options: [.regularExpression, .caseInsensitive])
         }
         s = s.replacingOccurrences(
-            of: "<pre\\b[^>]*>", with: "\n\n```\n", options: [.regularExpression, .caseInsensitive])
+            of: "<pre\\b[^>]*>",
+            with: "\n\n```\n",
+            options: [.regularExpression, .caseInsensitive]
+        )
         s = s.replacingOccurrences(of: "</pre>", with: "\n```\n\n", options: [.regularExpression, .caseInsensitive])
         if let regex = try? NSRegularExpression(
             pattern: "<a\\s+[^>]*\\bhref=[\"']([^\"']+)[\"'][^>]*>([\\s\\S]*?)</a>",

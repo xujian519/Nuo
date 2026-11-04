@@ -111,7 +111,9 @@ struct SpawnWaveGateTests {
         #expect(outcome.verdicts["r1"] == .allow)
         #expect(outcome.verdicts["r2"] == .allow)
         guard case .unavailable(let localReason)? = outcome.verdicts["l3"] else {
-            Issue.record("third local member must be refused for capacity, got \(String(describing: outcome.verdicts["l3"]))")
+            Issue.record(
+                "third local member must be refused for capacity, got \(String(describing: outcome.verdicts["l3"]))"
+            )
             return
         }
         #expect(localReason.contains("3 local subagents"))
@@ -209,7 +211,9 @@ struct SpawnWaveGateTests {
         #expect(verdicts["a"] == .allow)
         #expect(verdicts["b"] == .allow, "remote member does not consume the local limit")
         guard case .unavailable? = verdicts["c"] ?? nil else {
-            Issue.record("second local member over a local limit of 1 must be refused; got \(String(describing: verdicts["c"]))")
+            Issue.record(
+                "second local member over a local limit of 1 must be refused; got \(String(describing: verdicts["c"]))"
+            )
             return
         }
     }
@@ -253,7 +257,10 @@ struct SpawnWaveGateTests {
                 for id in ["a", "b"] {
                     group.addTask {
                         await gate.join(
-                            self.member(id), wave: context, limits: SpawnFanOutLimits(local: 3, remote: 8))
+                            self.member(id),
+                            wave: context,
+                            limits: SpawnFanOutLimits(local: 3, remote: 8)
+                        )
                     }
                 }
                 var out: [SubagentDecision?] = []
@@ -315,7 +322,10 @@ struct SpawnWaveGateTests {
             ["a", "b"].map { id in
                 Task {
                     await gate.join(
-                        self.member(id), wave: context, limits: SpawnFanOutLimits(local: 3, remote: 8))
+                        self.member(id),
+                        wave: context,
+                        limits: SpawnFanOutLimits(local: 3, remote: 8)
+                    )
                 }
             }
         }

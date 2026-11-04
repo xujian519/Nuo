@@ -107,8 +107,11 @@ struct ContextOptimizerTests {
 
     @Test func metricsExtractFromReportRows() {
         let ctx = ContextAttribution(
-            sections: [], tools: [],
-            systemPromptTokens: 0, toolSchemaTokens: 0, staticPrefixTokens: 0,
+            sections: [],
+            tools: [],
+            systemPromptTokens: 0,
+            toolSchemaTokens: 0,
+            staticPrefixTokens: 0,
             firstStepInputTokens: 1200
         )
         let telemetry = EvalCaseTelemetry(
@@ -123,22 +126,44 @@ struct ContextOptimizerTests {
             startedAt: "2026-07-20T00:00:00Z",
             cases: [
                 EvalCaseReport(
-                    id: "agent_loop.a", label: "a", domain: "agent_loop", query: nil,
-                    outcome: .passed, notes: [], modelId: "m", latencyMs: 1,
-                    telemetry: telemetry, context: ctx
+                    id: "agent_loop.a",
+                    label: "a",
+                    domain: "agent_loop",
+                    query: nil,
+                    outcome: .passed,
+                    notes: [],
+                    modelId: "m",
+                    latencyMs: 1,
+                    telemetry: telemetry,
+                    context: ctx
                 ),
                 EvalCaseReport(
-                    id: "agent_loop.b", label: "b", domain: "agent_loop", query: nil,
-                    outcome: .failed, notes: [], modelId: "m", latencyMs: 1
+                    id: "agent_loop.b",
+                    label: "b",
+                    domain: "agent_loop",
+                    query: nil,
+                    outcome: .failed,
+                    notes: [],
+                    modelId: "m",
+                    latencyMs: 1
                 ),
                 EvalCaseReport(
-                    id: "agent_loop.c", label: "c", domain: "agent_loop", query: nil,
-                    outcome: .skipped, notes: [], modelId: "m", latencyMs: nil
+                    id: "agent_loop.c",
+                    label: "c",
+                    domain: "agent_loop",
+                    query: nil,
+                    outcome: .skipped,
+                    notes: [],
+                    modelId: "m",
+                    latencyMs: nil
                 ),
             ]
         )
         let m = ParetoCandidateMetrics.from(
-            name: "x", report: report, gatePassed: true, gateNotes: []
+            name: "x",
+            report: report,
+            gatePassed: true,
+            gateNotes: []
         )
         #expect(m.passed == 1)
         #expect(m.scored == 2)  // skipped rows are not scored

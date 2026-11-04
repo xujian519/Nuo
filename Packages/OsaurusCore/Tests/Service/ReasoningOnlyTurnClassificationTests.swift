@@ -37,15 +37,22 @@ struct ReasoningOnlyTurnClassificationTests {
             stopReason: "stop",
             unclosedReasoning: false,
             // First turn: tools are advertised, none has run yet.
-            requiresVisibleFinalResponse: AgentLoopVisibleResponsePolicy
+            requiresVisibleFinalResponse:
+                AgentLoopVisibleResponsePolicy
                 .requiresVisibleFinalResponse(
-                    hasStructuredToolWork: false, isRemoteAgentTarget: false),
+                    hasStructuredToolWork: false,
+                    isRemoteAgentTarget: false
+                ),
             toolsWereOffered: true
         )
-        #expect(!isFinal(terminal),
-            "a turn that produced no content and no tool call was classified as a completed answer")
-        #expect(isIncompleteReasoning(terminal),
-            "expected the recoverable reasoning-only reason, got \(terminal)")
+        #expect(
+            !isFinal(terminal),
+            "a turn that produced no content and no tool call was classified as a completed answer"
+        )
+        #expect(
+            isIncompleteReasoning(terminal),
+            "expected the recoverable reasoning-only reason, got \(terminal)"
+        )
     }
 
     /// The existing policy is deliberate for plain chats: a reasoning-only
@@ -61,20 +68,25 @@ struct ReasoningOnlyTurnClassificationTests {
             requiresVisibleFinalResponse: false,
             toolsWereOffered: false
         )
-        #expect(isFinal(terminal),
-            "reasoning-only bundles with no tools must still be allowed to finish")
+        #expect(
+            isFinal(terminal),
+            "reasoning-only bundles with no tools must still be allowed to finish"
+        )
     }
 
-    @Test("structured tool work still forces a visible answer") 
+    @Test("structured tool work still forces a visible answer")
     func afterToolWorkStillRequiresAnswer() {
         let terminal = AgentLoopModelStep.classifyTerminal(
             contentIsBlank: true,
             thinkingIsBlank: false,
             stopReason: "stop",
             unclosedReasoning: false,
-            requiresVisibleFinalResponse: AgentLoopVisibleResponsePolicy
+            requiresVisibleFinalResponse:
+                AgentLoopVisibleResponsePolicy
                 .requiresVisibleFinalResponse(
-                    hasStructuredToolWork: true, isRemoteAgentTarget: false),
+                    hasStructuredToolWork: true,
+                    isRemoteAgentTarget: false
+                ),
             toolsWereOffered: true
         )
         #expect(isIncompleteReasoning(terminal))

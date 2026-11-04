@@ -33,7 +33,9 @@ struct ProjectFolderSandboxConflictTests {
 
     private func makeFolder() throws -> URL {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(
-            "osaurus-project-folder-\(UUID().uuidString)", isDirectory: true)
+            "osaurus-project-folder-\(UUID().uuidString)",
+            isDirectory: true
+        )
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
@@ -97,7 +99,8 @@ struct ProjectFolderSandboxConflictTests {
 
             #expect(window.session.projectId == project.id)
             #expect(
-                context?.rootPath.standardizedFileURL.path == folder.standardizedFileURL.path)
+                context?.rootPath.standardizedFileURL.path == folder.standardizedFileURL.path
+            )
             // The sandbox change follows the restore; wait for it.
             try await waitUntil(timeout: .seconds(5)) {
                 persistedSandboxEnabled(for: agent.id) == false
@@ -180,7 +183,8 @@ struct ProjectFolderSandboxConflictTests {
             #expect(window.adoptProjectFolder(project) == nil)
             #expect(
                 window.session.folderState.rootPath?.standardizedFileURL.path
-                    == own.standardizedFileURL.path)
+                    == own.standardizedFileURL.path
+            )
             window.session.folderState.clearFolder()
         }
     }
@@ -291,7 +295,10 @@ struct ProjectFolderSandboxConflictTests {
             AgentManager.shared.add(agent)
             defer { Task { _ = await AgentManager.shared.delete(id: agent.id) } }
             AgentManager.shared.updateWorkingFolder(
-                for: agent.id, bookmark: nil, path: agentFolder.path)
+                for: agent.id,
+                bookmark: nil,
+                path: agentFolder.path
+            )
             let project = ProjectManager.shared.create(name: "Precedence Project")
             defer { ProjectManager.shared.delete(id: project.id) }
             var withFolder = project
@@ -339,7 +346,10 @@ struct ProjectFolderSandboxConflictTests {
             AgentManager.shared.add(agent)
             defer { Task { _ = await AgentManager.shared.delete(id: agent.id) } }
             AgentManager.shared.updateWorkingFolder(
-                for: agent.id, bookmark: nil, path: agentFolder.path)
+                for: agent.id,
+                bookmark: nil,
+                path: agentFolder.path
+            )
 
             let window = ChatWindowState(windowId: UUID(), agentId: agent.id)
             _ = await window.session.folderState.contextWaitingForRestore()
@@ -367,7 +377,10 @@ struct ProjectFolderSandboxConflictTests {
             let before = DefaultAgentConfigurationStore.load()
             defer { DefaultAgentConfigurationStore.save(before) }
             AgentManager.shared.updateWorkingFolder(
-                for: Agent.defaultId, bookmark: nil, path: folder.path)
+                for: Agent.defaultId,
+                bookmark: nil,
+                path: folder.path
+            )
             let defaultWindow = ChatWindowState(windowId: UUID(), agentId: Agent.defaultId)
             #expect(defaultWindow.session.folderFromAgentDefault)
             let defaultContext = await defaultWindow.session.folderState.contextWaitingForRestore()

@@ -57,7 +57,8 @@ enum AgentChannelSelectorList {
         browseLimit: Int = Self.browseLimit
     ) -> Shaped<Entry, State> {
         let needle = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let matches = needle.isEmpty
+        let matches =
+            needle.isEmpty
             ? entries
             : entries.filter { entry in
                 fields(entry).contains { $0.lowercased().contains(needle) }

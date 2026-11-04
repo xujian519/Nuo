@@ -33,8 +33,11 @@ struct SkillAllowListTests {
     func builtInSkillsMatchTheirEnglishSlugInEveryLanguage() throws {
         let researcher = try #require(Skill.builtInSkills.first { $0.directoryName == "web-researcher" })
         let localized = Skill(
-            id: researcher.id, name: "Investigador web", isBuiltIn: true,
-            directoryName: researcher.directoryName)
+            id: researcher.id,
+            name: "Investigador web",
+            isBuiltIn: true,
+            directoryName: researcher.directoryName
+        )
         #expect(localized.matchesAllowListEntry("web-researcher"))
         for skill in Skill.builtInSkills {
             let slug = try #require(skill.directoryName)
@@ -84,7 +87,8 @@ struct SkillAllowListTests {
               - name: C
                 skills: []
               - name: D
-            """)
+            """
+        )
         let agents = try #require(doc.agents)
         #expect(agents[0].skills == .value(["triage-ticket", "Code Review"]))
         #expect(agents[1].skills == .null)
@@ -125,7 +129,8 @@ struct SkillAllowListTests {
             isPermissionGranted: { _ in true },
             bookmarkResolves: { _ in true },
             knowledgeCollectionExists: { _ in true },
-            installedSkills: [triage])
+            installedSkills: [triage]
+        )
         let report = SetupChecker.check(agent, environment: env)
         #expect(report.items.count == 1)
         #expect(report.items.first?.kind == .skill)

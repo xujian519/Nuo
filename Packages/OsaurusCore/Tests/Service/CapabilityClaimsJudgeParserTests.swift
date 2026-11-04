@@ -153,7 +153,8 @@ struct CapabilityClaimsJudgePolarityTests {
         let source = try String(
             contentsOf: URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
                 .deletingLastPathComponent().appendingPathComponent("Services/Context/CapabilityClaimsEvaluator.swift"),
-            encoding: .utf8)
+            encoding: .utf8
+        )
         #expect(source.contains(#"{"verdicts": [{"reason": "<short>", "pass": true}, ...]}"#))
         #expect(source.contains("HOLDS \\\n"))
     }

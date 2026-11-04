@@ -78,7 +78,8 @@ enum ToolDisplayName {
             guard pendingBytes > 0 else { return L("Preparing tool call") }
             return String(
                 format: L("Preparing tool call (%@)"),
-                formattedByteCount(pendingBytes))
+                formattedByteCount(pendingBytes)
+            )
         }
         // A completed call whose result was an error must not read as success:
         // the past tense ("Wrote a file") would contradict the red error node
@@ -232,7 +233,10 @@ enum ToolDisplayName {
         var result = sentenceCased
         for (word, acronym) in [("pii", "PII"), ("Pii", "PII"), ("url", "URL"), ("Url", "URL")] {
             result = result.replacingOccurrences(
-                of: "\\b\(word)\\b", with: acronym, options: .regularExpression)
+                of: "\\b\(word)\\b",
+                with: acronym,
+                options: .regularExpression
+            )
         }
         return result
     }
@@ -286,9 +290,13 @@ enum ToolDisplayName {
         "file_tree": ToolLabel(L("Browsing files"), L("Browsed files")),
         "shell_run": ToolLabel(L("Running a command"), L("Ran a command")),
         "detect_pii": ToolLabel(
-            L("Scanning for personal information"), L("Scanned for personal information")),
+            L("Scanning for personal information"),
+            L("Scanned for personal information")
+        ),
         "redact_file": ToolLabel(
-            L("Redacting personal information"), L("Redacted personal information")),
+            L("Redacting personal information"),
+            L("Redacted personal information")
+        ),
         "git_status": ToolLabel(L("Checking git status"), L("Checked git status")),
         "git_diff": ToolLabel(L("Viewing changes"), L("Viewed changes")),
         "git_commit": ToolLabel(L("Committing changes"), L("Committed changes")),

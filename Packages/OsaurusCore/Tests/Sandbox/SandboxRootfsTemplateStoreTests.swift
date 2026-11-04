@@ -32,13 +32,21 @@ struct SandboxRootfsTemplateStoreTests {
     @Test
     func templateKey_isStableAndDistinguishesInputs() {
         let a = SandboxRootfsTemplateStore.templateKey(
-            imageReference: "ghcr.io/x@sha256:aaa", runtimeFormatVersion: "cz-0.35.0-oci")
+            imageReference: "ghcr.io/x@sha256:aaa",
+            runtimeFormatVersion: "cz-0.35.0-oci"
+        )
         let b = SandboxRootfsTemplateStore.templateKey(
-            imageReference: "ghcr.io/x@sha256:aaa", runtimeFormatVersion: "cz-0.35.0-oci")
+            imageReference: "ghcr.io/x@sha256:aaa",
+            runtimeFormatVersion: "cz-0.35.0-oci"
+        )
         let c = SandboxRootfsTemplateStore.templateKey(
-            imageReference: "ghcr.io/x@sha256:bbb", runtimeFormatVersion: "cz-0.35.0-oci")
+            imageReference: "ghcr.io/x@sha256:bbb",
+            runtimeFormatVersion: "cz-0.35.0-oci"
+        )
         let d = SandboxRootfsTemplateStore.templateKey(
-            imageReference: "ghcr.io/x@sha256:aaa", runtimeFormatVersion: "cz-0.36.0-oci")
+            imageReference: "ghcr.io/x@sha256:aaa",
+            runtimeFormatVersion: "cz-0.36.0-oci"
+        )
         #expect(a == b)
         #expect(a != c)
         #expect(a != d)
@@ -178,7 +186,10 @@ struct SandboxRootfsTemplateStoreTests {
             )
 
             let evicted = SandboxRootfsTemplateStore.enforceLimit(
-                max: 2, currentKey: "k1", protecting: "agent-d")
+                max: 2,
+                currentKey: "k1",
+                protecting: "agent-d"
+            )
 
             // b and c are the least recently used unprotected clones.
             #expect(Set(evicted) == ["agent-b", "agent-c"])
@@ -201,7 +212,10 @@ struct SandboxRootfsTemplateStoreTests {
             _ = try SandboxRootfsTemplateStore.ensureEnvironment(agentName: "agent-new", key: "k-new")
 
             let evicted = SandboxRootfsTemplateStore.enforceLimit(
-                max: 10, currentKey: "k-new", protecting: "agent-new")
+                max: 10,
+                currentKey: "k-new",
+                protecting: "agent-new"
+            )
             #expect(evicted == ["agent-old"])
             #expect(SandboxRootfsTemplateStore.environmentIsValid(agentName: "agent-new", key: "k-new"))
         }
@@ -216,7 +230,10 @@ struct SandboxRootfsTemplateStoreTests {
             _ = try SandboxRootfsTemplateStore.ensureEnvironment(agentName: "agent-only", key: "k1")
 
             let evicted = SandboxRootfsTemplateStore.enforceLimit(
-                max: 1, currentKey: "k1", protecting: "agent-only")
+                max: 1,
+                currentKey: "k1",
+                protecting: "agent-only"
+            )
             #expect(evicted.isEmpty)
             #expect(SandboxRootfsTemplateStore.environmentIsValid(agentName: "agent-only", key: "k1"))
         }

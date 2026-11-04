@@ -38,7 +38,9 @@ public enum KnowledgeLinkResolver {
         guard !observerInstalled else { return }
         observerInstalled = true
         NotificationCenter.default.addObserver(
-            forName: .knowledgeCollectionsChanged, object: nil, queue: .main
+            forName: .knowledgeCollectionsChanged,
+            object: nil,
+            queue: .main
         ) { _ in
             MainActor.assumeIsolated { cache.removeAll() }
         }

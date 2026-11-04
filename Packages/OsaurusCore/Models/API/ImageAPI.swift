@@ -160,8 +160,14 @@ struct VideoGenerationRequestDTO: Decodable {
             duration: duration,
             aspectRatio: aspect_ratio,
             resolution: resolution,
-            audio: audio, width: width, height: height, frameCount: frame_count,
-            fps: fps, steps: steps, guidance: guidance, seed: seed
+            audio: audio,
+            width: width,
+            height: height,
+            frameCount: frame_count,
+            fps: fps,
+            steps: steps,
+            guidance: guidance,
+            seed: seed
         )
     }
 }

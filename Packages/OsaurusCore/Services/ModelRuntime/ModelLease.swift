@@ -164,7 +164,8 @@ public actor ModelLease {
                         continuation.resume()
                     } else {
                         waiters[name, default: []].append(
-                            Waiter(id: id, continuation: continuation, timeoutItem: nil))
+                            Waiter(id: id, continuation: continuation, timeoutItem: nil)
+                        )
                     }
                 }
             } onCancel: {

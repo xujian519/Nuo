@@ -237,10 +237,20 @@ struct MemoryDatabaseTests {
             Episode(agentId: "b", conversationId: "c-b", summary: "sb", conversationAt: "2025-01-01T00:00:00Z")
         )
         try db.insertTranscriptTurn(
-            agentId: "a", conversationId: "c-a", chunkIndex: 0, role: "user", content: "hi", tokenCount: 1
+            agentId: "a",
+            conversationId: "c-a",
+            chunkIndex: 0,
+            role: "user",
+            content: "hi",
+            tokenCount: 1
         )
         try db.insertTranscriptTurn(
-            agentId: "b", conversationId: "c-b", chunkIndex: 0, role: "user", content: "yo", tokenCount: 1
+            agentId: "b",
+            conversationId: "c-b",
+            chunkIndex: 0,
+            role: "user",
+            content: "yo",
+            tokenCount: 1
         )
         try db.insertPendingSignal(PendingSignal(agentId: "a", conversationId: "c-a", userMessage: "hi"))
         try db.insertPendingSignal(PendingSignal(agentId: "b", conversationId: "c-b", userMessage: "yo"))
@@ -852,28 +862,36 @@ struct ProjectMemoryTranscriptTests {
         let db = try makeTempDB()
         let ns = projectKey(UUID())
         let conv = "conv-1"
-        for i in 0..<10 {
+        for i in 0 ..< 10 {
             try db.insertTranscriptTurn(
-                agentId: ns, conversationId: conv, chunkIndex: i,
-                role: i % 2 == 0 ? "user" : "assistant", content: "turn \(i)", tokenCount: 2
+                agentId: ns,
+                conversationId: conv,
+                chunkIndex: i,
+                role: i % 2 == 0 ? "user" : "assistant",
+                content: "turn \(i)",
+                tokenCount: 2
             )
         }
 
         let deleted = try db.pruneTranscript(agentId: ns, conversationId: conv, keepLast: 4)
 
         // The six oldest chunk indexes (0...5) are deleted; 6...9 survive.
-        #expect(Set(deleted) == Set(0...5))
+        #expect(Set(deleted) == Set(0 ... 5))
         let remaining = try db.loadTranscript(agentId: ns, days: 3650, limit: 100)
-        #expect(Set(remaining.map(\.chunkIndex)) == Set(6...9))
+        #expect(Set(remaining.map(\.chunkIndex)) == Set(6 ... 9))
     }
 
     @Test func pruneIsNoOpWhenWithinKeepLast() throws {
         let db = try makeTempDB()
         let ns = projectKey(UUID())
-        for i in 0..<3 {
+        for i in 0 ..< 3 {
             try db.insertTranscriptTurn(
-                agentId: ns, conversationId: "c", chunkIndex: i, role: "user",
-                content: "t\(i)", tokenCount: 1
+                agentId: ns,
+                conversationId: "c",
+                chunkIndex: i,
+                role: "user",
+                content: "t\(i)",
+                tokenCount: 1
             )
         }
         let deleted = try db.pruneTranscript(agentId: ns, conversationId: "c", keepLast: 4)
@@ -884,16 +902,24 @@ struct ProjectMemoryTranscriptTests {
     @Test func pruneScopesToOneConversation() throws {
         let db = try makeTempDB()
         let ns = projectKey(UUID())
-        for i in 0..<6 {
+        for i in 0 ..< 6 {
             try db.insertTranscriptTurn(
-                agentId: ns, conversationId: "keep", chunkIndex: i, role: "user",
-                content: "k\(i)", tokenCount: 1
+                agentId: ns,
+                conversationId: "keep",
+                chunkIndex: i,
+                role: "user",
+                content: "k\(i)",
+                tokenCount: 1
             )
         }
-        for i in 0..<6 {
+        for i in 0 ..< 6 {
             try db.insertTranscriptTurn(
-                agentId: ns, conversationId: "prune", chunkIndex: i, role: "user",
-                content: "p\(i)", tokenCount: 1
+                agentId: ns,
+                conversationId: "prune",
+                chunkIndex: i,
+                role: "user",
+                content: "p\(i)",
+                tokenCount: 1
             )
         }
         _ = try db.pruneTranscript(agentId: ns, conversationId: "prune", keepLast: 2)
@@ -907,8 +933,12 @@ struct ProjectMemoryTranscriptTests {
         let db = try makeTempDB()
         let ns = projectKey(UUID())
         try db.insertTranscriptTurn(
-            agentId: ns, conversationId: "c", chunkIndex: 0, role: "user",
-            content: "shared fact", tokenCount: 2
+            agentId: ns,
+            conversationId: "c",
+            chunkIndex: 0,
+            role: "user",
+            content: "shared fact",
+            tokenCount: 2
         )
         _ = try db.insertEpisode(
             Episode(agentId: ns, conversationId: "c", summary: "s", conversationAt: "2025-01-01T00:00:00Z")
@@ -928,10 +958,14 @@ struct ProjectMemoryTranscriptTests {
         let ns = projectKey(id)
         // Only transcripts exist (pre-distillation) — the project must still
         // surface so the immediate lane is visible in Memory settings.
-        for i in 0..<3 {
+        for i in 0 ..< 3 {
             try db.insertTranscriptTurn(
-                agentId: ns, conversationId: "c", chunkIndex: i, role: "user",
-                content: "t\(i)", tokenCount: 1
+                agentId: ns,
+                conversationId: "c",
+                chunkIndex: i,
+                role: "user",
+                content: "t\(i)",
+                tokenCount: 1
             )
         }
         let counts = try db.projectNamespaceCounts()
@@ -942,8 +976,12 @@ struct ProjectMemoryTranscriptTests {
         let db = try makeTempDB()
         // An ordinary agent transcript must never appear as a project row.
         try db.insertTranscriptTurn(
-            agentId: "agent-uuid", conversationId: "c", chunkIndex: 0, role: "user",
-            content: "x", tokenCount: 1
+            agentId: "agent-uuid",
+            conversationId: "c",
+            chunkIndex: 0,
+            role: "user",
+            content: "x",
+            tokenCount: 1
         )
         let counts = try db.projectNamespaceCounts()
         #expect(counts.allSatisfy { $0.namespaceKey.hasPrefix("project-") })

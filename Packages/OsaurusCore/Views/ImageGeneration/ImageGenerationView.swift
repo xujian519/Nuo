@@ -258,7 +258,8 @@ private struct ImageGenerationSettingsTab: View {
                 SettingsAdvancedDisclosure(anchorIds: Self.advancedAnchorIds) {
                     controlRow(
                         "Image model load policy",
-                        hint: "Controls image-model cleanup after a job. The shared Swap local models for subagents setting controls whether the invoking chat model unloads. Restoring that parent always unloads the image model first."
+                        hint:
+                            "Controls image-model cleanup after a job. The shared Swap local models for subagents setting controls whether the invoking chat model unloads. Restoring that parent always unloads the image model first."
                     ) {
                         SettingsMenuDropdown(
                             options: SubagentImageLoadPolicy.visibleCases.map { value in
@@ -482,9 +483,10 @@ private struct ImageGenerationSettingsTab: View {
             )
         }
         options += zip(candidates, targets).map { item, target in
-            let price = item.mediaModel?.pricing?.minimumUSD.map {
-                " · from \(OsaurusRouter.formatUSDAsCredits($0))"
-            } ?? ""
+            let price =
+                item.mediaModel?.pricing?.minimumUSD.map {
+                    " · from \(OsaurusRouter.formatUSDAsCredits($0))"
+                } ?? ""
             return .init(
                 tag: Optional(target),
                 label: Text(verbatim: "\(item.displayName) · \(item.source.displayName)\(price)")

@@ -18,10 +18,12 @@ enum AgentReasoningPolicy {
         modelID: String
     ) -> [String: ModelOptionValue] {
         var options = options
-        let enabled = generation.enableThinking
+        let enabled =
+            generation.enableThinking
             ?? generation.templateKwargs?["enable_thinking"]?.boolValue
             ?? generation.templateKwargs?["thinking"]?.boolValue
-        let effort = (generation.reasoningEffort
+        let effort =
+            (generation.reasoningEffort
             ?? generation.templateKwargs?["reasoning_effort"]?.stringValue)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         if Hy3ReasoningProfile.matches(modelId: modelID) {

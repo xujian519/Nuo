@@ -43,19 +43,31 @@ struct FileHistoryTestEnv {
 
         let db = ChatHistoryDatabase()
         try db.openInMemory()
-        let provider: @Sendable (String, SandboxWorkspaceRootKind) -> URL = override ?? { name, kind in
-            switch kind {
-            case .agentHome: return agentsRoot.appendingPathComponent(name, isDirectory: true)
-            case .shared: return sharedRoot
-            case .hostFolder: return URL(fileURLWithPath: name, isDirectory: true)
+        let provider: @Sendable (String, SandboxWorkspaceRootKind) -> URL =
+            override ?? { name, kind in
+                switch kind {
+                case .agentHome: return agentsRoot.appendingPathComponent(name, isDirectory: true)
+                case .shared: return sharedRoot
+                case .hostFolder: return URL(fileURLWithPath: name, isDirectory: true)
+                }
             }
-        }
         let journal = FileChangeJournal(
-            database: db, storeRoot: storeRoot, hostRootProvider: provider,
-            legacyBaselinesRoot: legacyBaselinesRoot, shadowEntryLimit: shadowEntryLimit)
+            database: db,
+            storeRoot: storeRoot,
+            hostRootProvider: provider,
+            legacyBaselinesRoot: legacyBaselinesRoot,
+            shadowEntryLimit: shadowEntryLimit
+        )
         return FileHistoryTestEnv(
-            tmp: tmp, db: db, journal: journal, agentsRoot: agentsRoot, agentHome: agentHome,
-            sharedRoot: sharedRoot, storeRoot: storeRoot, provider: provider)
+            tmp: tmp,
+            db: db,
+            journal: journal,
+            agentsRoot: agentsRoot,
+            agentHome: agentHome,
+            sharedRoot: sharedRoot,
+            storeRoot: storeRoot,
+            provider: provider
+        )
     }
 
     /// A fresh journal over the same DB + store: simulates an app relaunch.
@@ -75,11 +87,19 @@ struct FileHistoryTestEnv {
         toolCallId: String? = nil
     ) async throws -> String {
         let context = FileChangeCapture.Context(
-            sessionId: sessionId, toolName: tool.name, toolCallId: toolCallId,
-            folderRoot: folder, sandboxAgent: sandboxAgent, bridgeAgent: bridgeAgent)
+            sessionId: sessionId,
+            toolName: tool.name,
+            toolCallId: toolCallId,
+            folderRoot: folder,
+            sandboxAgent: sandboxAgent,
+            bridgeAgent: bridgeAgent
+        )
         return try await ChatExecutionContext.$currentSessionId.withValue(sessionId) {
             try await FileChangeCapture.run(
-                tool: tool, argumentsJSON: argumentsJSON, context: context, journal: journal
+                tool: tool,
+                argumentsJSON: argumentsJSON,
+                context: context,
+                journal: journal
             ) {
                 try await tool.execute(argumentsJSON: argumentsJSON)
             }

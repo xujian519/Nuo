@@ -120,7 +120,8 @@ struct TelegramConnectionConfiguration: Codable, Equatable, Sendable {
             return stableId
         }
         if let username = chat.username?.trimmingCharacters(in: .whitespacesAndNewlines),
-           !username.isEmpty {
+            !username.isEmpty
+        {
             let handle = Self.normalizedChatId("@\(username)")
             if canRead(chatId: handle) {
                 return handle

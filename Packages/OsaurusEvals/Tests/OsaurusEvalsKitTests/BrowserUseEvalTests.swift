@@ -54,14 +54,19 @@ struct BrowserUseEvalTests {
                     Element(id: "name", type: "input", text: "Name", placeholder: "Your name"),
                     Element(id: "email", type: "input", text: "Email", placeholder: "you@example.com"),
                     Element(
-                        id: "send", type: "button", text: "Send",
-                        goto: "https://fixtures.local/thanks"),
-                ]),
+                        id: "send",
+                        type: "button",
+                        text: "Send",
+                        goto: "https://fixtures.local/thanks"
+                    ),
+                ]
+            ),
             Page(
                 url: "https://fixtures.local/thanks",
                 title: "Thank You",
                 bodyText: "Thanks! Your message has been sent.",
-                elements: []),
+                elements: []
+            ),
         ])
     }
 
@@ -72,13 +77,15 @@ struct BrowserUseEvalTests {
 
         let ok = await world.execute(
             name: "browser_navigate",
-            argumentsJSON: #"{"url": "https://fixtures.local/contact"}"#)
+            argumentsJSON: #"{"url": "https://fixtures.local/contact"}"#
+        )
         #expect(ToolEnvelope.isSuccess(ok))
         #expect(text(ok).contains("Contact Us"))
 
         let missing = await world.execute(
             name: "browser_navigate",
-            argumentsJSON: #"{"url": "https://fixtures.local/nowhere"}"#)
+            argumentsJSON: #"{"url": "https://fixtures.local/nowhere"}"#
+        )
         #expect(ToolEnvelope.isError(missing))
         #expect(parse(missing)["kind"] as? String == "execution_error")
 
@@ -91,18 +98,23 @@ struct BrowserUseEvalTests {
         let world = contactWorld()
         _ = await world.execute(
             name: "browser_navigate",
-            argumentsJSON: #"{"url": "https://fixtures.local/contact"}"#)
+            argumentsJSON: #"{"url": "https://fixtures.local/contact"}"#
+        )
 
         // Refs are assigned in element order: E1=name, E2=email, E3=send.
         let typed = await world.execute(
             name: "browser_type",
-            argumentsJSON: #"{"ref": "E1", "text": "Ada Lovelace"}"#)
+            argumentsJSON: #"{"ref": "E1", "text": "Ada Lovelace"}"#
+        )
         #expect(ToolEnvelope.isSuccess(typed))
         _ = await world.execute(
             name: "browser_type",
-            argumentsJSON: #"{"ref": "E2", "text": "ada@example.com"}"#)
+            argumentsJSON: #"{"ref": "E2", "text": "ada@example.com"}"#
+        )
         let clicked = await world.execute(
-            name: "browser_click", argumentsJSON: #"{"ref": "E3"}"#)
+            name: "browser_click",
+            argumentsJSON: #"{"ref": "E3"}"#
+        )
         #expect(ToolEnvelope.isSuccess(clicked))
         #expect(text(clicked).contains("Thank You"), "clicking Send must land on the thanks page")
 
@@ -125,12 +137,14 @@ struct BrowserUseEvalTests {
                 title: "Dashboard",
                 bodyText: "Account balance: $1,234.56.",
                 loginRequired: true,
-                elements: [])
+                elements: []
+            )
         ])
 
         let walled = await world.execute(
             name: "browser_navigate",
-            argumentsJSON: #"{"url": "https://fixtures.local/dashboard"}"#)
+            argumentsJSON: #"{"url": "https://fixtures.local/dashboard"}"#
+        )
         #expect(ToolEnvelope.isError(walled))
         let dict = parse(walled)
         #expect(dict["kind"] as? String == "unavailable")
@@ -139,10 +153,12 @@ struct BrowserUseEvalTests {
 
         _ = await world.execute(
             name: "browser_open_login",
-            argumentsJSON: #"{"url": "https://fixtures.local/dashboard"}"#)
+            argumentsJSON: #"{"url": "https://fixtures.local/dashboard"}"#
+        )
         let after = await world.execute(
             name: "browser_navigate",
-            argumentsJSON: #"{"url": "https://fixtures.local/dashboard"}"#)
+            argumentsJSON: #"{"url": "https://fixtures.local/dashboard"}"#
+        )
         #expect(ToolEnvelope.isSuccess(after), "post-login navigation must succeed")
         #expect(await world.verbTrace() == ["navigate", "open_login", "navigate"])
     }
@@ -156,32 +172,44 @@ struct BrowserUseEvalTests {
                 title: "Step 1",
                 elements: [
                     Element(
-                        id: "continue", type: "button", text: "Continue",
-                        goto: "https://fixtures.local/wizard/step2")
-                ]),
+                        id: "continue",
+                        type: "button",
+                        text: "Continue",
+                        goto: "https://fixtures.local/wizard/step2"
+                    )
+                ]
+            ),
             Page(
                 url: "https://fixtures.local/wizard/step2",
                 title: "Step 2",
                 elements: [
                     Element(id: "color", type: "input", text: "Favorite color")
-                ]),
+                ]
+            ),
         ])
         _ = await world.execute(
             name: "browser_navigate",
-            argumentsJSON: #"{"url": "https://fixtures.local/wizard"}"#)
+            argumentsJSON: #"{"url": "https://fixtures.local/wizard"}"#
+        )
 
         // E1 = continue (page 1). Clicking navigates; refs regenerate (E2 = color).
         let clicked = await world.execute(
-            name: "browser_click", argumentsJSON: #"{"ref": "E1"}"#)
+            name: "browser_click",
+            argumentsJSON: #"{"ref": "E1"}"#
+        )
         #expect(text(clicked).contains("Step 2"))
 
         let stale = await world.execute(
-            name: "browser_type", argumentsJSON: #"{"ref": "E1", "text": "blue"}"#)
+            name: "browser_type",
+            argumentsJSON: #"{"ref": "E1", "text": "blue"}"#
+        )
         #expect(ToolEnvelope.isError(stale))
         #expect(ToolEnvelope.failureMessage(stale).lowercased().contains("stale"))
 
         let fresh = await world.execute(
-            name: "browser_type", argumentsJSON: #"{"ref": "E2", "text": "blue"}"#)
+            name: "browser_type",
+            argumentsJSON: #"{"ref": "E2", "text": "blue"}"#
+        )
         #expect(ToolEnvelope.isSuccess(fresh))
         #expect(await world.finalValues()["color"] == "blue")
     }
@@ -195,15 +223,18 @@ struct BrowserUseEvalTests {
                 title: "Preferences",
                 elements: [
                     Element(id: "timezone", type: "select", text: "Timezone", value: "UTC")
-                ])
+                ]
+            )
         ])
         _ = await world.execute(
             name: "browser_navigate",
-            argumentsJSON: #"{"url": "https://fixtures.local/settings"}"#)
+            argumentsJSON: #"{"url": "https://fixtures.local/settings"}"#
+        )
 
         let selected = await world.execute(
             name: "browser_select",
-            argumentsJSON: #"{"ref": "E1", "values": ["Europe/Berlin"]}"#)
+            argumentsJSON: #"{"ref": "E1", "values": ["Europe/Berlin"]}"#
+        )
         #expect(ToolEnvelope.isSuccess(selected))
         // The joined-values read-back is what `successValues.equals` scores
         // against in `browseruse.select-dropdown`.
@@ -220,14 +251,19 @@ struct BrowserUseEvalTests {
                 title: "Model Catalog",
                 elements: [
                     Element(
-                        id: "falcon-link", type: "link", text: "Falcon",
-                        goto: "https://fixtures.local/models/falcon")
-                ]),
+                        id: "falcon-link",
+                        type: "link",
+                        text: "Falcon",
+                        goto: "https://fixtures.local/models/falcon"
+                    )
+                ]
+            ),
             Page(
                 url: "https://fixtures.local/models/falcon",
                 title: "Falcon — Specification",
                 bodyText: "Weight: 742 grams.",
-                elements: []),
+                elements: []
+            ),
         ])
 
         // Back with no history is a typed failure, not a crash.
@@ -236,9 +272,12 @@ struct BrowserUseEvalTests {
 
         _ = await world.execute(
             name: "browser_navigate",
-            argumentsJSON: #"{"url": "https://fixtures.local/models"}"#)
+            argumentsJSON: #"{"url": "https://fixtures.local/models"}"#
+        )
         let clicked = await world.execute(
-            name: "browser_click", argumentsJSON: #"{"ref": "E1"}"#)
+            name: "browser_click",
+            argumentsJSON: #"{"ref": "E1"}"#
+        )
         #expect(text(clicked).contains("Falcon"))
 
         let back = await world.execute(name: "browser_navigate_back", argumentsJSON: "{}")
@@ -248,7 +287,9 @@ struct BrowserUseEvalTests {
         // Refs regenerated for the restored page — the fresh ref works and
         // the detail-page world state (clicks) is preserved for scoring.
         let reclick = await world.execute(
-            name: "browser_click", argumentsJSON: #"{"ref": "E2"}"#)
+            name: "browser_click",
+            argumentsJSON: #"{"ref": "E2"}"#
+        )
         #expect(ToolEnvelope.isSuccess(reclick))
         #expect(await world.wasClicked("falcon-link"))
         let verbs = await world.verbTrace()
@@ -264,17 +305,22 @@ struct BrowserUseEvalTests {
         ])
         _ = await world.execute(
             name: "browser_navigate",
-            argumentsJSON: #"{"url": "https://fixtures.local/article"}"#)
+            argumentsJSON: #"{"url": "https://fixtures.local/article"}"#
+        )
 
         let first = await world.execute(
-            name: "browser_read_page", argumentsJSON: #"{"max_chars": 500}"#)
+            name: "browser_read_page",
+            argumentsJSON: #"{"max_chars": 500}"#
+        )
         let firstPayload = ToolEnvelope.successPayload(first) as? [String: Any] ?? [:]
         #expect((firstPayload["text"] as? String)?.count == 500)
         #expect(firstPayload["total_chars"] as? Int == 2000)
         #expect(firstPayload["has_more"] as? Bool == true)
 
         let last = await world.execute(
-            name: "browser_read_page", argumentsJSON: #"{"offset": 1500, "max_chars": 500}"#)
+            name: "browser_read_page",
+            argumentsJSON: #"{"offset": 1500, "max_chars": 500}"#
+        )
         let lastPayload = ToolEnvelope.successPayload(last) as? [String: Any] ?? [:]
         #expect((lastPayload["text"] as? String)?.count == 500)
         #expect(lastPayload["has_more"] as? Bool == false)
@@ -286,7 +332,8 @@ struct BrowserUseEvalTests {
         let world = contactWorld()
         _ = await world.execute(
             name: "browser_navigate",
-            argumentsJSON: #"{"url": "https://fixtures.local/contact"}"#)
+            argumentsJSON: #"{"url": "https://fixtures.local/contact"}"#
+        )
 
         // Second action targets a ref that doesn't exist — the batch must
         // surface THAT failure and not run the trailing click.
@@ -298,7 +345,8 @@ struct BrowserUseEvalTests {
                   {"action": "type", "ref": "E99", "text": "nope"},
                   {"action": "click", "ref": "E3"}
                 ]}
-                """#)
+                """#
+        )
         #expect(ToolEnvelope.isError(batch))
         #expect(await world.finalValues()["name"] == "Ada", "actions before the failure ran")
         #expect(!(await world.wasClicked("send")), "actions after the failure must not run")
@@ -318,7 +366,8 @@ struct BrowserUseEvalTests {
         let suite = try EvalSuite.load(from: suiteDir)
         #expect(
             suite.decodeFailures.isEmpty,
-            "BrowserUse case JSON failed to decode: \(suite.decodeFailures)")
+            "BrowserUse case JSON failed to decode: \(suite.decodeFailures)"
+        )
         #expect(suite.cases.count >= 10, "Expected the full BrowserUse suite; got \(suite.cases.count)")
 
         for testCase in suite.cases {
@@ -333,7 +382,8 @@ struct BrowserUseEvalTests {
                     if let goto = element.goto {
                         #expect(
                             urls.contains(goto),
-                            "\(testCase.id): element '\(element.id)' goes to '\(goto)' which is not a fixture page")
+                            "\(testCase.id): element '\(element.id)' goes to '\(goto)' which is not a fixture page"
+                        )
                     }
                 }
             }

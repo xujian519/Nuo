@@ -102,7 +102,9 @@ final class MacQueryTool: OsaurusTool, @unchecked Sendable {
         // verbatim block sent under the plural name would otherwise be a hard
         // `invalid_args` rejection rather than a read.
         return AppleScriptToolDispatch.promotingStringContents(
-            withoutSibling, requiredField: "question")
+            withoutSibling,
+            requiredField: "question"
+        )
     }
 
     init() {}

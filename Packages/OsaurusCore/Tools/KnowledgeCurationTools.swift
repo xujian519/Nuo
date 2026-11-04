@@ -73,7 +73,9 @@ final class FlagKnowledgeStaleTool: OsaurusTool, @unchecked Sendable {
             ]),
             "evidence": .object([
                 "type": .string("string"),
-                "description": .string("Optional: what you observed (error output, release notes, contradicting source)."),
+                "description": .string(
+                    "Optional: what you observed (error output, release notes, contradicting source)."
+                ),
             ]),
             "collection": .object([
                 "type": .string("string"),
@@ -419,7 +421,6 @@ final class UpdateKnowledgeTicketTool: OsaurusTool, @unchecked Sendable {
         }
     }
 }
-
 
 // MARK: - Shared helpers
 

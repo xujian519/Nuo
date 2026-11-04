@@ -420,7 +420,9 @@ final class ReadKnowledgeTool: OsaurusTool, @unchecked Sendable {
         "properties": .object([
             "path": .object([
                 "type": .string("string"),
-                "description": .string("Document path relative to its collection, e.g. `wordpress/plugins.md` or `guides/pricing.pdf`."),
+                "description": .string(
+                    "Document path relative to its collection, e.g. `wordpress/plugins.md` or `guides/pricing.pdf`."
+                ),
             ]),
             "collection": .object([
                 "type": .string("string"),
@@ -529,7 +531,8 @@ final class ReadKnowledgeTool: OsaurusTool, @unchecked Sendable {
             let names = matches.map(\.collection.name).joined(separator: ", ")
             return ToolEnvelope.failure(
                 kind: .invalidArgs,
-                message: "Path `\(relPath)` exists in multiple collections (\(names)). Pass `collection` to disambiguate.",
+                message:
+                    "Path `\(relPath)` exists in multiple collections (\(names)). Pass `collection` to disambiguate.",
                 field: "collection",
                 expected: "one of: \(names)",
                 tool: name
@@ -556,7 +559,8 @@ final class ReadKnowledgeTool: OsaurusTool, @unchecked Sendable {
             guard let raw = try? String(contentsOf: fileURL, encoding: .utf8) else {
                 return ToolEnvelope.failure(
                     kind: .unavailable,
-                    message: "Document `\(relPath)` is indexed but its file is not readable (moved or unmounted?). Re-index the collection.",
+                    message:
+                        "Document `\(relPath)` is indexed but its file is not readable (moved or unmounted?). Re-index the collection.",
                     tool: name,
                     retryable: true
                 )
@@ -574,7 +578,8 @@ final class ReadKnowledgeTool: OsaurusTool, @unchecked Sendable {
             else {
                 return ToolEnvelope.failure(
                     kind: .unavailable,
-                    message: "Document `\(relPath)` is indexed but could not be extracted (moved, unmounted, or corrupted?). Re-index the collection.",
+                    message:
+                        "Document `\(relPath)` is indexed but could not be extracted (moved, unmounted, or corrupted?). Re-index the collection.",
                     tool: name,
                     retryable: true
                 )
@@ -833,14 +838,18 @@ final class ListKnowledgeTool: OsaurusTool, @unchecked Sendable {
             var facets: [String] = []
             if !document.effectiveType.isEmpty {
                 facets.append(
-                    "type: \(document.effectiveType)\(document.isTypeInferred ? " (inferred)" : "")")
+                    "type: \(document.effectiveType)\(document.isTypeInferred ? " (inferred)" : "")"
+                )
             }
             if !document.tagsCSV.isEmpty { facets.append("tags: \(document.tagsCSV)") }
             if !facets.isEmpty { out += " (\(facets.joined(separator: "; ")))" }
             out += "\n"
         }
         if let footer = Self.listingFooter(
-            total: total, returned: documents.count, offset: offset, limit: limit
+            total: total,
+            returned: documents.count,
+            offset: offset,
+            limit: limit
         ) {
             out += "\n" + footer
         }

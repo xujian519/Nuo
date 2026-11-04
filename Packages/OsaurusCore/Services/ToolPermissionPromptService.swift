@@ -617,11 +617,13 @@ enum ToolPermissionPromptService {
         }
         weak var weakPanel = panel
         let keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            guard shouldAcceptKeyboardShortcut(
-                isVisible: weakPanel?.isVisible == true,
-                isKeyWindow: weakPanel?.isKeyWindow == true,
-                isAppActive: NSApp.isActive
-            ) else {
+            guard
+                shouldAcceptKeyboardShortcut(
+                    isVisible: weakPanel?.isVisible == true,
+                    isKeyWindow: weakPanel?.isKeyWindow == true,
+                    isAppActive: NSApp.isActive
+                )
+            else {
                 return event
             }
             return handleKeyEvent(event) ? nil : event
@@ -643,8 +645,9 @@ enum ToolPermissionPromptService {
         var target = NSSize(width: size.width, height: size.height)
         let vf = (panel.screen ?? NSScreen.main)?.visibleFrame
         if let vf { target = clampedWindowSize(target, to: vf.size) }
-        guard abs(panel.frame.width - target.width) > 0.5
-            || abs(panel.frame.height - target.height) > 0.5
+        guard
+            abs(panel.frame.width - target.width) > 0.5
+                || abs(panel.frame.height - target.height) > 0.5
         else { return }
         let origin: NSPoint
         if let vf {

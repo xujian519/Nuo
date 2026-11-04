@@ -32,7 +32,9 @@ struct ChunkedFileDownloaderTests {
             do {
                 try await lane.fetch(
                     url: URL(string: "http://127.0.0.1:1/cancelled-lane")!,
-                    range: "bytes=0-0", handle: .nullDevice, expected: 1,
+                    range: "bytes=0-0",
+                    handle: .nullDevice,
+                    expected: 1,
                     onBytes: { _ in Issue.record("Invalidated lane transferred data") }
                 )
                 Issue.record("Invalidated lane unexpectedly completed")

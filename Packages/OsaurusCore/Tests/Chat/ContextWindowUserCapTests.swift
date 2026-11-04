@@ -40,14 +40,21 @@ final class ContextWindowUserCapTests: XCTestCase {
     func testSavedContextCapSurvivesDecodingAndStillConstrainsTheModel() throws {
         for cap: Int? in [nil, 8_192, 131_072] {
             let original = ChatConfiguration(
-                hotkey: nil, systemPrompt: "", contextLength: 128_000,
-                contextLengthCap: cap)
+                hotkey: nil,
+                systemPrompt: "",
+                contextLength: 128_000,
+                contextLengthCap: cap
+            )
             let decoded = try JSONDecoder().decode(
-                ChatConfiguration.self, from: JSONEncoder().encode(original))
+                ChatConfiguration.self,
+                from: JSONEncoder().encode(original)
+            )
             XCTAssertEqual(decoded.contextLengthCap, cap)
             XCTAssertEqual(decoded.contextLength, 128_000)
             let effective = AgentLoopBudget.applyingUserCap(
-                resolution(222_000, .bundleMetadata), cap: decoded.contextLengthCap)
+                resolution(222_000, .bundleMetadata),
+                cap: decoded.contextLengthCap
+            )
             XCTAssertEqual(effective.tokens, cap ?? 222_000)
         }
     }
@@ -61,14 +68,18 @@ final class ContextWindowUserCapTests: XCTestCase {
 
     func testCapLowersAModelDeclaredWindow() {
         let capped = AgentLoopBudget.applyingUserCap(
-            resolution(222_000, .bundleMetadata), cap: 32_000)
+            resolution(222_000, .bundleMetadata),
+            cap: 32_000
+        )
         XCTAssertEqual(capped.tokens, 32_000)
         XCTAssertEqual(capped.source, .userCap, "the chip must say the cap decided this")
     }
 
     func testCapAppliesToProviderWindowsToo() {
         let capped = AgentLoopBudget.applyingUserCap(
-            resolution(200_000, .providerMetadata), cap: 8_000)
+            resolution(200_000, .providerMetadata),
+            cap: 8_000
+        )
         XCTAssertEqual(capped.tokens, 8_000)
         XCTAssertEqual(capped.source, .userCap)
     }
@@ -80,14 +91,18 @@ final class ContextWindowUserCapTests: XCTestCase {
     /// output rather than more context.
     func testCapAboveTheModelWindowIsIgnored() {
         let untouched = AgentLoopBudget.applyingUserCap(
-            resolution(8_192, .bundleMetadata), cap: 500_000)
+            resolution(8_192, .bundleMetadata),
+            cap: 500_000
+        )
         XCTAssertEqual(untouched.tokens, 8_192)
         XCTAssertEqual(untouched.source, .bundleMetadata, "source must not claim a cap applied")
     }
 
     func testCapEqualToTheWindowChangesNothing() {
         let untouched = AgentLoopBudget.applyingUserCap(
-            resolution(32_768, .bundleMetadata), cap: 32_768)
+            resolution(32_768, .bundleMetadata),
+            cap: 32_768
+        )
         XCTAssertEqual(untouched.tokens, 32_768)
         XCTAssertEqual(untouched.source, .bundleMetadata)
     }
@@ -111,7 +126,9 @@ final class ContextWindowUserCapTests: XCTestCase {
     func testNonPositiveCapIsIgnoredRatherThanZeroingTheWindow() {
         for bad in [0, -1, -100_000] {
             let out = AgentLoopBudget.applyingUserCap(
-                resolution(32_768, .bundleMetadata), cap: bad)
+                resolution(32_768, .bundleMetadata),
+                cap: bad
+            )
             XCTAssertEqual(out.tokens, 32_768, "cap \(bad) collapsed the window")
         }
     }
@@ -128,7 +145,8 @@ final class ContextWindowUserCapTests: XCTestCase {
                 .deletingLastPathComponent()
                 .deletingLastPathComponent()
                 .appendingPathComponent("Services/Chat/AgentToolLoop.swift"),
-            encoding: .utf8)
+            encoding: .utf8
+        )
 
         func body(of name: String) throws -> String {
             let start = try XCTUnwrap(src.range(of: "static func \(name)("))
@@ -139,10 +157,12 @@ final class ContextWindowUserCapTests: XCTestCase {
             let b = try body(of: twin)
             XCTAssertTrue(
                 b.contains("applyingUserCap("),
-                "\(twin) does not apply the user cap — the twins disagree")
+                "\(twin) does not apply the user cap — the twins disagree"
+            )
             XCTAssertTrue(
                 b.contains("contextLengthCap"),
-                "\(twin) never reads the cap setting")
+                "\(twin) never reads the cap setting"
+            )
         }
     }
 
@@ -162,10 +182,12 @@ final class ContextWindowUserCapTests: XCTestCase {
                     .deletingLastPathComponent()
                     .deletingLastPathComponent()
                     .appendingPathComponent(path),
-                encoding: .utf8)
+                encoding: .utf8
+            )
             XCTAssertTrue(
                 src.contains(symbol),
-                "\(path) resolves its context window some other way — it would miss the cap")
+                "\(path) resolves its context window some other way — it would miss the cap"
+            )
         }
     }
 
@@ -179,9 +201,13 @@ final class ContextWindowUserCapTests: XCTestCase {
         config.contextLengthCap = nil
 
         let out = AgentLoopBudget.applyingUserCap(
-            resolution(222_000, .bundleMetadata), cap: config.contextLengthCap)
+            resolution(222_000, .bundleMetadata),
+            cap: config.contextLengthCap
+        )
         XCTAssertEqual(
-            out.tokens, 222_000,
-            "the fallback field constrained a model that declares its own window")
+            out.tokens,
+            222_000,
+            "the fallback field constrained a model that declares its own window"
+        )
     }
 }

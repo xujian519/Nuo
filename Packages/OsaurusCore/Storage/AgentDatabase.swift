@@ -2226,13 +2226,14 @@ public final class AgentDatabase: @unchecked Sendable {
         guard validate, let connection = db else { return }
 
         var statement: OpaquePointer?
-        guard sqlite3_prepare_v2(
-            connection,
-            "SELECT * FROM temp.\(name) LIMIT 0",
-            -1,
-            &statement,
-            nil
-        ) == SQLITE_OK, let prepared = statement
+        guard
+            sqlite3_prepare_v2(
+                connection,
+                "SELECT * FROM temp.\(name) LIMIT 0",
+                -1,
+                &statement,
+                nil
+            ) == SQLITE_OK, let prepared = statement
         else {
             throw AgentDatabaseError.failedToPrepare(String(cString: sqlite3_errmsg(connection)))
         }

@@ -108,10 +108,15 @@ public enum SetupChecker {
             if !ok {
                 items.append(
                     SetupItem(
-                        kind: .workingFolder, severity: .blocking,
+                        kind: .workingFolder,
+                        severity: .blocking,
                         title: L("Working Folder"),
-                        detail: L("The agent points at \(path) but Nuo has no access to it. Pick the folder to grant access."),
-                        value: path))
+                        detail: L(
+                            "The agent points at \(path) but Nuo has no access to it. Pick the folder to grant access."
+                        ),
+                        value: path
+                    )
+                )
             }
         }
 
@@ -120,10 +125,15 @@ public enum SetupChecker {
             if case .invalid = ConfigModelReference.resolve(model, catalog: env.modelCatalog) {
                 items.append(
                     SetupItem(
-                        kind: .model, severity: .blocking,
+                        kind: .model,
+                        severity: .blocking,
                         title: L("Model"),
-                        detail: L("\(model) is not installed or its provider is not connected. Install it or choose another model."),
-                        value: model))
+                        detail: L(
+                            "\(model) is not installed or its provider is not connected. Install it or choose another model."
+                        ),
+                        value: model
+                    )
+                )
             }
         }
 
@@ -135,10 +145,15 @@ public enum SetupChecker {
             if present.isEmpty {
                 items.append(
                     SetupItem(
-                        kind: .knowledgeCollection, severity: .advisory,
+                        kind: .knowledgeCollection,
+                        severity: .advisory,
                         title: L("Knowledge"),
-                        detail: L("Knowledge is on but no collection is granted. Grant or create one so the agent has something to search."),
-                        value: "knowledge"))
+                        detail: L(
+                            "Knowledge is on but no collection is granted. Grant or create one so the agent has something to search."
+                        ),
+                        value: "knowledge"
+                    )
+                )
             }
         }
 
@@ -146,18 +161,24 @@ public enum SetupChecker {
         if agent.settings.computerUseEnabled, !env.isPermissionGranted(.accessibility) {
             items.append(
                 SetupItem(
-                    kind: .systemPermission, severity: .blocking,
+                    kind: .systemPermission,
+                    severity: .blocking,
                     title: L("Accessibility"),
                     detail: L("Computer Use needs the Accessibility permission. Grant it in System Settings."),
-                    value: SystemPermission.accessibility.rawValue))
+                    value: SystemPermission.accessibility.rawValue
+                )
+            )
         }
         if agent.settings.appleScriptEnabled, !env.isPermissionGranted(.automation) {
             items.append(
                 SetupItem(
-                    kind: .systemPermission, severity: .advisory,
+                    kind: .systemPermission,
+                    severity: .advisory,
                     title: L("Automation"),
                     detail: L("AppleScript will ask for Automation permission the first time it controls an app."),
-                    value: SystemPermission.automation.rawValue))
+                    value: SystemPermission.automation.rawValue
+                )
+            )
         }
 
         // Manual tool list naming tools no server or plugin here provides.
@@ -167,10 +188,15 @@ public enum SetupChecker {
                 let joined = missing.sorted().joined(separator: ", ")
                 items.append(
                     SetupItem(
-                        kind: .mcpServer, severity: .advisory,
+                        kind: .mcpServer,
+                        severity: .advisory,
                         title: L("Tools"),
-                        detail: L("Not available on this Mac: \(joined). Add the MCP server or plugin that provides them, or remove them from the agent."),
-                        value: joined))
+                        detail: L(
+                            "Not available on this Mac: \(joined). Add the MCP server or plugin that provides them, or remove them from the agent."
+                        ),
+                        value: joined
+                    )
+                )
             }
         }
 
@@ -183,17 +209,27 @@ public enum SetupChecker {
                 case .mcpServer(let name):
                     items.append(
                         SetupItem(
-                            kind: .mcpServer, severity: .advisory,
+                            kind: .mcpServer,
+                            severity: .advisory,
                             title: L("MCP Server"),
-                            detail: L("The \(source) template uses the \(name) MCP server, which is not set up on this Mac. Add it in MCP Servers to give the agent its tools."),
-                            value: name))
+                            detail: L(
+                                "The \(source) template uses the \(name) MCP server, which is not set up on this Mac. Add it in MCP Servers to give the agent its tools."
+                            ),
+                            value: name
+                        )
+                    )
                 case .plugin(let id):
                     items.append(
                         SetupItem(
-                            kind: .plugin, severity: .advisory,
+                            kind: .plugin,
+                            severity: .advisory,
                             title: L("Plugin"),
-                            detail: L("The \(source) template uses the \(id) plugin, which is not installed on this Mac. Install it in Plugins to give the agent its tools."),
-                            value: id))
+                            detail: L(
+                                "The \(source) template uses the \(id) plugin, which is not installed on this Mac. Install it in Plugins to give the agent its tools."
+                            ),
+                            value: id
+                        )
+                    )
                 }
             }
         }
@@ -206,10 +242,15 @@ public enum SetupChecker {
                 let joined = missing.joined(separator: ", ")
                 items.append(
                     SetupItem(
-                        kind: .skill, severity: .advisory,
+                        kind: .skill,
+                        severity: .advisory,
                         title: L("Skills"),
-                        detail: L("Not installed on this Mac: \(joined). Install them in Skills, or remove them from the agent's skill list."),
-                        value: joined))
+                        detail: L(
+                            "Not installed on this Mac: \(joined). Install them in Skills, or remove them from the agent's skill list."
+                        ),
+                        value: joined
+                    )
+                )
             }
         }
 
@@ -221,7 +262,9 @@ public enum SetupChecker {
     /// drafted or created. Groups already partly selected are left alone so
     /// a deliberate trim survives.
     static func addingTemplateGroupTools(
-        to agent: Agent, groups: [PortableToolGroup], available: [PortableToolGroup: [String]]
+        to agent: Agent,
+        groups: [PortableToolGroup],
+        available: [PortableToolGroup: [String]]
     ) -> Agent {
         guard agent.toolSelectionMode == .manual else { return agent }
         var names = agent.manualToolNames ?? []

@@ -452,7 +452,8 @@ public enum SpawnDescriptors {
             // Never advertise one of this instance's own agents as a target.
             if roster.isHostedHere(address: ref.agentAddress) { return nil }
             let paired = remoteAgents.remoteAgent(
-                forAddress: ref.agentAddress, workspaceId: ref.workspaceId
+                forAddress: ref.agentAddress,
+                workspaceId: ref.workspaceId
             )
             let rosterName = listed?.displayName?.trimmingCharacters(in: .whitespacesAndNewlines)
             let name =

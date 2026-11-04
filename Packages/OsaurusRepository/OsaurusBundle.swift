@@ -388,31 +388,45 @@ extension OsaurusBundle {
         issues += unknownKeys(in: rawRoot, allowed: OsaurusBundleManifest.allowedKeys, at: "manifest")
         if let publisher = rawRoot["publisher"] as? [String: Any] {
             issues += unknownKeys(
-                in: publisher, allowed: OsaurusBundleManifest.allowedPublisherKeys, at: "publisher")
+                in: publisher,
+                allowed: OsaurusBundleManifest.allowedPublisherKeys,
+                at: "publisher"
+            )
         }
         for (index, item) in ((rawRoot["skills"] as? [Any]) ?? []).enumerated() {
             if let object = item as? [String: Any] {
                 issues += unknownKeys(
-                    in: object, allowed: OsaurusBundleManifest.allowedSkillKeys, at: "skills[\(index)]")
+                    in: object,
+                    allowed: OsaurusBundleManifest.allowedSkillKeys,
+                    at: "skills[\(index)]"
+                )
             }
         }
         for (index, item) in ((rawRoot["agents"] as? [Any]) ?? []).enumerated() {
             if let object = item as? [String: Any] {
                 issues += unknownKeys(
-                    in: object, allowed: OsaurusBundleManifest.allowedAgentKeys, at: "agents[\(index)]")
+                    in: object,
+                    allowed: OsaurusBundleManifest.allowedAgentKeys,
+                    at: "agents[\(index)]"
+                )
             }
         }
         for (index, item) in ((rawRoot["harness_runtimes"] as? [Any]) ?? []).enumerated() {
             if let object = item as? [String: Any] {
                 issues += unknownKeys(
-                    in: object, allowed: OsaurusBundleManifest.allowedHarnessRuntimeKeys,
-                    at: "harness_runtimes[\(index)]")
+                    in: object,
+                    allowed: OsaurusBundleManifest.allowedHarnessRuntimeKeys,
+                    at: "harness_runtimes[\(index)]"
+                )
             }
         }
         if let settings = rawRoot["settings"] {
             if let object = settings as? [String: Any] {
                 issues += unknownKeys(
-                    in: object, allowed: OsaurusBundleManifest.allowedSettingKeys, at: "settings")
+                    in: object,
+                    allowed: OsaurusBundleManifest.allowedSettingKeys,
+                    at: "settings"
+                )
             } else {
                 issues.append("settings: must be an object, like {\"require_local_access_key\": true}.")
             }
@@ -431,7 +445,8 @@ extension OsaurusBundle {
         if manifest.formatVersion > OsaurusBundleFormat.formatVersion {
             issues.append(
                 "format_version \(manifest.formatVersion) needs a newer Osaurus "
-                    + "(this one reads up to \(OsaurusBundleFormat.formatVersion)).")
+                    + "(this one reads up to \(OsaurusBundleFormat.formatVersion))."
+            )
         } else if manifest.formatVersion < 1 {
             issues.append("format_version must be 1.")
         }
@@ -488,7 +503,8 @@ extension OsaurusBundle {
                     if skillSlug(for: declared) != slug {
                         issues.append(
                             "skills[\(ref.name)]: SKILL.md declares name \"\(declared)\"; "
-                                + "the manifest name must match it.")
+                                + "the manifest name must match it."
+                        )
                     }
                 } else {
                     issues.append("skills[\(ref.name)]: SKILL.md has no `name:` in its frontmatter.")
@@ -529,7 +545,8 @@ extension OsaurusBundle {
                 if server.tokenRef != nil || server.secretHeaderRefs != nil {
                     issues.append(
                         "mcp_servers[\(server.name)]: token_ref and secret_header_refs only apply to "
-                            + "transport: http.")
+                            + "transport: http."
+                    )
                 }
             default:
                 issues.append("mcp_servers[\(server.name)].transport: must be http or stdio.")
@@ -556,7 +573,8 @@ extension OsaurusBundle {
             }
             if !OsaurusBundleManifest.harnessKinds.contains(runtime.kind) {
                 issues.append(
-                    "\(label).kind: must be one of: \(OsaurusBundleManifest.harnessKinds.joined(separator: ", ")).")
+                    "\(label).kind: must be one of: \(OsaurusBundleManifest.harnessKinds.joined(separator: ", "))."
+                )
             }
             if let executable = runtime.executable,
                 executable.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -597,7 +615,8 @@ extension OsaurusBundle {
             guard let entry = agentEntryObject(in: object) else {
                 issues.append(
                     "\(label): expected an agent template, a config document with one agent, "
-                        + "or a bare agent entry.")
+                        + "or a bare agent entry."
+                )
                 continue
             }
             if let envelope = object as? [String: Any], envelope["format"] != nil {
@@ -644,17 +663,21 @@ extension OsaurusBundle {
                     issues.append("agents[\(name)].runtime: must be \"builtin\" or a harness runtime's name.")
                 }
             }
-            for skill in skillNames ?? [] where !skills.contains(where: { skillSlug(for: $0.name) == skillSlug(for: skill) }) {
+            for skill in skillNames ?? []
+            where !skills.contains(where: { skillSlug(for: $0.name) == skillSlug(for: skill) }) {
                 warnings.append(
                     "agents[\(name)].skills: \"\(skill)\" is not in this bundle; it must be a built-in skill "
-                        + "or already installed, or the agent will not see it.")
+                        + "or already installed, or the agent will not see it."
+                )
             }
-            for server in servers where !manifest.mcpServers.contains(where: {
+            for server in servers
+            where !manifest.mcpServers.contains(where: {
                 $0.name.caseInsensitiveCompare(server) == .orderedSame
             }) {
                 warnings.append(
                     "agents[\(name)].mcp_servers: \"\(server)\" is not in this bundle; it must already be set "
-                        + "up on this Mac.")
+                        + "up on this Mac."
+                )
             }
             var usedServers = servers
             let toolNames = ((entry["tools"] as? [String: Any])?["enabled"] as? [String]) ?? []
@@ -666,8 +689,14 @@ extension OsaurusBundle {
                 }
             }
             let agent = Agent(
-                name: name, path: ref.path, file: file, skills: skillNames,
-                mcpServers: usedServers, highRiskCapabilities: risky, runtime: runtime)
+                name: name,
+                path: ref.path,
+                file: file,
+                skills: skillNames,
+                mcpServers: usedServers,
+                highRiskCapabilities: risky,
+                runtime: runtime
+            )
             if let harness = agent.harnessRuntime,
                 !manifest.harnessRuntimes.contains(where: {
                     $0.name.trimmingCharacters(in: .whitespacesAndNewlines).caseInsensitiveCompare(harness)
@@ -676,7 +705,8 @@ extension OsaurusBundle {
             {
                 warnings.append(
                     "agents[\(name)].runtime: \"\(harness)\" is not in this bundle; it must already be "
-                        + "registered on this Mac (Agents → Runtimes), or the agent will not install.")
+                        + "registered on this Mac (Agents → Runtimes), or the agent will not install."
+                )
             }
             agents.append(agent)
         }
@@ -711,13 +741,15 @@ extension OsaurusBundle {
         let a = Array(a), b = Array(b)
         if a.isEmpty { return b.count }
         if b.isEmpty { return a.count }
-        var previous = Array(0...b.count)
-        for i in 1...a.count {
+        var previous = Array(0 ... b.count)
+        for i in 1 ... a.count {
             var current = [i] + Array(repeating: 0, count: b.count)
-            for j in 1...b.count {
+            for j in 1 ... b.count {
                 current[j] = min(
-                    previous[j] + 1, current[j - 1] + 1,
-                    previous[j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1))
+                    previous[j] + 1,
+                    current[j - 1] + 1,
+                    previous[j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1)
+                )
             }
             previous = current
         }
@@ -940,7 +972,8 @@ extension OsaurusBundle {
                     issues.append(
                         "\"\(name)\" names more than one item ("
                             + matches.map(\.kind.rawValue).joined(separator: ", ")
-                            + "). Say which: osaurus import ... agent|skill|mcp|runtime|setting \"\(name)\".")
+                            + "). Say which: osaurus import ... agent|skill|mcp|runtime|setting \"\(name)\"."
+                    )
                 }
             }
             if !issues.isEmpty { throw OsaurusBundleError(issues: issues) }
@@ -997,7 +1030,8 @@ extension OsaurusBundle {
                 guard let runtime = harnessRuntime(named: item.name) else { continue }
                 out.append(
                     "Harness runtime \"\(runtime.name)\" launches a local program for every chat of an agent "
-                        + "on it: \(runtime.commandLine)")
+                        + "on it: \(runtime.commandLine)"
+                )
             case .agent:
                 guard let a = agent(named: item.name) else { continue }
                 for key in a.highRiskCapabilities {
@@ -1006,7 +1040,8 @@ extension OsaurusBundle {
                 if let runtime = a.harnessRuntime {
                     out.append(
                         "Agent \"\(a.name)\" runs on harness runtime \"\(runtime)\", outside the Osaurus "
-                            + "sandbox")
+                            + "sandbox"
+                    )
                 }
             case .setting:
                 guard let s = setting(named: item.name) else { continue }

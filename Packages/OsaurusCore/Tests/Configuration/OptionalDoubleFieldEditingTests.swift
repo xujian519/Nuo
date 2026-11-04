@@ -14,7 +14,7 @@ struct OptionalDoubleFieldEditingTests {
             #expect(editor.text == text)
             #expect(editor.isEditing)
         }
-        #expect(editor.commit(value: nil, clamp: 0.10...1.00, format: "%.2f") == 0.70)
+        #expect(editor.commit(value: nil, clamp: 0.10 ... 1.00, format: "%.2f") == 0.70)
         #expect(editor.text == "0.70")
         #expect(!editor.isEditing)
     }
@@ -26,7 +26,7 @@ struct OptionalDoubleFieldEditingTests {
             editor.edit(text)
             #expect(editor.text == text)
         }
-        let committed = editor.commit(value: 0.7, clamp: 0.1...1, format: "%.2f")
+        let committed = editor.commit(value: 0.7, clamp: 0.1 ... 1, format: "%.2f")
         #expect(committed == nil)
         var reopened = OptionalDoubleFieldEditing()
         reopened.reset(value: committed, format: "%.2f")
@@ -37,7 +37,7 @@ struct OptionalDoubleFieldEditingTests {
     func invalidCommitPreservesExistingValue(text: String) {
         var editor = OptionalDoubleFieldEditing()
         editor.edit(text)
-        #expect(editor.commit(value: 0.7, clamp: 0.1...1, format: "%.2f") == 0.7)
+        #expect(editor.commit(value: 0.7, clamp: 0.1 ... 1, format: "%.2f") == 0.7)
         #expect(editor.text == "0.70")
         editor.edit(text)
         #expect(editor.commit(value: nil, clamp: nil, format: nil) == nil)
@@ -48,12 +48,12 @@ struct OptionalDoubleFieldEditingTests {
         var editor = OptionalDoubleFieldEditing()
         editor.edit("  1.25  ")
         #expect(editor.text == "  1.25  ")
-        let value = editor.commit(value: 0.7, clamp: 0.1...1, format: "%.2f")
+        let value = editor.commit(value: 0.7, clamp: 0.1 ... 1, format: "%.2f")
         #expect(value == 1)
         #expect(editor.text == "1.00")
         editor.edit("0.")
         #expect(editor.text == "0.")
-        #expect(editor.commit(value: value, clamp: 0.1...1, format: "%.2f") == 0.1)
+        #expect(editor.commit(value: value, clamp: 0.1 ... 1, format: "%.2f") == 0.1)
         var reopened = OptionalDoubleFieldEditing()
         reopened.reset(value: value, format: "%.2f")
         #expect(reopened.text == "1.00")
@@ -65,7 +65,7 @@ struct OptionalDoubleFieldEditingTests {
         editor.edit("0.")
         editor.receive(value: 0.8, format: "%.2f")
         #expect(editor.text == "0.80")
-        #expect(editor.commit(value: 0.8, clamp: 0.1...1, format: "%.2f") == 0.8)
+        #expect(editor.commit(value: 0.8, clamp: 0.1 ... 1, format: "%.2f") == 0.8)
     }
 
     @Test(arguments: ["20", "0.0", "nan"])
@@ -80,10 +80,18 @@ struct OptionalDoubleFieldEditingTests {
         var editor = OptionalDoubleFieldEditing()
         editor.reset(value: 0, format: "%g")
         editor.edit(text)
-        committer.setPending(id: UUID(), changed: editor.text != "0", commit: {
-            draft.cache.blockDisk.maxSizePercent = editor.commit(
-                value: draft.cache.blockDisk.maxSizePercent, clamp: nil, format: "%g")
-        }, discard: {})
+        committer.setPending(
+            id: UUID(),
+            changed: editor.text != "0",
+            commit: {
+                draft.cache.blockDisk.maxSizePercent = editor.commit(
+                    value: draft.cache.blockDisk.maxSizePercent,
+                    clamp: nil,
+                    format: "%g"
+                )
+            },
+            discard: {}
+        )
         // Save/Cmd-S must reach the flush while the bound fraction is still invalid.
         #expect(!committer.blocksSaveAttempt(hasBlockingIssues: blocked()))
         committer.commit()
@@ -101,20 +109,30 @@ struct OptionalDoubleFieldEditingTests {
         var value: Double? = 0.5
         editor.reset(value: value, format: "%.2f")
         editor.edit("0.70")
-        committer.setPending(id: field, changed: true, commit: {
-            value = editor.commit(value: value, clamp: 0.1...1, format: "%.2f")
-        }, discard: { editor.reset(value: value, format: "%.2f") })
+        committer.setPending(
+            id: field,
+            changed: true,
+            commit: {
+                value = editor.commit(value: value, clamp: 0.1 ... 1, format: "%.2f")
+            },
+            discard: { editor.reset(value: value, format: "%.2f") }
+        )
         #expect(committer.hasPendingChanges)
         #expect(value == 0.5)
-        committer.clear(id: UUID()) // A disappearing sibling cannot clear this field.
+        committer.clear(id: UUID())  // A disappearing sibling cannot clear this field.
         #expect(committer.hasPendingChanges)
         committer.commit()
         #expect(value == 0.7)
         #expect(!committer.hasPendingChanges)
         editor.edit("0.2")
-        committer.setPending(id: field, changed: true, commit: {
-            value = editor.commit(value: value, clamp: 0.1...1, format: "%.2f")
-        }, discard: { editor.reset(value: value, format: "%.2f") })
+        committer.setPending(
+            id: field,
+            changed: true,
+            commit: {
+                value = editor.commit(value: value, clamp: 0.1 ... 1, format: "%.2f")
+            },
+            discard: { editor.reset(value: value, format: "%.2f") }
+        )
         committer.discard()
         #expect(value == 0.7)
         #expect(editor.text == "0.70")

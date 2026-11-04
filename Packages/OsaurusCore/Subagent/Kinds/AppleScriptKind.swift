@@ -218,9 +218,13 @@ final class AppleScriptKind: SubagentKind, SubagentPostAdmissionResidencyPlannin
         let enabled = await MainActor.run {
             AgentManager.shared.agent(for: scope.agentId)?.settings.appleScriptEnabled ?? false
         }
-        guard SubagentToolVisibility.appleScriptAvailable(
-            isDefault: scope.agentId == Agent.defaultId, config: config, perAgentEnabled: enabled
-        ) else {
+        guard
+            SubagentToolVisibility.appleScriptAvailable(
+                isDefault: scope.agentId == Agent.defaultId,
+                config: config,
+                perAgentEnabled: enabled
+            )
+        else {
             throw SubagentError.denied("AppleScript is not enabled for this agent.")
         }
     }
@@ -374,10 +378,8 @@ final class AppleScriptKind: SubagentKind, SubagentPostAdmissionResidencyPlannin
             let current = workspace.frontmostApplication
             let currentIsSelf =
                 current?.processIdentifier == ProcessInfo.processInfo.processIdentifier
-                || (
-                    current?.bundleIdentifier != nil
-                        && current?.bundleIdentifier == Bundle.main.bundleIdentifier
-                )
+                || (current?.bundleIdentifier != nil
+                    && current?.bundleIdentifier == Bundle.main.bundleIdentifier)
             let frontmost =
                 currentIsSelf
                 ? FrontmostAppTracker.shared.lastNonSelfAppName

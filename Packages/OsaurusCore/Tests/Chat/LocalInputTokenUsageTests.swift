@@ -13,8 +13,10 @@ struct LocalInputTokenUsageTests {
             #expect(StreamingToolHint.isSentinel(hint))
             #expect(StreamingStatsHint.decode(hint) == nil)
         }
-        for text in ["input_tokens:12", "\u{FFFE}input_tokens:-1", "\u{FFFE}input_tokens:",
-                     "\u{FFFE}input_tokens:12x", "\u{FFFE}input_tokens:999999999999999999999"] {
+        for text in [
+            "input_tokens:12", "\u{FFFE}input_tokens:-1", "\u{FFFE}input_tokens:",
+            "\u{FFFE}input_tokens:12x", "\u{FFFE}input_tokens:999999999999999999999",
+        ] {
             #expect(StreamingInputTokenHint.decode(text) == nil)
         }
     }
@@ -22,12 +24,27 @@ struct LocalInputTokenUsageTests {
     @Test(arguments: [0, 257], [false, true])
     func preparedCountPrecedesCompletedToolDispatch(_ count: Int, terminalInfo: Bool) async throws {
         let source = AsyncStream<Generation> { continuation in
-            continuation.yield(.toolCall(MLXLMCommon.ToolCall(function: .init(
-                name: "lookup_zone", arguments: ["zone": .string("east")]))))
+            continuation.yield(
+                .toolCall(
+                    MLXLMCommon.ToolCall(
+                        function: .init(
+                            name: "lookup_zone",
+                            arguments: ["zone": .string("east")]
+                        )
+                    )
+                )
+            )
             if terminalInfo {
-                continuation.yield(.info(GenerateCompletionInfo(
-                    promptTokenCount: count, generationTokenCount: 8,
-                    promptTime: 0.1, generationTime: 0.2)))
+                continuation.yield(
+                    .info(
+                        GenerateCompletionInfo(
+                            promptTokenCount: count,
+                            generationTokenCount: 8,
+                            promptTime: 0.1,
+                            generationTime: 0.2
+                        )
+                    )
+                )
             }
             continuation.finish()
         }
@@ -60,7 +77,8 @@ struct LocalInputTokenUsageTests {
         // the early prepared count without manufacturing zero output usage.
         #expect(terminalCount == (terminalInfo ? Optional(8) : nil))
         #expect(terminalFrames == (terminalInfo ? 1 : 0))
-        let expectedOrder = ["input:\(count)"]
+        let expectedOrder =
+            ["input:\(count)"]
             + (terminalInfo ? ["stats:8"] : []) + ["dispatch:lookup_zone"]
         #expect(order == expectedOrder)
     }
@@ -69,8 +87,16 @@ struct LocalInputTokenUsageTests {
     func terminalCountConfirmsOrCorrectsPreparedCount(_ prepared: Int) async throws {
         let source = AsyncStream<Generation> { continuation in
             continuation.yield(.chunk("answer"))
-            continuation.yield(.info(GenerateCompletionInfo(
-                promptTokenCount: 257, generationTokenCount: 8, promptTime: 0.1, generationTime: 0.2)))
+            continuation.yield(
+                .info(
+                    GenerateCompletionInfo(
+                        promptTokenCount: 257,
+                        generationTokenCount: 8,
+                        promptTime: 0.1,
+                        generationTime: 0.2
+                    )
+                )
+            )
             continuation.finish()
         }
         var counts: [Int] = []
@@ -102,8 +128,13 @@ struct LocalInputTokenUsageTests {
         let context = ExecutionContext(agentId: Agent.defaultId)
         context.chatSession.chatEngineFactory = { _ in MockChatEngine() }
         let state = BackgroundTaskState(
-            id: UUID(), taskTitle: "input accounting", agentId: Agent.defaultId,
-            chatSession: context.chatSession, executionContext: context, showToast: false)
+            id: UUID(),
+            taskTitle: "input accounting",
+            agentId: Agent.defaultId,
+            chatSession: context.chatSession,
+            executionContext: context,
+            showToast: false
+        )
         state.runTokensLimit = limited ? 270 : nil
         let manager = BackgroundTaskManager.shared
         manager.registerTaskForTesting(state)
@@ -116,8 +147,12 @@ struct LocalInputTokenUsageTests {
             StreamingStatsHint.encode(tokenCount: 8, tokensPerSecond: 4, inputTokenCount: 263),
         ])
         let engine = ChatEngine(services: [service], installedModelsProvider: { [] })
-        let request = try JSONDecoder().decode(ChatCompletionRequest.self, from: Data(
-            #"{"model":"fake","messages":[{"role":"user","content":"hi"}],"stream":true}"#.utf8))
+        let request = try JSONDecoder().decode(
+            ChatCompletionRequest.self,
+            from: Data(
+                #"{"model":"fake","messages":[{"role":"user","content":"hi"}],"stream":true}"#.utf8
+            )
+        )
         try await ChatExecutionContext.$currentBackgroundId.withValue(state.id) {
             let stream = try await engine.streamChat(request: request)
             for try await _ in stream {}
@@ -137,11 +172,15 @@ struct LocalInputTokenUsageTests {
         func isAvailable() -> Bool { true }
         func handles(requestedModel: String?) -> Bool { requestedModel == id }
         func generateOneShot(
-            messages: [ChatMessage], parameters: GenerationParameters, requestedModel: String?
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?
         ) async throws -> String { "unused" }
         func streamDeltas(
-            messages: [ChatMessage], parameters: GenerationParameters,
-            requestedModel: String?, stopSequences: [String]
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?,
+            stopSequences: [String]
         ) async throws -> AsyncThrowingStream<String, Error> { stream }
     }
 
@@ -153,8 +192,12 @@ struct LocalInputTokenUsageTests {
         }
         defer { continuation.finish() }
         let engine = ChatEngine(services: [OpenStreamService(stream: upstream)], installedModelsProvider: { [] })
-        let request = try JSONDecoder().decode(ChatCompletionRequest.self, from: Data(
-            #"{"model":"input-usage-cancel","messages":[{"role":"user","content":"hello"}],"stream":true}"#.utf8))
+        let request = try JSONDecoder().decode(
+            ChatCompletionRequest.self,
+            from: Data(
+                #"{"model":"input-usage-cancel","messages":[{"role":"user","content":"hello"}],"stream":true}"#.utf8
+            )
+        )
         let stream = try await engine.streamChat(request: request)
         let consumer = Task {
             do {

@@ -472,7 +472,7 @@ public enum ComputerUseLoop {
                 completedAssistant = stepResult.assistantMessage
                 metrics.recordDecodeTokensPerSecond(stepResult.tokensPerSecond)
                 parsed = stepResult.call
-            } catch where isMissingRequiredAgentActionError(error) {
+            } catch  where isMissingRequiredAgentActionError(error) {
                 // ChatEngine correctly fails closed when a named/required
                 // local tool turn reaches EOS without a parsed call. For
                 // Computer Use that error means exactly the same thing as a
@@ -503,18 +503,20 @@ public enum ComputerUseLoop {
                 continue
             }
             let callId = call.id
-            let assistantMessage = completedAssistant ?? ChatMessage(
-                role: "assistant",
-                content: nil,
-                tool_calls: [
-                    ToolCall(
-                        id: call.id,
-                        type: "function",
-                        function: ToolCallFunction(name: AgentAction.toolName, arguments: call.arguments)
-                    )
-                ],
-                tool_call_id: nil
-            )
+            let assistantMessage =
+                completedAssistant
+                ?? ChatMessage(
+                    role: "assistant",
+                    content: nil,
+                    tool_calls: [
+                        ToolCall(
+                            id: call.id,
+                            type: "function",
+                            function: ToolCallFunction(name: AgentAction.toolName, arguments: call.arguments)
+                        )
+                    ],
+                    tool_call_id: nil
+                )
             let decoded = AgentAction.decode(argumentsJSON: call.arguments)
 
             // Invalid shape → bounded re-ask (feed the reason back as a tool result).
@@ -962,8 +964,11 @@ public enum ComputerUseLoop {
                     )
                 } catch {
                     return frameScrubFailureResult(
-                        error, step: step + 1, completedSteps: step + (advancedStep ? 1 : 0),
-                        metrics: metrics, feed: feed
+                        error,
+                        step: step + 1,
+                        completedSteps: step + (advancedStep ? 1 : 0),
+                        metrics: metrics,
+                        feed: feed
                     )
                 }
             }
@@ -1692,22 +1697,30 @@ public enum ComputerUseLoop {
         request.generation.reasoningEffort = reasoningEffort
         let generateStarted = Date()
         let response = try await DesktopResponsesModelStep.completeResponse(
-            engine: engine, request: request, attempt: attempt
+            engine: engine,
+            request: request,
+            attempt: attempt
         )
         ComputerUseTraceLog.record(
-            request: request, response: response,
+            request: request,
+            response: response,
             elapsedSeconds: Date().timeIntervalSince(generateStarted)
         )
         let call = try DesktopResponsesModelStep.actionCall(
-            from: response, expectedTool: AgentAction.toolName, required: true
+            from: response,
+            expectedTool: AgentAction.toolName,
+            required: true
         )
         let total = response.inputTokenCount.flatMap { input in
             response.completion.tokenCount.map { input + $0 }
         }
         return ModelStepResult(
-            call: call, tokens: total, tokensPerSecond: response.completion.tokensPerSecond,
+            call: call,
+            tokens: total,
+            tokensPerSecond: response.completion.tokensPerSecond,
             assistantMessage: try response.completedAssistantInput(),
-            inputTokenCount: response.inputTokenCount, outputTokenCount: response.completion.tokenCount
+            inputTokenCount: response.inputTokenCount,
+            outputTokenCount: response.completion.tokenCount
         )
     }
 
@@ -2190,7 +2203,8 @@ public enum ComputerUseLoop {
         guard let content else { return nil }
         if let label = content.range(of: "Current view:\n") { return label.lowerBound }
         guard let tier = content.range(of: " [tier: ") else { return nil }
-        let lineStart = content[..<tier.lowerBound].lastIndex(of: "\n").map { content.index(after: $0) }
+        let lineStart =
+            content[..<tier.lowerBound].lastIndex(of: "\n").map { content.index(after: $0) }
             ?? content.startIndex
         return content[lineStart...].hasPrefix("App: ") ? lineStart : nil
     }

@@ -9,8 +9,13 @@ struct ChatTurnOverridesTests {
         let empty = ChatTurnOverrides()
         try empty.validate()
         #expect(empty.isEmpty)
-        let controls = ChatTurnOverrides(temperature: 0, topP: 0, topK: 0,
-            enableThinking: false, templateKwargs: ["template": .object(["field": .null])])
+        let controls = ChatTurnOverrides(
+            temperature: 0,
+            topP: 0,
+            topK: 0,
+            enableThinking: false,
+            templateKwargs: ["template": .object(["field": .null])]
+        )
         try controls.validate()
         #expect(!controls.isEmpty)
         let restored = try JSONDecoder().decode(ChatTurnOverrides.self, from: JSONEncoder().encode(controls))
@@ -25,11 +30,13 @@ struct ChatTurnOverridesTests {
     }
 
     @Test func invalidControlsRejectBeforeDispatch() throws {
-        for controls in [ChatTurnOverrides(temperature: -.infinity), .init(temperature: .nan),
+        for controls in [
+            ChatTurnOverrides(temperature: -.infinity), .init(temperature: .nan),
             .init(topP: 1.1), .init(topK: -1), .init(reasoningEffort: "   "),
             .init(templateKwargs: ["messages": .array([])]),
             .init(templateKwargs: ["tools": .array([])]),
-            .init(templateKwargs: ["add_generation_prompt": .bool(false)])] {
+            .init(templateKwargs: ["add_generation_prompt": .bool(false)]),
+        ] {
             #expect(throws: (any Error).self) { try controls.validate() }
         }
         try ChatTurnOverrides(templateKwargs: ["model_hint": .string("explicit"), "optional_value": .null]).validate()
@@ -41,9 +48,13 @@ struct ChatTurnOverridesTests {
         #expect(inherited.context.modelOptions == [:])
         #expect(inherited.generation.enableThinking == nil)
         var frozen = ChatTurnGenerationControls.capture(activeModelOptions: ["disableThinking": .bool(false)])
-        frozen.overrides = .init(topK: 0, reasoningEffort: "high", enableThinking: false,
-            templateKwargs: ["template": .object(["city": .null])])
-        for _ in 0..<3 {
+        frozen.overrides = .init(
+            topK: 0,
+            reasoningEffort: "high",
+            enableThinking: false,
+            templateKwargs: ["template": .object(["city": .null])]
+        )
+        for _ in 0 ..< 3 {
             var request = ResponsesInferenceRequest(model: "test", input: [])
             frozen.apply(to: &request)
             #expect(request.generation.temperature == nil)
@@ -61,7 +72,11 @@ struct ChatTurnOverridesTests {
     @Test func queuedCustomControlsAreLatchedAndCannotSteerDifferentRun() async throws {
         try await ChatHistoryTestStorage.run {
             let session = ChatSession()
-            session.nextTurnOverrides = .init(temperature: 0, topK: 0, templateKwargs: ["template": .object(["a": .null])])
+            session.nextTurnOverrides = .init(
+                temperature: 0,
+                topK: 0,
+                templateKwargs: ["template": .object(["a": .null])]
+            )
             session.enqueueSend("queued", attachments: [])
             let captured = try #require(session.queuedSend?.generationControls)
             #expect(session.nextTurnOverrides.isEmpty)
@@ -80,8 +95,12 @@ struct ChatTurnOverridesTests {
             session.forceChatEngineRouteForTests = true
             session.chatEngineFactory = { _ in engine }
             let savedAgentTemperature = AgentManager.shared.effectiveTemperature(for: Agent.defaultId)
-            session.nextTurnOverrides = .init(temperature: 0, topP: 0.8, topK: 0,
-                templateKwargs: ["template": .object(["city": .null])])
+            session.nextTurnOverrides = .init(
+                temperature: 0,
+                topP: 0.8,
+                topK: 0,
+                templateKwargs: ["template": .object(["city": .null])]
+            )
             session.send("Hello")
             try await waitForCompletion(session)
             let original = try #require(await engine.requests.first)
@@ -125,8 +144,11 @@ struct ChatTurnOverridesTests {
                 if ContinuousClock.now >= deadline { throw NSError(domain: "ChatTurnOverridesTests", code: 2) }
                 try await Task.sleep(for: .milliseconds(10))
             }
-            session.nextTurnOverrides = .init(temperature: 0, topK: 0,
-                templateKwargs: ["template": .object(["queued": .null])])
+            session.nextTurnOverrides = .init(
+                temperature: 0,
+                topK: 0,
+                templateKwargs: ["template": .object(["queued": .null])]
+            )
             session.enqueueSend("Queued hello", attachments: [])
             session.nextTurnOverrides = .init(temperature: 1.2, topK: 5)
             await engine.releaseFirst()
@@ -134,7 +156,8 @@ struct ChatTurnOverridesTests {
             // for the actual second dispatch and terminal run ownership, not
             // the brief UI-idle interval between those two stages.
             while await engine.requests.count < 2 || !session.isAvailableForDispatchReattachment
-                || session.queuedSend != nil {
+                || session.queuedSend != nil
+            {
                 if ContinuousClock.now >= deadline { throw NSError(domain: "ChatTurnOverridesTests", code: 3) }
                 try await Task.sleep(for: .milliseconds(10))
             }
@@ -177,7 +200,11 @@ struct ChatTurnOverridesTests {
 
     @Test func workflowRequestKeepsTypedControlsWithoutUsingStringSubstitutionParameters() {
         let controls = ChatTurnOverrides(temperature: 0, topK: 0, templateKwargs: ["template": .object(["a": .null])])
-        let request = DispatchRequest(prompt: "extract", parameters: ["temperature": "ordinary prompt variable"], generationOverrides: controls)
+        let request = DispatchRequest(
+            prompt: "extract",
+            parameters: ["temperature": "ordinary prompt variable"],
+            generationOverrides: controls
+        )
         #expect(request.generationOverrides == controls)
         #expect(request.parameters["temperature"] == "ordinary prompt variable")
         #expect(DispatchRequest(prompt: "inherit").generationOverrides == nil)
@@ -189,17 +216,27 @@ struct ChatTurnOverridesTests {
             try ChatTurnOverrides().validate(forWorkspaceAgent: true)
             try controls.validate(forWorkspaceAgent: false)
             #expect(throws: (any Error).self) { try controls.validate(forWorkspaceAgent: true) }
-            let ref = WorkspaceAgentRef(workspaceId: "controls-fixture", agentAddress: "0x1111111111111111111111111111111111111111")
+            let ref = WorkspaceAgentRef(
+                workspaceId: "controls-fixture",
+                agentAddress: "0x1111111111111111111111111111111111111111"
+            )
             let client = WorkspaceAgentRunClient.shared
             let saved = client.routerEnabled
             var prepareChecks = 0
-            client.routerEnabled = { prepareChecks += 1; return false }
+            client.routerEnabled = {
+                prepareChecks += 1; return false
+            }
             defer { client.routerEnabled = saved }
             let request = DispatchRequest(prompt: "extract", target: .workspace(ref), generationOverrides: controls)
             #expect(await BackgroundTaskManager.shared.dispatchChat(request) == nil)
             #expect(prepareChecks == 0)
-            let prepared = WorkspaceAgentRunClient.Prepared(ref: ref, providerId: UUID(),
-                displayName: "Fixture", effectiveModel: nil, workspaceName: nil)
+            let prepared = WorkspaceAgentRunClient.Prepared(
+                ref: ref,
+                providerId: UUID(),
+                displayName: "Fixture",
+                effectiveModel: nil,
+                workspaceName: nil
+            )
             let context = ExecutionContext(workspace: prepared, source: .chat)
             let engine = TurnParameterRecordingEngine()
             context.chatSession.chatEngineFactory = { _ in engine }
@@ -216,8 +253,11 @@ struct ChatTurnOverridesTests {
         try await ChatHistoryTestStorage.run {
             let session = ChatSession()
             var controls = ChatTurnGenerationControls.capture(activeModelOptions: [:])
-            controls.overrides = .init(temperature: 0, topK: 0,
-                templateKwargs: ["template": .object(["field": .null])])
+            controls.overrides = .init(
+                temperature: 0,
+                topK: 0,
+                templateKwargs: ["template": .object(["field": .null])]
+            )
             session.restoreAbortedSendDraft(text: "original", attachments: [], controls: controls)
             #expect(session.input == "original")
             #expect(session.nextTurnOverrides == controls.overrides)
@@ -273,9 +313,15 @@ struct ChatTurnOverridesTests {
 
     @Test func customAgentDefaultsAndCapsAreFrozenForQueuedWork() async throws {
         try await ChatHistoryTestStorage.run {
-            var agent = Agent(name: "Generation queue fixture", temperature: 0, maxTokens: 128,
+            var agent = Agent(
+                name: "Generation queue fixture",
+                temperature: 0,
+                maxTokens: 128,
                 generationSettings: .init(topP: 0.8, topK: 0, seed: 17, enableThinking: false),
-                autonomousExec: AutonomousExecConfig(enabled: false), toolsEnabled: false, memoryEnabled: false)
+                autonomousExec: AutonomousExecConfig(enabled: false),
+                toolsEnabled: false,
+                memoryEnabled: false
+            )
             AgentStore.save(agent)
             AgentManager.shared.refresh()
             let session = ChatSession()
@@ -300,10 +346,23 @@ struct ChatTurnOverridesTests {
 
     @Test func customAgentDefaultsReachTheRealChatDispatchAndSurviveRegeneration() async throws {
         try await ChatHistoryTestStorage.run {
-            var agent = Agent(name: "Generation dispatch fixture", temperature: 0, maxTokens: 128,
-                generationSettings: .init(topP: 0.8, topK: 0, minP: 0.02, repetitionPenalty: 1.1,
-                    presencePenalty: 0.3, seed: 17, templateKwargs: ["format": .string("fixture")]),
-                autonomousExec: AutonomousExecConfig(enabled: false), toolsEnabled: false, memoryEnabled: false)
+            var agent = Agent(
+                name: "Generation dispatch fixture",
+                temperature: 0,
+                maxTokens: 128,
+                generationSettings: .init(
+                    topP: 0.8,
+                    topK: 0,
+                    minP: 0.02,
+                    repetitionPenalty: 1.1,
+                    presencePenalty: 0.3,
+                    seed: 17,
+                    templateKwargs: ["format": .string("fixture")]
+                ),
+                autonomousExec: AutonomousExecConfig(enabled: false),
+                toolsEnabled: false,
+                memoryEnabled: false
+            )
             AgentStore.save(agent)
             AgentManager.shared.refresh()
             let engine = TurnParameterRecordingEngine()
@@ -353,22 +412,37 @@ private actor TurnParameterRecordingEngine: ChatEngineProtocol {
     let holdFirst: Bool
     private var held: AsyncThrowingStream<ResponsesGenerationEvent, Error>.Continuation?
     init(holdFirst: Bool = false) { self.holdFirst = holdFirst }
-    func streamResponses(request: ResponsesInferenceRequest) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
+    func streamResponses(request: ResponsesInferenceRequest) async throws -> AsyncThrowingStream<
+        ResponsesGenerationEvent, Error
+    > {
         requests.append(request)
         let stream = AsyncThrowingStream<ResponsesGenerationEvent, Error>.makeStream()
-        if holdFirst && requests.count == 1 { held = stream.continuation }
-        else { Self.finish(stream.continuation) }
+        if holdFirst && requests.count == 1 { held = stream.continuation } else { Self.finish(stream.continuation) }
         return stream.stream
     }
     func releaseFirst() {
         if let held { Self.finish(held) }
         held = nil
     }
-    private nonisolated static func finish(_ continuation: AsyncThrowingStream<ResponsesGenerationEvent, Error>.Continuation) {
+    private nonisolated static func finish(
+        _ continuation: AsyncThrowingStream<ResponsesGenerationEvent, Error>.Continuation
+    ) {
         continuation.yield(.outputTextDelta("Hello."))
-        continuation.yield(.responseCompleted(.init(responseID: UUID().uuidString, status: .completed,
-            functionCalls: [], tokenCount: 2, tokensPerSecond: 10, unclosedReasoning: false,
-            stopReason: "stop", promptTokensPerSecond: nil, mtp: nil)))
+        continuation.yield(
+            .responseCompleted(
+                .init(
+                    responseID: UUID().uuidString,
+                    status: .completed,
+                    functionCalls: [],
+                    tokenCount: 2,
+                    tokensPerSecond: 10,
+                    unclosedReasoning: false,
+                    stopReason: "stop",
+                    promptTokensPerSecond: nil,
+                    mtp: nil
+                )
+            )
+        )
         continuation.yield(.drained)
         continuation.finish()
     }

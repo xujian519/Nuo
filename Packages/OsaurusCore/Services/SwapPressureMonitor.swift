@@ -179,7 +179,8 @@ public final class SwapPressureMonitor: @unchecked Sendable {
             model: model,
             baselineUsedBytes: usage.used,
             startedAt: Date(),
-            phase: .loading)
+            phase: .loading
+        )
         if episode == nil {
             episode = Episode(loads: [record])
         } else {
@@ -267,7 +268,8 @@ public final class SwapPressureMonitor: @unchecked Sendable {
                 processFootprintBytes: 60 << 30,
                 swapinsPerSecond: override == .critical ? 4200 : 600,
                 decompressionsPerSecond: override == .critical ? 9000 : 1500,
-                emulated: true)
+                emulated: true
+            )
         }
 
         guard let usage = swapSampler() else { return .quiet }
@@ -278,15 +280,20 @@ public final class SwapPressureMonitor: @unchecked Sendable {
         defer { lock.unlock() }
         guard var current = episode, !current.loads.isEmpty else {
             return State(
-                severity: .none, phase: .idle, modelName: nil,
+                severity: .none,
+                phase: .idle,
+                modelName: nil,
                 baselineUsedBytes: 0,
-                swapUsedBytes: usage.used, swapTotalBytes: usage.total,
-                growthSinceBaselineBytes: 0, peakGrowthBytes: 0,
+                swapUsedBytes: usage.used,
+                swapTotalBytes: usage.total,
+                growthSinceBaselineBytes: 0,
+                peakGrowthBytes: 0,
                 episodeElapsedSeconds: 0,
                 processFootprintBytes: footprint,
                 swapinsPerSecond: rates.swapins,
                 decompressionsPerSecond: rates.decompressions,
-                emulated: false)
+                emulated: false
+            )
         }
         let growth = Int64(bitPattern: usage.used &- current.baselineUsedBytes)
         // Attribution stops accumulating once every load's window closed at
@@ -302,7 +309,8 @@ public final class SwapPressureMonitor: @unchecked Sendable {
             usedBytes: usage.used,
             totalBytes: usage.total,
             previous: current.lastSeverity,
-            exitStreak: &current.exitStreak)
+            exitStreak: &current.exitStreak
+        )
         if severity < current.lastSeverity {
             // Recovered: re-baseline the peak to the present growth so a
             // stale historic spike cannot instantly re-enter — only NEW

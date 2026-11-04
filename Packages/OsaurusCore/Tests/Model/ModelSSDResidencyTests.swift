@@ -57,8 +57,13 @@ struct ModelSSDResidencyTests {
         let gb: Int64 = 1 << 30
         // Allosaurus-like: 88 GB download, 53.6 GB of it n-gram -> ~34.4 GB of weights.
         let model = MLXModel(
-            id: "OsaurusAI/Allosaurus-v0.1-125B-A6B-JANGH2", name: "Allosaurus", description: "",
-            downloadURL: "", downloadSizeBytes: 88 * gb, ssdResidentBytes: 53 * gb + gb / 2)
+            id: "OsaurusAI/Allosaurus-v0.1-125B-A6B-JANGH2",
+            name: "Allosaurus",
+            description: "",
+            downloadURL: "",
+            downloadSizeBytes: 88 * gb,
+            ssdResidentBytes: 53 * gb + gb / 2
+        )
         #expect(model.totalSizeEstimateBytes == 88 * gb)
         #expect(model.residentWeightEstimateBytes == 34 * gb + gb / 2)
         let assessment = model.memoryAssessment(totalMemoryGB: 128)
@@ -166,18 +171,25 @@ struct ModelSSDResidencyTests {
         )
         facts.ssdResidentTableBytes = 57_600_276_480
         let estimate = GPUMemoryBudget.estimatedChatWorkingSetBytes(
-            onDiskBytes: Int64(facts.gpuResidentWeightBytes))
+            onDiskBytes: Int64(facts.gpuResidentWeightBytes)
+        )
         let request = VMLXMemoryRequestEstimate(workingSetBytes: estimate)
         let settings = VMLXServerRuntimeSettings()
         let automatic = settings.resolvedMemorySafetyPlan(
-            baseLoadConfiguration: .osaurusProduction, bundleFacts: facts, request: request)
+            baseLoadConfiguration: .osaurusProduction,
+            bundleFacts: facts,
+            request: request
+        )
         #expect(automatic.blockingIssues.isEmpty)
         #expect(!automatic.warnings.isEmpty)
 
         var strictSettings = settings
         strictSettings.memorySafety.mode = .strict
         let strict = strictSettings.resolvedMemorySafetyPlan(
-            baseLoadConfiguration: .osaurusProduction, bundleFacts: facts, request: request)
+            baseLoadConfiguration: .osaurusProduction,
+            bundleFacts: facts,
+            request: request
+        )
         #expect(strict.blockingIssues.contains { $0.field == "memorySafety.requestEstimate" })
     }
 

@@ -238,7 +238,10 @@ final class ToolsInstallTests: XCTestCase {
         XCTAssertEqual(receipt.artifact.size, dylibBytes.count)
 
         let json = try XCTUnwrap(JSONSerialization.jsonObject(with: receiptData) as? [String: Any])
-        XCTAssertNotNil(json["artifact"], "Manual install receipts must keep the artifact object required by PluginReceipt.")
+        XCTAssertNotNil(
+            json["artifact"],
+            "Manual install receipts must keep the artifact object required by PluginReceipt."
+        )
     }
 
     func testManualInstallReceiptEncodesArtifactURLForPathsWithSpaces() throws {

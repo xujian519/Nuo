@@ -68,14 +68,16 @@ struct AgentEntryPortableKeysTests {
             agents:
               - name: A
                 working_folder: null
-            """)
+            """
+        )
         #expect(cleared.agents?.first?.workingFolder == .null)
         let untouched = try ConfigYAML.decode(
             """
             version: 1
             agents:
               - name: A
-            """)
+            """
+        )
         #expect(untouched.agents?.first?.workingFolder == .absent)
         #expect(untouched.agents?.first?.tools == nil)
         #expect(untouched.agents?.first?.sandbox == nil)

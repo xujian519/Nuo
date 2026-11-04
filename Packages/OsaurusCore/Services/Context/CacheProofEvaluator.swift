@@ -222,15 +222,17 @@ public enum CacheProofEvaluator {
     /// cache-shape calls. Opaque/native provider Items cannot be replayed with
     /// those substituted identities; ordinary turns keep the full snapshot.
     static func scriptedDiagnosticAssistant(
-        _ response: ResponsesGenerationResult, calls: [ToolCall]?
+        _ response: ResponsesGenerationResult,
+        calls: [ToolCall]?
     ) -> ChatMessage {
         ChatMessage(
-            role: "assistant", content: response.text.isEmpty ? nil : response.text,
-            tool_calls: calls, tool_call_id: nil,
+            role: "assistant",
+            content: response.text.isEmpty ? nil : response.text,
+            tool_calls: calls,
+            tool_call_id: nil,
             reasoning_content: response.reasoning.isEmpty ? nil : response.reasoning
         )
     }
-
 
     /// Run `queries` as consecutive user turns and return the diagnostics
     /// deltas across the whole exchange. By default turn 2+ shares turn 1's
@@ -326,7 +328,8 @@ public enum CacheProofEvaluator {
         // follow-up is delivered as a tool continuation below.
         let toolFollowUps = toolResultFollowUps ?? []
         let scriptedToolLoop = toolResultFollowUps != nil
-        let effectiveQueries = scriptedToolLoop
+        let effectiveQueries =
+            scriptedToolLoop
             ? [queries.first ?? ""] + toolFollowUps
             : queries
         let probeTool = Tool(
@@ -396,18 +399,23 @@ public enum CacheProofEvaluator {
             var observedCompletion: ResponsesGenerationCompletion?
             do {
                 let response = try await ResponsesEvaluationStep.collect(
-                    engine: engine, request: request, endAt: .streamEnd
+                    engine: engine,
+                    request: request,
+                    endAt: .streamEnd
                 ) { event in
                     if firstModelOutputAt == nil, event.isGeneratedOutput {
                         firstModelOutputAt = CFAbsoluteTimeGetCurrent()
                     }
                     switch event {
                     case .prefillProgress(let progress):
-                        prefillProgressEvents.append(CacheProofProgressEvent(
-                            stage: progress.stage.rawValue,
-                            completedUnitCount: progress.completedUnitCount,
-                            totalUnitCount: progress.totalUnitCount, detail: progress.detail
-                        ))
+                        prefillProgressEvents.append(
+                            CacheProofProgressEvent(
+                                stage: progress.stage.rawValue,
+                                completedUnitCount: progress.completedUnitCount,
+                                totalUnitCount: progress.totalUnitCount,
+                                detail: progress.detail
+                            )
+                        )
                         if progress.stage == .cacheRestore, progress.completedUnitCount > 0 {
                             cacheRestoredTokens = max(cacheRestoredTokens ?? 0, progress.completedUnitCount)
                             cacheRestoreDetail = progress.detail
@@ -437,14 +445,16 @@ public enum CacheProofEvaluator {
                 case .cancelled:
                     runError = "turn \(turnNumber) cancelled by upstream model/provider"
                 case .incomplete:
-                    runError = "turn \(turnNumber) is an incomplete cache diagnostic (\(stopReason ?? "unknown reason")); not a natural-completion pass"
+                    runError =
+                        "turn \(turnNumber) is an incomplete cache diagnostic (\(stopReason ?? "unknown reason")); not a natural-completion pass"
                 case .completed:
                     if unclosedReasoning || stopReason == "length" {
                         runError = "turn \(turnNumber) ended with unfinished reasoning/output; not a completion pass"
                     }
                 }
                 if !scriptedToolLoop, !response.completion.functionCalls.isEmpty {
-                    runError = "turn \(turnNumber) produced unexpected tool calls: \(response.completion.functionCalls.map(\.name).joined(separator: ","))"
+                    runError =
+                        "turn \(turnNumber) produced unexpected tool calls: \(response.completion.functionCalls.map(\.name).joined(separator: ","))"
                 }
             } catch {
                 lastDecodeTps = turnDecodeTps
@@ -499,14 +509,20 @@ public enum CacheProofEvaluator {
             if runError != nil { break }
             guard let modelResponse else { break }
             if scriptedToolLoop {
-                let nextCall: [ToolCall]? = turnIndex + 1 < effectiveQueries.count ? [ToolCall(
-                    id: "call_eval_probe_\(turnIndex + 1)", type: "function",
-                    function: ToolCallFunction(name: "eval_probe", arguments: "{\"step\": \(turnIndex + 1)}")
-                )] : nil
+                let nextCall: [ToolCall]? =
+                    turnIndex + 1 < effectiveQueries.count
+                    ? [
+                        ToolCall(
+                            id: "call_eval_probe_\(turnIndex + 1)",
+                            type: "function",
+                            function: ToolCallFunction(name: "eval_probe", arguments: "{\"step\": \(turnIndex + 1)}")
+                        )
+                    ] : nil
                 history.append(scriptedDiagnosticAssistant(modelResponse, calls: nextCall))
             } else {
-                do { history.append(try modelResponse.completedAssistantInput()) }
-                catch { runError = "turn \(turnNumber) history projection failed: \(error)"; break }
+                do { history.append(try modelResponse.completedAssistantInput()) } catch {
+                    runError = "turn \(turnNumber) history projection failed: \(error)"; break
+                }
             }
 
         }

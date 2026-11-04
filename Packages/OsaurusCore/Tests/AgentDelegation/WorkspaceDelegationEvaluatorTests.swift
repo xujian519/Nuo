@@ -18,12 +18,21 @@ struct WorkspaceDelegationEvaluatorTests {
     private static let beta = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb01"
 
     private static func shared(
-        _ name: String, workspace: String, workspaceName: String, address: String,
-        online: Bool = true, lastSeenSecondsAgo: Int? = nil
+        _ name: String,
+        workspace: String,
+        workspaceName: String,
+        address: String,
+        online: Bool = true,
+        lastSeenSecondsAgo: Int? = nil
     ) -> WorkspaceDelegationEvaluator.SharedAgent {
         .init(
-            name: name, workspaceId: workspace, workspaceName: workspaceName, address: address,
-            online: online, lastSeenSecondsAgo: lastSeenSecondsAgo)
+            name: name,
+            workspaceId: workspace,
+            workspaceName: workspaceName,
+            address: address,
+            online: online,
+            lastSeenSecondsAgo: lastSeenSecondsAgo
+        )
     }
 
     @Test("offline shared agent yields the dispatcher's exact refusal and plans no card")
@@ -32,22 +41,39 @@ struct WorkspaceDelegationEvaluatorTests {
         let scenario = WorkspaceDelegationEvaluator.Scenario(
             localAgents: ["Coder"],
             sharedAgents: [
-                Self.shared("Research", workspace: "ws-acme", workspaceName: "Acme", address: Self.acme,
-                            online: false, lastSeenSecondsAgo: 120)
+                Self.shared(
+                    "Research",
+                    workspace: "ws-acme",
+                    workspaceName: "Acme",
+                    address: Self.acme,
+                    online: false,
+                    lastSeenSecondsAgo: 120
+                )
             ],
-            localPolicy: "always_allow", workspacePolicy: "ask",
+            localPolicy: "always_allow",
+            workspacePolicy: "ask",
             steps: [.init(targets: ["Research@Acme"], artifacts: nil), .init(targets: ["Coder"], artifacts: nil)]
         )
         let observed = WorkspaceDelegationEvaluator.run(scenario)
         #expect(observed.count == 2)
         #expect(observed[0].resolutions == ["workspace:Research@Acme"])
         #expect(observed[0].refusals[0].hasPrefix("Workspace agent Research is offline (last seen 2 min ago)."))
-        #expect(observed[0].refusals[0].hasSuffix("Pick a different agent for this task, or report that it is unavailable."))
+        #expect(
+            observed[0].refusals[0].hasSuffix("Pick a different agent for this task, or report that it is unavailable.")
+        )
         #expect(observed[0].policy == "" && observed[0].cardKinds.isEmpty)
-        #expect(observed[1] == .init(
-            resolutions: ["local:Coder"], refusals: [""], policy: "always_allow", cardKinds: ["spawn"],
-            cardDescription: "Let this agent run 1 subagents in parallel?",
-            returnedArtifacts: [], omittedArtifacts: []))
+        #expect(
+            observed[1]
+                == .init(
+                    resolutions: ["local:Coder"],
+                    refusals: [""],
+                    policy: "always_allow",
+                    cardKinds: ["spawn"],
+                    cardDescription: "Let this agent run 1 subagents in parallel?",
+                    returnedArtifacts: [],
+                    omittedArtifacts: []
+                )
+        )
     }
 
     @Test("ambiguity lists the deterministic local id and both Name@Workspace forms")
@@ -59,14 +85,19 @@ struct WorkspaceDelegationEvaluatorTests {
                 Self.shared("Research", workspace: "ws-acme", workspaceName: "Acme", address: Self.acme),
                 Self.shared("Research", workspace: "ws-beta", workspaceName: "Beta Team", address: Self.beta),
             ],
-            localPolicy: "always_allow", workspacePolicy: "ask",
-            steps: [.init(targets: ["Research"], artifacts: nil),
-                    .init(targets: ["Research@Acme", "Coder"], artifacts: nil)]
+            localPolicy: "always_allow",
+            workspacePolicy: "ask",
+            steps: [
+                .init(targets: ["Research"], artifacts: nil),
+                .init(targets: ["Research@Acme", "Coder"], artifacts: nil),
+            ]
         )
         let observed = WorkspaceDelegationEvaluator.run(scenario)
-        #expect(observed[0].resolutions == [
-            "ambiguous:00000000-0000-4000-8000-000000000001|Research@Acme|Research@Beta Team"
-        ])
+        #expect(
+            observed[0].resolutions == [
+                "ambiguous:00000000-0000-4000-8000-000000000001|Research@Acme|Research@Beta Team"
+            ]
+        )
         #expect(observed[1].resolutions == ["workspace:Research@Acme", "not_found"])
         // Only the resolved member counts toward the wave.
         #expect(observed[1].cardKinds == ["spawn_workspace"])
@@ -80,7 +111,8 @@ struct WorkspaceDelegationEvaluatorTests {
             .init(
                 localAgents: ["Coder"],
                 sharedAgents: [Self.shared("Analyst", workspace: "ws-acme", workspaceName: "Acme", address: Self.acme)],
-                localPolicy: "always_allow", workspacePolicy: workspacePolicy,
+                localPolicy: "always_allow",
+                workspacePolicy: workspacePolicy,
                 steps: [
                     .init(
                         targets: ["Coder", "Analyst@Acme"],
@@ -88,8 +120,10 @@ struct WorkspaceDelegationEvaluatorTests {
                             .init(name: "report.md", sizeBytes: 1200, isDirectory: nil),
                             .init(name: "dataset.bin", sizeBytes: 5_000_000, isDirectory: nil),
                             .init(name: "out", sizeBytes: 0, isDirectory: true),
-                        ])
-                ])
+                        ]
+                    )
+                ]
+            )
         }
         let ask = WorkspaceDelegationEvaluator.run(scenario(workspacePolicy: "ask"))[0]
         #expect(ask.policy == "ask")
@@ -107,7 +141,8 @@ struct WorkspaceDelegationEvaluatorTests {
     func purePlanDefaultsToAsk() {
         let plan = SpawnWaveGate.wavePermissionPlan(
             memberKinds: ["spawn", "spawn_workspace"],
-            policies: ["spawn": .alwaysAllow])
+            policies: ["spawn": .alwaysAllow]
+        )
         #expect(plan.policy == .ask)
         #expect(plan.kindIds == ["spawn_workspace"])
     }

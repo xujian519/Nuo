@@ -8,13 +8,13 @@ struct ChatTemplateParametersTests {
     private let kwargs: [String: OsaurusCore.JSONValue] = [
         "template": .object(["name": .string("string"), "optional": .null]),
         "examples": .array([.object(["input": .string("Ada"), "output": .null]), .null]),
-        "strict": .bool(false), "threshold": .number(0), "label": .string("extract")
+        "strict": .bool(false), "threshold": .number(0), "label": .string("extract"),
     ]
 
     private func chat(_ kwargs: [String: OsaurusCore.JSONValue]) throws -> ChatCompletionRequest {
         let data = try JSONSerialization.data(withJSONObject: [
             "model": "extractor", "messages": [["role": "user", "content": "Ada"]],
-            "chat_template_kwargs": kwargs.mapValues(\.anyValue)
+            "chat_template_kwargs": kwargs.mapValues(\.anyValue),
         ])
         return try JSONDecoder().decode(ChatCompletionRequest.self, from: data)
     }
@@ -35,7 +35,7 @@ struct ChatTemplateParametersTests {
         let data = try JSONSerialization.data(withJSONObject: [
             "model": "extractor", "input": "Ada", "temperature": 0, "top_p": 0,
             "top_k": 0, "min_p": 0, "enable_thinking": false,
-            "reasoning": ["effort": "low"], "chat_template_kwargs": kwargs.mapValues(\.anyValue)
+            "reasoning": ["effort": "low"], "chat_template_kwargs": kwargs.mapValues(\.anyValue),
         ])
         let wire = try JSONDecoder().decode(OpenResponsesRequest.self, from: data)
         let request = try wire.toResponsesInferenceRequest()
@@ -51,8 +51,10 @@ struct ChatTemplateParametersTests {
     }
 
     @Test func absentVariablesStayAbsent() throws {
-        let wire = try JSONDecoder().decode(OpenResponsesRequest.self,
-            from: Data(#"{"model":"extractor","input":"Ada"}"#.utf8))
+        let wire = try JSONDecoder().decode(
+            OpenResponsesRequest.self,
+            from: Data(#"{"model":"extractor","input":"Ada"}"#.utf8)
+        )
         let generation = try wire.toResponsesInferenceRequest().generation
         #expect(generation.templateKwargs == nil)
         #expect(generation.temperature == nil && generation.topP == nil && generation.topK == nil)
@@ -69,16 +71,22 @@ struct ChatTemplateParametersTests {
         #expect(context["threshold"] as? Int == 0)
         #expect(OsaurusCore.JSONValue.number(2).templateContextValue as? Int == 2)
         #expect(OsaurusCore.JSONValue.number(2.5).templateContextValue as? Double == 2.5)
-        #expect(OsaurusCore.JSONValue.number(Double.greatestFiniteMagnitude).templateContextValue as? Double
-            == Double.greatestFiniteMagnitude)
+        #expect(
+            OsaurusCore.JSONValue.number(Double.greatestFiniteMagnitude).templateContextValue as? Double
+                == Double.greatestFiniteMagnitude
+        )
     }
 
     @Test func realAdapterContextKeepsExtractionVariablesAndTypedControlsWin() throws {
         var values = kwargs
         values["enable_thinking"] = .bool(false)
         values["tool_choice"] = .string("none")
-        let generation = GenerationParameters(temperature: nil, maxTokens: 16,
-            modelOptions: ["disableThinking": .bool(false)], templateKwargs: values)
+        let generation = GenerationParameters(
+            temperature: nil,
+            maxTokens: 16,
+            modelOptions: ["disableThinking": .bool(false)],
+            templateKwargs: values
+        )
         let context = MLXBatchAdapter.additionalContext(for: generation, modelName: "extractor", toolChoice: .required)
         #expect(context["label"] as? String == "extract")
         #expect(context["enable_thinking"] as? Bool == true)
@@ -95,14 +103,34 @@ struct ChatTemplateParametersTests {
     }
 
     @Test func compatibleRemoteWiresPreserveArbitraryVariablesAndSampling() async throws {
-        let service = RemoteProviderService(provider: RemoteProvider(
-            name: "fixture", host: "localhost", providerProtocol: .http, port: 8000,
-            basePath: "/v1", authType: .none, providerType: .openaiLegacy),
-            models: ["extractor"], resolvedHeaders: [:])
-        let request = await service.buildChatRequest(messages: [ChatMessage(role: "user", content: "Ada")],
-            parameters: GenerationParameters(temperature: 0, maxTokens: 16, topPOverride: 0.9,
-                topKOverride: 0, minPOverride: 0, templateKwargs: kwargs), model: "extractor", stream: true,
-            tools: nil, toolChoice: nil)
+        let service = RemoteProviderService(
+            provider: RemoteProvider(
+                name: "fixture",
+                host: "localhost",
+                providerProtocol: .http,
+                port: 8000,
+                basePath: "/v1",
+                authType: .none,
+                providerType: .openaiLegacy
+            ),
+            models: ["extractor"],
+            resolvedHeaders: [:]
+        )
+        let request = await service.buildChatRequest(
+            messages: [ChatMessage(role: "user", content: "Ada")],
+            parameters: GenerationParameters(
+                temperature: 0,
+                maxTokens: 16,
+                topPOverride: 0.9,
+                topKOverride: 0,
+                minPOverride: 0,
+                templateKwargs: kwargs
+            ),
+            model: "extractor",
+            stream: true,
+            tools: nil,
+            toolChoice: nil
+        )
         let wire = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any])
         #expect(wire["top_k"] as? Int == 0)
         #expect(wire["min_p"] as? Double == 0)
@@ -117,18 +145,23 @@ struct ChatTemplateParametersTests {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
-        var bytes = Array(33...126) + Array(161...172) + Array(174...255)
+        var bytes = Array(33 ... 126) + Array(161 ... 172) + Array(174 ... 255)
         var scalars = bytes
         var extra = 0
-        for byte in 0...255 where !bytes.contains(byte) {
+        for byte in 0 ... 255 where !bytes.contains(byte) {
             bytes.append(byte); scalars.append(256 + extra); extra += 1
         }
         var vocab: [String: Int] = [:]
         for (byte, scalar) in zip(bytes, scalars) { vocab[String(Unicode.Scalar(scalar)!)] = byte }
-        let config: [String: Any] = ["tokenizer_class": "GPT2Tokenizer", "clean_up_tokenization_spaces": false,
-            "chat_template": "{{ template | tojson }}|{{ examples | tojson }}|{{ messages[-1]['content'] }}|{{ enable_thinking | default(false) }}|{{ tools | default([]) | length }}"]
-        let data: [String: Any] = ["model": ["type": "BPE", "vocab": vocab, "merges": []],
-            "pre_tokenizer": ["type": "ByteLevel", "add_prefix_space": false], "decoder": ["type": "ByteLevel"]]
+        let config: [String: Any] = [
+            "tokenizer_class": "GPT2Tokenizer", "clean_up_tokenization_spaces": false,
+            "chat_template":
+                "{{ template | tojson }}|{{ examples | tojson }}|{{ messages[-1]['content'] }}|{{ enable_thinking | default(false) }}|{{ tools | default([]) | length }}",
+        ]
+        let data: [String: Any] = [
+            "model": ["type": "BPE", "vocab": vocab, "merges": []],
+            "pre_tokenizer": ["type": "ByteLevel", "add_prefix_space": false], "decoder": ["type": "ByteLevel"],
+        ]
         for (name, value) in [("tokenizer_config.json", config), ("tokenizer.json", data)] {
             try JSONSerialization.data(withJSONObject: value).write(to: directory.appendingPathComponent(name))
         }
@@ -137,7 +170,8 @@ struct ChatTemplateParametersTests {
         func render(_ values: [String: OsaurusCore.JSONValue], thinking: Bool, offeredTools: Bool) throws -> [Int] {
             var context = values.mapValues(\.templateContextValue)
             context["enable_thinking"] = thinking
-            let tools: [[String: any Sendable]]? = offeredTools
+            let tools: [[String: any Sendable]]? =
+                offeredTools
                 ? [["type": "function", "function": ["name": "lookup"] as [String: any Sendable]]] : nil
             return try tokenizer.applyChatTemplate(messages: messages, tools: tools, additionalContext: context)
         }
@@ -159,11 +193,19 @@ struct ChatTemplateParametersTests {
         let tokenizer = try await SwiftTransformersTokenizerLoader().load(from: URL(fileURLWithPath: path))
         let messages: [[String: any Sendable]] = [["role": "user", "content": "Ada Lovelace was born in 1815."]]
         func tokens(template: String, instruction: String, thinking: Bool) throws -> [Int] {
-            let parameters = GenerationParameters(temperature: nil, maxTokens: 64,
-                templateKwargs: ["template": .string(template), "mode": .string("structured"),
-                    "instructions": .string(instruction), "enable_thinking": .bool(thinking)])
-            return try tokenizer.applyChatTemplate(messages: messages, tools: nil,
-                additionalContext: MLXBatchAdapter.additionalContext(for: parameters, modelName: "numind/NuExtract3"))
+            let parameters = GenerationParameters(
+                temperature: nil,
+                maxTokens: 64,
+                templateKwargs: [
+                    "template": .string(template), "mode": .string("structured"),
+                    "instructions": .string(instruction), "enable_thinking": .bool(thinking),
+                ]
+            )
+            return try tokenizer.applyChatTemplate(
+                messages: messages,
+                tools: nil,
+                additionalContext: MLXBatchAdapter.additionalContext(for: parameters, modelName: "numind/NuExtract3")
+            )
         }
         let schema = #"{"name":"verbatim-string","born":"integer"}"#
         let first = try tokens(template: schema, instruction: "Use the full name.", thinking: true)
@@ -175,11 +217,17 @@ struct ChatTemplateParametersTests {
         #expect(second != first)
         #expect(tokenizer.decode(tokenIds: second).contains("birth_year"))
         #expect(try tokens(template: schema, instruction: "Use the full name.", thinking: true) == first)
-        let invalid = GenerationParameters(temperature: nil, maxTokens: 64,
-            templateKwargs: ["mode": .string("structured")])
+        let invalid = GenerationParameters(
+            temperature: nil,
+            maxTokens: 64,
+            templateKwargs: ["mode": .string("structured")]
+        )
         #expect(throws: (any Error).self) {
-            try tokenizer.applyChatTemplate(messages: messages, tools: nil,
-                additionalContext: MLXBatchAdapter.additionalContext(for: invalid, modelName: "numind/NuExtract3"))
+            try tokenizer.applyChatTemplate(
+                messages: messages,
+                tools: nil,
+                additionalContext: MLXBatchAdapter.additionalContext(for: invalid, modelName: "numind/NuExtract3")
+            )
         }
     }
 

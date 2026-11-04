@@ -307,7 +307,9 @@ public final class ChatFolderState: ObservableObject {
         let url = URL(fileURLWithPath: path, isDirectory: true)
         var isDirectory: ObjCBool = false
         let exists = FileManager.default.fileExists(
-            atPath: url.path, isDirectory: &isDirectory)
+            atPath: url.path,
+            isDirectory: &isDirectory
+        )
         guard exists, isDirectory.boolValue,
             FileManager.default.isReadableFile(atPath: url.path)
         else {

@@ -29,7 +29,9 @@ enum MapsToolFactory {
         [
             "latitude": AppleSchema.number("Latitude."),
             "longitude": AppleSchema.number("Longitude."),
-            "radius_meters": AppleSchema.number("Search radius in meters (default 2000, max 50000). Widen it when a search near a point returns nothing."),
+            "radius_meters": AppleSchema.number(
+                "Search radius in meters (default 2000, max 50000). Widen it when a search near a point returns nothing."
+            ),
         ],
         required: ["latitude", "longitude"]
     )
@@ -49,12 +51,17 @@ enum MapsToolFactory {
         return MapsTransportType(rawValue: raw == "driving" ? "automobile" : raw) ?? .automobile
     }
 
-    static func coordinate(_ args: [String: Any], latKey: String = "latitude", lngKey: String = "longitude") throws -> GeoCoordinate? {
+    static func coordinate(_ args: [String: Any], latKey: String = "latitude", lngKey: String = "longitude") throws
+        -> GeoCoordinate?
+    {
         let lat = try AppleArgs.double(args, latKey)
         let lng = try AppleArgs.double(args, lngKey)
         guard lat != nil || lng != nil else { return nil }
         guard let lat, let lng else {
-            throw AppleToolError.invalidArgs("Provide both `\(latKey)` and `\(lngKey)`.", field: lat == nil ? latKey : lngKey)
+            throw AppleToolError.invalidArgs(
+                "Provide both `\(latKey)` and `\(lngKey)`.",
+                field: lat == nil ? latKey : lngKey
+            )
         }
         return try validated(latitude: lat, longitude: lng, field: latKey)
     }
@@ -63,9 +70,12 @@ enum MapsToolFactory {
     /// out-of-range pair used to reach `MKCoordinateRegion`, which aborts
     /// with an uncatchable `Invalid Region` exception.
     static func validated(latitude lat: Double, longitude lng: Double, field: String) throws -> GeoCoordinate {
-        guard lat.isFinite, lng.isFinite, (-90...90).contains(lat), (-180...180).contains(lng) else {
+        guard lat.isFinite, lng.isFinite, (-90 ... 90).contains(lat), (-180 ... 180).contains(lng) else {
             throw AppleToolError.invalidArgs(
-                "Coordinates out of range: \(lat), \(lng).", field: field, expected: "lat −90…90, lng −180…180")
+                "Coordinates out of range: \(lat), \(lng).",
+                field: field,
+                expected: "lat −90…90, lng −180…180"
+            )
         }
         return GeoCoordinate(latitude: lat, longitude: lng)
     }
@@ -84,7 +94,11 @@ enum MapsToolFactory {
     static func placeReference(_ args: [String: Any], _ key: String, allowCurrent: Bool) throws -> MapsPlaceReference {
         guard let raw = args[key], !(raw is NSNull) else {
             if allowCurrent { return .currentLocation }
-            throw AppleToolError.invalidArgs("Missing required argument `\(key)`.", field: key, expected: "an address / place name or {latitude, longitude}")
+            throw AppleToolError.invalidArgs(
+                "Missing required argument `\(key)`.",
+                field: key,
+                expected: "an address / place name or {latitude, longitude}"
+            )
         }
         if let s = raw as? String {
             let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -105,7 +119,9 @@ enum MapsToolFactory {
             // Models often echo a place from a previous result verbatim:
             // `{name, coordinate: {latitude, longitude}}`.
             if let nested = d["coordinate"] as? [String: Any], let c = try coordinate(nested) { return .coordinate(c) }
-            if let q = (d["query"] as? String) ?? (d["address"] as? String) ?? (d["name"] as? String) { return .query(q) }
+            if let q = (d["query"] as? String) ?? (d["address"] as? String) ?? (d["name"] as? String) {
+                return .query(q)
+            }
         }
         throw AppleToolError.invalidArgs("`\(key)` must be a string or {latitude, longitude}.", field: key)
     }
@@ -142,9 +158,13 @@ final class LocationCurrentTool: AppleToolBase, @unchecked Sendable {
     init(service: MapsServicing) {
         self.service = service
         super.init(
-            app: .maps, name: "location_current",
-            description: "Get the Mac's current location (coordinates, accuracy, and the nearest address). The first call shows the macOS Location permission dialog and waits for the user's answer; tell the user to click Allow.",
-            parameters: AppleSchema.object([:]), isWrite: false, requirements: [.location]
+            app: .maps,
+            name: "location_current",
+            description:
+                "Get the Mac's current location (coordinates, accuracy, and the nearest address). The first call shows the macOS Location permission dialog and waits for the user's answer; tell the user to click Allow.",
+            parameters: AppleSchema.object([:]),
+            isWrite: false,
+            requirements: [.location]
         )
     }
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
@@ -157,13 +177,18 @@ final class LocationGeocodeTool: AppleToolBase, @unchecked Sendable {
     init(service: MapsServicing) {
         self.service = service
         super.init(
-            app: .maps, name: "location_geocode",
+            app: .maps,
+            name: "location_geocode",
             description: "Turn an address or place description into coordinates and a normalized address.",
             parameters: AppleSchema.object(
-                ["address": AppleSchema.string("Address or place text."), "limit": AppleSchema.limit(default: 5, max: 20)],
+                [
+                    "address": AppleSchema.string("Address or place text."),
+                    "limit": AppleSchema.limit(default: 5, max: 20),
+                ],
                 required: ["address"]
             ),
-            isWrite: false, requirements: []
+            isWrite: false,
+            requirements: []
         )
     }
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
@@ -179,13 +204,15 @@ final class LocationReverseGeocodeTool: AppleToolBase, @unchecked Sendable {
     init(service: MapsServicing) {
         self.service = service
         super.init(
-            app: .maps, name: "location_reverse_geocode",
+            app: .maps,
+            name: "location_reverse_geocode",
             description: "Turn coordinates into the nearest address / place.",
             parameters: AppleSchema.object(
                 ["latitude": AppleSchema.number("Latitude."), "longitude": AppleSchema.number("Longitude.")],
                 required: ["latitude", "longitude"]
             ),
-            isWrite: false, requirements: []
+            isWrite: false,
+            requirements: []
         )
     }
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
@@ -202,8 +229,10 @@ final class MapsSearchTool: AppleToolBase, @unchecked Sendable {
     init(service: MapsServicing) {
         self.service = service
         super.init(
-            app: .maps, name: "maps_search",
-            description: "Search Apple Maps for places by free text (\"coffee near Union Square\", a business name, an address). With `near`, only places inside that radius are returned, closest first. Results include coordinates, address, phone, URL, and a `mapsURL` for maps_open.",
+            app: .maps,
+            name: "maps_search",
+            description:
+                "Search Apple Maps for places by free text (\"coffee near Union Square\", a business name, an address). With `near`, only places inside that radius are returned, closest first. Results include coordinates, address, phone, URL, and a `mapsURL` for maps_open.",
             parameters: AppleSchema.object(
                 [
                     "query": AppleSchema.string("What to look for."),
@@ -212,7 +241,8 @@ final class MapsSearchTool: AppleToolBase, @unchecked Sendable {
                 ],
                 required: ["query"]
             ),
-            isWrite: false, requirements: []
+            isWrite: false,
+            requirements: []
         )
     }
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
@@ -229,17 +259,23 @@ final class MapsExploreTool: AppleToolBase, @unchecked Sendable {
     init(service: MapsServicing) {
         self.service = service
         super.init(
-            app: .maps, name: "maps_explore",
-            description: "Find points of interest of one category around a point (e.g. restaurants, cafes, gas stations, parks, pharmacies).",
+            app: .maps,
+            name: "maps_explore",
+            description:
+                "Find points of interest of one category around a point (e.g. restaurants, cafes, gas stations, parks, pharmacies).",
             parameters: AppleSchema.object(
                 [
-                    "category": AppleSchema.string("POI category.", enum: MapKitMapsService.poiCategories.keys.sorted()),
+                    "category": AppleSchema.string(
+                        "POI category.",
+                        enum: MapKitMapsService.poiCategories.keys.sorted()
+                    ),
                     "near": MapsToolFactory.nearSchema,
                     "limit": AppleSchema.limit(default: 10, max: 50),
                 ],
                 required: ["category", "near"]
             ),
-            isWrite: false, requirements: []
+            isWrite: false,
+            requirements: []
         )
     }
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
@@ -258,18 +294,24 @@ final class MapsDirectionsTool: AppleToolBase, @unchecked Sendable {
     init(service: MapsServicing) {
         self.service = service
         super.init(
-            app: .maps, name: "maps_directions",
-            description: "Turn-by-turn directions with distance and travel time. `mode`: automobile (default), walking, or cycling. Omit `from` to start from the current location (asks for Location access).",
+            app: .maps,
+            name: "maps_directions",
+            description:
+                "Turn-by-turn directions with distance and travel time. `mode`: automobile (default), walking, or cycling. Omit `from` to start from the current location (asks for Location access).",
             parameters: AppleSchema.object(
                 [
                     "from": MapsToolFactory.placeSchema,
                     "to": MapsToolFactory.placeSchema,
-                    "mode": MapsToolFactory.modeSchema("Transport mode: automobile/driving (default), walking, or cycling.", transit: false),
+                    "mode": MapsToolFactory.modeSchema(
+                        "Transport mode: automobile/driving (default), walking, or cycling.",
+                        transit: false
+                    ),
                     "alternatives": AppleSchema.boolean("Also return alternate routes (default false)."),
                 ],
                 required: ["to"]
             ),
-            isWrite: false, requirements: []
+            isWrite: false,
+            requirements: []
         )
     }
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
@@ -287,17 +329,23 @@ final class MapsETATool: AppleToolBase, @unchecked Sendable {
     init(service: MapsServicing) {
         self.service = service
         super.init(
-            app: .maps, name: "maps_eta",
-            description: "Estimated travel time and distance between two places, including `transit`. Omit `from` for the current location.",
+            app: .maps,
+            name: "maps_eta",
+            description:
+                "Estimated travel time and distance between two places, including `transit`. Omit `from` for the current location.",
             parameters: AppleSchema.object(
                 [
                     "from": MapsToolFactory.placeSchema,
                     "to": MapsToolFactory.placeSchema,
-                    "mode": MapsToolFactory.modeSchema("Transport mode: automobile/driving (default), walking, transit, or cycling.", transit: true),
+                    "mode": MapsToolFactory.modeSchema(
+                        "Transport mode: automobile/driving (default), walking, transit, or cycling.",
+                        transit: true
+                    ),
                 ],
                 required: ["to"]
             ),
-            isWrite: false, requirements: []
+            isWrite: false,
+            requirements: []
         )
     }
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
@@ -313,16 +361,21 @@ final class MapsOpenTool: AppleToolBase, @unchecked Sendable {
     init(service: MapsServicing) {
         self.service = service
         super.init(
-            app: .maps, name: "maps_open",
-            description: "Open the Maps app showing a search, a pin at coordinates, or directions to a destination. Use after the user asks to see it in Maps.",
+            app: .maps,
+            name: "maps_open",
+            description:
+                "Open the Maps app showing a search, a pin at coordinates, or directions to a destination. Use after the user asks to see it in Maps.",
             parameters: AppleSchema.object([
                 "query": AppleSchema.string("Search text or place name to show."),
                 "latitude": AppleSchema.number("Pin latitude (with longitude)."),
                 "longitude": AppleSchema.number("Pin longitude."),
-                "directions_to": AppleSchema.string("Destination address, place name, or \"lat,lng\" to open directions to."),
+                "directions_to": AppleSchema.string(
+                    "Destination address, place name, or \"lat,lng\" to open directions to."
+                ),
                 "mode": MapsToolFactory.modeSchema("Transport mode for directions.", transit: true),
             ]),
-            isWrite: false, requirements: []
+            isWrite: false,
+            requirements: []
         )
     }
     override func run(args: [String: Any]) async throws -> AppleToolPayload {

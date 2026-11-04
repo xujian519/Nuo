@@ -58,14 +58,17 @@ public enum FileChangeCapture {
     // MARK: - Targets
 
     static func targets(
-        for tool: any OsaurusTool, argumentsJSON: String, context: Context
+        for tool: any OsaurusTool,
+        argumentsJSON: String,
+        context: Context
     ) -> [FileChangeJournal.RootTarget] {
         let declared = tool.declaredMutationTargets(argumentsJSON: argumentsJSON)
         let fallback = tool.fallbackMutationTargets(argumentsJSON: argumentsJSON)
         var targets: [FileChangeJournal.RootTarget] = []
 
         func add(
-            _ kind: SandboxWorkspaceRootKind, _ rootId: String,
+            _ kind: SandboxWorkspaceRootKind,
+            _ rootId: String,
             resolve: (String) -> Resolution
         ) {
             let fallbackPaths = fallback.flatMap { mapAll($0, resolve) }.flatMap {
@@ -132,7 +135,10 @@ public enum FileChangeCapture {
     }
 
     static func resolveSandbox(
-        _ raw: String, kind: SandboxWorkspaceRootKind, agent: String, relativeIsHome: Bool
+        _ raw: String,
+        kind: SandboxWorkspaceRootKind,
+        agent: String,
+        relativeIsHome: Bool
     ) -> Resolution {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, trimmed != "~" else { return .opaque }
@@ -165,7 +171,9 @@ public enum FileChangeCapture {
     /// `declaredMutationTargets`. Nil (opaque) when the arguments don't
     /// parse or a required key is missing.
     public static func declaredPaths(
-        _ argumentsJSON: String, keys: [String], optionalKeys: [String] = []
+        _ argumentsJSON: String,
+        keys: [String],
+        optionalKeys: [String] = []
     ) -> [String]? {
         guard let data = argumentsJSON.data(using: .utf8),
             let args = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
@@ -205,8 +213,10 @@ public enum FileChangeCapture {
         )
         if !token.isFullyTracked {
             let approved = await approveUntracked(
-                toolName: context.toolName, argumentsJSON: argumentsJSON,
-                reasons: token.untrackedReasons)
+                toolName: context.toolName,
+                argumentsJSON: argumentsJSON,
+                reasons: token.untrackedReasons
+            )
             guard approved else {
                 await journal.abandonCapture(token)
                 return ToolEnvelope.failure(
@@ -239,7 +249,9 @@ public enum FileChangeCapture {
     /// Unattended runs that pre-approved tool prompts proceed (the set is
     /// still recorded as untracked); runs that deny prompts refuse.
     private static func approveUntracked(
-        toolName: String, argumentsJSON: String, reasons: [String]
+        toolName: String,
+        argumentsJSON: String,
+        reasons: [String]
     ) async -> Bool {
         if ChatExecutionContext.autoApproveToolPrompts { return true }
         if ChatExecutionContext.denyUnapprovedToolPrompts { return false }

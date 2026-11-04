@@ -73,21 +73,29 @@ struct ResponsesCancellationInsightsTests {
             return (typedCalls, legacyCalls)
         }
         func streamResponses(
-            messages: [ChatMessage], parameters: GenerationParameters, stopSequences: [String],
-            tools: [OsaurusCore.Tool], toolChoice: ToolChoiceOption?, requestedModel: String?
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            stopSequences: [String],
+            tools: [OsaurusCore.Tool],
+            toolChoice: ToolChoiceOption?,
+            requestedModel: String?
         ) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
             record(typed: true)
             return events
         }
         func streamDeltas(
-            messages: [ChatMessage], parameters: GenerationParameters,
-            requestedModel: String?, stopSequences: [String]
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?,
+            stopSequences: [String]
         ) async throws -> AsyncThrowingStream<String, Error> {
             record(typed: false)
             throw FixtureError.legacyReplay
         }
         func generateOneShot(
-            messages: [ChatMessage], parameters: GenerationParameters, requestedModel: String?
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?
         ) async throws -> String {
             record(typed: false)
             throw FixtureError.legacyReplay
@@ -119,12 +127,16 @@ struct ResponsesCancellationInsightsTests {
     }
 
     private func native(_ events: [Generation]) -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
-        ResponsesGenerationStream.native(GenerationEventMapper.map(
-            events: AsyncStream { continuation in
-                for event in events { continuation.yield(event) }
-                continuation.finish()
-            }, promptTokenCount: 73, suppressProgressUI: true
-        ))
+        ResponsesGenerationStream.native(
+            GenerationEventMapper.map(
+                events: AsyncStream { continuation in
+                    for event in events { continuation.yield(event) }
+                    continuation.finish()
+                },
+                promptTokenCount: 73,
+                suppressProgressUI: true
+            )
+        )
     }
 
     @Test func cancellationDecisionWinsBeforeBufferedInfoWithoutWaitingForTaskCancellation() async {
@@ -144,12 +156,16 @@ struct ResponsesCancellationInsightsTests {
             lifecycle.observeTerminalStats()
             let atLogging = lifecycle.snapshot()
             #expect(atLogging.terminalStatsObserved)
-            #expect(atLogging.consumerCancelledBeforeTerminal,
-                "Buffered measured info cannot turn the already committed cancellation into stop/200")
+            #expect(
+                atLogging.consumerCancelledBeforeTerminal,
+                "Buffered measured info cannot turn the already committed cancellation into stop/200"
+            )
             await resumeCallback.signal()
             #expect(await cancellationCallback.value)
         } onCancel: {
-            Task { await decided.signal(); await resumeCallback.signal() }
+            Task {
+                await decided.signal(); await resumeCallback.signal()
+            }
         }
     }
 
@@ -166,9 +182,12 @@ struct ResponsesCancellationInsightsTests {
         let model = "cancel-before-info-\(UUID())"
         let (upstream, producer) = AsyncStream<Generation>.makeStream()
         defer { producer.finish() }
-        let service = Service(model: model, events: ResponsesGenerationStream.native(
-            GenerationEventMapper.map(events: upstream, promptTokenCount: 73, suppressProgressUI: true)
-        ))
+        let service = Service(
+            model: model,
+            events: ResponsesGenerationStream.native(
+                GenerationEventMapper.map(events: upstream, promptTokenCount: 73, suppressProgressUI: true)
+            )
+        )
         let engine = ChatEngine(services: [service], installedModelsProvider: { [] }, source: .chatUI)
         let stream = try await engine.streamResponses(request: request(model))
         let reachedBoundary = Gate()
@@ -181,7 +200,9 @@ struct ResponsesCancellationInsightsTests {
                     if case .responseCompleted = event { completions += 1 }
                     if afterReasoning {
                         if case .reasoningDelta = event { await reachedBoundary.signal() }
-                    } else if case .inputTokenCount = event { await reachedBoundary.signal() }
+                    } else if case .inputTokenCount = event {
+                        await reachedBoundary.signal()
+                    }
                 }
             } catch is CancellationError {
                 // User cancellation is not a natural stop or runtime failure.
@@ -211,13 +232,22 @@ struct ResponsesCancellationInsightsTests {
     @Test(arguments: [false, true])
     func actualTerminalInfoRetainsExactUsageAndStatus(cancelled: Bool) async throws {
         let model = "measured-terminal-\(UUID())"
-        let service = Service(model: model, events: native([
-            .reasoning("This chunk estimate must not replace seventeen measured tokens."),
-            .chunk("partial answer"),
-            .info(GenerateCompletionInfo(promptTokenCount: 73, generationTokenCount: 17,
-                promptTime: 0.25, generationTime: 1,
-                stopReason: cancelled ? .cancelled : .stop)),
-        ]))
+        let service = Service(
+            model: model,
+            events: native([
+                .reasoning("This chunk estimate must not replace seventeen measured tokens."),
+                .chunk("partial answer"),
+                .info(
+                    GenerateCompletionInfo(
+                        promptTokenCount: 73,
+                        generationTokenCount: 17,
+                        promptTime: 0.25,
+                        generationTime: 1,
+                        stopReason: cancelled ? .cancelled : .stop
+                    )
+                ),
+            ])
+        )
         let engine = ChatEngine(services: [service], installedModelsProvider: { [] }, source: .chatUI)
         var completions: [ResponsesGenerationCompletion] = []
         var reasoning = ""
@@ -265,25 +295,35 @@ struct ResponsesCancellationInsightsTests {
         let drainCompleted = Gate()
         let drainProbe = DrainProbe()
         defer { Task { await releaseDrain.signal() } }
-        let measured = GenerateCompletionInfo(promptTokenCount: 73, generationTokenCount: 17,
-            promptTime: 0.25, generationTime: 1, stopReason: .stop)
+        let measured = GenerateCompletionInfo(
+            promptTokenCount: 73,
+            generationTokenCount: 17,
+            promptTime: 0.25,
+            generationTime: 1,
+            stopReason: .stop
+        )
         let source = AsyncStream<Generation> { continuation in
             continuation.yield(.chunk("answer"))
             continuation.yield(.info(measured))
             continuation.finish()
         }
-        let service = Service(model: model, events: ResponsesGenerationStream.native(
-            GenerationEventMapper.map(events: source, promptTokenCount: 73, suppressProgressUI: true),
-            waitForProducerDrain: {
-                await withTaskCancellationHandler {
-                    drainProbe.enter(cancelled: Task.isCancelled)
-                    await drainEntered.signal()
-                    await releaseDrain.wait()
-                    drainProbe.complete(cancelled: Task.isCancelled)
-                    await drainCompleted.signal()
-                } onCancel: { drainProbe.cancel() }
-            }
-        ))
+        let service = Service(
+            model: model,
+            events: ResponsesGenerationStream.native(
+                GenerationEventMapper.map(events: source, promptTokenCount: 73, suppressProgressUI: true),
+                waitForProducerDrain: {
+                    await withTaskCancellationHandler {
+                        drainProbe.enter(cancelled: Task.isCancelled)
+                        await drainEntered.signal()
+                        await releaseDrain.wait()
+                        drainProbe.complete(cancelled: Task.isCancelled)
+                        await drainCompleted.signal()
+                    } onCancel: {
+                        drainProbe.cancel()
+                    }
+                }
+            )
+        )
         let engine = ChatEngine(services: [service], installedModelsProvider: { [] }, source: .chatUI)
         let stream = try await engine.streamResponses(request: request(model))
         let consumer = Task { () -> Int in
@@ -307,8 +347,10 @@ struct ResponsesCancellationInsightsTests {
             let pending = drainProbe.snapshot()
             #expect(pending.entered && !pending.completed)
             #expect(!pending.cancellationRequested && !pending.taskWasCancelled)
-            #expect(!InsightsService.shared.logs.contains { $0.model == model },
-                "Neither cleanup completion nor the final Insights row may precede the owned drain")
+            #expect(
+                !InsightsService.shared.logs.contains { $0.model == model },
+                "Neither cleanup completion nor the final Insights row may precede the owned drain"
+            )
             await releaseDrain.signal()
             await drainCompleted.wait()
             let drained = drainProbe.snapshot()
@@ -329,14 +371,29 @@ struct ResponsesCancellationInsightsTests {
 
     @Test func canonicalCancelledStatusOverridesStopLabelWithoutInventingUsage() async throws {
         let model = "provider-cancel-status-\(UUID())"
-        let service = Service(model: model, events: AsyncThrowingStream { continuation in
-            continuation.yield(.reasoningDelta("partial provider reasoning"))
-            continuation.yield(.responseCompleted(.init(responseID: "resp_cancelled", status: .cancelled,
-                functionCalls: [], tokenCount: nil, tokensPerSecond: nil, unclosedReasoning: true,
-                stopReason: "stop", promptTokensPerSecond: nil, mtp: nil)))
-            continuation.yield(.compatibilityStreamClosed)
-            continuation.finish()
-        })
+        let service = Service(
+            model: model,
+            events: AsyncThrowingStream { continuation in
+                continuation.yield(.reasoningDelta("partial provider reasoning"))
+                continuation.yield(
+                    .responseCompleted(
+                        .init(
+                            responseID: "resp_cancelled",
+                            status: .cancelled,
+                            functionCalls: [],
+                            tokenCount: nil,
+                            tokensPerSecond: nil,
+                            unclosedReasoning: true,
+                            stopReason: "stop",
+                            promptTokensPerSecond: nil,
+                            mtp: nil
+                        )
+                    )
+                )
+                continuation.yield(.compatibilityStreamClosed)
+                continuation.finish()
+            }
+        )
         let engine = ChatEngine(services: [service], installedModelsProvider: { [] }, source: .chatUI)
         var statuses: [ResponsesGenerationCompletion.Status] = []
         for try await event in try await engine.streamResponses(request: request(model)) {
@@ -351,10 +408,15 @@ struct ResponsesCancellationInsightsTests {
 
     @Test func legacyCompatibilityTextWithoutUsageRemainsTextWithUnknownCounts() async throws {
         let model = "legacy-no-stats-\(UUID())"
-        let engine = ChatEngine(services: [FakeModelService(supportedModel: model, deltas: ["a", "b"])],
-            installedModelsProvider: { [] }, source: .chatUI)
+        let engine = ChatEngine(
+            services: [FakeModelService(supportedModel: model, deltas: ["a", "b"])],
+            installedModelsProvider: { [] },
+            source: .chatUI
+        )
         var text = ""
-        for try await delta in try await engine.streamChat(request: request(model).chatCompletionsCompatibilityRequest()) {
+        for try await delta in try await engine.streamChat(
+            request: request(model).chatCompletionsCompatibilityRequest()
+        ) {
             text += delta
         }
         #expect(text == "ab")

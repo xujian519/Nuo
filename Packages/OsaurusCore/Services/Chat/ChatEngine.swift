@@ -13,10 +13,8 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
     private let installedModelsProvider: @Sendable () -> [String]
     private let remoteServicesProvider: @Sendable () async -> [ModelService]
     private let reasoningCapabilityProvider: @Sendable (String) -> LocalReasoningCapability.Capability
-    private let agentModelOptionsProvider:
-        @Sendable (String) async -> [String: ModelOptionValue]?
-    private let agentReasoningChoicesProvider:
-        @Sendable (String, Bool) async -> AgentGenerationReasoningChoices
+    private let agentModelOptionsProvider: @Sendable (String) async -> [String: ModelOptionValue]?
+    private let agentReasoningChoicesProvider: @Sendable (String, Bool) async -> AgentGenerationReasoningChoices
 
     /// Host execution source controls residency as well as attribution. The
     /// evaluation override is scoped to this run, never sticky on a reused engine.
@@ -192,11 +190,13 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
         guard defaults != nil || request.context.speculativeDecoding != nil else { return }
         guard !request.context.runAsRemoteAgent else {
             throw ChatTurnOverrides.ValidationError.invalid(
-                "Configure saved reasoning defaults on the remote agent's host; its effective model is owned there.")
+                "Configure saved reasoning defaults on the remote agent's host; its effective model is owned there."
+            )
         }
         if request.context.speculativeDecoding != nil, !(service is MLXService) {
             throw ChatTurnOverrides.ValidationError.invalid(
-                "Saved speculative decoding controls require a local model on this host. Choose Inherit for a remote model.")
+                "Saved speculative decoding controls require a local model on this host. Choose Inherit for a remote model."
+            )
         }
         // Speculation eligibility is re-evaluated by the real load/admission plan. Do not rescan
         // safetensor headers on every tool iteration just to validate saved reasoning values.
@@ -222,19 +222,28 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
     ) async throws -> Dispatch {
         if let reason = RequestValidator.responseFormatReason(request.generation.outputFormat)
             ?? RequestValidator.unsupportedSamplerReason(
-                n: nil, responseFormatType: request.generation.outputFormat?.type)
+                n: nil,
+                responseFormatType: request.generation.outputFormat?.type
+            )
         {
             throw EngineError(kind: .invalidStructuredOutput(reason))
         }
-        let jsonSchema = request.generation.outputFormat?.type == "json_schema"
+        let jsonSchema =
+            request.generation.outputFormat?.type == "json_schema"
             ? try request.generation.outputFormat?.json_schema?.encodedSchema() : nil
         if jsonSchema != nil && request.generation.stop?.isEmpty == false {
-            throw EngineError(kind: .invalidStructuredOutput(
-                "JSON schema output cannot be combined with text stop strings; completion uses the schema and EOS."))
+            throw EngineError(
+                kind: .invalidStructuredOutput(
+                    "JSON schema output cannot be combined with text stop strings; completion uses the schema and EOS."
+                )
+            )
         }
         if jsonSchema != nil && (request.context.runAsRemoteAgent || request.tools?.isEmpty == false) {
-            throw EngineError(kind: .invalidStructuredOutput(
-                "JSON schema output is not yet supported with tools or remote agent execution."))
+            throw EngineError(
+                kind: .invalidStructuredOutput(
+                    "JSON schema output is not yet supported with tools or remote agent execution."
+                )
+            )
         }
         let temperature = request.generation.temperature
         let maxTokens = request.generation.maxOutputTokens ?? 16384
@@ -270,12 +279,14 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
             requestOptions: requestModelOptions
         )
         let isHy3 = Hy3ReasoningProfile.matches(modelId: request.model)
-        let templateThinking = request.generation.templateKwargs?["enable_thinking"]?.boolValue
+        let templateThinking =
+            request.generation.templateKwargs?["enable_thinking"]?.boolValue
             ?? request.generation.templateKwargs?["thinking"]?.boolValue
         let explicitEnableThinking = request.generation.enableThinking ?? templateThinking
         let requestReasoningEffort: String? = {
             guard
-                let value = (request.generation.reasoningEffort
+                let value =
+                    (request.generation.reasoningEffort
                     ?? request.generation.templateKwargs?["reasoning_effort"]?.stringValue)?
                     .trimmingCharacters(in: .whitespacesAndNewlines),
                 !value.isEmpty
@@ -308,7 +319,10 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
         }
 
         modelOptions = AgentReasoningPolicy.applyingExplicitReasoning(
-            request.generation, to: modelOptions, modelID: request.model)
+            request.generation,
+            to: modelOptions,
+            modelID: request.model
+        )
         try DeclaredReasoningEffort.validateModeRequest(modelId: request.model, options: modelOptions)
         ComputerUseTraceLog.recordEffectiveDispatch(
             request: request,
@@ -374,7 +388,10 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
                     "dispatch route=provider providerId=\(agentProviderId.uuidString) effectiveModel=\(effective) reqModel=\(request.model)"
                 )
                 try await validateAgentReasoningDefaults(
-                    request: request, service: agentService, effectiveModel: effective)
+                    request: request,
+                    service: agentService,
+                    effectiveModel: effective
+                )
                 return Dispatch(
                     route: .service(service: agentService, effectiveModel: effective),
                     params: params,
@@ -397,17 +414,26 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
         if case .service(let service, let effectiveModel) = localRoute {
             try Self.validateSamplingExtensions(params, for: service)
             if jsonSchema != nil && !(service is MLXService) {
-                throw EngineError(kind: .invalidStructuredOutput(
-                    "JSON schema output is currently supported only by the local MLX runtime."))
+                throw EngineError(
+                    kind: .invalidStructuredOutput(
+                        "JSON schema output is currently supported only by the local MLX runtime."
+                    )
+                )
             }
             try await validateAgentReasoningDefaults(
-                request: request, service: service, effectiveModel: effectiveModel)
+                request: request,
+                service: service,
+                effectiveModel: effectiveModel
+            )
             return Dispatch(route: localRoute, params: params, remoteServices: [])
         }
 
         if jsonSchema != nil {
-            throw EngineError(kind: .invalidStructuredOutput(
-                "JSON schema output is currently supported only by the local MLX runtime."))
+            throw EngineError(
+                kind: .invalidStructuredOutput(
+                    "JSON schema output is currently supported only by the local MLX runtime."
+                )
+            )
         }
         // Only touch remote provider state after local services decline the
         // model. Provider startup can block on Keychain; local MLX requests
@@ -422,7 +448,10 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
         )
         if case .service(let service, let effectiveModel) = route {
             try await validateAgentReasoningDefaults(
-                request: request, service: service, effectiveModel: effectiveModel)
+                request: request,
+                service: service,
+                effectiveModel: effectiveModel
+            )
         }
         return Dispatch(route: route, params: params, remoteServices: remoteServices)
     }
@@ -485,8 +514,12 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
         effectiveModel: String,
         stream: Bool
     ) {
-        emitMessageSentIfPrimaryTurn(request: ResponsesInferenceRequest(chatCompletion: request),
-            service: service, effectiveModel: effectiveModel, stream: stream)
+        emitMessageSentIfPrimaryTurn(
+            request: ResponsesInferenceRequest(chatCompletion: request),
+            service: service,
+            effectiveModel: effectiveModel,
+            stream: stream
+        )
     }
 
     private func emitMessageSentIfPrimaryTurn(
@@ -516,8 +549,11 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
         guard service is FoundationModelService,
             parameters.seed != nil || parameters.repetitionPenalty != nil
         else { return }
-        throw EngineError(kind: .invalidStructuredOutput(
-            "This Foundation Models route does not support seed or repetition_penalty overrides."))
+        throw EngineError(
+            kind: .invalidStructuredOutput(
+                "This Foundation Models route does not support seed or repetition_penalty overrides."
+            )
+        )
     }
 
     private static func normalizedModelOptions(
@@ -856,7 +892,9 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
             total_tokens: inputTokens + outputTokens,
             tokens_per_second: tokensPerSecond,
             prompt_tokens_details: Usage.cachedPromptDetails(
-                cachedInputTokens, promptTokens: inputTokens)
+                cachedInputTokens,
+                promptTokens: inputTokens
+            )
         )
 
         let response = ChatCompletionResponse(
@@ -924,13 +962,20 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
             throw EngineError(kind: .modelNotFound(requested: request.model))
         }
         try checkRouterSpendAuthorization(service: service)
-        emitMessageSentIfPrimaryTurn(request: request, service: service,
-            effectiveModel: effectiveModel, stream: true)
+        emitMessageSentIfPrimaryTurn(
+            request: request,
+            service: service,
+            effectiveModel: effectiveModel,
+            stream: true
+        )
         let source = loggedSource
-        let shouldLog = Self.shouldLogInferenceToInsights(source: source,
-            warmupPrefill: request.context.warmupPrefill)
+        let shouldLog = Self.shouldLogInferenceToInsights(
+            source: source,
+            warmupPrefill: request.context.warmupPrefill
+        )
         let attribution = InsightsService.ActivityAttribution.current()
-        let connection = shouldLog
+        let connection =
+            shouldLog
             ? Self.remoteConnectionInfo(for: service, runAsRemoteAgent: dispatch.params.runAsRemoteAgent) : nil
         let probe: WireTransportProbe? = connection != nil ? WireTransportProbe() : nil
         let inner: AsyncThrowingStream<ResponsesGenerationEvent, Error>
@@ -949,23 +994,30 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
             else { return nil }
             return parent
         }()
-        let loggedModel = connection?.info.mode == .remoteAgentRun
+        let loggedModel =
+            connection?.info.mode == .remoteAgentRun
             ? request.context.remoteAgentLogModel?.trimmingCharacters(in: .whitespacesAndNewlines) : nil
-        return wrapStreamWithLogging(inner, logEvent: Self.responsesLogEvent,
-            source: source, turnId: turnID, parentTurnId: parentTurnID,
+        return wrapStreamWithLogging(
+            inner,
+            logEvent: Self.responsesLogEvent,
+            source: source,
+            turnId: turnID,
+            parentTurnId: parentTurnID,
             requestId: request.context.idempotencyKey,
             model: loggedModel?.isEmpty == false ? loggedModel! : effectiveModel,
             inputTokens: estimateInputTokens(request.input),
             temperature: request.generation.temperature,
             maxTokens: request.generation.maxOutputTokens ?? 16384,
             requestBodyJSON: shouldLog ? Self.serializeResponseRequestForLog(request) : nil,
-            connection: connection?.info, logPath: connection?.path ?? "/responses",
+            connection: connection?.info,
+            logPath: connection?.path ?? "/responses",
             wireProbe: probe,
             secretToolWasExposed: request.tools?.contains {
                 SecretArgumentScrubber.isSecretSetToolName($0.function.name)
             } ?? false,
             warmupPrefill: request.context.warmupPrefill,
-            attribution: attribution)
+            attribution: attribution
+        )
     }
 
     private func openResponsesInnerStream(
@@ -974,26 +1026,43 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
         params: GenerationParameters
     ) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
         if request.providerOptions?.unsupportedPortableTools.isEmpty == false,
-            !(service is RemoteProviderService) {
-            throw ResponsesToolChoiceContract.failure("Hosted tools require a native hosted-tool provider; this model route cannot execute them.")
+            !(service is RemoteProviderService)
+        {
+            throw ResponsesToolChoiceContract.failure(
+                "Hosted tools require a native hosted-tool provider; this model route cannot execute them."
+            )
         }
         let originalChoice = ResponsesToolChoiceContract.choice(request)
         let tools = Self.allowsLocalToolDispatch(originalChoice) ? (request.tools ?? []) : []
         let choice = tools.isEmpty ? nil : Self.localToolChoiceForDispatch(originalChoice, tools: tools)
         if let typed = service as? ResponsesGenerationService {
-            let stream = try await typed.streamResponses(messages: request.input, parameters: params,
-                stopSequences: request.generation.stop ?? [], tools: tools, toolChoice: choice,
-                requestedModel: request.model)
+            let stream = try await typed.streamResponses(
+                messages: request.input,
+                parameters: params,
+                stopSequences: request.generation.stop ?? [],
+                tools: tools,
+                toolChoice: choice,
+                requestedModel: request.model
+            )
             return ResponsesToolChoiceContract.enforce(stream, request: request)
         }
         let legacy: AsyncThrowingStream<String, Error>
         if !tools.isEmpty, let capable = service as? ToolCapableService {
-            legacy = try await capable.streamWithTools(messages: request.input, parameters: params,
-                stopSequences: request.generation.stop ?? [], tools: tools, toolChoice: choice,
-                requestedModel: request.model)
+            legacy = try await capable.streamWithTools(
+                messages: request.input,
+                parameters: params,
+                stopSequences: request.generation.stop ?? [],
+                tools: tools,
+                toolChoice: choice,
+                requestedModel: request.model
+            )
         } else {
-            legacy = try await service.streamDeltas(messages: request.input, parameters: params,
-                requestedModel: request.model, stopSequences: request.generation.stop ?? [])
+            legacy = try await service.streamDeltas(
+                messages: request.input,
+                parameters: params,
+                requestedModel: request.model,
+                stopSequences: request.generation.stop ?? []
+            )
         }
         return ResponsesToolChoiceContract.enforce(ResponsesGenerationStream.compatibility(legacy), request: request)
     }
@@ -1010,9 +1079,15 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
             let sessionID: String?
             let providerOutputItems: [[JSONValue]?]
         }
-        let body = Body(model: request.model, input: request.input, generation: request.generation,
-            tools: request.tools, toolChoice: request.toolChoice, sessionID: request.sessionID,
-            providerOutputItems: request.input.map(\.responses_output_items))
+        let body = Body(
+            model: request.model,
+            input: request.input,
+            generation: request.generation,
+            tools: request.tools,
+            toolChoice: request.toolChoice,
+            sessionID: request.sessionID,
+            providerOutputItems: request.input.map(\.responses_output_items)
+        )
         let encoder = JSONEncoder.osaurusCanonical(prettyPrinted: true)
         guard let data = try? encoder.encode(body) else { return nil }
         return redactInlineImagePayloads(in: String(decoding: data, as: UTF8.self))
@@ -1270,7 +1345,9 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
     /// routing may choose Responses, a dynamic Gemini path or a peer run.
     /// Prefer the built URLRequest captured at that boundary.
     static func inferenceLogDestination(
-        connection: RequestConnectionInfo?, path: String, endpointURL: URL?
+        connection: RequestConnectionInfo?,
+        path: String,
+        endpointURL: URL?
     ) -> (connection: RequestConnectionInfo?, path: String) {
         guard let endpointURL else { return (connection, path) }
         var observed = connection
@@ -1290,8 +1367,13 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
     private nonisolated static func legacyLogEvent(_ delta: String) -> StreamLogEvent {
         if let count = StreamingInputTokenHint.decode(delta) { return .inputTokens(count) }
         if let stats = StreamingStatsHint.decode(delta) {
-            return .stats(StreamLogStats(tokenCount: stats.tokenCount,
-                inputTokenCount: stats.inputTokenCount, stopReason: stats.stopReason))
+            return .stats(
+                StreamLogStats(
+                    tokenCount: stats.tokenCount,
+                    inputTokenCount: stats.inputTokenCount,
+                    stopReason: stats.stopReason
+                )
+            )
         }
         if let text = StreamingReasoningHint.decode(delta) { return .reasoning(text) }
         if StreamingBillingHint.decode(delta) != nil { return .billing }
@@ -1310,10 +1392,14 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
         case .billing: return .billing
         case .artifacts: return .artifact
         case .responseCompleted(let completion):
-            return .stats(StreamLogStats(tokenCount: completion.tokenCount,
-                inputTokenCount: completion.inputTokenCount,
-                stopReason: completion.status == .cancelled ? "cancelled" : completion.stopReason,
-                calls: completion.dispatchableFunctionCalls))
+            return .stats(
+                StreamLogStats(
+                    tokenCount: completion.tokenCount,
+                    inputTokenCount: completion.inputTokenCount,
+                    stopReason: completion.status == .cancelled ? "cancelled" : completion.stopReason,
+                    calls: completion.dispatchableFunctionCalls
+                )
+            )
         case .drainFailed(let message): return .drainFailure(message)
         default: return .control
         }
@@ -1706,7 +1792,8 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
                 // local routes (no probe).
                 let wireSnapshot = wireProbe?.snapshot()
                 let destination = Self.inferenceLogDestination(
-                    connection: connection, path: logPath ?? "/chat/completions",
+                    connection: connection,
+                    path: logPath ?? "/chat/completions",
                     endpointURL: wireProbe?.acceptedRequestEndpointURL ?? wireProbe?.requestEndpointURL
                 )
 
@@ -1938,7 +2025,9 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
                         total_tokens: resolvedInputTokens + outputTokens,
                         tokens_per_second: toolStepTokensPerSecond,
                         prompt_tokens_details: Usage.cachedPromptDetails(
-                            toolStepCachedInputTokens, promptTokens: resolvedInputTokens)
+                            toolStepCachedInputTokens,
+                            promptTokens: resolvedInputTokens
+                        )
                     )
 
                     let response = ChatCompletionResponse(
@@ -2095,7 +2184,9 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
                 total_tokens: resolvedInputTokens + outputTokens,
                 tokens_per_second: authoritativeTokensPerSecond,
                 prompt_tokens_details: Usage.cachedPromptDetails(
-                    authoritativeCachedInputTokens, promptTokens: resolvedInputTokens)
+                    authoritativeCachedInputTokens,
+                    promptTokens: resolvedInputTokens
+                )
             )
 
             let response = ChatCompletionResponse(

@@ -83,14 +83,20 @@ public struct ConfigCommand: Command {
 
         let port = await ServerControl.ensureServerReadyOrExit()
         let response = await request(
-            port: port, path: "/admin/config/export?format=\(format)", body: nil, credential: credential)
+            port: port,
+            path: "/admin/config/export?format=\(format)",
+            body: nil,
+            credential: credential
+        )
         guard let document = response[format] as? String else {
             failFromResponse(response)
         }
         if let outputPath {
             do {
                 try Data(document.utf8).write(
-                    to: URL(fileURLWithPath: outputPath), options: .atomic)
+                    to: URL(fileURLWithPath: outputPath),
+                    options: .atomic
+                )
                 print("Exported configuration to \(outputPath)")
             } catch {
                 fputs("Could not write \(outputPath): \(error.localizedDescription)\n", stderr)
@@ -126,11 +132,17 @@ public struct ConfigCommand: Command {
 
         let port = await ServerControl.ensureServerReadyOrExit()
         let response = await request(
-            port: port, path: "/admin/config/schema?format=\(format)", body: nil, credential: credential)
+            port: port,
+            path: "/admin/config/schema?format=\(format)",
+            body: nil,
+            credential: credential
+        )
         if format == "json" {
             guard let schema = response["json_schema"] as? [String: Any],
                 let data = try? JSONSerialization.data(
-                    withJSONObject: schema, options: [.prettyPrinted, .sortedKeys])
+                    withJSONObject: schema,
+                    options: [.prettyPrinted, .sortedKeys]
+                )
             else {
                 failFromResponse(response)
             }
@@ -184,7 +196,9 @@ public struct ConfigCommand: Command {
         {
             fputs(
                 "\(filePath) is \(size / 1024) KB — configuration documents are capped at "
-                    + "\(maxDocumentBytes / 1024) KB.\n", stderr)
+                    + "\(maxDocumentBytes / 1024) KB.\n",
+                stderr
+            )
             exit(EXIT_FAILURE)
         }
         let yaml: String
@@ -273,7 +287,10 @@ public struct ConfigCommand: Command {
     /// endpoint, returning the parsed JSON object. Exits on transport
     /// errors; HTTP-level errors are returned for the caller to render.
     private static func request(
-        port: Int, path: String, body: [String: Any]?, credential: AccessKeyCredential?
+        port: Int,
+        path: String,
+        body: [String: Any]?,
+        credential: AccessKeyCredential?
     ) async -> [String: Any] {
         guard let url = URL(string: "http://127.0.0.1:\(port)\(path)") else {
             fputs("Invalid URL\n", stderr)
@@ -306,7 +323,8 @@ public struct ConfigCommand: Command {
                 } else {
                     fputs(
                         "This server requires an access key. Pass --access-key KEY or set OSAURUS_API_KEY.\n",
-                        stderr)
+                        stderr
+                    )
                 }
                 exit(EXIT_FAILURE)
             }

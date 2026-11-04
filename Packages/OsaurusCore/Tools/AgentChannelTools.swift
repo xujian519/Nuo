@@ -323,7 +323,8 @@ private extension OsaurusTool {
     }
 }
 
-final class AgentChannelListConnectionsTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool, @unchecked Sendable {
+final class AgentChannelListConnectionsTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool, @unchecked Sendable
+{
     let name = "agent_channel_list_connections"
     let description =
         "List configured agent communication channel connections such as Discord, Slack, Telegram, iMessage, or custom JSON channels."
@@ -581,7 +582,8 @@ final class AgentChannelReadThreadTool: OsaurusTool, PermissionedTool, AgentChan
     }
 }
 
-final class AgentChannelSearchMessagesTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool, @unchecked Sendable {
+final class AgentChannelSearchMessagesTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool, @unchecked Sendable
+{
     let name = "agent_channel_search_messages"
     let description = "Search recent messages across allowlisted channel rooms."
     let parameters: JSONValue? = .object([
@@ -985,7 +987,8 @@ final class AgentChannelAddReactionTool: AgentChannelReactionTool, @unchecked Se
     init(service: AgentChannelConnectionService = .shared) {
         super.init(
             name: "agent_channel_add_reaction",
-            description: "Add an emoji reaction to a message in a write-allowlisted room. Requires `confirm_send: true`. `reaction` accepts a Unicode emoji (🎉), a Slack-style alias (`:white_check_mark:`), a Discord custom emoji (`name:id` or `<:name:id>`), a Telegram custom emoji (`custom_emoji:<id>`), or an iMessage tapback kind (love, like, dislike, laugh, emphasize, question); it is normalized to the connection's native format.",
+            description:
+                "Add an emoji reaction to a message in a write-allowlisted room. Requires `confirm_send: true`. `reaction` accepts a Unicode emoji (🎉), a Slack-style alias (`:white_check_mark:`), a Discord custom emoji (`name:id` or `<:name:id>`), a Telegram custom emoji (`custom_emoji:<id>`), or an iMessage tapback kind (love, like, dislike, laugh, emphasize, question); it is normalized to the connection's native format.",
             adding: true,
             service: service
         )
@@ -996,7 +999,8 @@ final class AgentChannelRemoveReactionTool: AgentChannelReactionTool, @unchecked
     init(service: AgentChannelConnectionService = .shared) {
         super.init(
             name: "agent_channel_remove_reaction",
-            description: "Remove the bot's own reaction from a message. Requires `confirm_send: true`. `reaction` takes the same forms as `agent_channel_add_reaction`. On Telegram, bots keep a single reaction per message; removal is refused if the bot's current reaction differs from `reaction`.",
+            description:
+                "Remove the bot's own reaction from a message. Requires `confirm_send: true`. `reaction` takes the same forms as `agent_channel_add_reaction`. On Telegram, bots keep a single reaction per message; removal is refused if the bot's current reaction differs from `reaction`.",
             adding: false,
             service: service
         )
@@ -1054,7 +1058,9 @@ final class AgentChannelSendTypingTool: OsaurusTool, PermissionedTool, AgentChan
 // in `agentChannelToolNames`, they are automatically denied on external
 // HTTP/MCP surfaces.
 
-final class AgentChannelIMessageSendAttachmentTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool, @unchecked Sendable {
+final class AgentChannelIMessageSendAttachmentTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool,
+    @unchecked Sendable
+{
     let name = "agent_channel_imessage_send_attachment"
     let description =
         "iMessage only: send a file attachment to a write-allowlisted chat. Requires "
@@ -1123,7 +1129,9 @@ final class AgentChannelIMessageSendAttachmentTool: OsaurusTool, PermissionedToo
 // switch in the dispatcher. The name is in `agentChannelToolNames`, so the
 // tool is automatically denied on external HTTP/MCP surfaces.
 
-final class AgentChannelWhatsAppSendAttachmentTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool, @unchecked Sendable {
+final class AgentChannelWhatsAppSendAttachmentTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool,
+    @unchecked Sendable
+{
     let name = "agent_channel_whatsapp_send_attachment"
     let description =
         "WhatsApp only: send a file (image, video, audio, or document — picked by MIME type) "
@@ -1193,7 +1201,9 @@ final class AgentChannelWhatsAppSendAttachmentTool: OsaurusTool, PermissionedToo
     }
 }
 
-final class AgentChannelIMessageSendEffectTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool, @unchecked Sendable {
+final class AgentChannelIMessageSendEffectTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool,
+    @unchecked Sendable
+{
     let name = "agent_channel_imessage_send_effect"
     let description =
         "iMessage only: send a message with a screen or bubble effect (e.g. `confetti`, "
@@ -1263,7 +1273,9 @@ final class AgentChannelIMessageSendEffectTool: OsaurusTool, PermissionedTool, A
     }
 }
 
-final class AgentChannelIMessageCreatePollTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool, @unchecked Sendable {
+final class AgentChannelIMessageCreatePollTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool,
+    @unchecked Sendable
+{
     let name = "agent_channel_imessage_create_poll"
     let description =
         "iMessage only: create a native Apple Messages poll in a write-allowlisted group "
@@ -1333,7 +1345,9 @@ final class AgentChannelIMessageCreatePollTool: OsaurusTool, PermissionedTool, A
     }
 }
 
-final class AgentChannelIMessageManageGroupTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool, @unchecked Sendable {
+final class AgentChannelIMessageManageGroupTool: OsaurusTool, PermissionedTool, AgentChannelServiceTool,
+    @unchecked Sendable
+{
     let name = "agent_channel_imessage_manage_group"
     let description =
         "iMessage only: manage a write-allowlisted group chat. `operation` is `rename` "
@@ -1397,7 +1411,7 @@ final class AgentChannelIMessageManageGroupTool: OsaurusTool, PermissionedTool, 
                 message:
                     "`operation` must be one of: "
                     + IMessageConnectionService.GroupOperation.allCases.map(\.rawValue)
-                        .joined(separator: ", "),
+                    .joined(separator: ", "),
                 tool: name
             )
         }

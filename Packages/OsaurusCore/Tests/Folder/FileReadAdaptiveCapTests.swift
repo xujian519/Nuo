@@ -35,7 +35,10 @@ struct FileReadAdaptiveCapTests {
         // ~36K chars: the reported real-world case (previously 3 reads).
         let content = body(chars: 36_000)
         try content.write(
-            to: root.appendingPathComponent("note.txt"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("note.txt"),
+            atomically: true,
+            encoding: .utf8
+        )
 
         let output = try await FileReadTool(rootPath: root).execute(
             argumentsJSON: #"{"path":"note.txt"}"#
@@ -52,7 +55,10 @@ struct FileReadAdaptiveCapTests {
         // max_chars of 40K must NOT be clamped down to 15K.
         let content = body(chars: Int(Double(ToolOutputCaps.fileReadMax) * 1.5))
         try content.write(
-            to: root.appendingPathComponent("big.txt"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("big.txt"),
+            atomically: true,
+            encoding: .utf8
+        )
 
         let output = try await FileReadTool(rootPath: root).execute(
             argumentsJSON: #"{"path":"big.txt","max_chars":40000}"#
@@ -70,7 +76,10 @@ struct FileReadAdaptiveCapTests {
         defer { try? FileManager.default.removeItem(at: root) }
         let content = body(chars: ToolOutputCaps.fileReadMax * 2)
         try content.write(
-            to: root.appendingPathComponent("big.txt"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("big.txt"),
+            atomically: true,
+            encoding: .utf8
+        )
 
         let output = try await FileReadTool(rootPath: root).execute(
             argumentsJSON: #"{"path":"big.txt","max_chars":999999}"#
@@ -86,7 +95,10 @@ struct FileReadAdaptiveCapTests {
         defer { try? FileManager.default.removeItem(at: root) }
         let content = body(chars: ToolOutputCaps.fileReadMax * 2)
         try content.write(
-            to: root.appendingPathComponent("huge.txt"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("huge.txt"),
+            atomically: true,
+            encoding: .utf8
+        )
 
         let output = try await FileReadTool(rootPath: root).execute(
             argumentsJSON: #"{"path":"huge.txt"}"#
@@ -104,7 +116,10 @@ struct FileReadAdaptiveCapTests {
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         try body(chars: 5_000).write(
-            to: root.appendingPathComponent("note.txt"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("note.txt"),
+            atomically: true,
+            encoding: .utf8
+        )
 
         let output = try await FileReadTool(rootPath: root).execute(
             argumentsJSON: #"{"path":"note.txt","max_chars":500}"#

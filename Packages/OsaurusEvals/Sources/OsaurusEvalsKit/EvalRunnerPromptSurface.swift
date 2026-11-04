@@ -23,7 +23,9 @@ extension EvalRunner {
         let label = testCase.label ?? testCase.id
         guard let exp = testCase.expect.promptSurface else {
             return errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "missing `expect.promptSurface`"
             )
         }
@@ -35,7 +37,9 @@ extension EvalRunner {
         if exp.expectInvalidProfile == true {
             guard exp.profile != nil else {
                 return errored(
-                    testCase, label: label, modelId: modelId,
+                    testCase,
+                    label: label,
+                    modelId: modelId,
                     note: "expectInvalidProfile requires `profile`"
                 )
             }
@@ -53,7 +57,9 @@ extension EvalRunner {
         }
         if !validationErrors.isEmpty {
             return errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "invalid profile '\(exp.profile?.name ?? "?")': "
                     + validationErrors.joined(separator: "; ")
             )
@@ -94,7 +100,9 @@ extension EvalRunner {
             try FileManager.default.createDirectory(at: workspace, withIntermediateDirectories: true)
         } catch {
             return errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "workspace setup failed: \(error.localizedDescription)"
             )
         }
@@ -149,7 +157,7 @@ extension EvalRunner {
         // identically so the measured census is order-independent across
         // the suite.
         var warmHash = ""
-        for _ in 0..<10 {
+        for _ in 0 ..< 10 {
             let warm = await PromptSurfaceEvaluator.census(
                 workspace: workspace,
                 agentId: evalAgentId,

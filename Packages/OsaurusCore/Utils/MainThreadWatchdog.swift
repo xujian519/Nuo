@@ -152,7 +152,8 @@ final class MainThreadWatchdog: @unchecked Sendable {
             ?? OsaurusPaths.root().appendingPathComponent("diagnostics", isDirectory: true)
         OsaurusPaths.ensureExistsSilent(dir)
         try? data.write(
-            to: dir.appendingPathComponent("last-main-thread-stall.json"), options: [.atomic]
+            to: dir.appendingPathComponent("last-main-thread-stall.json"),
+            options: [.atomic]
         )
     }
 }

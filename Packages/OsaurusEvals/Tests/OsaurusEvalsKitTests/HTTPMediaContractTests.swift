@@ -16,22 +16,58 @@ struct HTTPMediaContractTests {
 
     @Test func onlyKnownUnsupportedLocalMediaMaySkip() {
         for status in [400, 401, 404, 429, 500, 503] {
-            #expect(!HTTPMediaContract.maySkipUnsupported(status: status,
-                errorType: "invalid_request_error", installedSupportsMedia: true, required: false))
-            #expect(!HTTPMediaContract.maySkipUnsupported(status: status,
-                errorType: "invalid_request_error", installedSupportsMedia: false, required: true))
+            #expect(
+                !HTTPMediaContract.maySkipUnsupported(
+                    status: status,
+                    errorType: "invalid_request_error",
+                    installedSupportsMedia: true,
+                    required: false
+                )
+            )
+            #expect(
+                !HTTPMediaContract.maySkipUnsupported(
+                    status: status,
+                    errorType: "invalid_request_error",
+                    installedSupportsMedia: false,
+                    required: true
+                )
+            )
         }
-        #expect(!HTTPMediaContract.maySkipUnsupported(status: 500,
-            errorType: "invalid_request_error", installedSupportsMedia: false, required: false))
-        #expect(!HTTPMediaContract.maySkipUnsupported(status: 400,
-            errorType: "invalid_request_error", installedSupportsMedia: nil, required: false))
-        #expect(HTTPMediaContract.maySkipUnsupported(status: 400,
-            errorType: "invalid_request_error", installedSupportsMedia: false, required: false))
+        #expect(
+            !HTTPMediaContract.maySkipUnsupported(
+                status: 500,
+                errorType: "invalid_request_error",
+                installedSupportsMedia: false,
+                required: false
+            )
+        )
+        #expect(
+            !HTTPMediaContract.maySkipUnsupported(
+                status: 400,
+                errorType: "invalid_request_error",
+                installedSupportsMedia: nil,
+                required: false
+            )
+        )
+        #expect(
+            HTTPMediaContract.maySkipUnsupported(
+                status: 400,
+                errorType: "invalid_request_error",
+                installedSupportsMedia: false,
+                required: false
+            )
+        )
     }
 
     @Test func requiresVisibleTerminalAnswerAndMeasuredThroughput() {
-        let valid: [String: Any] = ["choices": [["finish_reason": "stop",
-            "message": ["content": "red"]]], "usage": ["tokens_per_second": 25.0]]
+        let valid: [String: Any] = [
+            "choices": [
+                [
+                    "finish_reason": "stop",
+                    "message": ["content": "red"],
+                ]
+            ], "usage": ["tokens_per_second": 25.0],
+        ]
         #expect(HTTPMediaContract.terminalProblems(valid).isEmpty)
         for (content, finish) in [("red", "length"), ("", "stop"), ("<think>red</think>", "stop")] {
             var bad = valid
@@ -44,8 +80,10 @@ struct HTTPMediaContractTests {
     }
 
     @Test func explicitVisionQualificationCannotDecodeAsOptionalSupport() throws {
-        let expectation = try JSONDecoder().decode(EvalCase.HTTPAPIExpectations.self,
-            from: Data(#"{"scenario":"multimodal_image","requireMediaSupport":true}"#.utf8))
+        let expectation = try JSONDecoder().decode(
+            EvalCase.HTTPAPIExpectations.self,
+            from: Data(#"{"scenario":"multimodal_image","requireMediaSupport":true}"#.utf8)
+        )
         #expect(expectation.requireMediaSupport == true)
     }
 }

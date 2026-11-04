@@ -45,7 +45,8 @@ struct OrnithToolSelectionTests {
             env["ORNITH_TOOLS"] == "1" || env["TEST_RUNNER_ORNITH_TOOLS"] == "1"
         return requested
             && FileManager.default.fileExists(
-                atPath: bundle("Ornith-1.0-9B-JANG_4M").appendingPathComponent("config.json").path)
+                atPath: bundle("Ornith-1.0-9B-JANG_4M").appendingPathComponent("config.json").path
+            )
     }
 
     /// A trimmed stand-in for what the app offers: a tool that is obviously
@@ -89,7 +90,8 @@ struct OrnithToolSelectionTests {
         let tokens: Int
         let progress: String
         var summary: String {
-            let head = text.isEmpty
+            let head =
+                text.isEmpty
                 ? "(no visible text)"
                 : text.prefix(90).replacingOccurrences(of: "\n", with: " ")
             return "calls=\(calls.isEmpty ? "none" : calls.joined(separator: ",")) "
@@ -101,7 +103,9 @@ struct OrnithToolSelectionTests {
 
     static func run(_ bundleName: String) async throws -> (noTool: Turn, needsTool: Turn) {
         let context = try await MLXLLM.LLMModelFactory.shared.load(
-            from: bundle(bundleName), using: SwiftTransformersTokenizerLoader())
+            from: bundle(bundleName),
+            using: SwiftTransformersTokenizerLoader()
+        )
 
         func ask(_ prompt: String, system: String? = nil) async throws -> Turn {
             var messages: [[String: String]] = []
@@ -110,7 +114,8 @@ struct OrnithToolSelectionTests {
             let ids = try context.tokenizer.applyChatTemplate(
                 messages: messages,
                 tools: tools,
-                additionalContext: ["add_generation_prompt": true])
+                additionalContext: ["add_generation_prompt": true]
+            )
             // `Generation.chunk` is nil for `.toolCall`, so a correct tool call
             // shows up as empty text unless the tool channel is read too —
             // collecting only chunks scores a right answer as a miss.
@@ -123,7 +128,8 @@ struct OrnithToolSelectionTests {
             let stream = try MLXLMCommon.generate(
                 input: LMInput(tokens: MLXArray(ids.map { Int32($0) })[.newAxis, .ellipsis]),
                 parameters: GenerateParameters(maxTokens: 400, temperature: 0.0),
-                context: context)
+                context: context
+            )
             for await item in stream {
                 if let c = item.chunk { text += c }
                 if let r = item.reasoning { reasoning += r }
@@ -135,14 +141,20 @@ struct OrnithToolSelectionTests {
                 }
             }
 
-            return Turn(text: text, reasoning: reasoning, calls: calls, tokens: tokenCount,
-                        progress: progress)
+            return Turn(
+                text: text,
+                reasoning: reasoning,
+                calls: calls,
+                tokens: tokenCount,
+                progress: progress
+            )
         }
 
         // Answerable from the model's own knowledge — calling a tool is wrong.
         let a = try await ask(
             "Explain merge sort and compare it with quicksort on worst-case complexity, "
-                + "memory use and cache behaviour.")
+                + "memory use and cache behaviour."
+        )
         // Not knowable without a tool — NOT calling one is wrong.
         let b = try await ask("What is the current date and time right now?")
 
@@ -151,7 +163,8 @@ struct OrnithToolSelectionTests {
         // call appear, the failure is prompt composition rather than the model.
         let withSystem = try await ask(
             "What is the current date and time right now?",
-            system: "You are a helpful assistant. Use the available tools when they are needed.")
+            system: "You are a helpful assistant. Use the available tools when they are needed."
+        )
         print("[tools]   live-data WITH system prompt: \(withSystem.summary)")
 
         return (a, b)
@@ -164,8 +177,10 @@ struct OrnithToolSelectionTests {
     @Test("4-bit vs 6-bit tool selection on the same prompts", .enabled(if: enabled))
     func quantAB() async throws {
         for name in ["Ornith-1.0-9B-JANG_4M", "Ornith-1.0-9B-JANG_6M"] {
-            guard FileManager.default.fileExists(
-                atPath: Self.bundle(name).appendingPathComponent("config.json").path)
+            guard
+                FileManager.default.fileExists(
+                    atPath: Self.bundle(name).appendingPathComponent("config.json").path
+                )
             else {
                 print("[tools] \(name): bundle missing, skipped")
                 continue
@@ -174,11 +189,15 @@ struct OrnithToolSelectionTests {
             let spurious = !noTool.calls.isEmpty
             let missed = needsTool.calls.isEmpty
             let score = (spurious ? 0 : 1) + (missed ? 0 : 1)
-            print("[tools] \(name): score \(score)/2  spurious-call-on-knowledge=\(spurious)  missed-call-on-live-data=\(missed)")
+            print(
+                "[tools] \(name): score \(score)/2  spurious-call-on-knowledge=\(spurious)  missed-call-on-live-data=\(missed)"
+            )
             print("[tools]   knowledge-question: \(noTool.summary)")
             print("[tools]   live-data:          \(needsTool.summary)")
             if !needsTool.reasoning.isEmpty {
-                print("[tools]   live-data reasoning: \(needsTool.reasoning.prefix(180).replacingOccurrences(of: "\n", with: " "))")
+                print(
+                    "[tools]   live-data reasoning: \(needsTool.reasoning.prefix(180).replacingOccurrences(of: "\n", with: " "))"
+                )
             }
         }
     }

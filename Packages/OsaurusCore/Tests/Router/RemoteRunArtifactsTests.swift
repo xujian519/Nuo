@@ -89,14 +89,20 @@ struct RemoteRunArtifactsTests {
         #expect(rows[1].size_bytes >= 300)
         #expect(rows[2].bytes_base64 != nil)
         let decoded = try #require(
-            Data(base64Encoded: rows[0].bytes_base64!).flatMap { String(data: $0, encoding: .utf8) })
+            Data(base64Encoded: rows[0].bytes_base64!).flatMap { String(data: $0, encoding: .utf8) }
+        )
         #expect(decoded.hasPrefix("small one"))
 
         // The count cap trims the tail; a directory never carries bytes.
         #expect(RemoteRunArtifactRelay.payload(for: artifacts, maxCount: 2).count == 2)
         let directory = SharedArtifact(
-            contextId: contextId, contextType: .chat, filename: "site", mimeType: "inode/directory",
-            fileSize: 10, hostPath: artifacts[0].hostPath, isDirectory: true
+            contextId: contextId,
+            contextType: .chat,
+            filename: "site",
+            mimeType: "inode/directory",
+            fileSize: 10,
+            hostPath: artifacts[0].hostPath,
+            isDirectory: true
         )
         let dirRows = RemoteRunArtifactRelay.payload(for: [directory])
         #expect(dirRows.first?.omitted_reason == "directory")
@@ -107,7 +113,12 @@ struct RemoteRunArtifactsTests {
     func hintRoundTrips() {
         let rows = [
             RemoteRunArtifact(name: "a.txt", mime: "text/plain", description: "d", size_bytes: 3, bytes_base64: "YWJj"),
-            RemoteRunArtifact(name: "big.zip", mime: "application/zip", size_bytes: 9_000_000, omitted_reason: "too_large"),
+            RemoteRunArtifact(
+                name: "big.zip",
+                mime: "application/zip",
+                size_bytes: 9_000_000,
+                omitted_reason: "too_large"
+            ),
         ]
         let delta = StreamingArtifactHint.encode(rows)
         #expect(StreamingToolHint.isSentinel(delta), "shares the \\u{FFFE} sentinel family")
@@ -123,11 +134,24 @@ struct RemoteRunArtifactsTests {
         defer { removeContextDir(sessionId) }
         let rows = [
             RemoteRunArtifact(
-                name: "../escape.md", mime: "text/markdown", description: "notes",
-                size_bytes: 5, bytes_base64: Data("hello".utf8).base64EncodedString()
+                name: "../escape.md",
+                mime: "text/markdown",
+                description: "notes",
+                size_bytes: 5,
+                bytes_base64: Data("hello".utf8).base64EncodedString()
             ),
-            RemoteRunArtifact(name: "big.zip", mime: "application/zip", size_bytes: 9_000_000, omitted_reason: "too_large"),
-            RemoteRunArtifact(name: "img.png", mime: "", size_bytes: 3, bytes_base64: Data([0x1, 0x2, 0x3]).base64EncodedString()),
+            RemoteRunArtifact(
+                name: "big.zip",
+                mime: "application/zip",
+                size_bytes: 9_000_000,
+                omitted_reason: "too_large"
+            ),
+            RemoteRunArtifact(
+                name: "img.png",
+                mime: "",
+                size_bytes: 3,
+                bytes_base64: Data([0x1, 0x2, 0x3]).base64EncodedString()
+            ),
         ]
         let imported = SharedArtifact.importRemoteArtifacts(rows, contextId: sessionId)
         #expect(imported.count == 2, "the omitted row produces no artifact")
@@ -166,9 +190,13 @@ struct RemoteRunArtifactsTests {
             let db = ChatHistoryDatabase.shared
             try db.open()
             let ref = WorkspaceAgentRef(
-                workspaceId: "ws-1", agentAddress: "0x" + String(repeating: "a", count: 40))
+                workspaceId: "ws-1",
+                agentAddress: "0x" + String(repeating: "a", count: 40)
+            )
             let other = WorkspaceAgentRef(
-                workspaceId: "ws-1", agentAddress: "0x" + String(repeating: "b", count: 40))
+                workspaceId: "ws-1",
+                agentAddress: "0x" + String(repeating: "b", count: 40)
+            )
 
             let sessionId = UUID()
             try db.saveSession(
@@ -185,14 +213,20 @@ struct RemoteRunArtifactsTests {
 
             // Same shared agent → resumable.
             let row = try AgentDelegationDispatcher.validateResumeSession(
-                sessionId, target: .workspace(ref), targetAgentName: "Research")
+                sessionId,
+                target: .workspace(ref),
+                targetAgentName: "Research"
+            )
             #expect(row.id == sessionId)
 
             // Another teammate's agent → refused as a correctable argument
             // error (nothing ran), never as a turn-ending `rejected`.
             do {
                 _ = try AgentDelegationDispatcher.validateResumeSession(
-                    sessionId, target: .workspace(other), targetAgentName: "Other")
+                    sessionId,
+                    target: .workspace(other),
+                    targetAgentName: "Other"
+                )
                 Issue.record("expected invalid_args")
             } catch let error as SubagentError {
                 let envelope = error.envelope(tool: "spawn_agent")
@@ -202,14 +236,26 @@ struct RemoteRunArtifactsTests {
                     !AgentToolLoop.shouldStopAfterToolOutcome(
                         AgentLoopToolOutcome(
                             invocation: ServiceToolInvocation(
-                                toolName: "spawn_agent", jsonArguments: "{}", toolCallId: nil),
-                            callId: "c1", result: envelope, wasDeduped: false, wasError: true)),
-                    "a wrong-agent continue must leave the parent one correction")
+                                toolName: "spawn_agent",
+                                jsonArguments: "{}",
+                                toolCallId: nil
+                            ),
+                            callId: "c1",
+                            result: envelope,
+                            wasDeduped: false,
+                            wasError: true
+                        )
+                    ),
+                    "a wrong-agent continue must leave the parent one correction"
+                )
             }
             // A local agent must not adopt a workspace transcript.
             do {
                 _ = try AgentDelegationDispatcher.validateResumeSession(
-                    sessionId, target: .local(UUID()), targetAgentName: "Local")
+                    sessionId,
+                    target: .local(UUID()),
+                    targetAgentName: "Local"
+                )
                 Issue.record("expected invalid_args")
             } catch let error as SubagentError {
                 #expect(error.envelope(tool: "spawn_agent").contains("\"kind\":\"invalid_args\""))
@@ -217,7 +263,10 @@ struct RemoteRunArtifactsTests {
             // Unknown id → unavailable with a "start a new task" hint.
             do {
                 _ = try AgentDelegationDispatcher.validateResumeSession(
-                    UUID(), target: .workspace(ref), targetAgentName: "Research")
+                    UUID(),
+                    target: .workspace(ref),
+                    targetAgentName: "Research"
+                )
                 Issue.record("expected unavailable")
             } catch let error as SubagentError {
                 #expect("\(error)".contains("Start a new task"))
@@ -227,14 +276,20 @@ struct RemoteRunArtifactsTests {
             let legacyId = UUID()
             try db.saveSession(
                 ChatSessionData(
-                    id: legacyId, title: "legacy", agentId: Agent.defaultId, source: .delegation,
+                    id: legacyId,
+                    title: "legacy",
+                    agentId: Agent.defaultId,
+                    source: .delegation,
                     workspace: WorkspaceSessionContext(workspaceId: ref.workspaceId, agentAddress: ref.agentAddress)
                 )
             )
             defer { try? db.deleteSession(id: legacyId) }
             #expect(throws: SubagentError.self) {
                 try AgentDelegationDispatcher.validateResumeSession(
-                    legacyId, target: .workspace(ref), targetAgentName: "Research")
+                    legacyId,
+                    target: .workspace(ref),
+                    targetAgentName: "Research"
+                )
             }
         }
     }

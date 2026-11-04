@@ -191,12 +191,14 @@ public actor KnowledgeIndexService {
         // Adapter-extracted formats (pdf, code, …) carry no frontmatter
         // at all, so the conformance check only applies to markdown.
         let reserved: Set<String> = ["index.md", "log.md"]
-        return documents
+        return
+            documents
             .filter { document in
                 document.docType.isEmpty
                     && !reserved.contains(document.relPath.lowercased())
                     && Self.markdownExtensions.contains(
-                        (document.relPath as NSString).pathExtension.lowercased())
+                        (document.relPath as NSString).pathExtension.lowercased()
+                    )
             }
             .map(\.relPath)
     }
@@ -213,12 +215,14 @@ public actor KnowledgeIndexService {
                 limit: Self.maxFilesPerCollection
             )) ?? []
         let reserved: Set<String> = ["index.md", "log.md"]
-        return documents
+        return
+            documents
             .filter { document in
                 document.effectiveType.isEmpty
                     && !reserved.contains(document.relPath.lowercased())
                     && Self.markdownExtensions.contains(
-                        (document.relPath as NSString).pathExtension.lowercased())
+                        (document.relPath as NSString).pathExtension.lowercased()
+                    )
             }
             .map(\.relPath)
     }
@@ -285,9 +289,10 @@ public actor KnowledgeIndexService {
         let effectiveType = frontmatter.docType.isEmpty ? inferredType : frontmatter.docType
 
         let values = try? fileURL.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
-        let modifiedAt = values?.contentModificationDate.map {
-            ISO8601DateFormatter().string(from: $0)
-        } ?? ""
+        let modifiedAt =
+            values?.contentModificationDate.map {
+                ISO8601DateFormatter().string(from: $0)
+            } ?? ""
         let sizeBytes = values?.fileSize ?? body.utf8.count
 
         let documentId = try KnowledgeDatabase.shared.upsertDocument(
@@ -379,7 +384,9 @@ public actor KnowledgeIndexService {
             if !relPath.isEmpty {
                 if collection.excludeGlobs.contains(where: {
                     KnowledgeGlob.matchesPattern(relPath, pattern: $0)
-                }) { continue }
+                }) {
+                    continue
+                }
                 if collection.includeGlobs.isEmpty {
                     if ignoreRules.isIgnored(relPath) { continue }
                 } else if !collection.includeGlobs.contains(where: {

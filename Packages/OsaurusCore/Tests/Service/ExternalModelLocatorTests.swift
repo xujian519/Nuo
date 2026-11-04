@@ -25,7 +25,10 @@ struct ExternalModelLocatorTests {
         let report = ExternalModelLocator.scanCustomModelFolderReport(root: link)
         #expect(report.discovered.map(\.id) == ["publisher/ordinary-renamed-bundle"])
         #expect(report.skipped.isEmpty)
-        #expect(report.discovered.first?.bundlePath == actual.appendingPathComponent("publisher/ordinary-renamed-bundle").path)
+        #expect(
+            report.discovered.first?.bundlePath
+                == actual.appendingPathComponent("publisher/ordinary-renamed-bundle").path
+        )
     }
 
     @Test func failedRootEnumerationIsReportedInsteadOfAnEmptySuccessfulScan() {
@@ -46,7 +49,10 @@ struct ExternalModelLocatorTests {
         let link = root.appendingPathComponent("bundle-link", isDirectory: true)
         try FileManager.default.createSymbolicLink(at: link, withDestinationURL: actual)
         let diagnostic = ExternalModelLocator.bundleDiagnostic(
-            at: link, root: link, enforceSymlinkContainment: enforceContainment)
+            at: link,
+            root: link,
+            enforceSymlinkContainment: enforceContainment
+        )
         #expect(diagnostic.isValid)
         #expect(diagnostic.reason == nil)
     }
@@ -298,7 +304,8 @@ struct ExternalModelLocatorTests {
         defer { try? FileManager.default.removeItem(at: root) }
         let direct = root.appendingPathComponent("Direct-Model", isDirectory: true)
         let nested = root.appendingPathComponent("publisher/repo", isDirectory: true)
-        let hfSnapshot = root
+        let hfSnapshot =
+            root
             .appendingPathComponent("models--org--cached", isDirectory: true)
             .appendingPathComponent("snapshots/abc123", isDirectory: true)
         writeBundle(at: direct)

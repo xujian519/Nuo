@@ -23,15 +23,20 @@ struct AgentReasoningDefaultsGuardTests {
         func handles(requestedModel: String?) -> Bool {
             requestedModel == id || (acceptsDefault && requestedModel == "default")
         }
-        func generateOneShot(messages: [ChatMessage], parameters: GenerationParameters,
-            requestedModel: String?) async throws -> String
-        {
+        func generateOneShot(
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?
+        ) async throws -> String {
             await capture.executed(parameters)
             return "ok"
         }
-        func streamDeltas(messages: [ChatMessage], parameters: GenerationParameters,
-            requestedModel: String?, stopSequences: [String]) async throws -> AsyncThrowingStream<String, Error>
-        {
+        func streamDeltas(
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?,
+            stopSequences: [String]
+        ) async throws -> AsyncThrowingStream<String, Error> {
             await capture.executed(parameters)
             return AsyncThrowingStream { producer in
                 producer.yield("ok")
@@ -41,11 +46,16 @@ struct AgentReasoningDefaultsGuardTests {
     }
 
     private static let efforts = ModelReasoningCapabilities(
-        levels: ["low", "medium", "xhigh"].map { .init(id: $0) }, defaultLevelId: "xhigh")
+        levels: ["low", "medium", "xhigh"].map { .init(id: $0) },
+        defaultLevelId: "xhigh"
+    )
 
-    private func makeEngine(capture: Capture, services: [ModelService], remote: [ModelService] = [],
-        supportsThinking: Bool = false) -> ChatEngine
-    {
+    private func makeEngine(
+        capture: Capture,
+        services: [ModelService],
+        remote: [ModelService] = [],
+        supportsThinking: Bool = false
+    ) -> ChatEngine {
         ChatEngine(
             services: services,
             installedModelsProvider: { [] },
@@ -57,20 +67,27 @@ struct AgentReasoningDefaultsGuardTests {
             agentModelOptionsProvider: { _ in [:] },
             agentReasoningChoicesProvider: { model, _ in
                 await capture.resolved(model)
-                return AgentGenerationReasoningChoices(modelID: model,
-                    efforts: Self.efforts, supportsThinking: supportsThinking)
+                return AgentGenerationReasoningChoices(
+                    modelID: model,
+                    efforts: Self.efforts,
+                    supportsThinking: supportsThinking
+                )
             }
         )
     }
 
-    private func request(model: String = "saved-agent-fixture", settings: AgentGenerationSettings,
-        overrides: ChatTurnOverrides = .init()) -> ResponsesInferenceRequest
-    {
+    private func request(
+        model: String = "saved-agent-fixture",
+        settings: AgentGenerationSettings,
+        overrides: ChatTurnOverrides = .init()
+    ) -> ResponsesInferenceRequest {
         var controls = ChatTurnGenerationControls.capture(activeModelOptions: [:])
         controls.agentSettings = settings
         controls.overrides = overrides
-        var request = ResponsesInferenceRequest(model: model,
-            input: [ChatMessage(role: "user", content: "Answer.")])
+        var request = ResponsesInferenceRequest(
+            model: model,
+            input: [ChatMessage(role: "user", content: "Answer.")]
+        )
         controls.apply(to: &request)
         return request
     }
@@ -79,18 +96,29 @@ struct AgentReasoningDefaultsGuardTests {
     func provenanceAndCompatibility() throws {
         let settings = AgentGenerationSettings(topK: 0, enableThinking: false, reasoningEffort: "high")
         let original = request(settings: settings)
-        #expect(original.context.agentReasoningDefaults?.settings == AgentGenerationSettings(enableThinking: false, reasoningEffort: "high"))
+        #expect(
+            original.context.agentReasoningDefaults?.settings
+                == AgentGenerationSettings(enableThinking: false, reasoningEffort: "high")
+        )
         let effortOverride = request(settings: settings, overrides: .init(reasoningEffort: "xhigh"))
-        #expect(effortOverride.context.agentReasoningDefaults?.settings == AgentGenerationSettings(enableThinking: false))
+        #expect(
+            effortOverride.context.agentReasoningDefaults?.settings == AgentGenerationSettings(enableThinking: false)
+        )
         let thinkingOverride = request(settings: settings, overrides: .init(enableThinking: true))
-        #expect(thinkingOverride.context.agentReasoningDefaults?.settings == AgentGenerationSettings(reasoningEffort: "high"))
+        #expect(
+            thinkingOverride.context.agentReasoningDefaults?.settings
+                == AgentGenerationSettings(reasoningEffort: "high")
+        )
         let both = request(settings: settings, overrides: .init(reasoningEffort: "xhigh", enableThinking: true))
         #expect(both.context.agentReasoningDefaults == nil)
         #expect(request(settings: .init(topK: 0)).context.agentReasoningDefaults == nil)
         let restored = ResponsesInferenceRequest(chatCompletion: original.chatCompletionsCompatibilityRequest())
         #expect(restored.context.agentReasoningDefaults == original.context.agentReasoningDefaults)
         // Host-only context is absent from the public request encoding.
-        let wire = String(decoding: try JSONEncoder().encode(original.chatCompletionsCompatibilityRequest()), as: UTF8.self)
+        let wire = String(
+            decoding: try JSONEncoder().encode(original.chatCompletionsCompatibilityRequest()),
+            as: UTF8.self
+        )
         #expect(!wire.contains("agentReasoningDefaults"))
     }
 
@@ -147,8 +175,10 @@ struct AgentReasoningDefaultsGuardTests {
         let capture = Capture()
         let service = Service(id: "saved-agent-fixture", capture: capture)
         let engine = makeEngine(capture: capture, services: [service])
-        var unmarked = ResponsesInferenceRequest(model: service.id,
-            input: [ChatMessage(role: "user", content: "Answer.")])
+        var unmarked = ResponsesInferenceRequest(
+            model: service.id,
+            input: [ChatMessage(role: "user", content: "Answer.")]
+        )
         unmarked.generation.reasoningEffort = "high"
         _ = try await engine.completeChat(request: unmarked.chatCompletionsCompatibilityRequest())
         #expect(await capture.choiceModels.isEmpty)
@@ -160,8 +190,10 @@ struct AgentReasoningDefaultsGuardTests {
         let localCapture = Capture()
         let local = Service(id: "default-service", capture: localCapture, acceptsDefault: true)
         let localEngine = makeEngine(capture: localCapture, services: [local])
-        _ = try await localEngine.completeChat(request: request(model: "default", settings: .init(reasoningEffort: "xhigh"))
-            .chatCompletionsCompatibilityRequest())
+        _ = try await localEngine.completeChat(
+            request: request(model: "default", settings: .init(reasoningEffort: "xhigh"))
+                .chatCompletionsCompatibilityRequest()
+        )
         #expect(await localCapture.choiceModels == ["foundation"])
         #expect(await localCapture.remoteLookups == 0)
         #expect(await localCapture.parameters.count == 1)
@@ -169,8 +201,10 @@ struct AgentReasoningDefaultsGuardTests {
         let remoteCapture = Capture()
         let remote = Service(id: "provider/saved-agent-fixture", capture: remoteCapture)
         let remoteEngine = makeEngine(capture: remoteCapture, services: [], remote: [remote])
-        _ = try await remoteEngine.completeChat(request: request(model: remote.id, settings: .init(reasoningEffort: "medium"))
-            .chatCompletionsCompatibilityRequest())
+        _ = try await remoteEngine.completeChat(
+            request: request(model: remote.id, settings: .init(reasoningEffort: "medium"))
+                .chatCompletionsCompatibilityRequest()
+        )
         #expect(await remoteCapture.choiceModels == [remote.id])
         #expect(await remoteCapture.remoteLookups == 1)
         #expect(await remoteCapture.parameters.count == 1)
@@ -200,7 +234,10 @@ struct AgentReasoningDefaultsGuardTests {
         let engine = makeEngine(capture: capture, services: [service])
         for enabled in [false, true] {
             do {
-                _ = try await engine.completeChat(request: request(settings: .init(speculativeDecoding: enabled)).chatCompletionsCompatibilityRequest())
+                _ = try await engine.completeChat(
+                    request: request(settings: .init(speculativeDecoding: enabled))
+                        .chatCompletionsCompatibilityRequest()
+                )
                 Issue.record("A local execution preference must not be ignored by a provider")
             } catch {
                 #expect(error.localizedDescription.contains("require a local model"))

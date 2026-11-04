@@ -125,7 +125,8 @@ struct AgentGenerationSettingsEditor: View {
                             .buttonStyle(.borderedProminent)
                             .disabled(
                                 (choices == nil || choices?.modelID != modelID)
-                                    && (draft.reasoningEffort != "" || draft.thinking != "inherit" || draft.speculation != "inherit")
+                                    && (draft.reasoningEffort != "" || draft.thinking != "inherit"
+                                        || draft.speculation != "inherit")
                             )
                     }
                 }
@@ -176,7 +177,10 @@ struct AgentGenerationSettingsEditor: View {
             defaultsModelID = modelID
             guard let modelID else { return }
             var resolved = await AgentGenerationReasoningChoices.resolve(
-                modelID: modelID, isLocal: modelIsLocal, includeSpeculation: true)
+                modelID: modelID,
+                isLocal: modelIsLocal,
+                includeSpeculation: true
+            )
             guard !Task.isCancelled else { return }
             if let catalogCapabilities { resolved.efforts = catalogCapabilities }
             choices = resolved
@@ -193,7 +197,10 @@ struct AgentGenerationSettingsEditor: View {
     private var speculationControls: some View {
         if let choices, choices.modelID == modelID {
             if let status = choices.speculation, status.speculationAvailable {
-                rowLabel("Speculative Decoding", "Off uses ordinary decoding. On requests adaptive drafting without changing sampling.")
+                rowLabel(
+                    "Speculative Decoding",
+                    "Off uses ordinary decoding. On requests adaptive drafting without changing sampling."
+                )
                 Picker(L("Speculative Decoding"), selection: $draft.speculation) {
                     Text(localized: "Inherit").tag("inherit")
                     Text(localized: "Off (AR)").tag("off")
@@ -560,7 +567,9 @@ struct AgentGenerationSettingsEditor: View {
             try draft.commitStopSequence()
             let values = try draft.validated()
             if let settings = values.settings {
-                if settings.reasoningEffort != nil || settings.enableThinking != nil || settings.speculativeDecoding != nil {
+                if settings.reasoningEffort != nil || settings.enableThinking != nil
+                    || settings.speculativeDecoding != nil
+                {
                     guard let choices, choices.modelID == modelID else {
                         throw ChatTurnOverrides.ValidationError.invalid(
                             "Choose a model and wait for its reasoning controls to be detected."

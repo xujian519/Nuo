@@ -46,7 +46,8 @@ public final class MainThreadOperationLedger: @unchecked Sendable {
     private var nextID: UInt64 = 1
 
     private static let signposter = OSSignposter(
-        subsystem: "com.dinoki.osaurus", category: "MainThreadOperation"
+        subsystem: "com.dinoki.osaurus",
+        category: "MainThreadOperation"
     )
     private var signpostStates: [UInt64: OSSignpostIntervalState] = [:]
 
@@ -64,7 +65,8 @@ public final class MainThreadOperationLedger: @unchecked Sendable {
         lock.unlock()
 
         let state = Self.signposter.beginInterval(
-            "op", id: Self.signposter.makeSignpostID(),
+            "op",
+            id: Self.signposter.makeSignpostID(),
             "\(subsystem, privacy: .public).\(operation, privacy: .public)"
         )
         lock.lock()
@@ -88,7 +90,9 @@ public final class MainThreadOperationLedger: @unchecked Sendable {
     /// hang). This is the intended instrumentation point for shared code
     /// like Keychain reads that legitimately runs on both.
     public func withMainThreadOperation<T>(
-        subsystem: String, operation: String, _ body: () throws -> T
+        subsystem: String,
+        operation: String,
+        _ body: () throws -> T
     ) rethrows -> T {
         guard Thread.isMainThread else { return try body() }
         let token = begin(subsystem: subsystem, operation: operation)

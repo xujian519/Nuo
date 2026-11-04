@@ -64,7 +64,10 @@ private struct PickerCardSurfaceModifier: ViewModifier {
             .background(theme.secondaryBackground, in: shape)
             .clipShape(shape)
             .overlay {
-                shape.strokeBorder(theme.primaryBorder.opacity(theme.borderOpacity), lineWidth: theme.defaultBorderWidth)
+                shape.strokeBorder(
+                    theme.primaryBorder.opacity(theme.borderOpacity),
+                    lineWidth: theme.defaultBorderWidth
+                )
             }
             .shadow(color: elevated ? theme.shadowColor.opacity(theme.isDark ? 0.35 : 0.12) : .clear, radius: 16, y: 6)
             .font(theme.font(size: CGFloat(theme.bodySize)))
@@ -207,6 +210,8 @@ struct PickerCardTextLink: View {
         .focusable()
         .focusEffectDisabled()
         .onHover { hovered = $0 }
-        .onKeyPress(.return) { action(); return .handled }
+        .onKeyPress(.return) {
+            action(); return .handled
+        }
     }
 }

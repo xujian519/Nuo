@@ -46,7 +46,11 @@ struct EventKitContractTests {
         let (_, e2) = EventKitCalendarService.normalizeAllDay(start: start, end: day(2026, 9, 20), calendar: cal)
         #expect(e2 == e1, "an exclusive next-day-midnight end is the same one-day event")
 
-        let (_, e3) = EventKitCalendarService.normalizeAllDay(start: start, end: day(2026, 9, 19, 23, 59, 59), calendar: cal)
+        let (_, e3) = EventKitCalendarService.normalizeAllDay(
+            start: start,
+            end: day(2026, 9, 19, 23, 59, 59),
+            calendar: cal
+        )
         #expect(e3 == e1)
 
         // Two days: end on the 20th (any instant on that day).
@@ -71,7 +75,9 @@ struct EventKitContractTests {
         #expect(AppleAlarms.clampMinutes(-5) == 0)
         #expect(AppleAlarms.clampMinutes(10) == 10)
         #expect(AppleAlarms.clampMinutes(Int.max) == AppleAlarms.maxMinutesBefore)
-        #expect(AppleAlarms.relative(minutesBefore: Int.max).relativeOffset == -Double(AppleAlarms.maxMinutesBefore) * 60)
+        #expect(
+            AppleAlarms.relative(minutesBefore: Int.max).relativeOffset == -Double(AppleAlarms.maxMinutesBefore) * 60
+        )
         #expect(AppleAlarms.relative(minutesBefore: 15).relativeOffset == -900)
         #expect(AppleAlarms.clamped([10, Int.max, -1]) == [Int.max, -1])
         #expect(CalendarArgs.alarmWarning([10]) == nil)
@@ -97,7 +103,9 @@ struct EventKitContractTests {
         #expect(location["type"] == .string("string"))
     }
 
-    @Test("calendar_update_event: null clears location; a recurring event without occurrence_start is refused like delete")
+    @Test(
+        "calendar_update_event: null clears location; a recurring event without occurrence_start is refused like delete"
+    )
     func updateNullClearAndRecurringRefusal() async throws {
         let service = NullClearCalendarService()
         let tool = CalendarUpdateEventTool(service: service)
@@ -121,14 +129,23 @@ struct EventKitContractTests {
 
         // An explicit `span: future_events` alone is not enough either — the
         // occurrence anchors the edit exactly as it does for delete.
-        let env2 = try envelope(await tool.execute(argumentsJSON: #"{"id":"e1","title":"Renamed","span":"future_events"}"#))
+        let env2 = try envelope(
+            await tool.execute(argumentsJSON: #"{"id":"e1","title":"Renamed","span":"future_events"}"#)
+        )
         #expect(env2["kind"] as? String == "invalid_args")
         #expect(service.updateCount == before)
 
         // With the occurrence, span is honoured (default this_event).
-        _ = try result(await tool.execute(argumentsJSON: #"{"id":"e1","title":"One","occurrence_start":"2026-09-19T10:00"}"#))
+        _ = try result(
+            await tool.execute(argumentsJSON: #"{"id":"e1","title":"One","occurrence_start":"2026-09-19T10:00"}"#)
+        )
         #expect(service.lastSpan == .thisEvent)
-        _ = try result(await tool.execute(argumentsJSON: #"{"id":"e1","title":"All","span":"future_events","occurrence_start":"2026-09-19T10:00"}"#))
+        _ = try result(
+            await tool.execute(
+                argumentsJSON:
+                    #"{"id":"e1","title":"All","span":"future_events","occurrence_start":"2026-09-19T10:00"}"#
+            )
+        )
         #expect(service.lastSpan == .futureEvents)
         #expect(service.updateCount == before + 2)
     }
@@ -165,7 +182,9 @@ struct EventKitContractTests {
         #expect(single.end > single.start)
     }
 
-    @Test("reminders_update: null clears due; alarms without due and recurrence without due are invalid_args at the tool")
+    @Test(
+        "reminders_update: null clears due; alarms without due and recurrence without due are invalid_args at the tool"
+    )
     func remindersUpdateContracts() async throws {
         let service = FakeRemindersServiceForContracts()
         let tool = RemindersUpdateTool(service: service)
@@ -173,10 +192,14 @@ struct EventKitContractTests {
         #expect(service.lastPatch?.due == .some(nil))
 
         let create = RemindersCreateTool(service: service)
-        let noDueAlarm = try envelope(await create.execute(argumentsJSON: #"{"title":"x","alarms_minutes_before":[10]}"#))
+        let noDueAlarm = try envelope(
+            await create.execute(argumentsJSON: #"{"title":"x","alarms_minutes_before":[10]}"#)
+        )
         #expect(noDueAlarm["kind"] as? String == "invalid_args")
         #expect(noDueAlarm["field"] as? String == "alarms_minutes_before")
-        let noDueRecurrence = try envelope(await create.execute(argumentsJSON: #"{"title":"x","recurrence":{"frequency":"daily"}}"#))
+        let noDueRecurrence = try envelope(
+            await create.execute(argumentsJSON: #"{"title":"x","recurrence":{"frequency":"daily"}}"#)
+        )
         #expect(noDueRecurrence["kind"] as? String == "invalid_args")
         #expect(noDueRecurrence["field"] as? String == "recurrence")
 
@@ -202,38 +225,80 @@ private final class NullClearCalendarService: CalendarServicing, @unchecked Send
     private func event(_ id: String) -> CalendarEventInfo {
         let start = Date(timeIntervalSince1970: 1_789_000_000)
         return CalendarEventInfo(
-            id: id, calendarId: "cal-1", calendarTitle: "Work", title: "Weekly", start: start, end: start.addingTimeInterval(1800),
-            isAllDay: false, allDayDates: nil, location: "Room", notes: nil, url: nil, status: "confirmed", availability: "busy",
-            organizer: nil, attendees: [], alarms: [], recurrence: nil, isRecurring: recurring, isDetached: false,
-            lastModified: nil, openURL: "ical://ekevent/\(id)")
+            id: id,
+            calendarId: "cal-1",
+            calendarTitle: "Work",
+            title: "Weekly",
+            start: start,
+            end: start.addingTimeInterval(1800),
+            isAllDay: false,
+            allDayDates: nil,
+            location: "Room",
+            notes: nil,
+            url: nil,
+            status: "confirmed",
+            availability: "busy",
+            organizer: nil,
+            attendees: [],
+            alarms: [],
+            recurrence: nil,
+            isRecurring: recurring,
+            isDetached: false,
+            lastModified: nil,
+            openURL: "ical://ekevent/\(id)"
+        )
     }
 
     func calendars() async throws -> [CalendarInfo] { [] }
     func events(_ query: CalendarEventQuery) async throws -> CalendarEventsResult {
-        let effective = clamp ? (Calendar.current.date(byAdding: .year, value: 4, to: query.start) ?? query.end) : query.end
-        return CalendarEventsResult(events: [], effectiveEnd: min(effective, query.end), endWasClamped: clamp && effective < query.end)
+        let effective =
+            clamp ? (Calendar.current.date(byAdding: .year, value: 4, to: query.start) ?? query.end) : query.end
+        return CalendarEventsResult(
+            events: [],
+            effectiveEnd: min(effective, query.end),
+            endWasClamped: clamp && effective < query.end
+        )
     }
     func event(id: String, occurrenceStart: Date?) async throws -> CalendarEventInfo { event(id) }
     func create(_ draft: CalendarEventDraft) async throws -> CalendarEventInfo {
         lastDraft = draft
         return event("new")
     }
-    func update(id: String, occurrenceStart: Date?, span: CalendarEditSpan, patch: CalendarEventPatch) async throws -> CalendarEventInfo {
+    func update(id: String, occurrenceStart: Date?, span: CalendarEditSpan, patch: CalendarEventPatch) async throws
+        -> CalendarEventInfo
+    {
         lastPatch = patch
         lastSpan = span
         updateCount += 1
         return event(id)
     }
-    func delete(id: String, occurrenceStart: Date?, span: CalendarEditSpan) async throws -> CalendarEventInfo { event(id) }
+    func delete(id: String, occurrenceStart: Date?, span: CalendarEditSpan) async throws -> CalendarEventInfo {
+        event(id)
+    }
 }
 
 private final class FakeRemindersServiceForContracts: RemindersServicing, @unchecked Sendable {
     private(set) var lastPatch: ReminderPatch?
     private func reminder(_ id: String) -> ReminderInfo {
         ReminderInfo(
-            id: id, listId: "l1", listTitle: "Inbox", title: "x", notes: nil, url: nil, isCompleted: false, completionDate: nil,
-            dueDate: nil, dueIsDateOnly: false, startDate: nil, priority: 0, priorityLabel: "none", alarms: [], recurrence: nil,
-            lastModified: nil, openURL: "x-apple-reminderkit://REMCDReminder/\(id)")
+            id: id,
+            listId: "l1",
+            listTitle: "Inbox",
+            title: "x",
+            notes: nil,
+            url: nil,
+            isCompleted: false,
+            completionDate: nil,
+            dueDate: nil,
+            dueIsDateOnly: false,
+            startDate: nil,
+            priority: 0,
+            priorityLabel: "none",
+            alarms: [],
+            recurrence: nil,
+            lastModified: nil,
+            openURL: "x-apple-reminderkit://REMCDReminder/\(id)"
+        )
     }
     func lists() async throws -> [ReminderListInfo] { [] }
     func reminders(_ query: ReminderQuery) async throws -> [ReminderInfo] { [] }

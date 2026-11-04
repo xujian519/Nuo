@@ -41,9 +41,12 @@ struct TerminationForensicsTests {
             #expect(TerminationForensics.evaluateAtLaunch() == .firstLaunch)
             // And the verdict file records it.
             let data = try Data(
-                contentsOf: root.appendingPathComponent("last-exit-verdict.json"))
+                contentsOf: root.appendingPathComponent("last-exit-verdict.json")
+            )
             let record = try JSONDecoder().decode(
-                TerminationForensics.VerdictRecord.self, from: data)
+                TerminationForensics.VerdictRecord.self,
+                from: data
+            )
             #expect(record.verdict == .firstLaunch)
         }
     }
@@ -56,9 +59,12 @@ struct TerminationForensicsTests {
 
             #expect(TerminationForensics.evaluateAtLaunch() == .clean)
             let data = try Data(
-                contentsOf: root.appendingPathComponent("last-exit-verdict.json"))
+                contentsOf: root.appendingPathComponent("last-exit-verdict.json")
+            )
             let record = try JSONDecoder().decode(
-                TerminationForensics.VerdictRecord.self, from: data)
+                TerminationForensics.VerdictRecord.self,
+                from: data
+            )
             #expect(record.verdict == .clean)
             #expect(record.previousReason == "quit-complete")
             // Marker consumed: a THIRD launch with no new exit is unattributed.
@@ -73,9 +79,12 @@ struct TerminationForensicsTests {
             // ...process dies here with no recordIntentionalExit...
             #expect(TerminationForensics.evaluateAtLaunch() == .unattributed)
             let data = try Data(
-                contentsOf: root.appendingPathComponent("last-exit-verdict.json"))
+                contentsOf: root.appendingPathComponent("last-exit-verdict.json")
+            )
             let record = try JSONDecoder().decode(
-                TerminationForensics.VerdictRecord.self, from: data)
+                TerminationForensics.VerdictRecord.self,
+                from: data
+            )
             #expect(record.verdict == .unattributed)
             #expect(record.previousReason == nil)
         }
@@ -89,9 +98,12 @@ struct TerminationForensicsTests {
             TerminationForensics.recordIntentionalExit(reason: "exit-backstop-45s")
             _ = TerminationForensics.evaluateAtLaunch()
             let data = try Data(
-                contentsOf: OsaurusPaths.root().appendingPathComponent("last-exit-verdict.json"))
+                contentsOf: OsaurusPaths.root().appendingPathComponent("last-exit-verdict.json")
+            )
             let record = try JSONDecoder().decode(
-                TerminationForensics.VerdictRecord.self, from: data)
+                TerminationForensics.VerdictRecord.self,
+                from: data
+            )
             #expect(record.previousReason == "exit-backstop-45s")
         }
     }

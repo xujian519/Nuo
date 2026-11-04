@@ -263,7 +263,9 @@ actor HuggingFaceService {
 
     /// A missing sidecar is a legacy repo. Authentication, transport and parsing
     /// failures stay errors, so the UI never misreports a failed check as current.
-    func fetchModelManifest(repoId: String, revision: String? = nil, previous: ManifestSnapshot? = nil) async throws -> ManifestSnapshot {
+    func fetchModelManifest(repoId: String, revision: String? = nil, previous: ManifestSnapshot? = nil) async throws
+        -> ManifestSnapshot
+    {
         try Task.checkCancellation()
         let pinned: String
         if let revision { pinned = revision } else { pinned = try await resolveRevision(repoId: repoId) }

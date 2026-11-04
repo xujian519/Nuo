@@ -36,7 +36,10 @@ struct HarnessRequestContextTests {
 
     @Test
     func publicWireCannotSetOrReceiveHostAdmissionControls() throws {
-        let input = Data(#"{"model":"model","messages":[],"admissionPositionLimit":4096,"admissionOutputTokensAreImplicit":true,"inferenceContext":{"admissionPositionLimit":8192,"backgroundModelLoad":true}}"#.utf8)
+        let input = Data(
+            #"{"model":"model","messages":[],"admissionPositionLimit":4096,"admissionOutputTokensAreImplicit":true,"inferenceContext":{"admissionPositionLimit":8192,"backgroundModelLoad":true}}"#
+                .utf8
+        )
         var decoded = try JSONDecoder().decode(ChatCompletionRequest.self, from: input)
         #expect(decoded.admissionPositionLimit == nil)
         #expect(!decoded.admissionOutputTokensAreImplicit)

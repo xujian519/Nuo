@@ -29,7 +29,9 @@ struct AppleAppsDeclarativeConfigTests {
             defer { SubagentStoreTestLock.shared.release() }
             let agent = AgentManager.shared.create(
                 name: "Apple Config Probe \(UUID().uuidString.prefix(6))",
-                description: "Exercises agent configuration in this isolated test.", systemPrompt: "")
+                description: "Exercises agent configuration in this isolated test.",
+                systemPrompt: ""
+            )
             do {
                 try await body(agent)
             } catch {
@@ -61,7 +63,8 @@ struct AppleAppsDeclarativeConfigTests {
               - name: Planner
                 capabilities:
                   apple_apps: [calendar, reminders]
-            """)
+            """
+        )
         #expect(document.agents?.first?.capabilities?.appleApps == ["calendar", "reminders"])
     }
 
@@ -81,7 +84,9 @@ struct AppleAppsDeclarativeConfigTests {
                 let joined = issues.issues.joined(separator: "\n")
                 #expect(joined.contains("safari"))
                 #expect(joined.contains("apple_apps"))
-                for app in AppleApp.allCases { #expect(joined.contains(app.rawValue), "allowed list should mention \(app.rawValue)") }
+                for app in AppleApp.allCases {
+                    #expect(joined.contains(app.rawValue), "allowed list should mention \(app.rawValue)")
+                }
             }
         }
     }
@@ -147,7 +152,12 @@ struct AppleAppsDeclarativeConfigTests {
             let add = try plan(["calendar", "mail"])
             let addAction = add.actions.first { $0.section == "agents" && $0.target == agent.name }
             #expect(addAction?.kind == .update)
-            #expect(addAction?.changes.contains { $0.contains("apple_apps") && $0.contains("enable") && $0.contains("Calendar") && $0.contains("Mail") } == true, "\(String(describing: addAction?.changes))")
+            #expect(
+                addAction?.changes.contains {
+                    $0.contains("apple_apps") && $0.contains("enable") && $0.contains("Calendar") && $0.contains("Mail")
+                } == true,
+                "\(String(describing: addAction?.changes))"
+            )
 
             // Apply so the next plans diff against a non-empty set.
             var updated = try #require(current(agent.id))
@@ -167,7 +177,11 @@ struct AppleAppsDeclarativeConfigTests {
             // [] disables all
             let clear = try plan([])
             let clearAction = clear.actions.first { $0.section == "agents" && $0.target == agent.name }
-            #expect(clearAction?.changes.contains { $0.contains("disable") && $0.contains("Calendar") && $0.contains("Mail") } == true)
+            #expect(
+                clearAction?.changes.contains {
+                    $0.contains("disable") && $0.contains("Calendar") && $0.contains("Mail")
+                } == true
+            )
 
             // absent key → untouched
             var entry = AgentEntry(name: agent.name)
@@ -175,7 +189,12 @@ struct AppleAppsDeclarativeConfigTests {
             var document = OsaurusConfigDocument()
             document.agents = [entry]
             let absent = try ConfigPlanner.plan(document: document, prune: false)
-            #expect(!absent.actions.contains { $0.section == "agents" && $0.target == agent.name && $0.changes.contains { $0.contains("apple_apps") } })
+            #expect(
+                !absent.actions.contains {
+                    $0.section == "agents" && $0.target == agent.name
+                        && $0.changes.contains { $0.contains("apple_apps") }
+                }
+            )
         }
     }
 
@@ -195,7 +214,10 @@ struct AppleAppsDeclarativeConfigTests {
             await apply(["reminders", "Contacts"])
             #expect(current(agent.id)?.settings.enabledAppleApps == [.reminders, .contacts])
             await apply(nil)
-            #expect(current(agent.id)?.settings.enabledAppleApps == [.reminders, .contacts], "absent key must not clear")
+            #expect(
+                current(agent.id)?.settings.enabledAppleApps == [.reminders, .contacts],
+                "absent key must not clear"
+            )
             await apply([])
             #expect(current(agent.id)?.settings.enabledAppleApps == [])
         }
@@ -262,7 +284,10 @@ struct AppleAppsDeclarativeConfigTests {
             let exported = ConfigExporter.export(sections: [.defaultAgent, .agents])
             // The Default agent is not in `agents[]`; its own section has no capabilities.apple_apps key.
             #expect(ConfigManifest.knownKeys["default_agent"]?.contains("apple_apps") != true)
-            #expect(exported.agents?.contains { $0.name == "Default" && $0.capabilities?.appleApps?.isEmpty == false } != true)
+            #expect(
+                exported.agents?.contains { $0.name == "Default" && $0.capabilities?.appleApps?.isEmpty == false }
+                    != true
+            )
         }
     }
 }
@@ -289,13 +314,19 @@ struct AppleAppsSettingsCodableTests {
         // Unknown future names are dropped rather than failing the decode.
         var future = json
         future["enabledAppleApps"] = ["calendar", "vision_pro"]
-        let tolerant = try JSONDecoder().decode(AgentSettings.self, from: JSONSerialization.data(withJSONObject: future))
+        let tolerant = try JSONDecoder().decode(
+            AgentSettings.self,
+            from: JSONSerialization.data(withJSONObject: future)
+        )
         #expect(tolerant.enabledAppleApps == [.calendar])
 
         // The removed Weather app: agents persisted before its removal still load.
         var removed = json
         removed["enabledAppleApps"] = ["calendar", "weather"]
-        let afterRemoval = try JSONDecoder().decode(AgentSettings.self, from: JSONSerialization.data(withJSONObject: removed))
+        let afterRemoval = try JSONDecoder().decode(
+            AgentSettings.self,
+            from: JSONSerialization.data(withJSONObject: removed)
+        )
         #expect(afterRemoval.enabledAppleApps == [.calendar])
         #expect(AppleApp(rawValue: "weather") == nil)
         #expect(AppleApp.allCases.count == 9)

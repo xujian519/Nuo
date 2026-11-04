@@ -64,7 +64,8 @@ final class PDFEditor {
         }
         if hasSignatureField {
             warnings.append(
-                "This PDF has a digital signature field; saving an edited copy invalidates any existing signatures. Keep the original if the signed version matters.")
+                "This PDF has a digital signature field; saving an edited copy invalidates any existing signatures. Keep the original if the signed version matters."
+            )
         }
         if filledFormFields > 0 {
             // PDFKit regenerates each filled widget's appearance stream and
@@ -73,10 +74,13 @@ final class PDFEditor {
             // may show stale (empty) boxes in viewers that trust /AP only.
             if data.range(of: Data("/NeedAppearances".utf8)) == nil {
                 warnings.append(
-                    "The saved form does not carry /NeedAppearances; some viewers may show the filled values only after clicking into a field.")
+                    "The saved form does not carry /NeedAppearances; some viewers may show the filled values only after clicking into a field."
+                )
             }
         }
-        warnings.append("The PDF was re-saved as a whole by PDFKit; earlier saved revisions embedded in the file aren't kept.")
+        warnings.append(
+            "The PDF was re-saved as a whole by PDFKit; earlier saved revisions embedded in the file aren't kept."
+        )
         return data
     }
 
@@ -93,7 +97,7 @@ final class PDFEditor {
 
     private func pageIndices(_ op: DocumentOperation, key: String = "pages", defaultAll: Bool = false) throws -> [Int] {
         guard op.has(key) || op.has("page") else {
-            if defaultAll { return Array(0..<pageCount) }
+            if defaultAll { return Array(0 ..< pageCount) }
             throw op.fail("pass `\(key)` (page numbers from 1).")
         }
         var numbers = try op.optionalInts(key) ?? []
@@ -105,14 +109,16 @@ final class PDFEditor {
         let indices = try pageIndices(op)
         guard indices.count < pageCount else { throw op.fail("that would delete every page; keep at least one.") }
         for index in indices.reversed() { document.removePage(at: index) }
-        summaries.append("Deleted page\(indices.count == 1 ? "" : "s") \(indices.map { String($0 + 1) }.joined(separator: ", "))")
+        summaries.append(
+            "Deleted page\(indices.count == 1 ? "" : "s") \(indices.map { String($0 + 1) }.joined(separator: ", "))"
+        )
     }
 
     private func reorderPages(_ op: DocumentOperation) throws {
         guard pageCount > 1 else { throw op.fail("there's only one page.") }
         let order = try op.permutation("order", count: pageCount, noun: "page")
-        let pages = (0..<pageCount).compactMap { document.page(at: $0) }
-        for index in (0..<pageCount).reversed() { document.removePage(at: index) }
+        let pages = (0 ..< pageCount).compactMap { document.page(at: $0) }
+        for index in (0 ..< pageCount).reversed() { document.removePage(at: index) }
         for (position, index) in order.enumerated() { document.insert(pages[index], at: position) }
         summaries.append("Reordered pages to \(order.map { String($0 + 1) }.joined(separator: ", "))")
     }
@@ -125,7 +131,9 @@ final class PDFEditor {
             guard let page = document.page(at: index) else { continue }
             page.rotation = ((page.rotation + degrees) % 360 + 360) % 360
         }
-        summaries.append("Rotated \(indices.count == pageCount ? "all pages" : "page\(indices.count == 1 ? "" : "s") \(indices.map { String($0 + 1) }.joined(separator: ", "))") by \(degrees)°")
+        summaries.append(
+            "Rotated \(indices.count == pageCount ? "all pages" : "page\(indices.count == 1 ? "" : "s") \(indices.map { String($0 + 1) }.joined(separator: ", "))") by \(degrees)°"
+        )
     }
 
     private func merge(_ op: DocumentOperation) throws {
@@ -144,7 +152,7 @@ final class PDFEditor {
                 throw op.fail("\"\(path)\" isn't a readable PDF.")
             }
             guard !other.isLocked else { throw op.fail("\"\(path)\" is password-protected.") }
-            for index in 0..<other.pageCount {
+            for index in 0 ..< other.pageCount {
                 guard let page = other.page(at: index)?.copy() as? PDFPage else { continue }
                 document.insert(page, at: insertAt)
                 insertAt += 1
@@ -158,7 +166,7 @@ final class PDFEditor {
 
     private func widgets() -> [(page: Int, annotation: PDFAnnotation)] {
         var out: [(Int, PDFAnnotation)] = []
-        for index in 0..<pageCount {
+        for index in 0 ..< pageCount {
             for annotation in document.page(at: index)?.annotations ?? [] where annotation.type == "Widget" {
                 out.append((index, annotation))
             }
@@ -252,7 +260,9 @@ final class PDFEditor {
                 if let on = field.onStates.first { out["on_value"] = on }
             case .radio:
                 out["options"] = field.onStates
-                out["value"] = field.widgets.first { $0.annotation.buttonWidgetState == .onState }?.annotation.buttonWidgetStateString ?? ""
+                out["value"] =
+                    field.widgets.first { $0.annotation.buttonWidgetState == .onState }?.annotation
+                    .buttonWidgetStateString ?? ""
             case .choice:
                 out["value"] = first.widgetStringValue ?? ""
                 if let options = first.choices { out["options"] = options }
@@ -277,14 +287,21 @@ final class PDFEditor {
         let tiers: [(String, (FormField) -> Bool)] = [
             ("case-insensitively", { $0.name.lowercased() == key.lowercased() }),
             ("by its short name", { $0.shortName.lowercased() == key.lowercased() }),
-            ("ignoring punctuation and spacing", { Self.normalizedFieldKey($0.shortName) == Self.normalizedFieldKey(key) || Self.normalizedFieldKey($0.name) == Self.normalizedFieldKey(key) }),
+            (
+                "ignoring punctuation and spacing",
+                {
+                    Self.normalizedFieldKey($0.shortName) == Self.normalizedFieldKey(key)
+                        || Self.normalizedFieldKey($0.name) == Self.normalizedFieldKey(key)
+                }
+            ),
         ]
         for (how, matches) in tiers {
             let hits = fields.filter(matches)
             if hits.count == 1 { return hits[0] }
             if hits.count > 1 {
                 throw op.fail(
-                    "\"\(key)\" matches \(hits.count) fields \(how): \(hits.map { "\"\($0.name)\"" }.joined(separator: ", ")). Use the full field name.")
+                    "\"\(key)\" matches \(hits.count) fields \(how): \(hits.map { "\"\($0.name)\"" }.joined(separator: ", ")). Use the full field name."
+                )
             }
         }
         var message = "no field named \"\(key)\"."
@@ -293,7 +310,9 @@ final class PDFEditor {
         }
         let fillable = fields.filter { $0.kind != .button && $0.kind != .signature }
         message += " Fields: \(fillable.prefix(40).map { "\"\($0.name)\"" }.joined(separator: ", "))."
-        if fillable.count > 40 { message += " (\(fillable.count - 40) more — `file_read` mode \"structure\" lists them all.)" }
+        if fillable.count > 40 {
+            message += " (\(fillable.count - 40) more — `file_read` mode \"structure\" lists them all.)"
+        }
         throw op.fail(message)
     }
 
@@ -330,11 +349,11 @@ final class PDFEditor {
         let a = Array(a.unicodeScalars), b = Array(b.unicodeScalars)
         if a.isEmpty { return b.count }
         if b.isEmpty { return a.count }
-        var previous = Array(0...b.count)
+        var previous = Array(0 ... b.count)
         var current = [Int](repeating: 0, count: b.count + 1)
-        for i in 1...a.count {
+        for i in 1 ... a.count {
             current[0] = i
-            for j in 1...b.count {
+            for j in 1 ... b.count {
                 let cost = a[i - 1] == b[j - 1] ? 0 : 1
                 current[j] = min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + cost)
             }
@@ -364,7 +383,9 @@ final class PDFEditor {
             case .button:
                 throw op.fail("\"\(field.name)\" is a push button (it runs an action), not a fillable field.")
             case .signature:
-                throw op.fail("\"\(field.name)\" is a digital signature field; Nuo can't sign PDFs. Fill the other fields and leave signing to the signer.")
+                throw op.fail(
+                    "\"\(field.name)\" is a digital signature field; Nuo can't sign PDFs. Fill the other fields and leave signing to the signer."
+                )
             default: break
             }
             if field.isReadOnly {
@@ -389,13 +410,19 @@ final class PDFEditor {
                     continue
                 }
                 let wanted = "\(raw)"
-                guard let choice = options.first(where: { $0 == wanted }) ?? options.first(where: { $0.lowercased() == wanted.lowercased() })
-                    ?? options.first(where: { Self.normalizedFieldKey($0) == Self.normalizedFieldKey(wanted) })
+                guard
+                    let choice = options.first(where: { $0 == wanted }) ?? options.first(where: {
+                        $0.lowercased() == wanted.lowercased()
+                    })
+                        ?? options.first(where: { Self.normalizedFieldKey($0) == Self.normalizedFieldKey(wanted) })
                 else {
-                    throw op.fail("\"\(wanted)\" isn't an option for radio group \"\(field.name)\". Options: \(options.joined(separator: ", ")).")
+                    throw op.fail(
+                        "\"\(wanted)\" isn't an option for radio group \"\(field.name)\". Options: \(options.joined(separator: ", "))."
+                    )
                 }
                 for entry in field.widgets {
-                    entry.annotation.buttonWidgetState = entry.annotation.buttonWidgetStateString == choice ? .onState : .offState
+                    entry.annotation.buttonWidgetState =
+                        entry.annotation.buttonWidgetStateString == choice ? .onState : .offState
                 }
                 filled.append("\(field.shortName)=\(choice)")
             case .choice:
@@ -407,7 +434,9 @@ final class PDFEditor {
                         filled.append("\(field.shortName)=\(relaxed)")
                         continue
                     }
-                    throw op.fail("\"\(value)\" isn't an option for \"\(field.name)\". Options: \(options.joined(separator: ", ")).")
+                    throw op.fail(
+                        "\"\(value)\" isn't an option for \"\(field.name)\". Options: \(options.joined(separator: ", "))."
+                    )
                 }
                 for entry in field.widgets { entry.annotation.widgetStringValue = value }
                 filled.append("\(field.shortName)=\(value)")
@@ -419,7 +448,9 @@ final class PDFEditor {
                 default: value = "\(raw)"
                 }
                 if value.contains("\n"), !field.widgets[0].annotation.isMultiline {
-                    warnings.append("\"\(field.name)\" is a single-line field; the line breaks in its value will show as one line.")
+                    warnings.append(
+                        "\"\(field.name)\" is a single-line field; the line breaks in its value will show as one line."
+                    )
                 }
                 for entry in field.widgets { entry.annotation.widgetStringValue = value }
                 filled.append("\(field.shortName)=\(OOXMLText.preview(value, max: 40))")
@@ -428,7 +459,9 @@ final class PDFEditor {
             }
         }
         filledFormFields += filled.count
-        summaries.append("Filled \(filled.count) form field\(filled.count == 1 ? "" : "s"): \(filled.joined(separator: ", "))")
+        summaries.append(
+            "Filled \(filled.count) form field\(filled.count == 1 ? "" : "s"): \(filled.joined(separator: ", "))"
+        )
     }
 
     private var filledFormFields = 0
@@ -443,7 +476,9 @@ final class PDFEditor {
             if ["true", "yes", "on", "1", "x", "checked"].contains(lower) { return true }
             if ["false", "no", "off", "0", "", "unchecked"].contains(lower) { return false }
             if let onState, lower == onState.lowercased() { return true }
-            throw op.fail("\"\(s)\" isn't a checkbox value for \"\(field.name)\"; pass true/false\(onState.map { " (or its on-value \"\($0)\")" } ?? "").")
+            throw op.fail(
+                "\"\(s)\" isn't a checkbox value for \"\(field.name)\"; pass true/false\(onState.map { " (or its on-value \"\($0)\")" } ?? "")."
+            )
         default:
             throw op.fail("\"\(field.name)\" is a checkbox; pass true or false.")
         }
@@ -455,13 +490,17 @@ final class PDFEditor {
     /// positions so `add_text` can place values next to them.
     private func noFormFieldsExplanation() -> String {
         if isXFAForm {
-            return "this PDF is an XFA form (Adobe LiveCycle); its fields aren't AcroForm widgets, so they can't be filled here. Open it in Adobe Acrobat, or ask for an AcroForm/flattened version."
+            return
+                "this PDF is an XFA form (Adobe LiveCycle); its fields aren't AcroForm widgets, so they can't be filled here. Open it in Adobe Acrobat, or ask for an AcroForm/flattened version."
         }
         var message = "this PDF has no fillable form fields (the blanks are printed text, not widgets)."
         let labels = printedLabels(limit: 8)
         if !labels.isEmpty {
-            message += " To fill it anyway, place values with `add_text` at these label positions (x/y are points from the page's bottom-left; put the text box just right of the label):\n"
-            message += labels.map { "  page \($0.page): \"\($0.text)\" ends at x=\($0.x), y=\($0.y)" }.joined(separator: "\n")
+            message +=
+                " To fill it anyway, place values with `add_text` at these label positions (x/y are points from the page's bottom-left; put the text box just right of the label):\n"
+            message += labels.map { "  page \($0.page): \"\($0.text)\" ends at x=\($0.x), y=\($0.y)" }.joined(
+                separator: "\n"
+            )
         } else {
             message += " Use `add_text` with `page`, `x`, `y` to place values on the page."
         }
@@ -478,7 +517,7 @@ final class PDFEditor {
     /// with the point where the label's text ends.
     private func printedLabels(limit: Int) -> [(page: Int, text: String, x: Int, y: Int)] {
         var out: [(Int, String, Int, Int)] = []
-        for index in 0..<pageCount {
+        for index in 0 ..< pageCount {
             guard let page = document.page(at: index), let text = page.string else { continue }
             for rawLine in text.components(separatedBy: .newlines) {
                 let line = rawLine.trimmingCharacters(in: .whitespaces)
@@ -492,7 +531,10 @@ final class PDFEditor {
                     continue
                 }
                 guard !label.isEmpty, label.count <= 60 else { continue }
-                guard let selection = document.findString(label, withOptions: []).first(where: { $0.pages.contains(page) }) else { continue }
+                guard
+                    let selection = document.findString(label, withOptions: []).first(where: { $0.pages.contains(page) }
+                    )
+                else { continue }
                 let rect = selection.bounds(for: page)
                 out.append((index + 1, label, Int(rect.maxX.rounded()), Int(rect.minY.rounded())))
                 if out.count >= limit { return out }
@@ -525,7 +567,9 @@ final class PDFEditor {
         let yTop = try op.optionalInt("y").map { bounds.minY + CGFloat($0) } ?? (bounds.maxY - 36)
         let rect = CGRect(x: x, y: yTop - height, width: width, height: height)
         guard bounds.insetBy(dx: -1, dy: -1).contains(rect) else {
-            throw op.fail("the text box would fall outside page \(number) (\(Int(bounds.width))×\(Int(bounds.height)) pt; x/y are points from the bottom-left).")
+            throw op.fail(
+                "the text box would fall outside page \(number) (\(Int(bounds.width))×\(Int(bounds.height)) pt; x/y are points from the bottom-left)."
+            )
         }
         let annotation = PDFAnnotation(bounds: rect, forType: .freeText, withProperties: nil)
         annotation.contents = text
@@ -542,7 +586,11 @@ final class PDFEditor {
         let bounds = page.bounds(for: .cropBox)
         let x = CGFloat(try op.optionalInt("x") ?? Int(bounds.width - 48)) + bounds.minX
         let y = CGFloat(try op.optionalInt("y") ?? Int(bounds.height - 48)) + bounds.minY
-        let annotation = PDFAnnotation(bounds: CGRect(x: x, y: y, width: 20, height: 20), forType: .text, withProperties: nil)
+        let annotation = PDFAnnotation(
+            bounds: CGRect(x: x, y: y, width: 20, height: 20),
+            forType: .text,
+            withProperties: nil
+        )
         annotation.contents = text
         annotation.color = .systemYellow
         page.addAnnotation(annotation)
@@ -569,8 +617,12 @@ final class PDFEditor {
             }
         }
         guard count > 0 else {
-            throw op.fail("\"\(OOXMLText.preview(find, max: 60))\" wasn't found in the PDF's text layer (scanned pages have no text to highlight).")
+            throw op.fail(
+                "\"\(OOXMLText.preview(find, max: 60))\" wasn't found in the PDF's text layer (scanned pages have no text to highlight)."
+            )
         }
-        summaries.append("Highlighted \(count) match\(count == 1 ? "" : "es") of \"\(OOXMLText.preview(find, max: 60))\"")
+        summaries.append(
+            "Highlighted \(count) match\(count == 1 ? "" : "es") of \"\(OOXMLText.preview(find, max: 60))\""
+        )
     }
 }

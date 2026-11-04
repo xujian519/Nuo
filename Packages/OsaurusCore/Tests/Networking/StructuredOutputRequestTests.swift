@@ -12,60 +12,84 @@ struct StructuredOutputRequestTests {
     ])
 
     @Test func responsesUsagePreservesOnlyMeasuredRatesAndDecodesLegacyPayload() throws {
-        let old = try JSONDecoder().decode(OpenResponsesUsage.self,
-            from: Data(#"{"input_tokens":2,"output_tokens":3,"total_tokens":5}"#.utf8))
+        let old = try JSONDecoder().decode(
+            OpenResponsesUsage.self,
+            from: Data(#"{"input_tokens":2,"output_tokens":3,"total_tokens":5}"#.utf8)
+        )
         #expect(old.tokens_per_second == nil)
         for rate in [Double.nan, .infinity, -.infinity, 0, -1] {
             let usage = OpenResponsesUsage(inputTokens: 2, outputTokens: 3, tokensPerSecond: rate)
             let object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(usage)) as? [String: Any])
             #expect(object["tokens_per_second"] == nil)
         }
-        let chat = ChatCompletionResponse(id: "chat-test", created: 1, model: "fake",
-            choices: [ChatChoice(index: 0, message: ChatMessage(role: "assistant", content: "answer"), finish_reason: "stop")],
+        let chat = ChatCompletionResponse(
+            id: "chat-test",
+            created: 1,
+            model: "fake",
+            choices: [
+                ChatChoice(index: 0, message: ChatMessage(role: "assistant", content: "answer"), finish_reason: "stop")
+            ],
             usage: Usage(prompt_tokens: 2, completion_tokens: 3, total_tokens: 5, tokens_per_second: 37.25),
-            system_fingerprint: nil)
+            system_fingerprint: nil
+        )
         #expect(chat.toOpenResponsesResponse(responseId: "resp-test").usage?.tokens_per_second == 37.25)
     }
 
     @Test func rawNumericConstraintsAreCheckedBeforeDoubleDecoding() {
-        let invalid = ["9007199254740993", "-9007199254740993", "9.007199254740993e15",
-                       "1.0000000000000001", "0.00000000000000000000000000000000000000001",
-                       "1e0", "1.0"]
+        let invalid = [
+            "9007199254740993", "-9007199254740993", "9.007199254740993e15",
+            "1.0000000000000001", "0.00000000000000000000000000000000000000001",
+            "1e0", "1.0",
+        ]
         for number in invalid {
-            for constraint in ["\"const\": " + number,
-                               "\"enum\": [{\"nested\": [" + number + "]}]"] {
+            for constraint in [
+                "\"const\": " + number,
+                "\"enum\": [{\"nested\": [" + number + "]}]",
+            ] {
                 let schema = "{" + constraint + "}"
-                let chat = "{\"response_format\":{\"type\":\"json_schema\",\"json_schema\":{\"name\":\"n\",\"schema\":" + schema + "}}}"
-                let responses = "{\"text\":{\"format\":{\"type\":\"json_schema\",\"name\":\"n\",\"schema\":" + schema + "}}}"
+                let chat =
+                    "{\"response_format\":{\"type\":\"json_schema\",\"json_schema\":{\"name\":\"n\",\"schema\":"
+                    + schema + "}}}"
+                let responses =
+                    "{\"text\":{\"format\":{\"type\":\"json_schema\",\"name\":\"n\",\"schema\":" + schema + "}}}"
                 #expect(RequestValidator.rawResponseSchemaReason(Data(chat.utf8), responses: false) != nil)
                 #expect(RequestValidator.rawResponseSchemaReason(Data(responses.utf8), responses: true) != nil)
             }
         }
         for number in ["0", "-7", "9007199254740991", "-9007199254740991"] {
-            let body = "{\"response_format\":{\"type\":\"json_schema\",\"json_schema\":{\"name\":\"n\",\"schema\":{\"const\":" + number + "}}}}"
+            let body =
+                "{\"response_format\":{\"type\":\"json_schema\",\"json_schema\":{\"name\":\"n\",\"schema\":{\"const\":"
+                + number + "}}}}"
             #expect(RequestValidator.rawResponseSchemaReason(Data(body.utf8), responses: false) == nil)
         }
     }
 
     @Test func rawSchemaSliceHandlesEscapesDuplicatesAndUnrelatedNumbers() {
-        let escaped = #"{"response_\u0066ormat":{"type":"json_schema","json_schema":{"schema":{"const":1.0000000000000001}}}}"#
+        let escaped =
+            #"{"response_\u0066ormat":{"type":"json_schema","json_schema":{"schema":{"const":1.0000000000000001}}}}"#
         #expect(RequestValidator.rawResponseSchemaReason(Data(escaped.utf8), responses: false) != nil)
         for encoding in [String.Encoding.utf16LittleEndian, .utf16BigEndian, .utf32LittleEndian, .utf32BigEndian] {
             if let encoded = escaped.data(using: encoding) {
                 #expect(RequestValidator.rawResponseSchemaReason(encoded, responses: false) != nil)
             }
         }
-        let duplicate = #"{"response_format":{"type":"json_schema","json_schema":{"schema":{"const":1.0000000000000001},"schema":{"const":1}}}}"#
+        let duplicate =
+            #"{"response_format":{"type":"json_schema","json_schema":{"schema":{"const":1.0000000000000001},"schema":{"const":1}}}}"#
         #expect(RequestValidator.rawResponseSchemaReason(Data(duplicate.utf8), responses: false) != nil)
-        let ordinary = #"{"temperature":0.1234567890123456789,"messages":[{"role":"user","content":"\"schema\": { \"const\":1e0 }"}]}"#
+        let ordinary =
+            #"{"temperature":0.1234567890123456789,"messages":[{"role":"user","content":"\"schema\": { \"const\":1e0 }"}]}"#
         #expect(RequestValidator.rawResponseSchemaReason(Data(ordinary.utf8), responses: false) == nil)
-        let literal = #"{"response_format":{"type":"json_schema","json_schema":{"schema":{"const":"literal } ] \"const\":1e0"}}}}"#
+        let literal =
+            #"{"response_format":{"type":"json_schema","json_schema":{"schema":{"const":"literal } ] \"const\":1e0"}}}}"#
         #expect(RequestValidator.rawResponseSchemaReason(Data(literal.utf8), responses: false) == nil)
     }
 
     @Test func chatSchemaRoundTripsWithoutLosingPayload() throws {
-        let format = ResponseFormat(type: "json_schema", json_schema:
-            ResponseJSONSchema(name: "answer_v1", description: "Typed answer", schema: schema, strict: true))
+        let format = ResponseFormat(
+            type: "json_schema",
+            json_schema:
+                ResponseJSONSchema(name: "answer_v1", description: "Typed answer", schema: schema, strict: true)
+        )
         let decoded = try JSONDecoder().decode(ResponseFormat.self, from: JSONEncoder().encode(format))
         #expect(decoded == format)
         #expect(RequestValidator.responseFormatReason(decoded) == nil)
@@ -74,7 +98,8 @@ struct StructuredOutputRequestTests {
     }
 
     @Test func responsesFlatSchemaReachesInternalChatRequest() throws {
-        let payload = #"{"model":"local-model","input":"answer","text":{"format":{"type":"json_schema","name":"answer_v1","description":"Typed answer","schema":{"type":"object","properties":{"answer":{"type":"string"}},"required":["answer"],"additionalProperties":false},"strict":true}}}"#
+        let payload =
+            #"{"model":"local-model","input":"answer","text":{"format":{"type":"json_schema","name":"answer_v1","description":"Typed answer","schema":{"type":"object","properties":{"answer":{"type":"string"}},"required":["answer"],"additionalProperties":false},"strict":true}}}"#
         let response = try JSONDecoder().decode(OpenResponsesRequest.self, from: Data(payload.utf8))
         let chat = response.toChatCompletionRequest()
         #expect(chat.response_format?.type == "json_schema")
@@ -94,8 +119,14 @@ struct StructuredOutputRequestTests {
     @Test func missingSchemaAndInvalidNamesAreRejected() {
         #expect(RequestValidator.responseFormatReason(ResponseFormat(type: "json_schema")) != nil)
         for name in ["", "space name", String(repeating: "a", count: 65)] {
-            #expect(RequestValidator.responseFormatReason(ResponseFormat(type: "json_schema",
-                json_schema: ResponseJSONSchema(name: name, schema: schema))) != nil)
+            #expect(
+                RequestValidator.responseFormatReason(
+                    ResponseFormat(
+                        type: "json_schema",
+                        json_schema: ResponseJSONSchema(name: name, schema: schema)
+                    )
+                ) != nil
+            )
         }
     }
 
@@ -109,8 +140,14 @@ struct StructuredOutputRequestTests {
                 _ = try JSONDecoder().decode(ResponseFormat.self, from: Data(payload.utf8))
             }
         }
-        #expect(RequestValidator.responseFormatReason(ResponseFormat(type: "json_schema",
-            json_schema: ResponseJSONSchema(name: "bad", schema: .string("not a schema")))) != nil)
+        #expect(
+            RequestValidator.responseFormatReason(
+                ResponseFormat(
+                    type: "json_schema",
+                    json_schema: ResponseJSONSchema(name: "bad", schema: .string("not a schema"))
+                )
+            ) != nil
+        )
     }
 
     @Test func schemaParametersDoNotEnablePromptInjection() throws {
@@ -126,30 +163,44 @@ struct StructuredOutputRequestTests {
         #expect(GenerationParameters(temperature: nil, maxTokens: 128).jsonSchema == nil)
     }
     @Test func unsupportedServiceAndToolRoutesFailBeforeGeneration() async throws {
-        let engine = ChatEngine(services: [FakeModelService()], installedModelsProvider: { [] },
-            remoteServicesProvider: { [] }, source: .httpAPI)
-        let payload = #"{"model":"fake","messages":[{"role":"user","content":"answer"}],"response_format":{"type":"json_schema","json_schema":{"name":"answer","schema":{"type":"string"}}}}"#
+        let engine = ChatEngine(
+            services: [FakeModelService()],
+            installedModelsProvider: { [] },
+            remoteServicesProvider: { [] },
+            source: .httpAPI
+        )
+        let payload =
+            #"{"model":"fake","messages":[{"role":"user","content":"answer"}],"response_format":{"type":"json_schema","json_schema":{"name":"answer","schema":{"type":"string"}}}}"#
         let original = try JSONDecoder().decode(ChatCompletionRequest.self, from: Data(payload.utf8))
         for mode in ["provider", "tools", "stops", "remoteAgent", "invalidFormat"] {
             var request = original
             if mode == "tools" {
                 var object = try JSONSerialization.jsonObject(with: Data(payload.utf8)) as! [String: Any]
-                object["tools"] = [["type": "function", "function": ["name": "lookup", "parameters": ["type": "object"]]]]
-                request = try JSONDecoder().decode(ChatCompletionRequest.self,
-                    from: JSONSerialization.data(withJSONObject: object))
+                object["tools"] = [
+                    ["type": "function", "function": ["name": "lookup", "parameters": ["type": "object"]]]
+                ]
+                request = try JSONDecoder().decode(
+                    ChatCompletionRequest.self,
+                    from: JSONSerialization.data(withJSONObject: object)
+                )
             }
             if mode == "stops" {
                 var object = try JSONSerialization.jsonObject(with: Data(payload.utf8)) as! [String: Any]
                 object["stop"] = ["answer"]
-                request = try JSONDecoder().decode(ChatCompletionRequest.self,
-                    from: JSONSerialization.data(withJSONObject: object))
+                request = try JSONDecoder().decode(
+                    ChatCompletionRequest.self,
+                    from: JSONSerialization.data(withJSONObject: object)
+                )
             }
             if mode == "remoteAgent" { request.runAsRemoteAgent = true }
             if mode == "invalidFormat" { request.response_format = ResponseFormat(type: "invalid") }
             for streaming in [true, false] {
                 do {
-                    if streaming { _ = try await engine.streamChat(request: request) }
-                    else { _ = try await engine.completeChat(request: request) }
+                    if streaming {
+                        _ = try await engine.streamChat(request: request)
+                    } else {
+                        _ = try await engine.completeChat(request: request)
+                    }
                     Issue.record("unsupported structured request must fail: \(mode)")
                 } catch let error as ChatEngine.EngineError {
                     #expect(error.httpStatus == 400)

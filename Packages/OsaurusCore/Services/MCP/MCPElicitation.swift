@@ -84,8 +84,13 @@ struct MCPElicitationForm: Equatable, Sendable {
 
         func make(_ kind: MCPElicitationField.Kind, _ defaultValue: MCPElicitationInput?) -> MCPElicitationField {
             MCPElicitationField(
-                key: key, title: title, description: description, required: required, kind: kind,
-                defaultValue: defaultValue)
+                key: key,
+                title: title,
+                description: description,
+                required: required,
+                kind: kind,
+                defaultValue: defaultValue
+            )
         }
 
         switch type {
@@ -104,21 +109,29 @@ struct MCPElicitationForm: Equatable, Sendable {
                 }
             }
             return make(
-                .text(format: format, minLength: property["minLength"]?.intValue, maxLength: property["maxLength"]?.intValue),
-                property["default"]?.stringValue.map { .text($0) })
+                .text(
+                    format: format,
+                    minLength: property["minLength"]?.intValue,
+                    maxLength: property["maxLength"]?.intValue
+                ),
+                property["default"]?.stringValue.map { .text($0) }
+            )
         case "number", "integer":
             let defaultText = property["default"].flatMap(numberText)
             return make(
                 .number(
                     integer: type == "integer",
                     minimum: property["minimum"].flatMap(number),
-                    maximum: property["maximum"].flatMap(number)),
-                defaultText.map { .text($0) })
+                    maximum: property["maximum"].flatMap(number)
+                ),
+                defaultText.map { .text($0) }
+            )
         case "boolean":
             return make(.boolean, property["default"]?.boolValue.map { .flag($0) })
         default:
             throw MCPElicitationSchemaError(
-                reason: "Property '\(key)' has unsupported type '\(type ?? "missing")'")
+                reason: "Property '\(key)' has unsupported type '\(type ?? "missing")'"
+            )
         }
     }
 
@@ -370,14 +383,21 @@ final class MCPElicitationCoordinator: @unchecked Sendable {
                 throw MCPError.invalidParams("Unsupported elicitation schema: \(error.reason)")
             }
             request = MCPElicitationRequest(
-                providerName: providerName, message: form.message, mode: .form(parsed), clientKey: clientKey)
+                providerName: providerName,
+                message: form.message,
+                mode: .form(parsed),
+                clientKey: clientKey
+            )
         case .url(let url):
             guard let target = MCPElicitationURLPolicy.openableURL(url.url) else {
                 throw MCPError.invalidParams("Elicitation URL must be https")
             }
             request = MCPElicitationRequest(
-                providerName: providerName, message: url.message,
-                mode: .url(target, elicitationId: url.elicitationId), clientKey: clientKey)
+                providerName: providerName,
+                message: url.message,
+                mode: .url(target, elicitationId: url.elicitationId),
+                clientKey: clientKey
+            )
         }
 
         // The user filling in a form is not the server going quiet.

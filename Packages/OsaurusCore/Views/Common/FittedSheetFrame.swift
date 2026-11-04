@@ -69,7 +69,8 @@ extension View {
     func fittedSheetFrame(width: CGFloat, height: CGFloat) -> some View {
         // The presenting window is key when its sheet is built, so
         // `NSScreen.main` is the screen the sheet will appear on.
-        let visible = (NSScreen.main ?? NSScreen.screens.first)?.visibleFrame.size
+        let visible =
+            (NSScreen.main ?? NSScreen.screens.first)?.visibleFrame.size
             ?? CGSize(width: width, height: height)
         let size = SheetFitting.fittedSize(
             desired: CGSize(width: width, height: height),

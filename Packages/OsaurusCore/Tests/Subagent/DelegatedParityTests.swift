@@ -69,11 +69,17 @@ struct DelegatedParityTests {
         let normal = await prepareSession(contract: nil)
         let delegated = await prepareSession(
             contract: DelegatedRunContract(
-                responseTokens: 2048, assistantTurns: 2, contextPositions: 16_684))
+                responseTokens: 2048,
+                assistantTurns: 2,
+                contextPositions: 16_684
+            )
+        )
 
         // Decisive synchronous section — no suspension points.
         AgentManager.shared.updateDefaultModel(
-            for: agent.id, model: "mlx-test/parity-default")
+            for: agent.id,
+            model: "mlx-test/parity-default"
+        )
         normal.applyPickerItems(items)
         normal.applyAgentDefaultModelForDispatch()
         delegated.applyPickerItems(items)
@@ -94,7 +100,10 @@ struct DelegatedParityTests {
     @Test func delegatedContractOnlyTightensNeverReplacesAgentConfig() async {
         let (agent, cleanup) = makeAgent(defaultModel: "mlx-test/parity-default")
         let contract = DelegatedRunContract(
-            responseTokens: 2048, assistantTurns: 2, contextPositions: 16_684)
+            responseTokens: 2048,
+            assistantTurns: 2,
+            contextPositions: 16_684
+        )
 
         let chatValue = AgentManager.shared.effectiveMaxTokens(for: agent.id)
         let spawnValue = AgentManager.shared.effectiveMaxTokens(for: agent.id)
@@ -123,7 +132,8 @@ struct DelegatedParityTests {
         }
 
         let contractFields = fieldNames(
-            DelegatedRunContract(responseTokens: 1, assistantTurns: 1, contextPositions: 1))
+            DelegatedRunContract(responseTokens: 1, assistantTurns: 1, contextPositions: 1)
+        )
         let budgetFields = fieldNames(SubagentBudgets())
         let requestFields = fieldNames(DispatchRequest(prompt: "x"))
 
@@ -131,12 +141,15 @@ struct DelegatedParityTests {
             for bad in forbidden {
                 #expect(
                     !name.contains(bad),
-                    "spawn surface field '\(name)' looks like a sampler/MTP knob")
+                    "spawn surface field '\(name)' looks like a sampler/MTP knob"
+                )
             }
         }
-        #expect(contractFields.sorted() == [
-            "assistantturns", "contextpositions", "responsetokens",
-        ])
+        #expect(
+            contractFields.sorted() == [
+                "assistantturns", "contextpositions", "responsetokens",
+            ]
+        )
     }
 
     /// MTP POLICY PARITY: the resolution snapshot is keyed ONLY by resident
@@ -147,7 +160,8 @@ struct DelegatedParityTests {
     /// "MTP off".
     @Test func mtpResolutionHasNoSpawnDimension() async {
         let missing = await ModelRuntime.mtpResolution(
-            forModel: "mlx-test/never-resident-\(UUID().uuidString)")
+            forModel: "mlx-test/never-resident-\(UUID().uuidString)"
+        )
         #expect(missing == nil, "unresolvable model must be nil, not a fabricated 'off'")
     }
 }

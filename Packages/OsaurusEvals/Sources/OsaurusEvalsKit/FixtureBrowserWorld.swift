@@ -79,28 +79,42 @@ actor FixtureBrowserWorld {
         case "browser_open_login": return openLogin(args)
         case "browser_handle_dialog":
             return ToolEnvelope.success(
-                tool: "browser_handle_dialog", text: "Next dialog will be accepted.")
+                tool: "browser_handle_dialog",
+                text: "Next dialog will be accepted."
+            )
         case "browser_console_messages":
             return ToolEnvelope.success(
-                tool: "browser_console_messages", result: ["count": 0, "messages": [] as [String]])
+                tool: "browser_console_messages",
+                result: ["count": 0, "messages": [] as [String]]
+            )
         case "browser_network_requests":
             return ToolEnvelope.success(
-                tool: "browser_network_requests", result: ["count": 0, "requests": [] as [String]])
+                tool: "browser_network_requests",
+                result: ["count": 0, "requests": [] as [String]]
+            )
         case "browser_cookies":
             return ToolEnvelope.success(
                 tool: "browser_cookies",
-                result: ["count": 0, "cookies": [] as [String]])
+                result: ["count": 0, "cookies": [] as [String]]
+            )
         case "browser_screenshot":
             return ToolEnvelope.success(
-                tool: "browser_screenshot", result: ["path": "/dev/null", "size": 0])
+                tool: "browser_screenshot",
+                result: ["path": "/dev/null", "size": 0]
+            )
         case "browser_execute_script", "browser_reset_session":
             return ToolEnvelope.failure(
                 kind: .rejected,
                 message: "\(name) is not available in the fixture world.",
-                tool: name, retryable: false)
+                tool: name,
+                retryable: false
+            )
         default:
             return ToolEnvelope.failure(
-                kind: .toolNotFound, message: "Unknown browser tool '\(name)'.", tool: name)
+                kind: .toolNotFound,
+                message: "Unknown browser tool '\(name)'.",
+                tool: name
+            )
         }
     }
 
@@ -109,15 +123,19 @@ actor FixtureBrowserWorld {
     private func navigate(_ args: [String: Any]) -> String {
         guard let url = args["url"] as? String, !url.isEmpty else {
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`url` is required.", field: "url",
-                tool: "browser_navigate")
+                kind: .invalidArgs,
+                message: "`url` is required.",
+                field: "url",
+                tool: "browser_navigate"
+            )
         }
         verbs.append("navigate")
         guard let page = Self.match(url: url, in: pages) else {
             return ToolEnvelope.failure(
                 kind: .executionError,
                 message: "Could not load \(url): no such page.",
-                tool: "browser_navigate")
+                tool: "browser_navigate"
+            )
         }
         let host = URL(string: page.url)?.host ?? page.url
         if page.loginRequired == true, !loggedInHosts.contains(host) {
@@ -140,15 +158,18 @@ actor FixtureBrowserWorld {
         return snapshotEnvelope(
             tool: "browser_navigate",
             prefix: "Action: navigate to \(url) succeeded",
-            args: args)
+            args: args
+        )
     }
 
     private func navigateBack(_ args: [String: Any]) -> String {
         verbs.append("back")
         guard history.count >= 2 else {
             return ToolEnvelope.failure(
-                kind: .executionError, message: "No back history in this session.",
-                tool: "browser_navigate_back")
+                kind: .executionError,
+                message: "No back history in this session.",
+                tool: "browser_navigate_back"
+            )
         }
         history.removeLast()
         currentURL = history.last
@@ -156,7 +177,8 @@ actor FixtureBrowserWorld {
         return snapshotEnvelope(
             tool: "browser_navigate_back",
             prefix: "Action: navigate back succeeded",
-            args: args)
+            args: args
+        )
     }
 
     private func readPage(_ args: [String: Any]) -> String {
@@ -165,7 +187,8 @@ actor FixtureBrowserWorld {
             return ToolEnvelope.failure(
                 kind: .executionError,
                 message: "No page loaded. Call browser_navigate first.",
-                tool: "browser_read_page")
+                tool: "browser_read_page"
+            )
         }
         let text = page.bodyText ?? ""
         let offset = max(0, (args["offset"] as? Int) ?? 0)
@@ -174,7 +197,7 @@ actor FixtureBrowserWorld {
         if offset < text.count {
             let start = text.index(text.startIndex, offsetBy: offset)
             let end = text.index(start, offsetBy: min(maxChars, text.count - offset))
-            slice = String(text[start..<end])
+            slice = String(text[start ..< end])
         } else {
             slice = ""
         }
@@ -187,7 +210,8 @@ actor FixtureBrowserWorld {
                 "total_chars": text.count,
                 "offset": offset,
                 "has_more": offset + slice.count < text.count,
-            ])
+            ]
+        )
     }
 
     private func click(_ args: [String: Any]) -> String {
@@ -200,15 +224,21 @@ actor FixtureBrowserWorld {
             setCurrentPage(page.url)
         }
         return snapshotEnvelope(
-            tool: "browser_click", prefix: "Action: click succeeded", args: args)
+            tool: "browser_click",
+            prefix: "Action: click succeeded",
+            args: args
+        )
     }
 
     private func type(_ args: [String: Any]) -> String {
         verbs.append("type")
         guard let text = args["text"] as? String else {
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`text` is required.", field: "text",
-                tool: "browser_type")
+                kind: .invalidArgs,
+                message: "`text` is required.",
+                field: "text",
+                tool: "browser_type"
+            )
         }
         guard let element = resolveElement(args) else {
             return staleOrMissing(tool: "browser_type", args: args)
@@ -222,29 +252,40 @@ actor FixtureBrowserWorld {
             setCurrentPage(page.url)
         }
         return snapshotEnvelope(
-            tool: "browser_type", prefix: "Action: type succeeded", args: args)
+            tool: "browser_type",
+            prefix: "Action: type succeeded",
+            args: args
+        )
     }
 
     private func select(_ args: [String: Any]) -> String {
         verbs.append("select")
         guard let selected = args["values"] as? [String], !selected.isEmpty else {
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`values` is required.", field: "values",
-                tool: "browser_select")
+                kind: .invalidArgs,
+                message: "`values` is required.",
+                field: "values",
+                tool: "browser_select"
+            )
         }
         guard let element = resolveElement(args) else {
             return staleOrMissing(tool: "browser_select", args: args)
         }
         values[element.id] = selected.joined(separator: ",")
         return snapshotEnvelope(
-            tool: "browser_select", prefix: "Action: select succeeded", args: args)
+            tool: "browser_select",
+            prefix: "Action: select succeeded",
+            args: args
+        )
     }
 
     private func pressKey(_ args: [String: Any]) -> String {
         verbs.append("press_key")
         let key = (args["key"] as? String) ?? ""
         return ToolEnvelope.success(
-            tool: "browser_press_key", text: "Action: press \(key) succeeded")
+            tool: "browser_press_key",
+            text: "Action: press \(key) succeeded"
+        )
     }
 
     private func recordOnly(_ verb: String, tool: String, args: [String: Any]) -> String {
@@ -255,15 +296,20 @@ actor FixtureBrowserWorld {
     private func batchDo(_ args: [String: Any]) -> String {
         guard let actions = args["actions"] as? [[String: Any]] else {
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`actions` is required.", field: "actions",
-                tool: "browser_do")
+                kind: .invalidArgs,
+                message: "`actions` is required.",
+                field: "actions",
+                tool: "browser_do"
+            )
         }
         for (index, item) in actions.enumerated() {
             guard let action = item["action"] as? String else {
                 return ToolEnvelope.failure(
                     kind: .invalidArgs,
                     message: "Action \(index) is missing the required `action` field.",
-                    field: "actions", tool: "browser_do")
+                    field: "actions",
+                    tool: "browser_do"
+                )
             }
             let result: String
             switch action {
@@ -280,14 +326,16 @@ actor FixtureBrowserWorld {
                 return ToolEnvelope.failure(
                     kind: .invalidArgs,
                     message: "Action \(index) (\(action)) failed: unknown action type",
-                    tool: "browser_do")
+                    tool: "browser_do"
+                )
             }
             if !ToolEnvelope.isSuccess(result) { return result }
         }
         return snapshotEnvelope(
             tool: "browser_do",
             prefix: "Action: browser_do completed (\(actions.count) actions)",
-            args: args)
+            args: args
+        )
     }
 
     private func openLogin(_ args: [String: Any]) -> String {
@@ -301,7 +349,8 @@ actor FixtureBrowserWorld {
                 "closed_at": ISO8601DateFormatter().string(from: Date()),
                 "timed_out": false,
                 "final_url": raw,
-            ])
+            ]
+        )
     }
 
     // MARK: - Page / element resolution
@@ -312,7 +361,8 @@ actor FixtureBrowserWorld {
     }
 
     private static func match(
-        url: String, in pages: [EvalCase.BrowserFixturePage]
+        url: String,
+        in pages: [EvalCase.BrowserFixturePage]
     ) -> EvalCase.BrowserFixturePage? {
         let normalized = url.hasSuffix("/") ? String(url.dropLast()) : url
         // Exact match wins; otherwise the LONGEST matching prefix. First-match
@@ -367,7 +417,8 @@ actor FixtureBrowserWorld {
             kind: .executionError,
             message:
                 "Element '\(target)' not found. Snapshot is stale. Call browser_snapshot again.",
-            tool: tool)
+            tool: tool
+        )
     }
 
     // MARK: - Snapshots
@@ -380,7 +431,8 @@ actor FixtureBrowserWorld {
             return ToolEnvelope.failure(
                 kind: .executionError,
                 message: "No page loaded. Call browser_navigate first to load a page.",
-                tool: tool)
+                tool: tool
+            )
         }
         let detail = BrowserDetailLevel.parse(args["detail"] as? String, default: .standard)
         let refsForPage = refs.sorted { lhs, rhs in

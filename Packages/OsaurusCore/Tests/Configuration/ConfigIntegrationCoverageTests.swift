@@ -118,7 +118,9 @@ struct ConfigIntegrationPlannerTests {
         #expect(plan.hasHighRiskChanges)
         #expect(
             plan.risks.contains(
-                ConfigRisk.stdioCommand("Stdio Risk Probe", "/usr/local/bin/mcp-server --serve")))
+                ConfigRisk.stdioCommand("Stdio Risk Probe", "/usr/local/bin/mcp-server --serve")
+            )
+        )
         #expect(plan.risks.contains(ConfigRisk.stdioOnHost("Stdio Risk Probe")))
     }
 
@@ -182,7 +184,8 @@ struct ConfigIntegrationPlannerTests {
 struct ConfigIntegrationApplyTests {
 
     private static func apply(
-        prune: Bool = false, _ mutate: (inout OsaurusConfigDocument) -> Void
+        prune: Bool = false,
+        _ mutate: (inout OsaurusConfigDocument) -> Void
     ) async -> [ConfigApplyResult] {
         var document = OsaurusConfigDocument()
         mutate(&document)

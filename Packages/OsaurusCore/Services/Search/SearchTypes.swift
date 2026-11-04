@@ -183,24 +183,28 @@ enum SearchDiagnostics {
         if m.contains("cancel") { return .cancelled }
         if m.contains("timed out") || m.contains("timeout") { return .timeout }
         if m.contains("challenge") || m.contains("captcha") || m.contains("just a moment")
-            || m.contains("checking your browser") || m.contains("anomaly") {
+            || m.contains("checking your browser") || m.contains("anomaly")
+        {
             return .challenge
         }
         if m.contains("empty response") || m == "empty" { return .empty }
         if m.contains("does not support") { return .unsupportedCategory }
         if m.contains("blocked") || m.contains("ssrf") || m.contains("private")
-            || m.contains("loopback") || m.contains("link-local") || m.contains("metadata") {
+            || m.contains("loopback") || m.contains("link-local") || m.contains("metadata")
+        {
             return .blockedURL
         }
         if m.contains("401") || m.contains("403") || m.contains("unauthorized")
             || m.contains("forbidden") || m.contains("api key") || m.contains("auth")
-            || m.contains("not configured") {
+            || m.contains("not configured")
+        {
             return .providerAuth
         }
         if m.contains("timedout") { return .timeout }
         if m.contains("offline") || m.contains("cannot connect") || m.contains("could not connect")
             || m.contains("not connected") || m.contains("dns") || m.contains("host")
-            || m.contains("connection") {
+            || m.contains("connection")
+        {
             return .network
         }
         return .providerHTTP
@@ -211,7 +215,8 @@ enum SearchDiagnostics {
         var output = redactURLs(in: input)
         output = replace(
             output,
-            pattern: #"(?i)\b(authorization|x-api-key|x-subscription-token|api-key)\s*[:=]\s*(bearer|bot|token)?\s*[A-Za-z0-9._~+/=-]{4,}"#,
+            pattern:
+                #"(?i)\b(authorization|x-api-key|x-subscription-token|api-key)\s*[:=]\s*(bearer|bot|token)?\s*[A-Za-z0-9._~+/=-]{4,}"#,
             template: "$1: [REDACTED]"
         )
         output = replace(

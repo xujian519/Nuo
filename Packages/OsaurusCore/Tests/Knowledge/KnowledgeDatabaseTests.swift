@@ -51,7 +51,9 @@ struct KnowledgeDatabaseTests {
         let db = makeDBOrSkip()
         guard let db else { return }
         let first = try seedDocument(
-            db, collectionId: "c1", relPath: "a.md",
+            db,
+            collectionId: "c1",
+            relPath: "a.md",
             chunks: [("", "alpha")]
         )
         let second = try db.upsertDocument(
@@ -77,7 +79,9 @@ struct KnowledgeDatabaseTests {
         let db = makeDBOrSkip()
         guard let db else { return }
         let id = try seedDocument(
-            db, collectionId: "c1", relPath: "a.md",
+            db,
+            collectionId: "c1",
+            relPath: "a.md",
             chunks: [("", "one"), ("", "two"), ("", "three")]
         )
         let removed = try db.replaceChunks(documentId: id, chunks: [("", "only")])
@@ -89,11 +93,15 @@ struct KnowledgeDatabaseTests {
         let db = makeDBOrSkip()
         guard let db else { return }
         try seedDocument(
-            db, collectionId: "granted", relPath: "wp.md",
+            db,
+            collectionId: "granted",
+            relPath: "wp.md",
             chunks: [("Plugins", "WordPress plugin development requires a master template")]
         )
         try seedDocument(
-            db, collectionId: "other", relPath: "secret.md",
+            db,
+            collectionId: "other",
+            relPath: "secret.md",
             chunks: [("", "WordPress secrets that must not leak across collections")]
         )
 
@@ -119,7 +127,9 @@ struct KnowledgeDatabaseTests {
         // word. Implicit-AND (whitespace-joined) MATCH found nothing here;
         // OR-joined terms must still surface the document.
         try seedDocument(
-            db, collectionId: "granted", relPath: "refund-policy.md",
+            db,
+            collectionId: "granted",
+            relPath: "refund-policy.md",
             chunks: [
                 ("Refund Policy", "This is the single source of truth for billing."),
                 ("Eligibility window", "Customers may request a full refund within 30 days."),
@@ -128,7 +138,8 @@ struct KnowledgeDatabaseTests {
 
         let hits = try db.searchChunksText(
             query: "refund policy window customer request",
-            collectionIds: ["granted"], limit: 10
+            collectionIds: ["granted"],
+            limit: 10
         )
         #expect(!hits.isEmpty)
         #expect(hits.contains { $0.relPath == "refund-policy.md" })
@@ -139,7 +150,9 @@ struct KnowledgeDatabaseTests {
         let db = makeDBOrSkip()
         guard let db else { return }
         try seedDocument(
-            db, collectionId: "granted", relPath: "p.md",
+            db,
+            collectionId: "granted",
+            relPath: "p.md",
             chunks: [("", "Customers may request refunds anytime.")]
         )
         // Singular query terms must reach plural document tokens under the
@@ -153,12 +166,20 @@ struct KnowledgeDatabaseTests {
         let db = makeDBOrSkip()
         guard let db else { return }
         try seedDocument(
-            db, collectionId: "c1", relPath: "guide.md", docType: "guide",
-            tagsCSV: "wordpress,php", chunks: [("", "g")]
+            db,
+            collectionId: "c1",
+            relPath: "guide.md",
+            docType: "guide",
+            tagsCSV: "wordpress,php",
+            chunks: [("", "g")]
         )
         try seedDocument(
-            db, collectionId: "c1", relPath: "runbook.md", docType: "runbook",
-            tagsCSV: "ops", chunks: [("", "r")]
+            db,
+            collectionId: "c1",
+            relPath: "runbook.md",
+            docType: "runbook",
+            tagsCSV: "ops",
+            chunks: [("", "r")]
         )
 
         let guides = try db.listDocuments(collectionIds: ["c1"], docType: "guide")
@@ -178,13 +199,21 @@ struct KnowledgeDatabaseTests {
         guard let db else { return }
         // No explicit type — inferred from folder.
         try seedDocument(
-            db, collectionId: "c1", relPath: "recipes/pasta.md",
-            docType: "", inferredType: "recipes", chunks: [("", "p")]
+            db,
+            collectionId: "c1",
+            relPath: "recipes/pasta.md",
+            docType: "",
+            inferredType: "recipes",
+            chunks: [("", "p")]
         )
         // Explicit type present — a stale inferred value must not leak.
         try seedDocument(
-            db, collectionId: "c1", relPath: "recipes/notes.md",
-            docType: "guide", inferredType: "recipes", chunks: [("", "n")]
+            db,
+            collectionId: "c1",
+            relPath: "recipes/notes.md",
+            docType: "guide",
+            inferredType: "recipes",
+            chunks: [("", "n")]
         )
 
         let recipes = try db.listDocuments(collectionIds: ["c1"], docType: "recipes")
@@ -202,7 +231,9 @@ struct KnowledgeDatabaseTests {
         let db = makeDBOrSkip()
         guard let db else { return }
         try seedDocument(
-            db, collectionId: "c1", relPath: "a.md",
+            db,
+            collectionId: "c1",
+            relPath: "a.md",
             chunks: [("", "one"), ("", "two")]
         )
         let removed = try db.deleteDocument(collectionId: "c1", relPath: "a.md")
@@ -236,7 +267,9 @@ struct KnowledgeDatabaseTests {
         let db = makeDBOrSkip()
         guard let db else { return }
         try seedDocument(
-            db, collectionId: "c1", relPath: "a.md",
+            db,
+            collectionId: "c1",
+            relPath: "a.md",
             chunks: [("H", "first"), ("H", "second")]
         )
         let hits = try db.loadChunksByCompositeKeys([
@@ -271,7 +304,9 @@ struct KnowledgeDatabaseTests {
         let db = makeDBOrSkip()
         guard let db else { return }
         try seedDocument(
-            db, collectionId: "c1", relPath: "a.md",
+            db,
+            collectionId: "c1",
+            relPath: "a.md",
             chunks: [("H", "first")]
         )
         let documents = try db.listDocuments(collectionIds: ["c1"], limit: 10)
@@ -298,9 +333,11 @@ struct KnowledgeDatabaseTests {
     @Test func listDocumentsPagesWithOffsetAndCountAgrees() throws {
         let db = makeDBOrSkip()
         guard let db else { return }
-        for i in 0..<7 {
+        for i in 0 ..< 7 {
             try seedDocument(
-                db, collectionId: "c1", relPath: "n\(i).md",
+                db,
+                collectionId: "c1",
+                relPath: "n\(i).md",
                 docType: i % 2 == 0 ? "guide" : "note",
                 tagsCSV: i < 5 ? "ops" : "misc",
                 chunks: [("", "body \(i)")]
@@ -331,9 +368,11 @@ struct KnowledgeDatabaseTests {
     @Test func countDocumentsHonoursFilters() throws {
         let db = makeDBOrSkip()
         guard let db else { return }
-        for i in 0..<7 {
+        for i in 0 ..< 7 {
             try seedDocument(
-                db, collectionId: "c1", relPath: "n\(i).md",
+                db,
+                collectionId: "c1",
+                relPath: "n\(i).md",
                 docType: i % 2 == 0 ? "guide" : "note",
                 tagsCSV: i < 5 ? "ops" : "misc",
                 chunks: [("", "body \(i)")]

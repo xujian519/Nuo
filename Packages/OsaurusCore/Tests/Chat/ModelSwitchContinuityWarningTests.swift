@@ -53,12 +53,19 @@ struct ModelSwitchContinuityWarningTests {
     @Test("warns only for a real mid-conversation switch away from a local model")
     func warningGate() {
         func warns(
-            _ previous: String?, _ next: String, conversation: Bool = true,
-            remoteAgent: Bool = false, previousLocal: Bool = true, nextMedia: Bool = false
+            _ previous: String?,
+            _ next: String,
+            conversation: Bool = true,
+            remoteAgent: Bool = false,
+            previousLocal: Bool = true,
+            nextMedia: Bool = false
         ) -> Bool {
             ChatSession.shouldWarnAboutModelSwitch(
-                previousModel: previous, newModel: next, hasConversation: conversation,
-                isRemoteAgentTarget: remoteAgent, previousModelIsLocal: previousLocal,
+                previousModel: previous,
+                newModel: next,
+                hasConversation: conversation,
+                isRemoteAgentTarget: remoteAgent,
+                previousModelIsLocal: previousLocal,
                 newModelIsMedia: nextMedia
             )
         }
@@ -97,7 +104,8 @@ struct ModelSwitchContinuityWarningTests {
 
             // A stale advisory is cleared once the window is in remote mode.
             session.modelSwitchContinuityWarning = ModelSwitchContinuityWarning(
-                previousModelId: "a", newModelId: "b"
+                previousModelId: "a",
+                newModelId: "b"
             )
             session.selectedModel = "OsaurusAI/Ornith-1.0"
             #expect(session.modelSwitchContinuityWarning == nil)
@@ -168,10 +176,14 @@ struct ModelSwitchContinuityWarningTests {
             session.pickerItems = [
                 Self.localItem("org/local"),
                 ModelPickerItem.fromRemoteModel(
-                    modelId: "openai/gpt-5.5", providerName: "OpenAI", providerId: providerId
+                    modelId: "openai/gpt-5.5",
+                    providerName: "OpenAI",
+                    providerId: providerId
                 ),
                 ModelPickerItem.fromRemoteModel(
-                    modelId: "openai/gpt-5.6-sol", providerName: "OpenAI", providerId: providerId
+                    modelId: "openai/gpt-5.6-sol",
+                    providerName: "OpenAI",
+                    providerId: providerId
                 ),
             ]
             session.selectedModel = "openai/gpt-5.5"

@@ -200,12 +200,14 @@ struct FileEditBatchTests {
         for filler in [#"[{}]"#, #"{}"#, #"[{"op":""}]"#, #"[{"op":null,"cells":{}}]"#] {
             let padded = try await FileEditTool(rootPath: root).execute(
                 argumentsJSON:
-                    #"{"path":"settings.ini","edits":[{"old_string":"retries = 5","new_string":"retries = 7"}],"operations":"# + filler + "}"
+                    #"{"path":"settings.ini","edits":[{"old_string":"retries = 5","new_string":"retries = 7"}],"operations":"#
+                    + filler + "}"
             )
             #expect(ToolEnvelope.successPayload(padded) != nil, "\(filler) → \(padded)")
             #expect(fileContent(url) == "timeout = 60\nretries = 7\n")
             _ = try await FileEditTool(rootPath: root).execute(
-                argumentsJSON: #"{"path":"settings.ini","old_string":"retries = 7","new_string":"retries = 5"}"#)
+                argumentsJSON: #"{"path":"settings.ini","old_string":"retries = 7","new_string":"retries = 5"}"#
+            )
         }
         #expect(FileEditTool.isContentFree([["op": NSNull(), "cells": [String: Any]()]]))
         #expect(!FileEditTool.isContentFree([["op": "set_cells"]]))
@@ -285,7 +287,8 @@ struct FileEditBatchTests {
         let url = try write("def f():\n\tif x:\n\t\treturn 1\n\treturn 0\n", name: "a.py", root: root)
 
         let output = try await FileEditTool(rootPath: root).execute(
-            argumentsJSON: #"{"path":"a.py","old_string":"    if x:\n        return 1","new_string":"    if x:\n        return 2"}"#
+            argumentsJSON:
+                #"{"path":"a.py","old_string":"    if x:\n        return 1","new_string":"    if x:\n        return 2"}"#
         )
         let payload = try #require(ToolEnvelope.successPayload(output) as? [String: Any])
         #expect(payload["match_strategy"] as? String == "whitespace_normalized")

@@ -119,7 +119,9 @@ final class EventKitRemindersService: RemindersServicing, @unchecked Sendable {
     private func requireAccess() throws {
         guard EKEventStore.authorizationStatus(for: .reminder) == .fullAccess else {
             throw AppleToolError.permissionDenied(
-                .reminders, detail: "Reminders needs Full Access for these tools.")
+                .reminders,
+                detail: "Reminders needs Full Access for these tools."
+            )
         }
     }
 
@@ -184,7 +186,9 @@ final class EventKitRemindersService: RemindersServicing, @unchecked Sendable {
             let reminder = EKReminder(eventStore: self.store)
             if let listId = draft.listId {
                 reminder.calendar = try self.resolveList(listId)
-            } else if let defaultList = self.store.defaultCalendarForNewReminders(), defaultList.allowsContentModifications {
+            } else if let defaultList = self.store.defaultCalendarForNewReminders(),
+                defaultList.allowsContentModifications
+            {
                 reminder.calendar = defaultList
             } else if let first = self.store.calendars(for: .reminder).first(where: { $0.allowsContentModifications }) {
                 reminder.calendar = first
@@ -250,7 +254,8 @@ final class EventKitRemindersService: RemindersServicing, @unchecked Sendable {
                     guard let newDue else {
                         throw AppleToolError.invalidArgs(
                             "`alarms_minutes_before` needs a `due` date to count back from (this reminder has none).",
-                            field: "alarms_minutes_before")
+                            field: "alarms_minutes_before"
+                        )
                     }
                     reminder.alarms = alarms.map { AppleAlarms.absolute(minutesBefore: $0, of: newDue) }
                 } else {
@@ -308,10 +313,16 @@ final class EventKitRemindersService: RemindersServicing, @unchecked Sendable {
             switch query.status {
             case .incomplete:
                 predicate = store.predicateForIncompleteReminders(
-                    withDueDateStarting: query.dueAfter, ending: query.dueBefore, calendars: lists)
+                    withDueDateStarting: query.dueAfter,
+                    ending: query.dueBefore,
+                    calendars: lists
+                )
             case .completed:
                 predicate = store.predicateForCompletedReminders(
-                    withCompletionDateStarting: nil, ending: nil, calendars: lists)
+                    withCompletionDateStarting: nil,
+                    ending: nil,
+                    calendars: lists
+                )
             case .all:
                 predicate = store.predicateForReminders(in: lists)
             }
@@ -346,7 +357,9 @@ final class EventKitRemindersService: RemindersServicing, @unchecked Sendable {
         }
         if matches.count == 1 { return matches[0] }
         if matches.count > 1 {
-            let candidates = matches.map { "\($0.calendarIdentifier) (\($0.source?.title ?? "?")\($0.allowsContentModifications ? "" : ", read-only"))" }
+            let candidates = matches.map {
+                "\($0.calendarIdentifier) (\($0.source?.title ?? "?")\($0.allowsContentModifications ? "" : ", read-only"))"
+            }
             throw AppleToolError.invalidArgs(
                 "`\(idOrTitle)` matches \(matches.count) lists; pass one of these ids instead: \(candidates.joined(separator: "; ")).",
                 field: "list"
@@ -400,7 +413,8 @@ final class EventKitRemindersService: RemindersServicing, @unchecked Sendable {
             },
             recurrence: reminder.recurrenceRules?.first.map(EventKitCalendarService.recurrence),
             lastModified: reminder.lastModifiedDate,
-            openURL: "x-apple-reminderkit://REMCDReminder/\(AppleServiceSupport.pathEncoded(reminder.calendarItemIdentifier))"
+            openURL:
+                "x-apple-reminderkit://REMCDReminder/\(AppleServiceSupport.pathEncoded(reminder.calendarItemIdentifier))"
         )
     }
 

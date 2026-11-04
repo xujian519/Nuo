@@ -16,20 +16,45 @@ struct HeadlessEvaluationResidencyTests {
         var id: String { "evaluation-residency-fixture" }
         func isAvailable() -> Bool { true }
         func handles(requestedModel: String?) -> Bool { requestedModel == id }
-        func generateOneShot(messages: [ChatMessage], parameters: GenerationParameters, requestedModel: String?) async throws -> String {
+        func generateOneShot(messages: [ChatMessage], parameters: GenerationParameters, requestedModel: String?)
+            async throws -> String
+        {
             throw NSError(domain: "unexpected-legacy", code: 1)
         }
-        func streamDeltas(messages: [ChatMessage], parameters: GenerationParameters, requestedModel: String?, stopSequences: [String]) async throws -> AsyncThrowingStream<String, Error> {
+        func streamDeltas(
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?,
+            stopSequences: [String]
+        ) async throws -> AsyncThrowingStream<String, Error> {
             throw NSError(domain: "unexpected-legacy", code: 2)
         }
-        func streamResponses(messages: [ChatMessage], parameters: GenerationParameters, stopSequences: [String], tools: [OsaurusCore.Tool], toolChoice: ToolChoiceOption?, requestedModel: String?) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
+        func streamResponses(
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            stopSequences: [String],
+            tools: [OsaurusCore.Tool],
+            toolChoice: ToolChoiceOption?,
+            requestedModel: String?
+        ) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
             await capture.record(parameters)
             return AsyncThrowingStream { continuation in
                 continuation.yield(.outputTextDelta("ok"))
-                continuation.yield(.responseCompleted(.init(
-                    responseID: "resp_evaluation_fixture", status: .completed, functionCalls: [],
-                    tokenCount: 1, tokensPerSecond: 20, unclosedReasoning: false,
-                    stopReason: "stop", promptTokensPerSecond: nil, mtp: nil)))
+                continuation.yield(
+                    .responseCompleted(
+                        .init(
+                            responseID: "resp_evaluation_fixture",
+                            status: .completed,
+                            functionCalls: [],
+                            tokenCount: 1,
+                            tokensPerSecond: 20,
+                            unclosedReasoning: false,
+                            stopReason: "stop",
+                            promptTokensPerSecond: nil,
+                            mtp: nil
+                        )
+                    )
+                )
                 continuation.yield(.drained)
                 continuation.finish()
             }
@@ -39,17 +64,30 @@ struct HeadlessEvaluationResidencyTests {
     @Test(arguments: RequestSource.allCases, [false, true])
     func configuredIdlePolicyAndClosedUIStayDistinct(source: RequestSource, referenced: Bool) {
         let actual = ModelRuntime.resolvedIdleResidencyPolicy(
-            configured: .afterSeconds(900), source: source,
-            referencedByChat: referenced, hasHandoffOwner: false)
+            configured: .afterSeconds(900),
+            source: source,
+            referencedByChat: referenced,
+            hasHandoffOwner: false
+        )
         #expect(actual == (source == .chatUI && !referenced ? .immediately : .afterSeconds(900)))
         for configured in [ModelIdleResidencyPolicy.immediately, .never] {
-            #expect(ModelRuntime.resolvedIdleResidencyPolicy(
-                configured: configured, source: source,
-                referencedByChat: referenced, hasHandoffOwner: false) == configured)
+            #expect(
+                ModelRuntime.resolvedIdleResidencyPolicy(
+                    configured: configured,
+                    source: source,
+                    referencedByChat: referenced,
+                    hasHandoffOwner: false
+                ) == configured
+            )
         }
-        #expect(ModelRuntime.resolvedIdleResidencyPolicy(
-            configured: .afterSeconds(900), source: source,
-            referencedByChat: referenced, hasHandoffOwner: true) == .never)
+        #expect(
+            ModelRuntime.resolvedIdleResidencyPolicy(
+                configured: .afterSeconds(900),
+                source: source,
+                referencedByChat: referenced,
+                hasHandoffOwner: true
+            ) == .never
+        )
     }
 
     @Test func originIsScopedAndProtectedSourcesAreNotReclassified() {
@@ -71,8 +109,13 @@ struct HeadlessEvaluationResidencyTests {
         #expect(ModelRuntime.isChatOwnedResidencySource(.evaluation))
         for protected in [RequestSource.httpAPI, .plugin, .p2p, .scheduled, .schedule, .watcher, .selfSchedule] {
             #expect(!ModelRuntime.isChatOwnedResidencySource(protected))
-            #expect(ModelRuntime.resolvedResidencySource(
-                existing: protected, incoming: .evaluation, preserveExisting: true) == protected)
+            #expect(
+                ModelRuntime.resolvedResidencySource(
+                    existing: protected,
+                    incoming: .evaluation,
+                    preserveExisting: true
+                ) == protected
+            )
         }
         #expect(FeatureTelemetry.sourceToken(.evaluation) == "evaluation")
         #expect(FeatureTelemetry.sourceToken(.chatUI) == "chat_ui")
@@ -84,12 +127,16 @@ struct HeadlessEvaluationResidencyTests {
     private func prepared(source: RequestSource, explicit: Bool) async throws -> GenerationParameters {
         let capture = Capture()
         let engine = ChatEngine(
-            services: [Service(capture: capture)], installedModelsProvider: { [] },
+            services: [Service(capture: capture)],
+            installedModelsProvider: { [] },
             remoteServicesProvider: { [] },
             agentModelOptionsProvider: { _ in ["originFixture": .string("unchanged")] },
-            source: source)
+            source: source
+        )
         var request = ResponsesInferenceRequest(
-            model: "evaluation-residency-fixture", input: [.init(role: "user", content: "Reply ok.")])
+            model: "evaluation-residency-fixture",
+            input: [.init(role: "user", content: "Reply ok.")]
+        )
         request.context.isAgentRequest = true
         request.context.samplingParametersAreImplicit = !explicit
         request.sessionID = "evaluation-parameter-parity"
@@ -166,29 +213,54 @@ struct HeadlessEvaluationResidencyTests {
         try ChatExecutionContext.$inferenceSourceOverride.withValue(.evaluation) {
             let source = SessionSource.chat.inferenceSource
             let lease = ChatResidencyLease(
-                unloadedModelNames: ["parent"], restoreModelNames: ["parent"], parentSource: source)
+                unloadedModelNames: ["parent"],
+                restoreModelNames: ["parent"],
+                parentSource: source
+            )
             #expect(lease.parentSource == .evaluation)
             #expect(ModelRuntime.isChatOwnedResidencySource(lease.parentSource))
             let same = try SubagentResidency.decidePlan(
-                isLocal: true, modelName: "parent", residentChatModels: ["parent"],
-                handoffEnabled: true, ramSafetyEnabled: true, requiredBytes: 100,
-                idleWaitSeconds: 60, deniedMessage: "unused", invokingParentModelName: "parent")
+                isLocal: true,
+                modelName: "parent",
+                residentChatModels: ["parent"],
+                handoffEnabled: true,
+                ramSafetyEnabled: true,
+                requiredBytes: 100,
+                idleWaitSeconds: 60,
+                deniedMessage: "unused",
+                invokingParentModelName: "parent"
+            )
             #expect(!same.shouldUnload)
             #expect(same.ramSafetyEnabled)
             let different = try SubagentResidency.decidePlan(
-                isLocal: true, modelName: "child", residentChatModels: ["parent"],
-                handoffEnabled: true, ramSafetyEnabled: true, requiredBytes: 100,
-                idleWaitSeconds: 60, deniedMessage: "unused", invokingParentModelName: "parent")
+                isLocal: true,
+                modelName: "child",
+                residentChatModels: ["parent"],
+                handoffEnabled: true,
+                ramSafetyEnabled: true,
+                requiredBytes: 100,
+                idleWaitSeconds: 60,
+                deniedMessage: "unused",
+                invokingParentModelName: "parent"
+            )
             #expect(different.shouldUnload)
             // Same-model child completion and parent restoration both keep
             // the actual evaluation source, with no extra ModelLease held.
             let childSource = SessionSource.delegation.inferenceSource
             let afterChild = ModelRuntime.resolvedResidencySource(
-                existing: source, incoming: childSource, preserveExisting: false)
+                existing: source,
+                incoming: childSource,
+                preserveExisting: false
+            )
             #expect(afterChild == .evaluation)
-            #expect(ModelRuntime.resolvedIdleResidencyPolicy(
-                configured: .afterSeconds(900), source: afterChild,
-                referencedByChat: false, hasHandoffOwner: false) == .afterSeconds(900))
+            #expect(
+                ModelRuntime.resolvedIdleResidencyPolicy(
+                    configured: .afterSeconds(900),
+                    source: afterChild,
+                    referencedByChat: false,
+                    hasHandoffOwner: false
+                ) == .afterSeconds(900)
+            )
         }
     }
 
@@ -199,8 +271,13 @@ struct HeadlessEvaluationResidencyTests {
             config.autoGenerateChatTitles = false
             config.generateFollowUpSuggestions = false
             ChatConfigurationStore.save(config)
-            DefaultAgentConfigurationStore.save(.init(
-                autonomousExec: nil, toolSelectionMode: .manual, manualToolNames: []))
+            DefaultAgentConfigurationStore.save(
+                .init(
+                    autonomousExec: nil,
+                    toolSelectionMode: .manual,
+                    manualToolNames: []
+                )
+            )
             DefaultAgentConfigurationStore.resetCacheForTests()
             AgentManager.shared.refresh()
             let capture = Capture()
@@ -209,8 +286,12 @@ struct HeadlessEvaluationResidencyTests {
             session.selectedModel = "evaluation-residency-fixture"
             session.forceChatEngineRouteForTests = true
             session.chatEngineFactory = { source in
-                ChatEngine(services: [Service(capture: capture)], installedModelsProvider: { [] },
-                    remoteServicesProvider: { [] }, source: source)
+                ChatEngine(
+                    services: [Service(capture: capture)],
+                    installedModelsProvider: { [] },
+                    remoteServicesProvider: { [] },
+                    source: source
+                )
             }
             var request = DispatchRequest(prompt: "Reply ok.", source: .delegation)
             request.inferenceSourceOverride = .evaluation
@@ -224,8 +305,12 @@ struct HeadlessEvaluationResidencyTests {
             #expect(values.first?.requestSource == .evaluation)
             #expect(session.source == .delegation)
             #expect(!session.isStreaming)
-            session.queuedSend = .init(text: "Reply ok again.", attachments: [], oneOffSkillId: nil,
-                inferenceSourceOverride: .evaluation)
+            session.queuedSend = .init(
+                text: "Reply ok again.",
+                attachments: [],
+                oneOffSkillId: nil,
+                inferenceSourceOverride: .evaluation
+            )
             session.sendNowInterrupting()
             let sendTask2 = try #require(session.currentSendTaskForTesting)
             await sendTask2.value

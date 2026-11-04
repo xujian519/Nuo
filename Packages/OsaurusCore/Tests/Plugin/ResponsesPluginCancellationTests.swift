@@ -39,7 +39,8 @@ struct ResponsesPluginCancellationTests {
     }
     private func start(_ context: PluginHostContext, id: String) -> Job {
         let returned = OSAllocatedUnfairLock(initialState: false)
-        let body = #"{"model":"paused-fixture","messages":[{"role":"user","content":"wait"}],"max_iterations":1,"stream_id":"\#(id)"}"#
+        let body =
+            #"{"model":"paused-fixture","messages":[{"role":"user","content":"wait"}],"max_iterations":1,"stream_id":"\#(id)"}"#
         let task = Task.detached {
             let response = context.completeStream(requestJSON: body, onChunk: nil, userData: nil)
             returned.withLock { $0 = true }
@@ -71,9 +72,12 @@ struct ResponsesPluginCancellationTests {
         let observation = Observation()
         let engine = PausedEngine(observation)
         defer { Task { await engine.releaseAll() } }
-        let context = try PluginHostContext(pluginId: "test.responses.cancel.stalled.\(UUID())", inferenceEngineFactory: { engine })
+        let context = try PluginHostContext(
+            pluginId: "test.responses.cancel.stalled.\(UUID())",
+            inferenceEngineFactory: { engine }
+        )
         let id = UUID().uuidString
-        let jobs = (0..<ownerCount).map { _ in start(context, id: id) }
+        let jobs = (0 ..< ownerCount).map { _ in start(context, id: id) }
         let started = await waitFor { await engine.started == ownerCount }
         context.completeCancel(streamId: id)
         let completedBeforeFixtureRelease = await waitFor { jobs.allSatisfy { $0.returned.withLock { $0 } } }
@@ -93,7 +97,10 @@ struct ResponsesPluginCancellationTests {
         let observation = Observation()
         let engine = PausedEngine(observation)
         defer { Task { await engine.releaseAll() } }
-        let context = try PluginHostContext(pluginId: "test.responses.cancel.scoped.\(UUID())", inferenceEngineFactory: { engine })
+        let context = try PluginHostContext(
+            pluginId: "test.responses.cancel.scoped.\(UUID())",
+            inferenceEngineFactory: { engine }
+        )
         let firstID = UUID().uuidString, secondID = UUID().uuidString
         let first = start(context, id: firstID), second = start(context, id: secondID)
         let started = await waitFor { await engine.started == 2 }

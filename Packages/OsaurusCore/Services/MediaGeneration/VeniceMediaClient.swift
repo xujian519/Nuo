@@ -293,7 +293,7 @@ actor VeniceMediaClient {
                 let (_, response) = try await session.data(for: delete)
                 guard
                     let http = response as? HTTPURLResponse,
-                    (200..<300).contains(http.statusCode)
+                    (200 ..< 300).contains(http.statusCode)
                 else { return false }
             }
             return true
@@ -360,7 +360,8 @@ actor VeniceMediaClient {
 
     private static func validate(data: Data, response: HTTPURLResponse) throws {
         guard !(200 ..< 300).contains(response.statusCode) else { return }
-        let message = providerErrorMessage(data)
+        let message =
+            providerErrorMessage(data)
             ?? HTTPURLResponse.localizedString(forStatusCode: response.statusCode)
         debugLog(
             "[MediaGeneration] Venice request failed status=\(response.statusCode) "

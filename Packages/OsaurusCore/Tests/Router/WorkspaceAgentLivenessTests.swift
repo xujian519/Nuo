@@ -39,13 +39,20 @@ struct WorkspaceAgentLivenessTests {
 
     @Test func classify_relayVerdicts() {
         #expect(WorkspaceAgentLiveness.classify(.relay(status: 502, body: Self.relayBody("agent_offline"))) == .offline)
-        #expect(WorkspaceAgentLiveness.classify(.relay(status: 502, body: Self.relayBody("tunnel_send_failed"))) == .offline)
-        #expect(WorkspaceAgentLiveness.classify(.relay(status: 504, body: Self.relayBody("gateway_timeout"))) == .offline)
+        #expect(
+            WorkspaceAgentLiveness.classify(.relay(status: 502, body: Self.relayBody("tunnel_send_failed"))) == .offline
+        )
+        #expect(
+            WorkspaceAgentLiveness.classify(.relay(status: 504, body: Self.relayBody("gateway_timeout"))) == .offline
+        )
         #expect(WorkspaceAgentLiveness.classify(.relay(status: 401, body: Data())) == .rejected)
         #expect(WorkspaceAgentLiveness.classify(.relay(status: 403, body: Data())) == .rejected)
         #expect(WorkspaceAgentLiveness.classify(.relay(status: 404, body: Data())) == .notFound)
         // A 502 without a relay token is NOT offline — something else broke.
-        #expect(WorkspaceAgentLiveness.classify(.relay(status: 502, body: Data("<html>".utf8))) == .failed("relay: HTTP 502"))
+        #expect(
+            WorkspaceAgentLiveness.classify(.relay(status: 502, body: Data("<html>".utf8)))
+                == .failed("relay: HTTP 502")
+        )
         #expect(
             WorkspaceAgentLiveness.classify(.relay(status: 503, body: Self.relayBody("relay_busy")))
                 == .failed("relay: relay_busy")
@@ -86,7 +93,9 @@ struct WorkspaceAgentLivenessTests {
     }
 
     @Test func parseHandshakeHTTPFailure_recoversStatusAndBody() {
-        let parsed = WorkspaceAgentLiveness.parseHandshakeHTTPFailure(#"handshakeFailed HTTP 502: {"error":"agent_offline"}"#)
+        let parsed = WorkspaceAgentLiveness.parseHandshakeHTTPFailure(
+            #"handshakeFailed HTTP 502: {"error":"agent_offline"}"#
+        )
         #expect(parsed?.status == 502)
         #expect(parsed.map { OsaurusRelayPresenceSignal.relayError(in: $0.body) } == "agent_offline")
         #expect(WorkspaceAgentLiveness.parseHandshakeHTTPFailure("no status here") == nil)
@@ -98,7 +107,12 @@ struct WorkspaceAgentLivenessTests {
     @Test func message_offlineIncludesLastSeenAge() {
         let now = Date(timeIntervalSince1970: 10_000)
         let twelveMinutesAgo = now.addingTimeInterval(-12 * 60)
-        let text = WorkspaceAgentLiveness.message(for: .offline, agentName: "Research", lastSeen: twelveMinutesAgo, now: now)
+        let text = WorkspaceAgentLiveness.message(
+            for: .offline,
+            agentName: "Research",
+            lastSeen: twelveMinutesAgo,
+            now: now
+        )
         #expect(text.contains("Research"))
         #expect(text.contains("12 min ago"))
         #expect(
@@ -122,7 +136,8 @@ struct WorkspaceAgentLivenessTests {
             self.delay = delay
         }
 
-        func get(path: String, provider: RemoteProvider, timeout: TimeInterval) async -> WorkspaceAgentLivenessResponse {
+        func get(path: String, provider: RemoteProvider, timeout: TimeInterval) async -> WorkspaceAgentLivenessResponse
+        {
             calls.withLock { $0.append(path) }
             if delay > .zero { try? await Task.sleep(for: delay) }
             return response
@@ -166,7 +181,8 @@ struct WorkspaceAgentLivenessTests {
 
     @Test func probe_budgetMissReadsAsUnreachable() async {
         WorkspaceAgentLiveness.transportOverride = RecordingTransport(
-            .host(status: 200, body: Data()), delay: .seconds(5)
+            .host(status: 200, body: Data()),
+            delay: .seconds(5)
         )
         defer { WorkspaceAgentLiveness.transportOverride = nil }
         let started = Date()
@@ -183,7 +199,7 @@ struct WorkspaceAgentLivenessTests {
         let coalescer = WorkspaceAgentLivenessCoalescer()
         let provider = Self.provider()
         let verdicts = await withTaskGroup(of: WorkspaceAgentLiveness.Verdict.self) { group in
-            for _ in 0..<4 {
+            for _ in 0 ..< 4 {
                 group.addTask { await coalescer.probe(provider: provider, budget: 2) }
             }
             var out: [WorkspaceAgentLiveness.Verdict] = []

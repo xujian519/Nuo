@@ -105,9 +105,13 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
                 let message = handle.map { String(cString: sqlite3_errmsg($0)) } ?? "sqlite error \(rc)"
                 let extended = handle.map { sqlite3_extended_errcode($0) } ?? rc
                 if let handle { sqlite3_close(handle) }
-                if ChatDBMessagesService.isPermissionCode(extended) || ChatDBMessagesService.isPermissionMessage(message) {
+                if ChatDBMessagesService.isPermissionCode(extended)
+                    || ChatDBMessagesService.isPermissionMessage(message)
+                {
                     throw AppleToolError.permissionDenied(
-                        .disk, detail: "Reading Messages requires Full Disk Access for Nuo (chat.db could not be opened: \(message))."
+                        .disk,
+                        detail:
+                            "Reading Messages requires Full Disk Access for Nuo (chat.db could not be opened: \(message))."
                     )
                 }
                 throw AppleToolError.unavailable("Could not open the Messages database: \(message)", retryable: true)
@@ -125,7 +129,10 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
                 return .permissionDenied(.disk, detail: "chat.db is not readable: \(message).")
             }
             if extended & 0xFF == SQLITE_BUSY || extended & 0xFF == SQLITE_LOCKED {
-                return .unavailable("The Messages database is busy (\(message)). Try again in a moment.", retryable: true)
+                return .unavailable(
+                    "The Messages database is busy (\(message)). Try again in a moment.",
+                    retryable: true
+                )
             }
             return .execution("\(context): \(message)")
         }
@@ -141,17 +148,29 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
                 let idx = Int32(i + 1)
                 switch value {
                 case nil: sqlite3_bind_null(stmt, idx)
-                case let s as String: sqlite3_bind_text(stmt, idx, s, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+                case let s as String:
+                    sqlite3_bind_text(stmt, idx, s, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
                 case let n as Int: sqlite3_bind_int64(stmt, idx, Int64(n))
                 case let n as Int64: sqlite3_bind_int64(stmt, idx, n)
                 case let d as Double: sqlite3_bind_double(stmt, idx, d)
-                default: sqlite3_bind_text(stmt, idx, String(describing: value!), -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+                default:
+                    sqlite3_bind_text(
+                        stmt,
+                        idx,
+                        String(describing: value!),
+                        -1,
+                        unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+                    )
                 }
             }
             var rows: [T] = []
             while true {
                 let rc = sqlite3_step(stmt)
-                if rc == SQLITE_ROW { rows.append(map(stmt)) } else if rc == SQLITE_DONE { break } else {
+                if rc == SQLITE_ROW {
+                    rows.append(map(stmt))
+                } else if rc == SQLITE_DONE {
+                    break
+                } else {
                     throw mapError("Messages query failed")
                 }
             }
@@ -199,15 +218,18 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
             switch errno {
             case EPERM, EACCES:
                 throw AppleToolError.permissionDenied(
-                    .disk, detail: "Reading Messages requires Full Disk Access for Nuo (\(databaseURL.path) is not readable)."
+                    .disk,
+                    detail: "Reading Messages requires Full Disk Access for Nuo (\(databaseURL.path) is not readable)."
                 )
             case ENOENT:
                 throw AppleToolError.unavailable(
-                    "No Messages database found at \(databaseURL.path). Has Messages been set up on this Mac?", retryable: false
+                    "No Messages database found at \(databaseURL.path). Has Messages been set up on this Mac?",
+                    retryable: false
                 )
             default:
                 throw AppleToolError.unavailable(
-                    "Could not access the Messages database (\(String(cString: strerror(errno)))).", retryable: true
+                    "Could not access the Messages database (\(String(cString: strerror(errno)))).",
+                    retryable: true
                 )
             }
         }
@@ -348,12 +370,20 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
                 let style = Self.int(s, 4)
                 let lastDate = Self.date(fromAppleTime: Self.int(s, 7))
                 let hasLast = sqlite3_column_type(s, 7) != SQLITE_NULL
-                let preview = hasLast
-                    ? Self.bodyText(text: Self.text(s, 8), attributedBody: Self.blob(s, 9), hasAttachments: Self.int(s, 10) == 1)
+                let preview =
+                    hasLast
+                    ? Self.bodyText(
+                        text: Self.text(s, 8),
+                        attributedBody: Self.blob(s, 9),
+                        hasAttachments: Self.int(s, 10) == 1
+                    )
                     : nil
                 return MessagesConversation(
-                    id: Self.text(s, 0) ?? "", chatIdentifier: Self.text(s, 1) ?? "", displayName: display,
-                    participants: participants, service: Self.text(s, 3),
+                    id: Self.text(s, 0) ?? "",
+                    chatIdentifier: Self.text(s, 1) ?? "",
+                    displayName: display,
+                    participants: participants,
+                    service: Self.text(s, 3),
                     isGroup: style == 43 || participants.count > 1,
                     lastMessageDate: lastDate.map { AppleDateParsing.format($0) },
                     lastMessagePreview: preview.map { String($0.prefix(120)) },
@@ -376,7 +406,9 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
                 let normalized = IMessageConnectionConfiguration.normalizedId(handle)
                 let digits = normalized.filter(\.isNumber)
                 if digits.count >= 7, !normalized.contains("@") {
-                    clauses.append("(REPLACE(REPLACE(REPLACE(REPLACE(h.id,'+',''),'-',''),' ',''),'(','') LIKE ? OR c.chat_identifier LIKE ?)")
+                    clauses.append(
+                        "(REPLACE(REPLACE(REPLACE(REPLACE(h.id,'+',''),'-',''),' ',''),'(','') LIKE ? OR c.chat_identifier LIKE ?)"
+                    )
                     binds += ["%\(digits.suffix(10))", "%\(digits.suffix(10))"]
                 } else {
                     clauses.append("(LOWER(h.id) = ? OR LOWER(c.chat_identifier) = ?)")
@@ -390,7 +422,8 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
             let whereSQL = " WHERE " + clauses.joined(separator: " AND ")
             binds.append(query.limit)
             let rows: [MessagesMessage] = try db.query(
-                Self.messageSelect + whereSQL + Self.messageGroupBy + " ORDER BY m.date DESC LIMIT ?", bind: binds
+                Self.messageSelect + whereSQL + Self.messageGroupBy + " ORDER BY m.date DESC LIMIT ?",
+                bind: binds
             ) { Self.message($0) }.compactMap { $0 }
             return rows.reversed()
         }
@@ -400,7 +433,8 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
         try await queue.run { [self] in
             let db = try open()
             return try db.query(
-                Self.messageSelect + " WHERE " + Self.unreadPredicate + Self.messageGroupBy + " ORDER BY m.date DESC LIMIT ?",
+                Self.messageSelect + " WHERE " + Self.unreadPredicate + Self.messageGroupBy
+                    + " ORDER BY m.date DESC LIMIT ?",
                 bind: [limit]
             ) { Self.message($0) }.compactMap { $0 }
         }
@@ -429,7 +463,8 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
             while hits.count < limit, offset < Self.searchScanCap {
                 try Task.checkCancellation()
                 let page: [MessagesMessage] = try db.query(
-                    sql, bind: [Self.likePattern(needle), Self.searchPageSize, offset]
+                    sql,
+                    bind: [Self.likePattern(needle), Self.searchPageSize, offset]
                 ) { Self.message($0) }.compactMap { $0 }
                 for row in page where AppleServiceSupport.matches(row.text, query: needle) {
                     hits.append(row)
@@ -451,9 +486,11 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
     private func resolveChatGuid(_ chatId: String) -> String {
         if chatId.contains(";") { return chatId }
         guard let db = try? open() else { return chatId }
-        let rows: [String] = (try? db.query(
-            "SELECT guid FROM chat WHERE chat_identifier = ? OR guid = ? ORDER BY ROWID DESC LIMIT 1", bind: [chatId, chatId]
-        ) { Self.text($0, 0) ?? "" }) ?? []
+        let rows: [String] =
+            (try? db.query(
+                "SELECT guid FROM chat WHERE chat_identifier = ? OR guid = ? ORDER BY ROWID DESC LIMIT 1",
+                bind: [chatId, chatId]
+            ) { Self.text($0, 0) ?? "" }) ?? []
         return rows.first.flatMap { $0.isEmpty ? nil : $0 } ?? chatId
     }
 
@@ -475,7 +512,11 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
                     "SELECT m.error, m.text, m.attributedBody FROM message m WHERE m.is_from_me = 1 AND m.date > ? ORDER BY m.date DESC LIMIT 10",
                     bind: [since]
                 ) { s in
-                    let body = Self.bodyText(text: Self.text(s, 1), attributedBody: Self.blob(s, 2), hasAttachments: false)
+                    let body = Self.bodyText(
+                        text: Self.text(s, 1),
+                        attributedBody: Self.blob(s, 2),
+                        hasAttachments: false
+                    )
                     return body == text ? Self.int(s, 0) : -1
                 }.filter { $0 >= 0 }
                 if let error = errors.first { return error == 0 }
@@ -503,7 +544,9 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
                     send \(literalText) to chat id \(AppleScriptBridge.literal(guid))
                 end tell
                 """,
-                permission: .automationMessages, appName: "Messages", isWrite: true
+                permission: .automationMessages,
+                appName: "Messages",
+                isWrite: true
             )
             let delivered = await verifyDelivery(text: text, sentAfter: started)
             return MessagesSendResult(service: "chat", target: guid, delivered: delivered)
@@ -530,7 +573,9 @@ final class ChatDBMessagesService: MessagesServicing, @unchecked Sendable {
                         send \(literalText) to targetBuddy
                     end tell
                     """,
-                    permission: .automationMessages, appName: "Messages", isWrite: true
+                    permission: .automationMessages,
+                    appName: "Messages",
+                    isWrite: true
                 )
             } catch let error as AppleToolError {
                 if case .permissionDenied = error { throw error }

@@ -38,9 +38,12 @@ final class MailMailboxesTool: AppleToolBase, @unchecked Sendable {
     init(service: MailServicing) {
         self.service = service
         super.init(
-            app: .mail, name: "mail_mailboxes",
-            description: "List every account's mailboxes (nested folders included, plus On My Mac under `Local/`) with unread counts. The `path` values are what mail_list / mail_move / mail_read accept as `mailbox_path`.",
-            parameters: AppleSchema.object([:]), isWrite: false
+            app: .mail,
+            name: "mail_mailboxes",
+            description:
+                "List every account's mailboxes (nested folders included, plus On My Mac under `Local/`) with unread counts. The `path` values are what mail_list / mail_move / mail_read accept as `mailbox_path`.",
+            parameters: AppleSchema.object([:]),
+            isWrite: false
         )
     }
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
@@ -55,8 +58,10 @@ final class MailListTool: AppleToolBase, @unchecked Sendable {
     init(service: MailServicing) {
         self.service = service
         super.init(
-            app: .mail, name: "mail_list",
-            description: "List recent messages (newest first) in a mailbox — headers only: id, subject, sender, dates, read/flagged. Use mail_read for the body.",
+            app: .mail,
+            name: "mail_list",
+            description:
+                "List recent messages (newest first) in a mailbox — headers only: id, subject, sender, dates, read/flagged. Use mail_read for the body.",
             parameters: AppleSchema.object([
                 "mailbox_path": MailToolFactory.mailboxPathSchema,
                 "unread_only": AppleSchema.boolean("Only unread messages (default false)."),
@@ -85,8 +90,10 @@ final class MailReadTool: AppleToolBase, @unchecked Sendable {
     init(service: MailServicing) {
         self.service = service
         super.init(
-            app: .mail, name: "mail_read",
-            description: "Read one message in full by `id`: recipients, dates, status, plain-text body, attachment names. Pass the `mailbox_path` from the listing so the lookup is exact.",
+            app: .mail,
+            name: "mail_read",
+            description:
+                "Read one message in full by `id`: recipients, dates, status, plain-text body, attachment names. Pass the `mailbox_path` from the listing so the lookup is exact.",
             parameters: AppleSchema.object(
                 ["id": MailToolFactory.idSchema, "mailbox_path": MailToolFactory.mailboxPathSchema],
                 required: ["id"]
@@ -107,12 +114,17 @@ final class MailSearchTool: AppleToolBase, @unchecked Sendable {
     init(service: MailServicing) {
         self.service = service
         super.init(
-            app: .mail, name: "mail_search",
-            description: "Search a mailbox by subject and/or sender (case-insensitive substring; message bodies and recipients are not searched). Newest first. Defaults to the unified INBOX.",
+            app: .mail,
+            name: "mail_search",
+            description:
+                "Search a mailbox by subject and/or sender (case-insensitive substring; message bodies and recipients are not searched). Newest first. Defaults to the unified INBOX.",
             parameters: AppleSchema.object(
                 [
                     "query": AppleSchema.string("Text to match."),
-                    "field": AppleSchema.string("Which header to match (default any = subject or sender).", enum: ["any", "subject", "sender"]),
+                    "field": AppleSchema.string(
+                        "Which header to match (default any = subject or sender).",
+                        enum: ["any", "subject", "sender"]
+                    ),
                     "mailbox_path": MailToolFactory.mailboxPathSchema,
                     "limit": AppleSchema.limit(default: Self.defaultLimit, max: 200),
                 ],
@@ -123,7 +135,8 @@ final class MailSearchTool: AppleToolBase, @unchecked Sendable {
     }
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
         let text = try AppleArgs.requiredString(args, "query", expected: "search text")
-        let fieldRaw = try AppleArgs.enumeration(args, "field", allowed: ["any", "subject", "sender"], default: "any") ?? "any"
+        let fieldRaw =
+            try AppleArgs.enumeration(args, "field", allowed: ["any", "subject", "sender"], default: "any") ?? "any"
         var query = MailSearchQuery(text: text)
         query.field = MailSearchQuery.Field(rawValue: fieldRaw) ?? .any
         query.mailboxPath = try AppleArgs.string(args, "mailbox_path")
@@ -141,8 +154,10 @@ final class MailComposeTool: AppleToolBase, ArgumentAwarePerCallApprovalTool, @u
     init(service: MailServicing) {
         self.service = service
         super.init(
-            app: .mail, name: "mail_compose",
-            description: "Compose a new email. By default it opens as a draft in Mail for the user to review (`send: false`); set `send: true` only after the user confirmed the exact recipients and text.",
+            app: .mail,
+            name: "mail_compose",
+            description:
+                "Compose a new email. By default it opens as a draft in Mail for the user to review (`send: false`); set `send: true` only after the user confirmed the exact recipients and text.",
             parameters: AppleSchema.object(
                 [
                     "to": AppleSchema.stringArray("Recipient email addresses."),
@@ -160,10 +175,16 @@ final class MailComposeTool: AppleToolBase, ArgumentAwarePerCallApprovalTool, @u
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
         let to = try MailToolFactory.addresses(args, "to")
         guard !to.isEmpty else {
-            throw AppleToolError.invalidArgs("`to` must contain at least one address.", field: "to", expected: "an array of email addresses")
+            throw AppleToolError.invalidArgs(
+                "`to` must contain at least one address.",
+                field: "to",
+                expected: "an array of email addresses"
+            )
         }
         let draft = MailDraft(
-            to: to, cc: try MailToolFactory.addresses(args, "cc"), bcc: try MailToolFactory.addresses(args, "bcc"),
+            to: to,
+            cc: try MailToolFactory.addresses(args, "cc"),
+            bcc: try MailToolFactory.addresses(args, "bcc"),
             subject: try AppleArgs.requiredString(args, "subject", expected: "a subject"),
             body: try AppleArgs.string(args, "body") ?? "",
             send: try AppleArgs.bool(args, "send") ?? false
@@ -181,8 +202,10 @@ final class MailReplyTool: AppleToolBase, ArgumentAwarePerCallApprovalTool, @unc
     init(service: MailServicing) {
         self.service = service
         super.init(
-            app: .mail, name: "mail_reply",
-            description: "Reply to a message by `id`. Your `body` is placed above the quoted original. Defaults to an open draft (`send: false`); `reply_all` includes every original recipient.",
+            app: .mail,
+            name: "mail_reply",
+            description:
+                "Reply to a message by `id`. Your `body` is placed above the quoted original. Defaults to an open draft (`send: false`); `reply_all` includes every original recipient.",
             parameters: AppleSchema.object(
                 [
                     "id": MailToolFactory.idSchema,
@@ -204,7 +227,8 @@ final class MailReplyTool: AppleToolBase, ArgumentAwarePerCallApprovalTool, @unc
         let send = try AppleArgs.bool(args, "send") ?? false
         let result = try await service.reply(id: id, mailboxPath: path, body: body, replyAll: replyAll, send: send)
         return AppleToolPayload([
-            "sent": result.sent, "draft_open_in_mail": !result.sent, "subject": result.subject, "reply_all": replyAll, "id": id,
+            "sent": result.sent, "draft_open_in_mail": !result.sent, "subject": result.subject, "reply_all": replyAll,
+            "id": id,
         ])
     }
 }
@@ -214,13 +238,17 @@ final class MailMoveTool: AppleToolBase, @unchecked Sendable {
     init(service: MailServicing) {
         self.service = service
         super.init(
-            app: .mail, name: "mail_move",
-            description: "Move a message by `id` to another mailbox. `to_mailbox_path` is a path from mail_mailboxes (for example `Account/Archive`) or the unified Trash / Junk.",
+            app: .mail,
+            name: "mail_move",
+            description:
+                "Move a message by `id` to another mailbox. `to_mailbox_path` is a path from mail_mailboxes (for example `Account/Archive`) or the unified Trash / Junk.",
             parameters: AppleSchema.object(
                 [
                     "id": MailToolFactory.idSchema,
                     "mailbox_path": MailToolFactory.mailboxPathSchema,
-                    "to_mailbox_path": AppleSchema.string("Destination mailbox path from mail_mailboxes (e.g. `Account/Archive`), or Trash / Junk."),
+                    "to_mailbox_path": AppleSchema.string(
+                        "Destination mailbox path from mail_mailboxes (e.g. `Account/Archive`), or Trash / Junk."
+                    ),
                 ],
                 required: ["id", "to_mailbox_path"]
             ),
@@ -241,8 +269,10 @@ final class MailSetStatusTool: AppleToolBase, @unchecked Sendable {
     init(service: MailServicing) {
         self.service = service
         super.init(
-            app: .mail, name: "mail_set_status",
-            description: "Mark a message read/unread, flagged/unflagged, or junk/not junk. Only the flags you pass change.",
+            app: .mail,
+            name: "mail_set_status",
+            description:
+                "Mark a message read/unread, flagged/unflagged, or junk/not junk. Only the flags you pass change.",
             parameters: AppleSchema.object(
                 [
                     "id": MailToolFactory.idSchema,
@@ -260,7 +290,9 @@ final class MailSetStatusTool: AppleToolBase, @unchecked Sendable {
         let id = try AppleArgs.requiredString(args, "id", expected: "a message id")
         let path = try AppleArgs.string(args, "mailbox_path")
         let patch = MailStatusPatch(
-            read: try AppleArgs.bool(args, "read"), flagged: try AppleArgs.bool(args, "flagged"), junk: try AppleArgs.bool(args, "junk")
+            read: try AppleArgs.bool(args, "read"),
+            flagged: try AppleArgs.bool(args, "flagged"),
+            junk: try AppleArgs.bool(args, "junk")
         )
         guard patch.read != nil || patch.flagged != nil || patch.junk != nil else {
             throw AppleToolError.invalidArgs("Pass at least one of `read`, `flagged`, `junk`.")
@@ -276,8 +308,10 @@ final class MailThreadTool: AppleToolBase, @unchecked Sendable {
     init(service: MailServicing) {
         self.service = service
         super.init(
-            app: .mail, name: "mail_thread",
-            description: "Return the conversation around a message: messages in the same mailbox whose subject matches after stripping Re:/Fwd:, oldest first.",
+            app: .mail,
+            name: "mail_thread",
+            description:
+                "Return the conversation around a message: messages in the same mailbox whose subject matches after stripping Re:/Fwd:, oldest first.",
             parameters: AppleSchema.object(
                 [
                     "id": MailToolFactory.idSchema,
@@ -313,9 +347,13 @@ enum MailSendApproval {
 }
 
 extension MailComposeTool {
-    func requiresApprovalEveryCall(argumentsJSON: String) -> Bool { MailSendApproval.sends(argumentsJSON: argumentsJSON) }
+    func requiresApprovalEveryCall(argumentsJSON: String) -> Bool {
+        MailSendApproval.sends(argumentsJSON: argumentsJSON)
+    }
 }
 
 extension MailReplyTool {
-    func requiresApprovalEveryCall(argumentsJSON: String) -> Bool { MailSendApproval.sends(argumentsJSON: argumentsJSON) }
+    func requiresApprovalEveryCall(argumentsJSON: String) -> Bool {
+        MailSendApproval.sends(argumentsJSON: argumentsJSON)
+    }
 }

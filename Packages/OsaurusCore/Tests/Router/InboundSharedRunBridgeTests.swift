@@ -505,8 +505,12 @@ struct InboundSharedRunBridgeTests {
             let (bridge, manager, _) = makeBridge()
             let ctx = workspaceContext()
             let handle = bridge.begin(
-                runKey: "native-merge-\(UUID().uuidString)", agentId: UUID(), context: ctx,
-                externalKey: key(ctx, "native-merge"), requestMessages: request, stop: {}
+                runKey: "native-merge-\(UUID().uuidString)",
+                agentId: UUID(),
+                context: ctx,
+                externalKey: key(ctx, "native-merge"),
+                requestMessages: request,
+                stop: {}
             )
             defer {
                 bridge.finish(handle, success: true, summary: "Completed")
@@ -526,24 +530,35 @@ struct InboundSharedRunBridgeTests {
             streamed.generationTokensPerSecond = 12.5
             let attachment = Attachment.document(filename: "streamed.txt", content: "existing", fileSize: 8)
             let artifact = SharedArtifact(
-                contextId: handle.taskId.uuidString, contextType: .chat, filename: "streamed.txt",
-                mimeType: "text/plain", fileSize: 8, hostPath: "/fixture/streamed.txt", content: "existing"
+                contextId: handle.taskId.uuidString,
+                contextType: .chat,
+                filename: "streamed.txt",
+                mimeType: "text/plain",
+                fileSize: 8,
+                hostPath: "/fixture/streamed.txt",
+                content: "existing"
             )
             streamed.attachments = [attachment]
             streamed.sharedArtifacts = [artifact]
             let assistant = ChatMessage(
-                role: "assistant", content: "Checking.", tool_calls: ResponsesHistoryFixture.calls, tool_call_id: nil,
+                role: "assistant",
+                content: "Checking.",
+                tool_calls: ResponsesHistoryFixture.calls,
+                tool_call_id: nil,
                 reasoning_content: "actual reasoning",
                 reasoning_item_id: provider == "responses" ? "rs_original" : nil,
                 reasoning_encrypted: provider == "responses" ? "opaque+/==" : nil,
                 responses_output_items: provider == "responses" ? try ResponsesHistoryFixture.items() : nil,
                 anthropic_thinking_blocks: provider == "anthropic" ? try ResponsesHistoryFixture.signedBlocks() : nil
             )
-            bridge.appendMessages(handle, [
-                assistant,
-                ChatMessage(role: "tool", content: "file a", tool_calls: nil, tool_call_id: "call_a"),
-                ChatMessage(role: "tool", content: "seven", tool_calls: nil, tool_call_id: "call_b"),
-            ])
+            bridge.appendMessages(
+                handle,
+                [
+                    assistant,
+                    ChatMessage(role: "tool", content: "file a", tool_calls: nil, tool_call_id: "call_a"),
+                    ChatMessage(role: "tool", content: "seven", tool_calls: nil, tool_call_id: "call_b"),
+                ]
+            )
             #expect(session.turns.filter { $0.role == .assistant }.count == 1)
             #expect(streamed.id == streamedID && streamed.content == "Checking.")
             #expect(streamed.thinking == "actual reasoning")
@@ -603,19 +618,38 @@ struct InboundSharedRunBridgeTests {
     @Test func completedNonemptyMediaListsRemainAuthoritativeAndKeepTheirOrder() {
         let streamed = ChatTurn(role: .assistant, content: "Done")
         streamed.attachments = [.document(filename: "earlier.txt", content: "old", fileSize: 3)]
-        streamed.sharedArtifacts = [SharedArtifact(
-            contextId: "fixture", contextType: .chat, filename: "earlier.txt", mimeType: "text/plain",
-            fileSize: 3, hostPath: "/fixture/earlier.txt", content: "old"
-        )]
+        streamed.sharedArtifacts = [
+            SharedArtifact(
+                contextId: "fixture",
+                contextType: .chat,
+                filename: "earlier.txt",
+                mimeType: "text/plain",
+                fileSize: 3,
+                hostPath: "/fixture/earlier.txt",
+                content: "old"
+            )
+        ]
         let attachments = [
             Attachment.document(filename: "second.txt", content: "second", fileSize: 6),
             Attachment.document(filename: "first.txt", content: "first", fileSize: 5),
         ]
         let artifacts = ["second", "first"].map { name in
-            SharedArtifact(contextId: "fixture", contextType: .chat, filename: "\(name).txt",
-                mimeType: "text/plain", fileSize: name.utf8.count, hostPath: "/fixture/\(name).txt", content: name)
+            SharedArtifact(
+                contextId: "fixture",
+                contextType: .chat,
+                filename: "\(name).txt",
+                mimeType: "text/plain",
+                fileSize: name.utf8.count,
+                hostPath: "/fixture/\(name).txt",
+                content: name
+            )
         }
-        let completed = ChatTurnData(role: .assistant, content: "Done", attachments: attachments, sharedArtifacts: artifacts)
+        let completed = ChatTurnData(
+            role: .assistant,
+            content: "Done",
+            attachments: attachments,
+            sharedArtifacts: artifacts
+        )
         InboundSharedRunBridge.mergeCompletedTurn(completed, into: streamed)
         #expect(streamed.attachments == attachments)
         #expect(streamed.sharedArtifacts == artifacts)

@@ -60,9 +60,12 @@ final class AppleScriptNotesService: NotesServicing, @unchecked Sendable {
     static let appName = "Notes"
 
     private func run(
-        _ body: String, timeout: TimeInterval = AppleScriptBridge.defaultTimeout, isWrite: Bool = false
+        _ body: String,
+        timeout: TimeInterval = AppleScriptBridge.defaultTimeout,
+        isWrite: Bool = false
     ) async throws -> String {
-        guard await AppleScriptBridge.ensureRunning(bundleIdentifier: Self.bundleIdentifier, appName: Self.appName) else {
+        guard await AppleScriptBridge.ensureRunning(bundleIdentifier: Self.bundleIdentifier, appName: Self.appName)
+        else {
             throw AppleToolError.unavailable("Notes could not be launched on this Mac.", retryable: true)
         }
         let eventBudget = max(Int(timeout) - 5, 10)
@@ -75,9 +78,17 @@ final class AppleScriptNotesService: NotesServicing, @unchecked Sendable {
             end timeout
             """
         return try await AppleScriptBridge.runRetryingIfAppGone(
-            bundleIdentifier: Self.bundleIdentifier, appName: Self.appName, isWrite: isWrite
+            bundleIdentifier: Self.bundleIdentifier,
+            appName: Self.appName,
+            isWrite: isWrite
         ) {
-            try await AppleScriptBridge.run(source, permission: .notes, appName: Self.appName, timeout: timeout, isWrite: isWrite)
+            try await AppleScriptBridge.run(
+                source,
+                permission: .notes,
+                appName: Self.appName,
+                timeout: timeout,
+                isWrite: isWrite
+            )
         }
     }
 
@@ -145,7 +156,10 @@ final class AppleScriptNotesService: NotesServicing, @unchecked Sendable {
             guard r.count >= 4, !seen.contains(r[0]) else { return nil }
             seen.insert(r[0])
             return NoteFolderInfo(
-                id: r[0], name: r[1], account: r[2].isEmpty ? nil : r[2], noteCount: Int(r[3]) ?? 0
+                id: r[0],
+                name: r[1],
+                account: r[2].isEmpty ? nil : r[2],
+                noteCount: Int(r[3]) ?? 0
             )
         }
     }
@@ -212,8 +226,11 @@ final class AppleScriptNotesService: NotesServicing, @unchecked Sendable {
             guard r.count >= 5, !seen.contains(r[0]) else { return nil }
             seen.insert(r[0])
             return NoteSummary(
-                id: r[0], title: r[1], folder: r[2],
-                created: AppleScriptBridge.isoOutput(r[3]), modified: AppleScriptBridge.isoOutput(r[4]),
+                id: r[0],
+                title: r[1],
+                folder: r[2],
+                created: AppleScriptBridge.isoOutput(r[3]),
+                modified: AppleScriptBridge.isoOutput(r[4]),
                 preview: nil
             )
         }
@@ -286,14 +303,22 @@ final class AppleScriptNotesService: NotesServicing, @unchecked Sendable {
             """
         )
         guard let r = AppleScriptBridge.parseRecords(out).first, r.count >= 7 else {
-            throw AppleToolError.notFound("No note with id `\(id)`. Call `notes_list` or `notes_search` and use one of its `id` values.")
+            throw AppleToolError.notFound(
+                "No note with id `\(id)`. Call `notes_list` or `notes_search` and use one of its `id` values."
+            )
         }
         let text = r[6...].joined(separator: String(AppleScriptBridge.fieldSeparator))
         let attachments = r[5].split(separator: "\u{1D}", omittingEmptySubsequences: true).map(String.init)
         return NoteContent(
-            id: r[0], title: r[1], folder: r[2],
-            created: AppleScriptBridge.isoOutput(r[3]), modified: AppleScriptBridge.isoOutput(r[4]),
-            plaintext: text, characterCount: text.count, hasAttachments: !attachments.isEmpty, attachments: attachments
+            id: r[0],
+            title: r[1],
+            folder: r[2],
+            created: AppleScriptBridge.isoOutput(r[3]),
+            modified: AppleScriptBridge.isoOutput(r[4]),
+            plaintext: text,
+            characterCount: text.count,
+            hasAttachments: !attachments.isEmpty,
+            attachments: attachments
         )
     }
 

@@ -405,8 +405,11 @@ public final class RemoteProviderManager: ObservableObject {
                 if let tokens = await provider.getOAuthTokensOffMainActor(), tokens.isExpired {
                     let refreshed = try await OpenAICodexOAuthService.refresh(tokens)
                     if !(await RemoteProviderKeychain.saveOAuthTokensOffMainActor(
-                        refreshed, for: provider.id)),
-                        !KeychainQueryHelpers.disablesKeychainForProcess {
+                        refreshed,
+                        for: provider.id
+                    )),
+                        !KeychainQueryHelpers.disablesKeychainForProcess
+                    {
                         NSLog("RemoteProviderManager: failed to persist refreshed OAuth tokens")
                     }
                 }
@@ -414,8 +417,11 @@ public final class RemoteProviderManager: ObservableObject {
                 if let tokens = await provider.getOAuthTokensOffMainActor(), tokens.isExpired {
                     let refreshed = try await XAIOAuthService.refresh(tokens)
                     if !(await RemoteProviderKeychain.saveOAuthTokensOffMainActor(
-                        refreshed, for: provider.id)),
-                        !KeychainQueryHelpers.disablesKeychainForProcess {
+                        refreshed,
+                        for: provider.id
+                    )),
+                        !KeychainQueryHelpers.disablesKeychainForProcess
+                    {
                         NSLog("RemoteProviderManager: failed to persist refreshed OAuth tokens")
                     }
                 }
@@ -597,7 +603,9 @@ public final class RemoteProviderManager: ObservableObject {
                 let providerName = provider.name
                 group.addTask {
                     await self.connectProviderWithTransientRetry(
-                        providerId: providerId, providerName: providerName)
+                        providerId: providerId,
+                        providerName: providerName
+                    )
                 }
             }
         }
@@ -904,7 +912,9 @@ public final class RemoteProviderManager: ObservableObject {
         // slept (or right before) are transient by nature. NSWorkspace posts
         // wake through its own notification center, not `.default`.
         NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.scheduleTransientRecoverySweep()

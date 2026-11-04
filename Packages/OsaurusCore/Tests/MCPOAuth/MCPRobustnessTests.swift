@@ -33,7 +33,9 @@ struct MCPRobustnessTests {
 
     @Test func networkFailureSuggestsCheckingConnection() {
         let p = MCPProviderErrorPresenter.present(
-            "The Internet connection appears to be offline.", providerName: "Box")
+            "The Internet connection appears to be offline.",
+            providerName: "Box"
+        )
         #expect(p.message.contains("internet connection"))
     }
 
@@ -82,7 +84,11 @@ struct MCPRobustnessTests {
 struct MCPConnectCoalescingTests {
     private func install(_ name: String) -> MCPProvider {
         let provider = MCPProvider(
-            name: name, url: "https://\(name).example.invalid/mcp", autoConnect: false, authType: .none)
+            name: name,
+            url: "https://\(name).example.invalid/mcp",
+            autoConnect: false,
+            authType: .none
+        )
         MCPProviderManager.shared._testInstallProviders([provider])
         return provider
     }
@@ -169,11 +175,13 @@ struct MCPToolProgressTests {
         #expect(
             MCPToolProgressRegistry.displayText(
                 .init(progressToken: token, progress: 3, total: 4, message: "Searching case law")
-            ) == "Searching case law · 75%")
+            ) == "Searching case law · 75%"
+        )
         #expect(MCPToolProgressRegistry.displayText(.init(progressToken: token, progress: 1)) == nil)
         let long = String(repeating: "a", count: 200)
         let text = try? #require(
-            MCPToolProgressRegistry.displayText(.init(progressToken: token, progress: 1, message: long)))
+            MCPToolProgressRegistry.displayText(.init(progressToken: token, progress: 1, message: long))
+        )
         #expect(text?.count == 80)
     }
 
@@ -187,7 +195,12 @@ struct MCPToolProgressTests {
             return "done"
         }
         let value = try await valueWithActivityDeadline(
-            idleTimeout: 0.4, hardCap: 5, clock: clock, operationName: "slow", work: work)
+            idleTimeout: 0.4,
+            hardCap: 5,
+            clock: clock,
+            operationName: "slow",
+            work: work
+        )
         #expect(value == "done")
     }
 
@@ -198,7 +211,12 @@ struct MCPToolProgressTests {
         }
         await #expect(throws: DeadlineExceededError.self) {
             try await valueWithActivityDeadline(
-                idleTimeout: 0.3, hardCap: 5, clock: MCPActivityClock(), operationName: "quiet", work: work)
+                idleTimeout: 0.3,
+                hardCap: 5,
+                clock: MCPActivityClock(),
+                operationName: "quiet",
+                work: work
+            )
         }
     }
 
@@ -213,7 +231,12 @@ struct MCPToolProgressTests {
         let start = Date()
         await #expect(throws: DeadlineExceededError.self) {
             try await valueWithActivityDeadline(
-                idleTimeout: 0.3, hardCap: 0.8, clock: clock, operationName: "chatty", work: work)
+                idleTimeout: 0.3,
+                hardCap: 0.8,
+                clock: clock,
+                operationName: "chatty",
+                work: work
+            )
         }
         #expect(Date().timeIntervalSince(start) < 2)
     }
@@ -233,7 +256,9 @@ struct MCPToolProgressTests {
                 try await Task.sleep(for: .milliseconds(200))
                 try await server?.notify(
                     ProgressNotification.message(
-                        .init(progressToken: token, progress: Double(step), total: 4, message: "Step \(step)")))
+                        .init(progressToken: token, progress: Double(step), total: 4, message: "Step \(step)")
+                    )
+                )
             }
             // Same process: read what the tool card would show before the
             // call completes and clears it.
@@ -255,7 +280,11 @@ struct MCPToolProgressTests {
 
         let result = try await ChatExecutionContext.$currentToolCallId.withValue("call-progress") {
             try await MCPProviderManager.callMCPTool(
-                client: client, toolName: "research", arguments: [:], timeout: 0.5)
+                client: client,
+                toolName: "research",
+                arguments: [:],
+                timeout: 0.5
+            )
         }
         #expect(result.isError != true)
         #expect(MCPToolProgressRegistry.shared.message(for: "call-progress") == nil)

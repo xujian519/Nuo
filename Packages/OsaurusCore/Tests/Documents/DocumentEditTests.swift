@@ -31,7 +31,8 @@ struct DocumentEditTests {
 
     private func write(_ root: URL, _ path: String, _ content: String) async throws {
         let result = try await FileWriteTool(rootPath: root).execute(
-            argumentsJSON: try json(["path": path, "content": content]))
+            argumentsJSON: try json(["path": path, "content": content])
+        )
         #expect(ToolEnvelope.isSuccess(result), "setup write failed: \(result)")
     }
 
@@ -101,7 +102,9 @@ struct DocumentEditTests {
                 <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>\
                 <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>\
                 </Types>
-                """.utf8))
+                """.utf8
+            )
+        )
         try zip.add(
             path: "_rels/.rels",
             data: Data(
@@ -110,7 +113,9 @@ struct DocumentEditTests {
                 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\
                 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>\
                 </Relationships>
-                """.utf8))
+                """.utf8
+            )
+        )
         try zip.add(path: "word/document.xml", data: Data(document.utf8))
         try zip.add(
             path: "word/_rels/document.xml.rels",
@@ -120,15 +125,19 @@ struct DocumentEditTests {
                 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\
                 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>\
                 </Relationships>
-                """.utf8))
+                """.utf8
+            )
+        )
         try zip.add(
             path: "word/styles.xml",
             data: Data(
                 """
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <w:styles xmlns:w="\(w)"><w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/></w:style></w:styles>
-                """.utf8))
-        try zip.add(path: "word/media/image1.png", data: Data((0..<4096).map { UInt8($0 % 251) }))
+                """.utf8
+            )
+        )
+        try zip.add(path: "word/media/image1.png", data: Data((0 ..< 4096).map { UInt8($0 % 251) }))
         try zip.finalize().write(to: url)
     }
 
@@ -149,7 +158,8 @@ struct DocumentEditTests {
                     ["op": "insert_paragraph", "text": "Signed, Ops.", "after": 2],
                     ["op": "set_table_cell", "table": 1, "row": 2, "column": 2, "text": "99"],
                 ],
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
         let payload = try #require(EnvelopeAssertions.successPayload(result))
         #expect(payload["format"] as? String == "docx")
@@ -187,7 +197,8 @@ struct DocumentEditTests {
                     ["op": "replace_text", "old_string": "Body", "new_string": "Main"],
                     ["op": "replace_text", "old_string": "not present", "new_string": "x"],
                 ],
-            ])
+            ]
+        )
         #expect(EnvelopeAssertions.failureKind(missing) == "invalid_args")
         #expect(ToolEnvelope.failureMessage(missing).contains("Nothing was changed"))
 
@@ -196,7 +207,8 @@ struct DocumentEditTests {
 
         let inferred = try await edit(
             root,
-            ["path": "memo.docx", "dry_run": true, "operations": [["old_string": "Body", "new_string": "Main"]]])
+            ["path": "memo.docx", "dry_run": true, "operations": [["old_string": "Body", "new_string": "Main"]]]
+        )
         #expect(ToolEnvelope.isSuccess(inferred), "\(inferred)")
 
         let unnamedDelete = try await edit(root, ["path": "memo.docx", "operations": [["index": 1]]])
@@ -205,7 +217,9 @@ struct DocumentEditTests {
         #expect(guidance.contains("delete_paragraph"))
 
         let lastParagraph = try await edit(
-            root, ["path": "memo.docx", "operations": [["op": "delete_paragraph", "indices": [1, 2]]]])
+            root,
+            ["path": "memo.docx", "operations": [["op": "delete_paragraph", "indices": [1, 2]]]]
+        )
         #expect(ToolEnvelope.isError(lastParagraph))
 
         #expect(try Data(contentsOf: url) == original)
@@ -221,7 +235,9 @@ struct DocumentEditTests {
         let original = try Data(contentsOf: url)
 
         let result = try await edit(
-            root, ["path": "memo.docx", "old_string": "Body text", "new_string": "New body", "dry_run": true])
+            root,
+            ["path": "memo.docx", "old_string": "Body text", "new_string": "New body", "dry_run": true]
+        )
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
         let payload = try #require(EnvelopeAssertions.successPayload(result))
         #expect(payload["dry_run"] as? Bool == true)
@@ -234,7 +250,8 @@ struct DocumentEditTests {
         defer { try? FileManager.default.removeItem(at: root) }
         try await write(root, "memo.docx", "# Memo\n\nFirst.\n\nSecond.\n")
         let result = try await FileReadTool(rootPath: root).execute(
-            argumentsJSON: try json(["path": "memo.docx", "mode": "structure"]))
+            argumentsJSON: try json(["path": "memo.docx", "mode": "structure"])
+        )
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
         let payload = try #require(EnvelopeAssertions.successPayload(result))
         let paragraphs = try #require(payload["paragraphs"] as? [[String: Any]])
@@ -256,9 +273,12 @@ struct DocumentEditTests {
         let result = try await env.run(
             FileEditTool(rootPath: root),
             FileHistoryTestEnv.json([
-                "path": "memo.docx", "operations": [["op": "replace_text", "old_string": "Body", "new_string": "Main"]],
+                "path": "memo.docx",
+                "operations": [["op": "replace_text", "old_string": "Body", "new_string": "Main"]],
             ]),
-            sessionId: sessionId, folder: root)
+            sessionId: sessionId,
+            folder: root
+        )
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
         let payload = try #require(EnvelopeAssertions.successPayload(result))
         let operationId = try #require(UUID(uuidString: payload["operation_id"] as? String ?? ""))
@@ -293,7 +313,8 @@ struct DocumentEditTests {
                     ["op": "add_sheet", "name": "Summary"],
                     ["op": "set_cells", "sheet": "Summary", "cells": ["A1": "='Fruit Stock'!B5"]],
                 ],
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
 
         let sheet = try part("xl/worksheets/sheet1.xml", in: url)
@@ -319,17 +340,23 @@ struct DocumentEditTests {
         let formula = "SUM(A1:B5)+Other!A3+'My Sheet'!$B$4+LEN(\"A3\")+C3"
         #expect(
             XLSXFormula.shift(formula, formulaSheet: "Data", targetSheet: "Data", by: insert)
-                == "SUM(A1:B7)+Other!A3+'My Sheet'!$B$4+LEN(\"A3\")+C5")
+                == "SUM(A1:B7)+Other!A3+'My Sheet'!$B$4+LEN(\"A3\")+C5"
+        )
         #expect(
             XLSXFormula.shift(formula, formulaSheet: "Other", targetSheet: "My Sheet", by: insert)
-                == "SUM(A1:B5)+Other!A3+'My Sheet'!$B$6+LEN(\"A3\")+C3")
+                == "SUM(A1:B5)+Other!A3+'My Sheet'!$B$6+LEN(\"A3\")+C3"
+        )
 
         let delete = XLSXFormula.RowShift(at: 2, delta: -2)
-        #expect(XLSXFormula.shift("A1+A2+A5+SUM(A1:A4)", formulaSheet: "S", targetSheet: "S", by: delete)
-            == "A1+#REF!+A3+SUM(A1:A2)")
+        #expect(
+            XLSXFormula.shift("A1+A2+A5+SUM(A1:A4)", formulaSheet: "S", targetSheet: "S", by: delete)
+                == "A1+#REF!+A3+SUM(A1:A2)"
+        )
 
-        #expect(XLSXFormula.renameSheet("Sheet1!A1+'Sheet1'!B2+A3", from: "Sheet1", to: "Q3 Data")
-            == "'Q3 Data'!A1+'Q3 Data'!B2+A3")
+        #expect(
+            XLSXFormula.renameSheet("Sheet1!A1+'Sheet1'!B2+A3", from: "Sheet1", to: "Q3 Data")
+                == "'Q3 Data'!A1+'Q3 Data'!B2+A3"
+        )
         #expect(XLSXFormula.quotedSheetName("Plain") == "Plain")
         #expect(XLSXFormula.quotedSheetName("A1") == "'A1'")
         #expect(XLSXFormula.quotedSheetName("It's") == "'It''s'")
@@ -384,7 +411,9 @@ struct DocumentEditTests {
                 <Override PartName="/xl/tables/table1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>\
                 <Override PartName="/xl/comments1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml"/>\
                 </Types>
-                """.utf8))
+                """.utf8
+            )
+        )
         try zip.add(
             path: "_rels/.rels",
             data: Data(
@@ -392,14 +421,18 @@ struct DocumentEditTests {
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\
                 <Relationship Id="rId1" Type="\(relBase)officeDocument" Target="xl/workbook.xml"/></Relationships>
-                """.utf8))
+                """.utf8
+            )
+        )
         try zip.add(
             path: "xl/workbook.xml",
             data: Data(
                 """
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <workbook xmlns="\(s)" xmlns:r="\(r)"><sheets><sheet name="Data" sheetId="1" r:id="rId1"/></sheets></workbook>
-                """.utf8))
+                """.utf8
+            )
+        )
         try zip.add(
             path: "xl/_rels/workbook.xml.rels",
             data: Data(
@@ -407,7 +440,9 @@ struct DocumentEditTests {
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\
                 <Relationship Id="rId1" Type="\(relBase)worksheet" Target="worksheets/sheet1.xml"/></Relationships>
-                """.utf8))
+                """.utf8
+            )
+        )
         try zip.add(path: "xl/worksheets/sheet1.xml", data: Data(sheet.utf8))
         try zip.add(
             path: "xl/worksheets/_rels/sheet1.xml.rels",
@@ -417,7 +452,9 @@ struct DocumentEditTests {
                 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\
                 <Relationship Id="rId1" Type="\(relBase)table" Target="../tables/table1.xml"/>\
                 <Relationship Id="rId2" Type="\(relBase)comments" Target="../comments1.xml"/></Relationships>
-                """.utf8))
+                """.utf8
+            )
+        )
         try zip.add(path: "xl/tables/table1.xml", data: Data(table.utf8))
         try zip.add(path: "xl/comments1.xml", data: Data(comments.utf8))
         try zip.finalize().write(to: url)
@@ -430,7 +467,9 @@ struct DocumentEditTests {
         try makeStructuredXLSX(url)
 
         let result = try await edit(
-            root, ["path": "sales.xlsx", "operations": [["op": "insert_rows", "at": 3, "count": 1]]])
+            root,
+            ["path": "sales.xlsx", "operations": [["op": "insert_rows", "at": 3, "count": 1]]]
+        )
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
 
         let sheet = try part("xl/worksheets/sheet1.xml", in: url)
@@ -465,19 +504,32 @@ struct DocumentEditTests {
         let url = root.appendingPathComponent("sales.xlsx")
         try makeStructuredXLSX(url)
 
-        let result = try await edit(root, ["path": "sales.xlsx", "operations": [["op": "set_cells", "cells": ["B2": 12]]]])
+        let result = try await edit(
+            root,
+            ["path": "sales.xlsx", "operations": [["op": "set_cells", "cells": ["B2": 12]]]]
+        )
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
         let sheet = try part("xl/worksheets/sheet1.xml", in: url)
-        for cached in ["<v>10</v></c><c r=\"A3\"", "<v>20</v>", "<v>30</v>", "<v>40</v>", "<v>2</v></c></row>", "<c r=\"E7\"><v>4</v>"] {
+        for cached in [
+            "<v>10</v></c><c r=\"A3\"", "<v>20</v>", "<v>30</v>", "<v>40</v>", "<v>2</v></c></row>",
+            "<c r=\"E7\"><v>4</v>",
+        ] {
             #expect(!sheet.contains(cached), "stale cached result \(cached) kept: \(sheet)")
         }
         #expect(sheet.contains("<c r=\"B2\"><v>12</v></c>"), "\(sheet)")
-        #expect(sheet.contains("<c r=\"A5\"><v>4</v></c>") && sheet.contains("<c r=\"B5\"><v>10</v></c>"), "values stay: \(sheet)")
+        #expect(
+            sheet.contains("<c r=\"A5\"><v>4</v></c>") && sheet.contains("<c r=\"B5\"><v>10</v></c>"),
+            "values stay: \(sheet)"
+        )
         #expect(sheet.contains("<f t=\"array\" ref=\"E6:E7\">A2:A3*2</f>"), "\(sheet)")
         #expect(try part("xl/workbook.xml", in: url).contains("fullCalcOnLoad=\"1\""))
 
         // Formulas on another sheet can depend on the edited one, so their cached results go too.
-        try await write(root, "two.xlsx", #"{"sheets":[{"name":"Budget","rows":[["Amount"],[450],["=SUM(A2:A2)"]]},{"name":"Summary","rows":[["=Budget!A3"]]}]}"#)
+        try await write(
+            root,
+            "two.xlsx",
+            #"{"sheets":[{"name":"Budget","rows":[["Amount"],[450],["=SUM(A2:A2)"]]},{"name":"Summary","rows":[["=Budget!A3"]]}]}"#
+        )
         let two = root.appendingPathComponent("two.xlsx")
         let package = try OOXMLPackage(data: try Data(contentsOf: two))
         for name in ["xl/worksheets/sheet1.xml", "xl/worksheets/sheet2.xml"] {
@@ -486,7 +538,10 @@ struct DocumentEditTests {
             package.setData(name, Data(xml.utf8))
         }
         try package.serialize().write(to: two)
-        let edited = try await edit(root, ["path": "two.xlsx", "operations": [["op": "set_cells", "sheet": "Budget", "cells": ["A2": 475]]]])
+        let edited = try await edit(
+            root,
+            ["path": "two.xlsx", "operations": [["op": "set_cells", "sheet": "Budget", "cells": ["A2": 475]]]]
+        )
         #expect(ToolEnvelope.isSuccess(edited), "\(edited)")
         for name in ["xl/worksheets/sheet1.xml", "xl/worksheets/sheet2.xml"] {
             let xml = try part(name, in: two)
@@ -510,7 +565,10 @@ struct DocumentEditTests {
         #expect(ToolEnvelope.isError(array))
         #expect((EnvelopeAssertions.failureMessage(array) ?? "").contains("array formula"), "\(array)")
         // rename/delete without naming the sheet.
-        let rename = try await edit(root, ["path": "sales.xlsx", "operations": [["op": "rename_sheet", "name": "Q3"]]])
+        let rename = try await edit(
+            root,
+            ["path": "sales.xlsx", "operations": [["op": "rename_sheet", "name": "Q3"]]]
+        )
         #expect(ToolEnvelope.isError(rename))
         #expect((EnvelopeAssertions.failureMessage(rename) ?? "").contains("`sheet` is required"), "\(rename)")
         let delete = try await edit(root, ["path": "sales.xlsx", "operations": [["op": "delete_sheet"]]])
@@ -546,7 +604,8 @@ struct DocumentEditTests {
                     ["op": "reorder_slides", "order": [4, 3, 1, 2]],
                     ["op": "delete_slide", "slide": 4],
                 ],
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
 
         let structure = try await DocumentEditService.structure(of: url)
@@ -557,7 +616,7 @@ struct DocumentEditTests {
         #expect(titles == ["Gamma", "Beta", "Alpha"], "\(titles)")
 
         let text = try await text(of: url)
-        for slide in 1...3 {
+        for slide in 1 ... 3 {
             #expect(try elementsWithoutNamespace("ppt/slides/slide\(slide).xml", in: url).isEmpty)
         }
         #expect(try elementsWithoutNamespace("ppt/presentation.xml", in: url).isEmpty)
@@ -581,7 +640,10 @@ struct DocumentEditTests {
             <w:p><w:r><w:t>Line one.</w:t></w:r></w:p>\
             <w:sectPr/></w:body></w:document>
             """
-        let rewritten = try ZipArchive.rewrite(try Data(contentsOf: url), replacing: ["word/document.xml": Data(document.utf8)])
+        let rewritten = try ZipArchive.rewrite(
+            try Data(contentsOf: url),
+            replacing: ["word/document.xml": Data(document.utf8)]
+        )
         try rewritten.write(to: url)
     }
 
@@ -594,14 +656,24 @@ struct DocumentEditTests {
         // A match that would swallow the tab / line break is refused, not
         // silently applied to the wrong run.
         let tab = try await edit(
-            root, ["path": "tabs.docx", "operations": [["op": "replace_text", "old_string": "Name\tScore", "new_string": "x"]]])
+            root,
+            [
+                "path": "tabs.docx",
+                "operations": [["op": "replace_text", "old_string": "Name\tScore", "new_string": "x"]],
+            ]
+        )
         #expect(ToolEnvelope.isError(tab), "\(tab)")
         #expect((EnvelopeAssertions.failureMessage(tab) ?? "").contains("tab or line break"), "\(tab)")
 
         // Decomposed é doesn't match the precomposed text: reported as not
         // found rather than "Replaced 0 occurrences".
         let decomposed = try await edit(
-            root, ["path": "tabs.docx", "operations": [["op": "replace_text", "old_string": "cafe\u{301}", "new_string": "bar"]]])
+            root,
+            [
+                "path": "tabs.docx",
+                "operations": [["op": "replace_text", "old_string": "cafe\u{301}", "new_string": "bar"]],
+            ]
+        )
         #expect(ToolEnvelope.isError(decomposed), "\(decomposed)")
         #expect((EnvelopeAssertions.failureMessage(decomposed) ?? "").contains("wasn't found"), "\(decomposed)")
 
@@ -616,7 +688,8 @@ struct DocumentEditTests {
                     ["op": "replace_text", "old_string": "Line one.", "new_string": "Line one.\nLine two.\u{0}"],
                     ["op": "replace_text", "old_string": "caf\u{E9}", "new_string": "coffee"],
                 ],
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(ok), "\(ok)")
         let xml = try part("word/document.xml", in: url)
         #expect(xml.contains("<w:t>Line one.</w:t></w:r></w:p><w:p><w:r><w:t>Line two.</w:t>"), "\(xml)")
@@ -624,7 +697,11 @@ struct DocumentEditTests {
         #expect(!xml.unicodeScalars.contains("\u{0}"))
         #expect(xml.contains("coffee menu"), "\(xml)")
         // Tab and break still present, untouched.
-        #expect(xml.contains("<w:t>Name</w:t><w:tab/><w:t>Score</w:t>") || xml.contains("<w:t>Name</w:t><w:tab></w:tab><w:t>Score</w:t>"), "\(xml)")
+        #expect(
+            xml.contains("<w:t>Name</w:t><w:tab/><w:t>Score</w:t>")
+                || xml.contains("<w:t>Name</w:t><w:tab></w:tab><w:t>Score</w:t>"),
+            "\(xml)"
+        )
     }
 
     /// Body with Word-autocorrected punctuation (curly quotes, em dash,
@@ -660,7 +737,9 @@ struct DocumentEditTests {
                 <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>\
                 <Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/>\
                 </Types>
-                """.utf8))
+                """.utf8
+            )
+        )
         try zip.add(
             path: "_rels/.rels",
             data: Data(
@@ -669,7 +748,9 @@ struct DocumentEditTests {
                 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\
                 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>\
                 </Relationships>
-                """.utf8))
+                """.utf8
+            )
+        )
         try zip.add(path: "word/document.xml", data: Data(document.utf8))
         try zip.add(path: "word/header1.xml", data: Data(header.utf8))
         try zip.add(
@@ -680,7 +761,9 @@ struct DocumentEditTests {
                 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\
                 <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/>\
                 </Relationships>
-                """.utf8))
+                """.utf8
+            )
+        )
         try zip.finalize().write(to: url)
     }
 
@@ -697,9 +780,13 @@ struct DocumentEditTests {
             [
                 "path": "tolerant.docx",
                 "operations": [
-                    ["op": "replace_text", "old_string": "\"we'll ship\" - by Friday", "new_string": "\"we'll ship\" by Thursday"]
+                    [
+                        "op": "replace_text", "old_string": "\"we'll ship\" - by Friday",
+                        "new_string": "\"we'll ship\" by Thursday",
+                    ]
                 ],
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
         let payload = try #require(EnvelopeAssertions.successPayload(result))
         let applied = (payload["operations_applied"] as? [String]) ?? []
@@ -710,7 +797,12 @@ struct DocumentEditTests {
 
         // Identical old/new is a no-op error, not a silent success.
         let same = try await edit(
-            root, ["path": "tolerant.docx", "operations": [["op": "replace_text", "old_string": "Second clause.", "new_string": "Second clause."]]])
+            root,
+            [
+                "path": "tolerant.docx",
+                "operations": [["op": "replace_text", "old_string": "Second clause.", "new_string": "Second clause."]],
+            ]
+        )
         #expect(ToolEnvelope.isError(same), "\(same)")
         #expect((EnvelopeAssertions.failureMessage(same) ?? "").contains("identical"), "\(same)")
     }
@@ -727,17 +819,39 @@ struct DocumentEditTests {
 
         let bulletTab = try await edit(
             root,
-            ["path": "list.docx", "operations": [["op": "replace_text", "old_string": "•\tSecond clause.", "new_string": "•\tSecond clause, revised."]]])
+            [
+                "path": "list.docx",
+                "operations": [
+                    [
+                        "op": "replace_text", "old_string": "•\tSecond clause.",
+                        "new_string": "•\tSecond clause, revised.",
+                    ]
+                ],
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(bulletTab), "\(bulletTab)")
-        let applied = ((try #require(EnvelopeAssertions.successPayload(bulletTab)))["operations_applied"] as? [String]) ?? []
+        let applied =
+            ((try #require(EnvelopeAssertions.successPayload(bulletTab)))["operations_applied"] as? [String]) ?? []
         #expect(applied.joined(separator: "\n").contains("treated as formatting"), "\(applied)")
         var xml = try part("word/document.xml", in: url)
-        #expect(xml.contains("<w:pStyle w:val=\"ListParagraph\"/></w:pPr><w:r><w:t>Second clause, revised.</w:t>"), "\(xml)")
+        #expect(
+            xml.contains("<w:pStyle w:val=\"ListParagraph\"/></w:pPr><w:r><w:t>Second clause, revised.</w:t>"),
+            "\(xml)"
+        )
         #expect(!xml.contains("•"), "\(xml)")
 
         let markdownDash = try await edit(
             root,
-            ["path": "list.docx", "operations": [["op": "replace_text", "old_string": "- Second clause, revised.", "new_string": "- Second clause, final."]]])
+            [
+                "path": "list.docx",
+                "operations": [
+                    [
+                        "op": "replace_text", "old_string": "- Second clause, revised.",
+                        "new_string": "- Second clause, final.",
+                    ]
+                ],
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(markdownDash), "\(markdownDash)")
         xml = try part("word/document.xml", in: url)
         #expect(xml.contains("<w:t>Second clause, final.</w:t>"), "\(xml)")
@@ -747,28 +861,58 @@ struct DocumentEditTests {
         // that drafted "## Draft agreement" / "- **Second clause, final.**"
         // addresses the styled paragraphs without the syntax being text.
         let headingHashes = try await edit(
-            root, ["path": "list.docx", "operations": [["op": "replace_text", "old_string": "## Draft agreement", "new_string": "## Final agreement"]]])
+            root,
+            [
+                "path": "list.docx",
+                "operations": [
+                    ["op": "replace_text", "old_string": "## Draft agreement", "new_string": "## Final agreement"]
+                ],
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(headingHashes), "\(headingHashes)")
         let emphasis = try await edit(
             root,
-            ["path": "list.docx", "operations": [["op": "replace_text", "old_string": "- **Second clause, final.**", "new_string": "- **Second clause, signed.**"]]])
+            [
+                "path": "list.docx",
+                "operations": [
+                    [
+                        "op": "replace_text", "old_string": "- **Second clause, final.**",
+                        "new_string": "- **Second clause, signed.**",
+                    ]
+                ],
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(emphasis), "\(emphasis)")
         xml = try part("word/document.xml", in: url)
         #expect(xml.contains("<w:pStyle w:val=\"Heading1\"/></w:pPr><w:r><w:t>Final agreement</w:t>"), "\(xml)")
-        #expect(xml.contains("<w:t>Second clause, signed.</w:t>") && !xml.contains("**") && !xml.contains("## "), "\(xml)")
+        #expect(
+            xml.contains("<w:t>Second clause, signed.</w:t>") && !xml.contains("**") && !xml.contains("## "),
+            "\(xml)"
+        )
 
         // A genuine miss still reports the closest paragraph, not a marker note.
         let miss = try await edit(
-            root, ["path": "list.docx", "operations": [["op": "replace_text", "old_string": "- Third clause.", "new_string": "x"]]])
+            root,
+            [
+                "path": "list.docx",
+                "operations": [["op": "replace_text", "old_string": "- Third clause.", "new_string": "x"]],
+            ]
+        )
         #expect(ToolEnvelope.isError(miss), "\(miss)")
         let message = EnvelopeAssertions.failureMessage(miss) ?? ""
         #expect(message.contains("wasn't found"), "\(message)")
         #expect(!message.contains("treated as formatting"), "\(message)")
 
-        #expect(DOCXEditor.strippingListMarkers("1. First\n  2) Second\n• Third\nplain").text == "First\n  Second\nThird\nplain")
+        #expect(
+            DOCXEditor.strippingListMarkers("1. First\n  2) Second\n• Third\nplain").text
+                == "First\n  Second\nThird\nplain"
+        )
         #expect(DOCXEditor.strippingListMarkers("-5 degrees").stripped == false)
         #expect(DOCXEditor.strippingListMarkers("1.5 litres").stripped == false)
-        #expect(DOCXEditor.strippingMarkdownSyntax("### Title **bold** and `code`, _it_ file_name a*b").text == "Title bold and code, it file_name a*b")
+        #expect(
+            DOCXEditor.strippingMarkdownSyntax("### Title **bold** and `code`, _it_ file_name a*b").text
+                == "Title bold and code, it file_name a*b"
+        )
         #expect(DOCXEditor.strippingMarkdownSyntax("plain 2 * 3 = 6").stripped == false)
     }
 
@@ -781,28 +925,40 @@ struct DocumentEditTests {
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         try await write(
-            root, "brief.docx",
-            "# Atlas Brief\n\n## Scope\n- **Kickoff: April 7**\n- Full rollout in Q3\n")
+            root,
+            "brief.docx",
+            "# Atlas Brief\n\n## Scope\n- **Kickoff: April 7**\n- Full rollout in Q3\n"
+        )
         let url = root.appendingPathComponent("brief.docx")
 
         let date = try await edit(
-            root, ["path": "brief.docx", "old_string": "- **Kickoff: April 7**", "new_string": "- **Kickoff: May 5**"])
+            root,
+            ["path": "brief.docx", "old_string": "- **Kickoff: April 7**", "new_string": "- **Kickoff: May 5**"]
+        )
         #expect(ToolEnvelope.isSuccess(date), "\(date)")
-        let heading = try await edit(root, ["path": "brief.docx", "old_string": "## Scope", "new_string": "## Scope and Timeline"])
+        let heading = try await edit(
+            root,
+            ["path": "brief.docx", "old_string": "## Scope", "new_string": "## Scope and Timeline"]
+        )
         #expect(ToolEnvelope.isSuccess(heading), "\(heading)")
         let section = try await edit(
             root,
             [
                 "path": "brief.docx", "old_string": "•\tFull rollout in Q3",
                 "new_string": "- Full rollout in Q3\n\n## Risks\n- Vendor delays\n- Data loss",
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(section), "\(section)")
 
         let editor = try DOCXEditor(package: OOXMLPackage(data: Data(contentsOf: url)))
         let texts = try editor.paragraphs().map { OOXMLText.text(of: $0) }
         #expect(
-            texts == ["Atlas Brief", "Scope and Timeline", "•\tKickoff: May 5", "•\tFull rollout in Q3", "Risks", "•\tVendor delays", "•\tData loss"],
-            "\(texts)")
+            texts == [
+                "Atlas Brief", "Scope and Timeline", "•\tKickoff: May 5", "•\tFull rollout in Q3", "Risks",
+                "•\tVendor delays", "•\tData loss",
+            ],
+            "\(texts)"
+        )
         let xml = try part("word/document.xml", in: url)
         #expect(!xml.contains("**") && !xml.contains("## ") && !xml.contains("- Vendor"), "\(xml)")
     }
@@ -817,8 +973,10 @@ struct DocumentEditTests {
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         try await write(
-            root, "brief.docx",
-            "# Atlas Migration Brief\n\n## Goal\n- Define the objectives\n\n## Timeline\n- Kickoff: April 7\n- Phase 1 complete in June\n- Set the schedule for each phase\n")
+            root,
+            "brief.docx",
+            "# Atlas Migration Brief\n\n## Goal\n- Define the objectives\n\n## Timeline\n- Kickoff: April 7\n- Phase 1 complete in June\n- Set the schedule for each phase\n"
+        )
         let url = root.appendingPathComponent("brief.docx")
 
         let section = try await edit(
@@ -828,17 +986,21 @@ struct DocumentEditTests {
                 "old_string": "- Kickoff: April 7\n- Phase 1 complete in June\n- Set the schedule for each phase",
                 "new_string":
                     "- Kickoff: May 5\n- Phase 1 complete in June\n- Set the schedule for each phase\n\n## Risks\n- Identify potential risks and mitigation strategies\n- Define monitoring and response protocols",
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(section), "\(section)")
 
         let editor = try DOCXEditor(package: OOXMLPackage(data: Data(contentsOf: url)))
         let texts = try editor.paragraphs().map { OOXMLText.text(of: $0) }
         #expect(
             texts == [
-                "Atlas Migration Brief", "Goal", "•\tDefine the objectives", "Timeline", "•\tKickoff: May 5", "•\tPhase 1 complete in June",
+                "Atlas Migration Brief", "Goal", "•\tDefine the objectives", "Timeline", "•\tKickoff: May 5",
+                "•\tPhase 1 complete in June",
                 "•\tSet the schedule for each phase", "Risks", "•\tIdentify potential risks and mitigation strategies",
                 "•\tDefine monitoring and response protocols",
-            ], "\(texts)")
+            ],
+            "\(texts)"
+        )
         let xml = try part("word/document.xml", in: url)
         #expect(!xml.contains("- Kickoff") && !xml.contains("## Risks") && !xml.contains("April 7"), "\(xml)")
 
@@ -847,11 +1009,15 @@ struct DocumentEditTests {
             root,
             [
                 "path": "brief.docx",
-                "old_string": "- Identify potential risks and mitigation strategies\n- Define monitoring and response protocols",
+                "old_string":
+                    "- Identify potential risks and mitigation strategies\n- Define monitoring and response protocols",
                 "new_string": "- Identify risks and define monitoring",
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(merged), "\(merged)")
-        let mergedTexts = try DOCXEditor(package: OOXMLPackage(data: Data(contentsOf: url))).paragraphs().map { OOXMLText.text(of: $0) }
+        let mergedTexts = try DOCXEditor(package: OOXMLPackage(data: Data(contentsOf: url))).paragraphs().map {
+            OOXMLText.text(of: $0)
+        }
         #expect(Array(mergedTexts.suffix(2)) == ["Risks", "•\tIdentify risks and define monitoring"], "\(mergedTexts)")
 
         #expect(DOCXEditor.literalBulletPrefix("•\tItem") == "•\t")
@@ -860,7 +1026,7 @@ struct DocumentEditTests {
         #expect(DOCXEditor.literalBulletPrefix("2024 was a year") == nil)
         #expect(DOCXEditor.literalBulletPrefix("Plain") == nil)
         // The leading-side tolerance only covers a literal list prefix.
-        #expect(DOCXEditor.edgeRange(of: "Kickoff", in: "•\tKickoff", edge: .whole, mode: .exact) == 2..<9)
+        #expect(DOCXEditor.edgeRange(of: "Kickoff", in: "•\tKickoff", edge: .whole, mode: .exact) == 2 ..< 9)
         #expect(DOCXEditor.edgeRange(of: "Kickoff", in: "Re: Kickoff", edge: .prefix, mode: .exact) == nil)
     }
 
@@ -872,12 +1038,18 @@ struct DocumentEditTests {
         defer { try? FileManager.default.removeItem(at: root) }
         try await write(root, "brief.docx", "# Brief\n\nBody.\n")
 
-        let single = try await edit(root, ["path": "brief.docx", "old_string": "", "new_string": "## Risks\n- Vendor delays"])
+        let single = try await edit(
+            root,
+            ["path": "brief.docx", "old_string": "", "new_string": "## Risks\n- Vendor delays"]
+        )
         #expect(!ToolEnvelope.isSuccess(single))
         #expect(ToolEnvelope.failureMessage(single).contains("append_markdown"), "\(single)")
         #expect(ToolEnvelope.failureMessage(single).contains("insert_paragraph"), "\(single)")
 
-        let batch = try await edit(root, ["path": "brief.docx", "edits": [["old_string": "", "new_string": "## Risks"]]])
+        let batch = try await edit(
+            root,
+            ["path": "brief.docx", "edits": [["old_string": "", "new_string": "## Risks"]]]
+        )
         #expect(ToolEnvelope.failureMessage(batch).contains("append_markdown"), "\(batch)")
 
         // A missing new_string is not an insert; no operations advice.
@@ -895,12 +1067,16 @@ struct DocumentEditTests {
         defer { try? FileManager.default.removeItem(at: root) }
         try await write(root, "budget.xlsx", "Dept,Q1\nEng,10\nOps,20\n")
 
-        let raw = #"{"edits":[{"cells":{"B4":"=SUM(B2:B3)"},"op":"set_cells"},{"cells":{"B3":25},"op":"set_cells"}],"path":"budget.xlsx"}"#
+        let raw =
+            #"{"edits":[{"cells":{"B4":"=SUM(B2:B3)"},"op":"set_cells"},{"cells":{"B3":25},"op":"set_cells"}],"path":"budget.xlsx"}"#
         let normalized = FileEditTool.normalizingEditShapes(raw)
         let object = try #require(try JSONSerialization.jsonObject(with: Data(normalized.utf8)) as? [String: Any])
         #expect(object["edits"] == nil)
         #expect((object["operations"] as? [[String: Any]])?.count == 2, "\(normalized)")
-        let schemaCheck = SchemaValidator.validate(arguments: object, against: try #require(FileEditTool(rootPath: root).parameters))
+        let schemaCheck = SchemaValidator.validate(
+            arguments: object,
+            against: try #require(FileEditTool(rootPath: root).parameters)
+        )
         #expect(schemaCheck.isValid, "\(schemaCheck.errorMessage ?? "")")
 
         let applied = try await FileEditTool(rootPath: root).execute(argumentsJSON: normalized)
@@ -910,7 +1086,8 @@ struct DocumentEditTests {
 
         // Mixed: a pair beside an operation becomes replace_text and keeps replace_all.
         let mixed = FileEditTool.normalizingEditShapes(
-            #"{"path":"memo.docx","replace_all":true,"edits":[{"old_string":"a","new_string":"b"},{"op":"delete_paragraph","index":3}]}"#)
+            #"{"path":"memo.docx","replace_all":true,"edits":[{"old_string":"a","new_string":"b"},{"op":"delete_paragraph","index":3}]}"#
+        )
         let mixedObject = try #require(try JSONSerialization.jsonObject(with: Data(mixed.utf8)) as? [String: Any])
         let ops = try #require(mixedObject["operations"] as? [[String: Any]])
         #expect(ops[0]["op"] as? String == "replace_text" && ops[0]["all"] as? Bool == true, "\(ops)")
@@ -939,7 +1116,12 @@ struct DocumentEditTests {
 
         let raw =
             #"{"dry_run":"false","edits":"[{\"new_string\": \"Status: Final\", \"old_string\": \"Status: Draft\", \"path\": \"memo.docx\"}, {\"new_string\": \"April 21.\", \"old_string\": \"April 14.\", \"path\": \"memo.docx\"}]"}"#
-        #expect(!SchemaValidator.validate(arguments: try JSONSerialization.jsonObject(with: Data(raw.utf8)), against: schema).isValid)
+        #expect(
+            !SchemaValidator.validate(
+                arguments: try JSONSerialization.jsonObject(with: Data(raw.utf8)),
+                against: schema
+            ).isValid
+        )
         let normalized = FileEditTool.normalizingEditShapes(raw)
         let object = try #require(try JSONSerialization.jsonObject(with: Data(normalized.utf8)) as? [String: Any])
         #expect(object["path"] as? String == "memo.docx", "\(normalized)")
@@ -948,13 +1130,19 @@ struct DocumentEditTests {
         #expect(SchemaValidator.validate(arguments: object, against: schema).isValid, "\(normalized)")
         let applied = try await FileEditTool(rootPath: root).execute(argumentsJSON: normalized)
         #expect(ToolEnvelope.isSuccess(applied), "\(applied)")
-        let texts = try DOCXEditor(package: OOXMLPackage(data: Data(contentsOf: root.appendingPathComponent("memo.docx")))).paragraphs()
+        let texts = try DOCXEditor(
+            package: OOXMLPackage(data: Data(contentsOf: root.appendingPathComponent("memo.docx")))
+        ).paragraphs()
             .map { OOXMLText.text(of: $0) }
-        #expect(texts.contains("Status: Final") && texts.contains("Go-live remains scheduled for April 21."), "\(texts)")
+        #expect(
+            texts.contains("Status: Final") && texts.contains("Go-live remains scheduled for April 21."),
+            "\(texts)"
+        )
 
         // Per-entry path + document op under `edits`: hoisted and promoted together.
         let form = FileEditTool.normalizingEditShapes(
-            #"{"dry_run":"true","edits":[{"fields":{"Name":"Ada"},"op":"fill_form","path":"intake-form.pdf"}]}"#)
+            #"{"dry_run":"true","edits":[{"fields":{"Name":"Ada"},"op":"fill_form","path":"intake-form.pdf"}]}"#
+        )
         let formObject = try #require(try JSONSerialization.jsonObject(with: Data(form.utf8)) as? [String: Any])
         #expect(formObject["path"] as? String == "intake-form.pdf", "\(form)")
         #expect((formObject["operations"] as? [[String: Any]])?.first?["op"] as? String == "fill_form", "\(form)")
@@ -972,7 +1160,9 @@ struct DocumentEditTests {
             #expect(!verdict.isValid && verdict.field == "path", "\(result) → \(verdict.errorMessage ?? "")")
         }
         // A top-level path always wins over entry paths.
-        let kept = FileEditTool.normalizingEditShapes(#"{"path":"real.txt","edits":[{"old_string":"a","new_string":"b","path":"other.txt"}]}"#)
+        let kept = FileEditTool.normalizingEditShapes(
+            #"{"path":"real.txt","edits":[{"old_string":"a","new_string":"b","path":"other.txt"}]}"#
+        )
         #expect(kept == #"{"path":"real.txt","edits":[{"old_string":"a","new_string":"b","path":"other.txt"}]}"#)
     }
 
@@ -994,30 +1184,43 @@ struct DocumentEditTests {
                 "operations": [
                     [
                         "op": "replace_text", "old_string": "- first clause here.",
-                        "new_string": "- first clause here.\n\n## Risks\n- Vendor delays\n- Resource contention\nMitigation is tracked weekly.",
+                        "new_string":
+                            "- first clause here.\n\n## Risks\n- Vendor delays\n- Resource contention\nMitigation is tracked weekly.",
                     ]
                 ],
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(appended), "\(appended)")
-        let applied = ((try #require(EnvelopeAssertions.successPayload(appended)))["operations_applied"] as? [String]) ?? []
+        let applied =
+            ((try #require(EnvelopeAssertions.successPayload(appended)))["operations_applied"] as? [String]) ?? []
         #expect(applied.joined(separator: "\n").contains("5 paragraphs"), "\(applied)")
         var xml = try part("word/document.xml", in: url)
         // The matched paragraph keeps its head run and takes the first line.
         #expect(xml.contains("<w:t>Intro: </w:t></w:r><w:r><w:t>first clause here.</w:t></w:r></w:p>"), "\(xml)")
         // No styles.xml in this fixture → the heading is bold text, not "## Risks".
-        #expect(xml.contains("<w:rPr><w:b></w:b></w:rPr><w:t>Risks</w:t>") || xml.contains("<w:rPr><w:b/></w:rPr><w:t>Risks</w:t>"), "\(xml)")
+        #expect(
+            xml.contains("<w:rPr><w:b></w:b></w:rPr><w:t>Risks</w:t>")
+                || xml.contains("<w:rPr><w:b/></w:rPr><w:t>Risks</w:t>"),
+            "\(xml)"
+        )
         #expect(!xml.contains("## Risks"), "\(xml)")
         // Bullets clone the nearest list paragraph's formatting; no literal markers.
         #expect(xml.contains("<w:pStyle w:val=\"ListParagraph\"/></w:pPr><w:r><w:t>Vendor delays</w:t>"), "\(xml)")
-        #expect(xml.contains("<w:pStyle w:val=\"ListParagraph\"/></w:pPr><w:r><w:t>Resource contention</w:t>"), "\(xml)")
+        #expect(
+            xml.contains("<w:pStyle w:val=\"ListParagraph\"/></w:pPr><w:r><w:t>Resource contention</w:t>"),
+            "\(xml)"
+        )
         #expect(!xml.contains("- Vendor") && !xml.contains("•"), "\(xml)")
         #expect(!xml.contains("<w:br"), "\(xml)")
         let editor = try DOCXEditor(package: OOXMLPackage(data: Data(contentsOf: url)))
         let texts = try editor.paragraphs().map { OOXMLText.text(of: $0) }
         #expect(
-            Array(texts[2...7]) == [
-                "Intro: first clause here.", "Risks", "Vendor delays", "Resource contention", "Mitigation is tracked weekly.", "Second clause.",
-            ], "\(texts)")
+            Array(texts[2 ... 7]) == [
+                "Intro: first clause here.", "Risks", "Vendor delays", "Resource contention",
+                "Mitigation is tracked weekly.", "Second clause.",
+            ],
+            "\(texts)"
+        )
 
         // The new paragraphs are real paragraphs: a later multi-line
         // old_string (as `file_read` would render them) addresses them.
@@ -1031,19 +1234,34 @@ struct DocumentEditTests {
                         "new_string": "Risks\n- Vendor delays (mitigated)\n- Resource contention",
                     ]
                 ],
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(revised), "\(revised)")
         xml = try part("word/document.xml", in: url)
-        #expect(xml.contains("<w:pStyle w:val=\"ListParagraph\"/></w:pPr><w:r><w:t>Vendor delays (mitigated)</w:t>"), "\(xml)")
+        #expect(
+            xml.contains("<w:pStyle w:val=\"ListParagraph\"/></w:pPr><w:r><w:t>Vendor delays (mitigated)</w:t>"),
+            "\(xml)"
+        )
 
         // A partial match with a tail: the tail moves to the last new
         // paragraph and keeps its own run.
         let split = try await edit(
             root,
-            ["path": "draft.docx", "operations": [["op": "replace_text", "old_string": "Third clause", "new_string": "Third clause\nFourth clause"]]])
+            [
+                "path": "draft.docx",
+                "operations": [
+                    ["op": "replace_text", "old_string": "Third clause", "new_string": "Third clause\nFourth clause"]
+                ],
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(split), "\(split)")
         xml = try part("word/document.xml", in: url)
-        #expect(xml.contains("<w:t>Third clause</w:t></w:r></w:p><w:p><w:r><w:t>Fourth clause</w:t></w:r><w:r><w:t xml:space=\"preserve\"> and a tail.</w:t>"), "\(xml)")
+        #expect(
+            xml.contains(
+                "<w:t>Third clause</w:t></w:r></w:p><w:p><w:r><w:t>Fourth clause</w:t></w:r><w:r><w:t xml:space=\"preserve\"> and a tail.</w:t>"
+            ),
+            "\(xml)"
+        )
 
         #expect(DOCXEditor.blockMarkdown("## Risks ").kind == .heading(2))
         #expect(DOCXEditor.blockMarkdown("•\tItem").text == "Item")
@@ -1059,7 +1277,12 @@ struct DocumentEditTests {
 
         // "Draft" appears in the body heading and the header.
         let ambiguous = try await edit(
-            root, ["path": "parts.docx", "operations": [["op": "replace_text", "old_string": "Draft", "new_string": "Final"]]])
+            root,
+            [
+                "path": "parts.docx",
+                "operations": [["op": "replace_text", "old_string": "Draft", "new_string": "Final"]],
+            ]
+        )
         #expect(ToolEnvelope.isError(ambiguous), "\(ambiguous)")
         let message = EnvelopeAssertions.failureMessage(ambiguous) ?? ""
         #expect(message.contains("appears 2 times"), "\(message)")
@@ -1070,7 +1293,13 @@ struct DocumentEditTests {
         // replace_all takes both, header included.
         let all = try await edit(
             root,
-            ["path": "parts.docx", "operations": [["op": "replace_text", "old_string": "Draft", "new_string": "Final", "replace_all": true]]])
+            [
+                "path": "parts.docx",
+                "operations": [
+                    ["op": "replace_text", "old_string": "Draft", "new_string": "Final", "replace_all": true]
+                ],
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(all), "\(all)")
         #expect(try part("word/header1.xml", in: url).contains("Final \u{2013} confidential"))
         #expect(try part("word/document.xml", in: url).contains("Final agreement"))
@@ -1078,7 +1307,16 @@ struct DocumentEditTests {
         // A near miss quotes the document's own paragraph.
         let miss = try await edit(
             root,
-            ["path": "parts.docx", "operations": [["op": "replace_text", "old_string": "Closing remarks about the entire agreement.", "new_string": "x"]]])
+            [
+                "path": "parts.docx",
+                "operations": [
+                    [
+                        "op": "replace_text", "old_string": "Closing remarks about the entire agreement.",
+                        "new_string": "x",
+                    ]
+                ],
+            ]
+        )
         #expect(ToolEnvelope.isError(miss), "\(miss)")
         let missMessage = EnvelopeAssertions.failureMessage(miss) ?? ""
         #expect(missMessage.contains("wasn't found"), "\(missMessage)")
@@ -1106,10 +1344,15 @@ struct DocumentEditTests {
                         "new_string": "FIRST.\n\nSECOND.\nTHIRD",
                     ]
                 ],
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(three), "\(three)")
         var xml = try part("word/document.xml", in: url)
-        #expect(xml.contains("<w:i/></w:rPr><w:t xml:space=\"preserve\">Intro: </w:t></w:r><w:r><w:t>FIRST.</w:t>") || xml.contains("<w:i/></w:rPr><w:t>Intro: </w:t></w:r><w:r><w:t>FIRST.</w:t>"), "\(xml)")
+        #expect(
+            xml.contains("<w:i/></w:rPr><w:t xml:space=\"preserve\">Intro: </w:t></w:r><w:r><w:t>FIRST.</w:t>")
+                || xml.contains("<w:i/></w:rPr><w:t>Intro: </w:t></w:r><w:r><w:t>FIRST.</w:t>"),
+            "\(xml)"
+        )
         #expect(xml.contains("<w:pStyle w:val=\"ListParagraph\"/></w:pPr><w:r><w:t>SECOND.</w:t>"), "\(xml)")
         #expect(xml.contains("<w:t>THIRD</w:t></w:r><w:r><w:t xml:space=\"preserve\"> and a tail.</w:t>"), "\(xml)")
         #expect(!xml.contains("clause"), "\(xml)")
@@ -1122,9 +1365,13 @@ struct DocumentEditTests {
             [
                 "path": "multi.docx",
                 "operations": [
-                    ["op": "replace_text", "old_string": "FIRST.\nSECOND.\nTHIRD and a tail.", "new_string": "Everything, merged."]
+                    [
+                        "op": "replace_text", "old_string": "FIRST.\nSECOND.\nTHIRD and a tail.",
+                        "new_string": "Everything, merged.",
+                    ]
                 ],
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(one), "\(one)")
         xml = try part("word/document.xml", in: url)
         #expect(xml.contains("Intro: "), "\(xml)")
@@ -1140,9 +1387,13 @@ struct DocumentEditTests {
             [
                 "path": "multi.docx",
                 "operations": [
-                    ["op": "replace_text", "old_string": "Everything, merged.\nClosing remarks", "new_string": "Alpha.\nBeta.\nGamma. Closing remarks"]
+                    [
+                        "op": "replace_text", "old_string": "Everything, merged.\nClosing remarks",
+                        "new_string": "Alpha.\nBeta.\nGamma. Closing remarks",
+                    ]
                 ],
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(grow), "\(grow)")
         let grown = try await text(of: url)
         #expect(grown.contains("Intro: Alpha."), "\(grown)")
@@ -1152,7 +1403,11 @@ struct DocumentEditTests {
         // Wrong second line: the error shows what actually follows.
         let wrong = try await edit(
             root,
-            ["path": "multi.docx", "operations": [["op": "replace_text", "old_string": "Alpha.\nNot here.", "new_string": "x"]]])
+            [
+                "path": "multi.docx",
+                "operations": [["op": "replace_text", "old_string": "Alpha.\nNot here.", "new_string": "x"]],
+            ]
+        )
         #expect(ToolEnvelope.isError(wrong), "\(wrong)")
         let wrongMessage = EnvelopeAssertions.failureMessage(wrong) ?? ""
         #expect(wrongMessage.contains("consecutive paragraphs"), "\(wrongMessage)")
@@ -1174,17 +1429,21 @@ struct DocumentEditTests {
                     "<p:extLst><p:ext uri=\"{521415D9-36F7-43E2-AB2F-B90AF26B5E84}\"><p14:sectionLst xmlns:p14=\"http://schemas.microsoft.com/office/powerpoint/2010/main\">"
                     + "<p14:section name=\"Intro\" id=\"{1}\"><p14:sldIdLst><p14:sldId id=\"256\"/><p14:sldId id=\"257\"/></p14:sldIdLst></p14:section>"
                     + "<p14:section name=\"End\" id=\"{2}\"><p14:sldIdLst><p14:sldId id=\"258\"/></p14:sldIdLst></p14:section>"
-                    + "</p14:sectionLst></p:ext></p:extLst></p:presentation>")
+                    + "</p14:sectionLst></p:ext></p:extLst></p:presentation>"
+            )
         let slideRels = try part("ppt/slides/_rels/slide1.xml.rels", in: url)
             .replacingOccurrences(
                 of: "</Relationships>",
-                with: "<Relationship Id=\"rIdChart\" Type=\"\(relBase)chart\" Target=\"../charts/chart1.xml\"/></Relationships>")
+                with:
+                    "<Relationship Id=\"rIdChart\" Type=\"\(relBase)chart\" Target=\"../charts/chart1.xml\"/></Relationships>"
+            )
         let contentTypes = try part("[Content_Types].xml", in: url)
             .replacingOccurrences(
                 of: "</Types>",
                 with:
                     "<Override PartName=\"/ppt/charts/chart1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.drawingml.chart+xml\"/>"
-                    + "<Default Extension=\"xlsx\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\"/></Types>")
+                    + "<Default Extension=\"xlsx\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\"/></Types>"
+            )
         let chart = """
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">\
@@ -1202,7 +1461,8 @@ struct DocumentEditTests {
                 "ppt/charts/chart1.xml": Data(chart.utf8),
                 "ppt/charts/_rels/chart1.xml.rels": Data(chartRels.utf8),
                 "ppt/embeddings/Microsoft_Excel_Worksheet1.xlsx": Data("not-really-a-workbook".utf8),
-            ])
+            ]
+        )
         try rewritten.write(to: url)
         return url
     }
@@ -1238,7 +1498,12 @@ struct DocumentEditTests {
         defer { try? FileManager.default.removeItem(at: root) }
         try await write(root, "deck.pptx", "# Alpha\n- one\n")
         let result = try await edit(
-            root, ["path": "deck.pptx", "operations": [["op": "replace_text", "old_string": "one", "new_string": "one\ntwo"]]])
+            root,
+            [
+                "path": "deck.pptx",
+                "operations": [["op": "replace_text", "old_string": "one", "new_string": "one\ntwo"]],
+            ]
+        )
         #expect(ToolEnvelope.isError(result), "\(result)")
         #expect((EnvelopeAssertions.failureMessage(result) ?? "").contains("set_slide_text"), "\(result)")
     }
@@ -1249,20 +1514,35 @@ struct DocumentEditTests {
         try await write(root, "deck.pptx", "# Q3 \u{2014} \u{201C}Plan\u{201D}\n- Ship it\n\n# Q4\n- Ship it\n")
 
         let tolerant = try await edit(
-            root, ["path": "deck.pptx", "operations": [["op": "replace_text", "old_string": "Q3 - \"Plan\"", "new_string": "Q3 Plan"]]])
+            root,
+            [
+                "path": "deck.pptx",
+                "operations": [["op": "replace_text", "old_string": "Q3 - \"Plan\"", "new_string": "Q3 Plan"]],
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(tolerant), "\(tolerant)")
         let applied = (EnvelopeAssertions.successPayload(tolerant)?["operations_applied"] as? [String]) ?? []
         #expect(applied.joined(separator: "\n").contains("normalized"), "\(applied)")
         #expect(try part("ppt/slides/slide1.xml", in: root.appendingPathComponent("deck.pptx")).contains("Q3 Plan"))
 
         let ambiguous = try await edit(
-            root, ["path": "deck.pptx", "operations": [["op": "replace_text", "old_string": "Ship it", "new_string": "Shipped"]]])
+            root,
+            [
+                "path": "deck.pptx",
+                "operations": [["op": "replace_text", "old_string": "Ship it", "new_string": "Shipped"]],
+            ]
+        )
         #expect(ToolEnvelope.isError(ambiguous), "\(ambiguous)")
         let message = EnvelopeAssertions.failureMessage(ambiguous) ?? ""
         #expect(message.contains("1 on slide 1, 1 on slide 2"), "\(message)")
 
         let miss = try await edit(
-            root, ["path": "deck.pptx", "operations": [["op": "replace_text", "old_string": "Ship it now", "new_string": "x"]]])
+            root,
+            [
+                "path": "deck.pptx",
+                "operations": [["op": "replace_text", "old_string": "Ship it now", "new_string": "x"]],
+            ]
+        )
         #expect(ToolEnvelope.isError(miss), "\(miss)")
         let missMessage = EnvelopeAssertions.failureMessage(miss) ?? ""
         #expect(missMessage.contains("closest slide text"), "\(missMessage)")
@@ -1295,7 +1575,7 @@ struct DocumentEditTests {
     private func makePDF(_ url: URL, pages: Int) throws {
         var box = CGRect(x: 0, y: 0, width: 200, height: 400)
         let context = try #require(CGContext(url as CFURL, mediaBox: &box, nil))
-        for index in 0..<pages {
+        for index in 0 ..< pages {
             var pageBox = CGRect(x: 0, y: 0, width: 200 + index * 100, height: 400)
             let info = [kCGPDFContextMediaBox as String: Data(bytes: &pageBox, count: MemoryLayout<CGRect>.size)]
             context.beginPDFPage(info as CFDictionary)
@@ -1306,7 +1586,7 @@ struct DocumentEditTests {
 
     private func pageWidths(_ url: URL) throws -> [Int] {
         let document = try #require(PDFDocument(url: url))
-        return (0..<document.pageCount).map { Int(document.page(at: $0)!.bounds(for: .mediaBox).width) }
+        return (0 ..< document.pageCount).map { Int(document.page(at: $0)!.bounds(for: .mediaBox).width) }
     }
 
     /// Body text in a PDF cannot be rewritten; the advice for that must not send the model to
@@ -1343,7 +1623,7 @@ struct DocumentEditTests {
         let xref = out.count
         let size = (objects.keys.max() ?? 0) + 1
         out.append(Data("xref\n0 \(size)\n0000000000 65535 f \n".utf8))
-        for number in 1..<size {
+        for number in 1 ..< size {
             out.append(Data(String(format: "%010d 00000 n \n", offsets[number] ?? 0).utf8))
         }
         out.append(Data("trailer\n<< /Size \(size) /Root \(root) 0 R >>\nstartxref\n\(xref)\n%%EOF\n".utf8))
@@ -1366,28 +1646,40 @@ struct DocumentEditTests {
             BT /F1 12 Tf 40 620 Td (State:) Tj ET
             BT /F1 12 Tf 40 580 Td (Email:) Tj ET
             """
-        var acro = "/Fields [10 0 R 11 0 R 12 0 R 15 0 R 16 0 R 18 0 R] /DA (/Helv 0 Tf 0 g) /DR << /Font << /Helv 5 0 R >> >>"
+        var acro =
+            "/Fields [10 0 R 11 0 R 12 0 R 15 0 R 16 0 R 18 0 R] /DA (/Helv 0 Tf 0 g) /DR << /Font << /Helv 5 0 R >> >>"
         if xfa { acro += " /XFA 19 0 R" }
         var objects: [Int: String] = [
             1: "<< /Type /Catalog /Pages 2 0 R /AcroForm << \(acro) >> >>",
             2: "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-            3: "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> "
+            3:
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> "
                 + "/Annots [10 0 R 11 0 R 13 0 R 14 0 R 15 0 R 17 0 R 18 0 R] >>",
             4: pdfStream("", content),
             5: "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
             6: pdfStream("/Type /XObject /Subtype /Form /BBox [0 0 14 14]", "0 g BT /ZaDb 10 Tf 2 3 Td (4) Tj ET"),
             7: pdfStream("/Type /XObject /Subtype /Form /BBox [0 0 14 14]", ""),
             8: pdfStream("/Type /XObject /Subtype /Form /BBox [0 0 14 14]", "0 g 7 7 m 7 7 l S"),
-            9: pdfStream("/Type /XObject /Subtype /Form /BBox [0 0 200 18] /Resources << /Font << /Helv 5 0 R >> >>", "/Tx BMC EMC"),
-            10: "<< /Type /Annot /Subtype /Widget /FT /Tx /T (Name) /V () /DA (/Helv 10 Tf 0 g) /Rect [90 732 290 750] /F 4 /P 3 0 R /AP << /N 9 0 R >> >>",
-            11: "<< /Type /Annot /Subtype /Widget /FT /Btn /T (Agree) /V /Off /AS /Off /Rect [190 696 204 710] /F 4 /P 3 0 R /AP << /N << /Yes 6 0 R /Off 7 0 R >> >> >>",
+            9: pdfStream(
+                "/Type /XObject /Subtype /Form /BBox [0 0 200 18] /Resources << /Font << /Helv 5 0 R >> >>",
+                "/Tx BMC EMC"
+            ),
+            10:
+                "<< /Type /Annot /Subtype /Widget /FT /Tx /T (Name) /V () /DA (/Helv 10 Tf 0 g) /Rect [90 732 290 750] /F 4 /P 3 0 R /AP << /N 9 0 R >> >>",
+            11:
+                "<< /Type /Annot /Subtype /Widget /FT /Btn /T (Agree) /V /Off /AS /Off /Rect [190 696 204 710] /F 4 /P 3 0 R /AP << /N << /Yes 6 0 R /Off 7 0 R >> >> >>",
             12: "<< /FT /Btn /Ff 49152 /T (Plan) /V /Off /Kids [13 0 R 14 0 R] >>",
-            13: "<< /Type /Annot /Subtype /Widget /Parent 12 0 R /AS /Off /Rect [76 656 90 670] /F 4 /P 3 0 R /AP << /N << /Basic 8 0 R /Off 7 0 R >> >> >>",
-            14: "<< /Type /Annot /Subtype /Widget /Parent 12 0 R /AS /Off /Rect [156 656 170 670] /F 4 /P 3 0 R /AP << /N << /Pro 8 0 R /Off 7 0 R >> >> >>",
-            15: "<< /Type /Annot /Subtype /Widget /FT /Ch /Ff 131072 /T (State) /V (CA) /Opt [(CA) (NY) (TX)] /DA (/Helv 10 Tf 0 g) /Rect [90 612 190 630] /F 4 /P 3 0 R >>",
+            13:
+                "<< /Type /Annot /Subtype /Widget /Parent 12 0 R /AS /Off /Rect [76 656 90 670] /F 4 /P 3 0 R /AP << /N << /Basic 8 0 R /Off 7 0 R >> >> >>",
+            14:
+                "<< /Type /Annot /Subtype /Widget /Parent 12 0 R /AS /Off /Rect [156 656 170 670] /F 4 /P 3 0 R /AP << /N << /Pro 8 0 R /Off 7 0 R >> >> >>",
+            15:
+                "<< /Type /Annot /Subtype /Widget /FT /Ch /Ff 131072 /T (State) /V (CA) /Opt [(CA) (NY) (TX)] /DA (/Helv 10 Tf 0 g) /Rect [90 612 190 630] /F 4 /P 3 0 R >>",
             16: "<< /T (applicant) /Kids [17 0 R] >>",
-            17: "<< /Type /Annot /Subtype /Widget /Parent 16 0 R /FT /Tx /T (email) /V () /DA (/Helv 10 Tf 0 g) /Rect [90 572 290 590] /F 4 /P 3 0 R >>",
-            18: "<< /Type /Annot /Subtype /Widget /FT /Btn /Ff 65536 /T (Submit) /Rect [400 572 480 592] /F 4 /P 3 0 R /MK << /CA (Submit) >> >>",
+            17:
+                "<< /Type /Annot /Subtype /Widget /Parent 16 0 R /FT /Tx /T (email) /V () /DA (/Helv 10 Tf 0 g) /Rect [90 572 290 590] /F 4 /P 3 0 R >>",
+            18:
+                "<< /Type /Annot /Subtype /Widget /FT /Btn /Ff 65536 /T (Submit) /Rect [400 572 480 592] /F 4 /P 3 0 R /MK << /CA (Submit) >> >>",
         ]
         if xfa {
             objects[19] = pdfStream("", "<xdp:xdp xmlns:xdp=\"http://ns.adobe.com/xdp/\"><template/></xdp:xdp>")
@@ -1405,7 +1697,8 @@ struct DocumentEditTests {
         try buildPDF([
             1: "<< /Type /Catalog /Pages 2 0 R >>",
             2: "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-            3: "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+            3:
+                "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
             4: pdfStream("", content),
             5: "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
         ]).write(to: url)
@@ -1414,7 +1707,7 @@ struct DocumentEditTests {
     private func widgetsByName(_ url: URL) throws -> [String: [PDFAnnotation]] {
         let document = try #require(PDFDocument(url: url))
         var out: [String: [PDFAnnotation]] = [:]
-        for index in 0..<document.pageCount {
+        for index in 0 ..< document.pageCount {
             for annotation in document.page(at: index)?.annotations ?? [] where annotation.type == "Widget" {
                 out[annotation.fieldName ?? "", default: []].append(annotation)
             }
@@ -1442,7 +1735,10 @@ struct DocumentEditTests {
             return
         }
         #expect(items["type"] == .string("object"))
-        #expect(items["properties"] == nil, "operations.items must not enumerate properties (constrained-decoder regression)")
+        #expect(
+            items["properties"] == nil,
+            "operations.items must not enumerate properties (constrained-decoder regression)"
+        )
         #expect(items["additionalProperties"] == nil)
         if case .string(let description)? = items["description"] {
             for name in DocumentEditService.allOperationNames {
@@ -1490,7 +1786,8 @@ struct DocumentEditTests {
         try makeAcroFormPDF(url)
 
         let structure = try await FileReadTool(rootPath: root).execute(
-            argumentsJSON: try json(["path": "intake.pdf", "mode": "structure"]))
+            argumentsJSON: try json(["path": "intake.pdf", "mode": "structure"])
+        )
         #expect(ToolEnvelope.isSuccess(structure), "\(structure)")
         let payload = try #require(EnvelopeAssertions.successPayload(structure))
         let fields = try #require(payload["form_fields"] as? [[String: Any]])
@@ -1532,7 +1829,8 @@ struct DocumentEditTests {
                         ],
                     ]
                 ],
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
         let payload = try #require(EnvelopeAssertions.successPayload(result))
         let applied = (payload["operations_applied"] as? [String]) ?? []
@@ -1559,7 +1857,8 @@ struct DocumentEditTests {
         // Second pass: clearing the radio and unchecking works too.
         let cleared = try await edit(
             root,
-            ["path": "intake.pdf", "operations": [["op": "fill_form", "fields": ["Plan": false, "Agree": "no"]]]])
+            ["path": "intake.pdf", "operations": [["op": "fill_form", "fields": ["Plan": false, "Agree": "no"]]]]
+        )
         #expect(ToolEnvelope.isSuccess(cleared), "\(cleared)")
         let after = try widgetsByName(url)
         #expect(after["Agree"]?.first?.buttonWidgetState == .offState)
@@ -1575,7 +1874,10 @@ struct DocumentEditTests {
         let original = try Data(contentsOf: url)
 
         func failure(_ fields: [String: Any]) async throws -> String {
-            let result = try await edit(root, ["path": "intake.pdf", "operations": [["op": "fill_form", "fields": fields]]])
+            let result = try await edit(
+                root,
+                ["path": "intake.pdf", "operations": [["op": "fill_form", "fields": fields]]]
+            )
             #expect(ToolEnvelope.isError(result), "\(result)")
             return EnvelopeAssertions.failureMessage(result) ?? ""
         }
@@ -1610,7 +1912,9 @@ struct DocumentEditTests {
         try makeFlattenedFormPDF(flat)
 
         let flatResult = try await edit(
-            root, ["path": "flat.pdf", "operations": [["op": "fill_form", "fields": ["Name": "Ada"]]]])
+            root,
+            ["path": "flat.pdf", "operations": [["op": "fill_form", "fields": ["Name": "Ada"]]]]
+        )
         #expect(ToolEnvelope.isError(flatResult), "\(flatResult)")
         let flatMessage = EnvelopeAssertions.failureMessage(flatResult) ?? ""
         #expect(flatMessage.contains("no fillable form fields"), "\(flatMessage)")
@@ -1620,18 +1924,24 @@ struct DocumentEditTests {
         // The label baseline is at 740pt; the reported y is the label's
         // bottom edge (baseline minus descent), a few points below it.
         let ys = flatMessage.components(separatedBy: "y=").dropFirst().compactMap { Int($0.prefix { $0.isNumber }) }
-        #expect(ys.contains { (730...741).contains($0) }, "\(flatMessage)")
+        #expect(ys.contains { (730 ... 741).contains($0) }, "\(flatMessage)")
 
         // The suggested pivot works: add_text lands the value on the page.
         let placed = try await edit(
-            root, ["path": "flat.pdf", "operations": [["op": "add_text", "page": 1, "text": "Ada Lovelace", "x": 80, "y": 752]]])
+            root,
+            [
+                "path": "flat.pdf",
+                "operations": [["op": "add_text", "page": 1, "text": "Ada Lovelace", "x": 80, "y": 752]],
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(placed), "\(placed)")
         let document = try #require(PDFDocument(url: flat))
         #expect(document.page(at: 0)?.annotations.contains { $0.contents == "Ada Lovelace" } == true)
 
         // Structure mode for a flat PDF has no form_fields key at all.
         let structure = try await FileReadTool(rootPath: root).execute(
-            argumentsJSON: try json(["path": "flat.pdf", "mode": "structure"]))
+            argumentsJSON: try json(["path": "flat.pdf", "mode": "structure"])
+        )
         let payload = try #require(EnvelopeAssertions.successPayload(structure))
         #expect(payload["form_fields"] == nil)
 
@@ -1640,10 +1950,15 @@ struct DocumentEditTests {
         try makeAcroFormPDF(xfaURL, xfa: true)
         // Strip the AcroForm widgets so only the XFA packet remains.
         var raw = String(decoding: try Data(contentsOf: xfaURL), as: UTF8.self)
-        raw = raw.replacingOccurrences(of: "/Annots [10 0 R 11 0 R 13 0 R 14 0 R 15 0 R 17 0 R 18 0 R]", with: "/Annots []")
+        raw = raw.replacingOccurrences(
+            of: "/Annots [10 0 R 11 0 R 13 0 R 14 0 R 15 0 R 17 0 R 18 0 R]",
+            with: "/Annots []"
+        )
         try Data(raw.utf8).write(to: xfaURL)
         let xfaResult = try await edit(
-            root, ["path": "xfa.pdf", "operations": [["op": "fill_form", "fields": ["Name": "Ada"]]]])
+            root,
+            ["path": "xfa.pdf", "operations": [["op": "fill_form", "fields": ["Name": "Ada"]]]]
+        )
         #expect(ToolEnvelope.isError(xfaResult), "\(xfaResult)")
         #expect((EnvelopeAssertions.failureMessage(xfaResult) ?? "").contains("XFA form"), "\(xfaResult)")
     }
@@ -1667,7 +1982,8 @@ struct DocumentEditTests {
                     ["op": "merge", "files": ["extra.pdf"]],
                     ["op": "add_text", "page": 1, "text": "APPROVED"],
                 ],
-            ])
+            ]
+        )
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
         #expect(try pageWidths(url) == [400, 300, 200])
         let document = try #require(PDFDocument(url: url))
@@ -1678,12 +1994,16 @@ struct DocumentEditTests {
 
         let original = try Data(contentsOf: url)
         let refused = try await edit(
-            root, ["path": "scan.pdf", "operations": [["op": "replace_text", "old_string": "a", "new_string": "b"]]])
+            root,
+            ["path": "scan.pdf", "operations": [["op": "replace_text", "old_string": "a", "new_string": "b"]]]
+        )
         #expect(ToolEnvelope.isError(refused))
         let textEdit = try await edit(root, ["path": "scan.pdf", "old_string": "a", "new_string": "b"])
         #expect((EnvelopeAssertions.failureMessage(textEdit) ?? "").contains("can't be rewritten"))
         let deleteAll = try await edit(
-            root, ["path": "scan.pdf", "operations": [["op": "delete_pages", "pages": [1, 2, 3]]]])
+            root,
+            ["path": "scan.pdf", "operations": [["op": "delete_pages", "pages": [1, 2, 3]]]]
+        )
         #expect(ToolEnvelope.isError(deleteAll))
         #expect(try Data(contentsOf: url) == original)
     }

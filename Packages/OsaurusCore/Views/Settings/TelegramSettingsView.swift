@@ -298,8 +298,8 @@ struct TelegramSettingsView: View {
                 "Saved to the macOS Keychain when you load from Telegram, test the connection, or press Done.",
                 bundle: .module
             )
-                .font(.system(size: 11))
-                .foregroundColor(theme.tertiaryText)
+            .font(.system(size: 11))
+            .foregroundColor(theme.tertiaryText)
         }
     }
 
@@ -512,7 +512,9 @@ struct TelegramSettingsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 SettingsToggle(
                     title: L("Allow Sending on Telegram"),
-                    description: L("Let agents post to write-allowlisted Telegram chats. The global Sending switch in Channels must also be on."),
+                    description: L(
+                        "Let agents post to write-allowlisted Telegram chats. The global Sending switch in Channels must also be on."
+                    ),
                     isOn: $writeEnabled.animation(.easeOut(duration: 0.2))
                 )
 
@@ -542,7 +544,9 @@ struct TelegramSettingsView: View {
             )
             SettingsToggle(
                 title: L("Store Incoming Messages"),
-                description: L("Keep authorized Telegram updates in the local inbox so agents can read and search them."),
+                description: L(
+                    "Keep authorized Telegram updates in the local inbox so agents can read and search them."
+                ),
                 isOn: $receiveStorageEnabled
             )
 
@@ -638,7 +642,8 @@ struct TelegramSettingsView: View {
     private var routableRooms: [AgentChannelRoutableRoom] {
         guard let discovery else { return [] }
         return discovery.chats.map { chat in
-            let name = chat.title
+            let name =
+                chat.title
                 ?? chat.username.map { "@\($0)" }
                 ?? [chat.firstName, chat.lastName].compactMap(\.self).joined(separator: " ")
             return AgentChannelRoutableRoom(
@@ -732,7 +737,9 @@ struct TelegramSettingsView: View {
                 )
                 SettingsToggle(
                     title: L("Ignore Bot Messages"),
-                    description: L("Ignore Telegram updates from bot accounts unless you explicitly trust bot senders."),
+                    description: L(
+                        "Ignore Telegram updates from bot accounts unless you explicitly trust bot senders."
+                    ),
                     isOn: $ignoreBotMessages
                 )
             }
@@ -904,7 +911,8 @@ struct TelegramSettingsView: View {
                 if TelegramSettingsSavePolicy.shouldDismissAfterSave(diagnostics) {
                     if diagnostics.receiveReady,
                         diagnostics.failures.isEmpty,
-                        presentation.tone == .success {
+                        presentation.tone == .success
+                    {
                         _ = ToastManager.shared.success(L("Telegram settings saved"))
                     } else {
                         _ = ToastManager.shared.warning(
@@ -960,7 +968,9 @@ struct TelegramSettingsView: View {
                             details.append(L("Pending updates: \(pending)"))
                         }
                         showStatus(
-                            L("A webhook is registered. Long polling conflicts with it (409) until the webhook is removed."),
+                            L(
+                                "A webhook is registered. Long polling conflicts with it (409) until the webhook is removed."
+                            ),
                             details: details,
                             isError: true
                         )
@@ -1086,7 +1096,9 @@ struct TelegramSettingsView: View {
     private func verifyIncomingMessage() {
         isVerifying = true
         showStatus(
-            L("Waiting for a Telegram message. Send the bot a message now from an authorized sender in a readable chat."),
+            L(
+                "Waiting for a Telegram message. Send the bot a message now from an authorized sender in a readable chat."
+            ),
             isError: false
         )
         let start = Date()
@@ -1166,7 +1178,8 @@ struct TelegramSettingsView: View {
         _ diagnostics: TelegramConnectionDiagnostics,
         presentation suppliedPresentation: AgentChannelStatusPresentation? = nil
     ) {
-        let presentation = suppliedPresentation
+        let presentation =
+            suppliedPresentation
             ?? AgentChannelStatusPresentation.diagnostics(status: diagnostics.status)
         showStatus(
             presentation.label,

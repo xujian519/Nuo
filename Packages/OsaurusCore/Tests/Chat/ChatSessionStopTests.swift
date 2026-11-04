@@ -33,7 +33,10 @@ struct ChatSessionStopTests {
                 try await waitUntil(timeout: Self.asyncTimeout) { !session.isSendActiveForComposer }
                 let finished = try #require(session.turns.last)
                 #expect(finished.content == "The image contains a red square.")
-                #expect(finished.inputTokenCount == 2072, "terminal stats without input usage must preserve prepared usage")
+                #expect(
+                    finished.inputTokenCount == 2072,
+                    "terminal stats without input usage must preserve prepared usage"
+                )
                 #expect(finished.generationTokenCount == 9)
                 #expect(finished.terminalStopReason == "stop")
             }
@@ -63,7 +66,10 @@ struct ChatSessionStopTests {
             await sendTask.value
             await engine.finishAnswer()
             let assistantContents = session.turns.filter { $0.role == .assistant }.map(\.content)
-            #expect(assistantContents.allSatisfy { $0.isEmpty }, "Actual assistant contents after Stop: \(assistantContents)")
+            #expect(
+                assistantContents.allSatisfy { $0.isEmpty },
+                "Actual assistant contents after Stop: \(assistantContents)"
+            )
             #expect(session.lastStreamError == nil)
             #expect(session.turns.last?.terminalStopReason == "cancelled")
             #expect(!session.isSendActiveForComposer)
@@ -269,7 +275,6 @@ struct ChatSessionStopTests {
         )
     }
 
-
     /// A run stopped during its cold load observes cancellation only when the
     /// abandoned load finally throws — seconds later. If a retry was sent in
     /// the meantime it has reset `stopRequested`, and the stale task used to
@@ -303,12 +308,18 @@ struct ChatSessionStopTests {
             try await waitUntil(timeout: Self.asyncTimeout) { session.isSendActiveForComposer == false }
 
             let users = session.turns.filter { $0.role == .user }.map(\.content)
-            #expect(users == ["Count to 400", "What is 5 times 6?"], "the retry's user turn must survive the stale task's cancellation")
+            #expect(
+                users == ["Count to 400", "What is 5 times 6?"],
+                "the retry's user turn must survive the stale task's cancellation"
+            )
             let answer = session.turns.last
             #expect(answer?.role == .assistant)
             #expect(answer?.content == "30", "the retry's answer must land in the transcript, not in a detached turn")
             #expect(answer?.terminalStopReason != "cancelled")
-            #expect(session.input.isEmpty, "the stale task must not restore the stopped draft into the composer of a newer run")
+            #expect(
+                session.input.isEmpty,
+                "the stale task must not restore the stopped draft into the composer of a newer run"
+            )
         }
     }
 
@@ -542,9 +553,13 @@ private actor InputMetadataChatEngine: ChatEngineProtocol {
 
     init(nativeTyped: Bool = false) { self.nativeTyped = nativeTyped }
 
-    func streamResponses(request: ResponsesInferenceRequest) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
+    func streamResponses(request: ResponsesInferenceRequest) async throws -> AsyncThrowingStream<
+        ResponsesGenerationEvent, Error
+    > {
         guard nativeTyped else {
-            return ResponsesGenerationStream.compatibility(try await streamChat(request: request.chatCompletionsCompatibilityRequest()))
+            return ResponsesGenerationStream.compatibility(
+                try await streamChat(request: request.chatCompletionsCompatibilityRequest())
+            )
         }
         requestText.append(request.input.compactMap(\.content).joined(separator: "\n"))
         let (stream, continuation) = AsyncThrowingStream<ResponsesGenerationEvent, Error>.makeStream()
@@ -569,9 +584,21 @@ private actor InputMetadataChatEngine: ChatEngineProtocol {
         continuation?.finish()
         continuation = nil
         typedContinuation?.yield(.outputTextDelta("The image contains a red square."))
-        typedContinuation?.yield(.responseCompleted(.init(responseID: "resp_input_metadata", status: .completed,
-            functionCalls: [], tokenCount: 9, tokensPerSecond: 18, unclosedReasoning: false,
-            stopReason: "stop", promptTokensPerSecond: nil, mtp: nil)))
+        typedContinuation?.yield(
+            .responseCompleted(
+                .init(
+                    responseID: "resp_input_metadata",
+                    status: .completed,
+                    functionCalls: [],
+                    tokenCount: 9,
+                    tokensPerSecond: 18,
+                    unclosedReasoning: false,
+                    stopReason: "stop",
+                    promptTokensPerSecond: nil,
+                    mtp: nil
+                )
+            )
+        )
         typedContinuation?.finish()
         typedContinuation = nil
     }
@@ -590,7 +617,6 @@ private actor InputMetadataChatEngine: ChatEngineProtocol {
         throw NSError(domain: "InputMetadataChatEngine", code: 1)
     }
 }
-
 
 /// First request: blocks like a cold load that ignores cooperative
 /// cancellation until it is released, then throws CancellationError (the
@@ -792,7 +818,6 @@ private actor ReasoningRetryChatEngine: ChatEngineProtocol {
     }
 }
 
-
 private actor PreSendHandshakeRecordingEngine: ChatEngineProtocol {
     private(set) var regularRequestCount = 0
     private(set) var warmupRequestCount = 0
@@ -828,7 +853,6 @@ private final class IncomingWarmupSession: ChatWarmupSessionContext {
 
     func isImageGenerationModel(_: String?) -> Bool { false }
 }
-
 
 private actor IncomingWarmupRecordingEngine: ChatEngineProtocol {
     private(set) var requestCount = 0

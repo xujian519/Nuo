@@ -17,17 +17,17 @@ import Foundation
     /// One boot's phase timings, in seconds. `nil` phases were skipped
     /// (e.g. `containerCreate` on a warm restart).
     public struct SandboxBootSample: Codable, Sendable, Equatable {
-            public enum BootKind: String, Codable, Sendable {
-                /// Full image unpack (first run or invalidated cache).
-                case cold
-                /// Persisted rootfs reused, no unpack.
-                case warm
-                /// Warm attempt failed and fell back to a cold rebuild.
-                case warmFallback
-                /// Rootfs cloned (copy-on-write) from the immutable base
-                /// template — no unpack, no reuse of a booted filesystem.
-                case template
-            }
+        public enum BootKind: String, Codable, Sendable {
+            /// Full image unpack (first run or invalidated cache).
+            case cold
+            /// Persisted rootfs reused, no unpack.
+            case warm
+            /// Warm attempt failed and fell back to a cold rebuild.
+            case warmFallback
+            /// Rootfs cloned (copy-on-write) from the immutable base
+            /// template — no unpack, no reuse of a booted filesystem.
+            case template
+        }
 
         public let kind: BootKind
         public let startedAt: Date

@@ -64,8 +64,11 @@ public indirect enum ConfigValueSpec: Sendable {
     /// Free-form map of user-chosen keys to scalars (`tools.enabled`).
     /// `allowedValues` constrains the VALUES (e.g. auto | ask | deny).
     case freeformMap(
-        ConfigScalarType, allowedValues: [String]? = nil,
-        exampleKey: String, exampleValue: String)
+        ConfigScalarType,
+        allowedValues: [String]? = nil,
+        exampleKey: String,
+        exampleValue: String
+    )
 }
 
 /// One named key inside a mapping / entity item.
@@ -78,8 +81,10 @@ public struct ConfigKeySpec: Sendable {
     public let moreComments: [String]
 
     public init(
-        _ key: String, _ value: ConfigValueSpec,
-        comment: String? = nil, moreComments: [String] = []
+        _ key: String,
+        _ value: ConfigValueSpec,
+        comment: String? = nil,
+        moreComments: [String] = []
     ) {
         self.key = key
         self.value = value
@@ -115,16 +120,22 @@ public enum ConfigManifest {
     public static let sections: [ConfigSectionSpec] = [
         ConfigSectionSpec(
             .memory,
-            comment: "cross-chat conversation memory — NOT the server prompt/KV cache (prompt-cache toggles live in Settings → Server, not here)",
+            comment:
+                "cross-chat conversation memory — NOT the server prompt/KV cache (prompt-cache toggles live in Settings → Server, not here)",
             value: .mapping([
                 ConfigKeySpec("enabled", .scalar(.boolean, example: "true")),
                 ConfigKeySpec(
-                    "budget_tokens", .scalar(.integer, example: "1000"),
-                    comment: "100..4000"),
+                    "budget_tokens",
+                    .scalar(.integer, example: "1000"),
+                    comment: "100..4000"
+                ),
                 ConfigKeySpec(
-                    "retention_days", .scalar(.integer, example: "180"),
-                    comment: "0..3650 (0 = forever)"),
-            ])),
+                    "retention_days",
+                    .scalar(.integer, example: "180"),
+                    comment: "0..3650 (0 = forever)"
+                ),
+            ])
+        ),
 
         ConfigSectionSpec(
             .harnessRuntimes,
@@ -132,63 +143,87 @@ public enum ConfigManifest {
             value: .entityList(
                 [
                     ConfigKeySpec(
-                        "name", .scalar(.string, example: "Spotlight"),
-                        comment: "agents name it in `runtime`; \"builtin\" is reserved"),
+                        "name",
+                        .scalar(.string, example: "Spotlight"),
+                        comment: "agents name it in `runtime`; \"builtin\" is reserved"
+                    ),
                     ConfigKeySpec(
                         "kind",
                         .scalar(.string, example: "pi_rpc", allowed: ConfigHarness.kindKeys),
                         comment: "claude_code | pi_rpc; required to create;",
-                        moreComments: ["immutable after"]),
+                        moreComments: ["immutable after"]
+                    ),
                     ConfigKeySpec(
-                        "executable", .scalar(.string, example: "~/.local/bin/spotlight"),
+                        "executable",
+                        .scalar(.string, example: "~/.local/bin/spotlight"),
                         comment: "command on PATH or a path; launching it is",
-                        moreComments: ["HIGH RISK (runs a local program)"]),
+                        moreComments: ["HIGH RISK (runs a local program)"]
+                    ),
                     ConfigKeySpec(
-                        "arguments", .scalarList(.string, example: ["--mode", "rpc", "--session-id", "\"{chat_id}\""]),
+                        "arguments",
+                        .scalarList(.string, example: ["--mode", "rpc", "--session-id", "\"{chat_id}\""]),
                         comment: "replaces the list; {chat_id} {agent_id} {cwd}",
-                        moreComments: ["{system_prompt_file} are filled per launch"]),
+                        moreComments: ["{system_prompt_file} are filled per launch"]
+                    ),
                     ConfigKeySpec(
                         "environment",
                         .freeformMap(.string, exampleKey: "PI_LOG_LEVEL", exampleValue: "info"),
                         comment: "plain values only (exported; never secrets);",
-                        moreComments: ["merge; OSAURUS_* variables always win"]),
+                        moreComments: ["merge; OSAURUS_* variables always win"]
+                    ),
                 ],
-                requiredKey: "name")),
+                requiredKey: "name"
+            )
+        ),
 
         ConfigSectionSpec(
             .defaultAgent,
             comment: "the built-in Default agent (the Orchestrator)",
             value: .mapping([
                 ConfigKeySpec(
-                    "name", .scalar(.string, example: "null", nullable: true),
-                    comment: "custom display name; null = \"Nuo\""),
+                    "name",
+                    .scalar(.string, example: "null", nullable: true),
+                    comment: "custom display name; null = \"Nuo\""
+                ),
                 ConfigKeySpec(
-                    "model", .scalar(.string, example: "null", nullable: true),
+                    "model",
+                    .scalar(.string, example: "null", nullable: true),
                     comment: "\"foundation\", local id, or \"<provider>/<model>\"",
                     moreComments: [
                         "(cloud ids need the provider prefix, e.g.",
                         "\"anthropic/claude-x\"; a bare cloud id is",
                         "auto-prefixed when unambiguous)",
-                    ]),
+                    ]
+                ),
                 ConfigKeySpec(
-                    "temperature", .scalar(.number, example: "null", nullable: true),
-                    comment: "0..2 or null"),
+                    "temperature",
+                    .scalar(.number, example: "null", nullable: true),
+                    comment: "0..2 or null"
+                ),
                 ConfigKeySpec("max_tokens", .scalar(.integer, example: "null", nullable: true)),
                 ConfigKeySpec(
-                    "system_prompt", .scalar(.string, example: "\"\""),
-                    comment: "the persona"),
+                    "system_prompt",
+                    .scalar(.string, example: "\"\""),
+                    comment: "the persona"
+                ),
                 ConfigKeySpec(
-                    "runtime", .scalar(.string, example: "builtin"),
-                    comment: "\"builtin\" or a harness_runtimes name"),
+                    "runtime",
+                    .scalar(.string, example: "builtin"),
+                    comment: "\"builtin\" or a harness_runtimes name"
+                ),
                 ConfigKeySpec(
-                    "claude_code", .mapping(ConfigManifest.claudeCodeKeys(includeConfigWrites: true)),
-                    comment: "used when runtime is a claude_code harness"),
-            ])),
+                    "claude_code",
+                    .mapping(ConfigManifest.claudeCodeKeys(includeConfigWrites: true)),
+                    comment: "used when runtime is a claude_code harness"
+                ),
+            ])
+        ),
 
         ConfigSectionSpec(
             .activeAgent,
             comment: "which agent NEW chats open with: \"default\" or a custom agent's name (legacy key: active_agent)",
-            value: .scalar(.string, example: "default")),
+            value: .scalar(.string, example: "default")
+        ),
 
         ConfigSectionSpec(
             .agents,
@@ -197,155 +232,229 @@ public enum ConfigManifest {
                 [
                     ConfigKeySpec("name", .scalar(.string, example: "Research Agent")),
                     ConfigKeySpec(
-                        "template", .scalar(.string, example: "researcher", nullable: true),
+                        "template",
+                        .scalar(.string, example: "researcher", nullable: true),
                         comment: "optional starter: coder | researcher | writer | assistant | productivity",
-                        moreComments: ["(fills system_prompt when omitted; missing description is generated by the core model before plan/apply)"]),
+                        moreComments: [
+                            "(fills system_prompt when omitted; missing description is generated by the core model before plan/apply)"
+                        ]
+                    ),
                     ConfigKeySpec(
-                        "description", .scalar(.string, example: "Researches sources for questions requiring evidence and citations."),
-                        comment: "required on create; one line, 1..160 characters and at most 1024 UTF-8 bytes"),
+                        "description",
+                        .scalar(.string, example: "Researches sources for questions requiring evidence and citations."),
+                        comment: "required on create; one line, 1..160 characters and at most 1024 UTF-8 bytes"
+                    ),
                     ConfigKeySpec("system_prompt", .scalar(.string, example: "\"\"")),
                     ConfigKeySpec(
-                        "model", .scalar(.string, example: "null", nullable: true),
-                        comment: "same format as default_agent.model; omitted = the Orchestrator's model"),
+                        "model",
+                        .scalar(.string, example: "null", nullable: true),
+                        comment: "same format as default_agent.model; omitted = the Orchestrator's model"
+                    ),
                     ConfigKeySpec(
-                        "temperature", .scalar(.number, example: "null", nullable: true),
-                        comment: "0..2"),
+                        "temperature",
+                        .scalar(.number, example: "null", nullable: true),
+                        comment: "0..2"
+                    ),
                     ConfigKeySpec(
-                        "max_tokens", .scalar(.integer, example: "null", nullable: true)),
+                        "max_tokens",
+                        .scalar(.integer, example: "null", nullable: true)
+                    ),
                     ConfigKeySpec("show_response_metrics", .scalar(.boolean, example: "false")),
                     ConfigKeySpec(
-                        "generation_settings", .nullableMapping(agentGenerationKeys),
-                        comment: "replaces advanced overrides; absent preserves, null clears"),
+                        "generation_settings",
+                        .nullableMapping(agentGenerationKeys),
+                        comment: "replaces advanced overrides; absent preserves, null clears"
+                    ),
                     ConfigKeySpec(
                         "capabilities",
                         .mapping([
                             ConfigKeySpec("tools_enabled", .scalar(.boolean, example: "true")),
                             ConfigKeySpec("memory_enabled", .scalar(.boolean, example: "true")),
                             ConfigKeySpec(
-                                "search_memory_enabled", .scalar(.boolean, example: "false")),
+                                "search_memory_enabled",
+                                .scalar(.boolean, example: "false")
+                            ),
                             ConfigKeySpec(
-                                "web_search_enabled", .scalar(.boolean, example: "false")),
+                                "web_search_enabled",
+                                .scalar(.boolean, example: "false")
+                            ),
                             ConfigKeySpec(
-                                "knowledge_enabled", .scalar(.boolean, example: "false")),
+                                "knowledge_enabled",
+                                .scalar(.boolean, example: "false")
+                            ),
                             ConfigKeySpec(
                                 "knowledge_collection_ids",
                                 .scalarList(.string, example: []),
-                                comment: "UUIDs; needed for knowledge tools"),
+                                comment: "UUIDs; needed for knowledge tools"
+                            ),
                             ConfigKeySpec("db_enabled", .scalar(.boolean, example: "false")),
                             ConfigKeySpec(
-                                "self_scheduling_enabled", .scalar(.boolean, example: "false")),
+                                "self_scheduling_enabled",
+                                .scalar(.boolean, example: "false")
+                            ),
                             ConfigKeySpec(
-                                "computer_use_enabled", .scalar(.boolean, example: "false"),
-                                comment: "HIGH RISK"),
+                                "computer_use_enabled",
+                                .scalar(.boolean, example: "false"),
+                                comment: "HIGH RISK"
+                            ),
                             ConfigKeySpec(
-                                "browser_use_enabled", .scalar(.boolean, example: "false"),
-                                comment: "HIGH RISK"),
+                                "browser_use_enabled",
+                                .scalar(.boolean, example: "false"),
+                                comment: "HIGH RISK"
+                            ),
                             ConfigKeySpec(
-                                "image_enabled", .scalar(.boolean, example: "false"),
-                                comment: "image generation/editing (needs an installed image model)"),
+                                "image_enabled",
+                                .scalar(.boolean, example: "false"),
+                                comment: "image generation/editing (needs an installed image model)"
+                            ),
                             ConfigKeySpec(
-                                "applescript_enabled", .scalar(.boolean, example: "false"),
-                                comment: "AppleScript + mac_query (needs an AppleScript model)"),
+                                "applescript_enabled",
+                                .scalar(.boolean, example: "false"),
+                                comment: "AppleScript + mac_query (needs an AppleScript model)"
+                            ),
                             ConfigKeySpec("speak_enabled", .scalar(.boolean, example: "false")),
                             ConfigKeySpec(
-                                "render_chart_enabled", .scalar(.boolean, example: "false")),
+                                "render_chart_enabled",
+                                .scalar(.boolean, example: "false")
+                            ),
                             ConfigKeySpec(
-                                "relay_enabled", .scalar(.boolean, example: "false"),
+                                "relay_enabled",
+                                .scalar(.boolean, example: "false"),
                                 comment: "relay tunnel forwards to this agent",
-                                moreComments: ["(HIGH RISK: reachable from outside)"]),
+                                moreComments: ["(HIGH RISK: reachable from outside)"]
+                            ),
                             ConfigKeySpec(
-                                "apple_apps", .scalarList(.string, example: ["calendar", "reminders"]),
+                                "apple_apps",
+                                .scalarList(.string, example: ["calendar", "reminders"]),
                                 comment: "built-in Apple app tools this agent may use; list REPLACES the set",
                                 moreComments: [
                                     "(calendar | reminders | contacts | notes | mail | messages |",
                                     " maps | music | shortcuts; [] disables all;",
                                     " macOS asks the user for the app's permission on first use)",
-                                ]),
+                                ]
+                            ),
                         ]),
-                        comment: "only provided keys change"),
+                        comment: "only provided keys change"
+                    ),
                     ConfigKeySpec(
                         "tools",
                         .mapping([
                             ConfigKeySpec(
-                                "mode", .scalar(.string, example: "manual", allowed: ["auto", "manual"]),
-                                comment: "auto = RAG-picked, manual = only `enabled`"),
+                                "mode",
+                                .scalar(.string, example: "manual", allowed: ["auto", "manual"]),
+                                comment: "auto = RAG-picked, manual = only `enabled`"
+                            ),
                             ConfigKeySpec(
-                                "enabled", .scalarList(.string, example: ["get_current_time", "web_search"]),
-                                comment: "tool names; MCP/plugin tools go under mcp_servers / plugins"),
+                                "enabled",
+                                .scalarList(.string, example: ["get_current_time", "web_search"]),
+                                comment: "tool names; MCP/plugin tools go under mcp_servers / plugins"
+                            ),
                         ]),
-                        comment: "per-agent tool selection"),
+                        comment: "per-agent tool selection"
+                    ),
                     ConfigKeySpec(
                         "mcp_servers",
                         .mapping([
                             ConfigKeySpec("enabled", .scalarList(.string, example: [])),
                             ConfigKeySpec("disabled", .scalarList(.string, example: [])),
                         ]),
-                        comment: "MCP server NAMES; enabled adds all its tools, disabled removes them"),
+                        comment: "MCP server NAMES; enabled adds all its tools, disabled removes them"
+                    ),
                     ConfigKeySpec(
                         "plugins",
                         .mapping([
                             ConfigKeySpec("enabled", .scalarList(.string, example: [])),
                             ConfigKeySpec("disabled", .scalarList(.string, example: [])),
                         ]),
-                        comment: "plugin registry ids; same semantics as mcp_servers"),
+                        comment: "plugin registry ids; same semantics as mcp_servers"
+                    ),
                     ConfigKeySpec(
-                        "skills", .scalarList(.string, example: ["code-review"]),
+                        "skills",
+                        .scalarList(.string, example: ["code-review"]),
                         comment: "skill allow-list by name or slug; the list REPLACES the set;",
-                        moreComments: ["null = every installed skill (the default); [] = none"]),
+                        moreComments: ["null = every installed skill (the default); [] = none"]
+                    ),
                     ConfigKeySpec(
                         "plugin_instructions",
                         .freeformMap(.string, exampleKey: "osaurus.notes", exampleValue: "\"\""),
-                        comment: "plugin id -> extra instructions for that plugin's tools"),
+                        comment: "plugin id -> extra instructions for that plugin's tools"
+                    ),
                     ConfigKeySpec(
                         "sandbox",
                         .mapping([
                             ConfigKeySpec("enabled", .scalar(.boolean, example: "true")),
                             ConfigKeySpec(
-                                "network_enabled", .scalar(.boolean, example: "true"),
-                                comment: "outbound network from the sandbox VM"),
+                                "network_enabled",
+                                .scalar(.boolean, example: "true"),
+                                comment: "outbound network from the sandbox VM"
+                            ),
                             ConfigKeySpec(
-                                "allowed_domains", .scalarList(.string, example: []),
-                                comment: "egress allowlist; empty = unrestricted"),
+                                "allowed_domains",
+                                .scalarList(.string, example: []),
+                                comment: "egress allowlist; empty = unrestricted"
+                            ),
                             ConfigKeySpec("max_commands_per_turn", .scalar(.integer, example: "10")),
                             ConfigKeySpec(
-                                "background_process_enabled", .scalar(.boolean, example: "false")),
+                                "background_process_enabled",
+                                .scalar(.boolean, example: "false")
+                            ),
                             ConfigKeySpec("plugin_create", .scalar(.boolean, example: "true")),
                         ]),
-                        comment: "autonomous code execution sandbox"),
+                        comment: "autonomous code execution sandbox"
+                    ),
                     ConfigKeySpec(
                         "subagents",
                         .mapping([
                             ConfigKeySpec(
-                                "enabled", .scalar(.boolean, example: "false"),
-                                comment: "exposes spawn tools to this agent"),
+                                "enabled",
+                                .scalar(.boolean, example: "false"),
+                                comment: "exposes spawn tools to this agent"
+                            ),
                             ConfigKeySpec(
-                                "agents", .scalarList(.string, example: []),
-                                comment: "agent NAMES this agent may spawn"),
+                                "agents",
+                                .scalarList(.string, example: []),
+                                comment: "agent NAMES this agent may spawn"
+                            ),
                             ConfigKeySpec(
-                                "models", .scalarList(.string, example: []),
-                                comment: "deprecated, ignored: spawning by model id was removed"),
+                                "models",
+                                .scalarList(.string, example: []),
+                                comment: "deprecated, ignored: spawning by model id was removed"
+                            ),
                         ]),
-                        comment: "per-agent delegation (Default agent uses `delegation`)"),
+                        comment: "per-agent delegation (Default agent uses `delegation`)"
+                    ),
                     ConfigKeySpec(
-                        "orchestrator_spawnable", .scalar(.boolean, example: "true"),
+                        "orchestrator_spawnable",
+                        .scalar(.boolean, example: "true"),
                         comment: "creation only: false keeps a new agent out of the",
-                        moreComments: ["Orchestrator's delegation list; ignored when patching"]),
+                        moreComments: ["Orchestrator's delegation list; ignored when patching"]
+                    ),
                     ConfigKeySpec(
-                        "working_folder", .scalar(.string, example: "null", nullable: true),
+                        "working_folder",
+                        .scalar(.string, example: "null", nullable: true),
                         comment: "folder PATH hint; attached when it exists locally,",
-                        moreComments: ["otherwise the apply asks the user to pick it"]),
+                        moreComments: ["otherwise the apply asks the user to pick it"]
+                    ),
                     ConfigKeySpec(
-                        "source_template", .scalar(.string, example: "\"\""),
-                        comment: "provenance: agent template this agent came from"),
+                        "source_template",
+                        .scalar(.string, example: "\"\""),
+                        comment: "provenance: agent template this agent came from"
+                    ),
                     ConfigKeySpec(
-                        "runtime", .scalar(.string, example: "builtin"),
+                        "runtime",
+                        .scalar(.string, example: "builtin"),
                         comment: "\"builtin\" or a harness_runtimes name; a harness",
-                        moreComments: ["runs this agent's chats (HIGH RISK: local program)"]),
+                        moreComments: ["runs this agent's chats (HIGH RISK: local program)"]
+                    ),
                     ConfigKeySpec(
-                        "claude_code", .mapping(ConfigManifest.claudeCodeKeys(includeConfigWrites: false)),
-                        comment: "used when runtime is a claude_code harness"),
+                        "claude_code",
+                        .mapping(ConfigManifest.claudeCodeKeys(includeConfigWrites: false)),
+                        comment: "used when runtime is a claude_code harness"
+                    ),
                 ],
-                requiredKey: "name")),
+                requiredKey: "name"
+            )
+        ),
 
         ConfigSectionSpec(
             .tools,
@@ -353,14 +462,20 @@ public enum ConfigManifest {
             value: .mapping([
                 ConfigKeySpec(
                     "enabled",
-                    .freeformMap(.boolean, exampleKey: "web_search", exampleValue: "true")),
+                    .freeformMap(.boolean, exampleKey: "web_search", exampleValue: "true")
+                ),
                 ConfigKeySpec(
                     "policies",
                     .freeformMap(
-                        .string, allowedValues: ["auto", "ask", "deny"],
-                        exampleKey: "file_write", exampleValue: "ask"),
-                    comment: "auto | ask | deny (auto is HIGH RISK)"),
-            ])),
+                        .string,
+                        allowedValues: ["auto", "ask", "deny"],
+                        exampleKey: "file_write",
+                        exampleValue: "ask"
+                    ),
+                    comment: "auto | ask | deny (auto is HIGH RISK)"
+                ),
+            ])
+        ),
 
         ConfigSectionSpec(
             .delegation,
@@ -370,58 +485,85 @@ public enum ConfigManifest {
                 ConfigKeySpec(
                     "applescript_execution_mode",
                     .scalar(
-                        .string, example: "confirm_each",
-                        allowed: ConfigAppBehaviorEnums.applescriptExecutionModes),
+                        .string,
+                        example: "confirm_each",
+                        allowed: ConfigAppBehaviorEnums.applescriptExecutionModes
+                    ),
                     comment: "confirm_each | auto_run_with_warning",
-                    moreComments: ["(auto_run is HIGH RISK)"]),
+                    moreComments: ["(auto_run is HIGH RISK)"]
+                ),
                 ConfigKeySpec(
-                    "spawnable_agents", .scalarList(.string, example: []),
+                    "spawnable_agents",
+                    .scalarList(.string, example: []),
                     comment: "custom agent NAMES the Orchestrator may spawn;",
                     moreComments: [
                         "REPLACES the whole pool: list every agent to keep;",
                         "[] empties it (HIGH RISK: no spawn_agent)",
-                    ]),
+                    ]
+                ),
                 ConfigKeySpec(
-                    "spawnable_workspace_agents", .scalarList(.string, example: []),
+                    "spawnable_workspace_agents",
+                    .scalarList(.string, example: []),
                     comment: "teammates' shared agents as Name@Workspace or",
-                    moreComments: ["<workspace_id>:<0x-address>; replaces the pool"]),
+                    moreComments: ["<workspace_id>:<0x-address>; replaces the pool"]
+                ),
                 ConfigKeySpec(
                     "workspace_auto_join",
                     .freeformMap(.boolean, exampleKey: "<workspace name or id>", exampleValue: "true"),
                     comment: "false stops that workspace's shared agents joining",
-                    moreComments: ["the pool (default true); merge"]),
+                    moreComments: ["the pool (default true); merge"]
+                ),
                 ConfigKeySpec(
                     "permission_defaults",
                     .freeformMap(
-                        .string, allowedValues: ConfigAppBehaviorEnums.permissionPolicies,
-                        exampleKey: "spawn", exampleValue: "always_allow"),
+                        .string,
+                        allowedValues: ConfigAppBehaviorEnums.permissionPolicies,
+                        exampleKey: "spawn",
+                        exampleValue: "always_allow"
+                    ),
                     comment: "kind id (spawn | spawn_workspace | image | video |",
                     moreComments: [
                         "applescript | computer_use | browser_use) -> ask |",
                         "deny | always_allow; merge",
-                    ]),
+                    ]
+                ),
                 ConfigKeySpec(
-                    "budget_max_tokens", .scalar(.integer, example: "8192"),
-                    comment: "256..65536 per worker turn"),
+                    "budget_max_tokens",
+                    .scalar(.integer, example: "8192"),
+                    comment: "256..65536 per worker turn"
+                ),
                 ConfigKeySpec(
-                    "budget_max_turns", .scalar(.integer, example: "24"),
-                    comment: "1..100 tool-call rounds per worker"),
+                    "budget_max_turns",
+                    .scalar(.integer, example: "24"),
+                    comment: "1..100 tool-call rounds per worker"
+                ),
                 ConfigKeySpec(
-                    "budget_max_seconds", .scalar(.integer, example: "900"),
-                    comment: "15..3600"),
+                    "budget_max_seconds",
+                    .scalar(.integer, example: "900"),
+                    comment: "15..3600"
+                ),
                 ConfigKeySpec(
-                    "budget_max_parallel_spawns", .scalar(.integer, example: "3"),
-                    comment: "1..32 local workers per wave (mirrors Server Concurrent Sessions)"),
+                    "budget_max_parallel_spawns",
+                    .scalar(.integer, example: "3"),
+                    comment: "1..32 local workers per wave (mirrors Server Concurrent Sessions)"
+                ),
                 ConfigKeySpec(
-                    "budget_max_remote_parallel_spawns", .scalar(.integer, example: "8"),
-                    comment: "1..32 remote workers per wave (independent of local capacity)"),
+                    "budget_max_remote_parallel_spawns",
+                    .scalar(.integer, example: "8"),
+                    comment: "1..32 remote workers per wave (independent of local capacity)"
+                ),
                 ConfigKeySpec(
-                    "ram_safety_preflight", .scalar(.boolean, example: "true"),
-                    comment: "false skips the RAM preflight (HIGH RISK)"),
+                    "ram_safety_preflight",
+                    .scalar(.boolean, example: "true"),
+                    comment: "false skips the RAM preflight (HIGH RISK)"
+                ),
                 ConfigKeySpec(
-                    "coexistence_enabled", .scalar(.boolean, example: "false"),
-                    comment: "legacy compatibility key; no effect (local_text_enabled=false keeps parent loaded)"),
-            ])),
+                    "coexistence_enabled",
+                    .scalar(.boolean, example: "false"),
+                    comment: "legacy compatibility key; no effect (local_text_enabled=false keeps parent loaded)"
+                ),
+            ])
+        ),
 
         ConfigSectionSpec(
             .commands,
@@ -429,18 +571,25 @@ public enum ConfigManifest {
             value: .entityList(
                 [
                     ConfigKeySpec(
-                        "name", .scalar(.string, example: "summarize"),
-                        comment: "invoke as /name"),
+                        "name",
+                        .scalar(.string, example: "summarize"),
+                        comment: "invoke as /name"
+                    ),
                     ConfigKeySpec("description", .scalar(.string, example: "\"\"")),
                     ConfigKeySpec(
-                        "icon", .scalar(.string, example: "text.bubble"),
-                        comment: "SF Symbol name"),
+                        "icon",
+                        .scalar(.string, example: "text.bubble"),
+                        comment: "SF Symbol name"
+                    ),
                     ConfigKeySpec(
                         "template",
                         .scalar(.string, example: "Summarize the conversation so far."),
-                        comment: "prompt text; required to create"),
+                        comment: "prompt text; required to create"
+                    ),
                 ],
-                requiredKey: "name")),
+                requiredKey: "name"
+            )
+        ),
 
         ConfigSectionSpec(
             .knowledgeCollections,
@@ -449,54 +598,76 @@ public enum ConfigManifest {
                 [
                     ConfigKeySpec("name", .scalar(.string, example: "Team Docs")),
                     ConfigKeySpec(
-                        "folder_path", .scalar(.string, example: "~/Documents/TeamDocs"),
+                        "folder_path",
+                        .scalar(.string, example: "~/Documents/TeamDocs"),
                         comment: "existing directory; ~ expands; required to",
-                        moreComments: ["create; immutable after (recreate to move)"]),
+                        moreComments: ["create; immutable after (recreate to move)"]
+                    ),
                     ConfigKeySpec("summary", .scalar(.string, example: "\"\"")),
                     ConfigKeySpec("enabled", .scalar(.boolean, example: "true")),
                     ConfigKeySpec(
-                        "include_globs", .scalarList(.string, example: []),
-                        comment: "replaces the list"),
+                        "include_globs",
+                        .scalarList(.string, example: []),
+                        comment: "replaces the list"
+                    ),
                     ConfigKeySpec(
-                        "exclude_globs", .scalarList(.string, example: []),
-                        comment: "replaces the list"),
+                        "exclude_globs",
+                        .scalarList(.string, example: []),
+                        comment: "replaces the list"
+                    ),
                 ],
-                requiredKey: "name")),
+                requiredKey: "name"
+            )
+        ),
 
         ConfigSectionSpec(
             .channels,
             comment: "channel routing (credentials/routes stay in Settings)",
             value: .mapping([
                 ConfigKeySpec(
-                    "write_enabled", .scalar(.boolean, example: "true"),
+                    "write_enabled",
+                    .scalar(.boolean, example: "true"),
                     comment: "global kill switch over EVERY channel send;",
-                    moreComments: ["re-enabling is HIGH RISK"]),
+                    moreComments: ["re-enabling is HIGH RISK"]
+                ),
                 ConfigKeySpec(
                     "discord",
                     .mapping(
                         ConfigManifestChannelExtras.platformKeys(
                             spaceComment: "configured guild ids;",
-                            includeBotTokenRef: true))),
+                            includeBotTokenRef: true
+                        )
+                    )
+                ),
                 ConfigKeySpec(
                     "slack",
                     .mapping(
                         ConfigManifestChannelExtras.platformKeys(
                             spaceComment: "configured team ids;",
                             includeBotTokenRef: true,
-                            includeAppTokenRef: true))),
+                            includeAppTokenRef: true
+                        )
+                    )
+                ),
                 ConfigKeySpec(
                     "telegram",
                     .mapping(
                         ConfigManifestChannelExtras.platformKeys(
                             spaceComment: nil,
-                            includeBotTokenRef: true))),
+                            includeBotTokenRef: true
+                        )
+                    )
+                ),
                 ConfigKeySpec(
                     "imessage",
-                    .mapping(ConfigManifestChannelExtras.platformKeys(spaceComment: nil))),
+                    .mapping(ConfigManifestChannelExtras.platformKeys(spaceComment: nil))
+                ),
                 ConfigKeySpec(
                     "whatsapp",
-                    .mapping(ConfigManifestChannelExtras.platformKeys(spaceComment: nil))),
-            ])),
+                    .mapping(ConfigManifestChannelExtras.platformKeys(spaceComment: nil))
+                ),
+            ])
+        ),
 
         ConfigSectionSpec(
             .mcpServers,
@@ -507,49 +678,69 @@ public enum ConfigManifest {
                     ConfigKeySpec(
                         "transport",
                         .scalar(
-                            .string, example: "http",
-                            allowed: ["http", "stdio"]),
+                            .string,
+                            example: "http",
+                            allowed: ["http", "stdio"]
+                        ),
                         comment: "http | stdio; immutable after create;",
-                        moreComments: ["stdio launches a local process (HIGH RISK)"]),
+                        moreComments: ["stdio launches a local process (HIGH RISK)"]
+                    ),
                     ConfigKeySpec(
-                        "url", .scalar(.string, example: "https://api.example.com/mcp"),
-                        comment: "http transport only"),
+                        "url",
+                        .scalar(.string, example: "https://api.example.com/mcp"),
+                        comment: "http transport only"
+                    ),
                     ConfigKeySpec(
                         "auth",
                         .scalar(
-                            .string, example: "none",
-                            allowed: ["none", "bearer", "oauth"]),
+                            .string,
+                            example: "none",
+                            allowed: ["none", "bearer", "oauth"]
+                        ),
                         comment: "none | bearer | oauth (http only;",
-                        moreComments: ["finish auth in Settings)"]),
+                        moreComments: ["finish auth in Settings)"]
+                    ),
                     ConfigKeySpec("enabled", .scalar(.boolean, example: "true")),
                     ConfigKeySpec(
-                        "command", .scalar(.string, example: "\"\""),
-                        comment: "stdio executable; required to create stdio"),
+                        "command",
+                        .scalar(.string, example: "\"\""),
+                        comment: "stdio executable; required to create stdio"
+                    ),
                     ConfigKeySpec(
-                        "args", .scalarList(.string, example: []),
-                        comment: "replaces the list"),
+                        "args",
+                        .scalarList(.string, example: []),
+                        comment: "replaces the list"
+                    ),
                     ConfigKeySpec(
                         "env",
                         .freeformMap(.string, exampleKey: "NODE_ENV", exampleValue: "production"),
                         comment: "plain env only; secret values are set in",
-                        moreComments: ["Settings and never appear here; merge"]),
+                        moreComments: ["Settings and never appear here; merge"]
+                    ),
                     ConfigKeySpec(
-                        "working_directory", .scalar(.string, example: "\"\""),
-                        comment: "stdio cwd; \"\" = default"),
+                        "working_directory",
+                        .scalar(.string, example: "\"\""),
+                        comment: "stdio cwd; \"\" = default"
+                    ),
                     ConfigKeySpec(
                         "execution_host",
                         .scalar(
-                            .string, example: "sandbox",
-                            allowed: ["sandbox", "host"]),
-                        comment: "sandbox | host (host is HIGH RISK)"),
+                            .string,
+                            example: "sandbox",
+                            allowed: ["sandbox", "host"]
+                        ),
+                        comment: "sandbox | host (host is HIGH RISK)"
+                    ),
                     ConfigKeySpec(
-                        "token_ref", .scalar(.string, example: "env:MCP_BEARER_TOKEN"),
+                        "token_ref",
+                        .scalar(.string, example: "env:MCP_BEARER_TOKEN"),
                         comment: "write-only (http): env:VAR or",
                         moreComments: [
                             "keychain:service/account; the bearer token is",
                             "read from there at apply and stored in the",
                             "Keychain — never exported",
-                        ]),
+                        ]
+                    ),
                     ConfigKeySpec(
                         "secret_env_refs",
                         .freeformMap(.string, exampleKey: "API_TOKEN", exampleValue: "env:MY_TOKEN"),
@@ -557,7 +748,8 @@ public enum ConfigManifest {
                         moreComments: [
                             "values are read at apply and stored in the",
                             "Keychain; keys become secret env — never exported",
-                        ]),
+                        ]
+                    ),
                     ConfigKeySpec(
                         "secret_header_refs",
                         .freeformMap(.string, exampleKey: "X-API-Key", exampleValue: "keychain:com.example/api-key"),
@@ -565,19 +757,25 @@ public enum ConfigManifest {
                         moreComments: [
                             "values are read at apply and stored in the",
                             "Keychain; headers become secret headers — never exported",
-                        ]),
+                        ]
+                    ),
                 ],
-                requiredKey: "name")),
+                requiredKey: "name"
+            )
+        ),
 
         ConfigSectionSpec(
             .models,
-            comment: "desired installed local MLX models (HF repo ids) — listing an id that isn't installed STARTS its download; hiding a model from the API is Settings → Server, not this list",
-            value: .scalarList(.string, example: ["mlx-community/Qwen2.5-7B-Instruct-4bit"])),
+            comment:
+                "desired installed local MLX models (HF repo ids) — listing an id that isn't installed STARTS its download; hiding a model from the API is Settings → Server, not this list",
+            value: .scalarList(.string, example: ["mlx-community/Qwen2.5-7B-Instruct-4bit"])
+        ),
 
         ConfigSectionSpec(
             .plugins,
             comment: "desired installed plugins (registry ids)",
-            value: .scalarList(.string, example: ["osaurus.weather"])),
+            value: .scalarList(.string, example: ["osaurus.weather"])
+        ),
 
         ConfigSectionSpec(
             .providers,
@@ -588,65 +786,87 @@ public enum ConfigManifest {
                     ConfigKeySpec(
                         "provider",
                         .scalar(
-                            .string, example: "anthropic",
+                            .string,
+                            example: "anthropic",
                             allowed: [
                                 "anthropic", "openai", "codex_oauth", "azure_openai",
                                 "google", "xai", "deepseek", "venice", "openrouter",
                                 "ollama", "custom", "osaurus_agent",
-                            ]),
+                            ]
+                        ),
                         comment: "anthropic | openai | codex_oauth | azure_openai |",
                         moreComments: [
                             "google | xai | deepseek | venice | openrouter |",
                             "ollama | custom | osaurus_agent",
                             "required to create; immutable after",
-                        ]),
+                        ]
+                    ),
                     ConfigKeySpec("enabled", .scalar(.boolean, example: "true")),
                     ConfigKeySpec("auto_connect", .scalar(.boolean, example: "true")),
                     ConfigKeySpec(
-                        "set_api_key", .scalar(.boolean, example: "true"),
+                        "set_api_key",
+                        .scalar(.boolean, example: "true"),
                         comment: "request flag: opens the secure credential",
                         moreComments: [
                             "sheet during apply to set/rotate the key,",
                             "even when credentials already exist.",
                             "Never exported; secrets never in YAML.",
-                        ]),
+                        ]
+                    ),
                     ConfigKeySpec(
-                        "api_key_ref", .scalar(.string, example: "env:ANTHROPIC_API_KEY"),
+                        "api_key_ref",
+                        .scalar(.string, example: "env:ANTHROPIC_API_KEY"),
                         comment: "write-only: env:VAR or keychain:service/account;",
                         moreComments: [
                             "the key is read from there at apply and stored",
                             "in the Keychain — never exported. Non-interactive",
                             "alternative to set_api_key (use one, not both).",
-                        ]),
+                        ]
+                    ),
                     ConfigKeySpec(
-                        "host", .scalar(.string, example: "api.anthropic.com"),
+                        "host",
+                        .scalar(.string, example: "api.anthropic.com"),
                         comment: "create-only: changing an existing provider's",
                         moreComments: [
                             "endpoint under a stored credential is refused —",
                             "recreate the provider instead",
-                        ]),
+                        ]
+                    ),
                     ConfigKeySpec(
                         "protocol",
                         .scalar(
-                            .string, example: "https",
-                            allowed: ["http", "https"]),
-                        comment: "create-only"),
+                            .string,
+                            example: "https",
+                            allowed: ["http", "https"]
+                        ),
+                        comment: "create-only"
+                    ),
                     ConfigKeySpec(
-                        "port", .scalar(.integer, example: "null", nullable: true),
-                        comment: "create-only; null = protocol default"),
+                        "port",
+                        .scalar(.integer, example: "null", nullable: true),
+                        comment: "create-only; null = protocol default"
+                    ),
                     ConfigKeySpec(
-                        "base_path", .scalar(.string, example: "/v1"),
-                        comment: "create-only"),
+                        "base_path",
+                        .scalar(.string, example: "/v1"),
+                        comment: "create-only"
+                    ),
                     ConfigKeySpec(
-                        "timeout_seconds", .scalar(.number, example: "60"),
-                        comment: "1..600"),
+                        "timeout_seconds",
+                        .scalar(.number, example: "60"),
+                        comment: "1..600"
+                    ),
                     ConfigKeySpec("disable_timeout", .scalar(.boolean, example: "false")),
                     ConfigKeySpec(
-                        "manual_model_ids", .scalarList(.string, example: []),
+                        "manual_model_ids",
+                        .scalarList(.string, example: []),
                         comment: "pinned model ids (Azure deployments);",
-                        moreComments: ["replaces the list"]),
+                        moreComments: ["replaces the list"]
+                    ),
                 ],
-                requiredKey: "name")),
+                requiredKey: "name"
+            )
+        ),
 
         ConfigSectionSpec(
             .searchProviders,
@@ -654,18 +874,24 @@ public enum ConfigManifest {
                 ConfigKeySpec(
                     "ranking",
                     .scalarList(.string, example: ["tavily", "ddg_scrape"]),
-                    comment: "fallback order, first = primary"),
+                    comment: "fallback order, first = primary"
+                ),
                 ConfigKeySpec(
                     "providers",
                     .entityList(
                         [
                             ConfigKeySpec(
-                                "id", .scalar(.string, example: "tavily"),
-                                comment: "keyed providers need the API key in Settings"),
+                                "id",
+                                .scalar(.string, example: "tavily"),
+                                comment: "keyed providers need the API key in Settings"
+                            ),
                             ConfigKeySpec("enabled", .scalar(.boolean, example: "true")),
                         ],
-                        requiredKey: "id")),
-            ])),
+                        requiredKey: "id"
+                    )
+                ),
+            ])
+        ),
 
         ConfigSectionSpec(
             .schedules,
@@ -674,35 +900,47 @@ public enum ConfigManifest {
                 [
                     ConfigKeySpec("name", .scalar(.string, example: "Morning news")),
                     ConfigKeySpec(
-                        "agent", .scalar(.string, example: "Research Agent"),
+                        "agent",
+                        .scalar(.string, example: "Research Agent"),
                         comment:
                             "custom agent name (never \"default\"), or a shared workspace agent as <workspaceId>:<0x-address>"
                     ),
                     ConfigKeySpec(
-                        "instructions", .scalar(.string, example: "Summarize the news.")),
+                        "instructions",
+                        .scalar(.string, example: "Summarize the news.")
+                    ),
                     ConfigKeySpec(
                         "frequency",
                         .scalar(
-                            .string, example: "daily",
+                            .string,
+                            example: "daily",
                             allowed: [
                                 "once", "every_n_minutes", "hourly", "daily",
                                 "weekly", "monthly", "yearly", "cron",
-                            ]),
+                            ]
+                        ),
                         comment: "once | every_n_minutes | hourly | daily |",
-                        moreComments: ["weekly | monthly | yearly | cron"]),
+                        moreComments: ["weekly | monthly | yearly | cron"]
+                    ),
                     ConfigKeySpec(
-                        "frequency_value", .scalar(.string, example: "null", nullable: true),
+                        "frequency_value",
+                        .scalar(.string, example: "null", nullable: true),
                         comment: "once: ISO8601; every_n_minutes: >=5;",
                         moreComments: [
                             "weekly: MON..SUN; monthly: 1..28;",
                             "yearly: MM-DD; cron: expression",
-                        ]),
+                        ]
+                    ),
                     ConfigKeySpec(
-                        "frequency_time_of_day", .scalar(.string, example: "\"08:00\""),
-                        comment: "HH:mm for daily/weekly/monthly/yearly"),
+                        "frequency_time_of_day",
+                        .scalar(.string, example: "\"08:00\""),
+                        comment: "HH:mm for daily/weekly/monthly/yearly"
+                    ),
                     ConfigKeySpec("enabled", .scalar(.boolean, example: "true")),
                 ],
-                requiredKey: "name")),
+                requiredKey: "name"
+            )
+        ),
 
         ConfigSectionSpec(
             .watchers,
@@ -711,56 +949,81 @@ public enum ConfigManifest {
                 [
                     ConfigKeySpec("name", .scalar(.string, example: "Downloads sorter")),
                     ConfigKeySpec(
-                        "agent", .scalar(.string, example: "Research Agent"),
+                        "agent",
+                        .scalar(.string, example: "Research Agent"),
                         comment: "custom agent name, or a shared workspace agent as <workspaceId>:<0x-address>"
                     ),
                     ConfigKeySpec(
-                        "instructions", .scalar(.string, example: "Organize new files.")),
+                        "instructions",
+                        .scalar(.string, example: "Organize new files.")
+                    ),
                     ConfigKeySpec(
-                        "path", .scalar(.string, example: "~/Downloads"),
-                        comment: "existing directory; ~ expands"),
+                        "path",
+                        .scalar(.string, example: "~/Downloads"),
+                        comment: "existing directory; ~ expands"
+                    ),
                     ConfigKeySpec("recursive", .scalar(.boolean, example: "false")),
                     ConfigKeySpec(
                         "responsiveness",
                         .scalar(
-                            .string, example: "balanced",
+                            .string,
+                            example: "balanced",
                             allowed: [
                                 "fast", "balanced", "patient", "relaxed",
                                 "deferred", "extended",
-                            ]),
+                            ]
+                        ),
                         comment: "fast | balanced | patient | relaxed |",
-                        moreComments: ["deferred | extended"]),
+                        moreComments: ["deferred | extended"]
+                    ),
                     ConfigKeySpec("enabled", .scalar(.boolean, example: "true")),
                 ],
-                requiredKey: "name")),
+                requiredKey: "name"
+            )
+        ),
     ]
 
     static func claudeCodeKeys(includeConfigWrites: Bool) -> [ConfigKeySpec] {
         var keys = [
             ConfigKeySpec(
-                "model", .scalar(.string, example: "sonnet"),
-                comment: "sonnet | opus | fable | haiku | a full model id"),
+                "model",
+                .scalar(.string, example: "sonnet"),
+                comment: "sonnet | opus | fable | haiku | a full model id"
+            ),
             ConfigKeySpec(
-                "effort", .scalar(.string, example: "default", allowed: ConfigHarness.effortKeys),
-                comment: "default | low | medium | high | xhigh | max"),
+                "effort",
+                .scalar(.string, example: "default", allowed: ConfigHarness.effortKeys),
+                comment: "default | low | medium | high | xhigh | max"
+            ),
             ConfigKeySpec(
-                "mode", .scalar(.string, example: "agent", allowed: ConfigHarness.modeKeys),
-                comment: "agent | text_only"),
+                "mode",
+                .scalar(.string, example: "agent", allowed: ConfigHarness.modeKeys),
+                comment: "agent | text_only"
+            ),
             ConfigKeySpec(
-                "allow_writes", .scalar(.boolean, example: "false"),
-                comment: "file edits, limited to the chat folder"),
+                "allow_writes",
+                .scalar(.boolean, example: "false"),
+                comment: "file edits, limited to the chat folder"
+            ),
             ConfigKeySpec(
-                "allow_shell", .scalar(.boolean, example: "false"),
-                comment: "HIGH RISK: unconfined shell on this Mac"),
+                "allow_shell",
+                .scalar(.boolean, example: "false"),
+                comment: "HIGH RISK: unconfined shell on this Mac"
+            ),
             ConfigKeySpec(
-                "allow_osaurus_tools", .scalar(.boolean, example: "false"),
-                comment: "osaurus_help / osaurus_inspect over MCP"),
+                "allow_osaurus_tools",
+                .scalar(.boolean, example: "false"),
+                comment: "osaurus_help / osaurus_inspect over MCP"
+            ),
         ]
         if includeConfigWrites {
             keys.append(
                 ConfigKeySpec(
-                    "allow_osaurus_config_writes", .scalar(.boolean, example: "false"),
-                    comment: "HIGH RISK: osaurus_config (Default agent only)"))
+                    "allow_osaurus_config_writes",
+                    .scalar(.boolean, example: "false"),
+                    comment: "HIGH RISK: osaurus_config (Default agent only)"
+                )
+            )
         }
         return keys
     }
@@ -795,7 +1058,9 @@ public enum ConfigManifest {
     }()
 
     private static func collectKnownKeys(
-        path: String, value: ConfigValueSpec, into out: inout [String: Set<String>]
+        path: String,
+        value: ConfigValueSpec,
+        into out: inout [String: Set<String>]
     ) {
         switch value {
         case .scalar, .scalarList, .nullableScalarList, .freeformMap, .jsonObject:
@@ -823,7 +1088,9 @@ public enum ConfigManifest {
     }()
 
     private static func collectRequiredKeys(
-        path: String, value: ConfigValueSpec, into out: inout [String: String]
+        path: String,
+        value: ConfigValueSpec,
+        into out: inout [String: String]
     ) {
         switch value {
         case .scalar, .scalarList, .nullableScalarList, .freeformMap, .jsonObject:
@@ -851,7 +1118,9 @@ public enum ConfigManifest {
     }()
 
     private static func collectFreeformConstraints(
-        path: String, value: ConfigValueSpec, into out: inout [String: [String]]
+        path: String,
+        value: ConfigValueSpec,
+        into out: inout [String: [String]]
     ) {
         switch value {
         case .scalar, .scalarList, .nullableScalarList, .jsonObject:
@@ -861,12 +1130,18 @@ public enum ConfigManifest {
         case .mapping(let keys), .nullableMapping(let keys):
             for key in keys {
                 collectFreeformConstraints(
-                    path: "\(path).\(key.key)", value: key.value, into: &out)
+                    path: "\(path).\(key.key)",
+                    value: key.value,
+                    into: &out
+                )
             }
         case .entityList(let keys, _):
             for key in keys {
                 collectFreeformConstraints(
-                    path: "\(path)[].\(key.key)", value: key.value, into: &out)
+                    path: "\(path)[].\(key.key)",
+                    value: key.value,
+                    into: &out
+                )
             }
         }
     }
@@ -1014,8 +1289,10 @@ public enum ConfigManifest {
         case .scalar(_, let example, _, _):
             return [
                 withComment(
-                    "\(section.id.rawValue): \(example)", comment: section.comment,
-                    moreComments: [])
+                    "\(section.id.rawValue): \(example)",
+                    comment: section.comment,
+                    moreComments: []
+                )
             ]
         case .scalarList(_, let example), .nullableScalarList(_, let example):
             var lines = [withComment("\(section.id.rawValue):", comment: section.comment, moreComments: [])]
@@ -1046,13 +1323,19 @@ public enum ConfigManifest {
             let head = index == 0
             lines.append(
                 contentsOf: renderKey(
-                    key, indent: head ? indent : indent + 2, listItemHead: head))
+                    key,
+                    indent: head ? indent : indent + 2,
+                    listItemHead: head
+                )
+            )
         }
         return lines
     }
 
     private static func renderKey(
-        _ key: ConfigKeySpec, indent: Int, listItemHead: Bool
+        _ key: ConfigKeySpec,
+        indent: Int,
+        listItemHead: Bool
     ) -> [String] {
         let pad = String(repeating: " ", count: indent)
         let prefix = listItemHead ? "- " : ""
@@ -1061,39 +1344,53 @@ public enum ConfigManifest {
             return [
                 withComment(
                     "\(pad)\(prefix)\(key.key): \(example)",
-                    comment: key.comment, moreComments: key.moreComments)
+                    comment: key.comment,
+                    moreComments: key.moreComments
+                )
             ]
         case .scalarList(_, let example), .nullableScalarList(_, let example):
             if example.isEmpty {
                 return [
                     withComment(
                         "\(pad)\(prefix)\(key.key): []",
-                        comment: key.comment, moreComments: key.moreComments)
+                        comment: key.comment,
+                        moreComments: key.moreComments
+                    )
                 ]
             }
             let inline = example.joined(separator: ", ")
             return [
                 withComment(
                     "\(pad)\(prefix)\(key.key): [\(inline)]",
-                    comment: key.comment, moreComments: key.moreComments)
+                    comment: key.comment,
+                    moreComments: key.moreComments
+                )
             ]
         case .mapping(let keys), .nullableMapping(let keys):
             var lines = [
                 withComment(
                     "\(pad)\(prefix)\(key.key):",
-                    comment: key.comment, moreComments: key.moreComments)
+                    comment: key.comment,
+                    moreComments: key.moreComments
+                )
             ]
             for child in keys {
                 lines.append(
                     contentsOf: renderKey(
-                        child, indent: indent + (listItemHead ? 4 : 2), listItemHead: false))
+                        child,
+                        indent: indent + (listItemHead ? 4 : 2),
+                        listItemHead: false
+                    )
+                )
             }
             return lines
         case .entityList(let keys, _):
             var lines = [
                 withComment(
                     "\(pad)\(prefix)\(key.key):",
-                    comment: key.comment, moreComments: key.moreComments)
+                    comment: key.comment,
+                    moreComments: key.moreComments
+                )
             ]
             lines.append(contentsOf: renderEntityItem(keys, indent: indent + 2))
             return lines
@@ -1103,7 +1400,9 @@ public enum ConfigManifest {
             var lines = [
                 withComment(
                     "\(pad)\(prefix)\(key.key):",
-                    comment: key.comment, moreComments: key.moreComments)
+                    comment: key.comment,
+                    moreComments: key.moreComments
+                )
             ]
             lines.append("\(pad)  \(exampleKey): \(exampleValue)")
             return lines
@@ -1111,7 +1410,9 @@ public enum ConfigManifest {
     }
 
     private static func withComment(
-        _ line: String, comment: String?, moreComments: [String]
+        _ line: String,
+        comment: String?,
+        moreComments: [String]
     ) -> String {
         guard let comment else { return line }
         let padded: String

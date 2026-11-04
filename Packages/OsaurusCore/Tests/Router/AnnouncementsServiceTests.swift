@@ -53,7 +53,9 @@ struct AnnouncementsServiceTests {
 
     @Test func decodesDocumentedSample() throws {
         let response = try JSONDecoder().decode(
-            OsaurusRouterAnnouncementsResponse.self, from: Data(Self.docSample.utf8))
+            OsaurusRouterAnnouncementsResponse.self,
+            from: Data(Self.docSample.utf8)
+        )
         #expect(response.serverTime == "2026-10-02T10:00:00.000Z")
         #expect(response.announcements.map(\.slug) == ["raptor-launch-2026-10", "community-call"])
 
@@ -101,7 +103,10 @@ struct AnnouncementsServiceTests {
     @Test func ctas_invalidSchemesDroppedAndCappedAtThree() {
         typealias CTA = OsaurusRouterAnnouncement.CTA
         let a = OsaurusRouterAnnouncement(
-            id: "1", slug: "ctas", title: "T", body: "B",
+            id: "1",
+            slug: "ctas",
+            title: "T",
+            body: "B",
             ctas: [
                 CTA(label: "http", kind: "external_url", url: "http://insecure.example"),
                 CTA(label: "file", kind: "external_url", url: "file:///etc/passwd"),
@@ -120,7 +125,12 @@ struct AnnouncementsServiceTests {
         #expect(a.resolvedImageURL == nil)
 
         let badImage = OsaurusRouterAnnouncement(
-            id: "2", slug: "img", title: "T", body: "B", imageURL: "http://cdn.example/x.png")
+            id: "2",
+            slug: "img",
+            title: "T",
+            body: "B",
+            imageURL: "http://cdn.example/x.png"
+        )
         #expect(badImage.resolvedImageURL == nil)
     }
 
@@ -190,14 +200,23 @@ struct AnnouncementsServiceTests {
 
     private func ann(_ slug: String, bodyFormat: String = "markdown", priority: Int = 0) -> OsaurusRouterAnnouncement {
         OsaurusRouterAnnouncement(
-            id: "id-\(slug)", slug: slug, title: "Title \(slug)", body: "Body \(slug)",
-            bodyFormat: bodyFormat, priority: priority)
+            id: "id-\(slug)",
+            slug: slug,
+            title: "Title \(slug)",
+            body: "Body \(slug)",
+            bodyFormat: bodyFormat,
+            priority: priority
+        )
     }
 
     // MARK: - Eligibility
 
     @Test func eligible_isFirstUnseenRenderableInServerOrder() async {
-        let h = makeHarness([feed([ann("html", bodyFormat: "html", priority: 100), ann("first", priority: 50), ann("second", priority: 10)])])
+        let h = makeHarness([
+            feed([
+                ann("html", bodyFormat: "html", priority: 100), ann("first", priority: 50), ann("second", priority: 10),
+            ])
+        ])
         defer { h.tearDown() }
 
         await h.service.refreshIfDue(trigger: .launch)
@@ -232,8 +251,12 @@ struct AnnouncementsServiceTests {
         let clock = h.clock
         let script = h.script
         let relaunched = AnnouncementsService(
-            defaults: h.defaults, now: { clock.now }, fetch: { try script.next($0) },
-            appVersion: { "1.42.0" }, isRouterEnabled: { true })
+            defaults: h.defaults,
+            now: { clock.now },
+            fetch: { try script.next($0) },
+            appVersion: { "1.42.0" },
+            isRouterEnabled: { true }
+        )
         await relaunched.refreshIfDue(trigger: .launch)
         #expect(relaunched.hasSeen("raptor"))
         #expect(relaunched.eligibleAnnouncement == nil)
@@ -271,7 +294,7 @@ struct AnnouncementsServiceTests {
         #expect(h.script.calls == 1)
 
         // Cmd-Tab storm over 29 minutes: zero requests.
-        for _ in 0..<29 {
+        for _ in 0 ..< 29 {
             h.clock.advance(60)
             await h.service.refreshIfDue(trigger: .activation)
         }
@@ -382,13 +405,16 @@ struct AnnouncementsServiceTests {
         #expect(AnnouncementsService.backoffInterval(retryAfter: " 7 ", now: now) == 7)
         #expect(
             AnnouncementsService.backoffInterval(retryAfter: nil, now: now)
-                == AnnouncementsService.defaultRateLimitBackoff)
+                == AnnouncementsService.defaultRateLimitBackoff
+        )
         #expect(
             AnnouncementsService.backoffInterval(retryAfter: "soon", now: now)
-                == AnnouncementsService.defaultRateLimitBackoff)
+                == AnnouncementsService.defaultRateLimitBackoff
+        )
         #expect(
             AnnouncementsService.backoffInterval(retryAfter: "0", now: now)
-                == AnnouncementsService.defaultRateLimitBackoff)
+                == AnnouncementsService.defaultRateLimitBackoff
+        )
         // HTTP-date form: relative to the injected clock.
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -458,7 +484,9 @@ struct AnnouncementsServiceTests {
     }
 
     @Test func seenDefaultsKey_matchesContract() {
-        #expect(AnnouncementsService.seenDefaultsKey(for: "raptor-launch-2026-10")
-            == "ai.osaurus.announcement.raptor-launch-2026-10.seen")
+        #expect(
+            AnnouncementsService.seenDefaultsKey(for: "raptor-launch-2026-10")
+                == "ai.osaurus.announcement.raptor-launch-2026-10.seen"
+        )
     }
 }

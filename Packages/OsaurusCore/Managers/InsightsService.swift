@@ -375,7 +375,8 @@ final class InsightsService: ObservableObject {
     /// Outbound activity for a paired remote agent, keyed by its provider id.
     func activity(forProviderId providerId: UUID) -> ConnectionActivitySummary {
         richer(
-            store: storeAvailable ? try? store.connectionActivity(column: "provider_id", value: providerId.uuidString) : nil,
+            store: storeAvailable
+                ? try? store.connectionActivity(column: "provider_id", value: providerId.uuidString) : nil,
             hot: summarize(logs.filter { $0.connection?.providerId == providerId })
         )
     }
@@ -404,7 +405,8 @@ final class InsightsService: ObservableObject {
     /// asynchronously. Prefer whichever view has seen more rows so a summary
     /// read right after `log(_:)` never under-counts; ties go to the hot cache
     /// (exact timestamps, no millisecond rounding).
-    private func richer(store: ConnectionActivitySummary?, hot: ConnectionActivitySummary) -> ConnectionActivitySummary {
+    private func richer(store: ConnectionActivitySummary?, hot: ConnectionActivitySummary) -> ConnectionActivitySummary
+    {
         guard let store, store.requestCount > hot.requestCount else { return hot }
         return store
     }
@@ -452,15 +454,22 @@ final class InsightsService: ObservableObject {
         let bounds = f.dateRange.bounds()
         return logs.filter { log in
             if !text.isEmpty {
-                let hay = [log.title, log.path, log.model ?? "", log.destinationDisplay, log.pluginId ?? "", log.agentName ?? ""]
-                    .joined(separator: " ").lowercased()
+                let hay = [
+                    log.title, log.path, log.model ?? "", log.destinationDisplay, log.pluginId ?? "",
+                    log.agentName ?? "",
+                ]
+                .joined(separator: " ").lowercased()
                 if !hay.contains(text) { return false }
             }
             if let bounds, log.timestamp < bounds.start || log.timestamp >= bounds.end { return false }
             if let locality = f.locality, log.locality != locality { return false }
             if !f.categories.isEmpty, !f.categories.contains(log.category) { return false }
             if !f.sources.isEmpty, !f.sources.contains(log.source) { return false }
-            if let host = f.destinationHost, (log.egress?.destinationHost ?? EgressInfo.host(from: log.connection?.remoteEndpoint)) != host { return false }
+            if let host = f.destinationHost,
+                (log.egress?.destinationHost ?? EgressInfo.host(from: log.connection?.remoteEndpoint)) != host
+            {
+                return false
+            }
             if let model = f.model, log.model != model { return false }
             if let agentId = f.agentId, log.agentId != agentId { return false }
             switch f.status {

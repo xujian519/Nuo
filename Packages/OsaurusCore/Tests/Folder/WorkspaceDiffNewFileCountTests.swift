@@ -30,7 +30,10 @@ struct WorkspaceDiffNewFileCountTests {
 
     @Test func newSingleLineFileIsPureAddition() {
         let diff = WorkspaceWriteSafety.unifiedDiffText(
-            old: "", new: "firmlink-fixed", path: "out.txt", existed: false
+            old: "",
+            new: "firmlink-fixed",
+            path: "out.txt",
+            existed: false
         )
         let c = counts(diff.text)
         #expect(c.added == 1)
@@ -39,7 +42,10 @@ struct WorkspaceDiffNewFileCountTests {
 
     @Test func newMultiLineFileCountsEveryAddedLineAndNoRemovals() {
         let diff = WorkspaceWriteSafety.unifiedDiffText(
-            old: "", new: "alpha\nbeta\ngamma", path: "out.txt", existed: false
+            old: "",
+            new: "alpha\nbeta\ngamma",
+            path: "out.txt",
+            existed: false
         )
         let c = counts(diff.text)
         #expect(c.added == 3)
@@ -48,7 +54,10 @@ struct WorkspaceDiffNewFileCountTests {
 
     @Test func genuineEditStillReportsRemovals() {
         let diff = WorkspaceWriteSafety.unifiedDiffText(
-            old: "before", new: "after", path: "out.txt", existed: true
+            old: "before",
+            new: "after",
+            path: "out.txt",
+            existed: true
         )
         let c = counts(diff.text)
         #expect(c.added == 1)

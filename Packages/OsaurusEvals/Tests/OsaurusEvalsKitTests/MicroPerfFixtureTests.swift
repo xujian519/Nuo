@@ -23,7 +23,7 @@ struct MicroPerfFixtureTests {
     private static func packageRootURL() -> URL {
         var url = URL(fileURLWithPath: #filePath)
         // …/Tests/OsaurusEvalsKitTests/MicroPerfFixtureTests.swift → package root
-        for _ in 0..<3 { url.deleteLastPathComponent() }
+        for _ in 0 ..< 3 { url.deleteLastPathComponent() }
         return url
     }
 

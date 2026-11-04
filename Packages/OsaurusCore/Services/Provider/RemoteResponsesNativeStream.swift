@@ -37,7 +37,8 @@ final class RemoteResponsesNativeStream: RemoteNativeStreamConsumer, @unchecked 
             state.observed = true
             yield(.providerEvent(value))
             if let response = event["response"]?.object, let id = response["id"]?.string { state.responseID = id }
-            let index = event["output_index"]?.integer
+            let index =
+                event["output_index"]?.integer
                 ?? event["item_id"]?.string.flatMap { state.itemIndices[$0] } ?? 0
             let contentIndex = event["content_index"]?.integer ?? event["summary_index"]?.integer ?? 0
             let rail = "\(index):\(contentIndex)"
@@ -52,11 +53,17 @@ final class RemoteResponsesNativeStream: RemoteNativeStreamConsumer, @unchecked 
                 state.reasoningRails.insert(rail)
                 if let delta = event["delta"]?.string { yield(.reasoningDelta(delta)) }
             case "response.output_text.done":
-                if state.textRails.insert(rail).inserted, let text = event["text"]?.string { yield(.outputTextDelta(text)) }
+                if state.textRails.insert(rail).inserted, let text = event["text"]?.string {
+                    yield(.outputTextDelta(text))
+                }
             case "response.refusal.done":
-                if state.refusalRails.insert(rail).inserted, let text = event["refusal"]?.string { yield(.outputTextDelta(text)) }
+                if state.refusalRails.insert(rail).inserted, let text = event["refusal"]?.string {
+                    yield(.outputTextDelta(text))
+                }
             case "response.reasoning_summary_text.done", "response.reasoning_text.done":
-                if state.reasoningRails.insert(rail).inserted, let text = event["text"]?.string { yield(.reasoningDelta(text)) }
+                if state.reasoningRails.insert(rail).inserted, let text = event["text"]?.string {
+                    yield(.reasoningDelta(text))
+                }
             case "response.output_item.added":
                 if let item = event["item"]?.object {
                     if let id = item["id"]?.string { state.itemIndices[id] = index }
@@ -68,15 +75,25 @@ final class RemoteResponsesNativeStream: RemoteNativeStreamConsumer, @unchecked 
             case "response.function_call_arguments.delta":
                 if let delta = event["delta"]?.string {
                     if let call = state.calls[index] {
-                        state.calls[index] = .init(id: call.id, callID: call.callID, name: call.name,
-                            arguments: call.arguments + delta, geminiThoughtSignature: call.geminiThoughtSignature)
+                        state.calls[index] = .init(
+                            id: call.id,
+                            callID: call.callID,
+                            name: call.name,
+                            arguments: call.arguments + delta,
+                            geminiThoughtSignature: call.geminiThoughtSignature
+                        )
                     }
                     yield(.functionArgumentsPreview(delta))
                 }
             case "response.function_call_arguments.done":
                 if let call = state.calls[index], let arguments = event["arguments"]?.string {
-                    state.calls[index] = .init(id: call.id, callID: call.callID, name: call.name,
-                        arguments: arguments, geminiThoughtSignature: call.geminiThoughtSignature)
+                    state.calls[index] = .init(
+                        id: call.id,
+                        callID: call.callID,
+                        name: call.name,
+                        arguments: arguments,
+                        geminiThoughtSignature: call.geminiThoughtSignature
+                    )
                 }
             case "response.output_item.done":
                 if let item = event["item"] { capture(item, index: index, state: &state) }
@@ -98,12 +115,17 @@ final class RemoteResponsesNativeStream: RemoteNativeStreamConsumer, @unchecked 
                 } else {
                     status = .completed; reason = "stop"
                     guard Set(state.calls.values.map(\.callID)).count == state.calls.count else {
-                        throw RemoteProviderServiceError.streamingError("Responses completed with duplicate function call IDs.")
+                        throw RemoteProviderServiceError.streamingError(
+                            "Responses completed with duplicate function call IDs."
+                        )
                     }
                     // The terminal is authoritative. Do not repair a malformed
                     // complete call or silently dispatch a partial JSON value.
                     for call in state.calls.values {
-                        _ = try JSONSerialization.jsonObject(with: Data(call.arguments.utf8), options: [.fragmentsAllowed])
+                        _ = try JSONSerialization.jsonObject(
+                            with: Data(call.arguments.utf8),
+                            options: [.fragmentsAllowed]
+                        )
                     }
                 }
                 let usage = response["usage"]?.object
@@ -112,17 +134,30 @@ final class RemoteResponsesNativeStream: RemoteNativeStreamConsumer, @unchecked 
                 let cached = usage?["input_tokens_details"]?.object?["cached_tokens"]?.nonnegativeInteger
                 if let input { yield(.inputTokenCount(input)) }
                 state.completed = true
-                yield(.responseCompleted(.init(responseID: responseID, status: status,
-                    functionCalls: state.calls.sorted { $0.key < $1.key }.map(\.value),
-                    tokenCount: output, tokensPerSecond: usage?["tokens_per_second"]?.finiteNumber,
-                    unclosedReasoning: false, stopReason: reason,
-                    promptTokensPerSecond: usage?["prefill_tokens_per_second"]?.finiteNumber,
-                    mtp: nil, inputTokenCount: input, cachedInputTokenCount: cached)))
+                yield(
+                    .responseCompleted(
+                        .init(
+                            responseID: responseID,
+                            status: status,
+                            functionCalls: state.calls.sorted { $0.key < $1.key }.map(\.value),
+                            tokenCount: output,
+                            tokensPerSecond: usage?["tokens_per_second"]?.finiteNumber,
+                            unclosedReasoning: false,
+                            stopReason: reason,
+                            promptTokensPerSecond: usage?["prefill_tokens_per_second"]?.finiteNumber,
+                            mtp: nil,
+                            inputTokenCount: input,
+                            cachedInputTokenCount: cached
+                        )
+                    )
+                )
                 return true
             case "response.failed", "error":
                 let response = event["response"]?.object
                 let error = response?["error"]?.object ?? event["error"]?.object
-                throw RemoteProviderServiceError.streamingError(error?["message"]?.string ?? "The provider failed its Responses request.")
+                throw RemoteProviderServiceError.streamingError(
+                    error?["message"]?.string ?? "The provider failed its Responses request."
+                )
             default:
                 break
             }
@@ -137,7 +172,8 @@ final class RemoteResponsesNativeStream: RemoteNativeStreamConsumer, @unchecked 
             // An Item may be repeated in the terminal object's full output
             // array; retain its provider identity even if a sparse peer
             // omitted earlier array entries when framing that terminal.
-            for (oldIndex, old) in state.calls where oldIndex != index && old.id == call.id && old.callID == call.callID {
+            for (oldIndex, old) in state.calls where oldIndex != index && old.id == call.id && old.callID == call.callID
+            {
                 state.calls.removeValue(forKey: oldIndex)
             }
             state.calls[index] = call
@@ -166,10 +202,14 @@ final class RemoteResponsesNativeStream: RemoteNativeStreamConsumer, @unchecked 
                 let rail = "\(index):\(part)"
                 if content.object?["type"]?.string == "output_text",
                     state.textRails.insert(rail).inserted, let text = content.object?["text"]?.string
-                { yield(.outputTextDelta(text)) }
+                {
+                    yield(.outputTextDelta(text))
+                }
                 if content.object?["type"]?.string == "refusal",
                     state.refusalRails.insert(rail).inserted, let text = content.object?["refusal"]?.string
-                { yield(.outputTextDelta(text)) }
+                {
+                    yield(.outputTextDelta(text))
+                }
             }
         default: break
         }
@@ -187,10 +227,13 @@ private extension JSONValue {
     var object: [String: JSONValue]? { if case .object(let value) = self { return value }; return nil }
     var array: [JSONValue]? { if case .array(let value) = self { return value }; return nil }
     var string: String? { if case .string(let value) = self { return value }; return nil }
-    var finiteNumber: Double? { if case .number(let value) = self, value.isFinite, value >= 0 { return value }; return nil }
+    var finiteNumber: Double? {
+        if case .number(let value) = self, value.isFinite, value >= 0 { return value }; return nil
+    }
     var integer: Int? {
         guard case .number(let value) = self, value.isFinite, value.rounded() == value,
-            value >= Double(Int.min), value < Double(Int.max) else { return nil }
+            value >= Double(Int.min), value < Double(Int.max)
+        else { return nil }
         return Int(value)
     }
     var nonnegativeInteger: Int? { integer.flatMap { $0 >= 0 ? $0 : nil } }

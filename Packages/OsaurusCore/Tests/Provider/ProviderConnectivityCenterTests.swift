@@ -152,7 +152,7 @@ struct ProviderConnectivityCenterTests {
                         title: "Future row",
                         value: "Warning",
                         severity: .warning
-                    ),
+                    )
                 ]
             ),
             status: .needsAttention,
@@ -280,10 +280,18 @@ struct ProviderConnectivityCenterTests {
         #expect(snapshot.issueKindCounts == [.authentication: 1, .proxy: 2])
         #expect(snapshot.groupedReportsByPrimaryIssueKind[.authentication]?.map(\.provider.name) == ["Missing key"])
         #expect(snapshot.groupedReportsByPrimaryIssueKind[.proxy]?.map(\.provider.name) == ["Proxy warning"])
-        #expect(!snapshot.groupedReportsByPrimaryIssueKind.values.flatMap { $0 }.contains { $0.provider.name == "Disabled key" })
+        #expect(
+            !snapshot.groupedReportsByPrimaryIssueKind.values.flatMap { $0 }.contains {
+                $0.provider.name == "Disabled key"
+            }
+        )
         #expect(snapshot.filtered(by: .all, issueKind: .authentication).map(\.provider.name) == ["Missing key"])
         #expect(snapshot.filtered(by: .attention, issueKind: .authentication).map(\.provider.name) == ["Missing key"])
-        #expect(snapshot.filtered(by: .attention, issueKind: .proxy).map(\.provider.name) == ["Missing key", "Proxy warning"])
+        #expect(
+            snapshot.filtered(by: .attention, issueKind: .proxy).map(\.provider.name) == [
+                "Missing key", "Proxy warning",
+            ]
+        )
         #expect(snapshot.filtered(by: .attention, issueKind: .requestEvidence).isEmpty)
         #expect(snapshot.filtered(by: .connected, issueKind: .proxy).map(\.provider.name) == ["Proxy warning"])
         #expect(snapshot.issueKindCounts(for: .attention) == [.authentication: 1, .proxy: 2])
@@ -325,7 +333,7 @@ struct ProviderConnectivityCenterTests {
             states: [provider.id: state],
             proxy: .disabled,
             credentialsByProvider: [
-                provider.id: RemoteProviderCredentialPresence(apiKeyPresent: true),
+                provider.id: RemoteProviderCredentialPresence(apiKeyPresent: true)
             ]
         )
 

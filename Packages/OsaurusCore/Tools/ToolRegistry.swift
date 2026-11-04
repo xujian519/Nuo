@@ -252,167 +252,168 @@ public final class ToolRegistry: ObservableObject {
     /// Auto-enables tools on first registration so the UI reflects their actual state
     /// (built-in tools are always loaded regardless, but this keeps config consistent).
     private func registerBuiltInTools() {
-        let builtIns: [OsaurusTool] = [
-            // Agent loop — `ChatView` intercepts execute results to drive
-            // the inline UI; the registry runs them like any other tool.
-            TodoTool(),
-            CompleteTool(),
-            ClarifyTool(),
-            // Picker-backed folder attach: the model asks the user to pick a
-            // working folder; `ChatView` intercepts the success and
-            // auto-continues the run with the folder bound.
-            PromptWorkingFolderTool(),
-            // Voice output: model calls this when the user explicitly
-            // asks to hear the response. ChatView intercepts the
-            // successful call and routes through TTSService.
-            SpeakTool(),
-            // Only sanctioned path for surfacing files / inline blobs to
-            // the user (file_write / sandbox writes do not show in chat).
-            ShareArtifactTool(),
-            // Compact chat gateway plus legacy non-chat compatibility aliases.
-            CapabilitiesTool(),
-            CapabilitiesDiscoverTool(),
-            CapabilitiesLoadTool(),
-            // Persistent memory recall — one tool, dispatched by `scope`.
-            SearchMemoryTool(),
-            // Knowledge collection retrieval (read-only). Registered as
-            // built-ins so the runtime can execute them; the system prompt
-            // composer strips them unless the agent opts in via
-            // `knowledgeEnabled` with at least one granted collection.
-            // Collection scoping is additionally enforced at execution
-            // time inside each tool.
-            SearchKnowledgeTool(),
-            ReadKnowledgeTool(),
-            ListKnowledgeTool(),
-            // Direct write, gated by the ordinary permission modal, which
-            // renders paths + diffs for this tool instead of raw JSON. The
-            // user approves the call and the documents land immediately, so
-            // the agent can verify them with `search_knowledge` — the loop
-            // closure the proposal queue structurally could not provide.
-            WriteKnowledgeTool(),
-            // Deletion is separate from writing, and conforms to
-            // `PerCallApprovalTool`: a lease taken for a bulk import must never
-            // end up covering removal later in the same run.
-            DeleteKnowledgeTool(),
-            // Find/replace on one document. Preferred over `write_knowledge` for
-            // editing: restating a long document is slow and truncates, and a
-            // truncated restatement replaces the original.
-            EditKnowledgeTool(),
-            // Skill self-improvement: find/replace on a user skill's
-            // instructions, behind the same `.ask` modal. Without it, skills
-            // are read-only text in the prompt and "update my skill" gets a
-            // fabricated "Done" with nothing saved.
-            SkillUpdateTool(),
-            // Knowledge curation loop: staleness tickets (annotation only,
-            // same gate as the retrieval tools). Tickets remain the right
-            // shape for drift the agent NOTICES but is not being asked to fix
-            // now; that is an async signal to a human, not a consent gate.
-            FlagKnowledgeStaleTool(),
-            ListKnowledgeTicketsTool(),
-            // Ticket queue coordination (claim/release). Bookkeeping over
-            // annotations, so it follows the ordinary knowledge grant now that
-            // the curator role is gone.
-            UpdateKnowledgeTicketTool(),
-            // Native web search (Settings → Search providers). Always loaded;
-            // the composer strips it per-agent via `webSearchEnabled`. Its
-            // sibling `search_and_extract` is registered as a dynamic native
-            // tool below (large payloads; loaded via capabilities on demand).
-            WebSearchTool(),
-            // Inline data visualization rendered as a chart card.
-            RenderChartTool(),
-            // Current date/time. Local models have no clock in-context, so a
-            // plain "what is the time?" (a common first-message smoke test)
-            // otherwise makes them guess. Always loaded; no side effects.
-            CurrentTimeTool(),
-            // Deterministic math (`calculate`). Models get multi-digit
-            // arithmetic wrong in their heads; always loaded, no side effects.
-            CalculatorTool(),
-            // Delegation: `spawn_agent` hands a task to a configured agent
-            // (its prompt + model + tools). Several calls in one message form
-            // one wave (`SpawnWaveGate`). Gated per-agent (its pool) in
-            // `SystemPromptComposer.resolveTools` via `SubagentToolVisibility`.
-            SpawnAgentTool(),
-            // Native local image generation/editing (one `image` tool; source_paths
-            // → edit). Tool body enforces the separate Agent Delegation permission
-            // defaults and low-RAM unload policy.
-            ImageTool(),
-            // Billable remote text/image-to-video generation. The subagent kind
-            // obtains a live quote before permission and persists queued jobs.
-            VideoTool(),
-            // Agent DB feature (spec §6). The system prompt composer
-            // gates these per-agent via `Agent.settings.dbEnabled`;
-            // registering them as built-ins means agents that *do*
-            // enable the feature don't pay an install-time round-trip.
-            DBSchemaTool(),
-            DBCreateTableTool(),
-            DBAlterTableTool(),
-            DBMigrateTool(),
-            DBInsertTool(),
-            DBUpsertTool(),
-            DBImportTool(),
-            DBExportTool(),
-            DBUpdateTool(),
-            DBDeleteTool(),
-            DBRestoreTool(),
-            DBQueryTool(),
-            DBExecuteTool(),
-            DBDefineViewTool(),
-            DBRunViewTool(),
-            DBListViewsTool(),
-            DBDropViewTool(),
-            // Self-scheduling + notification (spec §9, §10). Registered as
-            // built-ins so the runtime can execute them, but the system
-            // prompt composer strips them from the model-visible schema
-            // unless the agent opts in via `selfSchedulingEnabled` (they
-            // are not gated by `dbEnabled`).
-            ScheduleNextRunTool(),
-            CancelNextRunTool(),
-            NotifyTool(),
-            // Default-agent generic reads (Phase C). Always loaded; the
-            // composer further restricts visibility to the default
-            // agent only. The matching consolidated writes live under
-            // `ConfigurationDomainRegistry`: the Default agent receives
-            // them DIRECTLY (see `orchestratorAllowedToolNames`), while
-            // custom agents reach them on demand via
-            // `capabilities_discover` / `capabilities_load`.
-            OsaurusInspectTool(),
-            OsaurusHelpTool(),
-            // Computer Use (macOS automation harness). Registered as a
-            // built-in so the runtime can execute it and ChatView can
-            // intercept its live activity feed, but the system prompt
-            // composer strips it authoritatively unless the agent opts in
-            // via `computerUseEnabled` (custom agents only). Conforms to
-            // PermissionedTool: execution preflights Accessibility +
-            // Screen Recording before the loop runs.
-            ComputerUseTool(),
-            // Browser Use (persistent per-agent WebKit session — the native
-            // replacement for the osaurus.browser plugin). Registered as a
-            // built-in so the runtime can execute it and ChatView can
-            // intercept its live activity feed, but the composer strips it
-            // authoritatively unless a custom agent opts in via
-            // `browserUseEnabled`; the Default agent is hard-off. The `browser_*` primitives are
-            // PRIVATE to the nested runner and are never registered here.
-            BrowserUseTool(),
-            // AppleScript subagent. Like the other delegation-family tools it
-            // is registered as a built-in so the runtime can execute it and
-            // ChatView can intercept its feed, but the composer strips it
-            // unless the agent has AppleScript enabled AND a model installed
-            // (gated via `SubagentToolVisibility`). Its on-device AppleScript
-            // model generates the script; macOS prompts for Automation consent
-            // at script-send time. `mac_query` is its read-only sibling (same
-            // capability + model + gating), so both register and gate together.
-            AppleScriptTool(),
-            MacQueryTool(),
-        ]
-        // Built-in Apple app tools (Calendar, Reminders, Contacts, Notes,
-        // Mail, Messages, Maps/Location, Music, Shortcuts) — the
-        // native replacement for the osaurus-tools Apple plugins. Always
-        // registered so the runtime can execute them; the composer strips
-        // every app the agent has not enabled (`enabledAppleApps`) and the
-        // Orchestrator never carries them (`orchestratorExcludedToolNames`).
-        // Each conforms to `PermissionedTool` with the app's macOS
-        // permission(s) as requirements so the first call prompts via TCC.
-        + AppleAppToolCatalog.makeTools()
+        let builtIns: [OsaurusTool] =
+            [
+                // Agent loop — `ChatView` intercepts execute results to drive
+                // the inline UI; the registry runs them like any other tool.
+                TodoTool(),
+                CompleteTool(),
+                ClarifyTool(),
+                // Picker-backed folder attach: the model asks the user to pick a
+                // working folder; `ChatView` intercepts the success and
+                // auto-continues the run with the folder bound.
+                PromptWorkingFolderTool(),
+                // Voice output: model calls this when the user explicitly
+                // asks to hear the response. ChatView intercepts the
+                // successful call and routes through TTSService.
+                SpeakTool(),
+                // Only sanctioned path for surfacing files / inline blobs to
+                // the user (file_write / sandbox writes do not show in chat).
+                ShareArtifactTool(),
+                // Compact chat gateway plus legacy non-chat compatibility aliases.
+                CapabilitiesTool(),
+                CapabilitiesDiscoverTool(),
+                CapabilitiesLoadTool(),
+                // Persistent memory recall — one tool, dispatched by `scope`.
+                SearchMemoryTool(),
+                // Knowledge collection retrieval (read-only). Registered as
+                // built-ins so the runtime can execute them; the system prompt
+                // composer strips them unless the agent opts in via
+                // `knowledgeEnabled` with at least one granted collection.
+                // Collection scoping is additionally enforced at execution
+                // time inside each tool.
+                SearchKnowledgeTool(),
+                ReadKnowledgeTool(),
+                ListKnowledgeTool(),
+                // Direct write, gated by the ordinary permission modal, which
+                // renders paths + diffs for this tool instead of raw JSON. The
+                // user approves the call and the documents land immediately, so
+                // the agent can verify them with `search_knowledge` — the loop
+                // closure the proposal queue structurally could not provide.
+                WriteKnowledgeTool(),
+                // Deletion is separate from writing, and conforms to
+                // `PerCallApprovalTool`: a lease taken for a bulk import must never
+                // end up covering removal later in the same run.
+                DeleteKnowledgeTool(),
+                // Find/replace on one document. Preferred over `write_knowledge` for
+                // editing: restating a long document is slow and truncates, and a
+                // truncated restatement replaces the original.
+                EditKnowledgeTool(),
+                // Skill self-improvement: find/replace on a user skill's
+                // instructions, behind the same `.ask` modal. Without it, skills
+                // are read-only text in the prompt and "update my skill" gets a
+                // fabricated "Done" with nothing saved.
+                SkillUpdateTool(),
+                // Knowledge curation loop: staleness tickets (annotation only,
+                // same gate as the retrieval tools). Tickets remain the right
+                // shape for drift the agent NOTICES but is not being asked to fix
+                // now; that is an async signal to a human, not a consent gate.
+                FlagKnowledgeStaleTool(),
+                ListKnowledgeTicketsTool(),
+                // Ticket queue coordination (claim/release). Bookkeeping over
+                // annotations, so it follows the ordinary knowledge grant now that
+                // the curator role is gone.
+                UpdateKnowledgeTicketTool(),
+                // Native web search (Settings → Search providers). Always loaded;
+                // the composer strips it per-agent via `webSearchEnabled`. Its
+                // sibling `search_and_extract` is registered as a dynamic native
+                // tool below (large payloads; loaded via capabilities on demand).
+                WebSearchTool(),
+                // Inline data visualization rendered as a chart card.
+                RenderChartTool(),
+                // Current date/time. Local models have no clock in-context, so a
+                // plain "what is the time?" (a common first-message smoke test)
+                // otherwise makes them guess. Always loaded; no side effects.
+                CurrentTimeTool(),
+                // Deterministic math (`calculate`). Models get multi-digit
+                // arithmetic wrong in their heads; always loaded, no side effects.
+                CalculatorTool(),
+                // Delegation: `spawn_agent` hands a task to a configured agent
+                // (its prompt + model + tools). Several calls in one message form
+                // one wave (`SpawnWaveGate`). Gated per-agent (its pool) in
+                // `SystemPromptComposer.resolveTools` via `SubagentToolVisibility`.
+                SpawnAgentTool(),
+                // Native local image generation/editing (one `image` tool; source_paths
+                // → edit). Tool body enforces the separate Agent Delegation permission
+                // defaults and low-RAM unload policy.
+                ImageTool(),
+                // Billable remote text/image-to-video generation. The subagent kind
+                // obtains a live quote before permission and persists queued jobs.
+                VideoTool(),
+                // Agent DB feature (spec §6). The system prompt composer
+                // gates these per-agent via `Agent.settings.dbEnabled`;
+                // registering them as built-ins means agents that *do*
+                // enable the feature don't pay an install-time round-trip.
+                DBSchemaTool(),
+                DBCreateTableTool(),
+                DBAlterTableTool(),
+                DBMigrateTool(),
+                DBInsertTool(),
+                DBUpsertTool(),
+                DBImportTool(),
+                DBExportTool(),
+                DBUpdateTool(),
+                DBDeleteTool(),
+                DBRestoreTool(),
+                DBQueryTool(),
+                DBExecuteTool(),
+                DBDefineViewTool(),
+                DBRunViewTool(),
+                DBListViewsTool(),
+                DBDropViewTool(),
+                // Self-scheduling + notification (spec §9, §10). Registered as
+                // built-ins so the runtime can execute them, but the system
+                // prompt composer strips them from the model-visible schema
+                // unless the agent opts in via `selfSchedulingEnabled` (they
+                // are not gated by `dbEnabled`).
+                ScheduleNextRunTool(),
+                CancelNextRunTool(),
+                NotifyTool(),
+                // Default-agent generic reads (Phase C). Always loaded; the
+                // composer further restricts visibility to the default
+                // agent only. The matching consolidated writes live under
+                // `ConfigurationDomainRegistry`: the Default agent receives
+                // them DIRECTLY (see `orchestratorAllowedToolNames`), while
+                // custom agents reach them on demand via
+                // `capabilities_discover` / `capabilities_load`.
+                OsaurusInspectTool(),
+                OsaurusHelpTool(),
+                // Computer Use (macOS automation harness). Registered as a
+                // built-in so the runtime can execute it and ChatView can
+                // intercept its live activity feed, but the system prompt
+                // composer strips it authoritatively unless the agent opts in
+                // via `computerUseEnabled` (custom agents only). Conforms to
+                // PermissionedTool: execution preflights Accessibility +
+                // Screen Recording before the loop runs.
+                ComputerUseTool(),
+                // Browser Use (persistent per-agent WebKit session — the native
+                // replacement for the osaurus.browser plugin). Registered as a
+                // built-in so the runtime can execute it and ChatView can
+                // intercept its live activity feed, but the composer strips it
+                // authoritatively unless a custom agent opts in via
+                // `browserUseEnabled`; the Default agent is hard-off. The `browser_*` primitives are
+                // PRIVATE to the nested runner and are never registered here.
+                BrowserUseTool(),
+                // AppleScript subagent. Like the other delegation-family tools it
+                // is registered as a built-in so the runtime can execute it and
+                // ChatView can intercept its feed, but the composer strips it
+                // unless the agent has AppleScript enabled AND a model installed
+                // (gated via `SubagentToolVisibility`). Its on-device AppleScript
+                // model generates the script; macOS prompts for Automation consent
+                // at script-send time. `mac_query` is its read-only sibling (same
+                // capability + model + gating), so both register and gate together.
+                AppleScriptTool(),
+                MacQueryTool(),
+            ]
+            // Built-in Apple app tools (Calendar, Reminders, Contacts, Notes,
+            // Mail, Messages, Maps/Location, Music, Shortcuts) — the
+            // native replacement for the osaurus-tools Apple plugins. Always
+            // registered so the runtime can execute them; the composer strips
+            // every app the agent has not enabled (`enabledAppleApps`) and the
+            // Orchestrator never carries them (`orchestratorExcludedToolNames`).
+            // Each conforms to `PermissionedTool` with the app's macOS
+            // permission(s) as requirements so the first call prompts via TCC.
+            + AppleAppToolCatalog.makeTools()
         var configChanged = false
         for tool in builtIns {
             register(tool)
@@ -731,7 +732,10 @@ public final class ToolRegistry: ObservableObject {
                 "'\(tool)' belongs to the built-in \(app.displayName) app, which is off for this agent. It cannot be loaded with capabilities_load. Ask the user to turn on \(app.displayName) under this agent's Abilities → Tools → Apple Apps (or have the Orchestrator set capabilities.apple_apps), then retry."
         }
         return ToolEnvelope.failure(
-            kind: .rejected, message: message, tool: tool, retryable: false,
+            kind: .rejected,
+            message: message,
+            tool: tool,
+            retryable: false,
             metadata: ["apple_app": app.rawValue]
         )
     }
@@ -775,13 +779,15 @@ public final class ToolRegistry: ObservableObject {
         // returns the structured envelope — so this only decides what the
         // user is shown.
         let normalized = tool.normalizeArgumentsBeforeValidation(argumentsJSON)
-        guard case .ready(let effectiveArgumentsJSON) = Self.preflight(
-            argumentsJSON: normalized,
-            schema: tool.parameters,
-            toolName: name,
-            hint: tool.argumentHint,
-            preservingEmpty: tool.preservedEmptyStringArguments
-        ) else { return }
+        guard
+            case .ready(let effectiveArgumentsJSON) = Self.preflight(
+                argumentsJSON: normalized,
+                schema: tool.parameters,
+                toolName: name,
+                hint: tool.argumentHint,
+                preservingEmpty: tool.preservedEmptyStringArguments
+            )
+        else { return }
         try await runPermissionGate(
             tool: tool,
             name: name,
@@ -1974,7 +1980,8 @@ public final class ToolRegistry: ObservableObject {
             let finished = await race.waitForBody(graceSeconds: bodyGraceSeconds, queue: toolBodyTimeoutQueue)
             if !finished {
                 Logger(subsystem: "ai.osaurus", category: "tools").warning(
-                    "tool \(toolName, privacy: .public) still running \(Int(bodyGraceSeconds))s after timeout/cancel; later writes are not journaled")
+                    "tool \(toolName, privacy: .public) still running \(Int(bodyGraceSeconds))s after timeout/cancel; later writes are not journaled"
+                )
             }
         }
         return result

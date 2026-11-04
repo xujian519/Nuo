@@ -256,7 +256,10 @@ import NIOPosix
             if target.isConnect {
                 // 200 through the still-installed encoder, then strip HTTP
                 // handlers and splice raw bytes.
-                let response = HTTPResponseHead(version: head.version, status: .custom(code: 200, reasonPhrase: "Connection Established"))
+                let response = HTTPResponseHead(
+                    version: head.version,
+                    status: .custom(code: 200, reasonPhrase: "Connection Established")
+                )
                 context.write(wrapOutboundOut(.head(response)), promise: nil)
                 context.writeAndFlush(wrapOutboundOut(.end(nil)), promise: nil)
             } else {
@@ -350,7 +353,8 @@ import NIOPosix
                 let pair = String(data: decoded, encoding: .utf8)
             else { return nil }
             // "<token>:" or "<token>:<ignored>"
-            let token = pair.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
+            let token =
+                pair.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
                 .first.map(String.init) ?? ""
             return token.isEmpty ? nil : token
         }
@@ -361,7 +365,7 @@ import NIOPosix
             if head.method == .CONNECT {
                 let parts = head.uri.split(separator: ":", maxSplits: 1)
                 guard parts.count == 2,
-                    let port = Int(parts[1]), (1...65535).contains(port)
+                    let port = Int(parts[1]), (1 ... 65535).contains(port)
                 else { return nil }
                 let host = String(parts[0])
                 guard !host.isEmpty else { return nil }
@@ -401,9 +405,12 @@ import NIOPosix
                 var textBuffer = [CChar](repeating: 0, count: Int(NI_MAXHOST))
                 guard
                     getnameinfo(
-                        addr, info.pointee.ai_addrlen,
-                        &textBuffer, socklen_t(textBuffer.count),
-                        nil, 0,
+                        addr,
+                        info.pointee.ai_addrlen,
+                        &textBuffer,
+                        socklen_t(textBuffer.count),
+                        nil,
+                        0,
                         NI_NUMERICHOST
                     ) == 0
                 else { continue }

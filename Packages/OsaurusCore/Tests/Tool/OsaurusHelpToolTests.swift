@@ -206,7 +206,8 @@ struct OsaurusHelpToolTests {
         let tool = OsaurusHelpTool()
         let envelope = try await ChatExecutionContext.$currentAgentId.withValue(Agent.defaultId) {
             try await tool.execute(
-                argumentsJSON: #"{"action": "find", "query": "context window"}"#)
+                argumentsJSON: #"{"action": "find", "query": "context window"}"#
+            )
         }
         let dict = try parse(envelope)
         #expect(dict["ok"] as? Bool == true)

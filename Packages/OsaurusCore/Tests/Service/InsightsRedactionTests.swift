@@ -73,7 +73,8 @@ struct InsightsRedactionTests {
     func agentChannelToolArgumentsRedactMessageContent() {
         let log = ToolCallLog(
             name: "agent_channel_send_message",
-            arguments: #"{"connection_id":"telegram","room_id":"-100111222333","content":"ship the private incident note","confirm_send":true}"#,
+            arguments:
+                #"{"connection_id":"telegram","room_id":"-100111222333","content":"ship the private incident note","confirm_send":true}"#,
             result: #"{"message":{"content":"posted private incident note"}}"#
         )
 
@@ -87,7 +88,8 @@ struct InsightsRedactionTests {
     func agentChannelSearchArgumentsRedactQueryText() {
         let log = ToolCallLog(
             name: "agent_channel_search_messages",
-            arguments: #"{"connection_id":"telegram","room_ids":["-100111222333"],"query":"customer token pasted in chat"}"#
+            arguments:
+                #"{"connection_id":"telegram","room_ids":["-100111222333"],"query":"customer token pasted in chat"}"#
         )
 
         #expect(log.arguments.contains(#""connection_id":"telegram""#))

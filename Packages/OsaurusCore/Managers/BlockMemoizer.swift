@@ -40,11 +40,14 @@ final class BlockMemoizer {
 
         static func == (lhs: Self, rhs: Self) -> Bool {
             lhs.turnId == rhs.turnId && lhs.results == rhs.results && lhs.durations == rhs.durations
-                && lhs.calls.elementsEqual(rhs.calls, by: { left, right in
-                    left.id == right.id && left.type == right.type
-                        && left.function.name == right.function.name
-                        && left.function.arguments == right.function.arguments
-                })
+                && lhs.calls.elementsEqual(
+                    rhs.calls,
+                    by: { left, right in
+                        left.id == right.id && left.type == right.type
+                            && left.function.name == right.function.name
+                            && left.function.arguments == right.function.arguments
+                    }
+                )
         }
     }
     private var lastToolStates: [ToolStateKey] = []

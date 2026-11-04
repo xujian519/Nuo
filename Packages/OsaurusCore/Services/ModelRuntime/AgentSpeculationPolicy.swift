@@ -12,7 +12,9 @@ enum AgentSpeculationPolicy {
     }
 
     static func requiresPreparation(
-        previous: VMLXServerMTPSettings, next: VMLXServerMTPSettings, hasLoadedStrategy: Bool = false
+        previous: VMLXServerMTPSettings,
+        next: VMLXServerMTPSettings,
+        hasLoadedStrategy: Bool = false
     ) -> Bool {
         // Off can reuse weights containing a head: requestStrategy disables EVERY drafter.
         guard next.mode != .off else { return false }

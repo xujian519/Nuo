@@ -11,10 +11,8 @@ enum SubagentConfigurationStore {
     private nonisolated(unsafe) static var overrideDirectory: URL?
     private nonisolated(unsafe) static var cachedSnapshot: SubagentConfiguration?
     private nonisolated(unsafe) static var snapshotRevision: UInt64 = 0
-    private nonisolated(unsafe) static var cachedSpawnSharedAuthority:
-        SpawnSharedConfigurationAuthority?
-    private nonisolated(unsafe) static var cachedSpawnDefaultAuthority:
-        SpawnDefaultConfigurationAuthority?
+    private nonisolated(unsafe) static var cachedSpawnSharedAuthority: SpawnSharedConfigurationAuthority?
+    private nonisolated(unsafe) static var cachedSpawnDefaultAuthority: SpawnDefaultConfigurationAuthority?
     private nonisolated(unsafe) static var spawnSharedAuthorityRevision: UInt64 = 0
     private nonisolated(unsafe) static var spawnDefaultAuthorityRevision: UInt64 = 0
     private static let snapshotLock = NSLock()
@@ -183,7 +181,9 @@ enum SubagentConfigurationStore {
     }
 
     private static let writeQueue = DispatchQueue(
-        label: "com.osaurus.subagentconfig.write", qos: .utility)
+        label: "com.osaurus.subagentconfig.write",
+        qos: .utility
+    )
 
     nonisolated static func snapshot() -> SubagentConfiguration {
         snapshotWithRevision().configuration

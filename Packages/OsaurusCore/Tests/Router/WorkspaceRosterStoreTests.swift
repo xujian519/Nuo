@@ -124,7 +124,10 @@ struct WorkspaceRosterStoreTests {
         // to that long) — the relay verdict wins.
         store.now = { clock.addingTimeInterval(WorkspaceRosterStore.relayClaimTTL - 1) }
         store.apply(rosters: [.init(workspace: ws, agents: [agent])])
-        #expect(store.forcedOffline["0xaa"] == nil, "a confirmed offline-to-online transition restores reachability immediately")
+        #expect(
+            store.forcedOffline["0xaa"] == nil,
+            "a confirmed offline-to-online transition restores reachability immediately"
+        )
         #expect(store.presence(forAddress: "0xaa") == .online)
 
         // Once the TTL has passed, the router's online is trustworthy again.
@@ -356,9 +359,21 @@ struct WorkspaceRosterStoreTests {
             log.record(path)
             switch path {
             case "/workspaces":
-                return (200, Data(#"{"data":[{"id":"ws-1","name":"Acme","role":"member","source":"subscription","active":true}]}"#.utf8))
+                return (
+                    200,
+                    Data(
+                        #"{"data":[{"id":"ws-1","name":"Acme","role":"member","source":"subscription","active":true}]}"#
+                            .utf8
+                    )
+                )
             case "/workspaces/ws-1/agents":
-                return (200, Data(#"{"data":[{"agent_address":"0xaa","display_name":"Research Agent","owner":{"account_id":"acct-1","wallet_address":"0xowner","display_name":"Alice"},"relay_url":"wss://relay.example","online":false,"last_seen":"2026-01-01T00:00:00Z","shared_at":"2026-01-01T00:00:00Z"}]}"#.utf8))
+                return (
+                    200,
+                    Data(
+                        #"{"data":[{"agent_address":"0xaa","display_name":"Research Agent","owner":{"account_id":"acct-1","wallet_address":"0xowner","display_name":"Alice"},"relay_url":"wss://relay.example","online":false,"last_seen":"2026-01-01T00:00:00Z","shared_at":"2026-01-01T00:00:00Z"}]}"#
+                            .utf8
+                    )
+                )
             default:
                 return (404, Data(#"{"error":{"code":"NOT_FOUND","message":"nope"}}"#.utf8))
             }
@@ -393,7 +408,7 @@ struct WorkspaceRosterStoreTests {
         defer { restore() }
         store.isSyncVerified = { true }
 
-        for _ in 0..<3 {
+        for _ in 0 ..< 3 {
             await store.refresh(reason: .activation)
         }
         #expect(log.paths.isEmpty)
@@ -418,7 +433,7 @@ struct WorkspaceRosterStoreTests {
         await store.refresh(reason: .activation)
         #expect(log.count(of: "/workspaces") == 1)
 
-        for _ in 0..<14 {
+        for _ in 0 ..< 14 {
             clock = clock.addingTimeInterval(60)
             await store.refresh(reason: .activation)
         }
@@ -478,8 +493,11 @@ private final class RosterURLProtocol: URLProtocol, @unchecked Sendable {
         }
         let (status, data) = handler(request)
         let response = HTTPURLResponse(
-            url: request.url!, statusCode: status, httpVersion: "HTTP/1.1",
-            headerFields: ["content-type": "application/json"])!
+            url: request.url!,
+            statusCode: status,
+            httpVersion: "HTTP/1.1",
+            headerFields: ["content-type": "application/json"]
+        )!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: data)
         client?.urlProtocolDidFinishLoading(self)
@@ -498,39 +516,74 @@ struct WorkspaceSyncServicePolicyTests {
     @Test func stream_runsOnlyForKnownMembership() {
         #expect(
             WorkspaceSyncService.streamDecision(
-                wanted: true, routerEnabled: true, hasKnownMembership: true, alreadyProbed: false, hasIdentity: true
-            ) == .stream)
+                wanted: true,
+                routerEnabled: true,
+                hasKnownMembership: true,
+                alreadyProbed: false,
+                hasIdentity: true
+            ) == .stream
+        )
         #expect(
             WorkspaceSyncService.streamDecision(
-                wanted: true, routerEnabled: true, hasKnownMembership: true, alreadyProbed: true, hasIdentity: true
-            ) == .stream)
+                wanted: true,
+                routerEnabled: true,
+                hasKnownMembership: true,
+                alreadyProbed: true,
+                hasIdentity: true
+            ) == .stream
+        )
     }
 
     @Test func zeroWorkspaces_probesOncePerLaunchThenStaysOff() {
         #expect(
             WorkspaceSyncService.streamDecision(
-                wanted: true, routerEnabled: true, hasKnownMembership: false, alreadyProbed: false, hasIdentity: true
-            ) == .probe)
+                wanted: true,
+                routerEnabled: true,
+                hasKnownMembership: false,
+                alreadyProbed: false,
+                hasIdentity: true
+            ) == .probe
+        )
         #expect(
             WorkspaceSyncService.streamDecision(
-                wanted: true, routerEnabled: true, hasKnownMembership: false, alreadyProbed: true, hasIdentity: true
-            ) == .stop)
+                wanted: true,
+                routerEnabled: true,
+                hasKnownMembership: false,
+                alreadyProbed: true,
+                hasIdentity: true
+            ) == .stop
+        )
         // No identity: nothing to sign the probe with.
         #expect(
             WorkspaceSyncService.streamDecision(
-                wanted: true, routerEnabled: true, hasKnownMembership: false, alreadyProbed: false, hasIdentity: false
-            ) == .stop)
+                wanted: true,
+                routerEnabled: true,
+                hasKnownMembership: false,
+                alreadyProbed: false,
+                hasIdentity: false
+            ) == .stop
+        )
     }
 
     @Test func notWantedOrRouterOff_stopsRegardlessOfMembership() {
         #expect(
             WorkspaceSyncService.streamDecision(
-                wanted: false, routerEnabled: true, hasKnownMembership: true, alreadyProbed: false, hasIdentity: true
-            ) == .stop)
+                wanted: false,
+                routerEnabled: true,
+                hasKnownMembership: true,
+                alreadyProbed: false,
+                hasIdentity: true
+            ) == .stop
+        )
         #expect(
             WorkspaceSyncService.streamDecision(
-                wanted: true, routerEnabled: false, hasKnownMembership: true, alreadyProbed: false, hasIdentity: true
-            ) == .stop)
+                wanted: true,
+                routerEnabled: false,
+                hasKnownMembership: true,
+                alreadyProbed: false,
+                hasIdentity: true
+            ) == .stop
+        )
     }
 
     @Test func membershipFlag_persistsAcrossInstances() {
@@ -557,7 +610,7 @@ struct WorkspaceSyncServicePolicyTests {
         #expect(WorkspaceSyncService.fallbackMaxDelay == 300)
         var delay = WorkspaceSyncService.fallbackInitialDelay
         var schedule: [TimeInterval] = []
-        for _ in 0..<7 {
+        for _ in 0 ..< 7 {
             delay = WorkspaceSyncService.nextFallbackDelay(after: delay)
             schedule.append(delay)
         }

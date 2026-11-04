@@ -199,9 +199,11 @@ struct TelegramConnectionTests {
 
             #expect(diagnostics.status == "connected_receive_needs_sender_allowlist")
             #expect(!diagnostics.receiveReady)
-            #expect(diagnostics.failures.contains {
-                $0.localizedCaseInsensitiveContains("authorized sender")
-            })
+            #expect(
+                diagnostics.failures.contains {
+                    $0.localizedCaseInsensitiveContains("authorized sender")
+                }
+            )
             #expect(!TelegramSettingsSavePolicy.shouldDismissAfterSave(diagnostics))
         }
     }
@@ -216,15 +218,21 @@ struct TelegramConnectionTests {
 
             #expect(diagnostics.status == "connected_receive_long_poll_disabled")
             #expect(!diagnostics.receiveReady)
-            #expect(diagnostics.failures.contains {
-                $0.localizedCaseInsensitiveContains("long polling")
-            })
-            #expect(diagnostics.failures.contains {
-                $0.localizedCaseInsensitiveContains("readable chat")
-            })
-            #expect(diagnostics.failures.contains {
-                $0.localizedCaseInsensitiveContains("authorized sender")
-            })
+            #expect(
+                diagnostics.failures.contains {
+                    $0.localizedCaseInsensitiveContains("long polling")
+                }
+            )
+            #expect(
+                diagnostics.failures.contains {
+                    $0.localizedCaseInsensitiveContains("readable chat")
+                }
+            )
+            #expect(
+                diagnostics.failures.contains {
+                    $0.localizedCaseInsensitiveContains("authorized sender")
+                }
+            )
             #expect(diagnostics.failures.allSatisfy { !$0.contains(token) })
             #expect(diagnostics.dictionary["receive_ready"] as? Bool == false)
             #expect(!TelegramSettingsSavePolicy.shouldDismissAfterSave(diagnostics))
@@ -247,9 +255,11 @@ struct TelegramConnectionTests {
 
             #expect(diagnostics.status == "connected_receive_needs_readable_chats")
             #expect(!diagnostics.receiveReady)
-            #expect(diagnostics.failures.contains {
-                $0.localizedCaseInsensitiveContains("readable chat")
-            })
+            #expect(
+                diagnostics.failures.contains {
+                    $0.localizedCaseInsensitiveContains("readable chat")
+                }
+            )
             #expect(!TelegramSettingsSavePolicy.shouldDismissAfterSave(diagnostics))
         }
     }
@@ -271,9 +281,11 @@ struct TelegramConnectionTests {
 
             #expect(diagnostics.status == "connected_receive_storage_disabled")
             #expect(!diagnostics.receiveReady)
-            #expect(diagnostics.failures.contains {
-                $0.localizedCaseInsensitiveContains("store incoming")
-            })
+            #expect(
+                diagnostics.failures.contains {
+                    $0.localizedCaseInsensitiveContains("store incoming")
+                }
+            )
             #expect(!TelegramSettingsSavePolicy.shouldDismissAfterSave(diagnostics))
         }
     }
@@ -359,7 +371,7 @@ struct TelegramConnectionTests {
         try await withIsolatedTelegramStores { credentials in
             let fake = FakeTelegramAPIClient()
             await fake.setUpdates([
-                .fixture(updateId: 42, messageId: 10, chatId: -100111222333, text: "discover me"),
+                .fixture(updateId: 42, messageId: 10, chatId: -100111222333, text: "discover me")
             ])
             let service = TelegramConnectionService(client: fake, credentialStore: credentials)
             try service.saveBotToken("123456:telegram-bot-token-super-secret")
@@ -668,7 +680,10 @@ struct TelegramConnectionTests {
             let diagnosticsData = try JSONSerialization.data(withJSONObject: diagnostics.dictionary)
             let diagnosticsText = String(decoding: diagnosticsData, as: UTF8.self)
 
-            #expect(diagnostics.dictionary["chat_discovery_source"] as? String == "configuration_and_local_message_store_only")
+            #expect(
+                diagnostics.dictionary["chat_discovery_source"] as? String
+                    == "configuration_and_local_message_store_only"
+            )
             #expect(configured.map { $0["id"] as? String }.contains("-100111222333"))
             #expect(configured.map { $0["id"] as? String }.contains("-100444555666"))
             let configuredReadable = try #require(configured.first { $0["id"] as? String == "-100111222333" })
@@ -1077,7 +1092,8 @@ struct TelegramConnectionTests {
         let token = "123456:telegram-bot-token-super-secret"
         let session = TelegramHTTPStubProtocol.session(
             statusCode: 429,
-            body: #"{"ok":false,"error_code":429,"description":"Too Many Requests: retry after 17","parameters":{"retry_after":17}}"#
+            body:
+                #"{"ok":false,"error_code":429,"description":"Too Many Requests: retry after 17","parameters":{"retry_after":17}}"#
         )
         let client = TelegramAPIClient(
             baseURL: URL(string: "https://telegram.test")!,
@@ -1096,7 +1112,8 @@ struct TelegramConnectionTests {
         let token = "123456:telegram-bot-token-super-secret"
         let session = TelegramHTTPStubProtocol.session(
             statusCode: 200,
-            body: #"{"ok":true,"result":{"url":"https://hooks.example.test/tg","has_custom_certificate":false,"pending_update_count":3}}"#
+            body:
+                #"{"ok":true,"result":{"url":"https://hooks.example.test/tg","has_custom_certificate":false,"pending_update_count":3}}"#
         )
         let client = TelegramAPIClient(
             baseURL: URL(string: "https://telegram.test")!,
@@ -1398,11 +1415,13 @@ struct TelegramConnectionTests {
 
             #expect(result.stored == 0)
             #expect(result.results.map(\.status) == [.unauthorized, .ignored, .ignored])
-            #expect(result.results.map(\.reason) == [
-                "room_not_allowlisted",
-                "self_message_denied",
-                "bot_message_denied",
-            ])
+            #expect(
+                result.results.map(\.reason) == [
+                    "room_not_allowlisted",
+                    "self_message_denied",
+                    "bot_message_denied",
+                ]
+            )
             #expect(try store.messageCount(connectionId: "telegram") == 0)
         }
     }
@@ -1441,7 +1460,8 @@ struct TelegramConnectionTests {
 
             // Authorized message travels received → stored, then dispatch is
             // suppressed because no agent dispatch is configured.
-            let acceptedStages = events
+            let acceptedStages =
+                events
                 .filter { $0.providerEventId == "31" }
                 .map(\.stage)
                 .reversed()
@@ -1454,7 +1474,8 @@ struct TelegramConnectionTests {
             #expect(suppressed?.reason == "inbound_dispatch_not_configured")
 
             // Non-allowlisted room is rejected with the boundary reason.
-            let rejectedStages = events
+            let rejectedStages =
+                events
                 .filter { $0.providerEventId == "32" }
                 .map(\.stage)
                 .reversed()
@@ -1558,7 +1579,7 @@ struct TelegramConnectionTests {
                         chatId: -100111222333,
                         text: "self echo",
                         from: .fixture(id: 42, isBot: false)
-                    ),
+                    )
                 ],
                 source: "fixture"
             )
@@ -1609,11 +1630,13 @@ struct TelegramConnectionTests {
 
             #expect(result.stored == 0)
             #expect(result.results.map(\.status) == [.ignored, .ignored, .ignored])
-            #expect(result.results.map(\.reason) == [
-                "empty_message_content",
-                "message_too_long",
-                "message_too_long",
-            ])
+            #expect(
+                result.results.map(\.reason) == [
+                    "empty_message_content",
+                    "message_too_long",
+                    "message_too_long",
+                ]
+            )
             #expect(try store.messageCount(connectionId: "telegram") == 0)
             #expect(try store.isEventSeen(connectionId: "telegram", providerEventId: "31") == false)
             #expect(try store.isEventSeen(connectionId: "telegram", providerEventId: "32") == false)
@@ -1761,7 +1784,7 @@ struct TelegramConnectionTests {
                         chatId: -100111222333,
                         text: "eval report ready",
                         chatUsername: "Ops_Channel"
-                    ),
+                    )
                 ],
                 source: "fixture"
             )

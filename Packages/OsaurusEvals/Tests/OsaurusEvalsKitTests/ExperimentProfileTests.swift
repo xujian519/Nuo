@@ -23,7 +23,8 @@ struct ExperimentProfileTests {
             }
             """
         let profile = try JSONDecoder().decode(
-            ExperimentProfile.self, from: Data(json.utf8)
+            ExperimentProfile.self,
+            from: Data(json.utf8)
         )
         #expect(profile.validationErrors().isEmpty)
         #expect(profile.experiment.dropSectionIds == ["codeStyle"])

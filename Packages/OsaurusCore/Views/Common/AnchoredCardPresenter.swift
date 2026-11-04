@@ -123,7 +123,11 @@ private final class AnchoredCardPresentation: ObservableObject {
         self.shadowPadding = shadowPadding
     }
 
-    func update(content: @escaping (AnchoredCardMetrics) -> AnyView, metrics: AnchoredCardMetrics, shadowPadding: CGFloat) {
+    func update(
+        content: @escaping (AnchoredCardMetrics) -> AnyView,
+        metrics: AnchoredCardMetrics,
+        shadowPadding: CGFloat
+    ) {
         objectWillChange.send()
         self.content = content
         self.metrics = metrics
@@ -186,15 +190,17 @@ private struct AnchoredCardAnchor<Card: View>: NSViewRepresentable {
         coordinator.takesFocus = takesFocus
         coordinator.shadowPadding = max(0, shadowPadding)
         coordinator.content = { metrics in
-            AnyView(content
-                .environment(\.anchoredCardMetrics, metrics)
-                // A separate hosting window needs its own focus environment.
-                // Forward visual values rather than the parent's focus bridge.
-                .environment(\.theme, theme)
-                .environment(\.colorScheme, colorScheme)
-                .environment(\.layoutDirection, layoutDirection)
-                .environment(\.locale, locale)
-                .tint(theme.accentColor))
+            AnyView(
+                content
+                    .environment(\.anchoredCardMetrics, metrics)
+                    // A separate hosting window needs its own focus environment.
+                    // Forward visual values rather than the parent's focus bridge.
+                    .environment(\.theme, theme)
+                    .environment(\.colorScheme, colorScheme)
+                    .environment(\.layoutDirection, layoutDirection)
+                    .environment(\.locale, locale)
+                    .tint(theme.accentColor)
+            )
         }
         coordinator.scheduleUpdate()
     }
@@ -306,7 +312,9 @@ private final class AnchoredCardCoordinator {
             // Retarget from the last frame actually drawn, including when the
             // user reverses direction before the previous resize finishes.
             resizeTransition = AnchoredCardResizeTransition(
-                from: presentedFrame, to: frame, startTime: CACurrentMediaTime()
+                from: presentedFrame,
+                to: frame,
+                startTime: CACurrentMediaTime()
             )
             updateContent(target: frame.size, isAnimating: true)
             if resizeTimer == nil {
@@ -349,7 +357,8 @@ private final class AnchoredCardCoordinator {
             return
         }
         let now = CACurrentMediaTime()
-        let finished = transition.isComplete(at: now)
+        let finished =
+            transition.isComplete(at: now)
             || NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         let frame = finished ? transition.to : transition.frame(at: now)
         if finished { stopResize() }
@@ -384,15 +393,19 @@ private final class AnchoredCardCoordinator {
         resizeTransition = nil
     }
 
-    private func placement(anchor: NSView, window: NSWindow) -> (frame: CGRect, anchorFrame: CGRect, availableSize: CGSize) {
+    private func placement(anchor: NSView, window: NSWindow) -> (
+        frame: CGRect, anchorFrame: CGRect, availableSize: CGSize
+    ) {
         let anchorFrame = window.convertToScreen(anchor.convert(anchor.bounds, to: nil))
-        let screen = NSScreen.screens.first { $0.frame.contains(CGPoint(x: anchorFrame.midX, y: anchorFrame.midY)) }
+        let screen =
+            NSScreen.screens.first { $0.frame.contains(CGPoint(x: anchorFrame.midX, y: anchorFrame.midY)) }
             ?? window.screen
             ?? NSScreen.main
         let visibleFrame = screen?.visibleFrame ?? window.frame
         let containerFrame = constrainToWindow ? window.convertToScreen(window.contentLayoutRect) : nil
         let safeFrame = AnchoredCardPlacement.availableFrame(
-            visibleFrame: visibleFrame, containerFrame: containerFrame
+            visibleFrame: visibleFrame,
+            containerFrame: containerFrame
         )
         return (
             AnchoredCardPlacement.frame(
@@ -402,7 +415,8 @@ private final class AnchoredCardCoordinator {
                 rightToLeft: rightToLeft,
                 trailingAligned: trailingAligned,
                 containerFrame: containerFrame,
-                preferAbove: !suppressNextAnimation && lastAnchorFrame?.origin == anchorFrame.origin ? prefersAbove : nil
+                preferAbove: !suppressNextAnimation && lastAnchorFrame?.origin == anchorFrame.origin
+                    ? prefersAbove : nil
             ),
             anchorFrame,
             safeFrame.size
@@ -439,8 +453,10 @@ private final class AnchoredCardCoordinator {
         let presentation = AnchoredCardPresentation(
             content: content,
             metrics: AnchoredCardMetrics(
-                visibleSize: frame.size, targetSize: frame.size,
-                availableSize: availableSize, isAnimating: false
+                visibleSize: frame.size,
+                targetSize: frame.size,
+                availableSize: availableSize,
+                isAnimating: false
             ),
             shadowPadding: shadowPadding
         )
@@ -460,39 +476,54 @@ private final class AnchoredCardCoordinator {
 
     private func installObservers(parent: NSWindow, panel: NSWindow) {
         let center = NotificationCenter.default
-        for name in [NSWindow.didMoveNotification, NSWindow.didResizeNotification, NSWindow.didChangeScreenNotification] {
-            observers.append(center.addObserver(forName: name, object: parent, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.scheduleUpdate(animateResize: false) }
-            })
+        for name in [
+            NSWindow.didMoveNotification, NSWindow.didResizeNotification, NSWindow.didChangeScreenNotification,
+        ] {
+            observers.append(
+                center.addObserver(forName: name, object: parent, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated { self?.scheduleUpdate(animateResize: false) }
+                }
+            )
         }
         for name in [NSWindow.willCloseNotification, NSWindow.willMiniaturizeNotification] {
-            observers.append(center.addObserver(forName: name, object: parent, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.dismiss(restoreFocus: false) }
-            })
+            observers.append(
+                center.addObserver(forName: name, object: parent, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated { self?.dismiss(restoreFocus: false) }
+                }
+            )
         }
-        observers.append(center.addObserver(forName: NSApplication.didResignActiveNotification, object: NSApp, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.dismiss(restoreFocus: false) }
-        })
+        observers.append(
+            center.addObserver(forName: NSApplication.didResignActiveNotification, object: NSApp, queue: .main) {
+                [weak self] _ in
+                MainActor.assumeIsolated { self?.dismiss(restoreFocus: false) }
+            }
+        )
         // Allow a nested native popover or sheet to become key. Evaluate
         // after the current event so AppKit has installed the new key window.
-        observers.append(center.addObserver(forName: NSWindow.didResignKeyNotification, object: panel, queue: .main) { [weak self] _ in
-            DispatchQueue.main.async { [weak self] in
-                guard let self, self.panel != nil else { return }
-                if !self.belongsToCard(NSApp.keyWindow) {
-                    self.dismiss(restoreFocus: false)
+        observers.append(
+            center.addObserver(forName: NSWindow.didResignKeyNotification, object: panel, queue: .main) {
+                [weak self] _ in
+                DispatchQueue.main.async { [weak self] in
+                    guard let self, self.panel != nil else { return }
+                    if !self.belongsToCard(NSApp.keyWindow) {
+                        self.dismiss(restoreFocus: false)
+                    }
                 }
             }
-        })
-        observers.append(center.addObserver(forName: NSWindow.didBecomeKeyNotification, object: nil, queue: .main) { [weak self] notification in
-            DispatchQueue.main.async { [weak self] in
-                guard let self, self.panel != nil else { return }
-                if !self.belongsToCard(NSApp.keyWindow),
-                    self.takesFocus || NSApp.keyWindow !== self.parent
-                {
-                    self.dismiss(restoreFocus: false)
+        )
+        observers.append(
+            center.addObserver(forName: NSWindow.didBecomeKeyNotification, object: nil, queue: .main) {
+                [weak self] notification in
+                DispatchQueue.main.async { [weak self] in
+                    guard let self, self.panel != nil else { return }
+                    if !self.belongsToCard(NSApp.keyWindow),
+                        self.takesFocus || NSApp.keyWindow !== self.parent
+                    {
+                        self.dismiss(restoreFocus: false)
+                    }
                 }
             }
-        })
+        )
         eventMonitor = NSEvent.addLocalMonitorForEvents(
             matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown, .keyDown]
         ) { [weak self] event in

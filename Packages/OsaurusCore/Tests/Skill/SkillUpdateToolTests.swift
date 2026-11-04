@@ -94,7 +94,9 @@ struct SkillUpdateToolTests {
     func unmatchedFindIsRetryableAndWritesNothing() async throws {
         try await Self.withTempSkillStorage {
             let skill = await SkillManager.shared.create(
-                name: "Stable", instructions: "Keep this text.")
+                name: "Stable",
+                instructions: "Keep this text."
+            )
 
             let result = try await Self.execute([
                 "skill": "Stable",
@@ -156,7 +158,8 @@ struct SkillUpdateToolTests {
 
         let baseline = Set(
             SystemPromptComposer.resolveTools(snapshot: snapshot, executionMode: .none)
-                .map { $0.function.name })
+                .map { $0.function.name }
+        )
         #expect(!baseline.contains("update_skill"))
 
         let loaded = Set(
@@ -164,7 +167,8 @@ struct SkillUpdateToolTests {
                 snapshot: snapshot,
                 executionMode: .none,
                 additionalToolNames: ["update_skill"]
-            ).map { $0.function.name })
+            ).map { $0.function.name }
+        )
         #expect(loaded.contains("update_skill"))
     }
 
@@ -192,7 +196,10 @@ struct SkillUpdateToolTests {
     func slashInvocationPreloadsUpdateSkillForUserSkillsOnly() throws {
         let user = Skill(name: "Plain English", instructions: "Use `some_mcp_tool` here.")
         let preloaded = SkillManager.preloadedToolNames(
-            for: user, body: user.instructions, dynamicCandidates: ["some_mcp_tool", "other"])
+            for: user,
+            body: user.instructions,
+            dynamicCandidates: ["some_mcp_tool", "other"]
+        )
         #expect(preloaded.contains("update_skill"))
         #expect(preloaded.contains("some_mcp_tool"))
         #expect(!preloaded.contains("other"))
@@ -200,14 +207,18 @@ struct SkillUpdateToolTests {
         let builtIn = try #require(Skill.builtInSkills.first)
         #expect(
             !SkillManager.preloadedToolNames(
-                for: builtIn, body: builtIn.instructions, dynamicCandidates: []
-            ).contains("update_skill"))
+                for: builtIn,
+                body: builtIn.instructions,
+                dynamicCandidates: []
+            ).contains("update_skill")
+        )
 
         var plugin = Skill(name: "Plugin Skill", instructions: "x")
         plugin.pluginId = "com.example.plugin"
         #expect(
             !SkillManager.preloadedToolNames(for: plugin, body: "x", dynamicCandidates: [])
-                .contains("update_skill"))
+                .contains("update_skill")
+        )
     }
 
     /// The wrapper only advertises editing when the tool is really exposed,
@@ -215,7 +226,10 @@ struct SkillUpdateToolTests {
     @Test @MainActor
     func activeSkillWrapperAdvertisesEditingOnlyWhenEditable() {
         let editable = SkillManager.activeSkillPromptSection(
-            name: "Plain English", body: "Body.", editable: true)
+            name: "Plain English",
+            body: "Body.",
+            editable: true
+        )
         #expect(editable.contains("call `update_skill`"))
         #expect(editable.contains("Never state that the skill was updated"))
         #expect(editable.contains("Body."))
@@ -224,7 +238,10 @@ struct SkillUpdateToolTests {
         // a built-in, GPT-5.6 otherwise answered "Updated preference: ..."
         // which reads like a saved edit.
         let readOnly = SkillManager.activeSkillPromptSection(
-            name: "Web Researcher", body: "Body.", editable: false)
+            name: "Web Researcher",
+            body: "Body.",
+            editable: false
+        )
         #expect(!readOnly.contains("update_skill"))
         #expect(readOnly.contains("cannot be edited"))
         #expect(readOnly.contains("duplicating it as a custom skill"))

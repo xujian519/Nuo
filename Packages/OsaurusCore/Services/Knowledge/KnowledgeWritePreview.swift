@@ -334,8 +334,9 @@ public enum KnowledgeWritePreviewBuilder {
         }
 
         if let dropped = KnowledgeWriteService.droppedFrontmatterFacets(
-            prior: prior, replacement: replacement)
-        {
+            prior: prior,
+            replacement: replacement
+        ) {
             out.append(
                 "This replacement has no frontmatter, so the document loses its "
                     + "\(dropped.joined(separator: ", ")). It will stop matching type and tag filters."
@@ -390,7 +391,8 @@ public enum KnowledgeWritePreviewBuilder {
     /// `+++` file headers so a one-line new file reads `+1 -0`.
     private static func countPrefixed(_ diff: String, _ marker: Character) -> Int {
         diff.split(separator: "\n", omittingEmptySubsequences: false).reduce(into: 0) {
-            count, line in
+            count,
+            line in
             guard let first = line.first, first == marker else { return }
             if line.hasPrefix("+++") || line.hasPrefix("---") { return }
             count += 1

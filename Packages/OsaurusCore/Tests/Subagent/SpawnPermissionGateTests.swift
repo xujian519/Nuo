@@ -267,8 +267,6 @@ struct SpawnPermissionGateTests {
         }
     }
 
-
-
     @Test("ask supports allow once and deny without persisting")
     func askSupportsAllowOnceAndDeny() async {
         let allowProbe = SpawnPromptProbe()
@@ -712,19 +710,25 @@ struct SpawnPermissionGateTests {
         let workspace = SubagentPermissionDefaults.workspaceSpawnKindId
 
         let localOnly = await SpawnWaveGate.wavePermissionPlan(
-            for: [member("a", kind: spawn), member("b", kind: spawn)], scope: defaultScope)
+            for: [member("a", kind: spawn), member("b", kind: spawn)],
+            scope: defaultScope
+        )
         #expect(localOnly.policy == .alwaysAllow, "two local workers: no card")
         #expect(localOnly.kindIds == [spawn])
         #expect(!localOnly.description.contains("teammates"))
 
         let mixed = await SpawnWaveGate.wavePermissionPlan(
-            for: [member("a", kind: spawn), member("b", kind: workspace)], scope: defaultScope)
+            for: [member("a", kind: spawn), member("b", kind: workspace)],
+            scope: defaultScope
+        )
         #expect(mixed.policy == .ask, "the workspace part is on Ask → one card")
         #expect(mixed.kindIds == [workspace], "Always Allow on that card must persist only spawn_workspace")
         #expect(mixed.description.contains("1 of them run on teammates' Macs"))
 
         let workspaceOnly = await SpawnWaveGate.wavePermissionPlan(
-            for: [member("a", kind: workspace), member("b", kind: workspace)], scope: defaultScope)
+            for: [member("a", kind: workspace), member("b", kind: workspace)],
+            scope: defaultScope
+        )
         #expect(workspaceOnly.description.contains("They run on teammates' Macs"))
 
         // Deny on the workspace kind wins over local Always Allow.
@@ -732,7 +736,9 @@ struct SpawnPermissionGateTests {
             config.permissionDefaults.setPolicy(.deny, for: workspace)
         }
         let denied = await SpawnWaveGate.wavePermissionPlan(
-            for: [member("a", kind: spawn), member("b", kind: workspace)], scope: defaultScope)
+            for: [member("a", kind: spawn), member("b", kind: workspace)],
+            scope: defaultScope
+        )
         #expect(denied.policy == .deny)
     }
 
@@ -798,7 +804,11 @@ struct SpawnPermissionGateTests {
             var permissions = SubagentPermissionDefaults()
             permissions.setPolicy(.ask, for: SubagentCapabilityRegistry.spawn.id)
             settings.subagentPermissions = permissions
-            let target = Agent(name: "SpawnPermissionTarget", description: "Handles bounded permission test tasks.", autonomousExec: AutonomousExecConfig(enabled: false))
+            let target = Agent(
+                name: "SpawnPermissionTarget",
+                description: "Handles bounded permission test tasks.",
+                autonomousExec: AutonomousExecConfig(enabled: false)
+            )
             settings.spawnDelegationEnabled = true
             settings.spawnableAgentIDs = [target.id]
             let agent = Agent(

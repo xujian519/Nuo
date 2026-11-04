@@ -35,19 +35,45 @@ struct HostContinuationMemoryProvenanceTests {
         var id: String { HostContinuationMemoryProvenanceTests.modelID }
         func isAvailable() -> Bool { true }
         func handles(requestedModel: String?) -> Bool { requestedModel == id }
-        func generateOneShot(messages: [ChatMessage], parameters: GenerationParameters, requestedModel: String?) async throws -> String {
+        func generateOneShot(messages: [ChatMessage], parameters: GenerationParameters, requestedModel: String?)
+            async throws -> String
+        {
             throw NSError(domain: "unexpected-legacy", code: 1)
         }
-        func streamDeltas(messages: [ChatMessage], parameters: GenerationParameters, requestedModel: String?, stopSequences: [String]) async throws -> AsyncThrowingStream<String, Error> {
+        func streamDeltas(
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?,
+            stopSequences: [String]
+        ) async throws -> AsyncThrowingStream<String, Error> {
             throw NSError(domain: "unexpected-legacy", code: 2)
         }
-        func streamResponses(messages: [ChatMessage], parameters: GenerationParameters, stopSequences: [String], tools: [OsaurusCore.Tool], toolChoice: ToolChoiceOption?, requestedModel: String?) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
+        func streamResponses(
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            stopSequences: [String],
+            tools: [OsaurusCore.Tool],
+            toolChoice: ToolChoiceOption?,
+            requestedModel: String?
+        ) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
             await capture.record(messages)
             return AsyncThrowingStream { continuation in
                 continuation.yield(.outputTextDelta("The helper finished: BG_TOKEN_9."))
-                continuation.yield(.responseCompleted(.init(responseID: "resp_report_memory_" + UUID().uuidString,
-                    status: .completed, functionCalls: [], tokenCount: 9, tokensPerSecond: 20,
-                    unclosedReasoning: false, stopReason: "stop", promptTokensPerSecond: nil, mtp: nil)))
+                continuation.yield(
+                    .responseCompleted(
+                        .init(
+                            responseID: "resp_report_memory_" + UUID().uuidString,
+                            status: .completed,
+                            functionCalls: [],
+                            tokenCount: 9,
+                            tokensPerSecond: 20,
+                            unclosedReasoning: false,
+                            stopReason: "stop",
+                            promptTokensPerSecond: nil,
+                            mtp: nil
+                        )
+                    )
+                )
                 continuation.yield(.drained)
                 continuation.finish()
             }
@@ -64,16 +90,26 @@ struct HostContinuationMemoryProvenanceTests {
         MemoryConfigurationStore.save(config)
         let agentKey = Agent.defaultId.uuidString
         try MemoryDatabase.shared.insertPinnedFact(
-            PinnedFact(agentId: agentKey, content: Self.staleDelegationFact, salience: 0.8))
+            PinnedFact(agentId: agentKey, content: Self.staleDelegationFact, salience: 0.8)
+        )
         try MemoryDatabase.shared.insertPinnedFact(
-            PinnedFact(agentId: agentKey, content: Self.staleInstruction, salience: 0.8))
+            PinnedFact(agentId: agentKey, content: Self.staleInstruction, salience: 0.8)
+        )
     }
 
     private func helperReport(workerSessionID: UUID) -> String {
-        let completed = ToolEnvelope.success(tool: "spawn_agent", result: [
-            "kind": "spawn_result", "session_id": workerSessionID.uuidString, "summary": "BG_TOKEN_9"])
-        return SubagentReportBack.message(title: "Delegated to Responses Proof Worker", success: true,
-            summary: "BG_TOKEN_9", completedEnvelope: completed)
+        let completed = ToolEnvelope.success(
+            tool: "spawn_agent",
+            result: [
+                "kind": "spawn_result", "session_id": workerSessionID.uuidString, "summary": "BG_TOKEN_9",
+            ]
+        )
+        return SubagentReportBack.message(
+            title: "Delegated to Responses Proof Worker",
+            success: true,
+            summary: "BG_TOKEN_9",
+            completedEnvelope: completed
+        )
     }
 
     /// Bounded wait. In a full-suite process an earlier warm-up can route a
@@ -102,16 +138,31 @@ struct HostContinuationMemoryProvenanceTests {
             // BG_TOKEN_9). The stale instruction shares only function words
             // with the report, which recall no longer matches on
             // (`FTSQueryTerms`, `MemoryDistillQualityTests`).
-            let keyedOnReport = await SystemPromptComposer.composeChatContext(ComposeRequest(
-                agentId: Agent.defaultId, executionMode: .none, model: Self.modelID,
-                query: report, toolsDisabled: true))
-            try #require(keyedOnReport.memorySection?.contains(Self.staleDelegationFact) == true,
-                "Control: the fixture must recall memory from the report's own words")
+            let keyedOnReport = await SystemPromptComposer.composeChatContext(
+                ComposeRequest(
+                    agentId: Agent.defaultId,
+                    executionMode: .none,
+                    model: Self.modelID,
+                    query: report,
+                    toolsDisabled: true
+                )
+            )
+            try #require(
+                keyedOnReport.memorySection?.contains(Self.staleDelegationFact) == true,
+                "Control: the fixture must recall memory from the report's own words"
+            )
             #expect(keyedOnReport.memorySection?.contains(Self.staleInstruction) == false)
 
-            let hostAuthored = await SystemPromptComposer.composeChatContext(ComposeRequest(
-                agentId: Agent.defaultId, executionMode: .none, model: Self.modelID,
-                query: report, toolsDisabled: true, recallsMemory: false))
+            let hostAuthored = await SystemPromptComposer.composeChatContext(
+                ComposeRequest(
+                    agentId: Agent.defaultId,
+                    executionMode: .none,
+                    model: Self.modelID,
+                    query: report,
+                    toolsDisabled: true,
+                    recallsMemory: false
+                )
+            )
             #expect(hostAuthored.memorySection == nil)
         }
     }
@@ -126,10 +177,16 @@ struct HostContinuationMemoryProvenanceTests {
                 ExternalModelLocator.testRootsOverride = []
                 ExternalModelLocator.invalidateInMemory()
                 _ = ExternalModelLocator.rescan()
-                ModelManager.scanLocalModelsOverrideForTests = { _ in [
-                    MLXModel(id: Self.modelID, name: "Memory provenance fixture", description: "Runnable metadata fixture",
-                        downloadURL: "https://example.invalid/memory-provenance")
-                ] }
+                ModelManager.scanLocalModelsOverrideForTests = { _ in
+                    [
+                        MLXModel(
+                            id: Self.modelID,
+                            name: "Memory provenance fixture",
+                            description: "Runnable metadata fixture",
+                            downloadURL: "https://example.invalid/memory-provenance"
+                        )
+                    ]
+                }
                 ModelManager.invalidateLocalModelsCache()
                 _ = await ModelManager.discoverLocalModelsOffMain()
                 defer {
@@ -138,8 +195,14 @@ struct HostContinuationMemoryProvenanceTests {
                     ExternalModelLocator.invalidateInMemory()
                     ModelManager.invalidateLocalModelsCache()
                 }
-                DefaultAgentConfigurationStore.save(.init(defaultModel: Self.modelID,
-                    autonomousExec: .init(enabled: false), toolSelectionMode: .manual, manualToolNames: []))
+                DefaultAgentConfigurationStore.save(
+                    .init(
+                        defaultModel: Self.modelID,
+                        autonomousExec: .init(enabled: false),
+                        toolSelectionMode: .manual,
+                        manualToolNames: []
+                    )
+                )
                 DefaultAgentConfigurationStore.resetCacheForTests()
                 AgentManager.shared.refresh()
                 MemoryConfigurationStore.invalidateCache()
@@ -171,8 +234,11 @@ struct HostContinuationMemoryProvenanceTests {
                 // Also reset on a failed assertion before releasing storage.
                 do {
                     let capture = Capture()
-                    let engine = ChatEngine(services: [Service(capture: capture)],
-                        installedModelsProvider: { [] }, remoteServicesProvider: { [] })
+                    let engine = ChatEngine(
+                        services: [Service(capture: capture)],
+                        installedModelsProvider: { [] },
+                        remoteServicesProvider: { [] }
+                    )
                     let agentKey = Agent.defaultId.uuidString
                     for (index, origin) in [SessionSource.delegation, .chat].enumerated() {
                         let execution = ExecutionContext(agentId: Agent.defaultId, source: origin)
@@ -181,8 +247,13 @@ struct HostContinuationMemoryProvenanceTests {
                         session.forceChatEngineRouteForTests = true
                         session.toolsDisabledForTestingOverride = true
                         session.chatEngineFactory = { _ in engine }
-                        let task = (["My name is Eric."] + Array(repeating:
-                            "Summarize this completed fixture conversation without running tools.", count: 4))
+                        let task =
+                            (["My name is Eric."]
+                            + Array(
+                                repeating:
+                                    "Summarize this completed fixture conversation without running tools.",
+                                count: 4
+                            ))
                             .joined(separator: " ")
                         await execution.start(prompt: task)
                         try await waitUntil { await capture.messages.count >= index + 1 && !session.isStreaming }
@@ -201,13 +272,23 @@ struct HostContinuationMemoryProvenanceTests {
                         #expect(await MemoryService.shared.activeConversationId(forAgent: agentKey) == conversation)
                         MemoryDatabase.shared.close()
                         try MemoryDatabase.shared.open()
-                        #expect(try MemoryDatabase.shared.isDelegatedConversation(conversation) == (origin == .delegation))
+                        #expect(
+                            try MemoryDatabase.shared.isDelegatedConversation(conversation) == (origin == .delegation)
+                        )
                         #expect(try MemoryDatabase.shared.loadPendingSignals(conversationId: conversation).count == 1)
                         let result = await MemoryService.shared.flushSessionAndWait(
-                            agentId: agentKey, conversationId: conversation)
+                            agentId: agentKey,
+                            conversationId: conversation
+                        )
                         let episodeID = try #require(result.episodeId, "Distillation did not complete: \(result)")
-                        #expect(result == .distilled(episodeId: episodeID, pinned: 0,
-                            identityFacts: origin == .delegation ? 0 : 1))
+                        #expect(
+                            result
+                                == .distilled(
+                                    episodeId: episodeID,
+                                    pinned: 0,
+                                    identityFacts: origin == .delegation ? 0 : 1
+                                )
+                        )
                         let prompt = try #require(await prompts.values.last)
                         if origin == .delegation {
                             #expect(prompt.contains("\nDelegating agent: " + task))
@@ -237,10 +318,16 @@ struct HostContinuationMemoryProvenanceTests {
                 ExternalModelLocator.testRootsOverride = []
                 ExternalModelLocator.invalidateInMemory()
                 _ = ExternalModelLocator.rescan()
-                ModelManager.scanLocalModelsOverrideForTests = { _ in [
-                    MLXModel(id: Self.modelID, name: "Report memory fixture", description: "Runnable metadata fixture",
-                        downloadURL: "https://example.invalid/report-memory-parent")
-                ] }
+                ModelManager.scanLocalModelsOverrideForTests = { _ in
+                    [
+                        MLXModel(
+                            id: Self.modelID,
+                            name: "Report memory fixture",
+                            description: "Runnable metadata fixture",
+                            downloadURL: "https://example.invalid/report-memory-parent"
+                        )
+                    ]
+                }
                 ModelManager.invalidateLocalModelsCache()
                 _ = await ModelManager.discoverLocalModelsOffMain()
                 defer {
@@ -249,8 +336,13 @@ struct HostContinuationMemoryProvenanceTests {
                     ExternalModelLocator.invalidateInMemory()
                     ModelManager.invalidateLocalModelsCache()
                 }
-                DefaultAgentConfigurationStore.save(.init(defaultModel: Self.modelID,
-                    autonomousExec: .init(enabled: false), toolSelectionMode: .auto))
+                DefaultAgentConfigurationStore.save(
+                    .init(
+                        defaultModel: Self.modelID,
+                        autonomousExec: .init(enabled: false),
+                        toolSelectionMode: .auto
+                    )
+                )
                 DefaultAgentConfigurationStore.resetCacheForTests()
                 AgentManager.shared.refresh()
 
@@ -263,23 +355,35 @@ struct HostContinuationMemoryProvenanceTests {
                 try #require(!AgentManager.shared.effectiveMemoryDisabled(for: Agent.defaultId))
 
                 let capture = Capture()
-                let engine = ChatEngine(services: [Service(capture: capture)],
-                    installedModelsProvider: { [] }, remoteServicesProvider: { [] })
+                let engine = ChatEngine(
+                    services: [Service(capture: capture)],
+                    installedModelsProvider: { [] },
+                    remoteServicesProvider: { [] }
+                )
                 let session = ChatSession()
                 session.selectedModel = Self.modelID
                 session.forceChatEngineRouteForTests = true
                 session.toolsDisabledForTestingOverride = false
                 session.chatEngineFactory = { _ in engine }
-                session.turns = [ChatTurn(role: .user, content: "Delegate a bounded task in the background."),
-                    ChatTurn(role: .assistant, content: "The worker is running.")]
+                session.turns = [
+                    ChatTurn(role: .user, content: "Delegate a bounded task in the background."),
+                    ChatTurn(role: .assistant, content: "The worker is running."),
+                ]
 
                 let workerSessionID = UUID()
                 let report = helperReport(workerSessionID: workerSessionID)
-                await SubagentReportBack.deliver(title: "Delegated to Responses Proof Worker", success: true,
+                await SubagentReportBack.deliver(
+                    title: "Delegated to Responses Proof Worker",
+                    success: true,
                     summary: "BG_TOKEN_9",
-                    completedEnvelope: ToolEnvelope.success(tool: "spawn_agent", result: [
-                        "kind": "spawn_result", "session_id": workerSessionID.uuidString, "summary": "BG_TOKEN_9"]),
-                    to: WeakChatSessionBox(session))
+                    completedEnvelope: ToolEnvelope.success(
+                        tool: "spawn_agent",
+                        result: [
+                            "kind": "spawn_result", "session_id": workerSessionID.uuidString, "summary": "BG_TOKEN_9",
+                        ]
+                    ),
+                    to: WeakChatSessionBox(session)
+                )
                 try await waitUntil { await capture.messages.count >= 1 && !session.isStreaming }
                 if let task = session.currentSendTaskForTesting { await task.value }
 
@@ -303,8 +407,10 @@ struct HostContinuationMemoryProvenanceTests {
                 try await waitUntil { await capture.messages.count >= 2 && !session.isStreaming }
                 if let task = session.currentSendTaskForTesting { await task.value }
                 batches = await capture.messages
-                try #require(batches.count == 2,
-                    "follow-up never reached the engine: streaming=\(session.isStreaming) error=\(session.lastStreamError ?? "nil")")
+                try #require(
+                    batches.count == 2,
+                    "follow-up never reached the engine: streaming=\(session.isStreaming) error=\(session.lastStreamError ?? "nil")"
+                )
                 let followUpMessage = try #require(batches[1].last(where: { $0.role == "user" })?.content)
                 #expect(followUpMessage.hasSuffix(followUp))
                 #expect(followUpMessage.contains("[Memory]"))
@@ -319,16 +425,21 @@ struct HostContinuationMemoryProvenanceTests {
                 for _ in 0 ..< 200 {
                     signals = try MemoryDatabase.shared.loadPendingSignals(conversationId: conversationId)
                     transcript = try MemoryDatabase.shared.loadTranscriptForConversation(conversationId: conversationId)
-                    let followUpWritten = signals.contains { $0.userMessage == followUp }
+                    let followUpWritten =
+                        signals.contains { $0.userMessage == followUp }
                         && transcript.contains { $0.role == "user" && $0.content == followUp }
                     let bothRepliesIndexed = transcript.filter { $0.role == "assistant" }.count == 2
                     if followUpWritten && bothRepliesIndexed { break }
                     try await Task.sleep(for: .milliseconds(25))
                 }
-                try #require(signals.contains { $0.userMessage == followUp },
-                    "Control: the genuine follow-up must be buffered for distillation")
-                try #require(transcript.filter { $0.role == "assistant" }.count == 2,
-                    "Control: the assistant's reply to the report is still indexed")
+                try #require(
+                    signals.contains { $0.userMessage == followUp },
+                    "Control: the genuine follow-up must be buffered for distillation"
+                )
+                try #require(
+                    transcript.filter { $0.role == "assistant" }.count == 2,
+                    "Control: the assistant's reply to the report is still indexed"
+                )
                 #expect(!signals.contains { $0.userMessage.contains("[Helper report]") })
                 #expect(transcript.filter { $0.role == "user" }.map(\.content) == [followUp])
                 #expect(session.lastStreamError == nil)

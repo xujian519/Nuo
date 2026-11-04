@@ -16,15 +16,24 @@ import Testing
 
 @Suite("Apple tools: Shortcuts process runner", .serialized)
 struct ShortcutsProcessRunnerTests {
-    private func sh(_ script: String, timeout: TimeInterval = 20, cap: Int = ShortcutsProcessRunner.outputCap) async throws -> ShortcutsProcessOutput {
-        try await ShortcutsProcessRunner.run(executable: "/bin/sh", arguments: ["-c", script], timeout: timeout, outputCap: cap)
+    private func sh(_ script: String, timeout: TimeInterval = 20, cap: Int = ShortcutsProcessRunner.outputCap)
+        async throws -> ShortcutsProcessOutput
+    {
+        try await ShortcutsProcessRunner.run(
+            executable: "/bin/sh",
+            arguments: ["-c", script],
+            timeout: timeout,
+            outputCap: cap
+        )
     }
 
     @Test("a child that prints far more than the pipe buffer finishes instead of hanging")
     func largeOutputDoesNotDeadlock() async throws {
         let started = Date()
         // ~5 MiB on stdout and ~1 MiB on stderr, well past the 64 KiB pipe buffer.
-        let result = try await sh("head -c 5242880 /dev/zero | tr '\\0' 'x'; head -c 1048576 /dev/zero | tr '\\0' 'e' 1>&2; exit 0")
+        let result = try await sh(
+            "head -c 5242880 /dev/zero | tr '\\0' 'x'; head -c 1048576 /dev/zero | tr '\\0' 'e' 1>&2; exit 0"
+        )
         #expect(result.exitCode == 0)
         #expect(result.truncated)
         #expect(result.stdout.utf8.count == ShortcutsProcessRunner.outputCap)
@@ -60,12 +69,16 @@ struct ShortcutsProcessRunnerTests {
 
     @Test("cancelling the task terminates the child promptly")
     func cancellationTerminates() async throws {
-        let marker = FileManager.default.temporaryDirectory.appendingPathComponent("osaurus-shortcuts-cancel-\(UUID().uuidString)")
+        let marker = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "osaurus-shortcuts-cancel-\(UUID().uuidString)"
+        )
         defer { try? FileManager.default.removeItem(at: marker) }
         let task = Task {
             try await ShortcutsProcessRunner.run(
                 executable: "/bin/sh",
-                arguments: ["-c", "sleep 30; touch '\(marker.path)'"], timeout: 60)
+                arguments: ["-c", "sleep 30; touch '\(marker.path)'"],
+                timeout: 60
+            )
         }
         try await Task.sleep(nanoseconds: 300_000_000)
         let started = Date()
@@ -86,7 +99,10 @@ struct ShortcutsProcessRunnerTests {
     func launchFailure() async throws {
         do {
             _ = try await ShortcutsProcessRunner.run(
-                executable: "/nonexistent/definitely-missing-binary", arguments: [], timeout: 5)
+                executable: "/nonexistent/definitely-missing-binary",
+                arguments: [],
+                timeout: 5
+            )
             Issue.record("expected a launch failure")
         } catch let error as AppleToolError {
             guard case .unavailable(_, let retryable) = error else {
@@ -100,11 +116,16 @@ struct ShortcutsProcessRunnerTests {
     @Test("`shortcuts list --show-identifiers` lines parse into name + identifier; resolution accepts either")
     func listParsingAndResolve() {
         let a = ShortcutsCLIService.parseListLine("Morning Brief (0F0F0F0F-0000-4000-8000-000000000001)")
-        #expect(a == ShortcutInfo(name: "Morning Brief", identifier: "0F0F0F0F-0000-4000-8000-000000000001", folder: nil))
+        #expect(
+            a == ShortcutInfo(name: "Morning Brief", identifier: "0F0F0F0F-0000-4000-8000-000000000001", folder: nil)
+        )
         let b = ShortcutsCLIService.parseListLine("Log (Water) (0F0F0F0F-0000-4000-8000-000000000002)")
         #expect(b?.name == "Log (Water)")
         #expect(ShortcutsCLIService.parseListLine("  ") == nil)
-        #expect(ShortcutsCLIService.parseListLine("Plain Name") == ShortcutInfo(name: "Plain Name", identifier: nil, folder: nil))
+        #expect(
+            ShortcutsCLIService.parseListLine("Plain Name")
+                == ShortcutInfo(name: "Plain Name", identifier: nil, folder: nil)
+        )
 
         let all = [a!, b!]
         #expect(ShortcutsCLIService.resolve("morning brief", in: all)?.identifier == a?.identifier)

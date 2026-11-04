@@ -81,7 +81,8 @@ public final class ChatLayoutTour: ObservableObject {
 
     /// Serial queue owning the deferred `completedKey` write.
     private static let completionWriteQueue = DispatchQueue(
-        label: "com.dinoki.osaurus.chat-tour-completion-write")
+        label: "com.dinoki.osaurus.chat-tour-completion-write"
+    )
 
     /// True once `finish(markCompleted:)` has run this process. Authoritative
     /// over `completedKey` while the write is still in flight.
@@ -272,7 +273,8 @@ public final class ChatLayoutTour: ObservableObject {
                     x: from.minX + (to.minX - from.minX) * e,
                     y: from.minY + (to.minY - from.minY) * e,
                     width: from.width + (to.width - from.width) * e,
-                    height: from.height + (to.height - from.height) * e)
+                    height: from.height + (to.height - from.height) * e
+                )
                 self.displayedCutout = rect
                 if t >= 1 {
                     self.morphTimer?.invalidate()
@@ -483,7 +485,6 @@ struct ChatTourOverlayView: View {
     /// height instead of a guess (a short card floated far above its target).
     @State private var cardSize: CGSize = .zero
 
-
     private var theme: ThemeProtocol {
         ChatWindowManager.shared.windowState(id: windowId)?.theme ?? ThemeManager.shared.currentTheme
     }
@@ -499,8 +500,11 @@ struct ChatTourOverlayView: View {
         switch anchor {
         case .tabStrip:
             return CGRect(
-                x: frame.minX + 12, y: frame.minY - p,
-                width: frame.width - 12 + 10, height: frame.height + 2 * p)
+                x: frame.minX + 12,
+                y: frame.minY - p,
+                width: frame.width - 12 + 10,
+                height: frame.height + 2 * p
+            )
         default:
             return frame.insetBy(dx: -p, dy: -p)
         }
@@ -538,7 +542,11 @@ struct ChatTourOverlayView: View {
                     card(for: stop)
                         .frame(width: Self.cardWidth)
                         .fixedSize(horizontal: false, vertical: true)
-                        .onGeometryChange(for: CGSize.self) { $0.size } action: { cardSize = $0 }
+                        .onGeometryChange(for: CGSize.self) {
+                            $0.size
+                        } action: {
+                            cardSize = $0
+                        }
                         // The card heads straight for the destination on the same
                         // clock as the morph.
                         .offset(cardOffset(spotlight: cardTarget, in: size))
@@ -617,7 +625,9 @@ struct ChatTourOverlayView: View {
                     .foregroundColor(theme.tertiaryText)
                 Spacer(minLength: 16)
                 if tour.stepIndex > 0 {
-                    Button { tour.back() } label: {
+                    Button {
+                        tour.back()
+                    } label: {
                         Text("Back", bundle: .module)
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(theme.primaryText)
@@ -629,16 +639,18 @@ struct ChatTourOverlayView: View {
                     .pointingHandCursor()
                 }
                 let isLast = tour.stepIndex + 1 == tour.stops.count
-                    Button { tour.next() } label: {
-                        Text(isLast ? "Done" : "Next", bundle: .module)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 5)
-                            .background(Capsule().fill(theme.accentColor))
-                    }
-                    .buttonStyle(.plain)
-                    .pointingHandCursor()
+                Button {
+                    tour.next()
+                } label: {
+                    Text(isLast ? "Done" : "Next", bundle: .module)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 5)
+                        .background(Capsule().fill(theme.accentColor))
+                }
+                .buttonStyle(.plain)
+                .pointingHandCursor()
             }
             .padding(.top, 2)
         }

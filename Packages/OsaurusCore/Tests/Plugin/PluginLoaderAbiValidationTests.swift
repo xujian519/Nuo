@@ -201,7 +201,9 @@ struct PluginLoaderAbiValidationTests {
         // a plugin that sets free_string to libc's free() must still load.
         var api = completeAPI()
         api.free_string = unsafeBitCast(
-            dlsym(dlopen(nil, RTLD_NOW), "free"), to: osr_free_string_t.self)
+            dlsym(dlopen(nil, RTLD_NOW), "free"),
+            to: osr_free_string_t.self
+        )
         #expect(api.free_string != nil)
         #expect(PluginManager.abiTableValidationFailure(api) == nil)
         #expect(PluginManager.isCodePointerInLoadedImage(unsafeBitCast(api.free_string!, to: UnsafeRawPointer.self)))

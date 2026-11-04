@@ -257,7 +257,9 @@ final class NativeMarkdownView: NSView {
     /// distributing the index across ordered siblings.
     @discardableResult
     func setSearchHighlight(
-        query: String, currentIndex: Int? = nil, theme: any ThemeProtocol
+        query: String,
+        currentIndex: Int? = nil,
+        theme: any ThemeProtocol
     ) -> Int {
         let changed = query != searchHighlightQuery || currentIndex != searchCurrentLocalIndex
         searchHighlightQuery = query
@@ -276,7 +278,10 @@ final class NativeMarkdownView: NSView {
                     return local >= 0 ? local : nil
                 }
                 consumed += child.setSearchHighlight(
-                    query: query, currentIndex: childCurrent, theme: theme)
+                    query: query,
+                    currentIndex: childCurrent,
+                    theme: theme
+                )
             }
         }
         return consumed
@@ -393,7 +398,10 @@ final class NativeMarkdownView: NSView {
             if !hasExistingBackground {
                 let isCurrent = occurrenceIndex == searchCurrentLocalIndex
                 storage.addAttribute(
-                    .backgroundColor, value: isCurrent ? currentColor : color, range: found)
+                    .backgroundColor,
+                    value: isCurrent ? currentColor : color,
+                    range: found
+                )
                 appliedSearchRanges.append(found)
             }
             searchAllOccurrenceRanges.append(found)
@@ -1142,7 +1150,8 @@ final class NativeMarkdownView: NSView {
                 let scale = imageSize.width > availableWidth ? availableWidth / imageSize.width : 1
                 let formulaHeight = imageSize.height * scale
                 if formulaHeight.isFinite, formulaHeight > 0 {
-                    let constraint = mathHeightConstraints[seg.id] ?? formulaView.heightAnchor.constraint(equalToConstant: 0)
+                    let constraint =
+                        mathHeightConstraints[seg.id] ?? formulaView.heightAnchor.constraint(equalToConstant: 0)
                     constraint.constant = ceil(formulaHeight)
                     if !constraint.isActive {
                         constraint.isActive = true

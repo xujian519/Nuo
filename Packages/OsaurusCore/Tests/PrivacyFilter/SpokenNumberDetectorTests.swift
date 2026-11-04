@@ -113,9 +113,11 @@ struct SpokenNumberDetectorTests {
     @Test func aWrittenDomainAfterASpokenNameIsAnEmail() {
         // As the phone sends it, the glued domain given its dot back.
         let text = "Right a resignation email to john smith at example.com"
-        #expect(RegexEntityDetector.detect(in: text).filter { $0.category == .email }.map(\.original) == [
-            "example.com"
-        ])
+        #expect(
+            RegexEntityDetector.detect(in: text).filter { $0.category == .email }.map(\.original) == [
+                "example.com"
+            ]
+        )
         // A name said with "dot" needs no email word to count.
         let spoken = SpokenEmails.find(in: "it's john dot smith at example.com")
         #expect(spoken.map(\.address) == ["john.smith@example.com"])

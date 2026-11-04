@@ -241,7 +241,9 @@ public struct MCPProvider: Codable, Identifiable, Sendable, Equatable {
         let decodedCap =
             try container.decodeIfPresent(TimeInterval.self, forKey: .progressHardCap) ?? Self.defaultProgressHardCap
         self.progressHardCap = min(
-            max(decodedCap, Self.progressHardCapRange.lowerBound), Self.progressHardCapRange.upperBound)
+            max(decodedCap, Self.progressHardCapRange.lowerBound),
+            Self.progressHardCapRange.upperBound
+        )
         self.autoConnect = try container.decodeIfPresent(Bool.self, forKey: .autoConnect) ?? true
         self.secretHeaderKeys = try container.decodeIfPresent([String].self, forKey: .secretHeaderKeys) ?? []
         // Migration: legacy configs default to .bearerToken so the existing token-from-Keychain path works.

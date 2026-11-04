@@ -27,8 +27,12 @@ final class LegacyModelsDiagnosticTests: XCTestCase {
             try FileManager.default.createDirectory(at: legacy, withIntermediateDirectories: true)
             try Data().write(to: legacy.appendingPathComponent(".DS_Store"))
             try Data().write(to: legacy.appendingPathComponent("notes.txt"))
-            XCTAssertNil(InstallationDiagnostics.strandedLegacyModelDirectories(
-                activeRoot: home.appendingPathComponent("MLXModels"), home: home))
+            XCTAssertNil(
+                InstallationDiagnostics.strandedLegacyModelDirectories(
+                    activeRoot: home.appendingPathComponent("MLXModels"),
+                    home: home
+                )
+            )
         }
     }
 
@@ -52,7 +56,10 @@ final class LegacyModelsDiagnosticTests: XCTestCase {
             try Data().write(to: legacy.appendingPathComponent("config.json"))
             try Data().write(to: legacy.appendingPathComponent("model.safetensors"))
             let result = InstallationDiagnostics.strandedLegacyModelDirectories(
-                activeRoot: home.appendingPathComponent("MLXModels"), home: home, maximumEntries: 1)
+                activeRoot: home.appendingPathComponent("MLXModels"),
+                home: home,
+                maximumEntries: 1
+            )
             XCTAssertEqual(result?.count, 1)
             XCTAssertEqual(result?.complete, false)
         }
@@ -61,17 +68,31 @@ final class LegacyModelsDiagnosticTests: XCTestCase {
     func testLegacyWarningIsRedactedAndOptionalForOldJSONReports() throws {
         let home = "/Users/fixture-user"
         let report = InstallationDiagnosticReport(
-            generatedAt: Date(timeIntervalSince1970: 0), cliPath: "\(home)/bin/osaurus",
-            cliVersion: "1", cliBuild: "1", requestedPort: 1337, configuredPort: 1337,
-            serverHealthy: false, portOwner: nil, modelRoot: "\(home)/MLXModels", modelRootSource: "app_default",
-            modelRootReadable: true, modelCount: 0, modelCountComplete: true, apps: [],
-            diagnosis: .serverNotRunning, recommendation: "Start the server.")
+            generatedAt: Date(timeIntervalSince1970: 0),
+            cliPath: "\(home)/bin/osaurus",
+            cliVersion: "1",
+            cliBuild: "1",
+            requestedPort: 1337,
+            configuredPort: 1337,
+            serverHealthy: false,
+            portOwner: nil,
+            modelRoot: "\(home)/MLXModels",
+            modelRootSource: "app_default",
+            modelRootReadable: true,
+            modelCount: 0,
+            modelCountComplete: true,
+            apps: [],
+            diagnosis: .serverNotRunning,
+            recommendation: "Start the server."
+        )
         let oldJSON = try JSONEncoder().encode(report)
         XCTAssertNil(try JSONDecoder().decode(InstallationDiagnosticReport.self, from: oldJSON).strandedLegacyModels)
         var withLegacy = report
         withLegacy.strandedLegacyModels = .init(path: "\(home)/.osaurus/models", count: 2, complete: false)
         let decoded = try JSONDecoder().decode(
-            InstallationDiagnosticReport.self, from: JSONEncoder().encode(withLegacy))
+            InstallationDiagnosticReport.self,
+            from: JSONEncoder().encode(withLegacy)
+        )
         XCTAssertEqual(decoded.strandedLegacyModels, withLegacy.strandedLegacyModels)
         let redacted = decoded.redacted(homeDirectory: home)
         XCTAssertEqual(redacted.strandedLegacyModels?.path, "~/.osaurus/models")

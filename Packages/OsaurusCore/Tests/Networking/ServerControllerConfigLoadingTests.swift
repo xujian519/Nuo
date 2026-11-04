@@ -319,7 +319,8 @@ struct ServerControllerConfigLoadingTests {
 
         var tiedHeadChanged = base
         tiedHeadChanged.performance = VMLXServerPerformanceSettings(
-            tiedHeadCodec: .q8)
+            tiedHeadCodec: .q8
+        )
         #expect(
             ServerController.loadedModelRuntimeInputsRequireRefresh(
                 previous: base,
@@ -329,7 +330,8 @@ struct ServerControllerConfigLoadingTests {
 
         var qatChanged = base
         qatChanged.performance = VMLXServerPerformanceSettings(
-            deepseekV4ActivationQAT: true)
+            deepseekV4ActivationQAT: true
+        )
         #expect(
             ServerController.loadedModelRuntimeInputsRequireRefresh(
                 previous: base,

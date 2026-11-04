@@ -72,8 +72,12 @@ final class StaleViewCompactionTests: XCTestCase {
         let afterBatch = messages.map(\.content)
         messages.append(
             ChatMessage(
-                role: "tool", content: "Action succeeded.\n\nCurrent view:\n" + listing(99),
-                tool_calls: nil, tool_call_id: "call_99"))
+                role: "tool",
+                content: "Action succeeded.\n\nCurrent view:\n" + listing(99),
+                tool_calls: nil,
+                tool_call_id: "call_99"
+            )
+        )
         XCTAssertEqual(ComputerUseLoop.compactStaleViews(&messages), 0)
         XCTAssertEqual(Array(messages.map(\.content).prefix(afterBatch.count)), afterBatch)
     }

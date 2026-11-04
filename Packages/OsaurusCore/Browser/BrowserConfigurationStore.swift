@@ -41,7 +41,9 @@ public enum BrowserConfigurationStore {
         if FileManager.default.fileExists(atPath: url.path) {
             do {
                 let config = try JSONDecoder().decode(
-                    BrowserConfiguration.self, from: Data(contentsOf: url))
+                    BrowserConfiguration.self,
+                    from: Data(contentsOf: url)
+                )
                 cached = config
                 return config
             } catch {
@@ -57,7 +59,9 @@ public enum BrowserConfigurationStore {
     /// saves on disk in reverse order — e.g. persisting a stale migration
     /// marker over a newer one.
     private static let persistQueue = DispatchQueue(
-        label: "com.osaurus.browser.config-persist", qos: .utility)
+        label: "com.osaurus.browser.config-persist",
+        qos: .utility
+    )
 
     /// Test hook: block until every queued write has hit disk.
     public static func flushWritesForTests() {

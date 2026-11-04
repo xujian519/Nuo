@@ -394,21 +394,20 @@ actor WorkspaceAgentAccessHost {
 
         // The redeemed agent must exist locally (this is the sharer's box).
         let addressLower = payload.agentAddress.lowercased()
-        let resolved:
-            (keyPath: AgentKeyPath, address: String, name: String, description: String, model: String?)? =
-                await MainActor.run {
-                    guard
-                        let agent = AgentManager.shared.agents.first(where: {
-                            ($0.agentAddress?.lowercased() ?? "") == addressLower
-                        }),
-                        let keyPath = agent.agentKeyPath,
-                        let address = agent.agentAddress
-                    else { return nil }
-                    return (
-                        keyPath, address, agent.name, agent.description,
-                        AgentManager.shared.effectiveModel(for: agent.id)
-                    )
-                }
+        let resolved: (keyPath: AgentKeyPath, address: String, name: String, description: String, model: String?)? =
+            await MainActor.run {
+                guard
+                    let agent = AgentManager.shared.agents.first(where: {
+                        ($0.agentAddress?.lowercased() ?? "") == addressLower
+                    }),
+                    let keyPath = agent.agentKeyPath,
+                    let address = agent.agentAddress
+                else { return nil }
+                return (
+                    keyPath, address, agent.name, agent.description,
+                    AgentManager.shared.effectiveModel(for: agent.id)
+                )
+            }
         guard let resolved else {
             return .rejected(.agentNotFound)
         }
@@ -457,7 +456,8 @@ actor WorkspaceAgentAccessHost {
             workspaceKeys.removeValue(forKey: previous.key)
             APIKeyManager.shared.delete(id: previous.value.keyId)
             await WorkspaceAuditLog.shared.recordKeyRevoked(
-                record: previous.value, reason: .replacedByRefresh
+                record: previous.value,
+                reason: .replacedByRefresh
             )
         }
 
@@ -523,13 +523,17 @@ actor WorkspaceAgentAccessHost {
         let key = try await attestationKey(forceRefresh: false)
         do {
             return try WorkspaceMembershipAttestation.verify(
-                token: token, publicKeyBase64URL: key, now: now()
+                token: token,
+                publicKeyBase64URL: key,
+                now: now()
             )
         } catch WorkspaceAttestationError.badSignature, WorkspaceAttestationError.malformedPublicKey {
             let freshKey = try await attestationKey(forceRefresh: true)
             do {
                 return try WorkspaceMembershipAttestation.verify(
-                    token: token, publicKeyBase64URL: freshKey, now: now()
+                    token: token,
+                    publicKeyBase64URL: freshKey,
+                    now: now()
                 )
             } catch {
                 throw Self.rejection(for: error)
@@ -705,7 +709,8 @@ actor WorkspaceAgentAccessHost {
             let data = try encoder.encode(workspaceKeys)
             try data.write(to: url, options: [.atomic])
             try? FileManager.default.setAttributes(
-                [.posixPermissions: 0o600], ofItemAtPath: url.path
+                [.posixPermissions: 0o600],
+                ofItemAtPath: url.path
             )
         } catch {
             NSLog("[Nuo][Workspaces] Failed to persist workspace key records: %@", "\(error)")

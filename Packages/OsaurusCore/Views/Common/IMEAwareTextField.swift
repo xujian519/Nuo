@@ -85,7 +85,8 @@ struct IMEAwareTextField: NSViewRepresentable {
         }
 
         func textView(
-            _ textView: NSTextView, doCommandBy commandSelector: Selector
+            _ textView: NSTextView,
+            doCommandBy commandSelector: Selector
         ) -> Bool {
             if commandSelector == #selector(NSResponder.insertNewline(_:)) {
                 (textView as? IMETrackingTextView)?.onSubmit?()
@@ -103,7 +104,9 @@ final class IMETrackingTextView: NSTextView {
     var onSubmit: (() -> Void)?
 
     override func setMarkedText(
-        _ string: Any, selectedRange: NSRange, replacementRange: NSRange
+        _ string: Any,
+        selectedRange: NSRange,
+        replacementRange: NSRange
     ) {
         super.setMarkedText(string, selectedRange: selectedRange, replacementRange: replacementRange)
         onMarkedTextChanged?(hasMarkedText())

@@ -102,7 +102,7 @@ struct MainThreadOperationLedgerTests {
     func concurrentBeginEndKeepsLedgerConsistent() async {
         let ledger = MainThreadOperationLedger()
         await withTaskGroup(of: Void.self) { group in
-            for i in 0..<50 {
+            for i in 0 ..< 50 {
                 group.addTask {
                     let token = ledger.begin(subsystem: "stress", operation: "op-\(i)")
                     ledger.end(token)

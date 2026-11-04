@@ -133,7 +133,9 @@ struct DocumentOperation {
     /// Validates a 1-based position against `count` items.
     func position(_ value: Int, of count: Int, noun: String) throws -> Int {
         guard value >= 1, value <= count else {
-            throw fail("\(noun) \(value) doesn't exist (there \(count == 1 ? "is 1 \(noun)" : "are \(count) \(noun)s")).")
+            throw fail(
+                "\(noun) \(value) doesn't exist (there \(count == 1 ? "is 1 \(noun)" : "are \(count) \(noun)s"))."
+            )
         }
         return value - 1
     }
@@ -141,8 +143,10 @@ struct DocumentOperation {
     /// `order` must be a permutation of 1...count.
     func permutation(_ key: String, count: Int, noun: String) throws -> [Int] {
         let order = try ints(key)
-        guard order.count == count, Set(order) == Set(1...max(count, 1)) else {
-            throw fail("`\(key)` must list every \(noun) exactly once (1…\(count)), e.g. \(Array(1...max(count, 1)).reversed()).")
+        guard order.count == count, Set(order) == Set(1 ... max(count, 1)) else {
+            throw fail(
+                "`\(key)` must list every \(noun) exactly once (1…\(count)), e.g. \(Array(1...max(count, 1)).reversed())."
+            )
         }
         return order.map { $0 - 1 }
     }

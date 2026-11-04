@@ -203,7 +203,8 @@ struct WorkspacesWireTypeTests {
         let never = try decoder.decode(
             OsaurusRouterWorkspaceBillingSummary.self,
             from: Data(
-                #"{"subscription":null,"workspaces":0,"billed_workspaces":0,"trial_eligible":true,"trial_days":14}"#.utf8
+                #"{"subscription":null,"workspaces":0,"billed_workspaces":0,"trial_eligible":true,"trial_days":14}"#
+                    .utf8
             )
         )
         #expect(never.subscription == nil)
@@ -309,16 +310,20 @@ struct WorkspacesWireTypeTests {
 
         // Inconsistent envelopes are refused rather than half-handled.
         let missingWorkspace = try decoder.decode(
-            OsaurusRouterWorkspaceCreateResponse.self, from: Data(#"{"status":"created"}"#.utf8)
+            OsaurusRouterWorkspaceCreateResponse.self,
+            from: Data(#"{"status":"created"}"#.utf8)
         )
         #expect(missingWorkspace.outcome == nil)
         let httpCheckout = try decoder.decode(
             OsaurusRouterWorkspaceCreateResponse.self,
-            from: Data(#"{"status":"checkout_required","activation_id":"a","checkout_url":"http://evil.example/pay"}"#.utf8)
+            from: Data(
+                #"{"status":"checkout_required","activation_id":"a","checkout_url":"http://evil.example/pay"}"#.utf8
+            )
         )
         #expect(httpCheckout.outcome == nil)
         let unknown = try decoder.decode(
-            OsaurusRouterWorkspaceCreateResponse.self, from: Data(#"{"status":"queued"}"#.utf8)
+            OsaurusRouterWorkspaceCreateResponse.self,
+            from: Data(#"{"status":"queued"}"#.utf8)
         )
         #expect(unknown.outcome == nil)
     }
@@ -447,7 +452,8 @@ struct WorkspacesWireTypeTests {
              "created_at":"2026-08-31T00:00:00.000Z"}
             """
         let withoutActor = try decoder.decode(
-            OsaurusRouterUsageItem.self, from: Data(personalRow.utf8)
+            OsaurusRouterUsageItem.self,
+            from: Data(personalRow.utf8)
         )
         #expect(withoutActor.actor == nil)
     }
@@ -459,7 +465,8 @@ struct WorkspacesWireTypeTests {
              "expiring_micro":"20000000","expiring_credits":"20.00",
              "purchased_micro":"10000000","purchased_credits":"10.00",
              "auto_reload":{"enabled":true,"paused":false},"frozen":false}
-            """#.utf8)
+            """#.utf8
+        )
         let balance = try JSONDecoder().decode(OsaurusRouterWorkspacePoolBalance.self, from: data)
         #expect(balance.balanceMicro == "30000000")
         #expect(balance.expiringMicro == "20000000")
@@ -484,7 +491,8 @@ struct WorkspacesWireTypeTests {
     @Test func topUpCheckoutResponseDecodes() throws {
         let data = Data(
             #"{"topup_id":"tu_1","checkout_url":"https://checkout.stripe.com/c/pay/cs_1","credit_micro":"20000000","credits":"20.00","total_micro":"20000000"}"#
-                .utf8)
+                .utf8
+        )
         let response = try JSONDecoder().decode(OsaurusRouterWorkspaceTopUpCheckoutResponse.self, from: data)
         #expect(response.topupId == "tu_1")
         #expect(response.checkoutURL.hasPrefix("https://checkout.stripe.com/"))
@@ -500,7 +508,8 @@ struct WorkspacesWireTypeTests {
              "month_reloaded_micro":"40000000","consecutive_failures":3,"last_attempt_at":"2026-09-01T00:00:00Z",
              "last_error":"card_declined","payment_method_on_file":true,
              "bounds":{"min_threshold_micro":"1000000","max_threshold_micro":"500000000","min_amount_micro":"5000000","max_amount_micro":"500000000"}}
-            """#.utf8)
+            """#.utf8
+        )
         let settings = try JSONDecoder().decode(OsaurusRouterWorkspaceAutoReload.self, from: data)
         #expect(settings.enabled && settings.paused)
         #expect(settings.threshold == 5_000_000)
@@ -516,7 +525,9 @@ struct WorkspacesWireTypeTests {
 
         let capped = try JSONDecoder().decode(
             OsaurusRouterWorkspaceAutoReload.self,
-            from: Data(#"{"enabled":true,"paused":false,"last_error":"cap_reached","monthly_cap_micro":"200000000"}"#.utf8)
+            from: Data(
+                #"{"enabled":true,"paused":false,"last_error":"cap_reached","monthly_cap_micro":"200000000"}"#.utf8
+            )
         )
         #expect(capped.isCapReached)
         #expect(capped.monthlyCap == 200_000_000)
@@ -525,7 +536,10 @@ struct WorkspacesWireTypeTests {
     @Test func autoReloadUpdateAlwaysSendsCapAsStringOrNull() throws {
         let encoder = JSONEncoder.osaurusCanonical(prettyPrinted: false)
         let capped = OsaurusRouterWorkspaceAutoReloadUpdate(
-            enabled: true, thresholdMicro: 5_000_000, amountMicro: 20_000_000, monthlyCapMicro: 200_000_000
+            enabled: true,
+            thresholdMicro: 5_000_000,
+            amountMicro: 20_000_000,
+            monthlyCapMicro: 200_000_000
         )
         #expect(
             String(decoding: try encoder.encode(capped), as: UTF8.self)
@@ -533,7 +547,10 @@ struct WorkspacesWireTypeTests {
         )
         // "No cap" is an explicit null, never an omitted key.
         let uncapped = OsaurusRouterWorkspaceAutoReloadUpdate(
-            enabled: false, thresholdMicro: 5_000_000, amountMicro: 20_000_000, monthlyCapMicro: nil
+            enabled: false,
+            thresholdMicro: 5_000_000,
+            amountMicro: 20_000_000,
+            monthlyCapMicro: nil
         )
         #expect(
             String(decoding: try encoder.encode(uncapped), as: UTF8.self)
@@ -566,23 +583,55 @@ struct WorkspacesWireTypeTests {
 
         // Auto-reload: threshold $1–$500, amount $5–$500, cap nil or >= amount.
         #expect(P.validateAutoReload(thresholdMicro: 5_000_000, amountMicro: 20_000_000, monthlyCapMicro: nil) == .ok)
-        #expect(P.validateAutoReload(thresholdMicro: 500_000, amountMicro: 20_000_000, monthlyCapMicro: nil) == .thresholdOutOfBounds)
-        #expect(P.validateAutoReload(thresholdMicro: 5_000_000, amountMicro: 4_000_000, monthlyCapMicro: nil) == .amountOutOfBounds)
-        #expect(P.validateAutoReload(thresholdMicro: 5_000_000, amountMicro: 20_000_000, monthlyCapMicro: 19_000_000) == .capBelowAmount)
-        #expect(P.validateAutoReload(thresholdMicro: 5_000_000, amountMicro: 20_000_000, monthlyCapMicro: 200_001_000) == .notWholeCents)
+        #expect(
+            P.validateAutoReload(thresholdMicro: 500_000, amountMicro: 20_000_000, monthlyCapMicro: nil)
+                == .thresholdOutOfBounds
+        )
+        #expect(
+            P.validateAutoReload(thresholdMicro: 5_000_000, amountMicro: 4_000_000, monthlyCapMicro: nil)
+                == .amountOutOfBounds
+        )
+        #expect(
+            P.validateAutoReload(thresholdMicro: 5_000_000, amountMicro: 20_000_000, monthlyCapMicro: 19_000_000)
+                == .capBelowAmount
+        )
+        #expect(
+            P.validateAutoReload(thresholdMicro: 5_000_000, amountMicro: 20_000_000, monthlyCapMicro: 200_001_000)
+                == .notWholeCents
+        )
         // Router-supplied bounds win over the client constants.
         let bounds = try? JSONDecoder().decode(
             OsaurusRouterWorkspaceAutoReload.Bounds.self,
-            from: Data(#"{"min_threshold_micro":"2000000","max_threshold_micro":"100000000","min_amount_micro":"10000000","max_amount_micro":"100000000"}"#.utf8)
+            from: Data(
+                #"{"min_threshold_micro":"2000000","max_threshold_micro":"100000000","min_amount_micro":"10000000","max_amount_micro":"100000000"}"#
+                    .utf8
+            )
         )
-        #expect(P.validateAutoReload(thresholdMicro: 1_000_000, amountMicro: 20_000_000, monthlyCapMicro: nil, bounds: bounds) == .thresholdOutOfBounds)
-        #expect(P.validateAutoReload(thresholdMicro: 5_000_000, amountMicro: 5_000_000, monthlyCapMicro: nil, bounds: bounds) == .amountOutOfBounds)
+        #expect(
+            P.validateAutoReload(
+                thresholdMicro: 1_000_000,
+                amountMicro: 20_000_000,
+                monthlyCapMicro: nil,
+                bounds: bounds
+            ) == .thresholdOutOfBounds
+        )
+        #expect(
+            P.validateAutoReload(
+                thresholdMicro: 5_000_000,
+                amountMicro: 5_000_000,
+                monthlyCapMicro: nil,
+                bounds: bounds
+            ) == .amountOutOfBounds
+        )
     }
 
     @Test func billingSummaryDecodesPaymentMethodOnFile() throws {
         let summary = try JSONDecoder().decode(
             OsaurusRouterWorkspaceBillingSummary.self,
-            from: Data(#"{"subscription":null,"workspaces":0,"billed_workspaces":0,"trial_eligible":true,"trial_days":14,"payment_method_on_file":false}"#.utf8)
+            from: Data(
+                #"{"subscription":null,"workspaces":0,"billed_workspaces":0,"trial_eligible":true,"trial_days":14,"payment_method_on_file":false}"#
+                    .utf8
+            )
         )
         #expect(summary.paymentMethodOnFile == false)
     }
@@ -597,12 +646,16 @@ struct WorkspacesWireTypeTests {
 
     @Test func workspaceErrorCodesMatchFromServerErrors() {
         let seats = OsaurusRouterAPIError.server(
-            code: "WORKSPACE_SEATS_EXHAUSTED", message: "no seats", status: 409
+            code: "WORKSPACE_SEATS_EXHAUSTED",
+            message: "no seats",
+            status: 409
         )
         #expect(OsaurusRouterWorkspaceErrorCode.match(seats) == .seatsExhausted)
 
         let unrelated = OsaurusRouterAPIError.server(
-            code: "NOT_FOUND", message: "nope", status: 404
+            code: "NOT_FOUND",
+            message: "nope",
+            status: 404
         )
         #expect(OsaurusRouterWorkspaceErrorCode.match(unrelated) == nil)
 
@@ -944,9 +997,10 @@ struct WorkspacesAPIClientTests {
         let client = try makeClient { request in
             #expect(request.httpMethod == "POST")
             #expect(request.url?.path == "/workspaces/team-1/agents")
-            let body = try JSONSerialization.jsonObject(
-                with: Data(bodyString(request).utf8)
-            ) as? [String: Any]
+            let body =
+                try JSONSerialization.jsonObject(
+                    with: Data(bodyString(request).utf8)
+                ) as? [String: Any]
             #expect(body?["agent_address"] as? String == "0xabc123")
             #expect(body?["display_name"] as? String == "Coco")
             #expect(body?["description"] == nil)
@@ -1070,7 +1124,10 @@ struct WorkspacesAPIClientTests {
         let saved = try await client.updateWorkspaceAutoReload(
             id: "team-1",
             OsaurusRouterWorkspaceAutoReloadUpdate(
-                enabled: true, thresholdMicro: 5_000_000, amountMicro: 20_000_000, monthlyCapMicro: nil
+                enabled: true,
+                thresholdMicro: 5_000_000,
+                amountMicro: 20_000_000,
+                monthlyCapMicro: nil
             )
         )
         #expect(saved.paymentMethodOnFile == true)
@@ -1084,7 +1141,10 @@ struct WorkspacesAPIClientTests {
             _ = try await client.updateWorkspaceAutoReload(
                 id: "team-1",
                 OsaurusRouterWorkspaceAutoReloadUpdate(
-                    enabled: true, thresholdMicro: 5_000_000, amountMicro: 20_000_000, monthlyCapMicro: 200_000_000
+                    enabled: true,
+                    thresholdMicro: 5_000_000,
+                    amountMicro: 20_000_000,
+                    monthlyCapMicro: 200_000_000
                 )
             )
             Issue.record("expected a server error")
@@ -1175,7 +1235,9 @@ struct WorkspacesAgentProofSignerTests {
         // The router verifies exactly this: ecrecover(message) == agent key,
         // proving control of the AGENT key (not the master key).
         let message = WorkspacesAgentProofSigner.proofMessage(
-            workspaceId: "team-1", agentAddress: agentAddress, timestamp: timestamp
+            workspaceId: "team-1",
+            agentAddress: agentAddress,
+            timestamp: timestamp
         )
         let signature = try #require(Data(hexEncoded: String(proof.signature.dropFirst(2))))
         let recovered = try recoverAddress(
@@ -1201,7 +1263,9 @@ struct WorkspacesAgentProofSignerTests {
             agentKeyPath: .legacy(index: 2)
         )
         let message = WorkspacesAgentProofSigner.proofMessage(
-            workspaceId: "team-1", agentAddress: addressOfIndex1, timestamp: 1_717_171_717
+            workspaceId: "team-1",
+            agentAddress: addressOfIndex1,
+            timestamp: 1_717_171_717
         )
         let signature = try #require(Data(hexEncoded: String(proof.signature.dropFirst(2))))
         let recovered = try recoverAddress(
@@ -1262,7 +1326,8 @@ struct WorkspacesServiceTests {
             displayName: nil
         )
         let other = OsaurusRouterWorkspacePerson(
-            accountId: "acct-2", walletAddress: "0x0000000000000000000000000000000000000002",
+            accountId: "acct-2",
+            walletAddress: "0x0000000000000000000000000000000000000002",
             displayName: nil
         )
         #expect(service.isSelf(me))
@@ -1324,7 +1389,9 @@ struct WorkspacesServiceTests {
             }
         }) { service, _ in
             service.pendingActivation = PendingWorkspaceActivation(
-                code: "act_9f8e7d6c", suggestedName: "Dino Devs", planLabel: "Workspace S"
+                code: "act_9f8e7d6c",
+                suggestedName: "Dino Devs",
+                planLabel: "Workspace S"
             )
             let detail = await service.activate(code: "act_9f8e7d6c", name: " Dino Devs ")
             #expect(detail?.id == "team-1")
@@ -1431,7 +1498,9 @@ struct WorkspacesServiceTests {
                 // row appears.
                 let n = listCalls.increment()
                 if n <= 2 {
-                    return json(#"{"data":[{"id":"team-2","name":"Other","role":"member","source":"subscription","active":true}]}"#)
+                    return json(
+                        #"{"data":[{"id":"team-2","name":"Other","role":"member","source":"subscription","active":true}]}"#
+                    )
                 }
                 return json(
                     #"{"data":[{"id":"team-2","name":"Other","role":"member","source":"subscription","active":true},{"id":"team-9","name":"Dino Devs","role":"owner","source":"subscription","active":true,"members_active":1,"agents_shared":0}]}"#
@@ -1513,7 +1582,9 @@ struct WorkspacesServiceTests {
             case ("GET", "/workspaces"):
                 return json(#"{"data":[]}"#)
             case ("GET", "/workspaces/billing"):
-                return json(#"{"subscription":null,"workspaces":0,"billed_workspaces":0,"trial_eligible":true,"trial_days":14}"#)
+                return json(
+                    #"{"subscription":null,"workspaces":0,"billed_workspaces":0,"trial_eligible":true,"trial_days":14}"#
+                )
             case ("GET", "/workspaces/prices"):
                 return json(pricesBody)
             default:
@@ -1524,7 +1595,7 @@ struct WorkspacesServiceTests {
             service.openURL = { _ in }
             _ = await service.createWorkspace(name: "Dino Devs")
             #expect(service.awaitingSubscriptionConfirmation)
-            for _ in 0..<9 {
+            for _ in 0 ..< 9 {
                 await service.handleAppActivation()
                 #expect(service.awaitingSubscriptionConfirmation)
             }
@@ -1622,7 +1693,8 @@ struct WorkspacesServiceTests {
                 upgraded.set()
                 return json(#"{"status":"upgraded","workspace":\#(live)}"#)
             case ("GET", "/workspaces"):
-                let row = upgraded.isSet ? #""source":"subscription","active":true"# : #""source":"suspended","active":false"#
+                let row =
+                    upgraded.isSet ? #""source":"subscription","active":true"# : #""source":"suspended","active":false"#
                 return json(#"{"data":[{"id":"team-3","name":"Lapsed","role":"owner",\#(row)}]}"#)
             case ("GET", "/workspaces/billing"):
                 return json(
@@ -1683,7 +1755,9 @@ struct WorkspacesServiceTests {
                     #"{"status":"checkout_required","activation_id":"act_7","checkout_url":"https://checkout.stripe.com/c/pay/cs_test_7"}"#
                 )
             case ("GET", "/workspaces"):
-                return json(#"{"data":[{"id":"team-3","name":"Lapsed","role":"owner","source":"suspended","active":false}]}"#)
+                return json(
+                    #"{"data":[{"id":"team-3","name":"Lapsed","role":"owner","source":"suspended","active":false}]}"#
+                )
             case ("GET", "/workspaces/billing"):
                 return json(
                     #"{"subscription":{"status":"canceled","quantity":0,"price":null,"trialing":false},"workspaces":1,"billed_workspaces":0,"trial_eligible":false,"trial_days":14}"#
@@ -1770,7 +1844,9 @@ struct WorkspacesServiceTests {
             case ("GET", "/workspaces/team-1/credits/balance"):
                 return json(#"{"balance_micro":"30000000","expiring_micro":"0","purchased_micro":"0","frozen":false}"#)
             case ("GET", "/workspaces/team-1/members"):
-                return json(#"{"data":[{"account_id":"acct-1","wallet_address":"0xabc","osaurus_id":"rex-42","role":"owner"}]}"#)
+                return json(
+                    #"{"data":[{"account_id":"acct-1","wallet_address":"0xabc","osaurus_id":"rex-42","role":"owner"}]}"#
+                )
             case ("GET", "/workspaces/team-1/invites"), ("GET", "/workspaces/team-1/agents"):
                 return json(#"{"data":[]}"#)
             default:
@@ -1783,7 +1859,10 @@ struct WorkspacesServiceTests {
                 .init(
                     workspace: try JSONDecoder().decode(
                         OsaurusRouterWorkspaceSummary.self,
-                        from: Data(#"{"id":"team-1","name":"Dino Devs","role":"owner","source":"subscription","active":true}"#.utf8)
+                        from: Data(
+                            #"{"id":"team-1","name":"Dino Devs","role":"owner","source":"subscription","active":true}"#
+                                .utf8
+                        )
                     ),
                     detail: detail,
                     members: service.members,
@@ -1817,7 +1896,10 @@ struct WorkspacesServiceTests {
                 .init(
                     workspace: try JSONDecoder().decode(
                         OsaurusRouterWorkspaceSummary.self,
-                        from: Data(#"{"id":"team-1","name":"Renamed","role":"owner","source":"subscription","active":true}"#.utf8)
+                        from: Data(
+                            #"{"id":"team-1","name":"Renamed","role":"owner","source":"subscription","active":true}"#
+                                .utf8
+                        )
                     ),
                     detail: detail,
                     members: [],
@@ -1917,24 +1999,85 @@ struct WorkspacesServiceTests {
     @Test func topUpLanded_ledgerEntryMustBeFreshAndBalanceFallbackNeedsFullAmount() throws {
         let started = Date()
         let balance = OsaurusRouterWorkspacePoolBalance(balanceMicro: "21000000")
-        func ledger(_ createdAt: String, amount: String = "20000000", type: String = "workspace_topup") -> OsaurusRouterTransactionsResponse? {
+        func ledger(_ createdAt: String, amount: String = "20000000", type: String = "workspace_topup")
+            -> OsaurusRouterTransactionsResponse?
+        {
             try? JSONDecoder().decode(
                 OsaurusRouterTransactionsResponse.self,
-                from: Data(#"{"data":[{"id":"l","amount_micro":"\#(amount)","entry_type":"\#(type)","created_at":"\#(createdAt)"}],"next_cursor":null}"#.utf8)
+                from: Data(
+                    #"{"data":[{"id":"l","amount_micro":"\#(amount)","entry_type":"\#(type)","created_at":"\#(createdAt)"}],"next_cursor":null}"#
+                        .utf8
+                )
             )
         }
         let fresh = ISO8601DateFormatter().string(from: started.addingTimeInterval(5))
         // Fresh entry of the right amount: landed, whatever the balance did.
-        #expect(WorkspacesService.topUpLanded(balance: balance, before: nil, amountMicro: 20_000_000, startedAt: started, ledger: ledger(fresh)))
+        #expect(
+            WorkspacesService.topUpLanded(
+                balance: balance,
+                before: nil,
+                amountMicro: 20_000_000,
+                startedAt: started,
+                ledger: ledger(fresh)
+            )
+        )
         // Stale entry (an earlier purchase of the same amount): not this one.
-        #expect(!WorkspacesService.topUpLanded(balance: balance, before: nil, amountMicro: 20_000_000, startedAt: started, ledger: ledger("2020-01-01T00:00:00Z")))
+        #expect(
+            !WorkspacesService.topUpLanded(
+                balance: balance,
+                before: nil,
+                amountMicro: 20_000_000,
+                startedAt: started,
+                ledger: ledger("2020-01-01T00:00:00Z")
+            )
+        )
         // Wrong amount / wrong type: no.
-        #expect(!WorkspacesService.topUpLanded(balance: balance, before: nil, amountMicro: 20_000_000, startedAt: started, ledger: ledger(fresh, amount: "5000000")))
-        #expect(!WorkspacesService.topUpLanded(balance: balance, before: nil, amountMicro: 20_000_000, startedAt: started, ledger: ledger(fresh, type: "subscription_grant")))
+        #expect(
+            !WorkspacesService.topUpLanded(
+                balance: balance,
+                before: nil,
+                amountMicro: 20_000_000,
+                startedAt: started,
+                ledger: ledger(fresh, amount: "5000000")
+            )
+        )
+        #expect(
+            !WorkspacesService.topUpLanded(
+                balance: balance,
+                before: nil,
+                amountMicro: 20_000_000,
+                startedAt: started,
+                ledger: ledger(fresh, type: "subscription_grant")
+            )
+        )
         // No usable ledger: the balance must have risen by the full amount.
-        #expect(WorkspacesService.topUpLanded(balance: balance, before: 1_000_000, amountMicro: 20_000_000, startedAt: started, ledger: nil))
-        #expect(!WorkspacesService.topUpLanded(balance: balance, before: 5_000_000, amountMicro: 20_000_000, startedAt: started, ledger: nil))
-        #expect(!WorkspacesService.topUpLanded(balance: balance, before: nil, amountMicro: 20_000_000, startedAt: started, ledger: nil))
+        #expect(
+            WorkspacesService.topUpLanded(
+                balance: balance,
+                before: 1_000_000,
+                amountMicro: 20_000_000,
+                startedAt: started,
+                ledger: nil
+            )
+        )
+        #expect(
+            !WorkspacesService.topUpLanded(
+                balance: balance,
+                before: 5_000_000,
+                amountMicro: 20_000_000,
+                startedAt: started,
+                ledger: nil
+            )
+        )
+        #expect(
+            !WorkspacesService.topUpLanded(
+                balance: balance,
+                before: nil,
+                amountMicro: 20_000_000,
+                startedAt: started,
+                ledger: nil
+            )
+        )
     }
 
     @Test func saveAutoReload_rejectsBadConfigLocallyAndSavesValidOne() async throws {
@@ -1977,7 +2120,10 @@ struct WorkspacesServiceTests {
 
             // Cap below the reload amount never reaches the router.
             let rejected = await service.saveAutoReload(
-                workspaceId: "team-1", enabled: true, thresholdMicro: 5_000_000, amountMicro: 20_000_000,
+                workspaceId: "team-1",
+                enabled: true,
+                thresholdMicro: 5_000_000,
+                amountMicro: 20_000_000,
                 monthlyCapMicro: 10_000_000
             )
             #expect(rejected == nil)
@@ -1986,7 +2132,10 @@ struct WorkspacesServiceTests {
             #expect(puts.current == 0)
 
             let saved = await service.saveAutoReload(
-                workspaceId: "team-1", enabled: true, thresholdMicro: 5_000_000, amountMicro: 20_000_000,
+                workspaceId: "team-1",
+                enabled: true,
+                thresholdMicro: 5_000_000,
+                amountMicro: 20_000_000,
                 monthlyCapMicro: 200_000_000
             )
             #expect(saved?.enabled == true)
@@ -2008,7 +2157,10 @@ struct WorkspacesServiceTests {
             }
         }) { service, _ in
             let saved = await service.saveAutoReload(
-                workspaceId: "team-1", enabled: true, thresholdMicro: 5_000_000, amountMicro: 20_000_000,
+                workspaceId: "team-1",
+                enabled: true,
+                thresholdMicro: 5_000_000,
+                amountMicro: 20_000_000,
                 monthlyCapMicro: nil
             )
             #expect(saved == nil)
@@ -2026,7 +2178,10 @@ struct WorkspacesServiceTests {
             case ("GET", "/workspaces"):
                 return json(#"{"data":[]}"#)
             case ("GET", "/workspaces/billing"), ("GET", "/workspaces/prices"):
-                return (404, Data(#"{"error":{"code":"NOT_FOUND","message":"not found"}}"#.utf8), ["content-type": "application/json"])
+                return (
+                    404, Data(#"{"error":{"code":"NOT_FOUND","message":"not found"}}"#.utf8),
+                    ["content-type": "application/json"]
+                )
             default:
                 Issue.record("Unexpected \(request.httpMethod ?? "?") \(request.url?.path ?? "?")")
                 throw URLError(.badURL)
@@ -2053,7 +2208,9 @@ struct WorkspacesServiceTests {
             )
         }) { service, _ in
             let pending = PendingWorkspaceActivation(
-                code: "act_9f8e7d6c", suggestedName: nil, planLabel: nil
+                code: "act_9f8e7d6c",
+                suggestedName: nil,
+                planLabel: nil
             )
             service.pendingActivation = pending
             let detail = await service.activate(code: pending.code, name: "Dino Devs")
@@ -2079,7 +2236,9 @@ struct WorkspacesServiceTests {
                     #"{"data":[{"id":"team-2","name":"Other","role":"member","source":"subscription","active":true,"members_active":2,"agents_shared":0}]}"#
                 )
             case ("GET", "/workspaces/billing"):
-                return json(#"{"subscription":null,"workspaces":0,"billed_workspaces":0,"trial_eligible":true,"trial_days":14}"#)
+                return json(
+                    #"{"subscription":null,"workspaces":0,"billed_workspaces":0,"trial_eligible":true,"trial_days":14}"#
+                )
             case ("GET", "/workspaces/prices"):
                 return json(pricesBody)
             case ("GET", "/workspaces/team-2"):
@@ -2214,7 +2373,10 @@ struct WorkspacesServiceTests {
 
         // Clearing removes the entry entirely.
         WorkspacesService.setBillingWorkspace(
-            agentId: agentId, agentAddress: "0xABCdef", workspaceId: nil, defaults: defaults
+            agentId: agentId,
+            agentAddress: "0xABCdef",
+            workspaceId: nil,
+            defaults: defaults
         )
         #expect(WorkspacesService.workspaceContext(forAgentId: agentId, defaults: defaults) == nil)
     }
@@ -2262,7 +2424,10 @@ struct WorkspacesServiceTests {
         let agent = UUID()
         // Already bills team-2 (the user turned it on there).
         WorkspacesService.setBillingWorkspace(
-            agentId: agent, agentAddress: "0xaaa", workspaceId: "team-2", defaults: defaults
+            agentId: agent,
+            agentAddress: "0xaaa",
+            workspaceId: "team-2",
+            defaults: defaults
         )
 
         // Now also shared into team-1, which lists first.
@@ -2271,7 +2436,9 @@ struct WorkspacesServiceTests {
             (workspaceId: "team-2", addresses: ["0xaaa"]),
         ]
         let first = WorkspacesService.applyDefaultBilling(
-            localAgents: [(id: agent, address: "0xaaa")], rosters: rosters, defaults: defaults
+            localAgents: [(id: agent, address: "0xaaa")],
+            rosters: rosters,
+            defaults: defaults
         )
         #expect(first.isEmpty)
         #expect(
@@ -2280,7 +2447,9 @@ struct WorkspacesServiceTests {
 
         // Re-applying with nothing new changes nothing and reports nothing.
         let second = WorkspacesService.applyDefaultBilling(
-            localAgents: [(id: agent, address: "0xaaa")], rosters: rosters, defaults: defaults
+            localAgents: [(id: agent, address: "0xaaa")],
+            rosters: rosters,
+            defaults: defaults
         )
         #expect(second.isEmpty)
     }
@@ -2315,28 +2484,38 @@ struct WorkspacesServiceTests {
 
         // Default binds it...
         WorkspacesService.applyDefaultBilling(
-            localAgents: [(id: agent, address: "0xaaa")], rosters: roster, defaults: defaults
+            localAgents: [(id: agent, address: "0xaaa")],
+            rosters: roster,
+            defaults: defaults
         )
         #expect(WorkspacesService.workspaceContext(forAgentId: agent, defaults: defaults) != nil)
         #expect(!WorkspacesService.isBillingOptedOut(agentId: agent, defaults: defaults))
 
         // ...the user turns the switch off: entry gone, tombstone written...
         WorkspacesService.recordBillingToggle(
-            agentId: agent, agentAddress: "0xaaa", workspaceId: nil, defaults: defaults
+            agentId: agent,
+            agentAddress: "0xaaa",
+            workspaceId: nil,
+            defaults: defaults
         )
         #expect(WorkspacesService.workspaceContext(forAgentId: agent, defaults: defaults) == nil)
         #expect(WorkspacesService.isBillingOptedOut(agentId: agent, defaults: defaults))
 
         // ...and the next roster apply must NOT flip it back on.
         let rebound = WorkspacesService.applyDefaultBilling(
-            localAgents: [(id: agent, address: "0xaaa")], rosters: roster, defaults: defaults
+            localAgents: [(id: agent, address: "0xaaa")],
+            rosters: roster,
+            defaults: defaults
         )
         #expect(rebound.isEmpty)
         #expect(WorkspacesService.workspaceContext(forAgentId: agent, defaults: defaults) == nil)
 
         // Turning it back on clears the tombstone.
         WorkspacesService.recordBillingToggle(
-            agentId: agent, agentAddress: "0xaaa", workspaceId: "team-1", defaults: defaults
+            agentId: agent,
+            agentAddress: "0xaaa",
+            workspaceId: "team-1",
+            defaults: defaults
         )
         #expect(
             WorkspacesService.workspaceContext(forAgentId: agent, defaults: defaults)?.workspaceId == "team-1"
@@ -2353,19 +2532,26 @@ struct WorkspacesServiceTests {
             (workspaceId: "team-1", addresses: ["0xaaa"])
         ]
         WorkspacesService.applyDefaultBilling(
-            localAgents: [(id: agent, address: "0xaaa")], rosters: roster, defaults: defaults
+            localAgents: [(id: agent, address: "0xaaa")],
+            rosters: roster,
+            defaults: defaults
         )
 
         // Unshare path: the static clear drops the entry without opting out.
         WorkspacesService.setBillingWorkspace(
-            agentId: agent, agentAddress: "0xaaa", workspaceId: nil, defaults: defaults
+            agentId: agent,
+            agentAddress: "0xaaa",
+            workspaceId: nil,
+            defaults: defaults
         )
         #expect(WorkspacesService.workspaceContext(forAgentId: agent, defaults: defaults) == nil)
         #expect(!WorkspacesService.isBillingOptedOut(agentId: agent, defaults: defaults))
 
         // Re-shared later: back on the pool by default.
         let rebound = WorkspacesService.applyDefaultBilling(
-            localAgents: [(id: agent, address: "0xaaa")], rosters: roster, defaults: defaults
+            localAgents: [(id: agent, address: "0xaaa")],
+            rosters: roster,
+            defaults: defaults
         )
         #expect(rebound == [agent])
     }
@@ -2398,7 +2584,9 @@ struct WorkspacesServiceTests {
                     #"{"data":[{"id":"team-1","name":"Kept","role":"member","source":"subscription","active":true,"members_active":2,"agents_shared":0,"created_at":"2026-08-31T00:00:00.000Z"}]}"#
                 )
             case ("GET", "/workspaces/billing"):
-                return json(#"{"subscription":null,"workspaces":0,"billed_workspaces":0,"trial_eligible":true,"trial_days":14}"#)
+                return json(
+                    #"{"subscription":null,"workspaces":0,"billed_workspaces":0,"trial_eligible":true,"trial_days":14}"#
+                )
             case ("GET", "/workspaces/prices"):
                 return json(pricesBody)
             default:
@@ -2411,13 +2599,17 @@ struct WorkspacesServiceTests {
             let keptAgent = UUID()
             let staleAgent = UUID()
             WorkspacesService.setBillingWorkspace(
-                agentId: keptAgent, agentAddress: "0xaaa", workspaceId: "team-1",
+                agentId: keptAgent,
+                agentAddress: "0xaaa",
+                workspaceId: "team-1",
                 defaults: defaults
             )
             // workspace-2 no longer appears in the authoritative list (left /
             // removed / deleted) — its pref must not survive the refresh.
             WorkspacesService.setBillingWorkspace(
-                agentId: staleAgent, agentAddress: "0xbbb", workspaceId: "team-2",
+                agentId: staleAgent,
+                agentAddress: "0xbbb",
+                workspaceId: "team-2",
                 defaults: defaults
             )
 
@@ -2459,18 +2651,24 @@ struct WorkspacesServiceTests {
             let revokedAgent = UUID()
             let otherWorkspaceAgent = UUID()
             WorkspacesService.setBillingWorkspace(
-                agentId: keptAgent, agentAddress: "0xAAA", workspaceId: "team-1",
+                agentId: keptAgent,
+                agentAddress: "0xAAA",
+                workspaceId: "team-1",
                 defaults: defaults
             )
             // Admin-unshared (or viewer-demotion auto-revoked): gone from the
             // roster, so its pref must drop.
             WorkspacesService.setBillingWorkspace(
-                agentId: revokedAgent, agentAddress: "0xBBB", workspaceId: "team-1",
+                agentId: revokedAgent,
+                agentAddress: "0xBBB",
+                workspaceId: "team-1",
                 defaults: defaults
             )
             // Different workspace: this refresh must not touch it.
             WorkspacesService.setBillingWorkspace(
-                agentId: otherWorkspaceAgent, agentAddress: "0xccc", workspaceId: "team-9",
+                agentId: otherWorkspaceAgent,
+                agentAddress: "0xccc",
+                workspaceId: "team-9",
                 defaults: defaults
             )
 
@@ -2504,7 +2702,9 @@ struct WorkspacesServiceTests {
             case ("GET", "/workspaces"):
                 return json(#"{"data":[]}"#)
             case ("GET", "/workspaces/billing"):
-                return json(#"{"subscription":{"status":"past_due","quantity":1},"workspaces":1,"billed_workspaces":1,"trial_eligible":false,"trial_days":14}"#)
+                return json(
+                    #"{"subscription":{"status":"past_due","quantity":1},"workspaces":1,"billed_workspaces":1,"trial_eligible":false,"trial_days":14}"#
+                )
             case ("GET", "/workspaces/prices"):
                 return json(pricesBody)
             // Selecting a workspace also reads the pool split (best-effort).
@@ -2528,7 +2728,7 @@ struct WorkspacesServiceTests {
 
             // Bounded polling: fruitless activation polls eventually clear
             // the wait state instead of spinning forever.
-            for _ in 0..<10 {
+            for _ in 0 ..< 10 {
                 await service.handleAppActivation()
             }
             #expect(!service.awaitingSubscriptionConfirmation)
@@ -2569,7 +2769,9 @@ struct WorkspacesServiceTests {
                     #"{"data":[{"id":"team-1","name":"Dino Devs","role":"owner","source":"subscription","active":true}]}"#
                 )
             case ("GET", "/workspaces/billing"):
-                return json(#"{"subscription":{"status":"active","quantity":1},"workspaces":1,"billed_workspaces":1,"trial_eligible":false,"trial_days":14}"#)
+                return json(
+                    #"{"subscription":{"status":"active","quantity":1},"workspaces":1,"billed_workspaces":1,"trial_eligible":false,"trial_days":14}"#
+                )
             case ("GET", "/workspaces/prices"):
                 return json(pricesBody)
             // Selecting a workspace also reads the pool split (best-effort).
@@ -2616,7 +2818,9 @@ struct WorkspacesServiceTests {
                 workspacesCalls.increment()
                 return json(#"{"data":[]}"#)
             case ("GET", "/workspaces/billing"):
-                return json(#"{"subscription":null,"workspaces":0,"billed_workspaces":0,"trial_eligible":true,"trial_days":14}"#)
+                return json(
+                    #"{"subscription":null,"workspaces":0,"billed_workspaces":0,"trial_eligible":true,"trial_days":14}"#
+                )
             case ("GET", "/workspaces/prices"):
                 return json(pricesBody)
             default:
@@ -2658,7 +2862,11 @@ struct WorkspacesServiceTests {
         }) { service, _ in
             let fetched = [
                 OsaurusRouterWorkspaceSummary(
-                    id: "team-9", name: "Handed Over", role: "member", source: nil, active: true
+                    id: "team-9",
+                    name: "Handed Over",
+                    role: "member",
+                    source: nil,
+                    active: true
                 )
             ]
             service.applyWorkspaceList(fetched)
@@ -2712,7 +2920,7 @@ struct WorkspacesServiceTests {
             service.noteWorkspaceBilled(workspaceId: "team-1")
             // Handler entry counts the request before URLSession delivers and
             // decodes its response. Wait for the actual MainActor publication.
-            for _ in 0..<40 where service.poolBalances["team-1"]?.balanceMicro != "199990000" {
+            for _ in 0 ..< 40 where service.poolBalances["team-1"]?.balanceMicro != "199990000" {
                 try await Task.sleep(for: .milliseconds(50))
             }
             #expect(balanceCalls.current == 2)
@@ -2732,21 +2940,24 @@ struct WorkspacesServiceTests {
             started.continuation.finish()
             published.continuation.finish()
         }
-        try await withService(handler: { request in
-            guard request.url?.path == "/workspaces/team-1/credits/balance" else {
-                throw URLError(.badURL)
+        try await withService(
+            handler: { request in
+                guard request.url?.path == "/workspaces/team-1/credits/balance" else {
+                    throw URLError(.badURL)
+                }
+                let n = calls.increment()
+                let micro = n == 1 ? "200000000" : "199990000"
+                return json(#"{"balance_micro":"\#(micro)","frozen":false}"#)
+            },
+            responseDelivery: { deliver in
+                if calls.current == 2 {
+                    hold.install(deliver)
+                    started.continuation.yield(())
+                } else {
+                    deliver()
+                }
             }
-            let n = calls.increment()
-            let micro = n == 1 ? "200000000" : "199990000"
-            return json(#"{"balance_micro":"\#(micro)","frozen":false}"#)
-        }, responseDelivery: { deliver in
-            if calls.current == 2 {
-                hold.install(deliver)
-                started.continuation.yield(())
-            } else {
-                deliver()
-            }
-        }) { service, _ in
+        ) { service, _ in
             let first = await service.refreshPoolBalance(workspaceId: "team-1")
             #expect(first?.balanceMicro == "200000000")
             #expect(service.selectedWorkspaceId == nil)
@@ -2805,9 +3016,10 @@ struct WorkspacesServiceTests {
             case ("GET", "/workspaces/team-2/agents"):
                 return json(#"{"data":[]}"#)
             case ("POST", "/workspaces/team-1/agents"):
-                let body = try JSONSerialization.jsonObject(
-                    with: Data(bodyString(request).utf8)
-                ) as? [String: Any]
+                let body =
+                    try JSONSerialization.jsonObject(
+                        with: Data(bodyString(request).utf8)
+                    ) as? [String: Any]
                 #expect(body?["agent_address"] as? String == "0xnew000000000000000000000000000000000002")
                 #expect(body?["display_name"] as? String == "Coco (shared)")
                 #expect(body?["description"] as? String == "Writes docs")
@@ -2832,7 +3044,10 @@ struct WorkspacesServiceTests {
             )
             let previous = "0xOLD000000000000000000000000000000000001"
             WorkspacesService.setBillingWorkspace(
-                agentId: agent.id, agentAddress: previous, workspaceId: "team-1", defaults: defaults
+                agentId: agent.id,
+                agentAddress: previous,
+                workspaceId: "team-1",
+                defaults: defaults
             )
 
             let migration = await service.migrateShares(
@@ -2894,12 +3109,17 @@ struct WorkspacesServiceTests {
 
     @Test func migrateShares_noopWhenAddressUnchangedOrMissing() async throws {
         let unchanged = Agent(
-            id: UUID(), name: "Same", isBuiltIn: false, agentIndex: 0,
+            id: UUID(),
+            name: "Same",
+            isBuiltIn: false,
+            agentIndex: 0,
             agentAddress: "0xAAA0000000000000000000000000000000000001",
             autonomousExec: AutonomousExecConfig(enabled: false)
         )
         let noIdentity = Agent(
-            id: UUID(), name: "None", isBuiltIn: false,
+            id: UUID(),
+            name: "None",
+            isBuiltIn: false,
             autonomousExec: AutonomousExecConfig(enabled: false)
         )
         try await withService(handler: { request in
@@ -2907,7 +3127,8 @@ struct WorkspacesServiceTests {
             throw URLError(.badURL)
         }) { service, _ in
             let a = await service.migrateShares(
-                from: "0xaaa0000000000000000000000000000000000001", to: unchanged
+                from: "0xaaa0000000000000000000000000000000000001",
+                to: unchanged
             )
             let b = await service.migrateShares(from: "0xanything", to: noIdentity)
             #expect(!a.touchedAny)
@@ -2975,7 +3196,8 @@ struct WorkspaceBilledInferenceTests {
         #expect(withoutPayload?["workspace_context"] == nil)
 
         request.workspaceContext = OsaurusRouterWorkspaceContext(
-            workspaceId: "team-1", agentAddress: "0xabc123"
+            workspaceId: "team-1",
+            agentAddress: "0xabc123"
         )
         let withData = try JSONEncoder().encode(request)
         let payload = try JSONSerialization.jsonObject(with: withData) as? [String: Any]
@@ -3020,7 +3242,10 @@ struct WorkspaceBilledInferenceTests {
         #expect(context?.workspaceId == "team-old")
 
         WorkspacesService.setBillingWorkspace(
-            agentId: agentId, agentAddress: "0xabc", workspaceId: "ws-new", defaults: defaults
+            agentId: agentId,
+            agentAddress: "0xabc",
+            workspaceId: "ws-new",
+            defaults: defaults
         )
         let map = defaults.dictionary(forKey: WorkspacesService.agentBillingDefaultsKey) as? [String: [String: String]]
         #expect(map?[agentId.uuidString]?["workspace_id"] == "ws-new")
@@ -3033,11 +3258,15 @@ struct WorkspaceBilledInferenceTests {
         // suites can't collide, and the entry is removed on exit.
         let agentId = UUID()
         WorkspacesService.setBillingWorkspace(
-            agentId: agentId, agentAddress: "0xABC123", workspaceId: "team-9"
+            agentId: agentId,
+            agentAddress: "0xABC123",
+            workspaceId: "team-9"
         )
         defer {
             WorkspacesService.setBillingWorkspace(
-                agentId: agentId, agentAddress: "0xABC123", workspaceId: nil
+                agentId: agentId,
+                agentAddress: "0xABC123",
+                workspaceId: nil
             )
         }
 
@@ -3105,7 +3334,8 @@ struct WorkspaceBilledInferenceTests {
              "billed_to":"workspace:team-1"}}
             """
         let event = try JSONDecoder().decode(
-            OsaurusRouterSummaryEvent.self, from: Data(body.utf8)
+            OsaurusRouterSummaryEvent.self,
+            from: Data(body.utf8)
         )
         #expect(event.osaurus.billedTo == "workspace:team-1")
         #expect(event.osaurus.billedWorkspaceId == "team-1")
@@ -3124,7 +3354,9 @@ struct WorkspaceBilledInferenceTests {
             try JSONDecoder().decode(
                 OsaurusRouterSummaryEvent.self,
                 from: Data(legacyTag.replacingOccurrences(of: "team:team-1", with: "workspace:").utf8)
-            ).osaurus.billedWorkspaceId == nil, "an empty id is not a workspace")
+            ).osaurus.billedWorkspaceId == nil,
+            "an empty id is not a workspace"
+        )
 
         // Personal summaries (no billed_to) keep decoding and parse to nil.
         let personal = """
@@ -3132,7 +3364,8 @@ struct WorkspaceBilledInferenceTests {
              "token_source":"provider","input_tokens":10,"output_tokens":5}}
             """
         let personalEvent = try JSONDecoder().decode(
-            OsaurusRouterSummaryEvent.self, from: Data(personal.utf8)
+            OsaurusRouterSummaryEvent.self,
+            from: Data(personal.utf8)
         )
         #expect(personalEvent.osaurus.billedTo == nil)
         #expect(personalEvent.osaurus.billedWorkspaceId == nil)
@@ -3162,7 +3395,8 @@ struct WorkspaceBilledInferenceTests {
         // what actually reaches the matcher.)
         func chatCopy(forRouter402 body: String) -> String {
             let extracted = RemoteProviderService.extractErrorMessage(
-                from: Data(body.utf8), statusCode: 402
+                from: Data(body.utf8),
+                statusCode: 402
             )
             let error = RemoteProviderServiceError.requestFailed("HTTP 402: \(extracted)")
             return ChatErrorMessages.assistantMessage(for: error)
@@ -3374,7 +3608,8 @@ private final class WorkspacesResponseHold: @unchecked Sendable {
 private enum WorkspacesResponseWaitError: Error { case timedOut, closed }
 
 private func waitForWorkspacesResponseEvent(
-    _ events: AsyncStream<Void>, before deadline: ContinuousClock.Instant
+    _ events: AsyncStream<Void>,
+    before deadline: ContinuousClock.Instant
 ) async throws {
     try await withThrowingTaskGroup(of: Void.self) { group in
         group.addTask {
@@ -3422,7 +3657,9 @@ struct WorkspaceAutoConnectTests {
             displayName: "Agent \(address)",
             description: nil,
             owner: OsaurusRouterWorkspacePerson(
-                accountId: nil, walletAddress: owner, displayName: nil
+                accountId: nil,
+                walletAddress: owner,
+                displayName: nil
             ),
             relayURL: nil,
             online: online,
@@ -3658,7 +3895,10 @@ struct WorkspaceStatusBadgeTests {
         ownerStatus: String? = nil
     ) -> WorkspaceStatusBadge.Kind? {
         WorkspaceStatusBadge.kind(
-            source: source, active: active, trialing: trialing, ownerSubscriptionStatus: ownerStatus
+            source: source,
+            active: active,
+            trialing: trialing,
+            ownerSubscriptionStatus: ownerStatus
         )
     }
 
@@ -3715,7 +3955,9 @@ struct WorkspaceShareAgentSheetNamingTests {
         // under Dinoki's name.
         #expect(
             Sheet.nextDisplayName(
-                current: "Dinoki", prefilled: "Dinoki", selectedAgentName: "Editorial Writer"
+                current: "Dinoki",
+                prefilled: "Dinoki",
+                selectedAgentName: "Editorial Writer"
             ) == "Editorial Writer"
         )
     }
@@ -3723,13 +3965,17 @@ struct WorkspaceShareAgentSheetNamingTests {
     @Test func userTypedNameIsPreserved() {
         #expect(
             Sheet.nextDisplayName(
-                current: "Newsroom bot", prefilled: "Dinoki", selectedAgentName: "Editorial Writer"
+                current: "Newsroom bot",
+                prefilled: "Dinoki",
+                selectedAgentName: "Editorial Writer"
             ) == "Newsroom bot"
         )
         // A name typed before any selection (no prefill yet) is kept too.
         #expect(
             Sheet.nextDisplayName(
-                current: "Newsroom bot", prefilled: nil, selectedAgentName: "Editorial Writer"
+                current: "Newsroom bot",
+                prefilled: nil,
+                selectedAgentName: "Editorial Writer"
             ) == "Newsroom bot"
         )
     }

@@ -29,7 +29,8 @@ struct ToolFlowTrueFixTests {
     @Test func stillIndexingIsARetryableFailureThatIsNotReplayed() {
         let envelope = KnowledgeToolScope.stillIndexingEnvelope(
             tool: "search_knowledge",
-            message: "No matches for 'budget' yet — this collection is still indexing. Retry in a moment.")
+            message: "No matches for 'budget' yet — this collection is still indexing. Retry in a moment."
+        )
         let object = try? JSONSerialization.jsonObject(with: Data(envelope.utf8)) as? [String: Any]
         #expect(object?["ok"] as? Bool == false)
         #expect(object?["kind"] as? String == "unavailable")
@@ -40,8 +41,10 @@ struct ToolFlowTrueFixTests {
         state.beginMessage()
         let args = #"{"query":"budget"}"#
         state.record(name: "search_knowledge", argsJSON: args, result: envelope)
-        #expect(state.heldResult(name: "search_knowledge", argsJSON: args) == nil,
-            "the retry must execute the tool again, not replay 'still indexing'")
+        #expect(
+            state.heldResult(name: "search_knowledge", argsJSON: args) == nil,
+            "the retry must execute the tool again, not replay 'still indexing'"
+        )
 
         // Control: a real success IS still deduped (the #2632 behaviour we keep).
         let real = ToolEnvelope.success(tool: "search_knowledge", text: "Found 2 knowledge excerpt(s)")
@@ -50,7 +53,9 @@ struct ToolFlowTrueFixTests {
 
         // And the same for list_knowledge, the other site that emits it.
         let listing = KnowledgeToolScope.stillIndexingEnvelope(
-            tool: "list_knowledge", message: "No knowledge documents listed yet — still indexing. Retry in a moment.")
+            tool: "list_knowledge",
+            message: "No knowledge documents listed yet — still indexing. Retry in a moment."
+        )
         state.record(name: "list_knowledge", argsJSON: "{}", result: listing)
         #expect(state.heldResult(name: "list_knowledge", argsJSON: "{}") == nil)
     }
@@ -61,8 +66,11 @@ struct ToolFlowTrueFixTests {
     /// (`total` / `offset` / `next_offset`); on main `ToolEnvelope.search`
     /// does not take them yet, so the payload is assembled directly.
     private func searchEnvelope(
-        query: String, entries: [[String: Any]], truncated: Bool,
-        total: Int? = nil, nextOffset: Int? = nil
+        query: String,
+        entries: [[String: Any]],
+        truncated: Bool,
+        total: Int? = nil,
+        nextOffset: Int? = nil
     ) -> String {
         var result: [String: Any] = [
             "kind": "search", "query": query, "entries": entries,
@@ -74,7 +82,7 @@ struct ToolFlowTrueFixTests {
     }
 
     @Test func compressedSearchPageKeepsTotalAndNextOffset() {
-        let entries = (0..<50).map { ["name": "n\($0).md", "path": "n\($0).md", "type": "file"] }
+        let entries = (0 ..< 50).map { ["name": "n\($0).md", "path": "n\($0).md", "type": "file"] }
         let paged = searchEnvelope(query: "*", entries: entries, truncated: false, total: 350, nextOffset: 50)
         let summary = ContextBudgetManager.summarizeToolResult(paged, toolCallId: nil)
         #expect(summary.contains("50 file match(es)"))
@@ -91,7 +99,8 @@ struct ToolFlowTrueFixTests {
         #expect(ContextBudgetManager.summarizeToolResult(budgetCut, toolCallId: nil).contains("truncated"))
 
         // Content-mode text result: the truncation trailer survives.
-        let text = "Found 50 match(es):\n\n" + String(repeating: "a.txt:1: match line\n", count: 50)
+        let text =
+            "Found 50 match(es):\n\n" + String(repeating: "a.txt:1: match line\n", count: 50)
             + "\n(Results truncated at 50.)"
         let textSummary = ContextBudgetManager.summarizeToolResult(text, toolCallId: nil)
         #expect(textSummary.contains("Found 50 match(es)"))
@@ -106,12 +115,22 @@ struct ToolFlowTrueFixTests {
         #expect(AgentManager.grownManualToolNames(current: ["shell_run"], mode: .manual, live: live) == nil)
         #expect(AgentManager.grownManualToolNames(current: [], mode: .manual, live: live) == nil)
         // Auto (seeded picker) keeps growing, deterministically ordered.
-        #expect(AgentManager.grownManualToolNames(current: ["shell_run"], mode: .auto, live: live)
-            == ["shell_run", "gmail.list", "gmail.send"])
-        #expect(AgentManager.grownManualToolNames(current: ["shell_run"], mode: nil, live: live)
-            == ["shell_run", "gmail.list", "gmail.send"])
+        #expect(
+            AgentManager.grownManualToolNames(current: ["shell_run"], mode: .auto, live: live)
+                == ["shell_run", "gmail.list", "gmail.send"]
+        )
+        #expect(
+            AgentManager.grownManualToolNames(current: ["shell_run"], mode: nil, live: live)
+                == ["shell_run", "gmail.list", "gmail.send"]
+        )
         // Nothing new → nil (no save, no notification).
-        #expect(AgentManager.grownManualToolNames(current: ["gmail.send", "gmail.list", "shell_run"], mode: .auto, live: live) == nil)
+        #expect(
+            AgentManager.grownManualToolNames(
+                current: ["gmail.send", "gmail.list", "shell_run"],
+                mode: .auto,
+                live: live
+            ) == nil
+        )
         // Never seeded → nothing to grow.
         #expect(AgentManager.grownManualToolNames(current: nil, mode: .auto, live: live) == nil)
     }
@@ -147,9 +166,18 @@ struct ToolFlowTrueFixTests {
     @MainActor
     @Test func manualModeHonoursWebSearchOffAndKeepsTickedPicks() {
         let off = AgentConfigSnapshot(
-            agentId: UUID(), toolsDisabled: false, memoryDisabled: true, autonomousConfig: nil,
-            toolMode: .manual, model: nil, manualToolNames: [], systemPrompt: "",
-            dbEnabled: false, renderChartEnabled: false, webSearchEnabled: false)
+            agentId: UUID(),
+            toolsDisabled: false,
+            memoryDisabled: true,
+            autonomousConfig: nil,
+            toolMode: .manual,
+            model: nil,
+            manualToolNames: [],
+            systemPrompt: "",
+            dbEnabled: false,
+            renderChartEnabled: false,
+            webSearchEnabled: false
+        )
         let names = Set(SystemPromptComposer.resolveTools(snapshot: off, executionMode: .none).map(\.function.name))
         #expect(!names.contains("web_search"), "Web Search OFF must strip web_search in manual mode too")
         #expect(!names.contains("search_and_extract"))
@@ -157,19 +185,43 @@ struct ToolFlowTrueFixTests {
 
         // A ticked built-in is an explicit pick and survives the grant strip.
         let ticked = AgentConfigSnapshot(
-            agentId: UUID(), toolsDisabled: false, memoryDisabled: true, autonomousConfig: nil,
-            toolMode: .manual, model: nil, manualToolNames: ["render_chart"], systemPrompt: "",
-            dbEnabled: false, renderChartEnabled: false, webSearchEnabled: false)
-        let tickedNames = Set(SystemPromptComposer.resolveTools(snapshot: ticked, executionMode: .none).map(\.function.name))
+            agentId: UUID(),
+            toolsDisabled: false,
+            memoryDisabled: true,
+            autonomousConfig: nil,
+            toolMode: .manual,
+            model: nil,
+            manualToolNames: ["render_chart"],
+            systemPrompt: "",
+            dbEnabled: false,
+            renderChartEnabled: false,
+            webSearchEnabled: false
+        )
+        let tickedNames = Set(
+            SystemPromptComposer.resolveTools(snapshot: ticked, executionMode: .none).map(\.function.name)
+        )
         #expect(tickedNames.contains("render_chart"))
         #expect(!tickedNames.contains("web_search"))
 
         // Web Search ON in manual keeps the web tools (no over-stripping).
         let on = AgentConfigSnapshot(
-            agentId: UUID(), toolsDisabled: false, memoryDisabled: true, autonomousConfig: nil,
-            toolMode: .manual, model: nil, manualToolNames: [], systemPrompt: "",
-            dbEnabled: false, renderChartEnabled: false, webSearchEnabled: true)
-        #expect(Set(SystemPromptComposer.resolveTools(snapshot: on, executionMode: .none).map(\.function.name)).contains("web_search"))
+            agentId: UUID(),
+            toolsDisabled: false,
+            memoryDisabled: true,
+            autonomousConfig: nil,
+            toolMode: .manual,
+            model: nil,
+            manualToolNames: [],
+            systemPrompt: "",
+            dbEnabled: false,
+            renderChartEnabled: false,
+            webSearchEnabled: true
+        )
+        #expect(
+            Set(SystemPromptComposer.resolveTools(snapshot: on, executionMode: .none).map(\.function.name)).contains(
+                "web_search"
+            )
+        )
     }
 
     // MARK: 6. the Orchestrator's ticked tools are sent
@@ -179,17 +231,43 @@ struct ToolFlowTrueFixTests {
         // A registered dynamic tool the orchestrator allowlist does not carry.
         let dynamicName = ToolRegistry.shared.listDynamicTools()
             .map(\.name)
-            .first(where: { !ToolRegistry.orchestratorAllowedToolNames.contains($0) && !ToolRegistry.orchestratorExcludedToolNames.contains($0) })
+            .first(where: {
+                !ToolRegistry.orchestratorAllowedToolNames.contains($0)
+                    && !ToolRegistry.orchestratorExcludedToolNames.contains($0)
+            })
         guard let dynamicName else { return }  // no dynamic tools registered in this test process
         let auto = AgentConfigSnapshot(
-            agentId: Agent.defaultId, toolsDisabled: false, memoryDisabled: true, autonomousConfig: nil,
-            toolMode: .auto, model: nil, manualToolNames: nil, systemPrompt: "", dbEnabled: false)
-        #expect(!Set(SystemPromptComposer.resolveTools(snapshot: auto, executionMode: .none).map(\.function.name)).contains(dynamicName))
+            agentId: Agent.defaultId,
+            toolsDisabled: false,
+            memoryDisabled: true,
+            autonomousConfig: nil,
+            toolMode: .auto,
+            model: nil,
+            manualToolNames: nil,
+            systemPrompt: "",
+            dbEnabled: false
+        )
+        #expect(
+            !Set(SystemPromptComposer.resolveTools(snapshot: auto, executionMode: .none).map(\.function.name)).contains(
+                dynamicName
+            )
+        )
         let manual = AgentConfigSnapshot(
-            agentId: Agent.defaultId, toolsDisabled: false, memoryDisabled: true, autonomousConfig: nil,
-            toolMode: .manual, model: nil, manualToolNames: [dynamicName], systemPrompt: "", dbEnabled: false)
-        #expect(Set(SystemPromptComposer.resolveTools(snapshot: manual, executionMode: .none).map(\.function.name)).contains(dynamicName),
-            "a tool ticked for the Orchestrator in manual mode must be in its schema")
+            agentId: Agent.defaultId,
+            toolsDisabled: false,
+            memoryDisabled: true,
+            autonomousConfig: nil,
+            toolMode: .manual,
+            model: nil,
+            manualToolNames: [dynamicName],
+            systemPrompt: "",
+            dbEnabled: false
+        )
+        #expect(
+            Set(SystemPromptComposer.resolveTools(snapshot: manual, executionMode: .none).map(\.function.name))
+                .contains(dynamicName),
+            "a tool ticked for the Orchestrator in manual mode must be in its schema"
+        )
     }
 
     // MARK: 7. capabilities search says it is a top-k
@@ -205,7 +283,7 @@ struct ToolFlowTrueFixTests {
     // MARK: 8. search_and_extract names the URLs it did not fetch
 
     @Test func directURLsPastFiveAreReportedNotDropped() {
-        let urls = (1...7).map { "https://example.com/p\($0)" } + ["https://example.com/p1"]
+        let urls = (1 ... 7).map { "https://example.com/p\($0)" } + ["https://example.com/p1"]
         let bounded = SearchAndExtractTool.boundedDirectURLs(urls)
         #expect(bounded.kept.count == 5)
         #expect(bounded.dropped == ["https://example.com/p6", "https://example.com/p7"])
@@ -217,7 +295,11 @@ struct ToolFlowTrueFixTests {
 
     @Test func samplerReadoutIgnoresAuxiliaryGenerations() {
         let followUps = GenerationParameters(
-            temperature: 0.4, maxTokens: 256, maxTokensExplicit: true, auxiliaryCacheIntent: true)
+            temperature: 0.4,
+            maxTokens: 256,
+            maxTokensExplicit: true,
+            auxiliaryCacheIntent: true
+        )
         let userTurn = GenerationParameters(temperature: nil, maxTokens: 256, maxTokensExplicit: false)
         #expect(!MLXBatchAdapter.shouldRecordAsLastEffectiveGeneration(followUps))
         #expect(MLXBatchAdapter.shouldRecordAsLastEffectiveGeneration(userTurn))
@@ -226,8 +308,9 @@ struct ToolFlowTrueFixTests {
     // MARK: 10. list_knowledge paging survives compression; invented fetch names with a provider suffix are steered
 
     @Test func compressedKnowledgeListingKeepsNextOffset() {
-        let body = (0..<100).map { "- note-\($0).md — title \($0)" }.joined(separator: "\n")
-        let text = "Found 350 knowledge document(s) in total; showing 1–100 (offset 0):\n\n" + body
+        let body = (0 ..< 100).map { "- note-\($0).md — title \($0)" }.joined(separator: "\n")
+        let text =
+            "Found 350 knowledge document(s) in total; showing 1–100 (offset 0):\n\n" + body
             + "\n\n[total=350, returned=100, next_offset=100 — 250 more document(s). Call list_knowledge again with `offset: 100` (and the same `limit`/filters) to continue, or narrow with `type`, `tag`, or `collection`.]"
         let envelope = ToolEnvelope.success(tool: "list_knowledge", text: text)
         let summary = ContextBudgetManager.summarizeToolResult(envelope, toolCallId: nil)
@@ -235,7 +318,10 @@ struct ToolFlowTrueFixTests {
         #expect(summary.contains("next_offset=100"))
         #expect(!summary.contains("note-57.md"))
         // A complete listing carries no trailer.
-        let complete = ToolEnvelope.success(tool: "list_knowledge", text: "Found 3 knowledge document(s):\n\n" + String(repeating: "- a.md — t\n", count: 40))
+        let complete = ToolEnvelope.success(
+            tool: "list_knowledge",
+            text: "Found 3 knowledge document(s):\n\n" + String(repeating: "- a.md — t\n", count: 40)
+        )
         #expect(!ContextBudgetManager.summarizeToolResult(complete, toolCallId: nil).contains("next_offset"))
     }
 
@@ -257,21 +343,30 @@ struct ToolFlowTrueFixTests {
         let args = #"{"action":"describe","scope":"agents","id":"Todoist"}"#
         let missing = ToolEnvelope.failure(
             kind: .invalidArgs,
-            message: "No `agents` matched `Todoist` (by id or exact name).", field: "id", tool: "osaurus_inspect")
+            message: "No `agents` matched `Todoist` (by id or exact name).",
+            field: "id",
+            tool: "osaurus_inspect"
+        )
         state.record(name: "osaurus_inspect", argsJSON: args, result: missing)
         // Deterministic rejection: held and replayed while nothing changed.
         #expect(state.heldResult(name: "osaurus_inspect", argsJSON: args) == missing)
         // osaurus_config apply creates the agent → the identical read must re-execute.
         state.record(
-            name: "osaurus_config", argsJSON: #"{"action":"apply","yaml":"agents:\n  Todoist: {}"}"#,
-            result: ToolEnvelope.success(tool: "osaurus_config", text: "Applied 1 change."))
-        #expect(state.heldResult(name: "osaurus_inspect", argsJSON: args) == nil,
-            "a configuration write must invalidate the held inspect rejection")
+            name: "osaurus_config",
+            argsJSON: #"{"action":"apply","yaml":"agents:\n  Todoist: {}"}"#,
+            result: ToolEnvelope.success(tool: "osaurus_config", text: "Applied 1 change.")
+        )
+        #expect(
+            state.heldResult(name: "osaurus_inspect", argsJSON: args) == nil,
+            "a configuration write must invalidate the held inspect rejection"
+        )
         // A FAILED write changes nothing and keeps the hold.
         state.record(name: "osaurus_inspect", argsJSON: args, result: missing)
         state.record(
-            name: "osaurus_config", argsJSON: #"{"action":"apply","yaml":"bad"}"#,
-            result: ToolEnvelope.failure(kind: .invalidArgs, message: "bad yaml", tool: "osaurus_config"))
+            name: "osaurus_config",
+            argsJSON: #"{"action":"apply","yaml":"bad"}"#,
+            result: ToolEnvelope.failure(kind: .invalidArgs, message: "bad yaml", tool: "osaurus_config")
+        )
         #expect(state.heldResult(name: "osaurus_inspect", argsJSON: args) == missing)
     }
     /// Ornith (build-10 OBSIDIAN run): a stdio MCP document carrying `auth: none`
@@ -287,14 +382,18 @@ struct ToolFlowTrueFixTests {
         let args = #"{"action":"apply","yaml":"mcp:\n  obsidian:\n    transport: stdio\n    auth: none"}"#
         let rejected = ToolEnvelope.failure(
             kind: .invalidArgs,
-            message: "`url`, `auth` and `token_ref` apply to the http transport only.", field: "auth",
-            tool: "osaurus_config")
+            message: "`url`, `auth` and `token_ref` apply to the http transport only.",
+            field: "auth",
+            tool: "osaurus_config"
+        )
         state.record(name: "osaurus_config", argsJSON: args, result: rejected)
         #expect(state.heldResult(name: "osaurus_config", argsJSON: args) == rejected)
         // A different, successful write changes the state → the hold is dropped.
         state.record(
-            name: "osaurus_config", argsJSON: #"{"action":"apply","yaml":"mcp:\n  obsidian:\n    transport: stdio"}"#,
-            result: ToolEnvelope.success(tool: "osaurus_config", text: "Applied 1 change."))
+            name: "osaurus_config",
+            argsJSON: #"{"action":"apply","yaml":"mcp:\n  obsidian:\n    transport: stdio"}"#,
+            result: ToolEnvelope.success(tool: "osaurus_config", text: "Applied 1 change.")
+        )
         #expect(state.heldResult(name: "osaurus_config", argsJSON: args) == nil)
         // An execution error (approval timed out, write failed) is not deterministic and is not held.
         let failed = ToolEnvelope.failure(kind: .executionError, message: "approval timed out", tool: "osaurus_config")
@@ -310,22 +409,37 @@ struct ToolFlowTrueFixTests {
     @Test func closingSentenceAnnouncementIsNotAFinalAnswer() {
         func classify(_ text: String) -> AgentLoopModelStep {
             AgentLoopModelStep.classifyTerminal(
-                contentIsBlank: false, thinkingIsBlank: true, stopReason: "stop",
-                requiresVisibleFinalResponse: true, toolsWereOffered: true, content: text)
+                contentIsBlank: false,
+                thinkingIsBlank: true,
+                stopReason: "stop",
+                requiresVisibleFinalResponse: true,
+                toolsWereOffered: true,
+                content: text
+            )
         }
-        let ornith1 = "The Wellkr site blocks retrieval. Let me try the Verywell Health iron-supplements article and the Quantum Cacao source for mechanism details."
+        let ornith1 =
+            "The Wellkr site blocks retrieval. Let me try the Verywell Health iron-supplements article and the Quantum Cacao source for mechanism details."
         guard case .announcedToolCall = classify(ornith1) else {
             Issue.record("a closing 'Let me try …' sentence announces a call that was never emitted"); return
         }
-        guard case .finalResponse = classify("Iron absorption is reduced by cocoa polyphenols. Let me know if you want the sources.") else {
+        guard
+            case .finalResponse = classify(
+                "Iron absorption is reduced by cocoa polyphenols. Let me know if you want the sources."
+            )
+        else {
             Issue.record("'Let me know' is a sign-off, not an announced call"); return
         }
-        guard case .finalResponse = classify("Here is the summary you asked for. It covers absorption and dosage.") else {
+        guard case .finalResponse = classify("Here is the summary you asked for. It covers absorption and dosage.")
+        else {
             Issue.record("an ordinary two-sentence answer is final"); return
         }
         // Documented gap: "Now the Quantum Cacao source …" has no first-person
         // action opener and remains a final answer.
-        guard case .finalResponse = classify("Now the Quantum Cacao source for the mechanism details on cocoa polyphenols.") else {
+        guard
+            case .finalResponse = classify(
+                "Now the Quantum Cacao source for the mechanism details on cocoa polyphenols."
+            )
+        else {
             Issue.record("unchanged: no first-person opener"); return
         }
     }

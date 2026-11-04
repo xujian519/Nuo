@@ -23,10 +23,14 @@ struct ModelRuntimeMappingTests {
     }
 
     @Test func richContentOrderSurvivesLocalRuntimeMapping() throws {
-        let message = ChatMessage(role: "user", content: "beforeafter", contentParts: [
-            .text("before"), .videoUrl(url: "file:///tmp/mimo-order-test.mp4"),
-            .imageUrl(url: try validImageURL(), detail: nil), .text("after"),
-        ])
+        let message = ChatMessage(
+            role: "user",
+            content: "beforeafter",
+            contentParts: [
+                .text("before"), .videoUrl(url: "file:///tmp/mimo-order-test.mp4"),
+                .imageUrl(url: try validImageURL(), detail: nil), .text("after"),
+            ]
+        )
         let mapped = try #require(ModelRuntime.makeMLXChatMessages([message]).first)
         #expect(mapped.contentParts == [.text("before"), .video, .image, .text("after")])
         #expect(mapped.images.count == 1 && mapped.videos.count == 1)
@@ -45,11 +49,21 @@ struct ModelRuntimeMappingTests {
     private func validImageURL() throws -> String {
         let pixels = Data([255, 0, 0, 255])
         let provider = try #require(CGDataProvider(data: pixels as CFData))
-        let image = try #require(CGImage(
-            width: 1, height: 1, bitsPerComponent: 8, bitsPerPixel: 32,
-            bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue),
-            provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent))
+        let image = try #require(
+            CGImage(
+                width: 1,
+                height: 1,
+                bitsPerComponent: 8,
+                bitsPerPixel: 32,
+                bytesPerRow: 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue),
+                provider: provider,
+                decode: nil,
+                shouldInterpolate: false,
+                intent: .defaultIntent
+            )
+        )
         let encoded = NSMutableData()
         let destination = try #require(CGImageDestinationCreateWithData(encoded, "public.png" as CFString, 1, nil))
         CGImageDestinationAddImage(destination, image, nil)
@@ -98,7 +112,6 @@ struct ModelRuntimeMappingTests {
         #expect(third.extent == first.extent)
         #expect(mapped.first?.content == "Describe these images.")
     }
-
 
     // MARK: - Multi-turn tool history fidelity
     //

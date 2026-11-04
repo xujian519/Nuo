@@ -180,7 +180,11 @@ struct WorkspaceAgentRunClientTests {
             verdicts: [
                 .live(
                     RemoteProviderService.RemoteAgentMetadata(
-                        effectiveModel: "mlx/qwen3", name: nil, description: nil, avatar: nil, quickActions: nil
+                        effectiveModel: "mlx/qwen3",
+                        name: nil,
+                        description: nil,
+                        avatar: nil,
+                        quickActions: nil
                     )
                 )
             ]
@@ -195,7 +199,12 @@ struct WorkspaceAgentRunClientTests {
     @Test func prepare_offlineVerdictBecomesTypedErrorWithLastSeenAndNoConnect() async {
         let trace = Trace()
         let seen = Date(timeIntervalSince1970: 1_700_000_000)
-        let client = Self.makeClient(trace: trace, paired: Self.remote(providerId: UUID()), verdicts: [.offline], connected: false)
+        let client = Self.makeClient(
+            trace: trace,
+            paired: Self.remote(providerId: UUID()),
+            verdicts: [.offline],
+            connected: false
+        )
         client.lastSeen = { _ in seen }
         let error = await Self.prepareError(client)
         #expect(error == .offline(lastSeen: seen))
@@ -225,7 +234,9 @@ struct WorkspaceAgentRunClientTests {
         let trace = Trace()
         let providerId = UUID()
         let recovered = Self.makeClient(
-            trace: trace, paired: Self.remote(providerId: providerId), verdicts: [.rejected, .live(nil)]
+            trace: trace,
+            paired: Self.remote(providerId: providerId),
+            verdicts: [.rejected, .live(nil)]
         )
         let prepared = try await recovered.prepare(Self.ref)
         #expect(trace.pairs == 1, "one repair handshake")
@@ -234,7 +245,9 @@ struct WorkspaceAgentRunClientTests {
 
         let again = Trace()
         let stillRejected = Self.makeClient(
-            trace: again, paired: Self.remote(providerId: providerId), verdicts: [.rejected, .rejected]
+            trace: again,
+            paired: Self.remote(providerId: providerId),
+            verdicts: [.rejected, .rejected]
         )
         #expect(await Self.prepareError(stillRejected) == .rejected)
         #expect(again.pairs == 1, "never more than one repair")

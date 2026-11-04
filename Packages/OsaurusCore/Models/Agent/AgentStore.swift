@@ -45,7 +45,9 @@ public enum AgentStore {
     /// save immediately followed by `refresh()`/`loadAll()` observes its own
     /// write.
     private nonisolated static let writeQueue = DispatchQueue(
-        label: "com.dinoki.osaurus.agent-store-writes", qos: .utility)
+        label: "com.dinoki.osaurus.agent-store-writes",
+        qos: .utility
+    )
 
     /// Barrier for read paths: waits for queued writes only, which are single
     /// small JSON files — bounded, unlike the read scan they unblock.
@@ -122,7 +124,9 @@ public enum AgentStore {
     private static func cachedListingMatchesDisk(_ cached: [UUID: Agent]) -> Bool {
         guard
             let files = try? FileManager.default.contentsOfDirectory(
-                at: agentsDirectory(), includingPropertiesForKeys: nil)
+                at: agentsDirectory(),
+                includingPropertiesForKeys: nil
+            )
         else { return cached.isEmpty }
         let builtInNames = Set(Agent.builtInAgents.map { "\($0.id.uuidString).json" })
         var onDisk = Set<String>()
@@ -169,7 +173,8 @@ public enum AgentStore {
             )
         else { return [] }
 
-        return files
+        return
+            files
             .filter(isRecoverableBackupURL)
             .compactMap { url -> RecoverableAgentBackup? in
                 guard let agent = try? decodeAgentBackup(at: url), !agent.isBuiltIn else {

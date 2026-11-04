@@ -69,11 +69,18 @@ struct CalculatorEngine {
                 if let name = unknowns.sorted().first {
                     throw CalculatorError(
                         "Unknown name `\(name)` in `\(statement)`. Assign it first (`\(name) = 5; …`), "
-                            + "or write an equation with `=` to solve for it.")
+                            + "or write an equation with `=` to solve for it."
+                    )
                 }
                 let value = try node.evaluate(variables: outcome.variables, angle: angleUnit)
                 outcome.steps.append(
-                    Step(input: statement, value: value, exact: node.exactInteger(outcome.exactVariables), assigned: nil))
+                    Step(
+                        input: statement,
+                        value: value,
+                        exact: node.exactInteger(outcome.exactVariables),
+                        assigned: nil
+                    )
+                )
             case .equation(let lhs, let rhs):
                 let lhsName: String? = { if case .variable(let n) = lhs { return n } else { return nil } }()
                 let rhsUnknowns = rhs.freeVariables.subtracting(outcome.variables.keys)
@@ -95,14 +102,21 @@ struct CalculatorEngine {
                         let r = try rhs.evaluate(variables: outcome.variables, angle: angleUnit)
                         throw CalculatorError(
                             "`\(statement)` has no unknown to solve for (left = \(Self.format(l)), "
-                                + "right = \(Self.format(r))). Use `=` only to assign or to solve.")
+                                + "right = \(Self.format(r))). Use `=` only to assign or to solve."
+                        )
                     }
                     throw CalculatorError(
                         "`\(statement)` has \(unknowns.count) unknowns (\(unknowns.sorted().joined(separator: ", "))). "
-                            + "Give values for all but one, e.g. `y = 2; \(statement)`.")
+                            + "Give values for all but one, e.g. `y = 2; \(statement)`."
+                    )
                 }
                 let solution = try Solver.solve(
-                    lhs: lhs, rhs: rhs, variable: variable, bound: outcome.variables, angle: angleUnit)
+                    lhs: lhs,
+                    rhs: rhs,
+                    variable: variable,
+                    bound: outcome.variables,
+                    angle: angleUnit
+                )
                 outcome.solution = solution
                 if solution.roots.count == 1 {
                     outcome.variables[variable] = solution.roots[0]
@@ -276,7 +290,9 @@ private enum Tokenizer {
     /// cannot be an argument separator — thousands groups (`1,250,000`).
     static func number(_ chars: [Character], from start: Int, topLevel: Bool) throws -> (Double, Int64?, String?, Int) {
         var i = start
-        if chars[i] == "0", i + 1 < chars.count, let radix = ["x": 16, "X": 16, "b": 2, "B": 2, "o": 8, "O": 8][chars[i + 1]] {
+        if chars[i] == "0", i + 1 < chars.count,
+            let radix = ["x": 16, "X": 16, "b": 2, "B": 2, "o": 8, "O": 8][chars[i + 1]]
+        {
             var j = i + 2
             var digits = ""
             while j < chars.count, chars[j].isHexDigit || chars[j] == "_" {
@@ -302,7 +318,7 @@ private enum Tokenizer {
                 sawDot = true
                 text.append(c)
             } else if c == ",", topLevel, !sawDot,
-                (1...3).allSatisfy({ i + $0 < chars.count && chars[i + $0].isASCII && chars[i + $0].isNumber }),
+                (1 ... 3).allSatisfy({ i + $0 < chars.count && chars[i + $0].isASCII && chars[i + $0].isNumber }),
                 i + 4 >= chars.count || !(chars[i + 4].isASCII && chars[i + 4].isNumber)
             {
                 // thousands group: exactly three digits follow
@@ -317,7 +333,7 @@ private enum Tokenizer {
             if j < chars.count, chars[j] == "+" || chars[j] == "-" { j += 1 }
             if j < chars.count, chars[j].isASCII, chars[j].isNumber {
                 text.append("e")
-                text.append(contentsOf: String(chars[(i + 1)..<j]))
+                text.append(contentsOf: String(chars[(i + 1) ..< j]))
                 while j < chars.count, chars[j].isASCII, chars[j].isNumber {
                     text.append(chars[j])
                     j += 1
@@ -370,8 +386,8 @@ indirect enum CalculatorNode: Equatable {
             let (r, o) = a.multipliedReportingOverflow(by: -1)
             return o ? nil : r
         case .factorial(let n):
-            guard let a = n.exactInteger(variables), (0...20).contains(a) else { return nil }
-            return a < 2 ? 1 : (2...a).reduce(1, *)
+            guard let a = n.exactInteger(variables), (0 ... 20).contains(a) else { return nil }
+            return a < 2 ? 1 : (2 ... a).reduce(1, *)
         case .binary(let op, let lhs, let rhs):
             if case .percent = rhs { return nil }
             guard let a = lhs.exactInteger(variables), let b = rhs.exactInteger(variables) else { return nil }
@@ -394,7 +410,7 @@ indirect enum CalculatorNode: Equatable {
                 if a == 0 { return b == 0 ? 1 : 0 }
                 guard b <= 64 else { return nil }
                 var result: Int64 = 1
-                for _ in 0..<b {
+                for _ in 0 ..< b {
                     let (r, o) = result.multipliedReportingOverflow(by: a)
                     if o { return nil }
                     result = r
@@ -700,7 +716,9 @@ enum Functions {
     static func call(_ name: String, _ args: [Double], angle: CalculatorAngleUnit) throws -> Double {
         guard let arity = table[name] else { throw CalculatorError("Unknown function `\(name)`.") }
         guard args.count >= arity.min, arity.max.map({ args.count <= $0 }) ?? true else {
-            let expected = arity.max == nil ? "at least \(arity.min)" : (arity.min == arity.max ? "\(arity.min)" : "\(arity.min)–\(arity.max!)")
+            let expected =
+                arity.max == nil
+                ? "at least \(arity.min)" : (arity.min == arity.max ? "\(arity.min)" : "\(arity.min)–\(arity.max!)")
             throw CalculatorError("\(name) takes \(expected) argument(s), got \(args.count).")
         }
         let x = args.first ?? .nan
@@ -708,7 +726,9 @@ enum Functions {
         let fromRad: (Double) -> Double = { angle == .degrees ? $0 * 180 / .pi : $0 }
         switch name {
         case "sqrt":
-            guard x >= 0 else { throw CalculatorError("sqrt of a negative number (\(CalculatorEngine.format(x))) is not real.") }
+            guard x >= 0 else {
+                throw CalculatorError("sqrt of a negative number (\(CalculatorEngine.format(x))) is not real.")
+            }
             return x.squareRoot()
         case "cbrt": return Foundation.cbrt(x)
         case "abs": return Swift.abs(x)
@@ -736,10 +756,10 @@ enum Functions {
             guard s != 0 else { throw CalculatorError("cot is undefined at \(CalculatorEngine.format(x)).") }
             return snap(Foundation.cos(toRad(x))) / s
         case "asin", "arcsin":
-            guard (-1...1).contains(x) else { throw CalculatorError("asin needs a value in [-1, 1].") }
+            guard (-1 ... 1).contains(x) else { throw CalculatorError("asin needs a value in [-1, 1].") }
             return fromRad(Foundation.asin(x))
         case "acos", "arccos":
-            guard (-1...1).contains(x) else { throw CalculatorError("acos needs a value in [-1, 1].") }
+            guard (-1 ... 1).contains(x) else { throw CalculatorError("acos needs a value in [-1, 1].") }
             return fromRad(Foundation.acos(x))
         case "atan", "arctan": return fromRad(Foundation.atan(x))
         case "atan2": return fromRad(Foundation.atan2(args[0], args[1]))
@@ -780,7 +800,7 @@ enum Functions {
             let k2 = min(k, n - k)
             var result = 1.0
             if k2 > 0 {
-                for i in 1...k2 { result = result * Double(n - k2 + i) / Double(i) }
+                for i in 1 ... k2 { result = result * Double(n - k2 + i) / Double(i) }
             }
             return result.rounded()
         case "npr", "perm":
@@ -788,7 +808,7 @@ enum Functions {
             guard k <= n else { return 0 }
             var result = 1.0
             if k > 0 {
-                for i in 0..<k { result *= Double(n - i) }
+                for i in 0 ..< k { result *= Double(n - i) }
             }
             return result
         case "min": return args.min()!
@@ -841,7 +861,9 @@ enum Functions {
     }
 
     static func logarithm(_ x: Double, base: Double) throws -> Double {
-        guard x > 0 else { throw CalculatorError("log of a non-positive number (\(CalculatorEngine.format(x))) is undefined.") }
+        guard x > 0 else {
+            throw CalculatorError("log of a non-positive number (\(CalculatorEngine.format(x))) is undefined.")
+        }
         guard base > 0, base != 1 else { throw CalculatorError("log base must be positive and not 1.") }
         if base == 10 { return Foundation.log10(x) }
         if base == 2 { return Foundation.log2(x) }
@@ -972,7 +994,9 @@ private enum Solver {
                     guard r[0] != 0 else { throw CalculatorError("Division by zero.") }
                     // These are reduced coefficients: the original subtree may
                     // still mention the unknown (e.g. 1/(x-x+1)).
-                    return constant(NSDecimalNumber(decimal: l[0]).doubleValue / NSDecimalNumber(decimal: r[0]).doubleValue)
+                    return constant(
+                        NSDecimalNumber(decimal: l[0]).doubleValue / NSDecimalNumber(decimal: r[0]).doubleValue
+                    )
                 }
                 var quotient: [Decimal] = []
                 for coefficient in l {
@@ -1040,7 +1064,11 @@ private enum Solver {
     }
 
     static func solve(
-        lhs: CalculatorNode, rhs: CalculatorNode, variable: String, bound: [String: Double], angle: CalculatorAngleUnit
+        lhs: CalculatorNode,
+        rhs: CalculatorNode,
+        variable: String,
+        bound: [String: Double],
+        angle: CalculatorAngleUnit
     ) throws -> CalculatorEngine.Solution {
         if let coefficients = try polynomial(.binary("-", lhs, rhs), variable: variable, bound: bound, angle: angle) {
             let roots = try polynomialRoots(coefficients)
@@ -1103,7 +1131,8 @@ private enum Solver {
                 add(bisect(f, grid[i], grid[i + 1], y), bracketed: true)
             }
             if i > 0, i + 1 < grid.count, let prev = values[i - 1], let next = values[i + 1],
-                Swift.abs(y) < Swift.abs(prev), Swift.abs(y) <= Swift.abs(next), (prev < 0) == (y < 0), (next < 0) == (y < 0)
+                Swift.abs(y) < Swift.abs(prev), Swift.abs(y) <= Swift.abs(next), (prev < 0) == (y < 0),
+                (next < 0) == (y < 0)
             {
                 add(minimizeAbs(f, grid[i - 1], grid[i + 1]))
             }
@@ -1112,7 +1141,8 @@ private enum Solver {
         guard !roots.isEmpty else {
             throw CalculatorError(
                 "Unable to verify a real solution for \(variable) in the numerical search. "
-                    + "Non-representable tangent roots or roots outside the search may be missed.")
+                    + "Non-representable tangent roots or roots outside the search may be missed."
+            )
         }
         // Periodic equations have infinitely many roots; keep the ones nearest 0.
         let sorted = roots.sorted { Swift.abs($0) < Swift.abs($1) || (Swift.abs($0) == Swift.abs($1) && $0 < $1) }
@@ -1126,7 +1156,7 @@ private enum Solver {
 
     static func bisect(_ f: (Double) -> Double?, _ a0: Double, _ b0: Double, _ fa0: Double) -> Double {
         var (a, b, fa) = (a0, b0, fa0)
-        for _ in 0..<200 {
+        for _ in 0 ..< 200 {
             let m = (a + b) / 2
             guard m != a, m != b, let fm = f(m) else { return m }
             if fm == 0 { return m }
@@ -1138,7 +1168,7 @@ private enum Solver {
     static func minimizeAbs(_ f: (Double) -> Double?, _ a0: Double, _ b0: Double) -> Double {
         let ratio = (5.0.squareRoot() - 1) / 2
         var (a, b) = (a0, b0)
-        for _ in 0..<200 {
+        for _ in 0 ..< 200 {
             let c = b - ratio * (b - a)
             let d = a + ratio * (b - a)
             guard c != d, let fc = f(c), let fd = f(d) else { break }

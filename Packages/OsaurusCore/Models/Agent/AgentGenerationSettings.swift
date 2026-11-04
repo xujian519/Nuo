@@ -18,11 +18,18 @@ public struct AgentGenerationSettings: Codable, Equatable, Sendable {
     public var speculativeDecoding: Bool?
 
     public init(
-        topP: Float? = nil, topK: Int? = nil, minP: Float? = nil,
-        repetitionPenalty: Float? = nil, frequencyPenalty: Float? = nil,
-        presencePenalty: Float? = nil, seed: Int? = nil, stop: [String]? = nil,
-        enableThinking: Bool? = nil, reasoningEffort: String? = nil,
-        templateKwargs: [String: JSONValue]? = nil, speculativeDecoding: Bool? = nil
+        topP: Float? = nil,
+        topK: Int? = nil,
+        minP: Float? = nil,
+        repetitionPenalty: Float? = nil,
+        frequencyPenalty: Float? = nil,
+        presencePenalty: Float? = nil,
+        seed: Int? = nil,
+        stop: [String]? = nil,
+        enableThinking: Bool? = nil,
+        reasoningEffort: String? = nil,
+        templateKwargs: [String: JSONValue]? = nil,
+        speculativeDecoding: Bool? = nil
     ) {
         self.topP = topP
         self.topK = topK
@@ -68,8 +75,11 @@ public struct AgentGenerationSettings: Codable, Equatable, Sendable {
 
     func validate() throws {
         try ChatTurnOverrides(
-            topP: topP, topK: topK, reasoningEffort: reasoningEffort,
-            enableThinking: enableThinking, templateKwargs: templateKwargs
+            topP: topP,
+            topK: topK,
+            reasoningEffort: reasoningEffort,
+            enableThinking: enableThinking,
+            templateKwargs: templateKwargs
         ).validate()
         if let reason = RequestValidator.repetitionPenaltyReason(repetitionPenalty) {
             throw ChatTurnOverrides.ValidationError.invalid(reason)

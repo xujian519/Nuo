@@ -7,7 +7,8 @@ import Testing
     @Test func defaultsAndExplicitOffRemainAR() {
         for depth in [nil, 1, 2, 3] as [Int?] {
             let result = NativeMTPSelectionDefault.adaptiveSelection(
-                .init(mode: .off, draftTokenLimit: depth, explicitDepth: depth))
+                .init(mode: .off, draftTokenLimit: depth, explicitDepth: depth)
+            )
             #expect(result.mode == .off)
             #expect(result.explicitDepth == nil && result.draftTokenLimit == nil)
         }
@@ -17,9 +18,10 @@ import Testing
 
     @Test func legacyPositiveSelectionsBecomeUncappedAdaptive() {
         for mode in [VMLXMTPServerMode.auto, .forceOn] {
-            for depth in 1...3 {
+            for depth in 1 ... 3 {
                 let result = NativeMTPSelectionDefault.adaptiveSelection(
-                    .init(mode: mode, draftTokenLimit: depth, explicitDepth: depth))
+                    .init(mode: mode, draftTokenLimit: depth, explicitDepth: depth)
+                )
                 #expect(result.mode == .auto)
                 #expect(result.explicitDepth == nil && result.draftTokenLimit == nil)
                 #expect(MLXBatchAdapter.nativeMTPDepthPolicy(result) == .adaptive(maximumDepth: 5))
@@ -60,7 +62,8 @@ import Testing
         for (name, shape) in try DFlash2ArtifactMetadata.requiredShapes(configData: configData)
             .sorted(by: { $0.key < $1.key })
         {
-            let key = name.hasPrefix("candidate_selector.") && name.contains("codebook")
+            let key =
+                name.hasPrefix("candidate_selector.") && name.contains("codebook")
                 ? String(name.dropLast(7)) : name
             let end = offset + shape.reduce(2, *)
             header[key] = ["dtype": "BF16", "shape": shape, "data_offsets": [offset, end]]
@@ -75,7 +78,10 @@ import Testing
     }
 
     @Test func selectedExternalDrafterBecomesAdaptiveWithoutLosingPrecedence() throws {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            UUID().uuidString,
+            isDirectory: true
+        )
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         // A drafter is only selectable when its weights are complete (the engine validates safetensors headers
@@ -83,7 +89,7 @@ import Testing
         try Self.writeCompleteDrafter(at: directory)
         let target = Data(#"{"model_type":"qwen3_5","vocab_size":100,"hidden_size":64,"num_hidden_layers":2}"#.utf8)
         for block in [nil, 4, 8] as [Int?] {
-            for limit in 1...3 {
+            for limit in 1 ... 3 {
                 var before = VMLXServerRuntimeSettings()
                 before.mtp = .init(mode: .forceOn, draftTokenLimit: limit, explicitDepth: 3)
                 before.mtp.dflash2DrafterPath = directory.path
@@ -111,8 +117,13 @@ import Testing
         #expect(!ServerController.mtpLoadInputsChanged(previous: old, next: next))
         let evidence = NativeMTPAdmission(
             configData: Data(#"{"model_type":"qwen3_5","mtp_num_hidden_layers":1}"#.utf8),
-            status: MTPBundleStatus(bundleHasMTP: true, configuredLayers: 1,
-                                    tensorCount: 57, mode: .preservedEnabled))
+            status: MTPBundleStatus(
+                bundleHasMTP: true,
+                configuredLayers: 1,
+                tensorCount: 57,
+                mode: .preservedEnabled
+            )
+        )
         #expect(try evidence.requestStrategy(loaded: .nativeMTP(depth: 3, verifierMode: nil), mtp: next) == nil)
 
         #expect(!ServerController.mtpLoadInputsChanged(previous: next, next: next))

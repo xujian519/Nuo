@@ -39,7 +39,8 @@ struct TTFTTraceStartTests {
         let ms = try! #require(firstPhaseMs(rendered))
         #expect(
             ms >= 4400 && ms <= 4700,
-            "the 4.5 s pre-send wait must appear as the first phase; got \(ms) ms")
+            "the 4.5 s pre-send wait must appear as the first phase; got \(ms) ms"
+        )
     }
 
     /// The default start stays "now", so traces that never saw a handshake are

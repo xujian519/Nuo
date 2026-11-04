@@ -25,21 +25,28 @@ struct ErrorBodyShapeTests {
         #expect(HTTPHandler.openResponsesErrorCode(for: error) == "invalid_request_error")
         #expect(HTTPHandler.anthropicErrorType(for: error) == "invalid_request_error")
         #expect(HTTPHandler.ollamaErrorType(for: error) == "invalid_request_error")
-        let body = HTTPHandler.errorBody(.ollama(type: HTTPHandler.ollamaErrorType(for: error)),
-            message: error.localizedDescription)
+        let body = HTTPHandler.errorBody(
+            .ollama(type: HTTPHandler.ollamaErrorType(for: error)),
+            message: error.localizedDescription
+        )
         let object = try #require(decode(body))
         #expect((object["error"] as? [String: Any])?["type"] as? String == "invalid_request_error")
         #expect(object["done"] as? Bool == true)
-        let unrelated = NSError(domain: "OtherToolFailure", code: 422,
-            userInfo: [NSLocalizedDescriptionKey: error.localizedDescription])
+        let unrelated = NSError(
+            domain: "OtherToolFailure",
+            code: 422,
+            userInfo: [NSLocalizedDescriptionKey: error.localizedDescription]
+        )
         #expect(HTTPHandler.localRuntimeHTTPStatus(for: unrelated).code == 500)
     }
 
     @Test func nativeReasoningContractMappingDoesNotMatchErrorText() {
         let typed = K2HorizonTemplateContract.ContractError.unsupportedReasoningMode(expectedEffort: "high")
         let unrelated = NSError(
-            domain: "UnrelatedRuntimeFailure", code: 1,
-            userInfo: [NSLocalizedDescriptionKey: typed.localizedDescription])
+            domain: "UnrelatedRuntimeFailure",
+            code: 1,
+            userInfo: [NSLocalizedDescriptionKey: typed.localizedDescription]
+        )
         #expect(HTTPHandler.localRuntimeHTTPStatus(for: typed).code == 400)
         #expect(HTTPHandler.openAIErrorType(for: typed) == "invalid_request_error")
         #expect(HTTPHandler.localRuntimeHTTPStatus(for: unrelated).code == 500)
@@ -58,7 +65,9 @@ struct ErrorBodyShapeTests {
         #expect(HTTPHandler.ollamaErrorType(for: error) == "invalid_request_error")
         // Both JSON and streaming routes consume this same classification.
         let body = HTTPHandler.errorBody(
-            .openai(type: HTTPHandler.openAIErrorType(for: error)), message: error.localizedDescription)
+            .openai(type: HTTPHandler.openAIErrorType(for: error)),
+            message: error.localizedDescription
+        )
         let object = try #require(decode(body))
         let payload = try #require(object["error"] as? [String: Any])
         #expect(payload["type"] as? String == "invalid_request_error")
@@ -68,8 +77,10 @@ struct ErrorBodyShapeTests {
     @Test func unrelatedTemplateFailureRetainsInternalErrorDespiteIdenticalMessage() {
         let refusal = K2HorizonTemplateContract.ContractError.unsupportedReasoningMode(expectedEffort: "high")
         let underlying = NSError(
-            domain: "UnrelatedTemplateFailure", code: 17,
-            userInfo: [NSLocalizedDescriptionKey: refusal.localizedDescription])
+            domain: "UnrelatedTemplateFailure",
+            code: 17,
+            userInfo: [NSLocalizedDescriptionKey: refusal.localizedDescription]
+        )
         let error = MLXBatchAdapter.templatePreparationError(underlying)
         #expect(!(error is K2HorizonTemplateContract.ContractError))
         #expect((error as NSError).domain == "MLXBatchAdapter")

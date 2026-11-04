@@ -113,7 +113,7 @@ struct OpenAICompatibleTTSClient: Sendable {
             u16(at) | Int(bytes[at + 2]) << 16 | Int(bytes[at + 3]) << 24
         }
         func tag(_ at: Int) -> String {
-            String(bytes: bytes[at..<at + 4], encoding: .ascii) ?? ""
+            String(bytes: bytes[at ..< at + 4], encoding: .ascii) ?? ""
         }
         guard tag(0) == "RIFF", tag(8) == "WAVE" else { return nil }
 
@@ -133,8 +133,11 @@ struct OpenAICompatibleTTSClient: Sendable {
             } else if id == "data" {
                 guard let sampleRate, let channels, let bits else { return nil }
                 return WavInfo(
-                    dataOffset: body, sampleRate: sampleRate, channels: channels,
-                    bitsPerSample: bits)
+                    dataOffset: body,
+                    sampleRate: sampleRate,
+                    channels: channels,
+                    bitsPerSample: bits
+                )
             }
             // Chunks are word-aligned; odd sizes are padded with one byte.
             offset = body + size + (size % 2)
@@ -176,8 +179,11 @@ struct OpenAICompatibleTTSClient: Sendable {
         let inFormat = file.processingFormat
         guard
             let outFormat = AVAudioFormat(
-                commonFormat: .pcmFormatFloat32, sampleRate: 24_000, channels: 1,
-                interleaved: false),
+                commonFormat: .pcmFormatFloat32,
+                sampleRate: 24_000,
+                channels: 1,
+                interleaved: false
+            ),
             let converter = AVAudioConverter(from: inFormat, to: outFormat),
             let inBuffer = AVAudioPCMBuffer(pcmFormat: inFormat, frameCapacity: 8192),
             let outBuffer = AVAudioPCMBuffer(pcmFormat: outFormat, frameCapacity: 8192)
@@ -217,13 +223,17 @@ struct OpenAICompatibleTTSClient: Sendable {
             outBuffer.frameLength = 0
             var conversionError: NSError?
             let status = converter.convert(
-                to: outBuffer, error: &conversionError, withInputFrom: inputBlock)
+                to: outBuffer,
+                error: &conversionError,
+                withInputFrom: inputBlock
+            )
             if conversionError != nil {
                 throw OpenAICompatibleTTSError.unexpectedFormat(formatHint)
             }
             if outBuffer.frameLength > 0, let channel = outBuffer.floatChannelData?[0] {
                 samples.append(
-                    contentsOf: UnsafeBufferPointer(start: channel, count: Int(outBuffer.frameLength)))
+                    contentsOf: UnsafeBufferPointer(start: channel, count: Int(outBuffer.frameLength))
+                )
             }
             if status == .endOfStream || (status == .inputRanDry && state.reachedEnd) { break }
         }
@@ -237,14 +247,16 @@ struct OpenAICompatibleTTSClient: Sendable {
             let task = Task {
                 do {
                     let (bytes, response) = try await Self.makeSession().bytes(for: request)
-                    if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+                    if let http = response as? HTTPURLResponse, !(200 ... 299).contains(http.statusCode) {
                         var body = ""
                         for try await line in bytes.lines {
                             body += line
                             if body.count > 500 { break }
                         }
                         throw OpenAICompatibleTTSError.serverError(
-                            status: http.statusCode, message: Self.extractServerMessage(body))
+                            status: http.statusCode,
+                            message: Self.extractServerMessage(body)
+                        )
                     }
 
                     // Carries the trailing odd byte and sub-frame remainder
@@ -271,14 +283,16 @@ struct OpenAICompatibleTTSClient: Sendable {
                                 awaitingWavHeader = true
                             case .compressed(let name):
                                 TTSLogger.service.info(
-                                    "remote TTS body is \(name, privacy: .public); buffering for CoreAudio decode")
+                                    "remote TTS body is \(name, privacy: .public); buffering for CoreAudio decode"
+                                )
                                 compressedFormat = name
                             }
                         }
                         if compressedFormat != nil {
                             if pending.count > Self.maxCompressedBytes {
                                 throw OpenAICompatibleTTSError.unexpectedFormat(
-                                    "\(compressedFormat!) larger than 32 MB")
+                                    "\(compressedFormat!) larger than 32 MB"
+                                )
                             }
                             continue
                         }
@@ -291,12 +305,14 @@ struct OpenAICompatibleTTSClient: Sendable {
                                 else {
                                     throw OpenAICompatibleTTSError.unsupportedWav(
                                         "\(info.sampleRate) Hz, \(info.channels) ch, "
-                                            + "\(info.bitsPerSample)-bit")
+                                            + "\(info.bitsPerSample)-bit"
+                                    )
                                 }
                                 pending = Data(pending.dropFirst(info.dataOffset))
                             } else if pending.count > Self.maxWavHeaderBytes {
                                 throw OpenAICompatibleTTSError.unexpectedFormat(
-                                    "an unparseable WAV header")
+                                    "an unparseable WAV header"
+                                )
                             } else {
                                 continue
                             }
@@ -307,11 +323,13 @@ struct OpenAICompatibleTTSClient: Sendable {
                     }
                     if let compressedFormat {
                         let decoded = try Self.decodeCompressedAudio(
-                            pending, formatHint: compressedFormat)
+                            pending,
+                            formatHint: compressedFormat
+                        )
                         var offset = 0
                         while offset < decoded.count {
                             let end = min(offset + Self.frameSampleCount, decoded.count)
-                            emit(Array(decoded[offset..<end]))
+                            emit(Array(decoded[offset ..< end]))
                             offset = end
                         }
                         pending = Data()
@@ -408,7 +426,7 @@ struct OpenAICompatibleTTSClient: Sendable {
         guard usable > 0 else { return [] }
         var out = [Float](repeating: 0, count: usable / 2)
         data.prefix(usable).withUnsafeBytes { (raw: UnsafeRawBufferPointer) in
-            for i in 0..<(usable / 2) {
+            for i in 0 ..< (usable / 2) {
                 let lo = UInt16(raw[i * 2])
                 let hi = UInt16(raw[i * 2 + 1])
                 let sample = Int16(bitPattern: hi << 8 | lo)

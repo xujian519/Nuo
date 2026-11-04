@@ -14,11 +14,13 @@ struct InstalledVisionEvidenceProbeTests {
             let start = Date()
             let result = LocalVisionEvidence.inspect(directory, refresh: true)
             let caps = ModelMediaCapabilities.from(directory: directory, modelId: "neutral")
-            rows.append(["directory": path, "model_type": result.modelType,
-                         "vision": result.hasVision, "video": caps.supportsVideo,
-                         "audio": caps.supportsAudio, "reason": result.reason,
-                         "tensor_count": result.tensorNames.count,
-                         "inspection_seconds": Date().timeIntervalSince(start)])
+            rows.append([
+                "directory": path, "model_type": result.modelType,
+                "vision": result.hasVision, "video": caps.supportsVideo,
+                "audio": caps.supportsAudio, "reason": result.reason,
+                "tensor_count": result.tensorNames.count,
+                "inspection_seconds": Date().timeIntervalSince(start),
+            ])
             #expect(result.hasVision, "\(path): \(result.reason)")
             for alias in ["neutral", "Step-3.7", "Nemotron-3-Ultra"] {
                 #expect(ModelMediaCapabilities.from(directory: directory, modelId: alias) == caps)

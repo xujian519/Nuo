@@ -26,7 +26,7 @@ struct CustomJSONAgentChannelRunnerTests {
                         method: "POST",
                         path: "/rooms/{{input.room_id}}/messages",
                         bodyTemplate: #"{"content":{{input.content}}}"#
-                    ),
+                    )
                 ]
             )
         )
@@ -75,7 +75,7 @@ struct CustomJSONAgentChannelRunnerTests {
                 customHTTP: makeConfiguration(
                     baseURL: baseURL,
                     actions: [
-                        .listSpaces: AgentChannelCustomHTTPAction(path: "/spaces"),
+                        .listSpaces: AgentChannelCustomHTTPAction(path: "/spaces")
                     ]
                 )
             )
@@ -188,7 +188,7 @@ struct CustomJSONAgentChannelRunnerTests {
                     .searchMessages: AgentChannelCustomHTTPAction(
                         path: "/search",
                         query: ["q": "{{input.query}}"]
-                    ),
+                    )
                 ]
             )
         )
@@ -225,7 +225,7 @@ struct CustomJSONAgentChannelRunnerTests {
                         path: "/rooms/{{input.room_id}}/messages",
                         headers: ["Content-Type": "application/json"],
                         bodyTemplate: #"{"content":{{input.content}}}"#
-                    ),
+                    )
                 ]
             )
         )
@@ -260,7 +260,7 @@ struct CustomJSONAgentChannelRunnerTests {
                         path: "/rooms/{{input.room_id}}/messages",
                         headers: ["Content-Type": "application/x-www-form-urlencoded"],
                         bodyTemplate: "content={{input.content}}"
-                    ),
+                    )
                 ]
             )
         )
@@ -340,14 +340,14 @@ struct CustomJSONAgentChannelRunnerTests {
         let runner = makeRunner(client: client, secrets: ["api_token": secret])
         let connection = makeConnection(
             secrets: [
-                AgentChannelSecretReference(name: "api_token", keychainId: "custom-api-token"),
+                AgentChannelSecretReference(name: "api_token", keychainId: "custom-api-token")
             ],
             customHTTP: makeConfiguration(
                 actions: [
                     .listSpaces: AgentChannelCustomHTTPAction(
                         path: "/spaces",
                         headers: ["Authorization": "Bearer {{secret.api_token}}"]
-                    ),
+                    )
                 ]
             )
         )
@@ -375,7 +375,7 @@ struct CustomJSONAgentChannelRunnerTests {
         let runner = makeRunner(client: client, secrets: ["api_token": secret])
         let connection = makeConnection(
             secrets: [
-                AgentChannelSecretReference(name: "api_token", keychainId: "custom-api-token"),
+                AgentChannelSecretReference(name: "api_token", keychainId: "custom-api-token")
             ],
             customHTTP: makeConfiguration(
                 actions: [
@@ -385,7 +385,7 @@ struct CustomJSONAgentChannelRunnerTests {
                         query: ["token": "{{secret.api_token}}"],
                         headers: ["Authorization": "Bearer {{secret.api_token}}"],
                         bodyTemplate: #"{"content":{{input.content}}}"#
-                    ),
+                    )
                 ]
             )
         )
@@ -406,14 +406,14 @@ struct CustomJSONAgentChannelRunnerTests {
         let runner = makeRunner(client: client, secrets: ["api_token": secret])
         let connection = makeConnection(
             secrets: [
-                AgentChannelSecretReference(name: "api_token", keychainId: "custom-api-token"),
+                AgentChannelSecretReference(name: "api_token", keychainId: "custom-api-token")
             ],
             customHTTP: makeConfiguration(
                 actions: [
                     .listSpaces: AgentChannelCustomHTTPAction(
                         path: "/spaces",
                         query: ["token": "{{secret.api_token}}"]
-                    ),
+                    )
                 ]
             )
         )
@@ -438,7 +438,7 @@ struct CustomJSONAgentChannelRunnerTests {
         let runner = makeRunner(client: client, secrets: ["api_token": secret])
         let connection = makeConnection(
             secrets: [
-                AgentChannelSecretReference(name: "api_token", keychainId: "custom-api-token"),
+                AgentChannelSecretReference(name: "api_token", keychainId: "custom-api-token")
             ],
             customHTTP: makeConfiguration(
                 actions: [
@@ -530,7 +530,7 @@ struct CustomJSONAgentChannelRunnerTests {
                         method: "POST",
                         path: "/rooms/{{input.room_id}}/messages",
                         bodyTemplate: #"{"content":{{input.content}}}"#
-                    ),
+                    )
                 ]
             )
         )
@@ -561,7 +561,7 @@ struct CustomJSONAgentChannelRunnerTests {
         let connection = makeConnection(
             customHTTP: makeConfiguration(
                 actions: [
-                    .readMessages: AgentChannelCustomHTTPAction(path: "/rooms/{{input.room_id}}/messages"),
+                    .readMessages: AgentChannelCustomHTTPAction(path: "/rooms/{{input.room_id}}/messages")
                 ]
             )
         )
@@ -595,7 +595,7 @@ struct CustomJSONAgentChannelRunnerTests {
                         path: "/rooms/{{input.room_id}}/messages",
                         bodyTemplate: #"{"content":{{input.content}}}"#,
                         idempotency: AgentChannelCustomHTTPIdempotency()
-                    ),
+                    )
                 ]
             )
         )
@@ -635,7 +635,7 @@ struct CustomJSONAgentChannelRunnerTests {
                         path: "/rooms/{{input.room_id}}/messages",
                         bodyTemplate: #"{"content":{{input.content}}}"#,
                         idempotency: AgentChannelCustomHTTPIdempotency()
-                    ),
+                    )
                 ]
             )
         )
@@ -715,7 +715,7 @@ struct CustomJSONAgentChannelRunnerTests {
                                     idempotency: AgentChannelCustomHTTPIdempotency(
                                         responseIdPath: invalidPath
                                     )
-                                ),
+                                )
                             ]
                         )
                     )
@@ -735,7 +735,7 @@ struct CustomJSONAgentChannelRunnerTests {
                     .readMessages: AgentChannelCustomHTTPAction(
                         path: "/rooms/{{input.room_id}}/messages",
                         responseMapping: AgentChannelCustomHTTPResponseMapping(itemsPath: "messages..items")
-                    ),
+                    )
                 ]
             )
         )
@@ -787,7 +787,7 @@ struct CustomJSONAgentChannelRunnerTests {
                         path: "/rooms/{{input.room_id}}/messages",
                         bodyTemplate: #"{"content":{{input.content}}}"#,
                         idempotency: AgentChannelCustomHTTPIdempotency()
-                    ),
+                    )
                 ]
             )
         )
@@ -831,7 +831,7 @@ struct CustomJSONAgentChannelRunnerTests {
                         path: "/rooms/{{input.room_id}}/messages",
                         bodyTemplate: #"{"content":{{input.content}}}"#,
                         idempotency: AgentChannelCustomHTTPIdempotency()
-                    ),
+                    )
                 ]
             )
         )
@@ -870,7 +870,7 @@ struct CustomJSONAgentChannelRunnerTests {
         let connection = makeConnection(
             customHTTP: makeConfiguration(
                 actions: [
-                    .readMessages: AgentChannelCustomHTTPAction(path: "/rooms/{{input.room_id}}/messages"),
+                    .readMessages: AgentChannelCustomHTTPAction(path: "/rooms/{{input.room_id}}/messages")
                 ]
             )
         )
@@ -900,7 +900,7 @@ struct CustomJSONAgentChannelRunnerTests {
                         method: "POST",
                         path: "/rooms/{{input.room_id}}/messages",
                         bodyTemplate: #"{"content":{{input.content}}}"#
-                    ),
+                    )
                 ]
             )
         )
@@ -955,7 +955,7 @@ struct CustomJSONAgentChannelRunnerTests {
                         headers: ["Content-Type": "application/json"],
                         bodyTemplate: #"{"content":{{input.content}}}"#,
                         bodySignature: AgentChannelCustomHTTPBodySignature(secretName: "webhook")
-                    ),
+                    )
                 ]
             )
         )
@@ -1002,7 +1002,7 @@ struct CustomJSONAgentChannelRunnerTests {
                         path: "/webhook/osaurus",
                         bodyTemplate: #"{"content":{{input.content}}}"#,
                         bodySignature: AgentChannelCustomHTTPBodySignature(secretName: "webhook")
-                    ),
+                    )
                 ]
             )
         )
@@ -1037,7 +1037,9 @@ struct CustomJSONAgentChannelRunnerTests {
         #expect(send.idempotency?.header == "Idempotency-Key")
         #expect(send.bodySignature?.header == "X-Osaurus-Channel-Signature")
         #expect(send.bodySignature?.secretName == "webhook")
-        #expect(configuration.actions[AgentChannelAction.replyThread.rawValue]?.bodyTemplate?.contains("thread_id") == true)
+        #expect(
+            configuration.actions[AgentChannelAction.replyThread.rawValue]?.bodyTemplate?.contains("thread_id") == true
+        )
 
         let client = RecordingAgentChannelHTTPClient { request in
             jsonResponse(for: request, body: #"{"id":"n8n-exec-1"}"#)
@@ -1125,11 +1127,13 @@ struct CustomJSONAgentChannelRunnerTests {
             "https://192.168.1.20:5678/webhook/reply",
             "https://10.0.0.7:5678/webhook/reply",
         ] {
-            guard let configuration = AgentChannelN8nPreset.customHTTPConfiguration(
-                webhookURL: webhookURL,
-                secretName: "webhook",
-                signBodies: true
-            ) else {
+            guard
+                let configuration = AgentChannelN8nPreset.customHTTPConfiguration(
+                    webhookURL: webhookURL,
+                    secretName: "webhook",
+                    signBodies: true
+                )
+            else {
                 Issue.record("Preset should parse \(webhookURL)")
                 continue
             }
@@ -1424,7 +1428,9 @@ private struct StaticAgentChannelSecretResolver: AgentChannelSecretResolving {
     }
 }
 
-private final class DenyingAgentChannelAuthorizationPolicy: AgentChannelCustomJSONAuthorizationPolicy, @unchecked Sendable {
+private final class DenyingAgentChannelAuthorizationPolicy: AgentChannelCustomJSONAuthorizationPolicy,
+    @unchecked Sendable
+{
     private let lock = NSLock()
     private let message: String
     private var capturedRequests: [AgentChannelCustomJSONAuthorizationRequest] = []

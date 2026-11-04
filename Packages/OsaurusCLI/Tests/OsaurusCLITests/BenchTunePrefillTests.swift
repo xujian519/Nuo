@@ -71,8 +71,10 @@ final class BenchTunePrefillTests: XCTestCase {
 
         // Sweep installs a candidate, then aborts.
         try BenchCommand.writeTuningRecord(
-            at: file, model: "model-a",
-            record: ["prefillStepSize": 4_096, "note": "candidate under test"])
+            at: file,
+            model: "model-a",
+            record: ["prefillStepSize": 4_096, "note": "candidate under test"]
+        )
         BenchCommand.restoreTuningRecord(at: file, model: "model-a", previous: original)
 
         let records = BenchCommand.readTuningRecords(at: file)
@@ -85,8 +87,10 @@ final class BenchTunePrefillTests: XCTestCase {
     func testRestoreRemovesKeyWhenNoPreviousRecordExisted() throws {
         let file = makeTempFile()
         try BenchCommand.writeTuningRecord(
-            at: file, model: "model-a",
-            record: ["prefillStepSize": 1_024, "note": "candidate under test"])
+            at: file,
+            model: "model-a",
+            record: ["prefillStepSize": 1_024, "note": "candidate under test"]
+        )
         BenchCommand.restoreTuningRecord(at: file, model: "model-a", previous: nil)
         XCTAssertNil(BenchCommand.readTuningRecords(at: file)["model-a"])
     }
@@ -99,14 +103,18 @@ final class BenchTunePrefillTests: XCTestCase {
         try BenchCommand.writeTuningRecord(at: file, model: "model-a", record: previous)
         try Data(contentsOf: file).write(to: backup)
         try BenchCommand.writeTuningRecord(
-            at: file, model: "model-a",
-            record: ["prefillStepSize": 4_096, "note": "candidate under test"])
+            at: file,
+            model: "model-a",
+            record: ["prefillStepSize": 4_096, "note": "candidate under test"]
+        )
 
         BenchCommand.tuneSweepRestore = (file: file, model: "model-a", previous: previous, backup: backup)
         BenchCommand.tuneSweepAbortRestore()
 
         XCTAssertEqual(
-            BenchCommand.readTuningRecords(at: file)["model-a"]?["prefillStepSize"] as? Int, 512)
+            BenchCommand.readTuningRecords(at: file)["model-a"]?["prefillStepSize"] as? Int,
+            512
+        )
         XCTAssertFalse(FileManager.default.fileExists(atPath: backup.path))
         XCTAssertNil(BenchCommand.tuneSweepRestore, "abort restore must clear its state")
 

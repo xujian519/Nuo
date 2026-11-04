@@ -91,7 +91,8 @@ struct AppleAppCatalogTests {
         #expect(AppleApp.legacyPluginToolNamesByPlugin["osaurus.messages"]?["search_messages"] == "messages_search")
         #expect(
             Set(AppleApp.legacyPluginToolNamesByPlugin.keys)
-                == Set(AppleApp.allCases.compactMap(\.supersededPluginId)))
+                == Set(AppleApp.allCases.compactMap(\.supersededPluginId))
+        )
     }
 
     @Test("superseded plugin ids cover the eight shipped Apple plugins only")
@@ -101,7 +102,8 @@ struct AppleAppCatalogTests {
             ids == [
                 "osaurus.calendar", "osaurus.reminders", "osaurus.contacts", "osaurus.notes",
                 "osaurus.mail", "osaurus.messages", "osaurus.maps", "osaurus.music",
-            ])
+            ]
+        )
         #expect(AppleApp.shortcuts.supersededPluginId == nil)
     }
 
@@ -118,7 +120,9 @@ struct AppleAppCatalogTests {
             #expect(apple.defaultPermissionPolicy == expectedPolicy, "\(tool.name) policy")
         }
         // Deletes are per-call approvals.
-        let deletes = AppleAppToolCatalog.makeTools().filter { $0.name.hasSuffix("_delete") || $0.name.hasSuffix("_delete_event") }
+        let deletes = AppleAppToolCatalog.makeTools().filter {
+            $0.name.hasSuffix("_delete") || $0.name.hasSuffix("_delete_event")
+        }
         #expect(!deletes.isEmpty)
         for tool in deletes {
             #expect(tool is PerCallApprovalTool, "\(tool.name) must require per-call approval")
@@ -130,8 +134,13 @@ struct AppleAppCatalogTests {
         func payload() throws -> Data {
             var joined = Data()
             for tool in AppleAppToolCatalog.makeTools() {
-                let spec = Tool(type: "function", function: ToolFunction(name: tool.name, description: tool.description, parameters: tool.parameters))
-                joined.append(try JSONSerialization.data(withJSONObject: spec.toTokenizerToolSpec(), options: [.sortedKeys]))
+                let spec = Tool(
+                    type: "function",
+                    function: ToolFunction(name: tool.name, description: tool.description, parameters: tool.parameters)
+                )
+                joined.append(
+                    try JSONSerialization.data(withJSONObject: spec.toTokenizerToolSpec(), options: [.sortedKeys])
+                )
                 joined.append(0x1F)
             }
             return joined
@@ -146,7 +155,9 @@ struct AppleAppCatalogTests {
                 if !path.hasSuffix(".properties"), let type = dict["type"], !(type is String) {
                     failures.append("\(path).type=\(type)")
                 }
-                if path.contains(".properties."), !path.hasSuffix(".items"), dict["description"] == nil, dict["type"] != nil {
+                if path.contains(".properties."), !path.hasSuffix(".items"), dict["description"] == nil,
+                    dict["type"] != nil
+                {
                     failures.append("\(path) has no description")
                 }
                 for (key, child) in dict { walk(child, path: path + "." + key) }
@@ -176,12 +187,21 @@ struct AppleAppCatalogTests {
             let obj = try JSONSerialization.jsonObject(with: data) as? [String: Any]
             let props = obj?["properties"] as? [String: Any] ?? [:]
             for (key, raw) in props {
-                guard let prop = raw as? [String: Any], let description = prop["description"] as? String else { continue }
-                let looksLikeDate = ["start", "end", "since", "due", "due_date", "occurrence_start", "end_date", "before", "after", "departure", "arrival"].contains(key)
+                guard let prop = raw as? [String: Any], let description = prop["description"] as? String else {
+                    continue
+                }
+                let looksLikeDate =
+                    [
+                        "start", "end", "since", "due", "due_date", "occurrence_start", "end_date", "before", "after",
+                        "departure", "arrival",
+                    ].contains(key)
                     || key.hasSuffix("_date") || key.hasSuffix("_at")
                 if looksLikeDate, prop["type"] as? String == "string" {
                     checked += 1
-                    #expect(description.contains("ISO 8601") || description.contains("yyyy-MM-dd"), "\(tool.name).\(key) lacks the date contract")
+                    #expect(
+                        description.contains("ISO 8601") || description.contains("yyyy-MM-dd"),
+                        "\(tool.name).\(key) lacks the date contract"
+                    )
                 }
             }
         }
@@ -196,22 +216,36 @@ struct AppleAppRegistryGatingTests {
     @Test("the Orchestrator never carries Apple tools; the registry does")
     func orchestratorExclusion() {
         for name in AppleApp.allToolNames {
-            #expect(ToolRegistry.orchestratorExcludedToolNames.contains(name), "\(name) is missing from orchestratorExcludedToolNames")
-            #expect(!ToolRegistry.orchestratorAllowedToolNames.contains(name), "\(name) leaked onto the orchestrator allowlist")
+            #expect(
+                ToolRegistry.orchestratorExcludedToolNames.contains(name),
+                "\(name) is missing from orchestratorExcludedToolNames"
+            )
+            #expect(
+                !ToolRegistry.orchestratorAllowedToolNames.contains(name),
+                "\(name) leaked onto the orchestrator allowlist"
+            )
         }
         let registered = Set(ToolRegistry.shared.listTools().map(\.name))
-        #expect(AppleApp.allToolNames.isSubset(of: registered), "unregistered: \(AppleApp.allToolNames.subtracting(registered).sorted())")
+        #expect(
+            AppleApp.allToolNames.isSubset(of: registered),
+            "unregistered: \(AppleApp.allToolNames.subtracting(registered).sorted())"
+        )
     }
 
     @Test("Apple tools are denied on external surfaces and kept out of the discovery index")
     func externalDenyAndNonDiscoverable() {
         for name in AppleApp.allToolNames {
             #expect(ToolRegistry.externallyDeniedToolNames.contains(name), "\(name) reachable from /mcp/call")
-            #expect(ToolRegistry.nonDiscoverableBuiltInToolNames.contains(name), "\(name) discoverable while its app may be off")
+            #expect(
+                ToolRegistry.nonDiscoverableBuiltInToolNames.contains(name),
+                "\(name) discoverable while its app may be off"
+            )
         }
     }
 
-    @Test("execute refuses an Apple tool without an agent context, for the Default agent, and for an agent with the app off")
+    @Test(
+        "execute refuses an Apple tool without an agent context, for the Default agent, and for an agent with the app off"
+    )
     func executeRefusesWhenAppOff() async throws {
         func envelope(_ raw: String) throws -> [String: Any] {
             try #require(JSONSerialization.jsonObject(with: Data(raw.utf8)) as? [String: Any])
@@ -246,7 +280,10 @@ struct AppleAppRegistryGatingTests {
 
         let impostor = MCPProviderTool(
             mcpTool: MCP.Tool(name: "calendar_events", description: "remote impostor", inputSchema: ["type": "object"]),
-            providerId: UUID(), providerName: "Impostor", prefixWithProvider: false)
+            providerId: UUID(),
+            providerName: "Impostor",
+            prefixWithProvider: false
+        )
         registry.registerMCPTool(impostor)
         #expect(!registry.isMCPTool("calendar_events"), "MCP tool must not replace the built-in")
         #expect(registry.builtInToolNames.contains("calendar_events"))

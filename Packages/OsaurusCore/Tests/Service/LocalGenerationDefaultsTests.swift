@@ -18,21 +18,30 @@ struct LocalGenerationDefaultsTests {
     func invalidatedReadCannotPublish() {
         let cache = LocalGenerationDefaults.Cache()
         var loads = 0
-        let resolved = cache.resolve(key: "model", load: {
-            loads += 1
-            if loads == 1 {
-                // Deterministic interleaving: metadata changes after the old read
-                // started but before it publishes, exactly as a concurrent repair.
-                cache.invalidate()
-                return .init(maxTokens: 128, temperature: 0.2)
-            }
-            return .init(maxTokens: 256, temperature: 0.7)
-        }, shouldCache: { _ in true })
+        let resolved = cache.resolve(
+            key: "model",
+            load: {
+                loads += 1
+                if loads == 1 {
+                    // Deterministic interleaving: metadata changes after the old read
+                    // started but before it publishes, exactly as a concurrent repair.
+                    cache.invalidate()
+                    return .init(maxTokens: 128, temperature: 0.2)
+                }
+                return .init(maxTokens: 256, temperature: 0.7)
+            },
+            shouldCache: { _ in true }
+        )
         #expect(loads == 2)
         #expect(resolved.maxTokens == 256)
         #expect(resolved.temperature == 0.7)
-        let hit = cache.resolve(key: "model", load: { Issue.record("Expected fresh cache hit"); return .empty },
-            shouldCache: { _ in true })
+        let hit = cache.resolve(
+            key: "model",
+            load: {
+                Issue.record("Expected fresh cache hit"); return .empty
+            },
+            shouldCache: { _ in true }
+        )
         #expect(hit == resolved)
     }
 
@@ -1140,7 +1149,8 @@ struct LocalGenerationDefaultsTests {
         modelType: String = "qwen3_5_moe",
         architecture: String = "Qwen3_5MoeForConditionalGeneration",
         declaresMTP: Bool = true,
-        tuning: String? = #"{"native_mtp":{"best_depth":1,"validated":true,"output_equivalent":true,"note":"preserve me"}}"#
+        tuning: String? =
+            #"{"native_mtp":{"best_depth":1,"validated":true,"output_equivalent":true,"note":"preserve me"}}"#
     ) throws -> URL {
         let tmp = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent("\(name)-\(UUID().uuidString)")
@@ -1179,7 +1189,8 @@ struct LocalGenerationDefaultsTests {
         )
         defer { try? FileManager.default.removeItem(at: tmp) }
 
-        let changed = try LocalGenerationDefaults
+        let changed =
+            try LocalGenerationDefaults
             .repairOrnith15A3BManualMTPBlockIfNeeded(
                 at: tmp,
                 modelName: "dealign.ai/Ornith-1.5-35B-A3B-UNCENSORED-\(quant)"
@@ -1196,7 +1207,8 @@ struct LocalGenerationDefaultsTests {
         #expect((native["best_depth"] as? NSNumber)?.intValue == 1)
         #expect(native["note"] as? String == "preserve me")
 
-        let second = try LocalGenerationDefaults
+        let second =
+            try LocalGenerationDefaults
             .repairOrnith15A3BManualMTPBlockIfNeeded(
                 at: tmp,
                 modelName: "Ornith 1.5 35B A3B \(quant)"
@@ -1218,7 +1230,8 @@ struct LocalGenerationDefaultsTests {
         defer { try? FileManager.default.removeItem(at: tmp) }
         let before = try Data(contentsOf: tmp.appendingPathComponent("vmlx_mtp_tuning.json"))
 
-        let changed = try LocalGenerationDefaults
+        let changed =
+            try LocalGenerationDefaults
             .repairOrnith15A3BManualMTPBlockIfNeeded(at: tmp, modelName: name)
         let after = try Data(contentsOf: tmp.appendingPathComponent("vmlx_mtp_tuning.json"))
         #expect(!changed)
@@ -1235,7 +1248,8 @@ struct LocalGenerationDefaultsTests {
         defer { try? FileManager.default.removeItem(at: tmp) }
         let before = try Data(contentsOf: tmp.appendingPathComponent("vmlx_mtp_tuning.json"))
 
-        let changed = try LocalGenerationDefaults
+        let changed =
+            try LocalGenerationDefaults
             .repairOrnith15A3BManualMTPBlockIfNeeded(
                 at: tmp,
                 modelName: "Ornith-1.5-35B-A3B-JANG_4M"
@@ -1243,7 +1257,8 @@ struct LocalGenerationDefaultsTests {
         #expect(!changed)
         #expect(
             try Data(contentsOf: tmp.appendingPathComponent("vmlx_mtp_tuning.json"))
-                == before)
+                == before
+        )
     }
 
     @Test("an exact old bundle without a tuning file gets one safety sidecar")
@@ -1258,7 +1273,8 @@ struct LocalGenerationDefaultsTests {
             try LocalGenerationDefaults.repairOrnith15A3BManualMTPBlockIfNeeded(
                 at: tmp,
                 modelName: "dealign.ai/Ornith-1.5-35B-A3B-JANG_4M"
-            ))
+            )
+        )
         let root = try #require(
             try JSONSerialization.jsonObject(
                 with: Data(contentsOf: tmp.appendingPathComponent("vmlx_mtp_tuning.json"))

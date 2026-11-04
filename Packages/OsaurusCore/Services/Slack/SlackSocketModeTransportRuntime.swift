@@ -197,7 +197,8 @@ actor SlackSocketModeTransportRuntime {
         }
         let readableChannelIds = account?.readableChannelIds ?? configuration.readableChannelIds
         let senderAllowlist = account?.senderAllowlist ?? configuration.senderAllowlist
-        let appToken = teamId.flatMap { service.socketModeAppToken(teamId: $0) }
+        let appToken =
+            teamId.flatMap { service.socketModeAppToken(teamId: $0) }
             ?? (teamId == nil ? service.socketModeAppToken() : nil)
         guard let appToken else {
             consecutiveFailures = 0
@@ -217,7 +218,7 @@ actor SlackSocketModeTransportRuntime {
             return AgentChannelTransportStepResult(disposition: .skipped, health: health)
         }
         guard !readableChannelIds.isEmpty,
-              !senderAllowlist.isEmpty
+            !senderAllowlist.isEmpty
         else {
             consecutiveFailures = 0
             let health = await publish(
@@ -419,7 +420,7 @@ actor SlackSocketModeTransportRuntime {
         socket: any SlackSocketModeWebSocket
     ) async throws -> SlackSocketModeProcessResult {
         guard let data = text.data(using: .utf8),
-              let envelope = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            let envelope = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         else {
             throw SlackSocketModeTransportError.invalidEnvelope
         }
@@ -431,8 +432,8 @@ actor SlackSocketModeTransportRuntime {
         let envelopeId = envelope["envelope_id"] as? String
 
         guard let payloadObject = envelope["payload"],
-              JSONSerialization.isValidJSONObject(payloadObject),
-              let payloadData = try? JSONSerialization.data(withJSONObject: payloadObject)
+            JSONSerialization.isValidJSONObject(payloadObject),
+            let payloadData = try? JSONSerialization.data(withJSONObject: payloadObject)
         else {
             try await acknowledge(envelopeId, socket: socket)
             return SlackSocketModeProcessResult(received: 0, stored: 0, dispatchSuppressed: 0)
@@ -514,7 +515,7 @@ actor SlackSocketModeTransportRuntime {
         socket: any SlackSocketModeWebSocket
     ) async throws {
         guard let envelopeId = envelopeId?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !envelopeId.isEmpty
+            !envelopeId.isEmpty
         else { return }
         try await socket.sendText(Self.ackPayload(envelopeId: envelopeId))
     }

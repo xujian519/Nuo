@@ -187,8 +187,9 @@ struct RemoteReasoningPolicy {
     /// direct-rail effort (`none`, `off`, `instruct`, ...).
     static func requestsReasoningOff(_ options: [String: ModelOptionValue]) -> Bool {
         if options["disableThinking"]?.boolValue == true { return true }
-        guard let effort = options["reasoningEffort"]?.stringValue?
-            .trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard
+            let effort = options["reasoningEffort"]?.stringValue?
+                .trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         else { return false }
         return ["instruct", "chat", "none", "no_think", "nothink", "off", "disabled", "false"]
             .contains(effort)

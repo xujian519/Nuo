@@ -79,7 +79,9 @@ final class OOXMLPackage {
         do {
             entries = try ZipArchive.entries(in: data)
         } catch {
-            throw DocumentEditError("The document package is damaged and can't be edited safely: \(error.localizedDescription)")
+            throw DocumentEditError(
+                "The document package is damaged and can't be edited safely: \(error.localizedDescription)"
+            )
         }
         for entry in entries where !entry.name.hasSuffix("/") {
             guard sourceEntries[entry.name] == nil else {
@@ -260,7 +262,9 @@ final class OOXMLPackage {
                 path,
                 try Self.newXML(
                     "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
-                        + "<Relationships xmlns=\"\(OOXMLNamespace.packageRelationships)\"/>"))
+                        + "<Relationships xmlns=\"\(OOXMLNamespace.packageRelationships)\"/>"
+                )
+            )
         }
         let rels = try root(path)
         let used = Set(rels.childElements("Relationship").compactMap { $0.attr("Id") })

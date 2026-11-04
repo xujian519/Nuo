@@ -104,7 +104,9 @@ struct SearchProviderConfigurationTests {
 
     @Test func configurationDecodesSparseJSONWithDefaults() throws {
         let decoded = try JSONDecoder().decode(
-            SearchProviderConfiguration.self, from: Data("{}".utf8))
+            SearchProviderConfiguration.self,
+            from: Data("{}".utf8)
+        )
         #expect(decoded.providers.isEmpty)
         #expect(decoded.routing.isEmpty)
         #expect(!decoded.pluginKeysMigrated)

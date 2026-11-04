@@ -48,7 +48,9 @@ final class PluginInstallIntegrityTests: XCTestCase {
 
     private func sv(_ s: String) -> SemanticVersion { SemanticVersion.parse(s)! }
 
-    private func makeArtifact(minMacOS: String? = nil, url: String = "https://example.invalid/plugin.zip") -> PluginArtifact {
+    private func makeArtifact(minMacOS: String? = nil, url: String = "https://example.invalid/plugin.zip")
+        -> PluginArtifact
+    {
         PluginArtifact(
             os: "macos",
             arch: "arm64",

@@ -16,7 +16,10 @@ struct AdmissionPositionLimit: Error, LocalizedError, Sendable, Equatable {
     /// allocate that entire ceiling. Fit it to the actual prepared prompt's
     /// remaining admitted positions. Explicit request/user budgets stay strict.
     static func resolveOutputTokens(
-        promptTokens: Int, outputTokens: Int, limit: Int?, isExplicit: Bool
+        promptTokens: Int,
+        outputTokens: Int,
+        limit: Int?,
+        isExplicit: Bool
     ) throws -> Int {
         guard let limit, !isExplicit else {
             try validate(promptTokens: promptTokens, outputTokens: outputTokens, limit: limit)

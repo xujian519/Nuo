@@ -159,7 +159,9 @@ extension ChatMessage {
         if let reasoning_content, !reasoning_content.isEmpty {
             ChatMessage.appendCapped(reasoning_content, into: &out)
         }
-        for text in ResponsesItemPayload.scrubbableTexts((responses_output_items ?? []) + (anthropic_thinking_blocks ?? [])) {
+        for text in ResponsesItemPayload.scrubbableTexts(
+            (responses_output_items ?? []) + (anthropic_thinking_blocks ?? [])
+        ) {
             ChatMessage.appendCapped(text, into: &out)
         }
     }
@@ -217,18 +219,28 @@ extension ChatMessage {
             ResponsesItemPayload.applyingScrub(items, mapping: mapping, order: order)
         }
         return ChatMessage(
-            scrubbing: self, content: newContent, parts: newParts,
-            calls: newToolCalls, reasoning: newReasoning, providerItems: newItems,
-            mappingForAnthropic: mapping, orderForAnthropic: order
+            scrubbing: self,
+            content: newContent,
+            parts: newParts,
+            calls: newToolCalls,
+            reasoning: newReasoning,
+            providerItems: newItems,
+            mappingForAnthropic: mapping,
+            orderForAnthropic: order
         )
     }
 
     /// Preserve every in-process field, including media/audio and opaque
     /// provider identity, while replacing only the scanned payload fields.
     private init(
-        scrubbing source: ChatMessage, content: String?, parts: [MessageContentPart]?,
-        calls: [ToolCall]?, reasoning: String?, providerItems: [JSONValue]?,
-        mappingForAnthropic: [String: String], orderForAnthropic: [String]
+        scrubbing source: ChatMessage,
+        content: String?,
+        parts: [MessageContentPart]?,
+        calls: [ToolCall]?,
+        reasoning: String?,
+        providerItems: [JSONValue]?,
+        mappingForAnthropic: [String: String],
+        orderForAnthropic: [String]
     ) {
         self.role = source.role
         self.content = content
@@ -427,7 +439,6 @@ extension ChatMessage {
     }
 }
 
-
 /// Payload traversal shared by privacy detection and substitution. Provider
 /// identity/discriminators/encrypted blobs and binary media are not language.
 /// Unknown payload fields are walked rather than silently bypassing scanning.
@@ -459,7 +470,8 @@ enum ResponsesItemPayload {
             case .object(let fields):
                 if fields["type"] == .string("redacted_thinking") { return false }
                 if fields["type"] == .string("thinking"),
-                    case .string(let signature) = fields["signature"], !signature.isEmpty {
+                    case .string(let signature) = fields["signature"], !signature.isEmpty
+                {
                     let changed = transform(value, root: true, scanning: true) { text, arguments in
                         arguments
                             ? ChatMessage.substituteJSONArguments(text, mapping: mapping, order: order)
@@ -486,17 +498,25 @@ enum ResponsesItemPayload {
     }
 
     private static func transform(
-        _ value: JSONValue, root: Bool, scanning: Bool = false,
+        _ value: JSONValue,
+        root: Bool,
+        scanning: Bool = false,
         payload: (String, Bool) -> String
     ) -> JSONValue {
         switch value {
         case .string(let text): return .string(payload(text, false))
-        case .array(let values): return .array(values.map { transform($0, root: root, scanning: scanning, payload: payload) })
+        case .array(let values):
+            return .array(values.map { transform($0, root: root, scanning: scanning, payload: payload) })
         case .object(let fields):
-            let type: String? = { if case .string(let value) = fields["type"] { return value }; return nil }()
+            let type: String? = {
+                if case .string(let value) = fields["type"] { return value }; return nil
+            }()
             if root && type == "redacted_thinking" { return value }
             if root && type == "thinking", !scanning,
-                case .string(let signature) = fields["signature"], !signature.isEmpty { return value }
+                case .string(let signature) = fields["signature"], !signature.isEmpty
+            {
+                return value
+            }
             let media = type.map { mediaTypes.contains($0) } ?? false
             var updated = fields
             for key in fields.keys.sorted() {
@@ -504,12 +524,17 @@ enum ResponsesItemPayload {
                 if root && rootIdentity.contains(key) { continue }
                 if type != nil && key == "type" { continue }
                 if media && mediaPayload.contains(key) { continue }
-                if root && ((type == "function_call" && key == "arguments")
-                    || (type == "function_call_output" && key == "output")), case .string(let text) = value {
+                if root
+                    && ((type == "function_call" && key == "arguments")
+                        || (type == "function_call_output" && key == "output")),
+                    case .string(let text) = value
+                {
                     updated[key] = .string(payload(text, true))
                 } else {
-                    let childIsItem = root && (key == "item" || key == "response"
-                        || (key == "output" && fields["object"] == .string("response")))
+                    let childIsItem =
+                        root
+                        && (key == "item" || key == "response"
+                            || (key == "output" && fields["object"] == .string("response")))
                     updated[key] = transform(value, root: childIsItem, scanning: scanning, payload: payload)
                 }
             }

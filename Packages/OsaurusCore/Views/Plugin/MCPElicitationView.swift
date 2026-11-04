@@ -266,7 +266,9 @@ struct MCPElicitationView: View {
 
             Text(
                 openedURL
-                    ? L("Finish the steps in your browser. This closes on its own when \(request.providerName) confirms, or click Done.")
+                    ? L(
+                        "Finish the steps in your browser. This closes on its own when \(request.providerName) confirms, or click Done."
+                    )
                     : L("Only continue if you trust this site. Nuo opens it in your browser when you click Open.")
             )
             .font(.system(size: 11))

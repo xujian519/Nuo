@@ -330,14 +330,20 @@ struct ToolScopeGateRecoveryTests {
         let folderScope = ToolExecutionScope(exposed: [])
         folderScope.activate(Array(ToolRegistry.coreWorkspaceToolNames))
         let withFolder = ToolRegistry.shared.announcedToolCallRecovery(
-            exposed: folderScope.authorizedNames, agentId: customAgent, loaderPermitted: { _ in false })
+            exposed: folderScope.authorizedNames,
+            agentId: customAgent,
+            loaderPermitted: { _ in false }
+        )
         #expect(withFolder.workspaceBlocked.isEmpty)
         #expect(withFolder.exposed.contains("file_write"))
         #expect(withFolder.loaderName == "capabilities")
 
         // The default agent's load gate admits only configure-write tools.
         let defaultAgent = ToolRegistry.shared.announcedToolCallRecovery(
-            exposed: [], agentId: Agent.defaultId, loaderPermitted: { _ in false })
+            exposed: [],
+            agentId: Agent.defaultId,
+            loaderPermitted: { _ in false }
+        )
         #expect(!defaultAgent.loadable.contains(loadable.name))
     }
 
@@ -440,7 +446,8 @@ struct ToolScopeGateRecoveryTests {
             #expect(message.contains("share_artifact"), "registered=\(registered)")
             #expect(
                 !message.contains("Call capabilities"),
-                "registered=\(registered): must never steer into a loader round-trip")
+                "registered=\(registered): must never steer into a loader round-trip"
+            )
         }
     }
 

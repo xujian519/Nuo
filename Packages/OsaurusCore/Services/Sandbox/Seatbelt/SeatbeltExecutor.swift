@@ -35,7 +35,7 @@ enum SeatbeltExecutor {
 
     private static func preparePythonShimCache(home: String) async {
         guard let developerDirectory = SeatbeltSandbox.activeDeveloperDirectory,
-              FileManager.default.isExecutableFile(atPath: "/usr/bin/xcrun")
+            FileManager.default.isExecutableFile(atPath: "/usr/bin/xcrun")
         else { return }
 
         let process = Process()
@@ -214,7 +214,9 @@ enum SeatbeltExecutor {
         // (which is deny-listed).
         let scratch = SeatbeltSandbox.scratchDir
         try? FileManager.default.createDirectory(
-            atPath: scratch, withIntermediateDirectories: true)
+            atPath: scratch,
+            withIntermediateDirectories: true
+        )
         // This is a confinement boundary, not a caller preference. An
         // inherited or tool-supplied TMPDIR points outside the profile's
         // writable scratch grant and breaks xcrun-backed shims such as
@@ -276,7 +278,8 @@ enum SeatbeltExecutor {
             try process.run()
         } catch {
             throw SandboxError.execFailed(
-                "sandbox-exec launch failed: \(error.localizedDescription)")
+                "sandbox-exec launch failed: \(error.localizedDescription)"
+            )
         }
 
         let pid = process.processIdentifier
@@ -285,7 +288,8 @@ enum SeatbeltExecutor {
                 // ESRCH (already exited) is a no-op, matching the VM
                 // handle's idempotent-kill contract.
                 _ = Darwin.kill(pid, signal)
-            })
+            }
+        )
 
         // Wall-clock watchdog (see `hardDeadline`). Cancelled on every exit
         // path of this function, so it can only fire while the run is still
@@ -310,7 +314,7 @@ enum SeatbeltExecutor {
                 timedOut = true
                 process.terminate()
                 // Grace period, then hard kill.
-                for _ in 0..<20 where process.isRunning {
+                for _ in 0 ..< 20 where process.isRunning {
                     try? await Task.sleep(nanoseconds: 100_000_000)
                 }
                 if process.isRunning { _ = Darwin.kill(pid, SIGKILL) }
@@ -324,7 +328,7 @@ enum SeatbeltExecutor {
         // unbounded wait onto the cooperative executor. After a timeout, keep
         // the existing bounded grace period for SIGKILL to take effect.
         if timedOut {
-            for _ in 0..<20 where process.isRunning {
+            for _ in 0 ..< 20 where process.isRunning {
                 try? await Task.sleep(nanoseconds: 100_000_000)
             }
         }

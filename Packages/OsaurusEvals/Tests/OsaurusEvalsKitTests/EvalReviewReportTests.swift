@@ -23,7 +23,7 @@ struct EvalReviewReportTests {
                     role: .local,
                     suite: "AgentLoop",
                     report: report(modelId: "foundation", rows: [])
-                ),
+                )
             ]
         )
 
@@ -44,7 +44,7 @@ struct EvalReviewReportTests {
                         modelId: "foundation",
                         rows: [("agent_loop.unavailable", .skipped, ["host unavailable"])]
                     )
-                ),
+                )
             ]
         )
 
@@ -84,7 +84,7 @@ struct EvalReviewReportTests {
                     outputPath: "build/evals/pr-report/reports/foundation/AgentLoop.json",
                     arguments: ["osaurus-evals", "run", "--suite", "Suites/AgentLoop"],
                     exitCode: 1
-                ),
+                )
             ]),
             reports: [
                 input(
@@ -164,7 +164,7 @@ struct EvalReviewReportTests {
                         ("removed", .passed, []),
                     ]
                 )
-            ),
+            )
         ]
         let currentReports = [
             input(
@@ -185,7 +185,7 @@ struct EvalReviewReportTests {
                         ("new-pass", .passed, []),
                     ]
                 )
-            ),
+            )
         ]
 
         let bundle = EvalReviewReportBuilder.build(
@@ -275,7 +275,7 @@ struct EvalReviewReportTests {
                             ("agent_loop.fail", .failed, ["missing edit"]),
                         ]
                     )
-                ),
+                )
             ]
         )
         try bundle.toJSON(prettyPrinted: true).write(to: summaryURL)
@@ -304,7 +304,8 @@ struct EvalReviewReportTests {
 
     @Test func loadingStoredBundleUsesManifestModelRoles() throws {
         let root = try temporaryDirectory()
-        let reportsDir = root
+        let reportsDir =
+            root
             .appendingPathComponent("reports", isDirectory: true)
             .appendingPathComponent("openai_gpt-4o-mini", isDirectory: true)
         try FileManager.default.createDirectory(at: reportsDir, withIntermediateDirectories: true)
@@ -331,7 +332,8 @@ struct EvalReviewReportTests {
 
     @Test func loadingStoredBundleRejectsCorruptReportJSON() throws {
         let root = try temporaryDirectory()
-        let reportsDir = root
+        let reportsDir =
+            root
             .appendingPathComponent("reports", isDirectory: true)
             .appendingPathComponent("foundation", isDirectory: true)
         try FileManager.default.createDirectory(at: reportsDir, withIntermediateDirectories: true)

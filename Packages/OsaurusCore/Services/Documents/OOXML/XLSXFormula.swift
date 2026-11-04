@@ -29,7 +29,7 @@ enum XLSXFormula {
             absoluteColumn = chars.first == "$"
             if absoluteColumn { chars = chars.dropFirst() }
             let letters = chars.prefix { $0.isASCII && $0.isUppercase }
-            guard (1...3).contains(letters.count) else { return nil }
+            guard (1 ... 3).contains(letters.count) else { return nil }
             chars = chars.dropFirst(letters.count)
             absoluteRow = chars.first == "$"
             if absoluteRow { chars = chars.dropFirst() }
@@ -66,7 +66,8 @@ enum XLSXFormula {
     /// unqualified), the original prefix text (`Sheet!` / `'My Sheet'!` /
     /// ""), and the reference text; it returns the replacement for the
     /// whole match.
-    static func scan(_ formula: String, visit: (_ sheet: String?, _ prefix: String, _ ref: String) -> String) -> String {
+    static func scan(_ formula: String, visit: (_ sheet: String?, _ prefix: String, _ ref: String) -> String) -> String
+    {
         let chars = Array(formula)
         let n = chars.count
         var out = ""
@@ -81,7 +82,7 @@ enum XLSXFormula {
             if j < n, chars[j] == "$" { j += 1 }
             let letterStart = j
             while j < n, chars[j].isASCII, chars[j].isUppercase { j += 1 }
-            guard (1...3).contains(j - letterStart) else { return nil }
+            guard (1 ... 3).contains(j - letterStart) else { return nil }
             if j < n, chars[j] == "$" { j += 1 }
             let digitStart = j
             while j < n, chars[j].isASCII, chars[j].isNumber { j += 1 }
@@ -109,7 +110,7 @@ enum XLSXFormula {
                     j += 1
                 }
                 let stop = min(j, n - 1)
-                out += String(chars[i...stop])
+                out += String(chars[i ... stop])
                 i = stop + 1
                 continue
             }
@@ -123,13 +124,13 @@ enum XLSXFormula {
                     j += 1
                 }
                 if j + 1 < n, chars[j + 1] == "!", let end = readRef(j + 2) {
-                    let sheet = String(chars[(i + 1)..<j]).replacingOccurrences(of: "''", with: "'")
-                    out += visit(sheet, String(chars[i...(j + 1)]), String(chars[(j + 2)..<end]))
+                    let sheet = String(chars[(i + 1) ..< j]).replacingOccurrences(of: "''", with: "'")
+                    out += visit(sheet, String(chars[i ... (j + 1)]), String(chars[(j + 2) ..< end]))
                     i = end
                     continue
                 }
                 let stop = min(j, n - 1)
-                out += String(chars[i...stop])
+                out += String(chars[i ... stop])
                 i = stop + 1
                 continue
             }
@@ -138,17 +139,17 @@ enum XLSXFormula {
                 var j = i
                 while j < n, isIdentChar(chars[j]) { j += 1 }
                 if j < n, chars[j] == "!", let end = readRef(j + 1) {
-                    let sheet = String(chars[i..<j])
-                    out += visit(sheet, String(chars[i...j]), String(chars[(j + 1)..<end]))
+                    let sheet = String(chars[i ..< j])
+                    out += visit(sheet, String(chars[i ... j]), String(chars[(j + 1) ..< end]))
                     i = end
                     continue
                 }
                 if let end = readRef(i) {
-                    out += visit(nil, "", String(chars[i..<end]))
+                    out += visit(nil, "", String(chars[i ..< end]))
                     i = end
                     continue
                 }
-                out += String(chars[i..<j])
+                out += String(chars[i ..< j])
                 i = j
                 continue
             }

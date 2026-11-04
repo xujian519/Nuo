@@ -775,7 +775,9 @@ enum AgentLoopBudget {
         let cap = await MainActor.run { ChatConfigurationStore.load().contextLengthCap }
         if let info = ModelInfo.load(modelId: modelId), let ctx = info.model.contextLength {
             return applyingUserCap(
-                ContextWindowResolution(tokens: ctx, source: .bundleMetadata), cap: cap)
+                ContextWindowResolution(tokens: ctx, source: .bundleMetadata),
+                cap: cap
+            )
         }
         if let providerContext = await MainActor.run(body: {
             providerContextWindow(modelId: modelId)
@@ -784,7 +786,9 @@ enum AgentLoopBudget {
                 ContextWindowResolution(
                     tokens: providerContext,
                     source: .providerMetadata
-                ), cap: cap)
+                ),
+                cap: cap
+            )
         }
         return await MainActor.run {
             applyingUserCap(
@@ -793,7 +797,9 @@ enum AgentLoopBudget {
                         ChatConfigurationStore.load().contextLength
                         ?? fallbackContextWindow,
                     source: .metadataFallback
-                ), cap: cap)
+                ),
+                cap: cap
+            )
         }
     }
 
@@ -823,14 +829,18 @@ enum AgentLoopBudget {
         let cap = ChatConfigurationStore.load().contextLengthCap
         if let info = ModelInfo.loadCachedOrWarm(modelId: modelId), let ctx = info.model.contextLength {
             return applyingUserCap(
-                ContextWindowResolution(tokens: ctx, source: .bundleMetadata), cap: cap)
+                ContextWindowResolution(tokens: ctx, source: .bundleMetadata),
+                cap: cap
+            )
         }
         if let providerContext = providerContextWindow(modelId: modelId) {
             return applyingUserCap(
                 ContextWindowResolution(
                     tokens: providerContext,
                     source: .providerMetadata
-                ), cap: cap)
+                ),
+                cap: cap
+            )
         }
         return applyingUserCap(
             ContextWindowResolution(
@@ -838,7 +848,9 @@ enum AgentLoopBudget {
                     ChatConfigurationStore.load().contextLength
                     ?? fallbackContextWindow,
                 source: .metadataFallback
-            ), cap: cap)
+            ),
+            cap: cap
+        )
     }
 
     /// Synchronous cache-only provider lookup used by both the async runtime
@@ -1317,31 +1329,37 @@ enum AgentToolLoop {
         guard let recovery, !recovery.isEmpty else { return announcedToolCallNotice }
         var text = announcedToolCallNotice
         if !recovery.exposed.isEmpty {
-            text += " The tools you can call right now in this chat are: "
+            text +=
+                " The tools you can call right now in this chat are: "
                 + recovery.exposed.sorted().joined(separator: ", ") + "."
         }
         if !recovery.loadable.isEmpty {
-            text += " These tools exist but are not loaded yet; call \(recovery.loaderName) with ids "
+            text +=
+                " These tools exist but are not loaded yet; call \(recovery.loaderName) with ids "
                 + "[\"tool/<name>\"] first, then emit the call: "
                 + recovery.loadable.sorted().joined(separator: ", ") + "."
         }
         if !recovery.workspaceBlocked.isEmpty {
-            text += " " + recovery.workspaceBlocked.sorted().joined(separator: ", ")
+            text +=
+                " " + recovery.workspaceBlocked.sorted().joined(separator: ", ")
                 + " need a workspace attached to THIS chat and there is none, so no call can write, read or run "
                 + "files here; do not announce that again. "
             // The picker-backed ask is the one actionable step when it is in
             // the schema; otherwise the user has to reach for the chip.
             if recovery.exposed.contains(PromptWorkingFolderTool.toolName) {
-                text += "Call prompt_working_folder now to open a folder picker for the user — the run "
+                text +=
+                    "Call prompt_working_folder now to open a folder picker for the user — the run "
                     + "continues with the file tools once they pick; if they cancel, the turn ends "
                     + "with a notice and the content can go directly in your next answer"
             } else {
-                text += "Tell the user to attach a folder via the Folder chip "
+                text +=
+                    "Tell the user to attach a folder via the Folder chip "
                     + "(or enable Autonomous execution) and give them the content directly in your answer"
             }
             text += recovery.exposed.contains("share_artifact") ? " (share_artifact can carry it)." : "."
         }
-        text += " If what you described needs a tool in none of these groups, say plainly that you cannot do it "
+        text +=
+            " If what you described needs a tool in none of these groups, say plainly that you cannot do it "
             + "in this chat and give the user the result you have."
         return text
     }
@@ -2417,7 +2435,10 @@ enum AgentToolLoop {
                         emptyTurn: totalEmptyTurnRetries,
                         announcedToolCall: totalAnnouncedToolCallRetries,
                         continuationRequest: totalContinuationRequestRetries,
-                        incompleteReasoning: incompleteReasoningRetries)))
+                        incompleteReasoning: incompleteReasoningRetries
+                    )
+                )
+            )
         }
 
         /// Close a fail-closed tool rejection visibly. This runs only after
@@ -2440,7 +2461,9 @@ enum AgentToolLoop {
                 argsJSON: outcome.invocation.jsonArguments
             )
             return Self.repeatedRetrievalWrapUpNotice(
-                tool: outcome.invocation.toolName, failures: replays + 1)
+                tool: outcome.invocation.toolName,
+                failures: replays + 1
+            )
         }
         // Separate from ordinary length exhaustion: only a stream that began
         // a real tool envelope receives this bounded protocol retry.
@@ -2642,10 +2665,12 @@ enum AgentToolLoop {
             case .truncatedToolCall(let toolName, let argumentCharacters):
                 truncatedToolCallRetries += 1
                 if truncatedToolCallRetries <= Self.maxTruncatedToolCallRetries {
-                    replaceStateNotice(Self.truncatedToolCallNotice(
-                        toolName: toolName,
-                        argumentCharacters: argumentCharacters
-                    ))
+                    replaceStateNotice(
+                        Self.truncatedToolCallNotice(
+                            toolName: toolName,
+                            argumentCharacters: argumentCharacters
+                        )
+                    )
                     iteration -= 1
                     continue
                 }
@@ -2687,7 +2712,8 @@ enum AgentToolLoop {
                 totalAnnouncedToolCallRetries += 1
                 if consecutiveAnnouncedToolCalls <= Self.maxAnnouncedToolCallRetries {
                     replaceStateNotice(
-                        Self.announcedToolCallNotice(recovery: hooks.announcedToolCallRecovery?()))
+                        Self.announcedToolCallNotice(recovery: hooks.announcedToolCallRecovery?())
+                    )
                     // Not charged against the tool-iteration budget.
                     iteration -= 1
                     continue
@@ -2700,7 +2726,8 @@ enum AgentToolLoop {
                         exit: .finalResponse,
                         iterations: iteration,
                         wrapUpNotice: Self.announceExhaustedWrapUpNotice(
-                            announcements: consecutiveAnnouncedToolCalls)
+                            announcements: consecutiveAnnouncedToolCalls
+                        )
                     )
                 }
                 return RunResult(exit: .finalResponse, iterations: iteration)
@@ -3133,7 +3160,10 @@ enum AgentToolLoop {
                             await recordExit(.finalResponse, .repeatedRetrievalFailureWrapUp)
                             let finished = await finishBatch(.finalResponse)
                             return RunResult(
-                                exit: .finalResponse, iterations: finished.iterations, wrapUpNotice: notice)
+                                exit: .finalResponse,
+                                iterations: finished.iterations,
+                                wrapUpNotice: notice
+                            )
                         }
                         await emitToolRejection(rejected)
                         return await finishBatch(.toolRejected)
@@ -3272,12 +3302,12 @@ enum AgentToolLoop {
                         ) {
                             await hooks.onDedupedResult(invocation, callId, held)
                             let outcome = AgentLoopToolOutcome(
-                                    invocation: invocation,
-                                    callId: callId,
-                                    result: held,
-                                    wasDeduped: true,
-                                    wasError: ToolEnvelope.isError(held)
-                                )
+                                invocation: invocation,
+                                callId: callId,
+                                result: held,
+                                wasDeduped: true,
+                                wasError: ToolEnvelope.isError(held)
+                            )
                             outcomes.append(outcome)
                             if let escalation = state.lastReplayNotice {
                                 replaceStateNotice("[System Notice] " + escalation)
@@ -3297,7 +3327,10 @@ enum AgentToolLoop {
                                     await hooks.onBatchComplete(outcomes)
                                     await recordExit(.finalResponse, .repeatedRetrievalFailureWrapUp)
                                     return RunResult(
-                                        exit: .finalResponse, iterations: iteration, wrapUpNotice: notice)
+                                        exit: .finalResponse,
+                                        iterations: iteration,
+                                        wrapUpNotice: notice
+                                    )
                                 }
                                 await hooks.onBatchComplete(outcomes)
                                 await emitToolRejection(outcome)
@@ -3515,7 +3548,8 @@ enum AgentToolLoop {
         if hasSuccessfulCurrentRunTodo,
             let todoProgressSnapshot = hooks.todoProgressSnapshot
         {
-            let progress = await todoProgressSnapshot()
+            let progress =
+                await todoProgressSnapshot()
                 ?? lastSuccessfulCurrentRunTodoProgress
             // The store lookup suspends across an actor boundary. A Stop that
             // lands during it must still win over the cap fallback.

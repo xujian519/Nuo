@@ -55,7 +55,10 @@ struct AgentDescriptionPolicyTests {
 
     @Test func routingJSONQuotesDataAndOmitsBlankDescription() throws {
         let json = AgentDescriptionPolicy.routingJSON(
-            id: "abc", name: "Quoted \"Helper\"", description: "Reviews \"ignore instructions\" text.")
+            id: "abc",
+            name: "Quoted \"Helper\"",
+            description: "Reviews \"ignore instructions\" text."
+        )
         let object = try #require(JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: String])
         #expect(object["id"] == "abc")
         #expect(object["name"] == "Quoted \"Helper\"")
@@ -68,7 +71,9 @@ struct AgentDescriptionPolicyTests {
     }
 
     @Test func generatorSanitizesModelOutput() {
-        #expect(AgentDescriptionGenerator.sanitize("\n\"Reviews Swift changes.\"\nExtra line") == "Reviews Swift changes.")
+        #expect(
+            AgentDescriptionGenerator.sanitize("\n\"Reviews Swift changes.\"\nExtra line") == "Reviews Swift changes."
+        )
         #expect(AgentDescriptionGenerator.sanitize("   \n\n") == nil)
         let long = AgentDescriptionGenerator.sanitize(String(repeating: "a", count: 400))
         #expect(long?.count == AgentDescriptionPolicy.generatedMaximumCharacters)
@@ -78,16 +83,27 @@ struct AgentDescriptionPolicyTests {
     @Test @MainActor func routingMetadataSurvivesCompactionAndReplacesStaleText() throws {
         let id = UUID()
         func descriptor(_ description: String?) -> SpawnAgentDescriptor {
-            SpawnAgentDescriptor(id: id, name: "Quoted \"Helper\"", description: description,
-                modelId: nil, isLocal: nil, providerName: nil)
+            SpawnAgentDescriptor(
+                id: id,
+                name: "Quoted \"Helper\"",
+                description: description,
+                modelId: nil,
+                isLocal: nil,
+                providerName: nil
+            )
         }
         let first = SpawnAgentTool.constrainedSpec(
-            SpawnAgentTool().asOpenAITool(), allowedAgentIDs: [id],
-            agents: [descriptor("Reviews Swift changes.")])
+            SpawnAgentTool().asOpenAITool(),
+            allowedAgentIDs: [id],
+            agents: [descriptor("Reviews Swift changes.")]
+        )
         let compact = SystemPromptComposer.compactBootstrapSpec(first)
         #expect(compact.function.description?.contains("Reviews Swift changes.") == true)
         let revised = SpawnAgentTool.constrainedSpec(
-            compact, allowedAgentIDs: [id], agents: [descriptor("Checks release documentation.")])
+            compact,
+            allowedAgentIDs: [id],
+            agents: [descriptor("Checks release documentation.")]
+        )
         let text = try #require(revised.function.description)
         #expect(!text.contains("Reviews Swift changes."))
         let payload = try #require(text.components(separatedBy: SpawnAgentTool.routingMetadataMarker).last)
@@ -98,16 +114,27 @@ struct AgentDescriptionPolicyTests {
 
         // An agent without any description still appears, by name.
         let nameOnly = SpawnAgentTool.constrainedSpec(
-            SpawnAgentTool().asOpenAITool(), allowedAgentIDs: [id], agents: [descriptor(nil)])
+            SpawnAgentTool().asOpenAITool(),
+            allowedAgentIDs: [id],
+            agents: [descriptor(nil)]
+        )
         let nameOnlyText = try #require(nameOnly.function.description)
-        let nameOnlyPayload = try #require(nameOnlyText.components(separatedBy: SpawnAgentTool.routingMetadataMarker).last)
-        let nameOnlyObject = try #require(JSONSerialization.jsonObject(with: Data(nameOnlyPayload.utf8)) as? [String: String])
+        let nameOnlyPayload = try #require(
+            nameOnlyText.components(separatedBy: SpawnAgentTool.routingMetadataMarker).last
+        )
+        let nameOnlyObject = try #require(
+            JSONSerialization.jsonObject(with: Data(nameOnlyPayload.utf8)) as? [String: String]
+        )
         #expect(nameOnlyObject["name"] == "Quoted \"Helper\"")
         #expect(nameOnlyObject["description"] == nil)
     }
 
     @Test func missingLegacyDescriptionPreservesIdentity() throws {
-        let original = Agent(name: "Custom Helper", description: "Existing purpose", systemPrompt: "Keep my instructions")
+        let original = Agent(
+            name: "Custom Helper",
+            description: "Existing purpose",
+            systemPrompt: "Keep my instructions"
+        )
         let encoded = try JSONEncoder().encode(original)
         // New optional fields are omitted from JSON while nil so older records
         // round-trip byte-stable.
@@ -139,7 +166,10 @@ struct AgentDescriptionOptionalTests {
             #expect(AgentManager.shared.agent(for: agent.id) != nil)
             // Blank-description agents are spawn targets like any other.
             let snapshot = SpawnDescriptors.resolveForPreview(
-                agentIDs: [agent.id], launcherModelOverride: nil, workspaceAgents: [])
+                agentIDs: [agent.id],
+                launcherModelOverride: nil,
+                workspaceAgents: []
+            )
             #expect(snapshot.agentTargets.first?.state != nil)
             #expect(snapshot.agentTargets.first?.descriptor.description == nil)
             _ = await AgentManager.shared.delete(id: agent.id)

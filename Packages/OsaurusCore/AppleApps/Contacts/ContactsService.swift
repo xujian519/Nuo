@@ -160,9 +160,11 @@ final class CNContactsService: ContactsServicing, @unchecked Sendable {
             return .permissionDenied(.contacts, detail: ns.localizedDescription)
         case .recordDoesNotExist, .recordIdentifierInvalid:
             return .notFound("\(verb) failed: \(ns.localizedDescription)")
-        case .validationMultipleErrors, .validationTypeMismatch, .validationConfigurationError, .insertedRecordAlreadyExists,
+        case .validationMultipleErrors, .validationTypeMismatch, .validationConfigurationError,
+            .insertedRecordAlreadyExists,
             .predicateInvalid, .policyViolation:
-            let details = (ns.userInfo[CNErrorUserInfoValidationErrorsKey] as? [NSError])?.map(\.localizedDescription) ?? []
+            let details =
+                (ns.userInfo[CNErrorUserInfoValidationErrorsKey] as? [NSError])?.map(\.localizedDescription) ?? []
             let detailText = details.isEmpty ? ns.localizedDescription : details.joined(separator: " ")
             return .invalidArgs("\(verb) rejected the values: \(detailText)")
         default:
@@ -176,7 +178,9 @@ final class CNContactsService: ContactsServicing, @unchecked Sendable {
             do {
                 let contact = try self.store.unifiedMeContactWithKeys(toFetch: Self.fullKeys)
                 return Self.info(contact)
-            } catch let error as NSError where error.domain == CNErrorDomain && error.code == CNError.recordDoesNotExist.rawValue {
+            } catch let error as NSError
+                where error.domain == CNErrorDomain && error.code == CNError.recordDoesNotExist.rawValue
+            {
                 return nil
             } catch {
                 throw AppleToolError.execution("Contacts could not load your card: \(error.localizedDescription)")
@@ -199,18 +203,28 @@ final class CNContactsService: ContactsServicing, @unchecked Sendable {
             let looksLikePhone = Self.looksLikePhoneNumber(trimmed)
             let looksLikeEmail = trimmed.contains("@")
             if field == .name || (field == .any && !looksLikePhone && !looksLikeEmail) {
-                add(try self.fetch(matching: CNContact.predicateForContacts(matchingName: trimmed), keys: Self.summaryKeys))
+                add(
+                    try self.fetch(
+                        matching: CNContact.predicateForContacts(matchingName: trimmed),
+                        keys: Self.summaryKeys
+                    )
+                )
             }
             if field == .phone || (field == .any && looksLikePhone) {
-                add(try self.fetch(
-                    matching: CNContact.predicateForContacts(matching: CNPhoneNumber(stringValue: trimmed)),
-                    keys: Self.summaryKeys
-                ))
+                add(
+                    try self.fetch(
+                        matching: CNContact.predicateForContacts(matching: CNPhoneNumber(stringValue: trimmed)),
+                        keys: Self.summaryKeys
+                    )
+                )
             }
             if field == .email || (field == .any && looksLikeEmail) {
-                add(try self.fetch(
-                    matching: CNContact.predicateForContacts(matchingEmailAddress: trimmed), keys: Self.summaryKeys
-                ))
+                add(
+                    try self.fetch(
+                        matching: CNContact.predicateForContacts(matchingEmailAddress: trimmed),
+                        keys: Self.summaryKeys
+                    )
+                )
             }
             // Organization + nickname + partial phone/email fall back to a
             // scan of the unified contacts (the predicates above are exact
@@ -220,30 +234,47 @@ final class CNContactsService: ContactsServicing, @unchecked Sendable {
             if results.isEmpty || field == .organization {
                 let all = try self.allContacts(keys: Self.summaryKeys)
                 let digits = Self.digits(trimmed)
-                add(all.filter { c in
-                    switch field {
-                    case .organization:
-                        return AppleServiceSupport.matches(c.organizationName, query: trimmed)
-                    case .name:
-                        return AppleServiceSupport.matches(c.nickname, query: trimmed)
-                            || AppleServiceSupport.matches(Self.nameFormatter.string(from: c), query: trimmed)
-                    case .phone:
-                        return !digits.isEmpty && c.phoneNumbers.contains { Self.digits($0.value.stringValue).contains(digits) }
-                    case .email:
-                        return c.emailAddresses.contains { AppleServiceSupport.matches($0.value as String, query: trimmed) }
-                    case .any:
-                        if AppleServiceSupport.matches(c.organizationName, query: trimmed) { return true }
-                        if AppleServiceSupport.matches(c.nickname, query: trimmed) { return true }
-                        if AppleServiceSupport.matches(Self.nameFormatter.string(from: c), query: trimmed) { return true }
-                        if looksLikeEmail, c.emailAddresses.contains(where: { AppleServiceSupport.matches($0.value as String, query: trimmed) }) { return true }
-                        if !digits.isEmpty, digits.count >= 4,
-                            c.phoneNumbers.contains(where: { Self.digits($0.value.stringValue).contains(digits) })
-                        { return true }
-                        return false
+                add(
+                    all.filter { c in
+                        switch field {
+                        case .organization:
+                            return AppleServiceSupport.matches(c.organizationName, query: trimmed)
+                        case .name:
+                            return AppleServiceSupport.matches(c.nickname, query: trimmed)
+                                || AppleServiceSupport.matches(Self.nameFormatter.string(from: c), query: trimmed)
+                        case .phone:
+                            return !digits.isEmpty
+                                && c.phoneNumbers.contains { Self.digits($0.value.stringValue).contains(digits) }
+                        case .email:
+                            return c.emailAddresses.contains {
+                                AppleServiceSupport.matches($0.value as String, query: trimmed)
+                            }
+                        case .any:
+                            if AppleServiceSupport.matches(c.organizationName, query: trimmed) { return true }
+                            if AppleServiceSupport.matches(c.nickname, query: trimmed) { return true }
+                            if AppleServiceSupport.matches(Self.nameFormatter.string(from: c), query: trimmed) {
+                                return true
+                            }
+                            if looksLikeEmail,
+                                c.emailAddresses.contains(where: {
+                                    AppleServiceSupport.matches($0.value as String, query: trimmed)
+                                })
+                            {
+                                return true
+                            }
+                            if !digits.isEmpty, digits.count >= 4,
+                                c.phoneNumbers.contains(where: { Self.digits($0.value.stringValue).contains(digits) })
+                            {
+                                return true
+                            }
+                            return false
+                        }
                     }
-                })
+                )
             }
-            return results.map(Self.summary).sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
+            return results.map(Self.summary).sorted {
+                $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending
+            }
         }
     }
 
@@ -359,15 +390,24 @@ final class CNContactsService: ContactsServicing, @unchecked Sendable {
         if let v = draft.birthday { contact.birthday = v }
         if let phones = draft.phones {
             let new = phones.map { CNLabeledValue(label: label($0.label), value: CNPhoneNumber(stringValue: $0.value)) }
-            contact.phoneNumbers = replaceLabeledValues ? new : merge(contact.phoneNumbers, new) { $0.value.stringValue == $1.value.stringValue }
+            contact.phoneNumbers =
+                replaceLabeledValues
+                ? new : merge(contact.phoneNumbers, new) { $0.value.stringValue == $1.value.stringValue }
         }
         if let emails = draft.emails {
             let new = emails.map { CNLabeledValue(label: label($0.label), value: $0.value as NSString) }
-            contact.emailAddresses = replaceLabeledValues ? new : merge(contact.emailAddresses, new) { ($0.value as String).caseInsensitiveCompare($1.value as String) == .orderedSame }
+            contact.emailAddresses =
+                replaceLabeledValues
+                ? new
+                : merge(contact.emailAddresses, new) {
+                    ($0.value as String).caseInsensitiveCompare($1.value as String) == .orderedSame
+                }
         }
         if let urls = draft.urls {
             let new = urls.map { CNLabeledValue(label: label($0.label), value: $0.value as NSString) }
-            contact.urlAddresses = replaceLabeledValues ? new : merge(contact.urlAddresses, new) { ($0.value as String) == ($1.value as String) }
+            contact.urlAddresses =
+                replaceLabeledValues
+                ? new : merge(contact.urlAddresses, new) { ($0.value as String) == ($1.value as String) }
         }
         if let addresses = draft.postalAddresses {
             let new = addresses.map { a -> CNLabeledValue<CNPostalAddress> in
@@ -379,12 +419,15 @@ final class CNContactsService: ContactsServicing, @unchecked Sendable {
                 p.country = a.country
                 return CNLabeledValue(label: label(a.label), value: p)
             }
-            contact.postalAddresses = replaceLabeledValues ? new : merge(contact.postalAddresses, new) { $0.value == $1.value }
+            contact.postalAddresses =
+                replaceLabeledValues ? new : merge(contact.postalAddresses, new) { $0.value == $1.value }
         }
     }
 
     private static func merge<T: NSCopying & NSSecureCoding>(
-        _ existing: [CNLabeledValue<T>], _ new: [CNLabeledValue<T>], same: (CNLabeledValue<T>, CNLabeledValue<T>) -> Bool
+        _ existing: [CNLabeledValue<T>],
+        _ new: [CNLabeledValue<T>],
+        same: (CNLabeledValue<T>, CNLabeledValue<T>) -> Bool
     ) -> [CNLabeledValue<T>] {
         var out = existing
         for n in new where !out.contains(where: { same($0, n) }) { out.append(n) }
@@ -474,7 +517,10 @@ final class CNContactsService: ContactsServicing, @unchecked Sendable {
             birthday: birthday,
             relations: c.contactRelations.map { LabeledValue(label: localizedLabel($0.label), value: $0.value.name) },
             socialProfiles: c.socialProfiles.map {
-                LabeledValue(label: $0.value.service, value: $0.value.username.isEmpty ? $0.value.urlString : $0.value.username)
+                LabeledValue(
+                    label: $0.value.service,
+                    value: $0.value.username.isEmpty ? $0.value.urlString : $0.value.username
+                )
             },
             hasImage: c.imageDataAvailable,
             openURL: "addressbook://\(AppleServiceSupport.pathEncoded(c.identifier))"

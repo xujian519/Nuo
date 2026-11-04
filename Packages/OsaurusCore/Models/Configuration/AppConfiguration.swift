@@ -38,7 +38,9 @@ public final class AppConfiguration: ObservableObject {
         // the real state without a relaunch. The runtime router already
         // reads availability live per request.
         NotificationCenter.default.addObserver(
-            forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
         ) { _ in
             Task { @MainActor in
                 AppConfiguration.shared.refreshFoundationModelAvailable()

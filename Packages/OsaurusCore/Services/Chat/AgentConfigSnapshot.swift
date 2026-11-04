@@ -296,7 +296,8 @@ public struct AgentConfigSnapshot: Sendable, Equatable {
                 let project = ProjectManager.shared.project(for: projectId)
             else { return [] }
             return KnowledgeManager.shared.enabledCollections(
-                withIds: project.knowledgeCollectionIds)
+                withIds: project.knowledgeCollectionIds
+            )
         }()
         let mgr = AgentManager.shared
         // One resolve services every capability gate (positive polarity),
@@ -384,7 +385,8 @@ public struct AgentConfigSnapshot: Sendable, Equatable {
             // matching Channel Destinations section can be rendered; otherwise
             // the model has no valid binding_id and may mistake a capability id
             // (for example plugin/osaurus.calendar) for a channel binding.
-            hasChannelPublishDestinations: !AgentChannelAutoDestinationResolver
+            hasChannelPublishDestinations:
+                !AgentChannelAutoDestinationResolver
                 .effectiveConfiguration()
                 .usableBindings(
                     agentId: agentId,

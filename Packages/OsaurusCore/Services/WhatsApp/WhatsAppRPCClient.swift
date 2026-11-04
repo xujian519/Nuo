@@ -223,7 +223,9 @@ enum WhatsAppRPCFraming {
             )
         }
         let result = object["result"] ?? [:]
-        let resultJSON = (try? JSONSerialization.data(withJSONObject: result, options: [.sortedKeys, .fragmentsAllowed])) ?? Data("{}".utf8)
+        let resultJSON =
+            (try? JSONSerialization.data(withJSONObject: result, options: [.sortedKeys, .fragmentsAllowed]))
+            ?? Data("{}".utf8)
         return ParsedResponse(id: id, resultJSON: resultJSON, errorCode: nil, errorMessage: nil)
     }
 
@@ -239,7 +241,9 @@ enum WhatsAppRPCFraming {
             let method = object["method"] as? String, !method.isEmpty
         else { return nil }
         let params = object["params"] ?? [:]
-        let paramsJSON = (try? JSONSerialization.data(withJSONObject: params, options: [.sortedKeys, .fragmentsAllowed])) ?? Data("{}".utf8)
+        let paramsJSON =
+            (try? JSONSerialization.data(withJSONObject: params, options: [.sortedKeys, .fragmentsAllowed]))
+            ?? Data("{}".utf8)
         return ParsedNotification(method: method, paramsJSON: paramsJSON)
     }
 }
@@ -451,7 +455,8 @@ enum WhatsAppRPCSecurity {
                         if process.isRunning { process.terminate() }
                     }
                     DispatchQueue.global(qos: .utility).asyncAfter(
-                        deadline: .now() + 10, execute: watchdog
+                        deadline: .now() + 10,
+                        execute: watchdog
                     )
                     let data = stdout.fileHandleForReading.readDataToEndOfFile()
                     process.waitUntilExit()
@@ -519,7 +524,8 @@ enum WhatsAppRPCSecurity {
                 switch verification {
                 case .missing:
                     throw WhatsAppRPCError.helperUnavailable(
-                        "no osaurus-wa helper is installed — download it in WhatsApp settings, or build it with `make wa-helper` and set OSAURUS_WA_PATH (DEBUG)")
+                        "no osaurus-wa helper is installed — download it in WhatsApp settings, or build it with `make wa-helper` and set OSAURUS_WA_PATH (DEBUG)"
+                    )
                 case .unpinned:
                     throw WhatsAppRPCError.helperUnverified("release digests are not pinned")
                 case .digestMismatch(let expected, let actual):
@@ -587,8 +593,11 @@ enum WhatsAppRPCSecurity {
 
         private func handleReadFailure(_ code: Int32, generation: UUID) async {
             guard generation == processGeneration else { return }
-            failAllPending(with: WhatsAppRPCError.decodeFailed(
-                NSError(domain: NSPOSIXErrorDomain, code: Int(code)).localizedDescription))
+            failAllPending(
+                with: WhatsAppRPCError.decodeFailed(
+                    NSError(domain: NSPOSIXErrorDomain, code: Int(code)).localizedDescription
+                )
+            )
             await killWedgedProcess(generation: generation)
         }
 

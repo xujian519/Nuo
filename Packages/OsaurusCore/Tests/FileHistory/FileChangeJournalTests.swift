@@ -22,7 +22,9 @@ struct FileChangeJournalTests {
 
     private func write(_ url: URL, _ text: String) throws {
         try FileManager.default.createDirectory(
-            at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
         try text.write(to: url, atomically: true, encoding: .utf8)
     }
 
@@ -45,8 +47,10 @@ struct FileChangeJournalTests {
         _ body: () throws -> Void
     ) async throws -> FileChangeSet? {
         let token = await env.journal.beginCapture(
-            sessionId: session, toolName: tool,
-            targets: [.init(kind: .agentHome, rootId: agent, declaredPaths: declared)])
+            sessionId: session,
+            toolName: tool,
+            targets: [.init(kind: .agentHome, rootId: agent, declaredPaths: declared)]
+        )
         try body()
         return await env.journal.endCapture(token)
     }
@@ -67,7 +71,8 @@ struct FileChangeJournalTests {
                 try self.write(mod, "v2")
                 try FileManager.default.removeItem(at: gone)
                 try self.write(new, "hello")
-            })
+            }
+        )
         let kinds = Dictionary(uniqueKeysWithValues: set.entries.map { ($0.path, $0.kind) })
         #expect(kinds == ["mod.txt": .modified, "gone.txt": .deleted, "new.txt": .created])
         #expect(await env.journal.outstandingCount(for: Self.session) == 3)
@@ -98,7 +103,8 @@ struct FileChangeJournalTests {
         defer { env.cleanup() }
         let file = env.agentHome.appendingPathComponent("a/b/c.txt")
         let set = try #require(
-            try await captured(env, declared: ["a/b/c.txt"]) { try self.write(file, "deep") })
+            try await captured(env, declared: ["a/b/c.txt"]) { try self.write(file, "deep") }
+        )
         #expect(Set(set.entries.map(\.path)) == ["a", "a/b", "a/b/c.txt"])
 
         let summary = await env.journal.revert(.set(set.id), sessionId: Self.session)
@@ -111,7 +117,8 @@ struct FileChangeJournalTests {
         defer { env.cleanup() }
         let file = env.agentHome.appendingPathComponent("out/report.txt")
         let set = try #require(
-            try await captured(env, declared: ["out/report.txt"]) { try self.write(file, "r") })
+            try await captured(env, declared: ["out/report.txt"]) { try self.write(file, "r") }
+        )
         // The user drops their own file into the chat-created folder.
         let userFile = env.agentHome.appendingPathComponent("out/mine.txt")
         try write(userFile, "user")
@@ -141,7 +148,8 @@ struct FileChangeJournalTests {
                 try fm.setAttributes([.posixPermissions: 0o644], ofItemAtPath: script.path)
                 try fm.removeItem(at: link)
                 try fm.createSymbolicLink(atPath: link.path, withDestinationPath: "run.sh")
-            })
+            }
+        )
         #expect(set.entries.count == 3)
 
         let summary = await env.journal.revert(.set(set.id), sessionId: Self.session)
@@ -160,7 +168,8 @@ struct FileChangeJournalTests {
         let file = env.agentHome.appendingPathComponent("notes.txt")
         try write(file, "original")
         let set = try #require(
-            try await captured(env, declared: ["notes.txt"]) { try self.write(file, "agent") })
+            try await captured(env, declared: ["notes.txt"]) { try self.write(file, "agent") }
+        )
         try write(file, "user edit")
 
         let preview = await env.journal.previewRevert(.set(set.id), sessionId: Self.session)
@@ -191,12 +200,15 @@ struct FileChangeJournalTests {
         let file = env.agentHome.appendingPathComponent("dir/f.txt")
         try write(file, "before")
         let set = try #require(
-            try await captured(env, declared: ["dir/f.txt"]) { try self.write(file, "after") })
+            try await captured(env, declared: ["dir/f.txt"]) { try self.write(file, "after") }
+        )
 
         // Swap the folder for a symlink pointing outside the root.
         try fm.removeItem(at: env.agentHome.appendingPathComponent("dir"))
         try fm.createSymbolicLink(
-            atPath: env.agentHome.appendingPathComponent("dir").path, withDestinationPath: outside.path)
+            atPath: env.agentHome.appendingPathComponent("dir").path,
+            withDestinationPath: outside.path
+        )
         try write(outside.appendingPathComponent("f.txt"), "after")
 
         let summary = await env.journal.revert(.set(set.id), sessionId: Self.session, force: true)
@@ -270,10 +282,12 @@ struct FileChangeJournalTests {
                 try self.write(home.appendingPathComponent("src/main.py"), "print(2)")
                 try FileManager.default.moveItem(
                     at: home.appendingPathComponent("old-name.txt"),
-                    to: home.appendingPathComponent("new-name.txt"))
+                    to: home.appendingPathComponent("new-name.txt")
+                )
                 try self.write(home.appendingPathComponent("build/out.txt"), "artifact")
                 try self.write(home.appendingPathComponent("node_modules/dep/index.js"), "changed")
-            })
+            }
+        )
         let byPath = Dictionary(uniqueKeysWithValues: set.entries.map { ($0.path, $0) })
         #expect(byPath["src/main.py"]?.kind == .modified)
         #expect(byPath["old-name.txt"]?.kind == .deleted)
@@ -300,7 +314,8 @@ struct FileChangeJournalTests {
         try write(file, "user v3")
         // … so the next opaque call's "before" is the user's version.
         let set = try #require(
-            try await captured(env, tool: "sandbox_exec", declared: nil) { try self.write(file, "v4") })
+            try await captured(env, tool: "sandbox_exec", declared: nil) { try self.write(file, "v4") }
+        )
         let summary = await env.journal.revert(.set(set.id), sessionId: Self.session)
         #expect(summary.isClean, "\(summary)")
         #expect(read(file) == "user v3")
@@ -319,14 +334,20 @@ struct FileChangeJournalTests {
         try write(toolFile, "tool v1")
 
         let job = await env.journal.beginCapture(
-            sessionId: Self.session, toolName: "sandbox_exec_background",
-            targets: [.init(kind: .agentHome, rootId: agent)])
+            sessionId: Self.session,
+            toolName: "sandbox_exec_background",
+            targets: [.init(kind: .agentHome, rootId: agent)]
+        )
         // The job writes; a foreground opaque call then starts and ends
         // while the job is still running.
         try write(jobFile, "job v2 (mid-run)")
         let tool = try #require(
-            try await captured(env, tool: "sandbox_exec", declared: nil) { try self.write(toolFile, "tool v2") })
-        #expect(tool.entries.map(\.path) == ["tool.txt"], "foreground call must not absorb the job's writes: \(tool.entries.map(\.path))")
+            try await captured(env, tool: "sandbox_exec", declared: nil) { try self.write(toolFile, "tool v2") }
+        )
+        #expect(
+            tool.entries.map(\.path) == ["tool.txt"],
+            "foreground call must not absorb the job's writes: \(tool.entries.map(\.path))"
+        )
         try write(jobFile, "job v3 (final)")
         let jobSet = try #require(await env.journal.endCapture(job))
         let jobEntry = try #require(jobSet.entries.first { $0.path == "job.txt" })
@@ -343,7 +364,8 @@ struct FileChangeJournalTests {
         // state as its "before".
         try write(toolFile, "user v3")
         let later = try #require(
-            try await captured(env, tool: "sandbox_exec", declared: nil) { try self.write(toolFile, "tool v4") })
+            try await captured(env, tool: "sandbox_exec", declared: nil) { try self.write(toolFile, "tool v4") }
+        )
         _ = await env.journal.revert(.set(later.id), sessionId: Self.session)
         #expect(read(toolFile) == "user v3")
     }
@@ -396,7 +418,8 @@ struct FileChangeJournalTests {
         let file = env.agentHome.appendingPathComponent("persist.txt")
         try write(file, "before")
         let set = try #require(
-            try await captured(env, declared: ["persist.txt"]) { try self.write(file, "after") })
+            try await captured(env, declared: ["persist.txt"]) { try self.write(file, "after") }
+        )
 
         let relaunched = env.relaunched()
         let loaded = await relaunched.changeSets(for: Self.session)
@@ -416,8 +439,12 @@ struct FileChangeJournalTests {
         try write(root.appendingPathComponent("card.txt"), "one\n")
 
         let result = try await env.run(
-            FileWriteTool(rootPath: root), #"{"path": "card.txt", "content": "two\n"}"#,
-            sessionId: Self.session, folder: root, toolCallId: "call-card")
+            FileWriteTool(rootPath: root),
+            #"{"path": "card.txt", "content": "two\n"}"#,
+            sessionId: Self.session,
+            folder: root,
+            toolCallId: "call-card"
+        )
         let diff = try #require(FileDiff.from(toolResult: result))
         let setId = try #require(diff.operationId)
 
@@ -442,8 +469,10 @@ struct FileChangeJournalTests {
         let file = env.agentHome.appendingPathComponent("crash.txt")
         try write(file, "before")
         let token = await env.journal.beginCapture(
-            sessionId: Self.session, toolName: "file_write",
-            targets: [.init(kind: .agentHome, rootId: agent, declaredPaths: ["crash.txt"])])
+            sessionId: Self.session,
+            toolName: "file_write",
+            targets: [.init(kind: .agentHome, rootId: agent, declaredPaths: ["crash.txt"])]
+        )
         try write(file, "after")
         // The app dies here: `endCapture` never runs.
 
@@ -462,7 +491,11 @@ struct FileChangeJournalTests {
         defer { env.cleanup() }
         let out = env.agentHome.appendingPathComponent("job-output.txt")
         await env.journal.beginBackgroundJob(
-            sessionId: Self.session, agentName: agent, pid: "4242", toolName: "sandbox_exec")
+            sessionId: Self.session,
+            agentName: agent,
+            pid: "4242",
+            toolName: "sandbox_exec"
+        )
         #expect(await env.journal.hasActiveBackgroundJobs(sessionId: Self.session))
         let blocked = await env.journal.revert(.all, sessionId: Self.session)
         #expect(blocked.blockedReason != nil)
@@ -486,8 +519,10 @@ struct FileChangeJournalTests {
         try await captured(env, declared: ["f.txt"]) { try self.write(file, "1") }
 
         let token = await env.journal.beginCapture(
-            sessionId: Self.session, toolName: "file_write",
-            targets: [.init(kind: .agentHome, rootId: agent, declaredPaths: ["f.txt"])])
+            sessionId: Self.session,
+            toolName: "file_write",
+            targets: [.init(kind: .agentHome, rootId: agent, declaredPaths: ["f.txt"])]
+        )
         #expect(await env.journal.hasActiveCaptures(sessionId: Self.session))
         let blocked = await env.journal.revert(.all, sessionId: Self.session)
         #expect(blocked.blockedReason != nil)
@@ -518,8 +553,10 @@ struct FileChangeJournalTests {
         #expect(await env.journal.storedBytes() > 0)
 
         let token = await env.journal.beginCapture(
-            sessionId: Self.session, toolName: "file_write",
-            targets: [.init(kind: .agentHome, rootId: agent, declaredPaths: ["late.txt"])])
+            sessionId: Self.session,
+            toolName: "file_write",
+            targets: [.init(kind: .agentHome, rootId: agent, declaredPaths: ["late.txt"])]
+        )
         await env.journal.purgeSession(Self.session)
         #expect(((try? FileManager.default.contentsOfDirectory(atPath: shadows.path)) ?? []).isEmpty)
         #expect(await !env.journal.hasActiveCaptures(sessionId: Self.session))
@@ -536,7 +573,7 @@ struct FileChangeJournalTests {
         let env = try FileHistoryTestEnv.make()
         defer { env.cleanup() }
         let file = env.agentHome.appendingPathComponent("big.txt")
-        for round in 0..<4 {
+        for round in 0 ..< 4 {
             try await captured(env, declared: ["big.txt"]) {
                 try self.write(file, String(repeating: "\(round)", count: 10_000))
             }
@@ -584,16 +621,33 @@ struct FileChangeJournalTests {
 
         // Re-create the write-ahead file exactly as it looked mid-call.
         let record = FileChangeJournal.CaptureRecord(
-            id: set.id, sessionId: Self.session, toolName: "file_write", toolCallId: nil, turnId: nil,
-            origin: .agent, revertsSetId: nil, note: nil, createdAt: set.createdAt,
+            id: set.id,
+            sessionId: Self.session,
+            toolName: "file_write",
+            toolCallId: nil,
+            turnId: nil,
+            origin: .agent,
+            revertsSetId: nil,
+            note: nil,
+            createdAt: set.createdAt,
             roots: [
                 .init(
-                    kind: .agentHome, rootId: agent, mode: .precise, declared: ["f.txt"],
-                    pre: ["f.txt": .init(state: entry.before)], preManifest: nil, untrackedReason: nil)
+                    kind: .agentHome,
+                    rootId: agent,
+                    mode: .precise,
+                    declared: ["f.txt"],
+                    pre: ["f.txt": .init(state: entry.before)],
+                    preManifest: nil,
+                    untrackedReason: nil
+                )
             ],
-            jobKey: nil)
+            jobKey: nil
+        )
         let pending = env.storeRoot.appendingPathComponent("pending/\(set.id.uuidString).json")
-        try FileManager.default.createDirectory(at: pending.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(
+            at: pending.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
         try JSONEncoder().encode(record).write(to: pending)
 
         // The user edits after the "crash"; relaunch must not attribute it.
@@ -618,7 +672,10 @@ struct FileChangeJournalTests {
 
         try env.db.executeForTesting("ALTER TABLE file_change_entries RENAME TO file_change_entries_broken")
         #expect(await env.journal.collectGarbage() == 0)
-        #expect(env.journal.objects.contains(hash: String(beforeHash)), "GC deleted a blob it could not prove unreferenced")
+        #expect(
+            env.journal.objects.contains(hash: String(beforeHash)),
+            "GC deleted a blob it could not prove unreferenced"
+        )
         try env.db.executeForTesting("ALTER TABLE file_change_entries_broken RENAME TO file_change_entries")
 
         // With the table back, the blob is still referenced and still kept.
@@ -644,7 +701,7 @@ struct FileChangeJournalTests {
         let env = try FileHistoryTestEnv.make()
         defer { env.cleanup() }
         let file = env.agentHome.appendingPathComponent("big.txt")
-        for round in 0..<4 {
+        for round in 0 ..< 4 {
             try await captured(env, declared: ["big.txt"]) {
                 try self.write(file, String(repeating: "\(round)", count: 10_000))
             }
@@ -661,10 +718,13 @@ struct FileChangeJournalTests {
     }
 
     @Test func retentionSettingDecodesFromOlderConfigsAndRoundTrips() throws {
-        var legacy = try JSONSerialization.jsonObject(with: JSONEncoder().encode(ChatConfiguration.default)) as! [String: Any]
+        var legacy =
+            try JSONSerialization.jsonObject(with: JSONEncoder().encode(ChatConfiguration.default)) as! [String: Any]
         legacy["fileHistoryRetention"] = nil
         let decoded = try JSONDecoder().decode(
-            ChatConfiguration.self, from: JSONSerialization.data(withJSONObject: legacy))
+            ChatConfiguration.self,
+            from: JSONSerialization.data(withJSONObject: legacy)
+        )
         #expect(decoded.fileHistoryRetention == .keepUntilChatDeleted)
 
         var config = ChatConfiguration.default
@@ -682,20 +742,33 @@ struct FileChangeJournalTests {
         let live = env.agentHome.appendingPathComponent("legacy.txt")
         try write(live, "agent version")
         let baseline = baselines.appendingPathComponent(
-            "\(Self.session)/\(agent)/home/legacy.txt")
+            "\(Self.session)/\(agent)/home/legacy.txt"
+        )
         try write(baseline, "pre-chat version")
         let liveSig = try #require(FileObjectStore.liveSignature(at: live)?.signature)
         let baseSig = try #require(FileObjectStore.liveSignature(at: baseline)?.signature)
         try env.db.upsertSandboxChange(
             SandboxWorkspaceChange(
-                sessionId: Self.session, agentName: agent, root: .agentHome,
-                relativePath: "legacy.txt", entryType: .file, kind: .modified,
-                baselineSignature: baseSig, currentSignature: liveSig, sourceTool: "sandbox_exec",
-                firstChangedAt: Date(), lastChangedAt: Date()))
+                sessionId: Self.session,
+                agentName: agent,
+                root: .agentHome,
+                relativePath: "legacy.txt",
+                entryType: .file,
+                kind: .modified,
+                baselineSignature: baseSig,
+                currentSignature: liveSig,
+                sourceTool: "sandbox_exec",
+                firstChangedAt: Date(),
+                lastChangedAt: Date()
+            )
+        )
 
         let journal = FileChangeJournal(
-            database: env.db, storeRoot: env.storeRoot, hostRootProvider: env.provider,
-            legacyBaselinesRoot: baselines)
+            database: env.db,
+            storeRoot: env.storeRoot,
+            hostRootProvider: env.provider,
+            legacyBaselinesRoot: baselines
+        )
         let sets = await journal.changeSets(for: Self.session)
         #expect(sets.count == 1)
         #expect(sets.first?.origin == .imported)
@@ -717,14 +790,26 @@ struct FileChangeJournalTests {
         let liveSig = try #require(FileObjectStore.liveSignature(at: live)?.signature)
         try env.db.upsertSandboxChange(
             SandboxWorkspaceChange(
-                sessionId: Self.session, agentName: agent, root: .agentHome,
-                relativePath: "legacy.txt", entryType: .file, kind: .modified,
-                baselineSignature: nil, currentSignature: liveSig, sourceTool: "sandbox_exec",
-                firstChangedAt: Date(), lastChangedAt: Date()))
+                sessionId: Self.session,
+                agentName: agent,
+                root: .agentHome,
+                relativePath: "legacy.txt",
+                entryType: .file,
+                kind: .modified,
+                baselineSignature: nil,
+                currentSignature: liveSig,
+                sourceTool: "sandbox_exec",
+                firstChangedAt: Date(),
+                lastChangedAt: Date()
+            )
+        )
 
         let journal = FileChangeJournal(
-            database: env.db, storeRoot: env.storeRoot, hostRootProvider: env.provider,
-            legacyBaselinesRoot: env.tmp.appendingPathComponent("no-baselines"))
+            database: env.db,
+            storeRoot: env.storeRoot,
+            hostRootProvider: env.provider,
+            legacyBaselinesRoot: env.tmp.appendingPathComponent("no-baselines")
+        )
         let sets = await journal.changeSets(for: Self.session)
         let entry = try #require(sets.first?.entries.first)
         #expect(entry.kind == .modified)
@@ -743,7 +828,8 @@ struct FileChangeJournalTests {
         let file = env.agentHome.appendingPathComponent("c.txt")
         try write(file, "before")
         let set = try #require(
-            try await captured(env, declared: ["c.txt"]) { try self.write(file, "after") })
+            try await captured(env, declared: ["c.txt"]) { try self.write(file, "after") }
+        )
         let hash = try #require(set.entries.first?.before?.objectHash)
         let blob = env.journal.objects.url(forHash: hash)
         try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: blob.path)
@@ -763,7 +849,8 @@ struct FileChangeJournalTests {
         let file = env.agentHome.appendingPathComponent("m.txt")
         try write(file, "before")
         let set = try #require(
-            try await captured(env, declared: ["m.txt"]) { try self.write(file, "after") })
+            try await captured(env, declared: ["m.txt"]) { try self.write(file, "after") }
+        )
         try FileManager.default.removeItem(at: env.storeRoot.appendingPathComponent("objects"))
 
         let preview = await env.journal.previewRevert(.set(set.id), sessionId: Self.session)
@@ -805,7 +892,9 @@ struct FileChangeJournalTests {
                 try await ChatExecutionContext.$currentToolCallId.withValue("call-1") {
                     try await ChatExecutionContext.$currentSessionId.withValue(sessionId) {
                         try await ToolRegistry.shared.execute(
-                            name: "test_host_mutator", argumentsJSON: "{}")
+                            name: "test_host_mutator",
+                            argumentsJSON: "{}"
+                        )
                     }
                 }
             }
@@ -821,7 +910,8 @@ struct FileChangeJournalTests {
             #expect(set.entries.first?.rootKind == .hostFolder)
             #expect(
                 await FileChangeJournal.shared.changeSet(forToolCallId: "call-1", sessionId: sessionId)?.id
-                    == set.id)
+                    == set.id
+            )
         }
     }
 }

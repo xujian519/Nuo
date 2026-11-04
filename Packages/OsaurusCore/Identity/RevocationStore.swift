@@ -86,7 +86,10 @@ public final class RevocationStore: @unchecked Sendable {
         )
         guard let data = try? JSONEncoder().encode(model) else { return }
         Keychain.writeInBackground(
-            service: Self.keychainService, account: Self.keychainAccount, data: data)
+            service: Self.keychainService,
+            account: Self.keychainAccount,
+            data: data
+        )
     }
 
     private func load() {

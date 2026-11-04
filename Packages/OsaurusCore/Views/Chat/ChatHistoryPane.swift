@@ -273,7 +273,8 @@ struct ChatHistoryPaneView: View {
                         isActive
                             ? theme.accentColor.opacity(theme.isDark ? 0.18 : 0.12)
                             : (theme.isDark
-                                ? theme.primaryBackground.opacity(0.5) : theme.tertiaryBackground.opacity(0.8)))
+                                ? theme.primaryBackground.opacity(0.5) : theme.tertiaryBackground.opacity(0.8))
+                    )
             )
             .contentShape(Rectangle())
             .pointingHandCursor()
@@ -556,11 +557,17 @@ private struct ChatHistoryFilterPicker: View {
         }.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
         let projectChoices: [ChatHistorySubmenuChoice] = projects.map { project in
             ChatHistorySubmenuChoice(
-                id: project.id.uuidString, title: project.name, count: projectCounts[project.id] ?? 0)
+                id: project.id.uuidString,
+                title: project.name,
+                count: projectCounts[project.id] ?? 0
+            )
         }
         let workspaceChoices: [ChatHistorySubmenuChoice] = workspaces.map { workspace in
             ChatHistorySubmenuChoice(
-                id: workspace.id, title: workspace.name, count: workspaceCounts[workspace.id] ?? 0)
+                id: workspace.id,
+                title: workspace.name,
+                count: workspaceCounts[workspace.id] ?? 0
+            )
         }
         let otherChoices = makeOtherChoices(
             sourceCounts: sourceCounts,
@@ -592,7 +599,6 @@ private struct ChatHistoryFilterPicker: View {
                             }
                         )
                     }
-
 
                     FilterSubmenuRow(
                         id: "projects",
@@ -650,7 +656,6 @@ private struct ChatHistoryFilterPicker: View {
                             withAnimation(theme.animationQuick()) { toggleOther(id) }
                         }
                     )
-
 
                     Divider()
                         .background(theme.primaryBorder.opacity(0.3))
@@ -801,7 +806,8 @@ private struct ChatHistoryFilterPicker: View {
                 .padding(.vertical, 3)
                 .background(
                     Capsule().fill(
-                        activeCount > 0 ? theme.accentColor.opacity(0.12) : theme.secondaryBackground)
+                        activeCount > 0 ? theme.accentColor.opacity(0.12) : theme.secondaryBackground
+                    )
                 )
 
             Spacer()
@@ -878,7 +884,8 @@ private struct FilterPickerRow: View {
                     .padding(.vertical, 1.5)
                     .background(
                         Capsule().fill(
-                            isSelected ? theme.accentColor.opacity(0.12) : theme.secondaryBackground)
+                            isSelected ? theme.accentColor.opacity(0.12) : theme.secondaryBackground
+                        )
                     )
                 if let trailing {
                     trailing

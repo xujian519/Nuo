@@ -145,7 +145,7 @@ struct OsaurusRouterWorkspaceSummary: Decodable, Identifiable, Equatable, Sendab
 /// printable URL-safe characters and a length that rules out garbage/pasted
 /// JSON without assuming a format. Router codes are `uuid.32hex`.
 enum OsaurusRouterWorkspaceCode {
-    static let lengthRange = 6...128
+    static let lengthRange = 6 ... 128
     nonisolated static func isPlausible(_ raw: String) -> Bool {
         guard lengthRange.contains(raw.count) else { return false }
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_."))
@@ -207,7 +207,10 @@ struct OsaurusRouterWorkspacePerson: Decodable, Equatable, Sendable {
     /// Display name → `@handle` → shortened wallet → account id.
     var friendlyName: String {
         OsaurusRouterWorkspacePerson.friendlyName(
-            displayName: displayName, osaurusId: osaurusId, walletAddress: walletAddress, accountId: accountId
+            displayName: displayName,
+            osaurusId: osaurusId,
+            walletAddress: walletAddress,
+            accountId: accountId
         )
     }
 
@@ -844,7 +847,10 @@ struct OsaurusRouterWorkspaceMember: Decodable, Identifiable, Equatable, Sendabl
 
     var friendlyName: String {
         OsaurusRouterWorkspacePerson.friendlyName(
-            displayName: displayName, osaurusId: osaurusId, walletAddress: walletAddress, accountId: accountId
+            displayName: displayName,
+            osaurusId: osaurusId,
+            walletAddress: walletAddress,
+            accountId: accountId
         )
     }
 }
@@ -971,7 +977,9 @@ enum OsaurusRouterWorkspaceErrorCode: String, Sendable {
     /// string, so callers match substrings rather than decoded envelopes).
     func appears(in message: String) -> Bool {
         if message.range(of: rawValue, options: .caseInsensitive) != nil { return true }
-        return Self.legacyCodes.contains { $0.value == self && message.range(of: $0.key, options: .caseInsensitive) != nil }
+        return Self.legacyCodes.contains {
+            $0.value == self && message.range(of: $0.key, options: .caseInsensitive) != nil
+        }
     }
 }
 

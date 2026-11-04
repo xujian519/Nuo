@@ -241,7 +241,8 @@ struct AgentChannelDispatchRoutingEditor: View {
                 Text(room.name).tag(Optional(room.id))
             }
             if let currentRoom = route.wrappedValue.roomId,
-               !rooms.contains(where: { $0.id == currentRoom }) {
+                !rooms.contains(where: { $0.id == currentRoom })
+            {
                 Text(currentRoom).tag(Optional(currentRoom))
             }
         }

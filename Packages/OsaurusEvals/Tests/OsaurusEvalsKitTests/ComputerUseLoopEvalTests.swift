@@ -244,7 +244,7 @@ struct ComputerUseLoopEvalTests {
         let scene = Scene(
             app: "Form",
             elements: [
-                El(id: "name", role: "textfield", label: "Name", value: "", editable: true),
+                El(id: "name", role: "textfield", label: "Name", value: "", editable: true)
             ],
             successValues: [Scene.ValuePredicate(id: "name", equals: "Ada")],
             scriptedActions: [
@@ -307,7 +307,9 @@ struct ComputerUseLoopEvalTests {
             app: "Form",
             elements: [
                 El(
-                    id: "go", role: "button", label: "Go",
+                    id: "go",
+                    role: "button",
+                    label: "Go",
                     onClick: Scene.ClickEffect(setValues: [Scene.SetValue(id: "status", value: "Went")])
                 ),
                 El(id: "status", role: "statictext", label: "Status", value: "Idle"),

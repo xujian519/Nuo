@@ -25,7 +25,8 @@ import Testing
         ] {
             #expect(
                 BrowserEffectClassifier.classify(action: action, target: nil, submit: false)
-                    == .read)
+                    == .read
+            )
         }
     }
 
@@ -33,7 +34,8 @@ import Testing
         for action in ["navigate", "back", "scroll", "hover"] {
             #expect(
                 BrowserEffectClassifier.classify(action: action, target: nil, submit: false)
-                    == .navigate)
+                    == .navigate
+            )
         }
     }
 
@@ -41,7 +43,8 @@ import Testing
         for action in ["type", "select", "set_cookie", "handle_dialog"] {
             #expect(
                 BrowserEffectClassifier.classify(action: action, target: nil, submit: false)
-                    == .edit)
+                    == .edit
+            )
         }
     }
 
@@ -49,25 +52,30 @@ import Testing
         // type(submit: true) and Enter fold the caller's submit intent in.
         #expect(
             BrowserEffectClassifier.classify(action: "type", target: nil, submit: true)
-                == .consequential)
+                == .consequential
+        )
         #expect(
             BrowserEffectClassifier.classify(action: "press_key", target: "Enter", submit: true)
-                == .consequential)
+                == .consequential
+        )
         // A plain key press is only navigation.
         #expect(
             BrowserEffectClassifier.classify(action: "press_key", target: "Tab", submit: false)
-                == .navigate)
+                == .navigate
+        )
     }
 
     @Test func clickEscalatesOnConsequentialTargets() {
         #expect(
             BrowserEffectClassifier.classify(action: "click", target: "Read more", submit: false)
-                == .navigate)
+                == .navigate
+        )
         for label in ["Submit", "Place order", "Delete account", "Sign in", "Buy now", "Checkout"] {
             #expect(
                 BrowserEffectClassifier.classify(action: "click", target: label, submit: false)
                     == .consequential,
-                "click on '\(label)' must be consequential")
+                "click on '\(label)' must be consequential"
+            )
         }
     }
 
@@ -80,7 +88,8 @@ import Testing
         ] {
             #expect(
                 BrowserEffectClassifier.classify(action: action, target: nil, submit: false)
-                    == .consequential)
+                    == .consequential
+            )
         }
     }
 
@@ -89,7 +98,8 @@ import Testing
         // least require the edit disposition, never run as a free read.
         #expect(
             BrowserEffectClassifier.classify(action: "future_verb", target: nil, submit: false)
-                == .edit)
+                == .edit
+        )
     }
 
     @Test func targetDetectionIsCaseInsensitiveAndSubstring() {
@@ -106,10 +116,17 @@ import Testing
 @Suite struct BrowserGateTests {
 
     private func decide(
-        _ gate: BrowserGate, effect: EffectClass, host: String? = "example.com"
+        _ gate: BrowserGate,
+        effect: EffectClass,
+        host: String? = "example.com"
     ) -> GateDecision {
         gate.evaluate(
-            effect: effect, actionLabel: "Test", host: host, targetLabel: nil, typedText: nil)
+            effect: effect,
+            actionLabel: "Test",
+            host: host,
+            targetLabel: nil,
+            typedText: nil
+        )
     }
 
     @Test func balancedDefaultAllowsReadsAndNavigationConfirmsTheRest() {

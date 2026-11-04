@@ -197,7 +197,9 @@ final class EventKitCalendarService: CalendarServicing, @unchecked Sendable {
     private func requireAccess() throws {
         guard EKEventStore.authorizationStatus(for: .event) == .fullAccess else {
             throw AppleToolError.permissionDenied(
-                .calendar, detail: "Calendar needs Full Access (not Add Only) for these tools.")
+                .calendar,
+                detail: "Calendar needs Full Access (not Add Only) for these tools."
+            )
         }
     }
 
@@ -214,9 +216,13 @@ final class EventKitCalendarService: CalendarServicing, @unchecked Sendable {
             .calendarDoesNotAllowReminders, .sourceDoesNotAllowEvents, .sourceDoesNotAllowReminders:
             return .invalidArgs(
                 "The \(noun) is in a calendar that does not allow this change (\(detail)). Pick an editable calendar or list.",
-                field: "calendar")
+                field: "calendar"
+            )
         case .noCalendar, .calendarHasNoSource:
-            return .invalidArgs("The \(noun) has no calendar; pass `calendar`/`list` with an id from the list tool.", field: "calendar")
+            return .invalidArgs(
+                "The \(noun) has no calendar; pass `calendar`/`list` with an id from the list tool.",
+                field: "calendar"
+            )
         case .datesInverted, .startDateTooFarInFuture, .startDateCollidesWithOtherOccurrence, .noStartDate, .noEndDate:
             return .invalidArgs("\(noun.capitalized) dates are not valid: \(detail)", field: "start")
         case .durationGreaterThanRecurrence, .alarmGreaterThanRecurrence, .alarmProximityNotSupported,
@@ -266,7 +272,11 @@ final class EventKitCalendarService: CalendarServicing, @unchecked Sendable {
                 }
             }
             events.sort { $0.startDate < $1.startDate }
-            return CalendarEventsResult(events: events.map(Self.info), effectiveEnd: end, endWasClamped: end < query.end)
+            return CalendarEventsResult(
+                events: events.map(Self.info),
+                effectiveEnd: end,
+                endWasClamped: end < query.end
+            )
         }
     }
 
@@ -285,7 +295,9 @@ final class EventKitCalendarService: CalendarServicing, @unchecked Sendable {
             let writable = store.calendars(for: .event).filter(\.allowsContentModifications)
             if let calendarId = draft.calendarId {
                 event.calendar = try self.resolveCalendar(calendarId)
-            } else if let defaultCalendar = store.defaultCalendarForNewEvents, defaultCalendar.allowsContentModifications {
+            } else if let defaultCalendar = store.defaultCalendarForNewEvents,
+                defaultCalendar.allowsContentModifications
+            {
                 event.calendar = defaultCalendar
             } else if let first = writable.first {
                 // The default calendar is read-only (e.g. a subscribed one):
@@ -322,7 +334,10 @@ final class EventKitCalendarService: CalendarServicing, @unchecked Sendable {
     }
 
     func update(
-        id: String, occurrenceStart: Date?, span: CalendarEditSpan, patch: CalendarEventPatch
+        id: String,
+        occurrenceStart: Date?,
+        span: CalendarEditSpan,
+        patch: CalendarEventPatch
     ) async throws -> CalendarEventInfo {
         try await queue.run {
             try self.requireAccess()
@@ -341,7 +356,14 @@ final class EventKitCalendarService: CalendarServicing, @unchecked Sendable {
                     // raw seconds (a 23h/25h DST day would otherwise shift the
                     // end onto the wrong day).
                     let cal = Calendar.current
-                    let days = max(0, cal.dateComponents([.day], from: cal.startOfDay(for: event.startDate), to: cal.startOfDay(for: event.endDate)).day ?? 0)
+                    let days = max(
+                        0,
+                        cal.dateComponents(
+                            [.day],
+                            from: cal.startOfDay(for: event.startDate),
+                            to: cal.startOfDay(for: event.endDate)
+                        ).day ?? 0
+                    )
                     event.startDate = start
                     if patch.end == nil {
                         event.endDate = cal.date(byAdding: .day, value: days, to: start) ?? start
@@ -411,7 +433,8 @@ final class EventKitCalendarService: CalendarServicing, @unchecked Sendable {
             lastDayStart = cal.date(byAdding: .day, value: -1, to: lastDayStart) ?? s
         }
         if lastDayStart < s { lastDayStart = s }
-        let nextMidnight = cal.date(byAdding: .day, value: 1, to: lastDayStart) ?? lastDayStart.addingTimeInterval(86400)
+        let nextMidnight =
+            cal.date(byAdding: .day, value: 1, to: lastDayStart) ?? lastDayStart.addingTimeInterval(86400)
         return (s, nextMidnight.addingTimeInterval(-1))
     }
 
@@ -426,10 +449,14 @@ final class EventKitCalendarService: CalendarServicing, @unchecked Sendable {
     private func resolveCalendar(_ idOrTitle: String) throws -> EKCalendar {
         let all = store.calendars(for: .event)
         if let byId = all.first(where: { $0.calendarIdentifier == idOrTitle }) { return byId }
-        let matches = all.filter { $0.title.compare(idOrTitle, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame }
+        let matches = all.filter {
+            $0.title.compare(idOrTitle, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
+        }
         if matches.count == 1 { return matches[0] }
         if matches.count > 1 {
-            let candidates = matches.map { "\($0.calendarIdentifier) (\($0.source?.title ?? "?")\($0.allowsContentModifications ? "" : ", read-only"))" }
+            let candidates = matches.map {
+                "\($0.calendarIdentifier) (\($0.source?.title ?? "?")\($0.allowsContentModifications ? "" : ", read-only"))"
+            }
             throw AppleToolError.invalidArgs(
                 "`\(idOrTitle)` matches \(matches.count) calendars; pass one of these ids instead: \(candidates.joined(separator: "; ")).",
                 field: "calendar"
@@ -497,7 +524,8 @@ final class EventKitCalendarService: CalendarServicing, @unchecked Sendable {
             allDayDates: event.isAllDay
                 ? AppleDayRange(
                     start: AppleDateParsing.formatDateOnly(event.startDate),
-                    end: AppleDateParsing.formatDateOnly(event.endDate))
+                    end: AppleDateParsing.formatDateOnly(event.endDate)
+                )
                 : nil,
             location: event.location.flatMap { $0.isEmpty ? nil : $0 },
             notes: event.notes.flatMap { $0.isEmpty ? nil : $0 },
@@ -603,7 +631,8 @@ final class EventKitCalendarService: CalendarServicing, @unchecked Sendable {
         case "unavailable": return .unavailable
         default:
             throw AppleToolError.invalidArgs(
-                "`availability` must be one of: busy, free, tentative, unavailable.", field: "availability"
+                "`availability` must be one of: busy, free, tentative, unavailable.",
+                field: "availability"
             )
         }
     }

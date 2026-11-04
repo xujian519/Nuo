@@ -394,7 +394,8 @@ struct ModelManagerSuggestedTests {
                 #expect(!topIds.contains(id), "expected \(id) to NOT be a Top Pick (catalog-only)")
                 #expect(
                     suggested.contains { $0.id == id },
-                    "expected \(id) to remain in the catalog")
+                    "expected \(id) to remain in the catalog"
+                )
             }
         }
     }
@@ -504,11 +505,16 @@ struct ModelManagerSuggestedTests {
         #expect(!ModelManager.isGGUFRepo(id: "mlx-community/Qwen3-8B-4bit", tags: ["mlx"]))
         #expect(
             !ModelManager.isChatCatalogEligible(
-                id: "OsaurusAI/Qwen3-8B-GGUF", pipelineTag: "text-generation")
+                id: "OsaurusAI/Qwen3-8B-GGUF",
+                pipelineTag: "text-generation"
+            )
         )
         #expect(
             !ModelManager.isChatCatalogEligible(
-                id: "OsaurusAI/Qwen3-8B", pipelineTag: "text-generation", tags: ["gguf"])
+                id: "OsaurusAI/Qwen3-8B",
+                pipelineTag: "text-generation",
+                tags: ["gguf"]
+            )
         )
     }
 
@@ -537,7 +543,9 @@ struct ModelManagerSuggestedTests {
             for gb in stride(from: 8.0, through: 128.0, by: 2.0) {
                 guard
                     let pick = ConfigureAIState.recommendedLocalPick(
-                        from: candidates, totalMemoryGB: gb)
+                        from: candidates,
+                        totalMemoryGB: gb
+                    )
                 else { continue }
                 // Never a dropped Gemma QAT / plain-MXFP4 build.
                 let lower = pick.id.lowercased()
@@ -546,7 +554,8 @@ struct ModelManagerSuggestedTests {
                     && (lower.contains("qat") || lower.hasSuffix("mxfp4"))
                 #expect(
                     !droppedGemma,
-                    "auto-default \(pick.id) at \(gb)GB must not be a Gemma QAT/MXFP4 build")
+                    "auto-default \(pick.id) at \(gb)GB must not be a Gemma QAT/MXFP4 build"
+                )
 
                 // The pick is the largest-base-parameter Top Pick that
                 // comfortably fits, except Raptor 0.6 wins when it fits and
@@ -598,7 +607,9 @@ struct ModelManagerSuggestedTests {
             // feedback: decode too slow); every RAM tier lands elsewhere.
             for gb in stride(from: 8.0, through: 128.0, by: 2.0) {
                 let pick = ConfigureAIState.recommendedLocalPick(
-                    from: candidates, totalMemoryGB: gb)
+                    from: candidates,
+                    totalMemoryGB: gb
+                )
                 #expect(
                     pick?.id.lowercased().contains("bonsai") != true,
                     "auto-default at \(gb)GB must not be dense Bonsai; got \(pick?.id ?? "nil")"
@@ -658,7 +669,7 @@ struct ModelManagerSuggestedTests {
 
     @Test func parseHFTimestamp_isSafeOffMainActor() async {
         let results = await withTaskGroup(of: Date?.self) { group in
-            for _ in 0..<32 {
+            for _ in 0 ..< 32 {
                 group.addTask { ModelManager.parseHFTimestamp("2024-05-01T12:34:56.000Z") }
             }
             var collected: [Date?] = []

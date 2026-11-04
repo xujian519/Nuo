@@ -163,7 +163,8 @@ enum AgentChannelCustomJSONRunnerError: LocalizedError, Equatable, Sendable {
         case .actionNotConfigured(let action, let connectionId):
             return "Custom JSON channel `\(connectionId)` has no request template for `\(action.rawValue)`."
         case .methodNotAllowed(let method, let allowed):
-            return "HTTP method `\(method)` is not allowlisted for this custom JSON channel. Allowed: \(allowed.joined(separator: ", "))."
+            return
+                "HTTP method `\(method)` is not allowlisted for this custom JSON channel. Allowed: \(allowed.joined(separator: ", "))."
         case .blockedURL(let reason):
             return "Custom JSON channel request URL was blocked: \(reason)."
         case .invalidRequest(let message):
@@ -194,7 +195,8 @@ enum AgentChannelCustomJSONRunnerError: LocalizedError, Equatable, Sendable {
             return "Custom JSON channel transport failed: \(message)"
         case .cancelled(let partialWriteStatus):
             if let partialWriteStatus {
-                return "Custom JSON channel write was cancelled after dispatch; delivery status is `\(partialWriteStatus)`."
+                return
+                    "Custom JSON channel write was cancelled after dispatch; delivery status is `\(partialWriteStatus)`."
             }
             return "Custom JSON channel request was cancelled."
         }
@@ -244,14 +246,17 @@ final class AgentChannelCustomJSONRunner: AgentChannelCustomJSONRunning, @unchec
                 "connection_id": connection.id,
                 "kind": connection.kind.rawValue,
                 "status": "not_configured",
-                "failures": [AgentChannelCustomJSONRunnerError.missingConfiguration(connection.id).localizedDescription],
+                "failures": [
+                    AgentChannelCustomJSONRunnerError.missingConfiguration(connection.id).localizedDescription
+                ],
             ]
         }
 
         let baseURLStatus = Self.diagnosticURLStatus(configuration: customHTTP)
         let actionRows = customHTTP.actions.keys.sorted().map { key -> [String: Any] in
             let action = customHTTP.actions[key] ?? AgentChannelCustomHTTPAction(path: "/")
-            let templates = [action.path] + Array(action.query.values) + Array(action.headers.values)
+            let templates =
+                [action.path] + Array(action.query.values) + Array(action.headers.values)
                 + [action.bodyTemplate].compactMap { $0 }
             let placeholders = AgentChannelTemplateRenderer.placeholders(in: templates)
             return [
@@ -914,7 +919,8 @@ final class AgentChannelCustomJSONRunner: AgentChannelCustomJSONRunning, @unchec
             let contentType = request.value(forHTTPHeaderField: "Content-Type") ?? "application/json"
             let renderMode: AgentChannelTemplateMode = Self.isJSONContentType(contentType) ? .jsonBody : .rawString
             if renderMode != .jsonBody,
-                Self.bodyTemplateContainsPlaceholders(bodyTemplate) {
+                Self.bodyTemplateContainsPlaceholders(bodyTemplate)
+            {
                 throw AgentChannelCustomJSONRunnerError.invalidRequest(
                     "Non-JSON body templates must not contain placeholders."
                 )
@@ -950,11 +956,13 @@ final class AgentChannelCustomJSONRunner: AgentChannelCustomJSONRunning, @unchec
             guard let reference = connection.secrets.first(where: { $0.name == signature.secretName }) else {
                 throw AgentChannelCustomJSONRunnerError.missingSecret(signature.secretName)
             }
-            guard let secret = secretResolver.secret(
-                named: reference.name,
-                keychainId: reference.keychainId,
-                connection: connection
-            ), !secret.isEmpty else {
+            guard
+                let secret = secretResolver.secret(
+                    named: reference.name,
+                    keychainId: reference.keychainId,
+                    connection: connection
+                ), !secret.isEmpty
+            else {
                 throw AgentChannelCustomJSONRunnerError.missingSecret(signature.secretName)
             }
             redactor.register(name: reference.name, value: secret)
@@ -1070,9 +1078,11 @@ final class AgentChannelCustomJSONRunner: AgentChannelCustomJSONRunning, @unchec
             )
             var result: [String: Any] = [
                 "connection_id": connection.id,
-                "kind": action == .replyThread ? "custom_json_thread_reply_sent"
+                "kind": action == .replyThread
+                    ? "custom_json_thread_reply_sent"
                     : (action == .editMessage ? "custom_json_message_edited" : "custom_json_message_sent"),
-                "standard_kind": action == .replyThread ? "thread_reply_sent"
+                "standard_kind": action == .replyThread
+                    ? "thread_reply_sent"
                     : (action == .editMessage ? "message_edited" : "message_sent"),
                 "channel_id": targetRoomId ?? input["room_id"]?.rawString ?? "",
                 "message": message,
@@ -1199,7 +1209,9 @@ final class AgentChannelCustomJSONRunner: AgentChannelCustomJSONRunning, @unchec
             "id": try Self.stringValue(item, path: mapping.idPath ?? "id") ?? fallbackMessageId ?? "",
             "room_id": try Self.stringValue(item, path: mapping.roomIdPath ?? "room_id") ?? fallbackRoomId,
             "thread_id": try Self.stringValue(item, path: mapping.threadIdPath ?? "thread_id") ?? "",
-            "content": redactor.redact(try Self.stringValue(item, path: mapping.contentPath ?? "content") ?? fallbackContent ?? ""),
+            "content": redactor.redact(
+                try Self.stringValue(item, path: mapping.contentPath ?? "content") ?? fallbackContent ?? ""
+            ),
             "author_id": try Self.stringValue(item, path: mapping.authorIdPath ?? "author_id") ?? "",
             "author_name": try Self.stringValue(item, path: mapping.authorNamePath ?? "author_name") ?? "",
             "timestamp": try Self.stringValue(item, path: mapping.timestampPath ?? "timestamp") ?? "",
@@ -1244,7 +1256,9 @@ final class AgentChannelCustomJSONRunner: AgentChannelCustomJSONRunning, @unchec
         return "\(connection.id):\(action.rawValue):\(target):\(Self.stableHash(content))"
     }
 
-    private func requireConfiguration(_ connection: AgentChannelConnection) throws -> AgentChannelCustomHTTPConfiguration {
+    private func requireConfiguration(_ connection: AgentChannelConnection) throws
+        -> AgentChannelCustomHTTPConfiguration
+    {
         guard let configuration = connection.customHTTP else {
             throw AgentChannelCustomJSONRunnerError.missingConfiguration(connection.id)
         }
@@ -1479,11 +1493,13 @@ private final class AgentChannelSecretRedactor: @unchecked Sendable {
         lock.withLock {
             secrets[name] = value
             if let pathEncoded = value.addingPercentEncoding(withAllowedCharacters: .agentChannelPathSegmentAllowed),
-                pathEncoded != value {
+                pathEncoded != value
+            {
                 secrets["\(name)_url_path"] = pathEncoded
             }
             if let queryEncoded = value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-                queryEncoded != value {
+                queryEncoded != value
+            {
                 secrets["\(name)_url_query"] = queryEncoded
             }
             if let strictQueryEncoded = value.addingPercentEncoding(
@@ -1602,9 +1618,10 @@ private enum AgentChannelTemplateRenderer {
         var summary = PlaceholderSummary()
         for template in templates {
             var searchStart = template.startIndex
-            while let open = template.range(of: "{{", range: searchStart..<template.endIndex),
-                let close = template.range(of: "}}", range: open.upperBound..<template.endIndex) {
-                let token = template[open.upperBound..<close.lowerBound]
+            while let open = template.range(of: "{{", range: searchStart ..< template.endIndex),
+                let close = template.range(of: "}}", range: open.upperBound ..< template.endIndex)
+            {
+                let token = template[open.upperBound ..< close.lowerBound]
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 if token.hasPrefix("input.") {
                     summary.inputs.insert(String(token.dropFirst("input.".count)))
@@ -1624,17 +1641,17 @@ private enum AgentChannelTemplateRenderer {
     ) throws -> String {
         var rendered = ""
         var searchStart = template.startIndex
-        while let open = template.range(of: "{{", range: searchStart..<template.endIndex) {
-            rendered += String(template[searchStart..<open.lowerBound])
-            guard let close = template.range(of: "}}", range: open.upperBound..<template.endIndex) else {
+        while let open = template.range(of: "{{", range: searchStart ..< template.endIndex) {
+            rendered += String(template[searchStart ..< open.lowerBound])
+            guard let close = template.range(of: "}}", range: open.upperBound ..< template.endIndex) else {
                 throw AgentChannelCustomJSONRunnerError.invalidTemplate("Unclosed placeholder.")
             }
-            let token = template[open.upperBound..<close.lowerBound]
+            let token = template[open.upperBound ..< close.lowerBound]
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             rendered += try replacement(for: token, context: context, mode: mode)
             searchStart = close.upperBound
         }
-        rendered += String(template[searchStart..<template.endIndex])
+        rendered += String(template[searchStart ..< template.endIndex])
         if rendered.contains("}}") {
             throw AgentChannelCustomJSONRunnerError.invalidTemplate("Unexpected closing placeholder marker.")
         }
@@ -1677,11 +1694,13 @@ private enum AgentChannelTemplateRenderer {
             guard let reference = context.connection.secrets.first(where: { $0.name == parts[1] }) else {
                 throw AgentChannelCustomJSONRunnerError.missingSecret(parts[1])
             }
-            guard let secret = context.secretResolver.secret(
-                named: reference.name,
-                keychainId: reference.keychainId,
-                connection: context.connection
-            ) else {
+            guard
+                let secret = context.secretResolver.secret(
+                    named: reference.name,
+                    keychainId: reference.keychainId,
+                    connection: context.connection
+                )
+            else {
                 throw AgentChannelCustomJSONRunnerError.missingSecret(parts[1])
             }
             context.redactor.register(name: reference.name, value: secret)
@@ -1918,7 +1937,9 @@ extension AgentChannelCustomJSONRunner {
 
     private static func validateHeaderName(_ name: String) throws {
         let forbidden = ["host", "content-length", "connection", "transfer-encoding"]
-        let allowed = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&'*+-.^_`|~")
+        let allowed = CharacterSet(
+            charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&'*+-.^_`|~"
+        )
         guard !name.isEmpty,
             name.rangeOfCharacter(from: allowed.inverted) == nil,
             !forbidden.contains(name.lowercased())

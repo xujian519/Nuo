@@ -43,7 +43,11 @@ struct MusicScriptsTests {
     @Test("shuffle is only touched when requested")
     func shuffleUntouchedByDefault() {
         #expect(!AppleScriptMusicService.playScriptBody(MusicPlayRequest()).contains("shuffle enabled"))
-        #expect(AppleScriptMusicService.playScriptBody(MusicPlayRequest(shuffle: true)).contains("set shuffle enabled to true"))
+        #expect(
+            AppleScriptMusicService.playScriptBody(MusicPlayRequest(shuffle: true)).contains(
+                "set shuffle enabled to true"
+            )
+        )
         #expect(AppleScriptMusicService.playScriptBody(MusicPlayRequest()) == "play")
     }
 
@@ -64,7 +68,9 @@ struct MusicScriptsTests {
 }
 
 private struct FakeMusicService: MusicServicing {
-    func nowPlaying() async throws -> MusicNowPlaying { .init(state: "stopped", track: nil, positionSeconds: nil, volume: 50, shuffle: false, repeatMode: "off") }
+    func nowPlaying() async throws -> MusicNowPlaying {
+        .init(state: "stopped", track: nil, positionSeconds: nil, volume: 50, shuffle: false, repeatMode: "off")
+    }
     func playback(_ action: MusicPlaybackAction) async throws -> MusicNowPlaying { try await nowPlaying() }
     func setVolume(_ level: Int) async throws -> Int { level }
     func playlists() async throws -> [MusicPlaylistInfo] { [] }

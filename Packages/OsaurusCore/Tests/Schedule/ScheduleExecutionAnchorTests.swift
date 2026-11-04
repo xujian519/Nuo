@@ -284,7 +284,10 @@ struct ScheduleExecutionAnchorTests {
         )
 
         #expect(schedule.scheduledFireTime(asOf: now) == today)
-        #expect(schedule.nextRunDateAfterExecutionAnchor(asOf: now) == localDate(year: 2026, month: 9, day: 11, hour: 5, minute: 0))
+        #expect(
+            schedule.nextRunDateAfterExecutionAnchor(asOf: now)
+                == localDate(year: 2026, month: 9, day: 11, hour: 5, minute: 0)
+        )
 
         var consumed = schedule
         consumed.lastTriggeredAt = today

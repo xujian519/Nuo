@@ -22,8 +22,11 @@ struct TemplateShareTests {
         var template = AgentTemplate(name: name, agent: entry)
         template.serverHints = [
             MCPServerHint(
-                name: "CRM", url: "https://user:pw@crm.example.com/s/9f2c81ab77de4410aa93/mcp?api_key=sk-live&team=ops",
-                command: nil, args: ["--token", "sk-live-123", "/Volumes/Work/config.json"])
+                name: "CRM",
+                url: "https://user:pw@crm.example.com/s/9f2c81ab77de4410aa93/mcp?api_key=sk-live&team=ops",
+                command: nil,
+                args: ["--token", "sk-live-123", "/Volumes/Work/config.json"]
+            )
         ]
         return template.sealed()
     }
@@ -64,27 +67,41 @@ struct TemplateShareTests {
     func aSignatureSurvivesTheFile_andAnyEditDropsIt() throws {
         let signed = try TemplateSigner.signed(
             TemplateExportSanitizer.sanitized(Self.agentWithLocalDetails()),
-            privateKey: TestKeys.alicePrivateKey, authorName: "Alice")
+            privateKey: TestKeys.alicePrivateKey,
+            authorName: "Alice"
+        )
         let alice = try deriveOsaurusId(from: TestKeys.alicePrivateKey)
-        #expect(TemplateSigner.status(of: signed, knownAgent: { _ in nil }) == .signed(address: alice, knownAgentID: nil))
+        #expect(
+            TemplateSigner.status(of: signed, knownAgent: { _ in nil }) == .signed(address: alice, knownAgentID: nil)
+        )
         #expect(
             TemplateSigner.status(of: signed, knownAgent: { _ in nil }).label
-                == "Signed by \(SharedAgentIdentity.shortAddress(alice))")
+                == "Signed by \(SharedAgentIdentity.shortAddress(alice))"
+        )
         // A signed template is the signer's content: the sanitizer leaves it alone.
         #expect(TemplateExportSanitizer.sanitized(signed) == signed)
 
         let read = try Template.parse(String(decoding: try TemplateFileExport.exportData(signed), as: UTF8.self))
         let known = UUID()
-        #expect(TemplateSigner.status(of: read, knownAgent: { $0 == alice ? known : nil }) == .signed(address: alice, knownAgentID: known))
+        #expect(
+            TemplateSigner.status(of: read, knownAgent: { $0 == alice ? known : nil })
+                == .signed(address: alice, knownAgentID: known)
+        )
 
         var edited = read
         edited.summary = "Changed"
         #expect(TemplateSigner.status(of: edited, knownAgent: { _ in nil }) == .invalid, "stale hash")
-        #expect(TemplateSigner.status(of: edited.sealed(), knownAgent: { _ in nil }) == .unsigned, "resealing drops the signature")
+        #expect(
+            TemplateSigner.status(of: edited.sealed(), knownAgent: { _ in nil }) == .unsigned,
+            "resealing drops the signature"
+        )
 
         var forged = read
         forged.author?.address = try deriveOsaurusId(from: TestKeys.bobPrivateKey)
-        #expect(TemplateSigner.status(of: forged.sealed(), knownAgent: { _ in nil }) != .signed(address: alice, knownAgentID: nil))
+        #expect(
+            TemplateSigner.status(of: forged.sealed(), knownAgent: { _ in nil })
+                != .signed(address: alice, knownAgentID: nil)
+        )
     }
 
     @Test
@@ -142,8 +159,10 @@ struct TemplateImportStoreTests {
     func aTamperedSignedTemplateIsRefused_notResealed() async throws {
         try await withStore { store in
             let signed = try TemplateSigner.signed(
-                TemplateExportSanitizer.sanitized(Self.intake()), privateKey: TestKeys.alicePrivateKey,
-                authorName: "Alice")
+                TemplateExportSanitizer.sanitized(Self.intake()),
+                privateKey: TestKeys.alicePrivateKey,
+                authorName: "Alice"
+            )
             var tampered = signed
             tampered.summary = "Edited in transit"
             #expect(TemplateSigner.status(of: tampered) == .invalid)

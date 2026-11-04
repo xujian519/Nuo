@@ -45,7 +45,11 @@ struct LocalModelDetectionTests {
     /// Must run inside `ChatHistoryTestStorage.run`, which holds
     /// `StoragePathsTestLock` — the same lock the model-scan overrides are
     /// mutated under elsewhere — so these globals can't race other suites.
-    private func withCatalog(_ models: [MLXModel], scanBarrier: (@Sendable () -> Void)? = nil, _ body: () throws -> Void) async throws {
+    private func withCatalog(
+        _ models: [MLXModel],
+        scanBarrier: (@Sendable () -> Void)? = nil,
+        _ body: () throws -> Void
+    ) async throws {
         let prevScan = ModelManager.scanLocalModelsOverrideForTests
         let prevWait = ModelManager.localModelsScanWaitLimitOverrideForTests
         let prevExternal = ExternalModelLocator.testRootsOverride
@@ -56,7 +60,9 @@ struct LocalModelDetectionTests {
         ExternalModelLocator.invalidateInMemory()
         _ = ExternalModelLocator.rescan()
         ModelManager.localModelsScanWaitLimitOverrideForTests = 2.0
-        ModelManager.scanLocalModelsOverrideForTests = { _ in scanBarrier?(); return models }
+        ModelManager.scanLocalModelsOverrideForTests = { _ in
+            scanBarrier?(); return models
+        }
         ModelManager.invalidateLocalModelsCache()
         defer {
             ModelManager.scanLocalModelsOverrideForTests = prevScan

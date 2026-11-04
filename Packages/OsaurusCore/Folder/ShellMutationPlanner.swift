@@ -94,7 +94,9 @@ enum ShellMutationPlanner {
         var dest = destination
         var isDir: ObjCBool = false
         if FileManager.default.fileExists(
-            atPath: rootPath.appendingPathComponent(destination).path, isDirectory: &isDir),
+            atPath: rootPath.appendingPathComponent(destination).path,
+            isDirectory: &isDir
+        ),
             isDir.boolValue
         {
             dest = (destination as NSString).appendingPathComponent((source as NSString).lastPathComponent)

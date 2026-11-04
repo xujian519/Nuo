@@ -123,7 +123,8 @@ struct EvalTranscriptStoreTests {
     @Test
     func legacyStepEventDecodesWithExplicitUnavailableAttribution() throws {
         let legacy = Data(
-            #"{"step":1,"stopReason":"tool_calls","contentCharacterCount":0,"reasoningCharacterCount":32,"contentPreview":null,"reasoningPreview":"thinking","sawToolCallProgress":true,"pendingToolName":"file_read","toolArgumentCharacters":48,"completionTokens":null,"requestedEnableThinking":true,"thinkingState":"explicitEnabled"}"#.utf8
+            #"{"step":1,"stopReason":"tool_calls","contentCharacterCount":0,"reasoningCharacterCount":32,"contentPreview":null,"reasoningPreview":"thinking","sawToolCallProgress":true,"pendingToolName":"file_read","toolArgumentCharacters":48,"completionTokens":null,"requestedEnableThinking":true,"thinkingState":"explicitEnabled"}"#
+                .utf8
         )
         let decoded = try JSONDecoder().decode(
             EvalCaseTranscript.StepEvent.self,

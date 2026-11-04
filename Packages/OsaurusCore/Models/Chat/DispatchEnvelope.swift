@@ -109,7 +109,7 @@ struct ChannelMessageEnvelope: Equatable, Sendable {
         let innerStart = trimmed.index(trimmed.startIndex, offsetBy: open.count)
         let innerEnd = trimmed.index(trimmed.endIndex, offsetBy: -close.count)
         guard innerStart <= innerEnd else { return nil }
-        let inner = trimmed[innerStart..<innerEnd]
+        let inner = trimmed[innerStart ..< innerEnd]
 
         var fields: [String: String] = [:]
         for rawLine in inner.split(separator: "\n", omittingEmptySubsequences: true) {
@@ -251,8 +251,8 @@ struct DispatchEnvelope: Equatable, Sendable {
         guard text.hasPrefix(prefix) else { return nil }
         let afterPrefix = text.index(text.startIndex, offsetBy: prefix.count)
         let suffix = ExecutionContext.folderUnreadablePreambleSuffix
-        guard let suffixRange = text.range(of: suffix, range: afterPrefix..<text.endIndex) else { return nil }
-        let path = String(text[afterPrefix..<suffixRange.lowerBound])
+        guard let suffixRange = text.range(of: suffix, range: afterPrefix ..< text.endIndex) else { return nil }
+        let path = String(text[afterPrefix ..< suffixRange.lowerBound])
         var remainder = text[suffixRange.upperBound...]
         if remainder.hasPrefix("\n\n") { remainder = remainder.dropFirst(2) }
         return (path, String(remainder))
@@ -452,7 +452,9 @@ extension DispatchEnvelope {
                 )
             )
             if let conversation = channel.source.conversation {
-                out.append(Badge(symbol: "bubble.left.and.text.bubble.right", label: conversation, tooltip: L("Conversation")))
+                out.append(
+                    Badge(symbol: "bubble.left.and.text.bubble.right", label: conversation, tooltip: L("Conversation"))
+                )
             }
             if let sender = channel.source.sender {
                 out.append(Badge(symbol: "person", label: sender, tooltip: L("Sender")))

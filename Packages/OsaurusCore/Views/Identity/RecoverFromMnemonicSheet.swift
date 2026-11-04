@@ -328,14 +328,19 @@ struct RecoverFromMnemonicSheet: View {
 
     private var canRestore: Bool {
         Self.canRestore(
-            words: parsedWords, mode: mode, acknowledgedReplace: hasAcknowledgedReplace)
+            words: parsedWords,
+            mode: mode,
+            acknowledgedReplace: hasAcknowledgedReplace
+        )
     }
 
     /// Whether the Restore button is enabled: a complete 24-word phrase, plus
     /// the explicit acknowledgment when replacing a healthy identity.
     /// Internal (not private) for direct testing.
     static func canRestore(
-        words: [String], mode: RecoverFromMnemonicMode, acknowledgedReplace: Bool
+        words: [String],
+        mode: RecoverFromMnemonicMode,
+        acknowledgedReplace: Bool
     ) -> Bool {
         guard words.count == 24 else { return false }
         if case .replaceExisting = mode, !acknowledgedReplace { return false }
@@ -382,7 +387,10 @@ struct RecoverFromMnemonicSheet: View {
                 defer { seed.zeroOut() }
                 let candidateAddress = try deriveOsaurusId(from: seed)
                 if let mismatchCheck = Self.previousSeedMismatchMessage(
-                    drift: drift, seed: seed, candidate: candidateAddress) {
+                    drift: drift,
+                    seed: seed,
+                    candidate: candidateAddress
+                ) {
                     statusIsError = true
                     statusMessage = mismatchCheck
                     requiresExplicitOverride = true
@@ -422,7 +430,9 @@ struct RecoverFromMnemonicSheet: View {
     /// "Restore Anyway" override in that case. Internal (not private) for
     /// direct testing.
     static func previousSeedMismatchMessage(
-        drift: IdentityDrift, seed: Data, candidate: OsaurusID
+        drift: IdentityDrift,
+        seed: Data,
+        candidate: OsaurusID
     ) -> String? {
         // We have agents whose stored addresses don't derive from the current
         // master; verify the candidate seed reproduces *those* stored addresses.

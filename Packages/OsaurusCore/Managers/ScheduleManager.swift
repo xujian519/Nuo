@@ -69,7 +69,8 @@ public final class ScheduleManager {
             self?.checkForMissedSchedules()
             if let self {
                 print(
-                    "[Nuo] ScheduleManager initialized with \(self.schedules.count) schedules")
+                    "[Nuo] ScheduleManager initialized with \(self.schedules.count) schedules"
+                )
             }
         }
 
@@ -99,7 +100,9 @@ public final class ScheduleManager {
     /// reports; routing every read/write through one background queue
     /// keeps the main thread free and preserves write ordering.
     private nonisolated static let ioQueue = DispatchQueue(
-        label: "com.dinoki.osaurus.schedule-io", qos: .userInitiated)
+        label: "com.dinoki.osaurus.schedule-io",
+        qos: .userInitiated
+    )
 
     private nonisolated static func persist(_ work: @escaping @Sendable () -> Void) {
         ioQueue.async(execute: work)

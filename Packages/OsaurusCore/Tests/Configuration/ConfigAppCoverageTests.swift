@@ -30,7 +30,8 @@ struct ConfigAppBehaviorEnumTests {
         #expect(ConfigAppBehaviorEnums.applescriptMode(forKey: "confirm_each") == .confirmEach)
         #expect(
             ConfigAppBehaviorEnums.applescriptMode(forKey: "auto_run_with_warning")
-                == .autoRunWithWarning)
+                == .autoRunWithWarning
+        )
     }
 
     @Test
@@ -200,8 +201,10 @@ struct ConfigAppCoveragePlannerTests {
             let customAgents = AgentManager.shared.agents.filter { !$0.isBuiltIn }.count
             #expect(
                 emptied.risks.contains(
-                    ConfigRisk.emptiesSpawnPool(removed: before.count, customAgents: customAgents)),
-                "\(emptied.risks)")
+                    ConfigRisk.emptiesSpawnPool(removed: before.count, customAgents: customAgents)
+                ),
+                "\(emptied.risks)"
+            )
             #expect(emptied.hasHighRiskChanges)
 
             // Keeping the member is a plain no-op, never a risk.

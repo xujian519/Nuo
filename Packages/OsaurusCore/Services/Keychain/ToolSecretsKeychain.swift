@@ -65,7 +65,10 @@ public enum ToolSecretsKeychain {
     /// Keychain failure (locked vs. access denied vs. OSStatus) instead of a
     /// generic "storage was unavailable".
     static func saveSecretOutcome(
-        _ value: String, id: String, for pluginId: String, agentId: UUID
+        _ value: String,
+        id: String,
+        for pluginId: String,
+        agentId: UUID
     ) -> KeychainMutationOutcome {
         let account = agentAccount(agentId: agentId, pluginId: pluginId, key: id)
         if KeychainQueryHelpers.usesInMemoryKeychainStoreForTests {
@@ -87,7 +90,8 @@ public enum ToolSecretsKeychain {
         }
         if KeychainQueryHelpers.disablesKeychainForProcess { return nil }
         if let data = Keychain.read(service: service, account: account),
-            let value = String(data: data, encoding: .utf8) {
+            let value = String(data: data, encoding: .utf8)
+        {
             return value
         }
         return migrateLegacySecretIfPresent(id: id, pluginId: pluginId, agentId: agentId)
@@ -103,7 +107,9 @@ public enum ToolSecretsKeychain {
     /// the legacy item is deleted only after the canonical copy reads back —
     /// an interrupted migration can never lose the secret.
     private static func migrateLegacySecretIfPresent(
-        id: String, pluginId: String, agentId: UUID
+        id: String,
+        pluginId: String,
+        agentId: UUID
     ) -> String? {
         guard agentId == Agent.defaultId else { return nil }
         let legacyAccount = "\(pluginId).\(id)"
@@ -121,7 +127,8 @@ public enum ToolSecretsKeychain {
             let value = String(data: data, encoding: .utf8)
         else { return nil }
         if Keychain.write(service: service, account: canonicalAccount, data: data),
-            Keychain.read(service: service, account: canonicalAccount) == data {
+            Keychain.read(service: service, account: canonicalAccount) == data
+        {
             Keychain.delete(service: service, account: legacyAccount)
         }
         return value

@@ -396,12 +396,20 @@ struct RemoteAgentRoutingTests {
                     try? FileManager.default.removeItem(at: root)
                 }
                 let first = RemoteAgent(
-                    agentAddress: "0xshared", name: "Research", description: "Reviews citations.",
-                    relayBaseURL: "https://relay.example", providerId: UUID(), workspaceId: "first"
+                    agentAddress: "0xshared",
+                    name: "Research",
+                    description: "Reviews citations.",
+                    relayBaseURL: "https://relay.example",
+                    providerId: UUID(),
+                    workspaceId: "first"
                 )
                 let second = RemoteAgent(
-                    agentAddress: first.agentAddress, name: "Research", description: "Preserve this workspace purpose.",
-                    relayBaseURL: first.relayBaseURL, providerId: UUID(), workspaceId: "second"
+                    agentAddress: first.agentAddress,
+                    name: "Research",
+                    description: "Preserve this workspace purpose.",
+                    relayBaseURL: first.relayBaseURL,
+                    providerId: UUID(),
+                    workspaceId: "second"
                 )
                 RemoteAgentStore.save(first)
                 RemoteAgentStore.save(second)
@@ -410,8 +418,11 @@ struct RemoteAgentRoutingTests {
                 @MainActor func apply(_ json: String) throws {
                     let metadata = try #require(RemoteProviderService.parseAgentMetadata(from: Data(json.utf8)))
                     manager.updateLiveMetadata(
-                        forAddress: first.agentAddress, name: metadata.name, description: metadata.description,
-                        avatar: metadata.avatar, providerId: first.providerId
+                        forAddress: first.agentAddress,
+                        name: metadata.name,
+                        description: metadata.description,
+                        avatar: metadata.avatar,
+                        providerId: first.providerId
                     )
                 }
                 try apply(#"{"name":"Research"}"#)
@@ -423,7 +434,9 @@ struct RemoteAgentRoutingTests {
                 #expect(manager.remoteAgent(forProviderId: second.providerId)?.description == second.description)
                 try apply(#"{"description":"  Checks published sources.  "}"#)
                 manager.refresh()
-                #expect(manager.remoteAgent(forProviderId: first.providerId)?.description == "Checks published sources.")
+                #expect(
+                    manager.remoteAgent(forProviderId: first.providerId)?.description == "Checks published sources."
+                )
                 #expect(manager.remoteAgent(forProviderId: second.providerId)?.description == second.description)
             }
         }

@@ -21,8 +21,12 @@ struct AgentGenerationEditorTests {
 
     @Test("custom toggles preserve existing JSON edits and saved values")
     func customJSONPreservesEdits() throws {
-        var draft = AgentGenerationDraft(settings: .init(stop: ["END"],
-            templateKwargs: ["template": .object(["city": .null])]))
+        var draft = AgentGenerationDraft(
+            settings: .init(
+                stop: ["END"],
+                templateKwargs: ["template": .object(["city": .null])]
+            )
+        )
         let saved = try draft.validated().settings
         let original = draft
         draft.stop.setCustom(false)
@@ -48,18 +52,25 @@ struct AgentGenerationEditorTests {
                 _ = try value.value(named: field)
                 Issue.record("Blank custom JSON must not save")
             } catch {
-                #expect(error.localizedDescription ==
-                    "Enter a value for \(field), or select Inherit to use defaults.")
+                #expect(error.localizedDescription == "Enter a value for \(field), or select Inherit to use defaults.")
             }
         }
     }
 
     @Test("inherit and explicit zero/false survive the agent editor")
     func draftRoundTrip() throws {
-        let settings = AgentGenerationSettings(topP: 0, topK: 0, minP: 0,
-            repetitionPenalty: 1, presencePenalty: 0, seed: 0, stop: [],
-            enableThinking: false, reasoningEffort: "xhigh",
-            templateKwargs: ["template": .object(["city": .null])])
+        let settings = AgentGenerationSettings(
+            topP: 0,
+            topK: 0,
+            minP: 0,
+            repetitionPenalty: 1,
+            presencePenalty: 0,
+            seed: 0,
+            stop: [],
+            enableThinking: false,
+            reasoningEffort: "xhigh",
+            templateKwargs: ["template": .object(["city": .null])]
+        )
         let draft = AgentGenerationDraft(temperature: 0, maxTokens: 128, settings: settings)
         let values = try draft.validated()
         #expect(values.temperature == 0)
@@ -92,7 +103,8 @@ struct AgentGenerationEditorTests {
     func exactCapabilities() throws {
         let choices = AgentGenerationReasoningChoices(
             efforts: .init(levels: ["low", "medium", "xhigh"].map { .init(id: $0) }, defaultLevelId: "xhigh"),
-            supportsThinking: false)
+            supportsThinking: false
+        )
         try choices.validate(settings: .init(reasoningEffort: "xhigh"))
         #expect(throws: (any Error).self) { try choices.validate(settings: .init(reasoningEffort: "high")) }
         #expect(throws: (any Error).self) { try choices.validate(settings: .init(enableThinking: false)) }
@@ -108,13 +120,27 @@ struct AgentGenerationEditorTests {
         var controls = ChatTurnGenerationControls.capture(
             activeModelOptions: ["reasoningEffort": .string("medium"), "disableThinking": .bool(false)])
         controls.topP = 0.95
-        controls.agentSettings = .init(topP: 0.8, topK: 42, minP: 0.02,
-            repetitionPenalty: 1.1, frequencyPenalty: 0.3, presencePenalty: 0.4,
-            seed: 17, stop: ["END"], enableThinking: true, reasoningEffort: "low",
-            templateKwargs: ["template": .string("agent")])
-        controls.overrides = .init(topP: 0, topK: 0, reasoningEffort: "xhigh", enableThinking: false,
-            templateKwargs: ["template": .string("turn")])
-        for _ in 0..<3 {
+        controls.agentSettings = .init(
+            topP: 0.8,
+            topK: 42,
+            minP: 0.02,
+            repetitionPenalty: 1.1,
+            frequencyPenalty: 0.3,
+            presencePenalty: 0.4,
+            seed: 17,
+            stop: ["END"],
+            enableThinking: true,
+            reasoningEffort: "low",
+            templateKwargs: ["template": .string("agent")]
+        )
+        controls.overrides = .init(
+            topP: 0,
+            topK: 0,
+            reasoningEffort: "xhigh",
+            enableThinking: false,
+            templateKwargs: ["template": .string("turn")]
+        )
+        for _ in 0 ..< 3 {
             var request = ResponsesInferenceRequest(model: "fixture", input: [])
             controls.apply(to: &request)
             #expect(request.generation.topP == 0)
@@ -128,7 +154,8 @@ struct AgentGenerationEditorTests {
             #expect(request.generation.enableThinking == false)
             #expect(request.generation.reasoningEffort == "xhigh")
             #expect(request.generation.templateKwargs == ["template": .string("turn")])
-            var compatibility = ResponsesInferenceRequest(model: "fixture", input: []).chatCompletionsCompatibilityRequest()
+            var compatibility = ResponsesInferenceRequest(model: "fixture", input: [])
+                .chatCompletionsCompatibilityRequest()
             controls.apply(to: &compatibility)
             let restored = ResponsesInferenceRequest(chatCompletion: compatibility)
             #expect(restored.generation.minP == request.generation.minP)
@@ -145,18 +172,29 @@ struct AgentGenerationEditorTests {
     @Test("template detection follows the canonical effort control instead of adding a duplicate Thinking switch")
     func effortAndThinkingAreNotDuplicated() throws {
         let local = LocalReasoningCapability.analyze(
-            template: "{% if enable_thinking is false %}{{ '<think></think>' }}{% endif %}")
+            template: "{% if enable_thinking is false %}{{ '<think></think>' }}{% endif %}"
+        )
         #expect(local.isToggleableThinking)
         let efforts = ModelReasoningCapabilities(
-            levels: ["none", "low", "medium", "xhigh"].map { .init(id: $0) }, defaultLevelId: "xhigh")
-        let effortChoices = AgentGenerationReasoningChoices.resolved(modelID: "effort-fixture",
-            localCapability: local, efforts: efforts, options: [efforts.reasoningOptionDefinition])
+            levels: ["none", "low", "medium", "xhigh"].map { .init(id: $0) },
+            defaultLevelId: "xhigh"
+        )
+        let effortChoices = AgentGenerationReasoningChoices.resolved(
+            modelID: "effort-fixture",
+            localCapability: local,
+            efforts: efforts,
+            options: [efforts.reasoningOptionDefinition]
+        )
         #expect(effortChoices.efforts?.levels.map(\.id) == ["none", "low", "medium", "xhigh"])
         #expect(!effortChoices.showsThinkingControl)
         #expect(effortChoices.supportsThinking)
         try effortChoices.validate(settings: .init(enableThinking: false))
-        let toggleChoices = AgentGenerationReasoningChoices.resolved(modelID: "Qwen3-toggle-fixture",
-            localCapability: local, efforts: nil, options: QwenThinkingProfile.options)
+        let toggleChoices = AgentGenerationReasoningChoices.resolved(
+            modelID: "Qwen3-toggle-fixture",
+            localCapability: local,
+            efforts: nil,
+            options: QwenThinkingProfile.options
+        )
         #expect(toggleChoices.supportsThinking)
         #expect(toggleChoices.showsThinkingControl)
         #expect(toggleChoices.efforts == nil)
@@ -168,8 +206,11 @@ struct AgentGenerationEditorTests {
         controls.agentDefaultsCaptured = true
         controls.maxOutputTokens = 4096
         controls.agentSettings = .init(topK: 0)
-        var request = ResponsesInferenceRequest(model: "fixture", input: [],
-            generation: .init(maxOutputTokens: 128))
+        var request = ResponsesInferenceRequest(
+            model: "fixture",
+            input: [],
+            generation: .init(maxOutputTokens: 128)
+        )
         controls.apply(to: &request)
         #expect(request.generation.maxOutputTokens == 128)
     }
@@ -184,8 +225,10 @@ struct AgentGenerationEditorTests {
         #expect(try JSONDecoder().decode(ChatTurnGenerationControls.self, from: encoded) == controls)
         var old = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
         for key in ["agentSettings", "maxOutputTokens", "agentDefaultsCaptured"] { old.removeValue(forKey: key) }
-        let decoded = try JSONDecoder().decode(ChatTurnGenerationControls.self,
-            from: JSONSerialization.data(withJSONObject: old))
+        let decoded = try JSONDecoder().decode(
+            ChatTurnGenerationControls.self,
+            from: JSONSerialization.data(withJSONObject: old)
+        )
         #expect(decoded.agentSettings == nil)
         #expect(decoded.agentDefaultsCaptured == nil)
         #expect(decoded.maxOutputTokens == nil)

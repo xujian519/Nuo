@@ -87,7 +87,7 @@ enum WorkspaceAgentLiveness {
             return .failed("relay: \(token)")
         case .host(let status, let body):
             switch status {
-            case 200..<300:
+            case 200 ..< 300:
                 return .live(RemoteProviderService.parseAgentMetadata(from: body))
             case 401, 403:
                 return .rejected
@@ -134,13 +134,17 @@ enum WorkspaceAgentLiveness {
         case .offline:
             if let lastSeen {
                 let ago = relativeAge(from: lastSeen, to: now)
-                return L("Workspace agent \(agentName) is offline (last seen \(ago)). Its owner's Mac is not connected to the relay.")
+                return L(
+                    "Workspace agent \(agentName) is offline (last seen \(ago)). Its owner's Mac is not connected to the relay."
+                )
             }
             return L("Workspace agent \(agentName) is offline. Its owner's Mac is not connected to the relay.")
         case .unreachable(let why):
             return L("Couldn't reach the relay to check \(agentName) (\(why)). Check this Mac's connection.")
         case .rejected:
-            return L("\(agentName)'s host refused this Mac's workspace key. Reconnect the agent from the Workspaces tab.")
+            return L(
+                "\(agentName)'s host refused this Mac's workspace key. Reconnect the agent from the Workspaces tab."
+            )
         case .notFound:
             return L("\(agentName) is no longer available on its owner's Mac.")
         case .failed(let why):
@@ -177,9 +181,10 @@ enum WorkspaceAgentLiveness {
         }
         let transport = transportOverride ?? SecureChannelLivenessTransport()
         let path = "/agents/\(address)"
-        let response = await withBudget(budget) {
-            await transport.get(path: path, provider: provider, timeout: budget)
-        } ?? .transport("timed out after \(Int(budget)) s")
+        let response =
+            await withBudget(budget) {
+                await transport.get(path: path, provider: provider, timeout: budget)
+            } ?? .transport("timed out after \(Int(budget)) s")
         let verdict = classify(response)
         await feedPresence(verdict, address: address)
         return verdict

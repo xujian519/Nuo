@@ -474,7 +474,8 @@ public enum AppleScriptLoop {
         let blankTextEditDocumentCountBefore: Int?
         if requiresBlankTextEditDocument {
             let observation = await runExecutor(textEditDocumentCountScript, .appleScript)
-            blankTextEditDocumentCountBefore = observation.isSuccess
+            blankTextEditDocumentCountBefore =
+                observation.isSuccess
                 ? Int(observation.output?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
                 : nil
         } else {
@@ -548,7 +549,8 @@ public enum AppleScriptLoop {
             )
             let expectedText: String?
             if let before = beforeObservation.output, let oldText = contract.oldText {
-                expectedText = before.contains(oldText)
+                expectedText =
+                    before.contains(oldText)
                     ? before.replacingOccurrences(of: oldText, with: contract.newText)
                     : nil
             } else if contract.oldText == nil {
@@ -991,21 +993,23 @@ public enum AppleScriptLoop {
                 return terminate(.done(summary: summary))
             }
 
-            let assistantMessage = stepResult.assistantMessage ?? ChatMessage(
-                role: "assistant",
-                content: nil,
-                tool_calls: [
-                    ToolCall(
-                        id: call.id,
-                        type: "function",
-                        function: ToolCallFunction(
-                            name: AppleScriptAction.toolName,
-                            arguments: call.arguments
+            let assistantMessage =
+                stepResult.assistantMessage
+                ?? ChatMessage(
+                    role: "assistant",
+                    content: nil,
+                    tool_calls: [
+                        ToolCall(
+                            id: call.id,
+                            type: "function",
+                            function: ToolCallFunction(
+                                name: AppleScriptAction.toolName,
+                                arguments: call.arguments
+                            )
                         )
-                    )
-                ],
-                tool_call_id: nil
-            )
+                    ],
+                    tool_call_id: nil
+                )
 
             let decoded = AppleScriptAction.decode(argumentsJSON: call.arguments)
             guard case .script(let proposedScript, let language) = decoded else {
@@ -1611,7 +1615,8 @@ public enum AppleScriptLoop {
                     of: oldText,
                     with: contract.newText
                 )
-                let matched = after == expected
+                let matched =
+                    after == expected
                     && (before.contains(oldText) || expected.contains(contract.newText))
                 steps.append(
                     AppleScriptStepRecord(
@@ -2430,23 +2435,31 @@ public enum AppleScriptLoop {
         request.generation.reasoningEffort = reasoningEffort
         let generateStarted = Date()
         let response = try await DesktopResponsesModelStep.completeResponse(
-            engine: engine, request: request, attempt: attempt
+            engine: engine,
+            request: request,
+            attempt: attempt
         )
         AppleScriptTraceLog.record(
-            request: request, response: response,
+            request: request,
+            response: response,
             elapsedSeconds: Date().timeIntervalSince(generateStarted)
         )
         let call = try DesktopResponsesModelStep.actionCall(
-            from: response, expectedTool: AppleScriptAction.toolName, required: false
+            from: response,
+            expectedTool: AppleScriptAction.toolName,
+            required: false
         )
         let total = response.inputTokenCount.flatMap { input in
             response.completion.tokenCount.map { input + $0 }
         }
         return ModelStepResult(
-            call: call, text: response.text, tokens: total,
+            call: call,
+            text: response.text,
+            tokens: total,
             tokensPerSecond: response.completion.tokensPerSecond,
             assistantMessage: try response.completedAssistantInput(),
-            inputTokenCount: response.inputTokenCount, outputTokenCount: response.completion.tokenCount
+            inputTokenCount: response.inputTokenCount,
+            outputTokenCount: response.completion.tokenCount
         )
     }
 

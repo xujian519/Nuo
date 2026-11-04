@@ -266,7 +266,8 @@ final class CapabilitiesTool: OsaurusTool, @unchecked Sendable {
                 await CapabilitiesDiscoverTool.listEnabledCapabilities(
                     page: max(page, 1),
                     agentId: agentId ?? ChatExecutionContext.currentAgentId,
-                    tool: name)
+                    tool: name
+                )
             )
         )
     }
@@ -280,7 +281,8 @@ final class CapabilitiesTool: OsaurusTool, @unchecked Sendable {
     static func recoveredIds(from args: [String: Any]) -> [String]? {
         func parse(_ value: Any?) -> [String]? {
             if let array = value as? [String] {
-                let trimmed = array
+                let trimmed =
+                    array
                     .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                     .filter { !$0.isEmpty }
                 return trimmed.isEmpty ? nil : trimmed
@@ -1019,7 +1021,10 @@ final class CapabilitiesLoadTool: OsaurusTool, @unchecked Sendable {
         // rejection it will re-issue verbatim.
         guard let ids = CapabilitiesTool.recoveredIds(from: args) else {
             return await CapabilitiesDiscoverTool.listEnabledCapabilities(
-                page: 1, agentId: nil, tool: name)
+                page: 1,
+                agentId: nil,
+                tool: name
+            )
         }
 
         var sections: [String] = []
@@ -1302,7 +1307,8 @@ final class CapabilitiesLoadTool: OsaurusTool, @unchecked Sendable {
         if await isAlreadyLoadedInSession(toolId) {
             let dynamicallyGranted = await MainActor.run {
                 ToolRegistry.shared.isDynamicToolGranted(
-                    toolId, agentId: ChatExecutionContext.currentAgentId
+                    toolId,
+                    agentId: ChatExecutionContext.currentAgentId
                 )
             }
             guard dynamicallyGranted else {
@@ -1460,9 +1466,10 @@ final class CapabilitiesLoadTool: OsaurusTool, @unchecked Sendable {
         var lines = ""
         for spec in specs {
             let summary = spec.function.description.map { desc -> String in
-                let firstLine = desc.split(
-                    whereSeparator: \.isNewline
-                ).first.map(String.init) ?? desc
+                let firstLine =
+                    desc.split(
+                        whereSeparator: \.isNewline
+                    ).first.map(String.init) ?? desc
                 return firstLine.count > 160
                     ? String(firstLine.prefix(160)) + "…" : firstLine
             }

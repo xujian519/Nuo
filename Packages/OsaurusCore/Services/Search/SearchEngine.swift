@@ -141,7 +141,8 @@ public struct SearchEngine: Sendable {
                         ok: false,
                         kind: error.kind,
                         error: error.message
-                    ))
+                    )
+                )
             }
             if !deduped.isEmpty { break }
         }
@@ -220,7 +221,8 @@ public struct SearchEngine: Sendable {
                 SearchBackendError(
                     "No backend available for \(snapshot.definition.id)",
                     kind: .providerHTTP
-                ))
+                )
+            )
         }
         do {
             return .success(try await backend.search(request))
@@ -246,7 +248,8 @@ public struct SearchEngine: Sendable {
         typealias RaceItem = (id: String, result: Result<[SearchHit], SearchBackendError>)
 
         let lastResortIds = Set(
-            providers.filter { $0.definition.lastResort }.map { $0.definition.id })
+            providers.filter { $0.definition.lastResort }.map { $0.definition.id }
+        )
 
         let done: [RaceItem] = await withTaskGroup(of: RaceItem?.self) { group in
             for snapshot in providers {
@@ -266,7 +269,8 @@ public struct SearchEngine: Sendable {
                 guard let item else { break }
                 collected.append(item)
                 if case .success(let hits) = item.result,
-                    hits.count >= earlyExitHitCount && !lastResortIds.contains(item.id) {
+                    hits.count >= earlyExitHitCount && !lastResortIds.contains(item.id)
+                {
                     break
                 }
                 if collected.count == providers.count { break }
@@ -287,7 +291,8 @@ public struct SearchEngine: Sendable {
                     ok: false,
                     kind: .didNotComplete,
                     error: "did_not_complete"
-                ))
+                )
+            )
         }
         for (id, result) in done {
             switch result {
@@ -295,7 +300,8 @@ public struct SearchEngine: Sendable {
                 attempts.append(SearchAttempt(provider: id, ok: true, count: h.count))
             case .failure(let error):
                 attempts.append(
-                    SearchAttempt(provider: id, ok: false, kind: error.kind, error: error.message))
+                    SearchAttempt(provider: id, ok: false, kind: error.kind, error: error.message)
+                )
             }
         }
 

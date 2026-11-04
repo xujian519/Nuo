@@ -109,7 +109,8 @@ struct SpawnToolsetTests {
         )
         let set = try #require(toolset)
         #expect(
-            set.specs.map(\.function.name).sorted() == ["create_event", "file_read", "file_search"])
+            set.specs.map(\.function.name).sorted() == ["create_event", "file_read", "file_search"]
+        )
         let ok = await set.execute(invocation("create_event"))
         #expect(ok == "ran:create_event")
     }

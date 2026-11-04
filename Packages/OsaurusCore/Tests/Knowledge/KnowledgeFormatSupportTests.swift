@@ -87,7 +87,10 @@ struct KnowledgeCurationApprovalGuardTests {
         try pdfBytes.write(to: pdfURL)
 
         let collection = KnowledgeCollection(
-            name: "Guard Corpus", summary: "", folderPath: folder.path)
+            name: "Guard Corpus",
+            summary: "",
+            folderPath: folder.path
+        )
         KnowledgeCollectionStore.save(collection)
         await KnowledgeManager.shared.reload()
 

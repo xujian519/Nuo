@@ -490,7 +490,8 @@ public final class SkillManager {
     }
 
     nonisolated private static func performDirectoryInstall(
-        _ directory: URL, replacing existing: Skill?
+        _ directory: URL,
+        replacing existing: Skill?
     ) async throws -> Skill {
         let markdown = directory.appendingPathComponent("SKILL.md")
         guard FileManager.default.fileExists(atPath: markdown.path) else { throw SkillFileError.invalidSkillArchive }

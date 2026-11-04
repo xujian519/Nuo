@@ -96,7 +96,8 @@ struct DeclaredReasoningEffortTests {
         return try body()
     }
 
-    private static let fixedNativeFixture = Data(#"""
+    private static let fixedNativeFixture = Data(
+        #"""
         {
           "capabilities": {"supports_reasoning_toggle": false, "reasoning_efforts": []},
           "chat": {"reasoning": {
@@ -105,7 +106,8 @@ struct DeclaredReasoningEffortTests {
             "mode_kwargs": {"think": {"reasoning_effort": "high"}}
           }}
         }
-        """#.utf8)
+        """#.utf8
+    )
 
     @Test("fixed native reasoning metadata exposes no picker and preserves explicit effort")
     func fixedNativeEffortPreservesExplicitValuesWithoutPicker() throws {
@@ -116,8 +118,13 @@ struct DeclaredReasoningEffortTests {
             #expect(DeclaredReasoningEffort.capabilities(forModelId: model) == nil)
             for effort in ["high", "low", "medium", "banana"] {
                 let context = MLXBatchAdapter.additionalContext(
-                    for: GenerationParameters(temperature: nil, maxTokens: 256,
-                        modelOptions: ["reasoningEffort": .string(effort)]), modelName: model)
+                    for: GenerationParameters(
+                        temperature: nil,
+                        maxTokens: 256,
+                        modelOptions: ["reasoningEffort": .string(effort)]
+                    ),
+                    modelName: model
+                )
                 #expect(context["reasoning_effort"] as? String == effort)
                 #expect(context["enable_thinking"] as? Bool == true)
             }
@@ -147,7 +154,8 @@ struct DeclaredReasoningEffortTests {
             ] {
                 let context = MLXBatchAdapter.additionalContext(
                     for: GenerationParameters(temperature: nil, maxTokens: 256, modelOptions: options),
-                    modelName: model)
+                    modelName: model
+                )
                 #expect(context["enable_thinking"] as? Bool == false)
             }
         }
@@ -156,16 +164,24 @@ struct DeclaredReasoningEffortTests {
     @Test("fixed native omitted and high requests satisfy the engine declaration")
     func fixedNativeDefaultAndHighSatisfyEngineContract() throws {
         let declaration = try #require(DeclaredReasoningEffort.parseJangDeclaration(data: Self.fixedNativeFixture))
-        let engineDeclaration = try #require(K2HorizonTemplateContract.fixedReasoningDeclaration(
-            metadata: Self.fixedNativeFixture, modelType: "k2_horizon"))
+        let engineDeclaration = try #require(
+            K2HorizonTemplateContract.fixedReasoningDeclaration(
+                metadata: Self.fixedNativeFixture,
+                modelType: "k2_horizon"
+            )
+        )
         let model = "proof/native-single-mode"
         try withOverride(declaration, forModelId: model) {
             for options: [String: ModelOptionValue] in [[:], ["reasoningEffort": .string("high")]] {
                 let context = MLXBatchAdapter.additionalContext(
                     for: GenerationParameters(temperature: nil, maxTokens: 256, modelOptions: options),
-                    modelName: model)
+                    modelName: model
+                )
                 try K2HorizonTemplateContract.validateContext(
-                    context, modelType: "k2_horizon", declaration: engineDeclaration)
+                    context,
+                    modelType: "k2_horizon",
+                    declaration: engineDeclaration
+                )
             }
         }
     }
@@ -173,8 +189,12 @@ struct DeclaredReasoningEffortTests {
     @Test("fixed native low and off requests become typed HTTP client errors")
     func fixedNativeLowAndOffMapToHTTP400() throws {
         let declaration = try #require(DeclaredReasoningEffort.parseJangDeclaration(data: Self.fixedNativeFixture))
-        let engineDeclaration = try #require(K2HorizonTemplateContract.fixedReasoningDeclaration(
-            metadata: Self.fixedNativeFixture, modelType: "k2_horizon"))
+        let engineDeclaration = try #require(
+            K2HorizonTemplateContract.fixedReasoningDeclaration(
+                metadata: Self.fixedNativeFixture,
+                modelType: "k2_horizon"
+            )
+        )
         let model = "proof/native-single-mode"
         withOverride(declaration, forModelId: model) {
             for options: [String: ModelOptionValue] in [
@@ -183,10 +203,14 @@ struct DeclaredReasoningEffortTests {
             ] {
                 let context = MLXBatchAdapter.additionalContext(
                     for: GenerationParameters(temperature: nil, maxTokens: 256, modelOptions: options),
-                    modelName: model)
+                    modelName: model
+                )
                 do {
                     try K2HorizonTemplateContract.validateContext(
-                        context, modelType: "k2_horizon", declaration: engineDeclaration)
+                        context,
+                        modelType: "k2_horizon",
+                        declaration: engineDeclaration
+                    )
                     Issue.record("Explicit unsupported native reasoning control was accepted")
                 } catch {
                     #expect(error is K2HorizonTemplateContract.ContractError)
@@ -323,7 +347,8 @@ struct DeclaredReasoningEffortTests {
         let declared = DeclaredReasoningEffort.parseJangDeclaration(data: Data(json.utf8))
         #expect(
             declared?.control
-                == .levels(["low", "medium", "xhigh"], defaultLevel: "xhigh"))
+                == .levels(["low", "medium", "xhigh"], defaultLevel: "xhigh")
+        )
         #expect(declared?.preserveThinking?.defaultOn == true)
     }
 
@@ -413,7 +438,8 @@ struct DeclaredReasoningEffortTests {
         // levels come back in ascending ladder order for direct UI use.
         #expect(
             declared?.control
-                == .levels(["low", "medium", "xhigh"], defaultLevel: "xhigh"))
+                == .levels(["low", "medium", "xhigh"], defaultLevel: "xhigh")
+        )
         #expect(declared?.preserveThinking != nil)
     }
 
@@ -471,10 +497,15 @@ struct DeclaredReasoningEffortTests {
         if let effort { options["reasoningEffort"] = .string(effort) }
         if let preserveThinking { options["preserveThinking"] = .bool(preserveThinking) }
         let generation = GenerationParameters(
-            temperature: nil, maxTokens: 256, modelOptions: options)
+            temperature: nil,
+            maxTokens: 256,
+            modelOptions: options
+        )
         return withOverride(declaration, forModelId: Self.qwen38Id) {
             MLXBatchAdapter.additionalContext(
-                for: generation, modelName: Self.qwen38Id)
+                for: generation,
+                modelName: Self.qwen38Id
+            )
         }
     }
 
@@ -493,7 +524,9 @@ struct DeclaredReasoningEffortTests {
     @Test("a keyless stamped bundle sends NO effort kwarg but keeps thinking on")
     func adapterOmitsEffortWhenBundleDeclaresNoControl() {
         let declared = DeclaredReasoningEffort.Declaration(
-            control: .noEffortControl, preserveThinking: nil)
+            control: .noEffortControl,
+            preserveThinking: nil
+        )
         let context = dispatchContext(effort: "high", declaration: declared)
         #expect(context["reasoning_effort"] == nil)
         #expect(context["enable_thinking"] as? Bool == true)
@@ -522,7 +555,10 @@ struct DeclaredReasoningEffortTests {
     @Test("preserve_thinking is sent only when the bundle declares the kwarg")
     func adapterGatesPreserveThinkingOnDeclaration() {
         let declaredOff = dispatchContext(
-            effort: "medium", preserveThinking: false, declaration: Self.stampedDeclaration)
+            effort: "medium",
+            preserveThinking: false,
+            declaration: Self.stampedDeclaration
+        )
         #expect(declaredOff["preserve_thinking"] as? Bool == false)
         #expect(declaredOff["reasoning_effort"] as? String == "medium")
 
@@ -534,7 +570,8 @@ struct DeclaredReasoningEffortTests {
 // MARK: - Declared reasoning modes (Nemotron 3.5: on / medium / off)
 
 extension DeclaredReasoningEffortTests {
-    private static let nativeThinkingModeFixture = Data(#"""
+    private static let nativeThinkingModeFixture = Data(
+        #"""
         {"chat": {"reasoning": {
           "supported": true, "template_flag": "reasoning_effort",
           "modes": ["think", "no_think"], "default_mode": "think",
@@ -543,7 +580,8 @@ extension DeclaredReasoningEffortTests {
           "supported_reasoning_efforts": ["low", "high"],
           "reasoning_effort_transport": "chat_template_kwarg"
         }}}
-        """#.utf8)
+        """#.utf8
+    )
 
     @Test("native low Off and high On expose only semantic Off/High")
     func nativeThinkingModesExposeDeclaredControls() throws {
@@ -563,18 +601,25 @@ extension DeclaredReasoningEffortTests {
         )
         let model = "proof/native-thinking-modes"
         withOverride(declaration, forModelId: model) {
-            #expect(ModelProfileRegistry.reasoningCapabilities(for: model)?.levels.map(\.id)
-                == ["none", "high"])
+            #expect(
+                ModelProfileRegistry.reasoningCapabilities(for: model)?.levels.map(\.id)
+                    == ["none", "high"]
+            )
             #expect(ModelProfileRegistry.effectiveReasoningEffort(for: model, values: [:]) == "high")
-            #expect(ModelProfileRegistry.normalizedOptions(
-                for: model, persisted: ["reasoningEffort": .string("low")])["reasoningEffort"] == .string("none"))
+            #expect(
+                ModelProfileRegistry.normalizedOptions(
+                    for: model,
+                    persisted: ["reasoningEffort": .string("low")]
+                )["reasoningEffort"] == .string("none")
+            )
         }
     }
 
     @Test("native thinking modes send exact kwargs for UI, legacy toggle and native API values")
     func nativeThinkingModesDispatchExactNativeKwargs() throws {
         let declaration = try #require(
-            DeclaredReasoningEffort.parseJangDeclaration(data: Self.nativeThinkingModeFixture))
+            DeclaredReasoningEffort.parseJangDeclaration(data: Self.nativeThinkingModeFixture)
+        )
         withOverride(declaration, forModelId: "proof/native-thinking-modes") {
             for options: [String: ModelOptionValue] in [
                 ["reasoningEffort": .string("none")], ["reasoningEffort": .string("low")],
@@ -582,20 +627,27 @@ extension DeclaredReasoningEffortTests {
             ] {
                 let context = MLXBatchAdapter.additionalContext(
                     for: GenerationParameters(temperature: nil, maxTokens: 64, modelOptions: options),
-                    modelName: "proof/native-thinking-modes", toolChoice: .required)
+                    modelName: "proof/native-thinking-modes",
+                    toolChoice: .required
+                )
                 #expect(context["reasoning_effort"] as? String == "low")
                 #expect(context["enable_thinking"] == nil)
                 #expect(context["tool_choice"] as? String == "required")
             }
             let on = MLXBatchAdapter.additionalContext(
-                for: GenerationParameters(temperature: nil, maxTokens: 64,
-                    modelOptions: ["reasoningEffort": .string("high")]),
-                modelName: "proof/native-thinking-modes")
+                for: GenerationParameters(
+                    temperature: nil,
+                    maxTokens: 64,
+                    modelOptions: ["reasoningEffort": .string("high")]
+                ),
+                modelName: "proof/native-thinking-modes"
+            )
             #expect(on["reasoning_effort"] as? String == "high")
             #expect(on["enable_thinking"] == nil)
             let omitted = MLXBatchAdapter.additionalContext(
                 for: GenerationParameters(temperature: nil, maxTokens: 64),
-                modelName: "proof/native-thinking-modes")
+                modelName: "proof/native-thinking-modes"
+            )
             #expect(omitted.isEmpty)
         }
     }
@@ -603,8 +655,10 @@ extension DeclaredReasoningEffortTests {
     @Test("a bare native low/high list is not assumed to mean Off/On")
     func nativeEffortListDoesNotInventThinkingModeSemantics() {
         let data = Data(#"{"reasoning":{"supported_reasoning_efforts":["low","high"]}}"#.utf8)
-        #expect(DeclaredReasoningEffort.parseJangDeclaration(data: data)?.control
-            == .levels(["low", "high"], defaultLevel: nil))
+        #expect(
+            DeclaredReasoningEffort.parseJangDeclaration(data: data)?.control
+                == .levels(["low", "high"], defaultLevel: nil)
+        )
     }
 
     private static let nemotronJang = """
@@ -618,7 +672,8 @@ extension DeclaredReasoningEffortTests {
     @Test("capabilities.reasoning_modes parses into ladder levels with declared kwargs")
     func reasoningModesParse() throws {
         let declaration = try #require(
-            DeclaredReasoningEffort.parseJangDeclaration(data: Data(Self.nemotronJang.utf8)))
+            DeclaredReasoningEffort.parseJangDeclaration(data: Data(Self.nemotronJang.utf8))
+        )
         guard case .modeKwargs(let levels, let defaultLevel, let kwargs)? = declaration.control else {
             Issue.record("expected modeKwargs, got \(String(describing: declaration.control))")
             return
@@ -642,13 +697,15 @@ extension DeclaredReasoningEffortTests {
     @Test("dispatch sends exactly the declared kwargs for off, medium and on")
     func reasoningModesDispatch() throws {
         let declaration = try #require(
-            DeclaredReasoningEffort.parseJangDeclaration(data: Data(Self.nemotronJang.utf8)))
+            DeclaredReasoningEffort.parseJangDeclaration(data: Data(Self.nemotronJang.utf8))
+        )
         let model = "proof/Nemotron-3.5-modes"
         withOverride(declaration, forModelId: model) {
             func context(_ options: [String: ModelOptionValue]) -> [String: any Sendable] {
                 MLXBatchAdapter.additionalContext(
                     for: GenerationParameters(temperature: nil, maxTokens: 64, modelOptions: options),
-                    modelName: model)
+                    modelName: model
+                )
             }
             let medium = context(["reasoningEffort": .string("medium")])
             #expect(medium["enable_thinking"] as? Bool == true)

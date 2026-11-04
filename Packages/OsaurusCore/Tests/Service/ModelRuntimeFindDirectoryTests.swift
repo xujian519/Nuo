@@ -174,26 +174,30 @@ struct ModelRuntimeFindDirectoryTests {
     @Test("Gemma E2B prices its fifteen KV owners and global head dimensions")
     func gemmaE2BActualCacheOwners() throws {
         let dir = try makeIsolatedDir()
-        let types = (0..<35).map { $0 % 5 == 4 ? "full_attention" : "sliding_attention" }
+        let types = (0 ..< 35).map { $0 % 5 == 4 ? "full_attention" : "sliding_attention" }
         let config: [String: Any] = [
             "model_type": "gemma4", "num_hidden_layers": 35,
             "num_kv_shared_layers": 20, "num_attention_heads": 8,
             "num_key_value_heads": 1, "head_dim": 256, "global_head_dim": 512,
             "sliding_window": 512, "max_position_embeddings": 131_072,
-            "layer_types": types, "torch_dtype": "bfloat16"
+            "layer_types": types, "torch_dtype": "bfloat16",
         ]
         try JSONSerialization.data(withJSONObject: config).write(to: dir.appendingPathComponent("config.json"))
         let mix = ModelRuntime.attentionLayerMix(in: config)
         #expect(mix.fullAttention == 3)
         #expect(mix.slidingAttention == 12)
         let measured = ModelRuntime.estimatedKVHeadroomBytes(
-            forWeights: 6 << 30, modelDirectory: dir, kvRetentionCap: nil,
+            forWeights: 6 << 30,
+            modelDirectory: dir,
+            kvRetentionCap: nil,
             requestPositionLimit: 131_072
         )
         let bytes: Int64 = (3 * 131_072 * 2 * 512 + 12 * 512 * 2 * 256) * 2
         #expect(measured == bytes + bytes / 4)
         let beyondDeclaredWindow = ModelRuntime.estimatedKVHeadroomBytes(
-            forWeights: 6 << 30, modelDirectory: dir, kvRetentionCap: 8_192,
+            forWeights: 6 << 30,
+            modelDirectory: dir,
+            kvRetentionCap: 8_192,
             requestPositionLimit: 262_144
         )
         #expect(beyondDeclaredWindow > measured)
@@ -280,7 +284,8 @@ struct ModelRuntimeFindDirectoryTests {
                 budgets: SubagentBudgets(maxDelegateTokens: 2048, maxDelegateTurns: 2),
                 toolEnabled: true,
                 resolvedContextWindow: 65_536
-            ))
+            )
+        )
         let weights: Int64 = 3 * 1024 * 1024 * 1024
         let capPriced = ModelRuntime.estimatedKVHeadroomBytes(
             forWeights: weights,
@@ -339,7 +344,8 @@ struct ModelRuntimeFindDirectoryTests {
                 budgets: SubagentBudgets(maxDelegateTokens: 2048, maxDelegateTurns: 2),
                 toolEnabled: true,
                 resolvedContextWindow: 32_768
-            ))
+            )
+        )
         #expect(contract.contextPositions == 13_713)
 
         let weights: Int64 = 3 * 1024 * 1024 * 1024
@@ -917,7 +923,8 @@ struct ModelRuntimeFindDirectoryTests {
         // Real gemma-4-12B geometry: 48 layers = 8 full + 40 sliding(1024),
         // kv 8 heads x 256 dims, decoder entirely under text_config.
         let layerTypes = Array(
-            repeating: #""sliding_attention","sliding_attention","sliding_attention","sliding_attention","sliding_attention","full_attention""#,
+            repeating:
+                #""sliding_attention","sliding_attention","sliding_attention","sliding_attention","sliding_attention","full_attention""#,
             count: 8
         ).joined(separator: ",")
         let config = """
@@ -947,7 +954,8 @@ struct ModelRuntimeFindDirectoryTests {
         // +25% slack = 5.39 GiB. The old nested-config bug returned the 20%
         // fallback (1.6 GiB) — under-priced ~3x.
         let expected = Int64(
-            Double((8 * 65_536 + 40 * 1_024) * 2 * 8 * 256 * 2) * 1.25)
+            Double((8 * 65_536 + 40 * 1_024) * 2 * 8 * 256 * 2) * 1.25
+        )
         #expect(headroom == expected)
         #expect(headroom > 4 * 1024 * 1024 * 1024)
         #expect(headroom < 7 * 1024 * 1024 * 1024)
@@ -979,7 +987,8 @@ struct ModelRuntimeFindDirectoryTests {
         )
         let expected = max(
             Int64(512 * 1024 * 1024),
-            Int64(Double((65_536 + 1_024) * 2 * 8 * 128 * 2) * 1.25))
+            Int64(Double((65_536 + 1_024) * 2 * 8 * 128 * 2) * 1.25)
+        )
         #expect(headroom == expected)
     }
 
@@ -988,7 +997,7 @@ struct ModelRuntimeFindDirectoryTests {
         let dir = try makeIsolatedDir()
         // Real 27B geometry: 64 layers = 16 full + 48 linear (GDN), kv 4
         // heads x 256 dims. The old count priced all 64 as full attention.
-        let types = (0..<64).map { i in
+        let types = (0 ..< 64).map { i in
             (i + 1) % 4 == 0 ? #""full_attention""# : #""linear_attention""#
         }.joined(separator: ",")
         let config = """

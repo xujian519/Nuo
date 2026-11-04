@@ -103,10 +103,12 @@ enum AgentChannelDispatchRouter {
             return ""
         }
         guard let first = afterAlias.unicodeScalars.first,
-              aliasDelimiters.contains(first)
+            aliasDelimiters.contains(first)
         else { return nil }
-        return String(afterAlias.drop(while: { char in
-            char.unicodeScalars.allSatisfy { aliasDelimiters.contains($0) }
-        }))
+        return String(
+            afterAlias.drop(while: { char in
+                char.unicodeScalars.allSatisfy { aliasDelimiters.contains($0) }
+            })
+        )
     }
 }

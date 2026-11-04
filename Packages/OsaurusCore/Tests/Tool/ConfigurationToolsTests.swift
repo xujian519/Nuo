@@ -221,7 +221,8 @@ struct ConfigurationReadScopeTests {
         #expect(offered.isSuperset(of: Self.expectedScopes))
         #expect(
             OsaurusInspectTool.knownReadScopes
-                == Self.expectedScopes.union(["mcp_providers"]))
+                == Self.expectedScopes.union(["mcp_providers"])
+        )
     }
 
     @Test
@@ -249,7 +250,6 @@ struct ConfigurationReadScopeTests {
         #expect(envelope.contains("memory"))
     }
 
-
     /// The exact rejected calls from the build #13 loop, through the real
     /// `execute` dispatch (not the helper): a junk scope still teaches, and
     /// the scope that rejection offers now reads instead of contradicting it.
@@ -259,12 +259,16 @@ struct ConfigurationReadScopeTests {
         // Configuration tools run only under the Default agent's context.
         try await ChatExecutionContext.$currentAgentId.withValue(Agent.defaultId) {
             let junk = try await tool.execute(
-                argumentsJSON: #"{"action":"describe","id":"00000000-0000-0000-0000-000000000001","scope":"user_profile"}"#)
+                argumentsJSON:
+                    #"{"action":"describe","id":"00000000-0000-0000-0000-000000000001","scope":"user_profile"}"#
+            )
             #expect(!ToolEnvelope.isSuccess(junk))
             #expect(junk.contains("scope"))
 
             let section = try await tool.execute(
-                argumentsJSON: #"{"action":"describe","id":"00000000-0000-0000-0000-000000000001","scope":"default_agent"}"#)
+                argumentsJSON:
+                    #"{"action":"describe","id":"00000000-0000-0000-0000-000000000001","scope":"default_agent"}"#
+            )
             #expect(ToolEnvelope.isSuccess(section), Comment(rawValue: String(section.prefix(240))))
             let payload = try #require(ToolEnvelope.successPayload(section) as? [String: Any])
             #expect(payload["kind"] as? String == "document_section")
@@ -283,7 +287,8 @@ struct ConfigurationReadScopeTests {
         for scope in ["default_agent", "memory", "tools"] {
             let envelope = try #require(
                 await OsaurusInspectTool.documentSectionRead(scope: scope, tool: "osaurus_inspect"),
-                "\(scope) must resolve to a section read")
+                "\(scope) must resolve to a section read"
+            )
             #expect(ToolEnvelope.isSuccess(envelope), "\(scope): \(envelope.prefix(200))")
             let payload = try #require(ToolEnvelope.successPayload(envelope) as? [String: Any])
             #expect(payload["kind"] as? String == "document_section")

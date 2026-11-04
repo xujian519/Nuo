@@ -24,7 +24,9 @@ struct SystemPermissionProbeTests {
     static func writeSentinel(_ relative: String, under root: URL) throws -> URL {
         let url = root.appendingPathComponent(relative)
         try FileManager.default.createDirectory(
-            at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
         try sqliteHeader.write(to: url)
         return url
     }

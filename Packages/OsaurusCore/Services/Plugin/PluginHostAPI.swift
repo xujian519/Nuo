@@ -1363,7 +1363,8 @@ final class PluginHostContext: @unchecked Sendable {
         let effectiveTools = tools.isEmpty ? nil : tools
         var resolved = inference
         resolved.request.tools = effectiveTools
-        resolved.request.context.isAgentRequest = inference.request.context.isAgentRequest || effectiveTools?.isEmpty == false
+        resolved.request.context.isAgentRequest =
+            inference.request.context.isAgentRequest || effectiveTools?.isEmpty == false
         resolved.tools = effectiveTools
         return resolved
     }
@@ -1611,12 +1612,15 @@ final class PluginHostContext: @unchecked Sendable {
                     let response = try await prep.engine.completeResponse(request: iterReq)
                     finalResponse = response
                     let step = try PluginResponsesCompatibility.classify(
-                        response, toolsWereOffered: toolSpecs?.isEmpty == false
+                        response,
+                        toolsWereOffered: toolSpecs?.isEmpty == false
                     )
                     if case .toolCalls = step {
-                        try batchHistory.begin(SecretArgumentScrubber.recordedAssistantMessage(
-                            try response.completedAssistantInput()
-                        ))
+                        try batchHistory.begin(
+                            SecretArgumentScrubber.recordedAssistantMessage(
+                                try response.completedAssistantInput()
+                            )
+                        )
                     }
                     return step
                 },
@@ -1631,7 +1635,7 @@ final class PluginHostContext: @unchecked Sendable {
                         toolName: inv.toolName,
                         argumentsJSON: inv.jsonArguments,
                         callId: callId,
-                            prep: prep
+                        prep: prep
                     )
                     // Stage results until the whole model batch can be
                     // committed in its original call order.
@@ -1671,18 +1675,22 @@ final class PluginHostContext: @unchecked Sendable {
             } catch {
                 if let commit = batchHistory.finish(runExit: "inference_error") { messages += commit.messages }
                 Self.persistInference(
-                    pluginId: pid, agentId: prep.agentId,
+                    pluginId: pid,
+                    agentId: prep.agentId,
                     externalSessionKey: prep.enriched.request.sessionID,
-                    finalMessages: messages, model: prep.enriched.request.model
+                    finalMessages: messages,
+                    model: prep.enriched.request.model
                 )
                 return Self.jsonString(["error": "inference_error", "message": error.localizedDescription])
             }
             if let commit = batchHistory.finish(runExit: String(describing: exit)) { messages += commit.messages }
             if exit != .finalResponse && exit != .endedBySurface {
                 Self.persistInference(
-                    pluginId: pid, agentId: prep.agentId,
+                    pluginId: pid,
+                    agentId: prep.agentId,
                     externalSessionKey: prep.enriched.request.sessionID,
-                    finalMessages: messages, model: prep.enriched.request.model
+                    finalMessages: messages,
+                    model: prep.enriched.request.model
                 )
             }
 
@@ -1749,7 +1757,9 @@ final class PluginHostContext: @unchecked Sendable {
                 let summary = CompleteTool.parseSummary(from: intercept.args) ?? "Task completed."
                 guard let response = finalResponse,
                     var json = try? PluginResponsesCompatibility.response(
-                        response, model: prep.enriched.request.model, contentOverride: summary
+                        response,
+                        model: prep.enriched.request.model,
+                        contentOverride: summary
                     )
                 else {
                     return Self.jsonString([
@@ -1788,9 +1798,11 @@ final class PluginHostContext: @unchecked Sendable {
                 model: prep.enriched.request.model
             )
 
-            guard var json = try? PluginResponsesCompatibility.response(
-                response, model: prep.enriched.request.model
-            )
+            guard
+                var json = try? PluginResponsesCompatibility.response(
+                    response,
+                    model: prep.enriched.request.model
+                )
             else {
                 return Self.jsonString([
                     "error": "serialization_error", "message": "Failed to serialize response",
@@ -1934,16 +1946,31 @@ final class PluginHostContext: @unchecked Sendable {
                 guard let commit else { return }
                 for call in commit.assistant.tool_calls ?? [] where !emittedCallIDs.contains(call.id) {
                     emittedCallIDs.insert(call.id)
-                    emit(Self.chunkPayload(id: cid, delta: ["tool_calls": [[
-                        "id": call.id,
-                        "function": ["name": call.function.name, "arguments": call.function.arguments],
-                    ]]], finishReason: "tool_calls"))
+                    emit(
+                        Self.chunkPayload(
+                            id: cid,
+                            delta: [
+                                "tool_calls": [
+                                    [
+                                        "id": call.id,
+                                        "function": ["name": call.function.name, "arguments": call.function.arguments],
+                                    ]
+                                ]
+                            ],
+                            finishReason: "tool_calls"
+                        )
+                    )
                 }
                 for row in commit.results {
                     guard let id = row.tool_call_id, emittedResultIDs.insert(id).inserted else { continue }
-                    emit(Self.chunkPayload(id: cid, delta: [
-                        "role": "tool", "tool_call_id": id, "content": row.content ?? "",
-                    ]))
+                    emit(
+                        Self.chunkPayload(
+                            id: cid,
+                            delta: [
+                                "role": "tool", "tool_call_id": id, "content": row.content ?? "",
+                            ]
+                        )
+                    )
                 }
                 messages += commit.messages
                 // A guarded-only batch never calls executeTool/onDedupedResult.
@@ -2024,9 +2051,14 @@ final class PluginHostContext: @unchecked Sendable {
                             let completed = try accumulator.result()
                             let usage = PluginResponsesCompatibility.reportedUsage(completed)
                             lastUsage = usage
-                            emit(Self.chunkPayload(id: cid, delta: [
-                                "usage": usage, "model_response_id": completed.completion.responseID,
-                            ]))
+                            emit(
+                                Self.chunkPayload(
+                                    id: cid,
+                                    delta: [
+                                        "usage": usage, "model_response_id": completed.completion.responseID,
+                                    ]
+                                )
+                            )
                             // Whole completed batches dispatch immediately;
                             // the native producer still owns its cache drain.
                             break modelStream
@@ -2037,27 +2069,36 @@ final class PluginHostContext: @unchecked Sendable {
                     try Task.checkCancellation()
                     let response = try accumulator.result()
                     let step = try PluginResponsesCompatibility.classify(
-                        response, toolsWereOffered: toolSpecs?.isEmpty == false
+                        response,
+                        toolsWereOffered: toolSpecs?.isEmpty == false
                     )
                     if case .toolCalls = step {
-                        try batchHistory.begin(SecretArgumentScrubber.recordedAssistantMessage(
-                            try response.completedAssistantInput()
-                        ))
+                        try batchHistory.begin(
+                            SecretArgumentScrubber.recordedAssistantMessage(
+                                try response.completedAssistantInput()
+                            )
+                        )
                         emittedResultIDs.removeAll(keepingCapacity: true)
                         emittedCallIDs.removeAll(keepingCapacity: true)
                         return step
                     }
                     if case .finalResponse = step {
-                        messages.append(SecretArgumentScrubber.recordedAssistantMessage(
-                            try response.completedAssistantInput()
-                        ))
+                        messages.append(
+                            SecretArgumentScrubber.recordedAssistantMessage(
+                                try response.completedAssistantInput()
+                            )
+                        )
                         let finish = response.completion.stopReason ?? "stop"
                         emit(Self.chunkPayload(id: cid, delta: [:], finishReason: finish))
                         persistPartial("")
                         terminalEnvelope = Self.buildStreamResult(
-                            id: cid, model: prep.enriched.request.model, content: lastContent,
-                            toolCallsExecuted: toolCallsExecuted, sharedArtifacts: sharedArtifacts,
-                            usage: lastUsage, finishReason: finish
+                            id: cid,
+                            model: prep.enriched.request.model,
+                            content: lastContent,
+                            toolCallsExecuted: toolCallsExecuted,
+                            sharedArtifacts: sharedArtifacts,
+                            usage: lastUsage,
+                            finishReason: finish
                         )
                     }
                     return step
@@ -2088,9 +2129,14 @@ final class PluginHostContext: @unchecked Sendable {
                     // secret-safe assistant batch is already in history.
                     batchHistory.record(callID: callId, result: held)
                     if emittedResultIDs.insert(callId).inserted {
-                        emit(Self.chunkPayload(id: cid, delta: [
-                            "role": "tool", "tool_call_id": callId, "content": held,
-                        ]))
+                        emit(
+                            Self.chunkPayload(
+                                id: cid,
+                                delta: [
+                                    "role": "tool", "tool_call_id": callId, "content": held,
+                                ]
+                            )
+                        )
                     }
                     lastContent = ""
                 },
@@ -2104,9 +2150,14 @@ final class PluginHostContext: @unchecked Sendable {
                     if let dict = processed.artifactDict { sharedArtifacts.append(dict) }
 
                     if emittedResultIDs.insert(callId).inserted {
-                        emit(Self.chunkPayload(id: cid, delta: [
-                            "role": "tool", "tool_call_id": callId, "content": processed.result,
-                        ]))
+                        emit(
+                            Self.chunkPayload(
+                                id: cid,
+                                delta: [
+                                    "role": "tool", "tool_call_id": callId, "content": processed.result,
+                                ]
+                            )
+                        )
                     }
 
                     toolCallsExecuted.append(processed.toolCallExecuted)
@@ -2156,9 +2207,13 @@ final class PluginHostContext: @unchecked Sendable {
                     emit(Self.chunkPayload(id: cid, delta: [:], finishReason: "cancelled"))
                     persistPartial(lastContent)
                     return Self.cancelledStreamEnvelope(
-                        id: cid, streamId: streamId, model: prep.enriched.request.model,
-                        partialContent: lastContent, toolCallsExecuted: toolCallsExecuted,
-                        sharedArtifacts: sharedArtifacts, usage: lastUsage
+                        id: cid,
+                        streamId: streamId,
+                        model: prep.enriched.request.model,
+                        partialContent: lastContent,
+                        toolCallsExecuted: toolCallsExecuted,
+                        sharedArtifacts: sharedArtifacts,
+                        usage: lastUsage
                     )
                 }
                 emit(Self.chunkPayload(id: cid, delta: [:], finishReason: "error"))
@@ -2174,9 +2229,13 @@ final class PluginHostContext: @unchecked Sendable {
                 emit(Self.chunkPayload(id: cid, delta: [:], finishReason: terminal.finishReason))
                 persistPartial(terminal.text)
                 return Self.buildStreamResult(
-                    id: cid, model: prep.enriched.request.model, content: terminal.text,
-                    toolCallsExecuted: toolCallsExecuted, sharedArtifacts: sharedArtifacts,
-                    usage: lastUsage, finishReason: terminal.finishReason
+                    id: cid,
+                    model: prep.enriched.request.model,
+                    content: terminal.text,
+                    toolCallsExecuted: toolCallsExecuted,
+                    sharedArtifacts: sharedArtifacts,
+                    usage: lastUsage,
+                    finishReason: terminal.finishReason
                 )
             }
 

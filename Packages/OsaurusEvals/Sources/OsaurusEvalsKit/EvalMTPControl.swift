@@ -82,8 +82,10 @@ public struct EvalMTPResolution: Equatable, Sendable {
     public let requestConfiguredDepth: Int?
 
     public init(
-        loadStatus: String?, loadReason: String?,
-        requestStrategy: String, requestConfiguredDepth: Int?
+        loadStatus: String?,
+        loadReason: String?,
+        requestStrategy: String,
+        requestConfiguredDepth: Int?
     ) {
         self.loadStatus = loadStatus
         self.loadReason = loadReason
@@ -134,7 +136,9 @@ public enum EvalMTPControlState {
         FileHandle.standardError.write(
             Data(
                 "[evals] MTP control → requested=\(control.label) pinned mode=\(settings.mtp.mode.rawValue) explicitDepth=\(settings.mtp.explicitDepth.map(String.init) ?? "nil") (process-local)\n"
-                    .utf8))
+                    .utf8
+            )
+        )
     }
 
     /// Pure fail-closed judgment of one case.

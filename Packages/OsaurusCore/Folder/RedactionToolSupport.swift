@@ -55,7 +55,8 @@ enum RedactionToolSupport {
             let name = (entry["name"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? "rule_\(index)"
             guard rules.count < maxCustomRules else {
                 rejected.append(
-                    RejectedRule(name: name, reason: "over the \(maxCustomRules)-rule cap"))
+                    RejectedRule(name: name, reason: "over the \(maxCustomRules)-rule cap")
+                )
                 continue
             }
             guard let pattern = entry["pattern"] as? String, !pattern.isEmpty else {
@@ -150,16 +151,24 @@ enum RedactionToolSupport {
         switch resolved {
         case .rampart:
             if let entities = try? await PrivacyFilterEngine.shared.detect(
-                in: text, map: map, skipCodeBlocks: false, ruleset: rules,
-                useModel: true, backend: .rampart)
-            {
+                in: text,
+                map: map,
+                skipCodeBlocks: false,
+                ruleset: rules,
+                useModel: true,
+                backend: .rampart
+            ) {
                 return DetectionOutcome(entities: entities, backend: "rampart", degradation: nil)
             }
         case .openai:
             if let entities = try? await PrivacyFilterEngine.shared.detect(
-                in: text, map: map, skipCodeBlocks: false, ruleset: rules,
-                useModel: true, backend: .openai)
-            {
+                in: text,
+                map: map,
+                skipCodeBlocks: false,
+                ruleset: rules,
+                useModel: true,
+                backend: .openai
+            ) {
                 return DetectionOutcome(entities: entities, backend: "openai", degradation: nil)
             }
         case .regexOnly:
@@ -174,8 +183,12 @@ enum RedactionToolSupport {
         }
         let entities =
             (try? await PrivacyFilterEngine.shared.detect(
-                in: text, map: map, skipCodeBlocks: false, ruleset: rules,
-                useModel: false)) ?? []
+                in: text,
+                map: map,
+                skipCodeBlocks: false,
+                ruleset: rules,
+                useModel: false
+            )) ?? []
         return DetectionOutcome(entities: entities, backend: "regex-only", degradation: note)
     }
 }
@@ -228,6 +241,7 @@ public actor PIIModelDownloadGate {
         return .regexOnly(
             note:
                 "Name/address detection unavailable: PII model download was declined or failed. "
-                + "Emails, phones, and pattern-based categories were still detected via regex.")
+                + "Emails, phones, and pattern-based categories were still detected via regex."
+        )
     }
 }

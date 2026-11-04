@@ -83,8 +83,8 @@ struct OsaurusConnectView: View {
         SettingsSection(title: L("Pair an iPhone"), icon: "iphone.gen3") {
             VStack(alignment: .leading, spacing: 14) {
                 Text(pairingIntro)
-                .font(.system(size: 12))
-                .foregroundColor(theme.secondaryText)
+                    .font(.system(size: 12))
+                    .foregroundColor(theme.secondaryText)
 
                 if !server.configuration.exposeToNetwork {
                     networkBanner
@@ -122,9 +122,12 @@ struct OsaurusConnectView: View {
         HStack(alignment: .center, spacing: 10) {
             Image(systemName: "wifi.exclamationmark")
                 .foregroundColor(theme.warningColor)
-            Text("This Mac only accepts connections from itself. Allow local network access so your iPhone can reach it.", bundle: .module)
-                .font(.system(size: 12))
-                .foregroundColor(theme.primaryText)
+            Text(
+                "This Mac only accepts connections from itself. Allow local network access so your iPhone can reach it.",
+                bundle: .module
+            )
+            .font(.system(size: 12))
+            .foregroundColor(theme.primaryText)
             Spacer(minLength: 8)
             Button {
                 Task { await enableNetworkAccess() }
@@ -194,9 +197,12 @@ struct OsaurusConnectView: View {
                         .buttonStyle(SettingsButtonStyle(isDestructive: true))
                     }
                 } else {
-                    Text("No iPhone is paired. Only one iPhone can be paired at a time; pairing a new one unpairs the old one.", bundle: .module)
-                        .font(.system(size: 12))
-                        .foregroundColor(theme.secondaryText)
+                    Text(
+                        "No iPhone is paired. Only one iPhone can be paired at a time; pairing a new one unpairs the old one.",
+                        bundle: .module
+                    )
+                    .font(.system(size: 12))
+                    .foregroundColor(theme.secondaryText)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -296,7 +302,10 @@ struct OsaurusConnectView: View {
         if connected == ids.count {
             return (L("Reachable from anywhere (\(connected) agents)"), "checkmark.circle.fill", theme.successColor)
         }
-        return (L("Connecting to the relay… (\(connected) of \(ids.count) agents)"), "arrow.triangle.2.circlepath", theme.secondaryText)
+        return (
+            L("Connecting to the relay… (\(connected) of \(ids.count) agents)"), "arrow.triangle.2.circlepath",
+            theme.secondaryText
+        )
     }
 
     // MARK: Helpers

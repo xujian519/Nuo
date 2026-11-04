@@ -181,7 +181,11 @@ struct KnowledgeSchemaForwardCompatTests {
         var stmt: OpaquePointer?
         guard
             sqlite3_prepare_v2(
-                conn, "SELECT name FROM sqlite_master WHERE type='table'", -1, &stmt, nil
+                conn,
+                "SELECT name FROM sqlite_master WHERE type='table'",
+                -1,
+                &stmt,
+                nil
             ) == SQLITE_OK
         else { return [] }
         defer { sqlite3_finalize(stmt) }

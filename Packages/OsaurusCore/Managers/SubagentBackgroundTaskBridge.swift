@@ -117,11 +117,17 @@ public final class SubagentBackgroundTaskBridge {
                 switch event.kind {
                 case .phase:
                     manager.appendSubagentMirrorActivity(
-                        taskId, kind: .progress, title: event.title, detail: event.detail
+                        taskId,
+                        kind: .progress,
+                        title: event.title,
+                        detail: event.detail
                     )
                 case .error:
                     manager.appendSubagentMirrorActivity(
-                        taskId, kind: .error, title: event.title, detail: event.detail
+                        taskId,
+                        kind: .error,
+                        title: event.title,
+                        detail: event.detail
                     )
                 default:
                     break

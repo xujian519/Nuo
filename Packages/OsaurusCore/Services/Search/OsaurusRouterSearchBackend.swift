@@ -189,7 +189,8 @@ struct OsaurusRouterSearchBackend: Sendable {
                     billing: response.osaurus.map(RouterWebBillingSummary.init),
                     warnings: response.warnings ?? [],
                     replayed: response.replayed == true
-                ))
+                )
+            )
         } catch {
             return .failure(classify(error))
         }
@@ -249,7 +250,8 @@ struct OsaurusRouterSearchBackend: Sendable {
                     pages: pages,
                     billing: response.osaurus.map(RouterWebBillingSummary.init),
                     replayed: replayed
-                ))
+                )
+            )
         } catch {
             return .failure(classify(error))
         }

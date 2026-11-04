@@ -164,7 +164,8 @@ struct IMessageSettingsView: View {
         }
         .onAppear {
             loadConfiguration()
-            legacyMessagesPluginInstalled = PluginRepositoryService.shared.plugins
+            legacyMessagesPluginInstalled =
+                PluginRepositoryService.shared.plugins
                 .first { $0.pluginId == "osaurus.messages" }?.isInstalled ?? false
             selectedSectionId = AgentChannelSetupFlow.initialSection(
                 in: AgentChannelProviderSetupSection.sections,
@@ -1363,7 +1364,8 @@ struct IMessageSettingsView: View {
         _ diagnostics: IMessageConnectionDiagnostics,
         presentation suppliedPresentation: AgentChannelStatusPresentation? = nil
     ) {
-        let presentation = suppliedPresentation
+        let presentation =
+            suppliedPresentation
             ?? AgentChannelStatusPresentation.diagnostics(status: diagnostics.status)
         showStatus(
             presentation.label,

@@ -358,7 +358,8 @@ struct ToolPermissionPromptQueueTests {
         let probe = PromptPresenterProbe()
 
         let slow = request(
-            probe, "A",
+            probe,
+            "A",
             revalidate: {
                 try? await Task.sleep(for: .milliseconds(150))
                 return nil

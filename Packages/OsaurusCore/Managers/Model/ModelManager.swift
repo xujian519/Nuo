@@ -1826,9 +1826,11 @@ extension ModelManager {
                         refreshedExactMatch = true
                     } else if !appended.contains(where: {
                         $0.id.caseInsensitiveCompare(m.id) == .orderedSame
-                    }), let suggested = suggestedModels.first(where: {
-                        $0.id.caseInsensitiveCompare(m.id) == .orderedSame
-                    }) {
+                    }),
+                        let suggested = suggestedModels.first(where: {
+                            $0.id.caseInsensitiveCompare(m.id) == .orderedSame
+                        })
+                    {
                         // Installed, but known only as a suggestion: an
                         // OsaurusAI org auto-fetch can land before the local
                         // scan. `availableModels` is the installed inventory
@@ -2029,7 +2031,11 @@ extension ModelManager {
         }
 
         applyOsaurusOrgFetch(
-            autoFetched: autoFetched, statsById: statsById, sizesById: sizesById, ssdById: ssdById)
+            autoFetched: autoFetched,
+            statsById: statsById,
+            sizesById: sizesById,
+            ssdById: ssdById
+        )
     }
 
     /// Replace the auto-fetched portion of `suggestedModels` while preserving

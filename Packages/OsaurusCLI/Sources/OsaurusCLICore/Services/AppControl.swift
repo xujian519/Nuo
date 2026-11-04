@@ -67,7 +67,7 @@ public struct AppControl {
         // and its reopen event made the running app pop the main window.
         var appIsRunning = false
         if launched {
-            for _ in 0..<20 {  // up to ~2s
+            for _ in 0 ..< 20 {  // up to ~2s
                 if runningAppBundlePath() != nil {
                     appIsRunning = true
                     break
@@ -132,9 +132,11 @@ public struct AppControl {
                 paths.append(contentsOf: spotlightFindAll(queryArgs: [query]))
             }
         }
-        return deduplicatedBundlePaths(paths.filter {
-            fm.fileExists(atPath: $0) && URL(fileURLWithPath: $0).pathExtension.lowercased() == "app"
-        })
+        return deduplicatedBundlePaths(
+            paths.filter {
+                fm.fileExists(atPath: $0) && URL(fileURLWithPath: $0).pathExtension.lowercased() == "app"
+            }
+        )
     }
 
     private static func commonAppBundlePaths() -> [String] {

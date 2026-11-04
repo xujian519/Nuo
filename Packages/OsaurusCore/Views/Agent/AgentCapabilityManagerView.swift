@@ -574,8 +574,8 @@ struct AgentCapabilityManagerView: View {
                         "Pick which tools this agent can use. Skills come from the shared library; limit them below.",
                         bundle: .module
                     )
-                        .font(.system(size: 12))
-                        .foregroundColor(theme.tertiaryText)
+                    .font(.system(size: 12))
+                    .foregroundColor(theme.tertiaryText)
 
                     Spacer()
                     summaryPill

@@ -39,14 +39,18 @@ struct SlackConnectionTests {
             #expect(saved.senderAllowlist == ["U55555"])
             #expect(saved.defaultReadLimit == 100)
             #expect(!SlackConnectionConfiguration.isValidSlackId("T١٢٣"))
-            #expect(SlackConnectionConfiguration.isValidSlackId(
-                "T12345",
-                allowedPrefixes: ["T"]
-            ))
-            #expect(!SlackConnectionConfiguration.isValidSlackId(
-                "U12345",
-                allowedPrefixes: ["T"]
-            ))
+            #expect(
+                SlackConnectionConfiguration.isValidSlackId(
+                    "T12345",
+                    allowedPrefixes: ["T"]
+                )
+            )
+            #expect(
+                !SlackConnectionConfiguration.isValidSlackId(
+                    "U12345",
+                    allowedPrefixes: ["T"]
+                )
+            )
 
             let disk = try String(
                 contentsOf: SlackConnectionConfigurationStore.configurationFileURL(),
@@ -78,7 +82,7 @@ struct SlackConnectionTests {
                     senderAllowlist: ["USECOND"],
                     botUserId: "UBOTSECOND",
                     botId: "BBOTSECOND"
-                ),
+                )
             ]
         )
 
@@ -180,9 +184,11 @@ struct SlackConnectionTests {
             let diagnostics = await service.diagnostics()
 
             #expect(diagnostics.status == "connected_receive_needs_sender_allowlist")
-            #expect(diagnostics.failures.contains {
-                $0.localizedCaseInsensitiveContains("no authorized sender IDs")
-            })
+            #expect(
+                diagnostics.failures.contains {
+                    $0.localizedCaseInsensitiveContains("no authorized sender IDs")
+                }
+            )
         }
     }
 
@@ -196,27 +202,33 @@ struct SlackConnectionTests {
         )
         let signature = "v0=4d19b371acb8c24626ae294d086e5dc1513e8e0c04781438c439143315cb807e"
 
-        #expect(SlackSignatureVerifier.isAuthorized(
-            signingSecret: signingSecret,
-            timestamp: timestamp,
-            body: body,
-            signature: signature,
-            now: Date(timeIntervalSince1970: 1_531_420_618)
-        ))
-        #expect(!SlackSignatureVerifier.isAuthorized(
-            signingSecret: signingSecret,
-            timestamp: timestamp,
-            body: body,
-            signature: signature,
-            now: Date(timeIntervalSince1970: 1_531_421_000)
-        ))
-        #expect(!SlackSignatureVerifier.isAuthorized(
-            signingSecret: signingSecret,
-            timestamp: timestamp,
-            body: Data("tampered".utf8),
-            signature: signature,
-            now: Date(timeIntervalSince1970: 1_531_420_618)
-        ))
+        #expect(
+            SlackSignatureVerifier.isAuthorized(
+                signingSecret: signingSecret,
+                timestamp: timestamp,
+                body: body,
+                signature: signature,
+                now: Date(timeIntervalSince1970: 1_531_420_618)
+            )
+        )
+        #expect(
+            !SlackSignatureVerifier.isAuthorized(
+                signingSecret: signingSecret,
+                timestamp: timestamp,
+                body: body,
+                signature: signature,
+                now: Date(timeIntervalSince1970: 1_531_421_000)
+            )
+        )
+        #expect(
+            !SlackSignatureVerifier.isAuthorized(
+                signingSecret: signingSecret,
+                timestamp: timestamp,
+                body: Data("tampered".utf8),
+                signature: signature,
+                now: Date(timeIntervalSince1970: 1_531_420_618)
+            )
+        )
     }
 
     @Test func apiClientRedactsTokenEchoedBySlackErrorBody() async throws {
@@ -244,18 +256,18 @@ struct SlackConnectionTests {
         let session = SlackHTTPStubProtocol.session(
             statusCode: 200,
             body: """
-            {
-              "ok": true,
-              "channel": "C34567",
-              "ts": "1718800000.000100",
-              "message": {
-                "type": "message",
-                "user": "U12345",
-                "text": "Hello @channel <@U23456>",
-                "ts": "1718800000.000100"
-              }
-            }
-            """
+                {
+                  "ok": true,
+                  "channel": "C34567",
+                  "ts": "1718800000.000100",
+                  "message": {
+                    "type": "message",
+                    "user": "U12345",
+                    "text": "Hello @channel <@U23456>",
+                    "ts": "1718800000.000100"
+                  }
+                }
+                """
         )
         let client = SlackAPIClient(
             baseURL: URL(string: "https://slack.test/api")!,
@@ -288,18 +300,18 @@ struct SlackConnectionTests {
         let session = SlackHTTPStubProtocol.session(
             statusCode: 200,
             body: """
-            {
-              "ok": true,
-              "channel": "C34567",
-              "ts": "1718800000.000100",
-              "message": {
-                "type": "message",
-                "user": "U12345",
-                "text": "plain",
-                "ts": "1718800000.000100"
-              }
-            }
-            """
+                {
+                  "ok": true,
+                  "channel": "C34567",
+                  "ts": "1718800000.000100",
+                  "message": {
+                    "type": "message",
+                    "user": "U12345",
+                    "text": "plain",
+                    "ts": "1718800000.000100"
+                  }
+                }
+                """
         )
         let client = SlackAPIClient(
             baseURL: URL(string: "https://slack.test/api")!,
@@ -346,8 +358,10 @@ struct SlackConnectionTests {
         let form = SlackHTTPStubProtocol.lastRequestFormBody()
         #expect(form["limit"] == "10")
         #expect(form["exclude_archived"] == "true")
-        #expect(SlackHTTPStubProtocol.lastRawRequestBody()
-            .contains("types=public_channel%2Cprivate_channel%2Cmpim%2Cim"))
+        #expect(
+            SlackHTTPStubProtocol.lastRawRequestBody()
+                .contains("types=public_channel%2Cprivate_channel%2Cmpim%2Cim")
+        )
     }
 
     @Test func apiClientParsesWorkspaceUsersAndCursor() async throws {
@@ -355,25 +369,25 @@ struct SlackConnectionTests {
         let session = SlackHTTPStubProtocol.session(
             statusCode: 200,
             body: """
-            {
-              "ok": true,
-              "members": [
                 {
-                  "id": "U55555",
-                  "team_id": "T12345",
-                  "name": "mike",
-                  "real_name": "Mike Example",
-                  "deleted": false,
-                  "is_bot": false,
-                  "profile": {
-                    "display_name": "Mike",
-                    "real_name": "Mike Example"
-                  }
+                  "ok": true,
+                  "members": [
+                    {
+                      "id": "U55555",
+                      "team_id": "T12345",
+                      "name": "mike",
+                      "real_name": "Mike Example",
+                      "deleted": false,
+                      "is_bot": false,
+                      "profile": {
+                        "display_name": "Mike",
+                        "real_name": "Mike Example"
+                      }
+                    }
+                  ],
+                  "response_metadata": {"next_cursor": "next-users"}
                 }
-              ],
-              "response_metadata": {"next_cursor": "next-users"}
-            }
-            """
+                """
         )
         let client = SlackAPIClient(
             baseURL: URL(string: "https://slack.test/api")!,
@@ -396,13 +410,13 @@ struct SlackConnectionTests {
         let session = SlackHTTPStubProtocol.session(
             statusCode: 200,
             body: """
-            {
-              "ok": false,
-              "error": "missing_scope",
-              "needed": "users:read",
-              "provided": "chat:write,channels:read"
-            }
-            """
+                {
+                  "ok": false,
+                  "error": "missing_scope",
+                  "needed": "users:read",
+                  "provided": "chat:write,channels:read"
+                }
+                """
         )
         let client = SlackAPIClient(
             baseURL: URL(string: "https://slack.test/api")!,
@@ -438,10 +452,13 @@ struct SlackConnectionTests {
             _ = try await client.messages(channelId: "C23456", token: token, limit: 1, cursor: nil)
             Issue.record("Slack request should have been rate limited")
         } catch let error as SlackAPIError {
-            #expect(error == .rateLimited(
-                "Slack rate limited this request. Retry after 7 seconds.",
-                retryAfter: 7
-            ))
+            #expect(
+                error
+                    == .rateLimited(
+                        "Slack rate limited this request. Retry after 7 seconds.",
+                        retryAfter: 7
+                    )
+            )
         }
     }
 
@@ -452,7 +469,7 @@ struct SlackConnectionTests {
                 "C23456": [
                     .fixture(ts: "1718800000.000100", text: "eval reports landed"),
                     .fixture(ts: "1718800001.000200", text: "review requested"),
-                ],
+                ]
             ])
             let service = SlackConnectionService(client: fake, credentialStore: credentials)
             try service.saveBotToken("xoxb-slack-bot-token-super-secret")
@@ -522,7 +539,7 @@ struct SlackConnectionTests {
                         .fixture(ts: "1718800002.000300", text: "newer"),
                     ]),
                     SlackMessagePage(messages: [
-                        .fixture(ts: "1718800001.000200", text: "older"),
+                        .fixture(ts: "1718800001.000200", text: "older")
                     ]),
                 ],
                 channelId: "C23456"
@@ -677,7 +694,7 @@ struct SlackConnectionTests {
                 "C23456": [
                     .fixture(ts: "1718800000.000100", text: "eval reports landed"),
                     .fixture(ts: "1718800001.000200", text: "review requested"),
-                ],
+                ]
             ])
             let service = SlackConnectionService(
                 client: fake,
@@ -876,12 +893,14 @@ struct SlackConnectionTests {
             let timestamp = "1718800001"
             let signature = slackSignature(secret: signingSecret, timestamp: timestamp, body: body)
 
-            let normalized = try #require(try service.recordVerifiedInboundEvent(
-                body: body,
-                timestamp: timestamp,
-                signature: signature,
-                now: Date(timeIntervalSince1970: 1_718_800_001)
-            ))
+            let normalized = try #require(
+                try service.recordVerifiedInboundEvent(
+                    body: body,
+                    timestamp: timestamp,
+                    signature: signature,
+                    now: Date(timeIntervalSince1970: 1_718_800_001)
+                )
+            )
 
             #expect(normalized.providerEventId == "EvSigned12345")
             #expect(!normalized.payloadJSON.contains("legacy-verification-secret"))
@@ -1218,7 +1237,7 @@ struct SlackConnectionTests {
                     eventId: "EvSOCKET1",
                     userId: "U55555",
                     text: "<@UOSABOT> eval report ready"
-                ),
+                )
             ])
             let runtime = SlackSocketModeTransportRuntime(
                 service: service,
@@ -1264,7 +1283,7 @@ struct SlackConnectionTests {
                     eventId: "EvSOCKETIDENTITY",
                     userId: "U55555",
                     text: "<@U12345> first setup event"
-                ),
+                )
             ])
             let runtime = SlackSocketModeTransportRuntime(
                 service: service,
@@ -1316,7 +1335,7 @@ struct SlackConnectionTests {
                         eventId: "EvACKORDER",
                         userId: "U55555",
                         text: "<@UOSABOT> stored before ack"
-                    ),
+                    )
                 ],
                 sendError: AckDeliveryFailure()
             )
@@ -1361,7 +1380,7 @@ struct SlackConnectionTests {
                 )
             )
             let socket = FakeSlackSocketModeWebSocket(messages: [
-                #"{"type":"disconnect","reason":"refresh_requested"}"#,
+                #"{"type":"disconnect","reason":"refresh_requested"}"#
             ])
             let runtime = SlackSocketModeTransportRuntime(
                 service: service,
@@ -1414,7 +1433,7 @@ struct SlackConnectionTests {
                 )
             )
             let socket = FakeSlackSocketModeWebSocket(messages: [
-                #"{"type":"disconnect","reason":"link_disabled"}"#,
+                #"{"type":"disconnect","reason":"link_disabled"}"#
             ])
             let runtime = SlackSocketModeTransportRuntime(
                 service: service,
@@ -1729,7 +1748,7 @@ struct SlackConnectionTests {
                     authorName: "Mika",
                     content: "<@UOSABOT> cached before event",
                     providerTimestamp: "1718800005.000200"
-                ),
+                )
             ])
             let envelope = SlackEventEnvelope(
                 token: nil,
@@ -1761,7 +1780,7 @@ struct SlackConnectionTests {
         try await withIsolatedSlackStores { credentials in
             let fake = FakeSlackAPIClient()
             await fake.setMessages([
-                "C23456": [.fixture(ts: "1718800000.000100", text: "hello from Slack")],
+                "C23456": [.fixture(ts: "1718800000.000100", text: "hello from Slack")]
             ])
             let slackService = SlackConnectionService(client: fake, credentialStore: credentials)
             try slackService.saveBotToken("xoxb-slack-bot-token-super-secret")
@@ -2029,10 +2048,12 @@ struct SlackConnectionTests {
                 envelope(eventId: "EvACCEPTED", channel: "C23456", user: "U55555")
             )
             #expect(duplicate == .rejected(reason: "duplicate_event_acknowledge_without_dispatch"))
-            #expect(AgentChannelInboundActivityPresentation.guidance(
-                stage: .rejected,
-                reason: "duplicate_event_acknowledge_without_dispatch"
-            ) != nil)
+            #expect(
+                AgentChannelInboundActivityPresentation.guidance(
+                    stage: .rejected,
+                    reason: "duplicate_event_acknowledge_without_dispatch"
+                ) != nil
+            )
         }
     }
 
@@ -2134,9 +2155,11 @@ struct SlackConnectionTests {
 
             #expect(diagnostics.inboundDispatchEnabled)
             #expect(diagnostics.inboundDispatchIssue == "inbound_agent_unavailable")
-            #expect(diagnostics.failures.contains {
-                $0.localizedCaseInsensitiveContains("routed agent no longer exists")
-            })
+            #expect(
+                diagnostics.failures.contains {
+                    $0.localizedCaseInsensitiveContains("routed agent no longer exists")
+                }
+            )
         }
     }
 
@@ -2202,9 +2225,11 @@ struct SlackConnectionTests {
 
             let diagnostics = await service.diagnostics()
 
-            #expect(diagnostics.warnings.contains {
-                $0.contains("Socket Mode") && $0.contains("2 Nuo instances")
-            })
+            #expect(
+                diagnostics.warnings.contains {
+                    $0.contains("Socket Mode") && $0.contains("2 Nuo instances")
+                }
+            )
 
             // Readiness folds the environment warning into its notes so the
             // setup checklist can display it.
@@ -2316,7 +2341,7 @@ struct SlackConnectionTests {
                     eventId: "EvLIVE1",
                     userId: "U55555",
                     text: "<@UOSABOT> progress should publish now"
-                ),
+                )
             ])
             let healthCenter = AgentChannelTransportHealthCenter()
             let runtime = SlackSocketModeTransportRuntime(
@@ -2529,8 +2554,8 @@ private actor FakeSlackAPIClient: SlackAPIClientProtocol {
 
     func setAuthFailureEchoingSecrets(botToken: String, signingSecret: String, appToken: String) {
         authFailureMessage = """
-        transport included token \(botToken), signing secret \(signingSecret), and app token \(appToken)
-        """
+            transport included token \(botToken), signing secret \(signingSecret), and app token \(appToken)
+            """
     }
 
     func failSocketOpen(_ error: any Error) {
@@ -2623,32 +2648,33 @@ private actor FakeSlackAPIClient: SlackAPIClientProtocol {
 
     func conversations(token: String, limit: Int, cursor: String?) async throws -> SlackConversationPage {
         requestedConversationCursors.append(cursor)
-        let pages = conversationPages ?? [
-            [
-                SlackConversation(
-                    id: "C23456",
-                    name: "dev",
-                    isChannel: true,
-                    isGroup: false,
-                    isIM: false,
-                    isMPIM: false,
-                    isPrivate: false,
-                    isArchived: false,
-                    isMember: true
-                ),
-                SlackConversation(
-                    id: "C34567",
-                    name: "maintainers",
-                    isChannel: true,
-                    isGroup: false,
-                    isIM: false,
-                    isMPIM: false,
-                    isPrivate: false,
-                    isArchived: false,
-                    isMember: true
-                ),
+        let pages =
+            conversationPages ?? [
+                [
+                    SlackConversation(
+                        id: "C23456",
+                        name: "dev",
+                        isChannel: true,
+                        isGroup: false,
+                        isIM: false,
+                        isMPIM: false,
+                        isPrivate: false,
+                        isArchived: false,
+                        isMember: true
+                    ),
+                    SlackConversation(
+                        id: "C34567",
+                        name: "maintainers",
+                        isChannel: true,
+                        isGroup: false,
+                        isIM: false,
+                        isMPIM: false,
+                        isPrivate: false,
+                        isArchived: false,
+                        isMember: true
+                    ),
+                ]
             ]
-        ]
         let index = min(Self.pageIndex(for: cursor), pages.count - 1)
         return SlackConversationPage(
             conversations: pages[index],
@@ -2658,12 +2684,13 @@ private actor FakeSlackAPIClient: SlackAPIClientProtocol {
 
     func users(token: String, limit: Int, cursor: String?) async throws -> SlackUserPage {
         requestedUserCursors.append(cursor)
-        let pages = userPages ?? [
-            [
-                SlackUser(id: "U55555", teamId: "T12345", name: "mike", realName: "Mike"),
-                SlackUser(id: "U66666", teamId: "T12345", name: "sarah", realName: "Sarah"),
+        let pages =
+            userPages ?? [
+                [
+                    SlackUser(id: "U55555", teamId: "T12345", name: "mike", realName: "Mike"),
+                    SlackUser(id: "U66666", teamId: "T12345", name: "sarah", realName: "Sarah"),
+                ]
             ]
-        ]
         let index = min(Self.pageIndex(for: cursor), pages.count - 1)
         return SlackUserPage(
             users: pages[index],
@@ -2824,7 +2851,8 @@ private final class SlackHTTPStubProtocol: URLProtocol {
 
     static func lastRequestFormBody() -> [String: String] {
         guard let body = String(data: requestBody, encoding: .utf8) else { return [:] }
-        return body
+        return
+            body
             .split(separator: "&")
             .reduce(into: [String: String]()) { result, pair in
                 let parts = pair.split(separator: "=", maxSplits: 1)

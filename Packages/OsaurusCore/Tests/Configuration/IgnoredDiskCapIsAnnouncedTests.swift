@@ -47,19 +47,30 @@ struct IgnoredDiskCapIsAnnouncedTests {
     func gbHonouredWithoutPercent() {
         #expect(
             VMLXServerRuntimeSettings.resolveDiskCacheMaxGB(
-                percent: nil, legacyGB: 0.5, directory: volumeDir()) == 0.5)
+                percent: nil,
+                legacyGB: 0.5,
+                directory: volumeDir()
+            ) == 0.5
+        )
         // Zero is not "a share of zero", it is "unset" — the resolver requires
         // percent > 0, which is why a UI that rounded 0.005 down to 0.0 handed
         // the user the 10% default instead of a small cap.
         #expect(
             VMLXServerRuntimeSettings.resolveDiskCacheMaxGB(
-                percent: 0, legacyGB: 0.5, directory: volumeDir()) == 0.5)
+                percent: 0,
+                legacyGB: 0.5,
+                directory: volumeDir()
+            ) == 0.5
+        )
     }
 
     @Test("a percent alone resolves to a share, with no floor applied")
     func explicitShareHasNoFloor() {
         let tiny = VMLXServerRuntimeSettings.resolveDiskCacheMaxGB(
-            percent: 0.001, legacyGB: nil, directory: volumeDir())
+            percent: 0.001,
+            legacyGB: nil,
+            directory: volumeDir()
+        )
         #expect(
             tiny < VMLXServerRuntimeSettings.autoDiskCacheFloorGB,
             "an explicit share must not be clamped up to the auto floor — that would override a deliberate choice"

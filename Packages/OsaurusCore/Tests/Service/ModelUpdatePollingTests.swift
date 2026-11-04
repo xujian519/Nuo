@@ -16,19 +16,25 @@ struct ModelUpdatePollingTests {
         })
         let first = try await service.fetchModelManifest(repoId: "OsaurusAI/legacy")
         #expect(first.manifest == nil)
-        #expect(await requests.requestCount == 2) // revision plus absent sidecar
-        #expect(ModelManifestCheck(local: local, remote: first, error: nil, checkedAt: Date()).status == .unversionedPublisher)
+        #expect(await requests.requestCount == 2)  // revision plus absent sidecar
+        #expect(
+            ModelManifestCheck(local: local, remote: first, error: nil, checkedAt: Date()).status
+                == .unversionedPublisher
+        )
 
         let same = try await service.fetchModelManifest(repoId: "OsaurusAI/legacy", previous: first)
         #expect(same.manifest == nil)
-        #expect(await requests.requestCount == 3) // immutable missing sidecar is reused
+        #expect(await requests.requestCount == 3)  // immutable missing sidecar is reused
 
         await requests.publishManifest()
         let updated = try await service.fetchModelManifest(repoId: "OsaurusAI/legacy", previous: same)
-        #expect(await requests.requestCount == 5) // changed revision fetches new sidecar
+        #expect(await requests.requestCount == 5)  // changed revision fetches new sidecar
         #expect(updated.manifest?.modelVersion == "2")
-        #expect(ModelManifestCheck(local: local, remote: updated, error: nil, checkedAt: Date()).status == .verificationRequired)
-        #expect(ModelManifest.read(at: directory) == .absent) // metadata check never installs files
+        #expect(
+            ModelManifestCheck(local: local, remote: updated, error: nil, checkedAt: Date()).status
+                == .verificationRequired
+        )
+        #expect(ModelManifest.read(at: directory) == .absent)  // metadata check never installs files
     }
 
     @Test func cancellationNeverBecomesAnUnavailableOrCurrentSnapshot() async throws {
@@ -56,7 +62,9 @@ struct ModelUpdatePollingTests {
         )
         let check = ModelManifestCheck(
             local: .present(.init(requiredOsaurusVersion: "0.25.0", modelVersion: "1")),
-            remote: remote, error: nil, checkedAt: now
+            remote: remote,
+            error: nil,
+            checkedAt: now
         )
         var schedule = ModelUpdatePollingSchedule()
         schedule.record("OsaurusAI/Model", at: now, succeeded: true, observation: .init(check))

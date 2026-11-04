@@ -137,7 +137,10 @@ struct SandboxDefaultEnablementTests {
             _ = await manager.delete(id: onAgent.id)
 
             let offAgent = self.withAvailability(.unavailable(reason: "test")) {
-                manager.create(name: "Seed Off \(UUID().uuidString)", description: "Exercises unavailable sandbox defaults.")
+                manager.create(
+                    name: "Seed Off \(UUID().uuidString)",
+                    description: "Exercises unavailable sandbox defaults."
+                )
             }
             #expect(offAgent.autonomousExec == nil)
             _ = await manager.delete(id: offAgent.id)

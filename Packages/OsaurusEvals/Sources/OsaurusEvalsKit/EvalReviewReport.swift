@@ -305,12 +305,14 @@ public struct EvalReviewReportBundle: Sendable, Codable, Equatable {
     public let comparison: EvalReviewComparisonSummary?
 
     public var hasRunFailures: Bool {
-        models.isEmpty || models.contains { model in
-            model.suites.isEmpty || model.suites.contains { suite in
-                (suite.counts.passed + suite.counts.failed + suite.counts.errored == 0)
-                    || suite.counts.failed > 0 || suite.counts.errored > 0
+        models.isEmpty
+            || models.contains { model in
+                model.suites.isEmpty
+                    || model.suites.contains { suite in
+                        (suite.counts.passed + suite.counts.failed + suite.counts.errored == 0)
+                            || suite.counts.failed > 0 || suite.counts.errored > 0
+                    }
             }
-        }
     }
 
     public var hasBlockingRegressions: Bool {
@@ -327,7 +329,9 @@ public struct EvalReviewReportBundle: Sendable, Codable, Equatable {
     }
 
     public func evidenceReportDescriptor(summaryPath: String? = nil) -> EvidenceReportDescriptor {
-        let path = summaryPath ?? URL(fileURLWithPath: manifest.artifactPath, isDirectory: true)
+        let path =
+            summaryPath
+            ?? URL(fileURLWithPath: manifest.artifactPath, isDirectory: true)
             .appendingPathComponent(Self.summaryFileName)
             .path
         var metadata: [String: String] = [
@@ -348,7 +352,8 @@ public struct EvalReviewReportBundle: Sendable, Codable, Equatable {
         if let judgeModel = manifest.environment.judgeModel {
             metadata["judge_model"] = judgeModel
         }
-        metadata["models"] = models
+        metadata["models"] =
+            models
             .map { "\($0.role.rawValue):\($0.modelId)" }
             .sorted()
             .joined(separator: ",")
@@ -393,7 +398,7 @@ public struct EvalReviewReportBundle: Sendable, Codable, Equatable {
                     summaryPath: summaryPath,
                     registeredAt: registeredAt,
                     fileManager: fileManager
-                ),
+                )
             ]
         )
     }
@@ -502,11 +507,14 @@ public struct EvalReviewReportBundle: Sendable, Codable, Equatable {
 
     private func verdictLabel() -> String {
         if hasBlockingRegressions { return "REGRESSED" }
-        if models.isEmpty || models.contains(where: { model in
-            model.suites.isEmpty || model.suites.contains {
-                $0.counts.passed + $0.counts.failed + $0.counts.errored == 0
-            }
-        }) {
+        if models.isEmpty
+            || models.contains(where: { model in
+                model.suites.isEmpty
+                    || model.suites.contains {
+                        $0.counts.passed + $0.counts.failed + $0.counts.errored == 0
+                    }
+            })
+        {
             return "NO EVIDENCE"
         }
         if hasRunFailures { return "EVAL FAILURES PRESENT" }
@@ -671,7 +679,8 @@ public enum EvalReviewReportBuilder {
             EvalReviewModelSummary(
                 role: key.role,
                 modelId: key.modelId,
-                suites: inputs
+                suites:
+                    inputs
                     .sorted { $0.suite < $1.suite }
                     .map {
                         EvalReviewSuiteSummary(
@@ -742,11 +751,13 @@ public enum EvalReviewReportBuilder {
 
         let allJSONURLs: [URL]
         if isDirectory.boolValue {
-            guard let enumerator = fm.enumerator(
-                at: root,
-                includingPropertiesForKeys: [.isRegularFileKey],
-                options: [.skipsHiddenFiles]
-            ) else {
+            guard
+                let enumerator = fm.enumerator(
+                    at: root,
+                    includingPropertiesForKeys: [.isRegularFileKey],
+                    options: [.skipsHiddenFiles]
+                )
+            else {
                 throw EvalReviewReportError.noReports(root.path)
             }
             allJSONURLs = enumerator.compactMap { item in
@@ -765,7 +776,8 @@ public enum EvalReviewReportBuilder {
             let reportsRoot = root.appendingPathComponent("reports", isDirectory: true)
             var reportsRootIsDirectory: ObjCBool = false
             if fm.fileExists(atPath: reportsRoot.path, isDirectory: &reportsRootIsDirectory),
-               reportsRootIsDirectory.boolValue {
+                reportsRootIsDirectory.boolValue
+            {
                 let prefix = reportsRoot.standardizedFileURL.path + "/"
                 reportURLs = allJSONURLs.filter {
                     $0.standardizedFileURL.path.hasPrefix(prefix)
@@ -833,7 +845,8 @@ public enum EvalReviewReportBuilder {
             } else if isFailing(lhs?.outcome) && isFailing(rhs?.outcome) {
                 persistentFailures.append(delta)
             } else if lhs?.outcome == .skipped || rhs?.outcome == .skipped,
-                      lhs?.outcome != rhs?.outcome {
+                lhs?.outcome != rhs?.outcome
+            {
                 changedSkips.append(delta)
             }
         }
@@ -863,10 +876,8 @@ public enum EvalReviewReportBuilder {
             changedSkips: changedSkips,
             newCases: newCases,
             removedCases: removedCases,
-            warnings: (
-                baseline.warnings + current.warnings
-                    + (sharedKeys.isEmpty ? [EvalReviewComparisonSummary.noSharedCasesWarning] : [])
-            ).sorted()
+            warnings: (baseline.warnings + current.warnings
+                + (sharedKeys.isEmpty ? [EvalReviewComparisonSummary.noSharedCasesWarning] : [])).sorted()
         )
     }
 
@@ -931,7 +942,7 @@ public enum EvalReviewReportBuilder {
 
         for url in urls where url.lastPathComponent == EvalReviewReportBundle.manifestFileName {
             guard let data = try? Data(contentsOf: url),
-                  let manifest = try? decoder.decode(EvalReviewManifest.self, from: data)
+                let manifest = try? decoder.decode(EvalReviewManifest.self, from: data)
             else {
                 continue
             }

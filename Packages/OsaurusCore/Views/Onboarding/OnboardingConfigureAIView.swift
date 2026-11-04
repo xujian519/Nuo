@@ -1096,11 +1096,11 @@ private struct ConfigureAILeftColumn: View {
             Spacer().frame(height: 16)
 
             Text(subtitle, bundle: .module)
-            .font(OnboardingTypography.subtitle)
-            .foregroundColor(OnboardingPalette.labelSecondary)
-            .lineSpacing(1.5)
-            .fixedSize(horizontal: false, vertical: true)
-            .onboardingEntrance(2)
+                .font(OnboardingTypography.subtitle)
+                .foregroundColor(OnboardingPalette.labelSecondary)
+                .lineSpacing(1.5)
+                .fixedSize(horizontal: false, vertical: true)
+                .onboardingEntrance(2)
 
             Spacer().frame(height: 40)
 

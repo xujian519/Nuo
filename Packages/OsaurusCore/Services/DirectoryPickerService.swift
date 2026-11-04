@@ -238,9 +238,12 @@ public final class DirectoryPickerService: ObservableObject {
     private func saveDirectory(_ url: URL) {
         let scopedAccess = url.startAccessingSecurityScopedResource()
         if !scopedAccess {
-            guard (try? FileManager.default.contentsOfDirectory(
-                at: url, includingPropertiesForKeys: nil
-            )) != nil else {
+            guard
+                (try? FileManager.default.contentsOfDirectory(
+                    at: url,
+                    includingPropertiesForKeys: nil
+                )) != nil
+            else {
                 print("Failed to access selected models directory")
                 return
             }
@@ -257,7 +260,9 @@ public final class DirectoryPickerService: ObservableObject {
             } catch {
                 guard !scopedAccess else { throw error }
                 bookmarkData = try url.bookmarkData(
-                    options: [], includingResourceValuesForKeys: nil, relativeTo: nil
+                    options: [],
+                    includingResourceValuesForKeys: nil,
+                    relativeTo: nil
                 )
             }
 

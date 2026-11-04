@@ -999,7 +999,9 @@ final class ComputerUseEvidencePackTests: XCTestCase {
         )
         let driver = MockMacDriver(
             availability: MacDriverAvailability(accessibility: true, screenRecording: true, skyLight: true),
-            apps: [CUAppListing(pid: pid, bundleId: "com.apple.TextEdit", name: "TextEdit", active: false, hidden: false)],
+            apps: [
+                CUAppListing(pid: pid, bundleId: "com.apple.TextEdit", name: "TextEdit", active: false, hidden: false)
+            ],
             snapshots: [pid: [snapshot, snapshot]]
         )
 
@@ -1034,7 +1036,8 @@ final class ComputerUseEvidencePackTests: XCTestCase {
             config.hides = true, so the app never comes to the foreground and exposes no AX \
             windows — the model then reports a successful launch as a failure. An explicit \
             open must foreground the app.
-            """)
+            """
+        )
     }
 }
 

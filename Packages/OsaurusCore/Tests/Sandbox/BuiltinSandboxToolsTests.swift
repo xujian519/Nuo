@@ -1293,7 +1293,12 @@ struct BuiltinSandboxToolsTests {
         #expect(!commands.contains { $0.contains("python3") })
         // The staged content is the complete edited file, written with
         // printf (no heredoc / echo quoting hazards) into a sibling temp file.
-        #expect(commands[1].hasPrefix("printf '%s' 'def f():\n    new()\n' > '/workspace/agents/test-agent/app.py.osaurus-edit-"), "\(commands[1])")
+        #expect(
+            commands[1].hasPrefix(
+                "printf '%s' 'def f():\n    new()\n' > '/workspace/agents/test-agent/app.py.osaurus-edit-"
+            ),
+            "\(commands[1])"
+        )
         #expect(commands[2].hasPrefix("cat '/workspace/agents/test-agent/app.py.osaurus-edit-"), "\(commands[2])")
         #expect(commands[2].contains("> '/workspace/agents/test-agent/app.py'; EC=$?; rm -f"), "\(commands[2])")
     }
@@ -1353,7 +1358,9 @@ struct BuiltinSandboxToolsTests {
 
         // Ambiguous without replace_all: refused, nothing written, retry hint.
         let ambiguousRunner = MockSandboxToolCommandRunner(
-            rootResults: [], agentResults: [.init(stdout: "1\na b a\n", stderr: "", exitCode: 0)])
+            rootResults: [],
+            agentResults: [.init(stdout: "1\na b a\n", stderr: "", exitCode: 0)]
+        )
         let ambiguous = try await withRegisteredSandboxTools(runner: ambiguousRunner) {
             try await ToolRegistry.shared.execute(
                 name: "sandbox_write_file",
@@ -1361,12 +1368,17 @@ struct BuiltinSandboxToolsTests {
             )
         }
         #expect(ToolEnvelope.isError(ambiguous))
-        #expect((try failurePayload(ambiguous)["message"] as? String)?.contains("Found 2 matches") == true, "\(ambiguous)")
+        #expect(
+            (try failurePayload(ambiguous)["message"] as? String)?.contains("Found 2 matches") == true,
+            "\(ambiguous)"
+        )
         #expect(await ambiguousRunner.calls.count == 1, "no write after a refused edit")
 
         // dry_run: diff and PREVIEW warning, no write commands at all.
         let dryRunner = MockSandboxToolCommandRunner(
-            rootResults: [], agentResults: [.init(stdout: "1\nhello\n", stderr: "", exitCode: 0)])
+            rootResults: [],
+            agentResults: [.init(stdout: "1\nhello\n", stderr: "", exitCode: 0)]
+        )
         let dry = try await withRegisteredSandboxTools(runner: dryRunner) {
             try await ToolRegistry.shared.execute(
                 name: "sandbox_write_file",
@@ -1381,7 +1393,9 @@ struct BuiltinSandboxToolsTests {
 
         // Missing file: a pointed not_found, not a Python traceback.
         let missingRunner = MockSandboxToolCommandRunner(
-            rootResults: [], agentResults: [.init(stdout: "0\n", stderr: "", exitCode: 0)])
+            rootResults: [],
+            agentResults: [.init(stdout: "0\n", stderr: "", exitCode: 0)]
+        )
         let missing = try await withRegisteredSandboxTools(runner: missingRunner) {
             try await ToolRegistry.shared.execute(
                 name: "sandbox_write_file",
@@ -1928,7 +1942,9 @@ struct BuiltinSandboxToolsTests {
         #expect(batchCommands[1].contains("'A\nB\nA\n'"), "\(batchCommands[1])")
 
         let dryRunner = MockSandboxToolCommandRunner(
-            rootResults: [], agentResults: [.init(stdout: "1\nalpha\n", stderr: "", exitCode: 0)])
+            rootResults: [],
+            agentResults: [.init(stdout: "1\nalpha\n", stderr: "", exitCode: 0)]
+        )
         let dry = try await withRegisteredSandboxTools(runner: dryRunner) {
             try await ChatExecutionContext.$sandboxReadBridge.withValue(bridge) {
                 try await FileEditTool(rootPath: hostRoot).execute(

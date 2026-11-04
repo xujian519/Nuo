@@ -153,7 +153,7 @@ enum AgentChannelInboundActivityPresentation {
         case "own_message", "self_message":
             return L("Nuo ignores the bot's own messages.")
         case "duplicate_event", "duplicate_event_acknowledge_without_dispatch",
-             "duplicate_message_acknowledge_without_dispatch":
+            "duplicate_message_acknowledge_without_dispatch":
             return L("This event was already processed; the provider redelivered it.")
         case "not_a_channel_message", "update_has_no_message":
             return L("The event was not a plain channel message (edits, joins, and system events are ignored).")
@@ -172,19 +172,27 @@ enum AgentChannelInboundActivityPresentation {
         case "undecodable_envelope":
             return L("The provider sent an envelope Nuo could not decode.")
         case "mention_required":
-            return L("Mentions are required to start a conversation. Mention the bot user (not the Nuo agent name) in your message.")
+            return L(
+                "Mentions are required to start a conversation. Mention the bot user (not the Nuo agent name) in your message."
+            )
         case "inbound_dispatch_disabled", "inbound_dispatch_not_configured":
             return L("Dispatch to an agent is turned off. Enable it and pick an agent in the channel settings.")
         case "inbound_agent_unavailable":
             return L("The selected agent no longer exists. Pick a different agent in the channel settings.")
         case "conversation_queue_full":
-            return L("Too many messages are waiting for this conversation's current turn to finish. Send this one again once the agent replies.")
+            return L(
+                "Too many messages are waiting for this conversation's current turn to finish. Send this one again once the agent replies."
+            )
         case "invalid_dispatch_payload":
             return L("The message had no usable content to dispatch.")
         case "no_route_matched":
-            return L("No routing rule claimed this message and no default agent is set. Add a route for this room or pick a default agent in the channel settings.")
+            return L(
+                "No routing rule claimed this message and no default agent is set. Add a route for this room or pick a default agent in the channel settings."
+            )
         case "auto_reply_disabled":
-            return L("The reply stayed in Nuo because Reply Automatically is off. Turn it on in the channel settings to post replies back.")
+            return L(
+                "The reply stayed in Nuo because Reply Automatically is off. Turn it on in the channel settings to post replies back."
+            )
         case "rate_limited":
             return L("Inbound handling is rate limited right now. Wait a moment and try again.")
         default:

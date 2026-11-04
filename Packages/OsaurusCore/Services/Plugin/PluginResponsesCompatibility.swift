@@ -24,18 +24,25 @@ enum PluginResponsesCompatibility {
         }
         let calls = result.completion.dispatchableFunctionCalls
         if !calls.isEmpty {
-            return .toolCalls(calls.map {
-                ServiceToolInvocation(
-                    toolName: $0.name, jsonArguments: $0.arguments, toolCallId: $0.callID,
-                    geminiThoughtSignature: $0.geminiThoughtSignature
-                )
-            })
+            return .toolCalls(
+                calls.map {
+                    ServiceToolInvocation(
+                        toolName: $0.name,
+                        jsonArguments: $0.arguments,
+                        toolCallId: $0.callID,
+                        geminiThoughtSignature: $0.geminiThoughtSignature
+                    )
+                }
+            )
         }
         return AgentLoopModelStep.classifyTerminal(
             contentIsBlank: result.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
             thinkingIsBlank: result.reasoning.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-            stopReason: result.completion.stopReason, unclosedReasoning: result.completion.unclosedReasoning,
-            requiresVisibleFinalResponse: true, toolsWereOffered: toolsWereOffered, content: result.text
+            stopReason: result.completion.stopReason,
+            unclosedReasoning: result.completion.unclosedReasoning,
+            requiresVisibleFinalResponse: true,
+            toolsWereOffered: toolsWereOffered,
+            content: result.text
         )
     }
 
@@ -59,14 +66,17 @@ enum PluginResponsesCompatibility {
     /// Chat Completions-shaped compatibility response for the existing plugin
     /// ABI. Its usage object is optional; only emit it when both counts exist.
     static func response(
-        _ result: ResponsesGenerationResult, model: String, contentOverride: String? = nil
+        _ result: ResponsesGenerationResult,
+        model: String,
+        contentOverride: String? = nil
     ) throws -> [String: Any] {
         switch result.completion.status {
         case .cancelled: throw Failure.upstreamCancelled
         case .incomplete: throw Failure.incomplete(result.completion.stopReason)
         case .completed: break
         }
-        let message = try contentOverride.map { ChatMessage(role: "assistant", content: $0) }
+        let message =
+            try contentOverride.map { ChatMessage(role: "assistant", content: $0) }
             ?? result.completedAssistantInput()
         let recorded = SecretArgumentScrubber.recordedAssistantMessage(message)
         let data = try JSONEncoder.osaurusCanonical().encode(recorded)
@@ -74,11 +84,15 @@ enum PluginResponsesCompatibility {
         var response: [String: Any] = [
             "id": result.completion.responseID, "object": "chat.completion",
             "created": Int(Date().timeIntervalSince1970), "model": model,
-            "choices": [[
-                "index": 0, "message": projected,
-                "finish_reason": contentOverride != nil ? "stop"
-                    : (result.completion.dispatchableFunctionCalls.isEmpty ? (result.completion.stopReason ?? "stop") : "tool_calls"),
-            ]],
+            "choices": [
+                [
+                    "index": 0, "message": projected,
+                    "finish_reason": contentOverride != nil
+                        ? "stop"
+                        : (result.completion.dispatchableFunctionCalls.isEmpty
+                            ? (result.completion.stopReason ?? "stop") : "tool_calls"),
+                ]
+            ],
         ]
         let usage = reportedUsage(result)
         response["generation_metrics"] = usage

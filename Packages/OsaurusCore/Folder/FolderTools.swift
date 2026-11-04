@@ -1110,7 +1110,9 @@ struct FileReadTool: OsaurusTool {
             // the file it was told about. Quoting the real relative paths
             // makes the very next call correct.
             let candidates = FolderToolHelpers.basenameCandidates(
-                for: relativePath, rootPath: rootPath)
+                for: relativePath,
+                rootPath: rootPath
+            )
             if !candidates.isEmpty {
                 return ToolEnvelope.failure(
                     kind: .notFound,
@@ -1205,7 +1207,8 @@ struct FileReadTool: OsaurusTool {
             guard DocumentEditService.isEditable(ext), !isDirectory.boolValue else {
                 return ToolEnvelope.failure(
                     kind: .invalidArgs,
-                    message: "`mode: \"structure\"` outlines .docx, .xlsx, .pptx and .pdf files; read other files normally.",
+                    message:
+                        "`mode: \"structure\"` outlines .docx, .xlsx, .pptx and .pdf files; read other files normally.",
                     field: "mode",
                     expected: "a .docx/.xlsx/.pptx/.pdf path, or omit `mode`",
                     tool: name
@@ -1339,7 +1342,8 @@ struct FileReadTool: OsaurusTool {
                             "source": content.source.rawValue,
                             "pages": pageCount,
                             "pages_requested": pagesSpec,
-                            "text": "Page(s) \(pagesSpec) of this \(pageCount)-page PDF have no extractable text layer.",
+                            "text":
+                                "Page(s) \(pagesSpec) of this \(pageCount)-page PDF have no extractable text layer.",
                         ]
                     )
                 }
@@ -1841,7 +1845,8 @@ struct FileReadTool: OsaurusTool {
         var expected: String {
             switch self {
             case .malformed, .notContiguous:
-                return "one page or a contiguous range of PDF pages, e.g. \"3\" or \"3-5\" (make separate calls for non-adjacent pages)"
+                return
+                    "one page or a contiguous range of PDF pages, e.g. \"3\" or \"3-5\" (make separate calls for non-adjacent pages)"
             case .outOfRange(let pageCount):
                 return "page numbers between 1 and \(pageCount) (the PDF has \(pageCount) page(s))"
             }
@@ -2734,7 +2739,11 @@ struct FileWriteTool: OsaurusTool, PermissionedTool {
                 )
             )
         }
-        if let refusal = documentSourceRefusal(displayPath: sourcePath, ext: sourceURL.pathExtension.lowercased(), tool: tool) {
+        if let refusal = documentSourceRefusal(
+            displayPath: sourcePath,
+            ext: sourceURL.pathExtension.lowercased(),
+            tool: tool
+        ) {
             return .failureEnvelope(refusal)
         }
         guard let text = try? String(contentsOf: sourceURL, encoding: .utf8) else {
@@ -3223,9 +3232,11 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
 
     func argumentHint(_ property: String) -> String? {
         guard let example = Self.operationKeyHints[property] else { return nil }
-        var hint = "`\(property)` belongs inside an `operations` entry: {\"path\": \"…\", \"operations\": [\(example)]}."
+        var hint =
+            "`\(property)` belongs inside an `operations` entry: {\"path\": \"…\", \"operations\": [\(example)]}."
         if property == "slide" || property == "sheet" || property == "page" {
-            hint += " A plain text swap needs no `\(property)`: top-level `old_string`/`new_string` searches the whole document."
+            hint +=
+                " A plain text swap needs no `\(property)`: top-level `old_string`/`new_string` searches the whole document."
         }
         return hint
     }
@@ -3282,7 +3293,8 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
                 guard let entries = object[key] as? [[String: Any]] else { continue }
                 object[key] = entries.map { entry -> [String: Any] in
                     guard let own = entry["path"] as? String,
-                        AgentTaskState.canonicalPath(own.trimmingCharacters(in: .whitespaces)) == AgentTaskState.canonicalPath(shared)
+                        AgentTaskState.canonicalPath(own.trimmingCharacters(in: .whitespaces))
+                            == AgentTaskState.canonicalPath(shared)
                     else { return entry }
                     var stripped = entry
                     stripped.removeValue(forKey: "path")
@@ -3303,7 +3315,9 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
                 entry["op"] == nil && entry["old_string"] is String && entry["new_string"] is String
             }
             let hasRealOperations = object["operations"].map { !isContentFree($0) } ?? false
-            if !hasRealOperations, edits.contains(where: isOperation), edits.allSatisfy({ isOperation($0) || isPair($0) }) {
+            if !hasRealOperations, edits.contains(where: isOperation),
+                edits.allSatisfy({ isOperation($0) || isPair($0) })
+            {
                 let replaceAll = ArgumentCoercion.bool(object["replace_all"]) ?? false
                 object["operations"] = edits.map { entry -> [String: Any] in
                     if isOperation(entry) { return entry }
@@ -3395,8 +3409,12 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
         let documentExtension = URL(fileURLWithPath: relativePath).pathExtension.lowercased()
         if DocumentEditService.isEditable(documentExtension) {
             return try await editDocument(
-                args: args, relativePath: relativePath, ext: documentExtension,
-                dryRun: dryRun, replaceAll: replaceAll)
+                args: args,
+                relativePath: relativePath,
+                ext: documentExtension,
+                dryRun: dryRun,
+                replaceAll: replaceAll
+            )
         }
         if args["operations"] != nil {
             return ToolEnvelope.failure(
@@ -3495,8 +3513,12 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
         // the whole loop succeeds, so a failing edit means nothing changed.
         let applied: Self.AppliedEdits
         switch Self.applyEdits(
-            requestedEdits, to: originalContent, replaceAll: replaceAll, isBatch: isBatch,
-            relativePath: relativePath, tool: name
+            requestedEdits,
+            to: originalContent,
+            replaceAll: replaceAll,
+            isBatch: isBatch,
+            relativePath: relativePath,
+            tool: name
         ) {
         case .success(let result): applied = result
         case .failureEnvelope(let envelope): return envelope
@@ -3565,8 +3587,14 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
     ) async throws -> String {
         if combinedFileRoute(path: relativePath) == .sandbox, let bridge = ChatExecutionContext.sandboxReadBridge {
             return try await Self.editDocumentInWorkspaceShare(
-                path: relativePath, home: bridge.home, args: args, ext: ext,
-                dryRun: dryRun, replaceAll: replaceAll, tool: name)
+                path: relativePath,
+                home: bridge.home,
+                args: args,
+                ext: ext,
+                dryRun: dryRun,
+                replaceAll: replaceAll,
+                tool: name
+            )
         }
         guard let rootPath = FolderToolHelpers.resolveRoot(fixed: fixedRootPath) else {
             return FolderToolHelpers.noActiveFolderEnvelope(tool: name)
@@ -3575,7 +3603,12 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
             at: try FolderToolHelpers.resolvePath(relativePath, rootPath: rootPath),
             relativePath: relativePath,
             resolveOperand: { try FolderToolHelpers.resolvePath($0, rootPath: rootPath) },
-            args: args, ext: ext, dryRun: dryRun, replaceAll: replaceAll, tool: name)
+            args: args,
+            ext: ext,
+            dryRun: dryRun,
+            replaceAll: replaceAll,
+            tool: name
+        )
     }
 
     /// In-place document edit of a `/workspace/...` path. The share is a host
@@ -3615,7 +3648,12 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
                 }
                 return try FolderToolHelpers.resolvePath(operand, rootPath: WorkspaceShareRoute.shareRoot)
             },
-            args: args, ext: ext, dryRun: dryRun, replaceAll: replaceAll, tool: tool)
+            args: args,
+            ext: ext,
+            dryRun: dryRun,
+            replaceAll: replaceAll,
+            tool: tool
+        )
     }
 
     private static func editDocument(
@@ -3670,11 +3708,13 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
             var pairs: [(String, String)] = []
             if let edits = args["edits"] as? [[String: Any]] {
                 for (index, edit) in edits.enumerated() {
-                    guard let old = edit["old_string"] as? String, !old.isEmpty, let new = edit["new_string"] as? String else {
+                    guard let old = edit["old_string"] as? String, !old.isEmpty, let new = edit["new_string"] as? String
+                    else {
                         let isInsert = (edit["old_string"] as? String)?.isEmpty == true && edit["new_string"] is String
                         return ToolEnvelope.failure(
                             kind: .invalidArgs,
-                            message: "`edits[\(index)]` needs a non-empty `old_string` and a `new_string`." + (isInsert ? insertHint : ""),
+                            message: "`edits[\(index)]` needs a non-empty `old_string` and a `new_string`."
+                                + (isInsert ? insertHint : ""),
                             field: "edits",
                             expected: "{old_string, new_string}",
                             tool: tool
@@ -3694,14 +3734,15 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
                     tool: tool
                 )
             }
-            operations = pairs.map { ["op": "replace_text", "old_string": $0.0, "new_string": $0.1, "all": replaceAll] }
+            operations = pairs.map {
+                ["op": "replace_text", "old_string": $0.0, "new_string": $0.1, "all": replaceAll]
+            }
         } else {
             return ToolEnvelope.failure(
                 kind: .invalidArgs,
-                message:
-                    (ext == "docx" || ext == "pptx"
-                        ? "Nothing to apply: pass `old_string` + `new_string` (text is matched across runs) or `operations` "
-                        : "Pass `operations` ")
+                message: (ext == "docx" || ext == "pptx"
+                    ? "Nothing to apply: pass `old_string` + `new_string` (text is matched across runs) or `operations` "
+                    : "Pass `operations` ")
                     + "to edit this .\(ext) (\(DocumentEditService.operationNames(for: ext).joined(separator: ", "))). "
                     + "Call `file_read` with `mode: \"structure\"` to see what can be addressed.",
                 field: "operations",
@@ -3743,7 +3784,8 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
         if dryRun {
             prepared.discard()
             warnings.append(
-                "PREVIEW ONLY - nothing was written. The document is unchanged. Repeat the same call WITHOUT dry_run to apply it.")
+                "PREVIEW ONLY - nothing was written. The document is unchanged. Repeat the same call WITHOUT dry_run to apply it."
+            )
             return ToolEnvelope.success(tool: tool, result: payload, warnings: warnings)
         }
         do {
@@ -3787,7 +3829,8 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
                         field: "edits",
                         expected: "non-empty array of {old_string, new_string}",
                         tool: tool
-                    ))
+                    )
+                )
             }
             if rawEdits.count > Self.maxBatchEdits {
                 return .failureEnvelope(
@@ -3798,7 +3841,8 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
                         field: "edits",
                         expected: "at most \(Self.maxBatchEdits) edits per call",
                         tool: tool
-                    ))
+                    )
+                )
             }
             for (index, raw) in rawEdits.enumerated() {
                 // Empty `old_string` is ambiguous (same rule as the single
@@ -3811,7 +3855,8 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
                             field: "edits",
                             expected: "non-empty exact text for every edit's old_string",
                             tool: tool
-                        ))
+                        )
+                    )
                 }
                 guard let new = raw["new_string"] as? String else {
                     return .failureEnvelope(
@@ -3821,7 +3866,8 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
                             field: "edits",
                             expected: "replacement text for every edit",
                             tool: tool
-                        ))
+                        )
+                    )
                 }
                 requestedEdits.append((old, new))
             }
@@ -3849,7 +3895,8 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
                     field: "new_string",
                     expected: "replacement text (use `\"\"` to delete the match)",
                     tool: tool
-                ))
+                )
+            )
         }
         // Empty `new_string` is the supported delete-the-match form.
         let newReq = requireString(
@@ -3908,7 +3955,8 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
         for (index, edit) in edits.enumerated() {
             let label = isBatch ? "edits[\(index)].old_string" : "old_string"
             let atomicNote = isBatch ? " No edits were applied — the batch is atomic." : ""
-            switch FileEditMatcher.apply(oldString: edit.old, newString: edit.new, to: working, replaceAll: replaceAll) {
+            switch FileEditMatcher.apply(oldString: edit.old, newString: edit.new, to: working, replaceAll: replaceAll)
+            {
             case .noOp:
                 return .failureEnvelope(
                     ToolEnvelope.failure(
@@ -3963,10 +4011,11 @@ struct FileEditTool: OsaurusTool, PermissionedTool {
                     }
                 )
                 if applied.strategy.isRelaxed {
-                    let where_ = applied.matchedLines.first.map { range in
-                        range.lowerBound == range.upperBound
-                            ? "line \(range.lowerBound)" : "lines \(range.lowerBound)-\(range.upperBound)"
-                    } ?? "the matched region"
+                    let where_ =
+                        applied.matchedLines.first.map { range in
+                            range.lowerBound == range.upperBound
+                                ? "line \(range.lowerBound)" : "lines \(range.lowerBound)-\(range.upperBound)"
+                        } ?? "the matched region"
                     var note =
                         "`\(label)` did not match the file byte-for-byte; it was matched at \(where_) "
                         + "with \(applied.strategy.explanation). The file's own indentation, blank lines and line "
@@ -4333,7 +4382,8 @@ struct FileUndoTool: OsaurusTool, PermissionedTool {
         var warnings: [String] = []
         if !conflicted.isEmpty {
             warnings.append(
-                "Left untouched (changed after this chat's edit): " + conflicted.joined(separator: ", "))
+                "Left untouched (changed after this chat's edit): " + conflicted.joined(separator: ", ")
+            )
         }
         warnings += summary.failures
         var result: [String: Any] = [
@@ -4526,7 +4576,11 @@ struct FileSearchTool: OsaurusTool {
         // request is the model's judgement, never auto-picked here.
         if target == "files" {
             let found = try searchFilesByName(
-                root: searchURL, query: pattern, maxResults: maxResults, offset: offset)
+                root: searchURL,
+                query: pattern,
+                maxResults: maxResults,
+                offset: offset
+            )
             return filesSearchEnvelope(originalQuery: pattern, found: found)
         }
 
@@ -4673,7 +4727,11 @@ struct FileSearchTool: OsaurusTool {
             // match" — twenty identical times. Only fires on empty content,
             // so it never overrides a real content hit.
             let fallback = try searchFilesByName(
-                root: searchURL, query: pattern, maxResults: maxResults, offset: offset)
+                root: searchURL,
+                query: pattern,
+                maxResults: maxResults,
+                offset: offset
+            )
             if !fallback.entries.isEmpty || (offset > 0 && fallback.total > 0) {
                 let corrected = FileSearchOutcome(
                     entries: fallback.entries,

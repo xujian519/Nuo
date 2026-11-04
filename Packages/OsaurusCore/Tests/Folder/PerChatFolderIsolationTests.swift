@@ -51,9 +51,15 @@ struct PerChatFolderIsolationTests {
             try? FileManager.default.removeItem(at: rootB)
         }
         try "alpha".write(
-            to: rootA.appendingPathComponent("who.txt"), atomically: true, encoding: .utf8)
+            to: rootA.appendingPathComponent("who.txt"),
+            atomically: true,
+            encoding: .utf8
+        )
         try "bravo".write(
-            to: rootB.appendingPathComponent("who.txt"), atomically: true, encoding: .utf8)
+            to: rootB.appendingPathComponent("who.txt"),
+            atomically: true,
+            encoding: .utf8
+        )
 
         let tool = FileReadTool()  // canonical: root comes from the scope
 
@@ -86,13 +92,15 @@ struct PerChatFolderIsolationTests {
         async let a: String = ChatExecutionContext.$currentFolderRoot.withValue(rootA) {
             try await ChatExecutionContext.$currentSessionId.withValue(sessionA) {
                 try await write.execute(
-                    argumentsJSON: #"{"path": "out.txt", "content": "from-A"}"#)
+                    argumentsJSON: #"{"path": "out.txt", "content": "from-A"}"#
+                )
             }
         }
         async let b: String = ChatExecutionContext.$currentFolderRoot.withValue(rootB) {
             try await ChatExecutionContext.$currentSessionId.withValue(sessionB) {
                 try await write.execute(
-                    argumentsJSON: #"{"path": "out.txt", "content": "from-B"}"#)
+                    argumentsJSON: #"{"path": "out.txt", "content": "from-B"}"#
+                )
             }
         }
         let (resultA, resultB) = try await (a, b)
@@ -100,9 +108,13 @@ struct PerChatFolderIsolationTests {
         #expect(ToolEnvelope.isSuccess(resultB), "got: \(resultB)")
 
         let contentA = try String(
-            contentsOf: rootA.appendingPathComponent("out.txt"), encoding: .utf8)
+            contentsOf: rootA.appendingPathComponent("out.txt"),
+            encoding: .utf8
+        )
         let contentB = try String(
-            contentsOf: rootB.appendingPathComponent("out.txt"), encoding: .utf8)
+            contentsOf: rootB.appendingPathComponent("out.txt"),
+            encoding: .utf8
+        )
         #expect(contentA == "from-A")
         #expect(contentB == "from-B")
     }
@@ -137,8 +149,11 @@ struct PerChatFolderIsolationTests {
         let sessionId = "undo-\(UUID().uuidString)"
         let written = try await ChatExecutionContext.$currentFolderRoot.withValue(rootA) {
             try await env.run(
-                FileWriteTool(), #"{"path": "undo.txt", "content": "clobbered"}"#,
-                sessionId: sessionId, folder: rootA)
+                FileWriteTool(),
+                #"{"path": "undo.txt", "content": "clobbered"}"#,
+                sessionId: sessionId,
+                folder: rootA
+            )
         }
         let opId = try #require(EnvelopeAssertions.successPayload(written)?["operation_id"] as? String)
 
@@ -165,11 +180,17 @@ struct PerChatFolderIsolationTests {
             try? FileManager.default.removeItem(at: rootB)
         }
         let a = SessionToolState.fingerprint(
-            executionMode: .hostFolder(makeContext(root: rootA)), toolMode: .auto)
+            executionMode: .hostFolder(makeContext(root: rootA)),
+            toolMode: .auto
+        )
         let b = SessionToolState.fingerprint(
-            executionMode: .hostFolder(makeContext(root: rootB)), toolMode: .auto)
+            executionMode: .hostFolder(makeContext(root: rootB)),
+            toolMode: .auto
+        )
         let aAgain = SessionToolState.fingerprint(
-            executionMode: .hostFolder(makeContext(root: rootA)), toolMode: .auto)
+            executionMode: .hostFolder(makeContext(root: rootA)),
+            toolMode: .auto
+        )
 
         #expect(a != b, "different roots must fork the fingerprint")
         #expect(a == aAgain, "the identity must be stable for the same root")
@@ -178,12 +199,16 @@ struct PerChatFolderIsolationTests {
 
         let legacySandboxA = SessionToolState.fingerprint(
             executionMode: .sandbox(hostRead: makeContext(root: rootA), hostWrite: false),
-            toolMode: .auto)
+            toolMode: .auto
+        )
         let legacySandboxB = SessionToolState.fingerprint(
             executionMode: .sandbox(hostRead: makeContext(root: rootB), hostWrite: false),
-            toolMode: .auto)
+            toolMode: .auto
+        )
         let plainSandbox = SessionToolState.fingerprint(
-            executionMode: .sandbox(hostRead: nil, hostWrite: false), toolMode: .auto)
+            executionMode: .sandbox(hostRead: nil, hostWrite: false),
+            toolMode: .auto
+        )
         #expect(legacySandboxA == plainSandbox)
         #expect(legacySandboxB == plainSandbox)
         #expect(plainSandbox == "sandbox/auto", "no folder -> no identity suffix")
@@ -207,7 +232,8 @@ struct PerChatFolderIsolationTests {
 
         // Legacy row: no folder keys at all.
         var legacyJSON = try #require(
-            try JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+            try JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
         legacyJSON.removeValue(forKey: "folderBookmark")
         legacyJSON.removeValue(forKey: "folderPath")
         let legacyData = try JSONSerialization.data(withJSONObject: legacyJSON)
@@ -443,7 +469,8 @@ struct PerChatFolderIsolationTests {
         let context = await state.contextWaitingForRestore()
 
         #expect(
-            context?.rootPath.standardizedFileURL.path == root.standardizedFileURL.path)
+            context?.rootPath.standardizedFileURL.path == root.standardizedFileURL.path
+        )
         #expect(state.hasActiveFolder)
         state.clearFolder()
     }

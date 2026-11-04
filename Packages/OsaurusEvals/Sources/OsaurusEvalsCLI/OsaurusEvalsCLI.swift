@@ -563,7 +563,11 @@ struct OsaurusEvalsCLI {
         if rate < floor {
             return String(
                 format: "%@: pass rate %.3f (%d/%d) below suite floor %.3f",
-                suiteName, rate, counts.passed, scoreable, floor
+                suiteName,
+                rate,
+                counts.passed,
+                scoreable,
+                floor
             )
         }
         return nil

@@ -21,8 +21,8 @@ struct WalletActivityProjector {
             usageItems.map(WalletActivityRow.init(usage:))
             + webUsageItems.map(WalletActivityRow.init(webUsage:))
             + transactions
-                .filter(WalletActivityRow.isWalletVisible)
-                .map(WalletActivityRow.init(transaction:))
+            .filter(WalletActivityRow.isWalletVisible)
+            .map(WalletActivityRow.init(transaction:))
         return Array(
             merged
                 .sorted { ($0.date ?? .distantPast) > ($1.date ?? .distantPast) }

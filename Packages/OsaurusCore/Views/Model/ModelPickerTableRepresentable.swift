@@ -263,7 +263,6 @@ final class HoverTrackingScrollView: NSScrollView {
     override func mouseExited(with event: NSEvent) { onPointerCrossed?() }
 }
 
-
 @MainActor
 private func makeLabel(lineBreakMode: NSLineBreakMode = .byTruncatingTail) -> NSTextField {
     let tf = NSTextField(labelWithString: "")
@@ -878,7 +877,8 @@ private final class ModelRowCellView: NSTableCellView, NSGestureRecognizerDelega
             let alignment = accessoryButton.image?.alignmentRect ?? CGRect(origin: .zero, size: imgSize)
             let glyphCenterFromTop = imgSize.height - alignment.midY
             let nameTextW = min(nameLabel.intrinsicContentSize.width, nameLabel.frame.width)
-            let firstBadgeX = [mediaBadge, vlmBadge]
+            let firstBadgeX =
+                [mediaBadge, vlmBadge]
                 .filter { !$0.isHidden }
                 .map(\.frame.minX)
                 .min() ?? trailingX

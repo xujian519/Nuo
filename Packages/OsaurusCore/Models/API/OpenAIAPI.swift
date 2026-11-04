@@ -1030,15 +1030,20 @@ extension ChatCompletionRequest {
         temperature = try container.decodeIfPresent(Float.self, forKey: .temperature)
         max_tokens = try container.decodeIfPresent(Int.self, forKey: .max_tokens)
         max_completion_tokens = try container.decodeIfPresent(
-            Int.self, forKey: .max_completion_tokens)
+            Int.self,
+            forKey: .max_completion_tokens
+        )
         stream = try container.decodeIfPresent(Bool.self, forKey: .stream)
         top_p = try container.decodeIfPresent(Float.self, forKey: .top_p)
         top_k = try container.decodeIfPresent(Int.self, forKey: .top_k)
         min_p = try container.decodeIfPresent(Float.self, forKey: .min_p)
         repetition_penalty = try container.decodeIfPresent(Float.self, forKey: .repetition_penalty)
         if let reason = RequestValidator.repetitionPenaltyReason(repetition_penalty) {
-            throw DecodingError.dataCorruptedError(forKey: .repetition_penalty, in: container,
-                debugDescription: reason)
+            throw DecodingError.dataCorruptedError(
+                forKey: .repetition_penalty,
+                in: container,
+                debugDescription: reason
+            )
         }
         frequency_penalty = try container.decodeIfPresent(Float.self, forKey: .frequency_penalty)
         presence_penalty = try container.decodeIfPresent(Float.self, forKey: .presence_penalty)
@@ -1070,7 +1075,9 @@ extension ChatCompletionRequest {
         // change something, so other requests never touch the bundle lookup.
         let kwargsContainer = try decoder.container(keyedBy: TemplateKwargsCodingKeys.self)
         if let kwargs = try? kwargsContainer.decodeIfPresent(
-            [String: JSONValue].self, forKey: .chat_template_kwargs),
+            [String: JSONValue].self,
+            forKey: .chat_template_kwargs
+        ),
             (enable_thinking == nil
                 && (kwargs["enable_thinking"] != nil || kwargs["thinking"] != nil))
                 || (reasoning_effort == nil && kwargs["reasoning_effort"] != nil),

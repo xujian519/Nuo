@@ -5,13 +5,19 @@ import Testing
 @testable import OsaurusCore
 
 struct HandledGPUFailureReportTests {
-    private let signature = "[METAL] Command buffer execution failed: Impacting Interactivity (0000000e:kIOGPUCommandBufferCallbackErrorImpactingInteractivity)"
+    private let signature =
+        "[METAL] Command buffer execution failed: Impacting Interactivity (0000000e:kIOGPUCommandBufferCallbackErrorImpactingInteractivity)"
 
     @Test func nativeSignatureProducesAnIdentifierOnlyReport() throws {
         let cause = "MLX Error: \(signature) at /Users/private-user/secret.cpp:73"
-        let report = try #require(HandledGPUFailureReport(
-            failure: GenerationFailure(stage: .decoding, cause: cause),
-            modelName: "OsaurusAI--Allosaurus-v0.2-125B-A6B-JANGHT1.8", promptTokens: 4096, generatedTokens: 231))
+        let report = try #require(
+            HandledGPUFailureReport(
+                failure: GenerationFailure(stage: .decoding, cause: cause),
+                modelName: "OsaurusAI--Allosaurus-v0.2-125B-A6B-JANGHT1.8",
+                promptTokens: 4096,
+                generatedTokens: 231
+            )
+        )
         let encoded = String(decoding: try JSONSerialization.data(withJSONObject: report.context), as: UTF8.self)
         #expect(report.stage == "decoding")
         #expect(report.promptTokens == 4096)
@@ -27,21 +33,44 @@ struct HandledGPUFailureReportTests {
         #expect(report.context["snapshot_stage"] as? String == "app_terminal_info_handler")
     }
 
-    @Test(arguments: ["", "Out of memory", "kIOGPUCommandBufferCallbackErrorTimeout",
+    @Test(arguments: [
+        "", "Out of memory", "kIOGPUCommandBufferCallbackErrorTimeout",
         "kIOGPUCommandBufferCallbackErrorInnocentVictim", "Impacting Interactivity in user text",
-        "kIOGPUCommandBufferCallbackErrorImpactingInteractivity"])
+        "kIOGPUCommandBufferCallbackErrorImpactingInteractivity",
+    ])
     func unrelatedErrorsAreNotReclassifiedAsInteractivity(cause: String) {
-        #expect(HandledGPUFailureReport(failure: GenerationFailure(stage: .preparation, cause: cause),
-            modelName: "public--model", promptTokens: 0, generatedTokens: 0) == nil)
+        #expect(
+            HandledGPUFailureReport(
+                failure: GenerationFailure(stage: .preparation, cause: cause),
+                modelName: "public--model",
+                promptTokens: 0,
+                generatedTokens: 0
+            ) == nil
+        )
     }
 
-    @Test(arguments: ["/Users/private-user/models/secret-model", "private local model", "C:\\Users\\private-user\\model", "public--model\n"])
+    @Test(arguments: [
+        "/Users/private-user/models/secret-model", "private local model", "C:\\Users\\private-user\\model",
+        "public--model\n",
+    ])
     func arbitraryLocalNamesAndPathsAreHashed(modelName: String) throws {
         let failure = GenerationFailure(stage: .preparation, cause: signature)
-        let first = try #require(HandledGPUFailureReport(failure: failure, modelName: modelName,
-            promptTokens: 8, generatedTokens: 0))
-        let second = try #require(HandledGPUFailureReport(failure: failure, modelName: modelName,
-            promptTokens: 8, generatedTokens: 0))
+        let first = try #require(
+            HandledGPUFailureReport(
+                failure: failure,
+                modelName: modelName,
+                promptTokens: 8,
+                generatedTokens: 0
+            )
+        )
+        let second = try #require(
+            HandledGPUFailureReport(
+                failure: failure,
+                modelName: modelName,
+                promptTokens: 8,
+                generatedTokens: 0
+            )
+        )
         #expect(first.modelReference.hasPrefix("local-sha256:"))
         #expect(first.modelReference == second.modelReference)
         #expect(!first.modelReference.contains("private"))
@@ -49,16 +78,22 @@ struct HandledGPUFailureReportTests {
     }
 
     @Test func unavailableCountsAreNotInventedAsZero() throws {
-        let report = try #require(HandledGPUFailureReport(
-            failure: GenerationFailure(stage: .preparation, cause: signature),
-            modelName: "public--model", promptTokens: -1, generatedTokens: -1))
+        let report = try #require(
+            HandledGPUFailureReport(
+                failure: GenerationFailure(stage: .preparation, cause: signature),
+                modelName: "public--model",
+                promptTokens: -1,
+                generatedTokens: -1
+            )
+        )
         #expect(report.context["prompt_tokens"] == nil)
         #expect(report.context["generated_tokens"] == nil)
         #expect(report.context["input_units"] == nil)
         #expect(report.context["output_units"] == nil)
         #expect(report.context["restored_units"] == nil)
         for key in [
-            "decode_path", "configured_depth", "last_prefill_stage", "last_prefill_operation", "prefill_completed_units",
+            "decode_path", "configured_depth", "last_prefill_stage", "last_prefill_operation",
+            "prefill_completed_units",
             "prefill_total_units", "restored_tokens", "restore_detail", "cache_restore_ms",
             "disk_restore_bytes", "disk_restore_ms", "model_volume_kind",
         ] {
@@ -70,16 +105,29 @@ struct HandledGPUFailureReportTests {
     /// keys, JSON-serializable, and still without the error text.
     @Test func requestContextIsEncodedAsIdentifiersAndCounts() throws {
         let context = HandledGPUFailureContext(
-            decodePath: "native_mtp:d3", configuredDepth: 3,
-            lastPrefillStage: "cacheRestore", prefillCompletedUnits: 1200, prefillTotalUnits: 4096,
-            restoredTokens: 1200, restoreDetail: "disk", cacheRestoreMs: 2481,
-            diskRestoreBytes: 734_003_200, diskRestoreMs: 2400,
-            modelVolumeKind: "removable", promptTokens: 4096)
+            decodePath: "native_mtp:d3",
+            configuredDepth: 3,
+            lastPrefillStage: "cacheRestore",
+            prefillCompletedUnits: 1200,
+            prefillTotalUnits: 4096,
+            restoredTokens: 1200,
+            restoreDetail: "disk",
+            cacheRestoreMs: 2481,
+            diskRestoreBytes: 734_003_200,
+            diskRestoreMs: 2400,
+            modelVolumeKind: "removable",
+            promptTokens: 4096
+        )
         let cause = "MLX Error: \(signature) at /Users/private-user/secret.cpp:73"
-        let report = try #require(HandledGPUFailureReport(
-            failure: GenerationFailure(stage: .preparation, cause: cause),
-            modelName: "/Users/private-user/models/allosaurus", promptTokens: -1, generatedTokens: -1,
-            context: context))
+        let report = try #require(
+            HandledGPUFailureReport(
+                failure: GenerationFailure(stage: .preparation, cause: cause),
+                modelName: "/Users/private-user/models/allosaurus",
+                promptTokens: -1,
+                generatedTokens: -1,
+                context: context
+            )
+        )
         let encoded = String(decoding: try JSONSerialization.data(withJSONObject: report.context), as: UTF8.self)
         #expect(JSONSerialization.isValidJSONObject(report.context))
         #expect(report.context["decode_path"] as? String == "native_mtp:d3")
@@ -106,10 +154,15 @@ struct HandledGPUFailureReportTests {
     }
 
     @Test func runtimePromptCountWinsOverTheRequestCount() throws {
-        let report = try #require(HandledGPUFailureReport(
-            failure: GenerationFailure(stage: .decoding, cause: signature),
-            modelName: "public--model", promptTokens: 4100, generatedTokens: 7,
-            context: HandledGPUFailureContext(promptTokens: 4096)))
+        let report = try #require(
+            HandledGPUFailureReport(
+                failure: GenerationFailure(stage: .decoding, cause: signature),
+                modelName: "public--model",
+                promptTokens: 4100,
+                generatedTokens: 7,
+                context: HandledGPUFailureContext(promptTokens: 4096)
+            )
+        )
         #expect(report.context["prompt_tokens"] as? Int == 4100)
         #expect(report.context["generated_tokens"] as? Int == 7)
         #expect(report.context["input_units"] as? Int == 4100)
@@ -117,10 +170,15 @@ struct HandledGPUFailureReportTests {
     }
 
     @Test func knownZeroCountsRemainNumericWithoutTokenNamedAliases() throws {
-        let report = try #require(HandledGPUFailureReport(
-            failure: GenerationFailure(stage: .preparation, cause: signature),
-            modelName: "public--model", promptTokens: 0, generatedTokens: 0,
-            context: HandledGPUFailureContext(restoredTokens: 0)))
+        let report = try #require(
+            HandledGPUFailureReport(
+                failure: GenerationFailure(stage: .preparation, cause: signature),
+                modelName: "public--model",
+                promptTokens: 0,
+                generatedTokens: 0,
+                context: HandledGPUFailureContext(restoredTokens: 0)
+            )
+        )
         for key in ["input_units", "output_units", "restored_units"] {
             #expect(!key.contains("token"))
             #expect(report.context[key] as? Int == 0)
@@ -132,10 +190,15 @@ struct HandledGPUFailureReportTests {
 
     @Test func untrustedProgressDetailsCannotBecomeFailureTelemetry() throws {
         let privateDetail = "/Users/private-user/secret-model decode text"
-        let report = try #require(HandledGPUFailureReport(
-            failure: GenerationFailure(stage: .preparation, cause: signature),
-            modelName: "public--model", promptTokens: 64, generatedTokens: 0,
-            context: HandledGPUFailureContext(lastPrefillOperation: privateDetail, restoreDetail: privateDetail)))
+        let report = try #require(
+            HandledGPUFailureReport(
+                failure: GenerationFailure(stage: .preparation, cause: signature),
+                modelName: "public--model",
+                promptTokens: 64,
+                generatedTokens: 0,
+                context: HandledGPUFailureContext(lastPrefillOperation: privateDetail, restoreDetail: privateDetail)
+            )
+        )
         #expect(report.context["last_prefill_operation"] == nil)
         #expect(report.context["restore_detail"] == nil)
         let encoded = String(decoding: try JSONSerialization.data(withJSONObject: report.context), as: UTF8.self)
@@ -147,7 +210,8 @@ struct HandledGPUFailureReportTests {
         let kind = HandledGPUFailureReport.volumeKind(of: FileManager.default.temporaryDirectory)
         #expect(["internal", "external", "removable", "unknown"].contains(kind ?? ""))
         let missing = HandledGPUFailureReport.volumeKind(
-            of: URL(fileURLWithPath: "/nonexistent-\(UUID().uuidString)/model"))
+            of: URL(fileURLWithPath: "/nonexistent-\(UUID().uuidString)/model")
+        )
         #expect(missing == "unknown")
     }
 
@@ -183,9 +247,14 @@ struct HandledGPUFailureReportTests {
     }
 
     @Test func eventKeepsSavedPolicySeparateFromObservedOccupancyAndLimits() throws {
-        let report = try #require(HandledGPUFailureReport(
-            failure: GenerationFailure(stage: .decoding, cause: signature),
-            modelName: "public--model", promptTokens: 128, generatedTokens: 10))
+        let report = try #require(
+            HandledGPUFailureReport(
+                failure: GenerationFailure(stage: .decoding, cause: signature),
+                modelName: "public--model",
+                promptTokens: 128,
+                generatedTokens: 10
+            )
+        )
         let memory: [String: Any] = [
             "saved_profile": ["mode": "safe_auto", "slider": 2],
             "observed_at_terminal_info": [

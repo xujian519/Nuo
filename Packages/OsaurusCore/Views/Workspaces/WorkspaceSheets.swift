@@ -222,7 +222,9 @@ struct CreateWorkspaceSheet: View {
         }
         if service.trialEligible, let days = service.trialDays, days > 0 {
             return String(
-                format: L("Name it and pick a billing interval. Your first %d days are free; you can cancel anytime before then."),
+                format: L(
+                    "Name it and pick a billing interval. Your first %d days are free; you can cancel anytime before then."
+                ),
                 days
             )
         }
@@ -373,11 +375,17 @@ struct CreateWorkspaceSheet: View {
         if service.trialEligible, let days = service.trialDays, days > 0 {
             if let priceText {
                 return String(
-                    format: L("%d days free, then %@. Your card is collected now and first charged when the trial ends."),
-                    days, priceText
+                    format: L(
+                        "%d days free, then %@. Your card is collected now and first charged when the trial ends."
+                    ),
+                    days,
+                    priceText
                 )
             }
-            return String(format: L("%d days free. Your card is collected now and first charged when the trial ends."), days)
+            return String(
+                format: L("%d days free. Your card is collected now and first charged when the trial ends."),
+                days
+            )
         }
         if let priceText {
             return String(format: L("%@, billed by Stripe. You'll finish the purchase in your browser."), priceText)
@@ -388,10 +396,13 @@ struct CreateWorkspaceSheet: View {
     private var trialLimitMessage: String {
         if let raw = service.trialEndsAt, let date = WorkspacesFormatting.date(raw) {
             return String(
-                format: L("Your free trial covers one workspace. You can add more after it converts on %@."), date
+                format: L("Your free trial covers one workspace. You can add more after it converts on %@."),
+                date
             )
         }
-        return L("Your free trial covers one workspace. You can add more once the trial converts to a paid subscription.")
+        return L(
+            "Your free trial covers one workspace. You can add more once the trial converts to a paid subscription."
+        )
     }
 
     @ViewBuilder
@@ -685,7 +696,7 @@ struct CreateInviteLinkSheet: View {
     @State private var minted: OsaurusRouterWorkspaceInvite?
     @State private var errorMessage: String?
 
-    private static let usesRange = 1...100
+    private static let usesRange = 1 ... 100
 
     private var roleExplainer: String {
         switch role {

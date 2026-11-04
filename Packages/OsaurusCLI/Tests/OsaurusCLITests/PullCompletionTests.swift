@@ -11,7 +11,8 @@ final class PullCompletionTests: XCTestCase {
             var names: [String] = []
             var payloads: [[AnyHashable: Any]] = []
             let result = PullCommand.notifyAppIfPullComplete(
-                files: [("config.json", 3), ("model.safetensors", 7)], destination: root
+                files: [("config.json", 3), ("model.safetensors", 7)],
+                destination: root
             ) { action, payload in
                 names.append(action)
                 payloads.append(payload)
@@ -36,9 +37,11 @@ final class PullCompletionTests: XCTestCase {
             ]
             for files in cases {
                 var notified = false
-                XCTAssertFalse(PullCommand.notifyAppIfPullComplete(files: files, destination: root) { _, _ in
-                    notified = true
-                })
+                XCTAssertFalse(
+                    PullCommand.notifyAppIfPullComplete(files: files, destination: root) { _, _ in
+                        notified = true
+                    }
+                )
                 XCTAssertFalse(notified)
             }
         }
@@ -49,12 +52,16 @@ final class PullCompletionTests: XCTestCase {
             let target = root.appendingPathComponent("target")
             try Data("cfg".utf8).write(to: target)
             try FileManager.default.createSymbolicLink(
-                at: root.appendingPathComponent("config.json"), withDestinationURL: target)
+                at: root.appendingPathComponent("config.json"),
+                withDestinationURL: target
+            )
             for path in ["../target", "/target", "config.json"] {
                 var notified = false
-                XCTAssertFalse(PullCommand.notifyAppIfPullComplete(files: [(path, 3)], destination: root) { _, _ in
-                    notified = true
-                })
+                XCTAssertFalse(
+                    PullCommand.notifyAppIfPullComplete(files: [(path, 3)], destination: root) { _, _ in
+                        notified = true
+                    }
+                )
                 XCTAssertFalse(notified)
             }
         }

@@ -49,7 +49,8 @@ final class RemoteAnthropicNativeStream: RemoteNativeStreamConsumer, @unchecked 
                     state.responseID = Self.string(message["id"])
                     if let usage = Self.object(message["usage"]) {
                         if let input = Self.integer(usage["input_tokens"]) {
-                            state.promptTokens = input + (Self.integer(usage["cache_read_input_tokens"]) ?? 0)
+                            state.promptTokens =
+                                input + (Self.integer(usage["cache_read_input_tokens"]) ?? 0)
                                 + (Self.integer(usage["cache_creation_input_tokens"]) ?? 0)
                         }
                         state.cachedTokens = Self.integer(usage["cache_read_input_tokens"])
@@ -61,10 +62,17 @@ final class RemoteAnthropicNativeStream: RemoteNativeStreamConsumer, @unchecked 
                 switch Self.string(block["type"]) {
                 case "thinking", "redacted_thinking":
                     state.thinking[index] = block
-                    if let thinking = Self.string(block["thinking"]), !thinking.isEmpty { yield(.reasoningDelta(thinking)) }
+                    if let thinking = Self.string(block["thinking"]), !thinking.isEmpty {
+                        yield(.reasoningDelta(thinking))
+                    }
                 case "tool_use":
-                    if let id = Self.string(block["id"]), let name = Self.string(block["name"]), let input = block["input"] {
-                        let arguments = String(decoding: try JSONEncoder.osaurusCanonical().encode(input), as: UTF8.self)
+                    if let id = Self.string(block["id"]), let name = Self.string(block["name"]),
+                        let input = block["input"]
+                    {
+                        let arguments = String(
+                            decoding: try JSONEncoder.osaurusCanonical().encode(input),
+                            as: UTF8.self
+                        )
                         state.calls[index] = Call(id: id, name: name, initialArguments: arguments)
                         yield(.functionNamePreview(name))
                     }
@@ -101,11 +109,19 @@ final class RemoteAnthropicNativeStream: RemoteNativeStreamConsumer, @unchecked 
             case "content_block_stop":
                 emitThinking(index, state: &state)
                 if let call = state.calls[index] {
-                    yield(.functionCallAdded(.init(id: call.id, callID: call.id, name: call.name, arguments: call.arguments)))
+                    yield(
+                        .functionCallAdded(
+                            .init(id: call.id, callID: call.id, name: call.name, arguments: call.arguments)
+                        )
+                    )
                 }
             case "message_delta":
-                if let usage = Self.object(event["usage"]), let output = Self.integer(usage["output_tokens"]) { state.outputTokens = output }
-                if let delta = Self.object(event["delta"]), let reason = Self.string(delta["stop_reason"]) { state.stopReason = reason }
+                if let usage = Self.object(event["usage"]), let output = Self.integer(usage["output_tokens"]) {
+                    state.outputTokens = output
+                }
+                if let delta = Self.object(event["delta"]), let reason = Self.string(delta["stop_reason"]) {
+                    state.stopReason = reason
+                }
             case "message_stop":
                 guard !state.completed else { return true }
                 guard let responseID = state.responseID, !responseID.isEmpty else {
@@ -126,17 +142,33 @@ final class RemoteAnthropicNativeStream: RemoteNativeStreamConsumer, @unchecked 
                 }
                 if case .completed = status {
                     for call in state.calls.values {
-                        _ = try JSONSerialization.jsonObject(with: Data(call.arguments.utf8), options: [.fragmentsAllowed])
+                        _ = try JSONSerialization.jsonObject(
+                            with: Data(call.arguments.utf8),
+                            options: [.fragmentsAllowed]
+                        )
                     }
                 }
                 state.completed = true
                 if let prompt = state.promptTokens { yield(.inputTokenCount(prompt)) }
-                yield(.responseCompleted(.init(responseID: responseID, status: status,
-                    functionCalls: state.calls.sorted { $0.key < $1.key }.map { _, call in
-                        .init(id: call.id, callID: call.id, name: call.name, arguments: call.arguments)
-                    }, tokenCount: state.outputTokens, tokensPerSecond: nil, unclosedReasoning: false,
-                    stopReason: reason, promptTokensPerSecond: nil, mtp: nil,
-                    inputTokenCount: state.promptTokens, cachedInputTokenCount: state.cachedTokens)))
+                yield(
+                    .responseCompleted(
+                        .init(
+                            responseID: responseID,
+                            status: status,
+                            functionCalls: state.calls.sorted { $0.key < $1.key }.map { _, call in
+                                .init(id: call.id, callID: call.id, name: call.name, arguments: call.arguments)
+                            },
+                            tokenCount: state.outputTokens,
+                            tokensPerSecond: nil,
+                            unclosedReasoning: false,
+                            stopReason: reason,
+                            promptTokensPerSecond: nil,
+                            mtp: nil,
+                            inputTokenCount: state.promptTokens,
+                            cachedInputTokenCount: state.cachedTokens
+                        )
+                    )
+                )
                 return true
             case "error":
                 let message = Self.object(event["error"]).flatMap { Self.string($0["message"]) }
@@ -150,10 +182,16 @@ final class RemoteAnthropicNativeStream: RemoteNativeStreamConsumer, @unchecked 
         guard let block = state.thinking[index], state.emittedThinking.insert(index).inserted else { return }
         yield(.anthropicThinkingBlock(.object(block)))
     }
-    private static func object(_ value: JSONValue?) -> [String: JSONValue]? { if case .object(let value) = value { return value }; return nil }
-    private static func string(_ value: JSONValue?) -> String? { if case .string(let value) = value { return value }; return nil }
+    private static func object(_ value: JSONValue?) -> [String: JSONValue]? {
+        if case .object(let value) = value { return value }; return nil
+    }
+    private static func string(_ value: JSONValue?) -> String? {
+        if case .string(let value) = value { return value }; return nil
+    }
     private static func integer(_ value: JSONValue?) -> Int? {
-        guard case .number(let value) = value, value.isFinite, value >= 0, value < Double(Int.max), value.rounded() == value else { return nil }
+        guard case .number(let value) = value, value.isFinite, value >= 0, value < Double(Int.max),
+            value.rounded() == value
+        else { return nil }
         return Int(value)
     }
 }

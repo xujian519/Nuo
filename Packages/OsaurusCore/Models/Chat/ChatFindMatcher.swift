@@ -137,7 +137,7 @@ enum ChatFindMatcher {
         var matches: [ChatFindMatch] = []
         for turn in turns where turn.role == .user || turn.role == .assistant {
             let count = occurrenceCount(of: trimmed, in: turn.content)
-            for occurrence in 0..<count {
+            for occurrence in 0 ..< count {
                 matches.append(ChatFindMatch(turnId: turn.id, occurrence: occurrence))
             }
         }

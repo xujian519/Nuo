@@ -30,13 +30,15 @@ struct FolderListingPagingTests {
     /// by name and hits the 300-file ceiling in the seventh folder — the
     /// truncating shape, not the "350 .md files" summary shape.
     private func seedNotes(under root: URL) throws {
-        for d in 0..<7 {
+        for d in 0 ..< 7 {
             let dir = root.appendingPathComponent(String(format: "topic-%02d", d))
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-            for f in 0..<50 {
+            for f in 0 ..< 50 {
                 try "# note \(d)-\(f)\n".write(
                     to: dir.appendingPathComponent(String(format: "note-%03d.md", d * 50 + f)),
-                    atomically: true, encoding: .utf8)
+                    atomically: true,
+                    encoding: .utf8
+                )
             }
         }
     }
@@ -70,7 +72,9 @@ struct FolderListingPagingTests {
         let tool = FileSearchTool(rootPath: root)
         let first = try payload(
             try await tool.execute(
-                argumentsJSON: #"{"pattern":"*","target":"files","max_results":300}"#))
+                argumentsJSON: #"{"pattern":"*","target":"files","max_results":300}"#
+            )
+        )
         #expect(first["match_count"] as? Int == 300)
         #expect(first["total"] as? Int == 350)
         #expect(first["offset"] as? Int == 0)
@@ -79,7 +83,9 @@ struct FolderListingPagingTests {
 
         let second = try payload(
             try await tool.execute(
-                argumentsJSON: #"{"pattern":"*","target":"files","max_results":300,"offset":300}"#))
+                argumentsJSON: #"{"pattern":"*","target":"files","max_results":300,"offset":300}"#
+            )
+        )
         #expect(second["match_count"] as? Int == 50)
         #expect(second["total"] as? Int == 350)
         #expect(second["offset"] as? Int == 300)
@@ -93,13 +99,17 @@ struct FolderListingPagingTests {
         // an explicit overrun, not "no files matched".
         let overrun = try payload(
             try await tool.execute(
-                argumentsJSON: #"{"pattern":"*","target":"files","max_results":"300","offset":"350"}"#))
+                argumentsJSON: #"{"pattern":"*","target":"files","max_results":"300","offset":"350"}"#
+            )
+        )
         #expect(overrun["match_count"] as? Int == 0)
         #expect(overrun["total"] as? Int == 350)
         let overrunEnvelope = try await tool.execute(
-            argumentsJSON: #"{"pattern":"*","target":"files","offset":350}"#)
+            argumentsJSON: #"{"pattern":"*","target":"files","offset":350}"#
+        )
         let overrunObject = try #require(
-            try JSONSerialization.jsonObject(with: Data(overrunEnvelope.utf8)) as? [String: Any])
+            try JSONSerialization.jsonObject(with: Data(overrunEnvelope.utf8)) as? [String: Any]
+        )
         let warnings = try #require(overrunObject["warnings"] as? [String])
         #expect(warnings.contains { $0.contains("past the last match") })
     }
@@ -116,19 +126,22 @@ struct FolderListingPagingTests {
 
         let tool = FileSearchTool(rootPath: root)
         let page = try payload(
-            try await tool.execute(argumentsJSON: #"{"pattern":"","target":"files","max_results":300}"#))
+            try await tool.execute(argumentsJSON: #"{"pattern":"","target":"files","max_results":300}"#)
+        )
         #expect(page["match_count"] as? Int == 300)
         #expect(page["total"] as? Int == 350)
         #expect(page["next_offset"] as? Int == 300)
 
         let whitespace = try payload(
-            try await tool.execute(argumentsJSON: #"{"pattern":"  ","target":"files","max_results":10}"#))
+            try await tool.execute(argumentsJSON: #"{"pattern":"  ","target":"files","max_results":10}"#)
+        )
         #expect(whitespace["match_count"] as? Int == 10)
         #expect(whitespace["total"] as? Int == 350)
 
         let content = try await tool.execute(argumentsJSON: #"{"pattern":"","target":"content"}"#)
         let object = try #require(
-            try JSONSerialization.jsonObject(with: Data(content.utf8)) as? [String: Any])
+            try JSONSerialization.jsonObject(with: Data(content.utf8)) as? [String: Any]
+        )
         #expect(object["ok"] as? Bool == false)
         #expect(object["kind"] as? String == "invalid_args")
     }
@@ -152,7 +165,8 @@ struct FolderListingPagingTests {
         #expect(first["next_offset"] as? Int == 50)
 
         let second = try payload(
-            try await tool.execute(argumentsJSON: #"{"path":".","pattern":"*","offset":"50"}"#))
+            try await tool.execute(argumentsJSON: #"{"path":".","pattern":"*","offset":"50"}"#)
+        )
         #expect(second["kind"] as? String == "search")
         #expect(second["match_count"] as? Int == 50)
         #expect(second["offset"] as? Int == 50)
@@ -177,7 +191,7 @@ struct FolderListingPagingTests {
     @Test func smallFolderHasNoTruncationLine() async throws {
         let root = makeRoot()
         defer { try? FileManager.default.removeItem(at: root) }
-        for i in 0..<3 {
+        for i in 0 ..< 3 {
             try "x".write(to: root.appendingPathComponent("f\(i).md"), atomically: true, encoding: .utf8)
         }
         let context = await FolderContextService.shared.buildContext(from: root)
@@ -193,8 +207,8 @@ struct FolderListingPagingTests {
     @Test func contentSearchPagesWithOffset() async throws {
         let root = makeRoot()
         defer { try? FileManager.default.removeItem(at: root) }
-        for f in 0..<3 {
-            let body = (0..<4).map { "note line \(f)-\($0)" }.joined(separator: "\n")
+        for f in 0 ..< 3 {
+            let body = (0 ..< 4).map { "note line \(f)-\($0)" }.joined(separator: "\n")
             try body.write(to: root.appendingPathComponent("n\(f).txt"), atomically: true, encoding: .utf8)
         }
         let tool = FileSearchTool(rootPath: root)
@@ -232,7 +246,8 @@ struct FolderListingPagingTests {
         defer { try? FileManager.default.removeItem(at: root) }
         try "alpha\nbeta alpha\n".write(to: root.appendingPathComponent("a.txt"), atomically: true, encoding: .utf8)
         let envelope = try await FileSearchTool(rootPath: root).execute(
-            argumentsJSON: #"{"pattern":"alpha","max_results":50}"#)
+            argumentsJSON: #"{"pattern":"alpha","max_results":50}"#
+        )
         let payload = try #require(ToolEnvelope.successPayload(envelope) as? [String: Any])
         let text = try #require(payload["text"] as? String)
         #expect(text.hasPrefix("Found 2 match(es):"))

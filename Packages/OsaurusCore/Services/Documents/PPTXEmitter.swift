@@ -73,7 +73,9 @@ public struct PPTXEmitter: DocumentFormatEmitter {
             if let heading = headingText(trimmed) {
                 text = heading.text
                 level = 0
-            } else if let marker = ["- ", "* ", "+ ", "• ", "•\t", "◦ ", "◦\t", "▪ ", "▪\t"].first(where: { trimmed.hasPrefix($0) }) {
+            } else if let marker = ["- ", "* ", "+ ", "• ", "•\t", "◦ ", "◦\t", "▪ ", "▪\t"].first(where: {
+                trimmed.hasPrefix($0)
+            }) {
                 text = String(trimmed.dropFirst(marker.count)).trimmingCharacters(in: .whitespaces)
             } else if let dot = trimmed.firstIndex(of: "."), trimmed[..<dot].allSatisfy(\.isNumber),
                 !trimmed[..<dot].isEmpty, trimmed[trimmed.index(after: dot)...].hasPrefix(" ")
@@ -107,11 +109,17 @@ public struct PPTXEmitter: DocumentFormatEmitter {
             .replacingOccurrences(of: "`", with: "")
         if let regex = try? NSRegularExpression(pattern: "\\[([^\\]]*)\\]\\([^)]*\\)") {
             out = regex.stringByReplacingMatches(
-                in: out, range: NSRange(out.startIndex..., in: out), withTemplate: "$1")
+                in: out,
+                range: NSRange(out.startIndex..., in: out),
+                withTemplate: "$1"
+            )
         }
         if let regex = try? NSRegularExpression(pattern: "(?<![\\w*])\\*([^*]+)\\*(?![\\w*])") {
             out = regex.stringByReplacingMatches(
-                in: out, range: NSRange(out.startIndex..., in: out), withTemplate: "$1")
+                in: out,
+                range: NSRange(out.startIndex..., in: out),
+                withTemplate: "$1"
+            )
         }
         return out
     }
@@ -148,17 +156,20 @@ public struct PPTXEmitter: DocumentFormatEmitter {
                 + "<Override PartName=\"/ppt/tableStyles.xml\" ContentType=\"\(ctBase)tableStyles+xml\"/>"
                 + slideOverrides
                 + "<Override PartName=\"/docProps/app.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.extended-properties+xml\"/>"
-                + "</Types>")
+                + "</Types>"
+        )
         try add(
             "_rels/.rels",
             "<Relationships xmlns=\"\(relsNS)\">"
                 + "<Relationship Id=\"rId1\" Type=\"\(relBase)officeDocument\" Target=\"ppt/presentation.xml\"/>"
                 + "<Relationship Id=\"rId2\" Type=\"\(relBase)extended-properties\" Target=\"docProps/app.xml\"/>"
-                + "</Relationships>")
+                + "</Relationships>"
+        )
         try add(
             "docProps/app.xml",
             "<Properties xmlns=\"http://schemas.openxmlformats.org/officeDocument/2006/extended-properties\">"
-                + "<Application>Nuo</Application><Slides>\(slides.count)</Slides></Properties>")
+                + "<Application>Nuo</Application><Slides>\(slides.count)</Slides></Properties>"
+        )
 
         let slideIds = slides.indices.map { "<p:sldId id=\"\(256 + $0)\" r:id=\"rId\(10 + $0)\"/>" }.joined()
         try add(
@@ -167,7 +178,8 @@ public struct PPTXEmitter: DocumentFormatEmitter {
                 + "<p:sldMasterIdLst><p:sldMasterId id=\"2147483648\" r:id=\"rId1\"/></p:sldMasterIdLst>"
                 + "<p:sldIdLst>\(slideIds)</p:sldIdLst>"
                 + "<p:sldSz cx=\"12192000\" cy=\"6858000\"/><p:notesSz cx=\"6858000\" cy=\"9144000\"/>"
-                + "</p:presentation>")
+                + "</p:presentation>"
+        )
         let slideRels = slides.indices.map {
             "<Relationship Id=\"rId\(10 + $0)\" Type=\"\(relBase)slide\" Target=\"slides/slide\($0 + 1).xml\"/>"
         }.joined()
@@ -179,9 +191,13 @@ public struct PPTXEmitter: DocumentFormatEmitter {
                 + "<Relationship Id=\"rId3\" Type=\"\(relBase)presProps\" Target=\"presProps.xml\"/>"
                 + "<Relationship Id=\"rId4\" Type=\"\(relBase)tableStyles\" Target=\"tableStyles.xml\"/>"
                 + slideRels
-                + "</Relationships>")
+                + "</Relationships>"
+        )
         try add("ppt/presProps.xml", "<p:presentationPr xmlns:a=\"\(aNS)\" xmlns:r=\"\(rNS)\" xmlns:p=\"\(pNS)\"/>")
-        try add("ppt/tableStyles.xml", "<a:tblStyleLst xmlns:a=\"\(aNS)\" def=\"{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}\"/>")
+        try add(
+            "ppt/tableStyles.xml",
+            "<a:tblStyleLst xmlns:a=\"\(aNS)\" def=\"{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}\"/>"
+        )
         try add("ppt/theme/theme1.xml", themeXML)
         try add("ppt/slideMasters/slideMaster1.xml", masterXML)
         try add(
@@ -190,12 +206,19 @@ public struct PPTXEmitter: DocumentFormatEmitter {
                 + "<Relationship Id=\"rId1\" Type=\"\(relBase)slideLayout\" Target=\"../slideLayouts/slideLayout1.xml\"/>"
                 + "<Relationship Id=\"rId2\" Type=\"\(relBase)slideLayout\" Target=\"../slideLayouts/slideLayout2.xml\"/>"
                 + "<Relationship Id=\"rId3\" Type=\"\(relBase)theme\" Target=\"../theme/theme1.xml\"/>"
-                + "</Relationships>")
+                + "</Relationships>"
+        )
         let layoutRels =
             "<Relationships xmlns=\"\(relsNS)\"><Relationship Id=\"rId1\" Type=\"\(relBase)slideMaster\" Target=\"../slideMasters/slideMaster1.xml\"/></Relationships>"
-        try add("ppt/slideLayouts/slideLayout1.xml", layoutXML(type: "title", name: "Title Slide", titleType: "ctrTitle", bodyType: "subTitle"))
+        try add(
+            "ppt/slideLayouts/slideLayout1.xml",
+            layoutXML(type: "title", name: "Title Slide", titleType: "ctrTitle", bodyType: "subTitle")
+        )
         try add("ppt/slideLayouts/_rels/slideLayout1.xml.rels", layoutRels)
-        try add("ppt/slideLayouts/slideLayout2.xml", layoutXML(type: "obj", name: "Title and Content", titleType: "title", bodyType: nil))
+        try add(
+            "ppt/slideLayouts/slideLayout2.xml",
+            layoutXML(type: "obj", name: "Title and Content", titleType: "title", bodyType: nil)
+        )
         try add("ppt/slideLayouts/_rels/slideLayout2.xml.rels", layoutRels)
 
         for (index, slide) in slides.enumerated() {
@@ -235,14 +258,22 @@ public struct PPTXEmitter: DocumentFormatEmitter {
         + "<p:grpSpPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"0\" cy=\"0\"/><a:chOff x=\"0\" y=\"0\"/><a:chExt cx=\"0\" cy=\"0\"/></a:xfrm></p:grpSpPr>"
 
     private static func placeholder(
-        id: Int, name: String, type: String?, idx: Int?, frame: (Int, Int, Int, Int)?, paragraphs: String
+        id: Int,
+        name: String,
+        type: String?,
+        idx: Int?,
+        frame: (Int, Int, Int, Int)?,
+        paragraphs: String
     ) -> String {
         var ph = "<p:ph"
         if let type { ph += " type=\"\(type)\"" }
         if let idx { ph += " idx=\"\(idx)\"" }
         ph += "/>"
-        let xfrm = frame.map { "<a:xfrm><a:off x=\"\($0.0)\" y=\"\($0.1)\"/><a:ext cx=\"\($0.2)\" cy=\"\($0.3)\"/></a:xfrm>" } ?? ""
-        return "<p:sp><p:nvSpPr><p:cNvPr id=\"\(id)\" name=\"\(name)\"/><p:cNvSpPr><a:spLocks noGrp=\"1\"/></p:cNvSpPr><p:nvPr>\(ph)</p:nvPr></p:nvSpPr>"
+        let xfrm =
+            frame.map { "<a:xfrm><a:off x=\"\($0.0)\" y=\"\($0.1)\"/><a:ext cx=\"\($0.2)\" cy=\"\($0.3)\"/></a:xfrm>" }
+            ?? ""
+        return
+            "<p:sp><p:nvSpPr><p:cNvPr id=\"\(id)\" name=\"\(name)\"/><p:cNvSpPr><a:spLocks noGrp=\"1\"/></p:cNvSpPr><p:nvPr>\(ph)</p:nvPr></p:nvSpPr>"
             + "<p:spPr>\(xfrm)</p:spPr><p:txBody><a:bodyPr/><a:lstStyle/>\(paragraphs)</p:txBody></p:sp>"
     }
 
@@ -259,13 +290,28 @@ public struct PPTXEmitter: DocumentFormatEmitter {
         if slide.isTitleSlide {
             shapes =
                 placeholder(id: 2, name: "Title 1", type: "ctrTitle", idx: nil, frame: nil, paragraphs: title)
-                + placeholder(id: 3, name: "Subtitle 2", type: "subTitle", idx: 1, frame: nil, paragraphs: bodyParagraphs)
+                + placeholder(
+                    id: 3,
+                    name: "Subtitle 2",
+                    type: "subTitle",
+                    idx: 1,
+                    frame: nil,
+                    paragraphs: bodyParagraphs
+                )
         } else {
             shapes =
                 placeholder(id: 2, name: "Title 1", type: "title", idx: nil, frame: nil, paragraphs: title)
-                + placeholder(id: 3, name: "Content Placeholder 2", type: nil, idx: 1, frame: nil, paragraphs: bodyParagraphs)
+                + placeholder(
+                    id: 3,
+                    name: "Content Placeholder 2",
+                    type: nil,
+                    idx: 1,
+                    frame: nil,
+                    paragraphs: bodyParagraphs
+                )
         }
-        return "<p:sld xmlns:a=\"\(aNS)\" xmlns:r=\"\(rNS)\" xmlns:p=\"\(pNS)\"><p:cSld><p:spTree>\(emptyGroup)\(shapes)</p:spTree></p:cSld>"
+        return
+            "<p:sld xmlns:a=\"\(aNS)\" xmlns:r=\"\(rNS)\" xmlns:p=\"\(pNS)\"><p:cSld><p:spTree>\(emptyGroup)\(shapes)</p:spTree></p:cSld>"
             + "<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>"
     }
 
@@ -275,7 +321,14 @@ public struct PPTXEmitter: DocumentFormatEmitter {
         let bodyFrame = type == "title" ? (1524000, 3602038, 9144000, 1655762) : (838200, 1825625, 10515600, 4351338)
         let shapes =
             placeholder(id: 2, name: "Title 1", type: titleType, idx: nil, frame: titleFrame, paragraphs: empty)
-            + placeholder(id: 3, name: bodyType == nil ? "Content Placeholder 2" : "Subtitle 2", type: bodyType, idx: 1, frame: bodyFrame, paragraphs: empty)
+            + placeholder(
+                id: 3,
+                name: bodyType == nil ? "Content Placeholder 2" : "Subtitle 2",
+                type: bodyType,
+                idx: 1,
+                frame: bodyFrame,
+                paragraphs: empty
+            )
         return "<p:sldLayout xmlns:a=\"\(aNS)\" xmlns:r=\"\(rNS)\" xmlns:p=\"\(pNS)\" type=\"\(type)\" preserve=\"1\">"
             + "<p:cSld name=\"\(name)\"><p:spTree>\(emptyGroup)\(shapes)</p:spTree></p:cSld>"
             + "<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>"
@@ -284,11 +337,26 @@ public struct PPTXEmitter: DocumentFormatEmitter {
     private static var masterXML: String {
         let empty = "<a:p><a:endParaRPr lang=\"en-US\"/></a:p>"
         let shapes =
-            placeholder(id: 2, name: "Title Placeholder 1", type: "title", idx: nil, frame: (838200, 365125, 10515600, 1325563), paragraphs: empty)
-            + placeholder(id: 3, name: "Text Placeholder 2", type: "body", idx: 1, frame: (838200, 1825625, 10515600, 4351338), paragraphs: empty)
+            placeholder(
+                id: 2,
+                name: "Title Placeholder 1",
+                type: "title",
+                idx: nil,
+                frame: (838200, 365125, 10515600, 1325563),
+                paragraphs: empty
+            )
+            + placeholder(
+                id: 3,
+                name: "Text Placeholder 2",
+                type: "body",
+                idx: 1,
+                frame: (838200, 1825625, 10515600, 4351338),
+                paragraphs: empty
+            )
         func level(_ n: Int, size: Int) -> String {
             let margin = 228600 + n * 457200
-            return "<a:lvl\(n + 1)pPr marL=\"\(margin)\" indent=\"-228600\" algn=\"l\"><a:lnSpc><a:spcPct val=\"90000\"/></a:lnSpc>"
+            return
+                "<a:lvl\(n + 1)pPr marL=\"\(margin)\" indent=\"-228600\" algn=\"l\"><a:lnSpc><a:spcPct val=\"90000\"/></a:lnSpc>"
                 + "<a:spcBef><a:spcPts val=\"\(n == 0 ? 1000 : 500)\"/></a:spcBef><a:buFont typeface=\"Arial\"/><a:buChar char=\"•\"/>"
                 + "<a:defRPr sz=\"\(size)\" kern=\"1200\"><a:solidFill><a:schemeClr val=\"tx1\"/></a:solidFill><a:latin typeface=\"+mn-lt\"/><a:ea typeface=\"+mn-ea\"/><a:cs typeface=\"+mn-cs\"/></a:defRPr></a:lvl\(n + 1)pPr>"
         }
@@ -316,7 +384,8 @@ public struct PPTXEmitter: DocumentFormatEmitter {
             "<a:majorFont><a:latin typeface=\"Calibri Light\"/><a:ea typeface=\"\"/><a:cs typeface=\"\"/></a:majorFont>"
             + "<a:minorFont><a:latin typeface=\"Calibri\"/><a:ea typeface=\"\"/><a:cs typeface=\"\"/></a:minorFont>"
         let solid = "<a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill>"
-        let line = "<a:ln w=\"6350\" cap=\"flat\" cmpd=\"sng\" algn=\"ctr\">\(solid)<a:prstDash val=\"solid\"/><a:miter lim=\"800000\"/></a:ln>"
+        let line =
+            "<a:ln w=\"6350\" cap=\"flat\" cmpd=\"sng\" algn=\"ctr\">\(solid)<a:prstDash val=\"solid\"/><a:miter lim=\"800000\"/></a:ln>"
         let format =
             "<a:fillStyleLst>\(solid)\(solid)\(solid)</a:fillStyleLst>"
             + "<a:lnStyleLst>\(line)\(line)\(line)</a:lnStyleLst>"

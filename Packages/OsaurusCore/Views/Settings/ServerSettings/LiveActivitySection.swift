@@ -11,8 +11,7 @@ import SwiftUI
 
 struct LiveActivitySection: View {
     @State private var snapshot: BatchDiagnosticsSnapshot?
-    @State private var effectiveGeneration:
-        [String: MLXBatchAdapter.EffectiveGenerationSettings] = [:]
+    @State private var effectiveGeneration: [String: MLXBatchAdapter.EffectiveGenerationSettings] = [:]
     /// What the adaptive MTP controller ACTUALLY settled on last turn, per
     /// model. Completion-time, so it explains the common surprise — asking for
     /// depth 3 and getting depth 1 because acceptance collapsed — that the
@@ -178,7 +177,8 @@ struct LiveActivitySection: View {
         if stats.adaptiveDownshifts > 0 {
             parts.append(
                 "\(stats.adaptiveDownshifts) downshift"
-                    + (stats.adaptiveDownshifts == 1 ? "" : "s"))
+                    + (stats.adaptiveDownshifts == 1 ? "" : "s")
+            )
         }
         // How much speculation actually paid, in wall-clock terms: tokens
         // committed per verify cycle. 1.0 is break-even (no better than plain

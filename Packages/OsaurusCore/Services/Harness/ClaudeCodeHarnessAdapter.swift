@@ -222,7 +222,9 @@ final class ClaudeCodeHarnessCodec: HarnessCodec {
                     events.append(.toolFinished(callId: trace.callId, name: trace.name, isError: trace.isError))
                 }
             case .stats(let outputTokens, let tokensPerSecond, let stopReason):
-                events.append(.stats(outputTokens: outputTokens, tokensPerSecond: tokensPerSecond, stopReason: stopReason))
+                events.append(
+                    .stats(outputTokens: outputTokens, tokensPerSecond: tokensPerSecond, stopReason: stopReason)
+                )
                 turnEnded = true
             case .rateLimit(let status, let utilization, _):
                 guard status != "allowed" else { continue }

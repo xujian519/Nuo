@@ -227,7 +227,8 @@ public enum BrowserSnapshotFormatter {
             }
             if !bodyText.isEmpty {
                 let truncBody = bodyText.count > 200 ? String(bodyText.prefix(200)) + "..." : bodyText
-                let singleLine = truncBody
+                let singleLine =
+                    truncBody
                     .replacingOccurrences(of: "\n", with: " ")
                     .replacingOccurrences(of: "  ", with: " ")
                 output += "- text: \(singleLine)\n"

@@ -63,7 +63,8 @@ struct MainThreadWatchdogAttributionTests {
         // 0.2s, so several breach snapshots land while our op is active.
         await MainActor.run {
             let token = MainThreadOperationLedger.shared.begin(
-                subsystem: "fault-injection", operation: "blocked-main"
+                subsystem: "fault-injection",
+                operation: "blocked-main"
             )
             Thread.sleep(forTimeInterval: 1.0)
             MainThreadOperationLedger.shared.end(token)
@@ -75,7 +76,7 @@ struct MainThreadWatchdogAttributionTests {
         // fault-injection entry proves attribution, so keep sampling.
         var matched: StallRecord?
         var lastSeen: StallRecord?
-        for _ in 0..<160 {
+        for _ in 0 ..< 160 {
             if let record = Self.readRecord(in: dir) {
                 lastSeen = record
                 if record.operations.contains(where: {
@@ -116,7 +117,7 @@ struct MainThreadWatchdogAttributionTests {
         }
 
         var record: StallRecord?
-        for _ in 0..<160 {
+        for _ in 0 ..< 160 {
             if let decoded = Self.readRecord(in: dir) {
                 record = decoded
                 break

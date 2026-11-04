@@ -35,7 +35,10 @@ struct ShellMutationPlannerTests {
         let root = try makeRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         // `find -delete`, `tree -o`, `env cmd` can all write: never "nothing".
-        for command in ["swift test", "git checkout .", "python3 build.py", "ls > out.txt", "find . -name x -delete", "tree -o out.txt", "env rm -rf a"] {
+        for command in [
+            "swift test", "git checkout .", "python3 build.py", "ls > out.txt", "find . -name x -delete",
+            "tree -o out.txt", "env rm -rf a",
+        ] {
             #expect(ShellMutationPlanner.targets(command: command, rootPath: root) == nil, "\(command)")
         }
     }
@@ -50,10 +53,13 @@ struct ShellMutationPlannerTests {
         let root = try makeRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         try FileManager.default.createDirectory(
-            at: root.appendingPathComponent("dest"), withIntermediateDirectories: true)
+            at: root.appendingPathComponent("dest"),
+            withIntermediateDirectories: true
+        )
         #expect(
             ShellMutationPlanner.targets(command: "mv a.txt dest", rootPath: root)
-                == ["a.txt", "dest/a.txt"])
+                == ["a.txt", "dest/a.txt"]
+        )
     }
 
     @Test func removeAndRecursiveRemoveNameTheirPaths() throws {

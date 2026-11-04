@@ -19,8 +19,11 @@ struct TransferLaneLifecycleTests {
         for start in [0, 4] {
             try handle.seek(toOffset: UInt64(start))
             try await lane.fetch(
-                url: server.url, range: "bytes=\(start)-\(start + 3)",
-                handle: handle, expected: 4, onBytes: { _ in }
+                url: server.url,
+                range: "bytes=\(start)-\(start + 3)",
+                handle: handle,
+                expected: 4,
+                onBytes: { _ in }
             )
         }
         #expect(try Data(contentsOf: file) == Data("abcdefgh".utf8))
@@ -34,8 +37,11 @@ struct TransferLaneLifecycleTests {
         defer { lane.invalidate() }
         let fetch = Task {
             try await lane.fetch(
-                url: server.url, range: "bytes=0-3", handle: .nullDevice,
-                expected: 4, onBytes: { _ in }
+                url: server.url,
+                range: "bytes=0-3",
+                handle: .nullDevice,
+                expected: 4,
+                onBytes: { _ in }
             )
         }
         do {
@@ -58,8 +64,11 @@ struct TransferLaneLifecycleTests {
         }
         do {
             try await lane.fetch(
-                url: server.url, range: "bytes=4-7", handle: .nullDevice,
-                expected: 4, onBytes: { _ in }
+                url: server.url,
+                range: "bytes=4-7",
+                handle: .nullDevice,
+                expected: 4,
+                onBytes: { _ in }
             )
             Issue.record("Terminal lane admitted another request")
         } catch is CancellationError {
@@ -76,8 +85,11 @@ struct TransferLaneLifecycleTests {
             let lane = TransferLane()
             let fetch = Task {
                 try await lane.fetch(
-                    url: server.url, range: "bytes=0-3", handle: .nullDevice,
-                    expected: 4, onBytes: { _ in }
+                    url: server.url,
+                    range: "bytes=0-3",
+                    handle: .nullDevice,
+                    expected: 4,
+                    onBytes: { _ in }
                 )
             }
             let invalidation = Task.detached {
@@ -206,7 +218,8 @@ private final class LaneRangeFixture: @unchecked Sendable {
                 return
             }
             let lines = String(decoding: request, as: UTF8.self).components(separatedBy: "\r\n")
-            let range = lines.first { $0.lowercased().hasPrefix("range:") }?
+            let range =
+                lines.first { $0.lowercased().hasPrefix("range:") }?
                 .split(separator: ":", maxSplits: 1).last?
                 .trimmingCharacters(in: .whitespaces) ?? "missing"
             self.lock.withLock { self.observedRanges.append(range) }
@@ -216,11 +229,15 @@ private final class LaneRangeFixture: @unchecked Sendable {
                 return
             }
             let bounds = range.replacingOccurrences(of: "bytes=", with: "")
-            let header = "HTTP/1.1 206 Partial Content\r\nContent-Length: 4\r\nContent-Range: bytes \(bounds)/8\r\nConnection: close\r\n\r\n"
+            let header =
+                "HTTP/1.1 206 Partial Content\r\nContent-Length: 4\r\nContent-Range: bytes \(bounds)/8\r\nConnection: close\r\n\r\n"
             let payload = header + (self.holdBody ? String(body.prefix(1)) : body)
-            connection.send(content: Data(payload.utf8), completion: .contentProcessed { error in
-                if error != nil || !self.holdBody { connection.cancel() }
-            })
+            connection.send(
+                content: Data(payload.utf8),
+                completion: .contentProcessed { error in
+                    if error != nil || !self.holdBody { connection.cancel() }
+                }
+            )
         }
     }
 }

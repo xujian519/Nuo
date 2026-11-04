@@ -158,7 +158,8 @@ struct ToolResultNormalizationTests {
     /// character): the kept text must fit the BYTE cap, whatever the mix.
     @Test func mixedAsciiEmojiResultIsCappedByBytes() {
         let cap = ToolOutputCaps.universalResult
-        let mixed = String(repeating: "a", count: 80_000) + String(repeating: "🦖", count: 60_000)  // 140,000 chars, 320,000 bytes
+        // 140,000 chars, 320,000 bytes
+        let mixed = String(repeating: "a", count: 80_000) + String(repeating: "🦖", count: 60_000)
         let normalized = ToolRegistry.normalizeToolResult(mixed, tool: "mcp_thing")
         let payload = ToolEnvelope.successPayload(normalized) as? [String: Any]
         #expect(payload?["truncated"] as? Bool == true)
@@ -187,15 +188,21 @@ struct ToolResultNormalizationTests {
 
         // Helper contract: the marker's bytes count against the cap, and a
         // multi-byte tail is cut at a scalar boundary (the last "é" survives whole).
-        let tailHeavy = String(repeating: "a", count: 10) + String(repeating: "\u{0301}", count: 50_000) + String(repeating: "é", count: 5)
+        let tailHeavy =
+            String(repeating: "a", count: 10) + String(repeating: "\u{0301}", count: 50_000)
+            + String(repeating: "é", count: 5)
         let out = HeadTailTruncation.applyByteExact(tailHeavy, byteCap: 1_000, headFraction: 2.0 / 3.0)
         #expect(out.utf8.count <= 1_000, "\(out.utf8.count) bytes")
         // Byte comparisons: the tenth "a" plus its combining marks is ONE grapheme,
         // so `hasPrefix("aaaaaaaaaa")` would be false even for a correct cut.
-        #expect(out.utf8.starts(with: "aaaaaaaaaa".utf8) && Array(out.utf8).suffix(2) == Array("é".utf8) && out.contains("[TRUNCATED:"))
+        #expect(
+            out.utf8.starts(with: "aaaaaaaaaa".utf8) && Array(out.utf8).suffix(2) == Array("é".utf8)
+                && out.contains("[TRUNCATED:")
+        )
         #expect(!out.contains("\u{FFFD}"))
         // A text that fits is returned untouched; a cap smaller than the marker still returns ≤ cap bytes.
         #expect(HeadTailTruncation.applyByteExact("short", byteCap: 100, headFraction: 0.5) == "short")
-        #expect(HeadTailTruncation.applyByteExact(huge, byteCap: 40, headFraction: 0.5).utf8.count <= 40 + 120)  // marker floor
+        // marker floor
+        #expect(HeadTailTruncation.applyByteExact(huge, byteCap: 40, headFraction: 0.5).utf8.count <= 40 + 120)
     }
 }

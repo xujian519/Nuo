@@ -196,13 +196,17 @@ struct IdentityView: View {
         let keys = drift?.staleAccessKeys.count ?? 0
         switch (agents == 1, keys == 1) {
         case (true, true):
-            return "Repair will derive a fresh address for 1 agent and revoke 1 stale access key under the current master. Existing pairings and clients holding that key will stop working until it's re-issued."
+            return
+                "Repair will derive a fresh address for 1 agent and revoke 1 stale access key under the current master. Existing pairings and clients holding that key will stop working until it's re-issued."
         case (true, false):
-            return "Repair will derive a fresh address for 1 agent and revoke \(keys) stale access keys under the current master. Existing pairings and clients holding those keys will stop working until they're re-issued."
+            return
+                "Repair will derive a fresh address for 1 agent and revoke \(keys) stale access keys under the current master. Existing pairings and clients holding those keys will stop working until they're re-issued."
         case (false, true):
-            return "Repair will derive fresh addresses for \(agents) agents and revoke 1 stale access key under the current master. Existing pairings and clients holding that key will stop working until it's re-issued."
+            return
+                "Repair will derive fresh addresses for \(agents) agents and revoke 1 stale access key under the current master. Existing pairings and clients holding that key will stop working until it's re-issued."
         case (false, false):
-            return "Repair will derive fresh addresses for \(agents) agents and revoke \(keys) stale access keys under the current master. Existing pairings and clients holding those keys will stop working until they're re-issued."
+            return
+                "Repair will derive fresh addresses for \(agents) agents and revoke \(keys) stale access keys under the current master. Existing pairings and clients holding those keys will stop working until they're re-issued."
         }
     }
 
@@ -1205,7 +1209,8 @@ private struct AgentAddressesSection: View {
             // The relay and every workspace share pin the OLD address; move
             // them or the agent goes dark for teammates and other devices.
             RelayTunnelManager.shared.handleAddressRotated(
-                agentId: rotation.agentId, previousAddress: rotation.previousAddress
+                agentId: rotation.agentId,
+                previousAddress: rotation.previousAddress
             )
             if let previous = rotation.previousAddress {
                 // Owner-device keys for the old address were revoked with

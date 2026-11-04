@@ -18,10 +18,12 @@ struct ImageHTTPPreparedJob: Sendable {
     }
 
     static func failure(_ message: String) -> Self {
-        Self(stream: AsyncThrowingStream { continuation in
-            continuation.yield(.failed(message: message, hfAuth: false))
-            continuation.finish()
-        })
+        Self(
+            stream: AsyncThrowingStream { continuation in
+                continuation.yield(.failed(message: message, hfAuth: false))
+                continuation.finish()
+            }
+        )
     }
 }
 
@@ -34,8 +36,11 @@ enum ImageHTTPParameterBuilder {
     static func validateRemoteBatch(_ request: ImageGenerationRequestDTO) throws {
         guard request.seeds == nil, request.batch_size == nil,
             request.sampler == nil, request.scheduler == nil, request.shift == nil,
-            request.preview_interval == nil, request.preview_max_pixel == nil, request.adapters == nil else {
-            throw ImageGenerationError.invalidRequest("seeds, batch_size, sampler, scheduler, shift, adapters and previews require a local image model")
+            request.preview_interval == nil, request.preview_max_pixel == nil, request.adapters == nil
+        else {
+            throw ImageGenerationError.invalidRequest(
+                "seeds, batch_size, sampler, scheduler, shift, adapters and previews require a local image model"
+            )
         }
     }
 
@@ -44,43 +49,88 @@ enum ImageHTTPParameterBuilder {
     }
 
     /// The same limits from a picker item's fields, for `/models/picker`.
-    static func limits(canonicalName: String?, capabilities: ImageModelCapabilities,
-                       runtime: ImageRequestLimits? = nil) -> ImageLimitsDTO {
+    static func limits(
+        canonicalName: String?,
+        capabilities: ImageModelCapabilities,
+        runtime: ImageRequestLimits? = nil
+    ) -> ImageLimitsDTO {
         if let runtime {
-            return ImageLimitsDTO(min_steps: runtime.minimumSteps, max_steps: runtime.maximumSteps,
-                size_multiple: runtime.dimensionMultiple, max_pixels: runtime.maximumPixels,
-                supported_sizes: [], min_dimension: runtime.minimumDimension,
-                max_dimension: runtime.maximumDimension, fixed_steps: runtime.fixedSteps,
-                max_images: runtime.maximumImages, max_source_images: runtime.maximumSourceImages,
-                formats: runtime.formats, samplers: runtime.samplers, schedulers: runtime.schedulers)
+            return ImageLimitsDTO(
+                min_steps: runtime.minimumSteps,
+                max_steps: runtime.maximumSteps,
+                size_multiple: runtime.dimensionMultiple,
+                max_pixels: runtime.maximumPixels,
+                supported_sizes: [],
+                min_dimension: runtime.minimumDimension,
+                max_dimension: runtime.maximumDimension,
+                fixed_steps: runtime.fixedSteps,
+                max_images: runtime.maximumImages,
+                max_source_images: runtime.maximumSourceImages,
+                formats: runtime.formats,
+                samplers: runtime.samplers,
+                schedulers: runtime.schedulers
+            )
         }
         if canonicalName == "flux3-image-klein" {
-            return ImageLimitsDTO(min_steps: 1, max_steps: nil, size_multiple: 16, max_pixels: nil,
-                supported_sizes: [], min_dimension: 64, max_dimension: 4096,
-                max_source_images: 10, formats: ["png"], samplers: ["euler"], schedulers: ["flow-map"])
+            return ImageLimitsDTO(
+                min_steps: 1,
+                max_steps: nil,
+                size_multiple: 16,
+                max_pixels: nil,
+                supported_sizes: [],
+                min_dimension: 64,
+                max_dimension: 4096,
+                max_source_images: 10,
+                formats: ["png"],
+                samplers: ["euler"],
+                schedulers: ["flow-map"]
+            )
         }
         let q21 = ImageModelRequestPolicy.isQwen21Family(canonicalName)
-        return ImageLimitsDTO(min_steps: q21 ? 2 : 1, max_steps: 50,
+        return ImageLimitsDTO(
+            min_steps: q21 ? 2 : 1,
+            max_steps: 50,
             size_multiple: capabilities.dimensionMultiple,
             max_pixels: q21 ? 2048 * 2048 : 1024 * 1024,
             supported_sizes: q21
                 ? ["512x512", "768x768", "1024x1024", "1248x832", "2048x2048"]
-                : ["512x512", "768x768", "1024x1024"])
+                : ["512x512", "768x768", "1024x1024"]
+        )
     }
 
     static func generation(_ request: ImageGenerationRequestDTO, info: ImageModelInfo) throws
         -> ImageGenerationParameters
     {
         let q21 = ImageModelRequestPolicy.isQwen21Family(info.canonicalName)
-        let (width, height) = try dimensions(size: request.size, width: request.width,
-            height: request.height, isQwen21: q21)
-        return ImageGenerationParameters(model: info.id, prompt: request.prompt,
-            negativePrompt: request.negative_prompt, width: width, height: height,
+        let (width, height) = try dimensions(
+            size: request.size,
+            width: request.width,
+            height: request.height,
+            isQwen21: q21
+        )
+        return ImageGenerationParameters(
+            model: info.id,
+            prompt: request.prompt,
+            negativePrompt: request.negative_prompt,
+            width: width,
+            height: height,
             steps: request.steps,
-            guidance: request.guidance.map(Float.init), seed: request.seed,
-            numImages: request.n ?? 1, seeds: request.seeds, batchSize: request.batch_size ?? 1, outputFormat: try outputFormat(request.output_format, isQwen21: q21 || info.canonicalName == "flux3-image-klein"),
-            sampler: request.sampler, scheduler: request.scheduler, shift: request.shift,
-            previewInterval: request.preview_interval, previewMaxPixel: request.preview_max_pixel ?? 256, adapters: request.adapters ?? [])
+            guidance: request.guidance.map(Float.init),
+            seed: request.seed,
+            numImages: request.n ?? 1,
+            seeds: request.seeds,
+            batchSize: request.batch_size ?? 1,
+            outputFormat: try outputFormat(
+                request.output_format,
+                isQwen21: q21 || info.canonicalName == "flux3-image-klein"
+            ),
+            sampler: request.sampler,
+            scheduler: request.scheduler,
+            shift: request.shift,
+            previewInterval: request.preview_interval,
+            previewMaxPixel: request.preview_max_pixel ?? 256,
+            adapters: request.adapters ?? []
+        )
     }
 
     static func edit(_ request: ImageEditRequestDTO, info: ImageModelInfo, decodedSources: [Data?]) throws
@@ -97,24 +147,48 @@ enum ImageHTTPParameterBuilder {
                 rawCount > 0, decodedSources.allSatisfy({ $0 != nil })
             else { throw ImageGenerationError.invalidRequest("edit requires valid ordered source images") }
             sources = decodedSources.compactMap { $0 }
-            try validateSourceImages(sources, maximumBytes: info.canonicalName == "flux3-image-klein" ? nil : 80 * 1024 * 1024)
+            try validateSourceImages(
+                sources,
+                maximumBytes: info.canonicalName == "flux3-image-klein" ? nil : 80 * 1024 * 1024
+            )
         } else {
             guard decodedSources.count == rawCount, rawCount > 0, decodedSources.allSatisfy({ $0 != nil }) else {
                 throw ImageGenerationError.invalidRequest("edit requires valid ordered source images")
             }
             sources = decodedSources.compactMap { $0 }
-            try validateSourceImages(sources, maximumBytes: info.canonicalName == "flux3-image-klein" ? nil : 80 * 1024 * 1024)
+            try validateSourceImages(
+                sources,
+                maximumBytes: info.canonicalName == "flux3-image-klein" ? nil : 80 * 1024 * 1024
+            )
         }
-        let (width, height) = try dimensions(size: request.size, width: request.width,
-            height: request.height, isQwen21: q21)
-        return ImageEditParameters(model: info.id, prompt: request.prompt, sourceImages: sources,
-            negativePrompt: request.negative_prompt, strength: request.strength.map(Float.init),
-            width: width, height: height,
+        let (width, height) = try dimensions(
+            size: request.size,
+            width: request.width,
+            height: request.height,
+            isQwen21: q21
+        )
+        return ImageEditParameters(
+            model: info.id,
+            prompt: request.prompt,
+            sourceImages: sources,
+            negativePrompt: request.negative_prompt,
+            strength: request.strength.map(Float.init),
+            width: width,
+            height: height,
             steps: request.steps,
-            guidance: request.guidance.map(Float.init), seed: request.seed,
-            outputFormat: try outputFormat(request.output_format, isQwen21: q21 || info.canonicalName == "flux3-image-klein"),
-            sampler: request.sampler, scheduler: request.scheduler, shift: request.shift,
-            previewInterval: request.preview_interval, previewMaxPixel: request.preview_max_pixel ?? 256, adapters: request.adapters ?? [])
+            guidance: request.guidance.map(Float.init),
+            seed: request.seed,
+            outputFormat: try outputFormat(
+                request.output_format,
+                isQwen21: q21 || info.canonicalName == "flux3-image-klein"
+            ),
+            sampler: request.sampler,
+            scheduler: request.scheduler,
+            shift: request.shift,
+            previewInterval: request.preview_interval,
+            previewMaxPixel: request.preview_max_pixel ?? 256,
+            adapters: request.adapters ?? []
+        )
     }
 
     static func dimensions(size: String?, width: Int?, height: Int?, isQwen21: Bool) throws -> (Int?, Int?) {
@@ -141,10 +215,17 @@ enum ImageHTTPParameterBuilder {
         for (index, data) in sources.enumerated() {
             guard !data.isEmpty, maximumBytes.map({ data.count <= $0 }) ?? true,
                 let source = CGImageSourceCreateWithData(data as CFData, nil),
-                CGImageSourceCreateImageAtIndex(source, 0,
-                    [kCGImageSourceShouldCache: false] as CFDictionary) != nil
+                CGImageSourceCreateImageAtIndex(
+                    source,
+                    0,
+                    [kCGImageSourceShouldCache: false] as CFDictionary
+                ) != nil
             else {
-                throw ImageGenerationError.invalidRequest(maximumBytes == nil ? "source image \(index + 1) is invalid" : "source image \(index + 1) is invalid or exceeds 80 MB")
+                throw ImageGenerationError.invalidRequest(
+                    maximumBytes == nil
+                        ? "source image \(index + 1) is invalid"
+                        : "source image \(index + 1) is invalid or exceeds 80 MB"
+                )
             }
         }
     }

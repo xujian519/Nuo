@@ -16,17 +16,33 @@ struct ResponsesPluginRequestTests {
 
     private func context(memory: String? = nil) -> PluginHostContext.AgentContext {
         .init(
-            agentId: UUID(), systemPrompt: "fixture system", memorySection: memory,
-            model: "selected-model", temperature: nil, maxTokens: 900, tools: [tool], executionMode: .none
+            agentId: UUID(),
+            systemPrompt: "fixture system",
+            memorySection: memory,
+            model: "selected-model",
+            temperature: nil,
+            maxTokens: 900,
+            tools: [tool],
+            executionMode: .none
         )
     }
 
     private func source() -> ChatCompletionRequest {
         var request = ChatCompletionRequest(
-            model: "default", messages: [ChatMessage(role: "user", content: "fixture")],
-            temperature: nil, max_tokens: nil, stream: true, top_p: 0.91,
-            frequency_penalty: nil, presence_penalty: nil, stop: ["user-stop"], n: nil,
-            tools: [tool], tool_choice: .auto, session_id: "plugin-session", seed: 27
+            model: "default",
+            messages: [ChatMessage(role: "user", content: "fixture")],
+            temperature: nil,
+            max_tokens: nil,
+            stream: true,
+            top_p: 0.91,
+            frequency_penalty: nil,
+            presence_penalty: nil,
+            stop: ["user-stop"],
+            n: nil,
+            tools: [tool],
+            tool_choice: .auto,
+            session_id: "plugin-session",
+            seed: 27
         )
         request.max_completion_tokens = 72
         request.top_k = 17
@@ -63,11 +79,15 @@ struct ResponsesPluginRequestTests {
     @Test func enrichmentAndIterationKeepExplicitAliasesAndHostControls() {
         let source = source()
         let enriched = PluginHostContext.enrichRequest(
-            source, context: context(), options: .init(from: [:])
+            source,
+            context: context(),
+            options: .init(from: [:])
         )
         verify(snapshot(enriched.request), source: source)
         let iter = PluginHostContext.iterationRequest(
-            from: enriched.request, messages: [ChatMessage(role: "user", content: "next")], tools: [tool]
+            from: enriched.request,
+            messages: [ChatMessage(role: "user", content: "next")],
+            tools: [tool]
         )
         let value = snapshot(iter)
         verify(value, source: source)
@@ -78,7 +98,9 @@ struct ResponsesPluginRequestTests {
     @Test @MainActor func resolvedToolsKeepRequestAndRecordedMemoryBoundary() async throws {
         let source = source()
         let enriched = PluginHostContext.enrichRequest(
-            source, context: context(memory: "fixture memory"), options: .init(from: [:])
+            source,
+            context: context(memory: "fixture memory"),
+            options: .init(from: [:])
         )
         let recorded = try #require(enriched.recordedUserPrefix)
         let resolved = await PluginHostContext.applyResolvedTools([tool], to: enriched)

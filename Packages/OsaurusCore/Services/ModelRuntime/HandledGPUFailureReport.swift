@@ -47,13 +47,19 @@ struct HandledGPUFailureContext: Sendable, Equatable {
     var promptTokens: Int? = nil
 
     init(
-        decodePath: String? = nil, configuredDepth: Int? = nil,
-        lastPrefillStage: String? = nil, lastPrefillOperation: String? = nil,
+        decodePath: String? = nil,
+        configuredDepth: Int? = nil,
+        lastPrefillStage: String? = nil,
+        lastPrefillOperation: String? = nil,
         prefillCompletedUnits: Int? = nil,
-        prefillTotalUnits: Int? = nil, restoredTokens: Int? = nil,
-        restoreDetail: String? = nil, cacheRestoreMs: Int? = nil,
-        diskRestoreBytes: Int64? = nil, diskRestoreMs: Int? = nil,
-        modelVolumeKind: String? = nil, promptTokens: Int? = nil
+        prefillTotalUnits: Int? = nil,
+        restoredTokens: Int? = nil,
+        restoreDetail: String? = nil,
+        cacheRestoreMs: Int? = nil,
+        diskRestoreBytes: Int64? = nil,
+        diskRestoreMs: Int? = nil,
+        modelVolumeKind: String? = nil,
+        promptTokens: Int? = nil
     ) {
         self.decodePath = decodePath
         self.configuredDepth = configuredDepth
@@ -81,7 +87,10 @@ struct HandledGPUFailureReport: Sendable, Equatable {
     let requestContext: HandledGPUFailureContext
 
     init?(
-        failure: GenerationFailure, modelName: String, promptTokens: Int, generatedTokens: Int,
+        failure: GenerationFailure,
+        modelName: String,
+        promptTokens: Int,
+        generatedTokens: Int,
         context: HandledGPUFailureContext = HandledGPUFailureContext()
     ) {
         guard failure.cause.contains("[METAL] Command buffer execution failed:"),
@@ -153,8 +162,8 @@ struct HandledGPUFailureReport: Sendable, Equatable {
     static func whitelistedPrefillOperation(_ detail: String?) -> String? {
         switch detail {
         case "native-mtp", "native-mtp-boundary", "native-mtp-complete",
-             "native-mtp-head-prime", "native-mtp-seed", "native-mtp-bridge", "native-mtp-initial-drafts",
-             "paged", "disk", "miss", "disabled", "checking", "running", "chunk", "decode_ready", "solo", "admitted":
+            "native-mtp-head-prime", "native-mtp-seed", "native-mtp-bridge", "native-mtp-initial-drafts",
+            "paged", "disk", "miss", "disabled", "checking", "running", "chunk", "decode_ready", "solo", "admitted":
             return detail
         default:
             return nil

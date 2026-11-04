@@ -201,7 +201,8 @@ struct AgentLoopBudgetTests {
         let prefix = [
             ChatMessage(role: "system", content: "Read the logs."), ChatMessage(role: "user", content: "Find ERROR."),
         ]
-        let batched = prefix + [ChatMessage(role: "assistant", content: nil, tool_calls: calls, tool_call_id: nil)] + results
+        let batched =
+            prefix + [ChatMessage(role: "assistant", content: nil, tool_calls: calls, tool_call_id: nil)] + results
         var sequential = prefix
         for (call, result) in zip(calls, results) {
             sequential.append(ChatMessage(role: "assistant", content: nil, tool_calls: [call], tool_call_id: nil))
@@ -234,7 +235,9 @@ struct AgentLoopBudgetTests {
         )
         #expect(!sequentialResult.overBudget)
         #expect(sequentialWatermark.hasCompacted)
-        let recentToolIDs: [String?] = sequentialResult.messages.filter { $0.role == "tool" }.suffix(3).map(\.tool_call_id)
+        let recentToolIDs: [String?] = sequentialResult.messages.filter { $0.role == "tool" }.suffix(3).map(
+            \.tool_call_id
+        )
         let expectedRecentToolIDs: [String?] = calls.suffix(3).map { $0.id }
         #expect(recentToolIDs == expectedRecentToolIDs)
     }
@@ -432,7 +435,8 @@ struct AgentLoopBudgetTests {
     @Test
     func noticesStagedForThePreviousMessageAreDroppedAfterASteer() {
         let budget = AgentToolLoop.budgetWarningNotice(remaining: 3, maxIterations: 15)
-        let stale = "[System Notice] You have now made the exact same `osaurus_inspect` call with identical arguments 3+ times. Repeating it will not change the outcome — change your approach, or report what is blocking you."
+        let stale =
+            "[System Notice] You have now made the exact same `osaurus_inspect` call with identical arguments 3+ times. Repeating it will not change the outcome — change your approach, or report what is blocking you."
         let todo = "[System Notice] Update the todo list before continuing."
         #expect(AgentToolLoop.noticesSurvivingNewUserMessage([budget, stale, todo]) == [budget])
         #expect(AgentToolLoop.noticesSurvivingNewUserMessage([stale]).isEmpty)

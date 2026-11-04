@@ -26,7 +26,7 @@ public final class CurrentTimeTool: OsaurusTool, @unchecked Sendable {
                 "type": .string("string"),
                 "description": .string(
                     "Optional IANA timezone identifier (e.g. \"Europe/London\", "
-                    + "\"America/New_York\"). Defaults to the host's local timezone."
+                        + "\"America/New_York\"). Defaults to the host's local timezone."
                 ),
             ])
         ]),

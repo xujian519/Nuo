@@ -486,10 +486,10 @@ enum ChatSessionStore {
         StorageMutationGate.blockingAwaitNotMutating()
         do {
             #if DEBUG
-            if _forceNextOpenFailureForTesting {
-                _forceNextOpenFailureForTesting = false
-                throw ChatHistoryDatabaseError.failedToOpen("forced test failure")
-            }
+                if _forceNextOpenFailureForTesting {
+                    _forceNextOpenFailureForTesting = false
+                    throw ChatHistoryDatabaseError.failedToOpen("forced test failure")
+                }
             #endif
             try ChatHistoryDatabase.shared.open()
             didOpen = true

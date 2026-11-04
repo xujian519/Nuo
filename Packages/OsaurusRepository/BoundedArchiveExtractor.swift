@@ -216,7 +216,7 @@ enum BoundedArchiveExtractor {
         var expandedTotal: UInt64 = 0
         var compressedTotal: UInt64 = 0
 
-        for _ in 0..<entryCount {
+        for _ in 0 ..< entryCount {
             guard offset + 46 <= centralEnd, try data.uint32(at: offset) == 0x0201_4b50 else {
                 throw ArchiveExtractionError.malformed("central directory entry is truncated or missing")
             }
@@ -263,10 +263,10 @@ enum BoundedArchiveExtractor {
                 throw ArchiveExtractionError.unsupported("ZIP64 entry metadata is not accepted")
             }
 
-            let nameData = data.subdata(in: (offset + 46)..<(offset + 46 + nameLength))
+            let nameData = data.subdata(in: (offset + 46) ..< (offset + 46 + nameLength))
             try validateExtraFields(
                 data.subdata(
-                    in: (offset + 46 + nameLength)..<(offset + 46 + nameLength + extraLength)
+                    in: (offset + 46 + nameLength) ..< (offset + 46 + nameLength + extraLength)
                 ),
                 context: "central directory"
             )
@@ -302,7 +302,8 @@ enum BoundedArchiveExtractor {
             )
 
             if let existing = expected[normalized] {
-                let isFirstExplicitDirectory = existing == .directory
+                let isFirstExplicitDirectory =
+                    existing == .directory
                     && kind == .directory
                     && !explicitPaths.contains(normalized)
                 guard isFirstExplicitDirectory else {
@@ -450,13 +451,15 @@ enum BoundedArchiveExtractor {
                 )
             }
             if index == 0, component.count >= 2,
-                component[component.index(after: component.startIndex)] == ":" {
+                component[component.index(after: component.startIndex)] == ":"
+            {
                 throw ArchiveExtractionError.unsafePath(
                     "drive-qualified path '\(safeArchiveName(path))'"
                 )
             }
         }
-        return components
+        return
+            components
             .map { $0.precomposedStringWithCanonicalMapping.lowercased() }
             .joined(separator: "/")
     }
@@ -467,7 +470,7 @@ enum BoundedArchiveExtractor {
     ) throws {
         let components = path.split(separator: "/")
         guard components.count > 1 else { return }
-        for index in 1..<components.count {
+        for index in 1 ..< components.count {
             let parent = components.prefix(index).joined(separator: "/")
             if let existing = expected[parent], existing == .file {
                 throw ArchiveExtractionError.unsafePath(
@@ -532,12 +535,12 @@ enum BoundedArchiveExtractor {
         else {
             throw ArchiveExtractionError.malformed("entry payload extends into the central directory")
         }
-        guard data.subdata(in: (offset + 30)..<(offset + 30 + nameLength)) == expectedName else {
+        guard data.subdata(in: (offset + 30) ..< (offset + 30 + nameLength)) == expectedName else {
             throw ArchiveExtractionError.malformed("local and central filenames differ")
         }
         try validateExtraFields(
             data.subdata(
-                in: (offset + 30 + nameLength)..<(offset + 30 + nameLength + extraLength)
+                in: (offset + 30 + nameLength) ..< (offset + 30 + nameLength + extraLength)
             ),
             context: "local header"
         )
@@ -555,8 +558,8 @@ enum BoundedArchiveExtractor {
             fullEnd = dataEnd
         }
         return LocalEntryLayout(
-            compressedRange: dataStart..<dataEnd,
-            fullRange: offset..<fullEnd
+            compressedRange: dataStart ..< dataEnd,
+            fullRange: offset ..< fullEnd
         )
     }
 
@@ -576,7 +579,8 @@ enum BoundedArchiveExtractor {
         }
         if try matches(at: initialOffset) { return initialOffset + 12 }
         if try data.uint32(at: initialOffset) == 0x0807_4b50,
-            try matches(at: initialOffset + 4) {
+            try matches(at: initialOffset + 4)
+        {
             return initialOffset + 16
         }
         throw ArchiveExtractionError.malformed("data descriptor differs from central metadata")
@@ -588,7 +592,7 @@ enum BoundedArchiveExtractor {
             if $0.lowerBound == $1.lowerBound { return $0.upperBound < $1.upperBound }
             return $0.lowerBound < $1.lowerBound
         }
-        for index in 1..<sorted.count where sorted[index - 1].upperBound > sorted[index].lowerBound {
+        for index in 1 ..< sorted.count where sorted[index - 1].upperBound > sorted[index].lowerBound {
             throw ArchiveExtractionError.malformed(
                 "local ZIP entry regions overlap or reuse archive bytes"
             )
@@ -676,7 +680,7 @@ enum BoundedArchiveExtractor {
 
     private static func isBidirectionalControl(_ scalar: Unicode.Scalar) -> Bool {
         switch scalar.value {
-        case 0x061c, 0x200e...0x200f, 0x202a...0x202e, 0x2066...0x2069:
+        case 0x061c, 0x200e ... 0x200f, 0x202a ... 0x202e, 0x2066 ... 0x2069:
             true
         default:
             false
@@ -825,7 +829,7 @@ enum BoundedArchiveExtractor {
         var offset = entry.compressedRange.lowerBound
         while offset < entry.compressedRange.upperBound {
             let end = min(offset + extractionChunkBytes, entry.compressedRange.upperBound)
-            try writeChunk(archiveData.subdata(in: offset..<end))
+            try writeChunk(archiveData.subdata(in: offset ..< end))
             offset = end
         }
     }
@@ -959,12 +963,14 @@ enum BoundedArchiveExtractor {
 
     private static func verify(staging: URL, manifest: Manifest, policy: ArchiveExtractionPolicy) throws {
         let fileManager = FileManager.default
-        guard let enumerator = fileManager.enumerator(
-            at: staging,
-            includingPropertiesForKeys: nil,
-            options: [],
-            errorHandler: { _, _ in false }
-        ) else {
+        guard
+            let enumerator = fileManager.enumerator(
+                at: staging,
+                includingPropertiesForKeys: nil,
+                options: [],
+                errorHandler: { _, _ in false }
+            )
+        else {
             throw ArchiveExtractionError.verificationFailed("could not enumerate staged output")
         }
 

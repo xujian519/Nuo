@@ -152,12 +152,16 @@ enum ShortcutsProcessRunner {
     }
 
     static func run(
-        executable: String, arguments: [String], timeout: TimeInterval, outputCap: Int = outputCap
+        executable: String,
+        arguments: [String],
+        timeout: TimeInterval,
+        outputCap: Int = outputCap
     ) async throws -> ShortcutsProcessOutput {
         try Task.checkCancellation()
         let box = ProcessBox()
         return try await withTaskCancellationHandler {
-            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<ShortcutsProcessOutput, Error>) in
+            try await withCheckedThrowingContinuation {
+                (continuation: CheckedContinuation<ShortcutsProcessOutput, Error>) in
                 let process = Process()
                 process.executableURL = URL(fileURLWithPath: executable)
                 process.arguments = arguments
@@ -183,7 +187,8 @@ enum ShortcutsProcessRunner {
                     guard gate.claim() else { return }
                     box.terminate()
                     continuation.resume(
-                        throwing: AppleToolError.timeout("Shortcut run exceeded \(Int(timeout))s and was stopped."))
+                        throwing: AppleToolError.timeout("Shortcut run exceeded \(Int(timeout))s and was stopped.")
+                    )
                 }
                 process.terminationHandler = { p in
                     timer.cancel()
@@ -204,9 +209,11 @@ enum ShortcutsProcessRunner {
                     continuation.resume(
                         returning: ShortcutsProcessOutput(
                             exitCode: wasSignalled ? -Int32(p.terminationStatus) : p.terminationStatus,
-                            stdout: outSink.text, stderr: errSink.text,
+                            stdout: outSink.text,
+                            stderr: errSink.text,
                             truncated: outSink.truncated || errSink.truncated
-                        ))
+                        )
+                    )
                 }
                 box.set(process)
                 do {
@@ -222,7 +229,10 @@ enum ShortcutsProcessRunner {
                     guard gate.claim() else { return }
                     continuation.resume(
                         throwing: AppleToolError.unavailable(
-                            "Could not launch `\(executable)`: \(error.localizedDescription)", retryable: true))
+                            "Could not launch `\(executable)`: \(error.localizedDescription)",
+                            retryable: true
+                        )
+                    )
                 }
             }
         } onCancel: {
@@ -239,7 +249,10 @@ final class ShortcutsCLIService: ShortcutsServicing, @unchecked Sendable {
 
     private func ensureAvailable() throws {
         guard FileManager.default.isExecutableFile(atPath: Self.executable) else {
-            throw AppleToolError.unavailable("The `shortcuts` command-line tool is not available on this Mac.", retryable: false)
+            throw AppleToolError.unavailable(
+                "The `shortcuts` command-line tool is not available on this Mac.",
+                retryable: false
+            )
         }
     }
 
@@ -250,7 +263,9 @@ final class ShortcutsCLIService: ShortcutsServicing, @unchecked Sendable {
 
     /// `shortcuts list --show-identifiers` prints `Name (UUID)` per line.
     static let listLinePattern = try? NSRegularExpression(
-        pattern: "^(.*?)\\s*\\(([0-9A-Fa-f-]{36})\\)\\s*$", options: [])
+        pattern: "^(.*?)\\s*\\(([0-9A-Fa-f-]{36})\\)\\s*$",
+        options: []
+    )
 
     static func parseListLine(_ line: String) -> ShortcutInfo? {
         let text = line.trimmingCharacters(in: .whitespaces)
@@ -259,7 +274,11 @@ final class ShortcutsCLIService: ShortcutsServicing, @unchecked Sendable {
             let match = pattern.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
             let nameRange = Range(match.range(at: 1), in: text), let idRange = Range(match.range(at: 2), in: text)
         {
-            return ShortcutInfo(name: String(text[nameRange]).trimmingCharacters(in: .whitespaces), identifier: String(text[idRange]), folder: nil)
+            return ShortcutInfo(
+                name: String(text[nameRange]).trimmingCharacters(in: .whitespaces),
+                identifier: String(text[idRange]),
+                folder: nil
+            )
         }
         return ShortcutInfo(name: text, identifier: nil, folder: nil)
     }
@@ -268,7 +287,8 @@ final class ShortcutsCLIService: ShortcutsServicing, @unchecked Sendable {
         let result = try await exec(["list", "--show-identifiers"], timeout: 30)
         guard result.exitCode == 0 else {
             throw AppleToolError.execution(
-                "`shortcuts list` failed (\(result.exitCode)): \(result.stderr.trimmingCharacters(in: .whitespacesAndNewlines))")
+                "`shortcuts list` failed (\(result.exitCode)): \(result.stderr.trimmingCharacters(in: .whitespacesAndNewlines))"
+            )
         }
         return result.stdout.split(separator: "\n").compactMap { Self.parseListLine(String($0)) }
     }
@@ -279,8 +299,12 @@ final class ShortcutsCLIService: ShortcutsServicing, @unchecked Sendable {
     static func isNotFoundStderr(_ stderr: String) -> Bool {
         let lower = stderr.lowercased()
         let normalized = lower.replacingOccurrences(of: "\u{2019}", with: "'")
-        if normalized.range(of: #"couldn'?t\s+find\s+(the\s+)?shortcut"#, options: .regularExpression) != nil { return true }
-        if normalized.range(of: #"no\s+shortcut\s+(named|with|found)"#, options: .regularExpression) != nil { return true }
+        if normalized.range(of: #"couldn'?t\s+find\s+(the\s+)?shortcut"#, options: .regularExpression) != nil {
+            return true
+        }
+        if normalized.range(of: #"no\s+shortcut\s+(named|with|found)"#, options: .regularExpression) != nil {
+            return true
+        }
         return normalized.contains("shortcut not found")
     }
 
@@ -303,7 +327,10 @@ final class ShortcutsCLIService: ShortcutsServicing, @unchecked Sendable {
         }
         let target = shortcut.identifier ?? shortcut.name
 
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("osaurus-shortcuts-\(UUID().uuidString)", isDirectory: true)
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "osaurus-shortcuts-\(UUID().uuidString)",
+            isDirectory: true
+        )
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: dir) }
         // `--` keeps a name that starts with `-` from being parsed as a flag.
@@ -324,7 +351,9 @@ final class ShortcutsCLIService: ShortcutsServicing, @unchecked Sendable {
             // shortcut deleted between `list` and `run` (the CLI's text is
             // localized and uses a curly apostrophe, hence the regex).
             if Self.isNotFoundStderr(message) {
-                throw AppleToolError.notFound("Shortcut `\(shortcut.name)` was not found by the Shortcuts CLI. Call `shortcuts_list` to refresh the names.")
+                throw AppleToolError.notFound(
+                    "Shortcut `\(shortcut.name)` was not found by the Shortcuts CLI. Call `shortcuts_list` to refresh the names."
+                )
             }
             throw AppleToolError.execution(
                 "Shortcut `\(shortcut.name)` failed (\(result.exitCode)): \(message.isEmpty ? result.stdout.trimmingCharacters(in: .whitespacesAndNewlines) : message)"
@@ -348,9 +377,13 @@ final class ShortcutsCLIService: ShortcutsServicing, @unchecked Sendable {
         }
         let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
         return ShortcutRunResult(
-            name: shortcut.name, output: trimmed.isEmpty ? nil : trimmed, outputIsEmpty: trimmed.isEmpty && !outputIsBinary,
-            outputIsBinary: outputIsBinary, outputBytes: outputIsBinary ? fileData.count : trimmed.utf8.count,
-            outputTruncated: truncated, durationSeconds: duration
+            name: shortcut.name,
+            output: trimmed.isEmpty ? nil : trimmed,
+            outputIsEmpty: trimmed.isEmpty && !outputIsBinary,
+            outputIsBinary: outputIsBinary,
+            outputBytes: outputIsBinary ? fileData.count : trimmed.utf8.count,
+            outputTruncated: truncated,
+            durationSeconds: duration
         )
     }
 }
@@ -368,8 +401,10 @@ final class ShortcutsListTool: AppleToolBase, @unchecked Sendable {
     init(service: ShortcutsServicing) {
         self.service = service
         super.init(
-            app: .shortcuts, name: "shortcuts_list",
-            description: "List the user's Shortcuts with their exact names and identifiers (either works with shortcuts_run).",
+            app: .shortcuts,
+            name: "shortcuts_list",
+            description:
+                "List the user's Shortcuts with their exact names and identifiers (either works with shortcuts_run).",
             parameters: AppleSchema.object([
                 "query": AppleSchema.string("Only shortcuts whose name contains this text."),
                 "limit": AppleSchema.limit(default: 100, max: 500),
@@ -383,7 +418,9 @@ final class ShortcutsListTool: AppleToolBase, @unchecked Sendable {
         var items = try await service.list()
         if let query, !query.isEmpty { items = items.filter { AppleServiceSupport.matches($0.name, query: query) } }
         let page = AppleServiceSupport.page(items, limit: limit)
-        return AppleToolPayload(["shortcuts": page.items, "count": page.items.count, "total": page.total, "truncated": page.truncated])
+        return AppleToolPayload([
+            "shortcuts": page.items, "count": page.items.count, "total": page.total, "truncated": page.truncated,
+        ])
     }
 }
 
@@ -393,8 +430,10 @@ final class ShortcutsRunTool: AppleToolBase, @unchecked Sendable {
     init(service: ShortcutsServicing) {
         self.service = service
         super.init(
-            app: .shortcuts, name: "shortcuts_run",
-            description: "Run a Shortcut by exact name or identifier (from shortcuts_list), optionally passing text as its input, and return its text output. Runs can take a while (default budget 5 minutes, max 10) and the shortcut may show its own prompts — an Ask Each Time or Show Result step blocks until the user acts on it; stopping the chat stops the shortcut. Non-text output is reported as binary, not returned.",
+            app: .shortcuts,
+            name: "shortcuts_run",
+            description:
+                "Run a Shortcut by exact name or identifier (from shortcuts_list), optionally passing text as its input, and return its text output. Runs can take a while (default budget 5 minutes, max 10) and the shortcut may show its own prompts — an Ask Each Time or Show Result step blocks until the user acts on it; stopping the chat stops the shortcut. Non-text output is reported as binary, not returned.",
             parameters: AppleSchema.object(
                 [
                     "name": AppleSchema.string("Exact shortcut name or identifier from shortcuts_list."),
@@ -409,10 +448,16 @@ final class ShortcutsRunTool: AppleToolBase, @unchecked Sendable {
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
         let name = try AppleArgs.requiredString(args, "name", expected: "a shortcut name")
         let input = try AppleArgs.string(args, "input")
-        let timeout = TimeInterval(min(max(try AppleArgs.int(args, "timeout_seconds") ?? Int(Self.defaultTimeout), 5), 600))
+        let timeout = TimeInterval(
+            min(max(try AppleArgs.int(args, "timeout_seconds") ?? Int(Self.defaultTimeout), 5), 600)
+        )
         let result = try await service.run(name: name, input: input, timeout: timeout)
         var warnings: [String] = []
-        if result.outputIsBinary { warnings.append("The shortcut returned non-text output (\(result.outputBytes) bytes); only text output can be returned.") }
+        if result.outputIsBinary {
+            warnings.append(
+                "The shortcut returned non-text output (\(result.outputBytes) bytes); only text output can be returned."
+            )
+        }
         if result.outputTruncated { warnings.append("The shortcut's output exceeded 1 MiB and was truncated.") }
         return AppleToolPayload(["result": result], warnings: warnings)
     }

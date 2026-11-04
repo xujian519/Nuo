@@ -925,7 +925,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
             // last-resort fallback if no app window is up.
             let scope: ThemedAlertScope
             if let chatId = ChatWindowManager.shared.lastFocusedWindowId,
-                ChatWindowManager.shared.windowExists(id: chatId) {
+                ChatWindowManager.shared.windowExists(id: chatId)
+            {
                 scope = .chat(chatId)
             } else if WindowManager.shared.isVisible(.management) {
                 scope = .management
@@ -1375,7 +1376,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
                 service.resetForDebugTesting()
                 guard let self else { return }
                 self.debugReportAnnouncementDeferral(
-                    self.presentAnnouncementIfEligible(), cached: service.announcements.count)
+                    self.presentAnnouncementIfEligible(),
+                    cached: service.announcements.count
+                )
             }
         }
 
@@ -1389,7 +1392,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
             NSLog("[Announcements] dialog deferred: \(reason) (\(cached) cached)")
             ToastManager.shared.warning(
                 "Announcement deferred",
-                message: "\(reason) — \(cached) live on the router. Resolve it and pick the dock item again, or re-activate the app.",
+                message:
+                    "\(reason) — \(cached) live on the router. Resolve it and pick the dock item again, or re-activate the app.",
                 timeout: 8
             )
         }
@@ -2327,7 +2331,8 @@ extension AppDelegate {
             }
 
             if url.host?.lowercased() == "settings" {
-                let raw = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+                let raw =
+                    URLComponents(url: url, resolvingAgainstBaseURL: false)?
                     .queryItems?
                     .first(where: { $0.name.lowercased() == "tab" })?.value ?? ""
                 showManagementWindow(initialTab: ManagementTab.resolved(from: raw))
@@ -2749,7 +2754,9 @@ extension AppDelegate {
                     // shared controller keeps them off while still mirroring
                     // the clamped floor into `contentMinSize`.
                     let replacement = windowManager.makeHostingController(
-                        for: .management, rootView: root)
+                        for: .management,
+                        rootView: root
+                    )
                     existingWindow.contentViewController = replacement
                 } else if let initialTab {
                     // No deeplink: drive navigation through the shared state the
@@ -2919,7 +2926,8 @@ extension AppDelegate {
         // — so fall through to the screen-level toast overlay instead.
         let scope: ThemedAlertScope
         if let chatId = ChatWindowManager.shared.lastFocusedWindowId,
-            ChatWindowManager.shared.getNSWindow(id: chatId)?.isVisible == true {
+            ChatWindowManager.shared.getNSWindow(id: chatId)?.isVisible == true
+        {
             scope = .chat(chatId)
         } else if WindowManager.shared.isVisible(.management) {
             scope = .management
@@ -2961,7 +2969,11 @@ extension AppDelegate {
                 .primary(label) { [weak self] in
                     service.markSeen(slug)
                     FeatureTelemetry.announcementClicked(
-                        slug: slug, action: "cta", ctaKind: cta.kind, ctaIndex: index)
+                        slug: slug,
+                        action: "cta",
+                        ctaKind: cta.kind,
+                        ctaIndex: index
+                    )
                     if cta.isDeepLink {
                         self?.handleAppDeepLink(url)
                     } else {
@@ -2974,7 +2986,8 @@ extension AppDelegate {
                             NSWorkspace.shared.open(url)
                         }
                     }
-                })
+                }
+            )
         }
 
         let requestId = UUID()
@@ -3032,7 +3045,8 @@ extension AppDelegate {
         // else the management window, else the screen-level toast overlay.
         let scope: ThemedAlertScope
         if let chatId = ChatWindowManager.shared.lastFocusedWindowId,
-            ChatWindowManager.shared.windowExists(id: chatId) {
+            ChatWindowManager.shared.windowExists(id: chatId)
+        {
             scope = .chat(chatId)
         } else if WindowManager.shared.isVisible(.management) {
             scope = .management
@@ -3053,7 +3067,11 @@ extension AppDelegate {
             // there is no sidebar selection to route through; imported
             // sessions still refresh every window via `.chatSessionsImported`.
             ChatSessionImportCoordinator.run(
-                agentId: nil, scope: scope, source: .onboardingPrompt, onOpen: nil)
+                agentId: nil,
+                scope: scope,
+                source: .onboardingPrompt,
+                onOpen: nil
+            )
         }
         ThemedAlertCenter.shared.present(
             ThemedAlertRequest(

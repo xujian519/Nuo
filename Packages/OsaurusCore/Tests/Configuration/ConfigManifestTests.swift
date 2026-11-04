@@ -24,10 +24,11 @@ struct ConfigManifestDerivationTests {
         let root = ConfigManifest.knownKeys[""]
         #expect(root == Set(ConfigSectionID.allNames + ["version"]))
         // Spot-check derived paths exist.
-        for path in ["memory", "delegation", "agents[]", "agents[].capabilities",
+        for path in [
+            "memory", "delegation", "agents[]", "agents[].capabilities",
             "search_providers.providers[]", "harness_runtimes[]", "agents[].claude_code",
-            "default_agent.claude_code"]
-        {
+            "default_agent.claude_code",
+        ] {
             #expect(ConfigManifest.knownKeys[path] != nil, "missing knownKeys path `\(path)`")
         }
         // Scope reduction 2: the removed sections must not resurface.
@@ -76,7 +77,8 @@ struct ConfigManifestDerivationTests {
                 let location = path.isEmpty ? "top level" : path
                 #expect(
                     text.contains("\(key):"),
-                    "`\(key)` (at `\(location)`) enforced but missing from the schema text")
+                    "`\(key)` (at `\(location)`) enforced but missing from the schema text"
+                )
             }
         }
     }
@@ -132,7 +134,8 @@ struct ConfigManifestDerivationTests {
     @Test
     func freeformValueConstraints_coverToolPolicies() {
         #expect(
-            ConfigManifest.freeformValueConstraints["tools.policies"] == ["auto", "ask", "deny"])
+            ConfigManifest.freeformValueConstraints["tools.policies"] == ["auto", "ask", "deny"]
+        )
     }
 
     @Test

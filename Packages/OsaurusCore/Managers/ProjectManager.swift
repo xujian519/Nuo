@@ -103,6 +103,9 @@ public final class ProjectManager: ObservableObject {
 
     private func notify(_ id: UUID) {
         NotificationCenter.default.post(
-            name: .projectsChanged, object: nil, userInfo: ["projectId": id])
+            name: .projectsChanged,
+            object: nil,
+            userInfo: ["projectId": id]
+        )
     }
 }

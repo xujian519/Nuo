@@ -65,12 +65,14 @@ struct AgentChannelNativeCoexistenceTests {
                 telegramService: telegram
             )
             let rows = service.listConnections()
-            let nativeRows = Dictionary(uniqueKeysWithValues: rows.compactMap { row -> (String, [String: Any])? in
-                guard let id = row["id"] as? String,
-                      ["discord", "slack", "telegram"].contains(id)
-                else { return nil }
-                return (id, row)
-            })
+            let nativeRows = Dictionary(
+                uniqueKeysWithValues: rows.compactMap { row -> (String, [String: Any])? in
+                    guard let id = row["id"] as? String,
+                        ["discord", "slack", "telegram"].contains(id)
+                    else { return nil }
+                    return (id, row)
+                }
+            )
 
             #expect(Set(nativeRows.keys) == ["discord", "slack", "telegram"])
             #expect(nativeRows["discord"]?["configured"] as? Bool == true)
@@ -89,10 +91,12 @@ struct AgentChannelNativeCoexistenceTests {
             let slackPolicies = nativeRows["slack"]?["action_policies"] as? [[String: Any]] ?? []
             #expect(!slackPolicies.contains { $0["status"] as? String == "configured_only" })
             let telegramPolicies = nativeRows["telegram"]?["action_policies"] as? [[String: Any]] ?? []
-            #expect(!telegramPolicies.contains {
-                ($0["action"] as? String) != "reply_thread"
-                    && $0["status"] as? String == "configured_only"
-            })
+            #expect(
+                !telegramPolicies.contains {
+                    ($0["action"] as? String) != "reply_thread"
+                        && $0["status"] as? String == "configured_only"
+                }
+            )
         }
     }
 

@@ -49,14 +49,18 @@ enum CacheProofFootprintGate {
             return .passed(
                 String(
                     format: "footprint growth %.0f MB within %.0f MB across %d turns",
-                    growth, ceilingMb, samplesMb.count
+                    growth,
+                    ceilingMb,
+                    samplesMb.count
                 )
             )
         }
         return .failed(
             String(
                 format: "footprint grew %.0f MB across %d turns — EXCEEDS %.0f MB gate",
-                growth, samplesMb.count, ceilingMb
+                growth,
+                samplesMb.count,
+                ceilingMb
             )
         )
     }
@@ -105,14 +109,17 @@ enum CacheProofFootprintGate {
             return .passed(
                 String(
                     format: "peak footprint %.0f MB within resolved budget %.0f MB",
-                    peakMb, budgetMb
+                    peakMb,
+                    budgetMb
                 )
             )
         }
         return .failed(
             String(
                 format: "peak footprint %.0f MB EXCEEDS resolved budget %.0f MB (plan: %@)",
-                peakMb, budgetMb, planSummary
+                peakMb,
+                budgetMb,
+                planSummary
             )
         )
     }
@@ -123,35 +130,60 @@ extension EvalRunner {
     /// Failure takes precedence over missing cache telemetry. Raw per-turn
     /// evidence is attached before either early report exits the runner.
     static func cacheProofEarlyReport(
-        _ transcript: CacheProofTranscript, id: String, label: String,
-        query: String, modelId: String, latencyMs: Double
+        _ transcript: CacheProofTranscript,
+        id: String,
+        label: String,
+        query: String,
+        modelId: String,
+        latencyMs: Double
     ) -> EvalCaseReport? {
         let outcome: EvalCaseOutcome
         let notes: [String]
         if let error = transcript.error {
             outcome = .errored
-            notes = ["cache-proof run failed: \(error)",
-                "raw per-turn cache transcript attached; failed-row counters are diagnostic"]
+            notes = [
+                "cache-proof run failed: \(error)",
+                "raw per-turn cache transcript attached; failed-row counters are diagnostic",
+            ]
         } else if let reason = transcript.skipReason {
             outcome = .skipped
             notes = ["SKIP: \(reason)"]
-        } else { return nil }
-        let report = EvalCaseReport(id: id, label: label, domain: "cache_proof", query: query,
-            outcome: outcome, notes: notes, modelId: modelId, latencyMs: latencyMs,
-            cacheProof: transcript)
+        } else {
+            return nil
+        }
+        let report = EvalCaseReport(
+            id: id,
+            label: label,
+            domain: "cache_proof",
+            query: query,
+            outcome: outcome,
+            notes: notes,
+            modelId: modelId,
+            latencyMs: latencyMs,
+            cacheProof: transcript
+        )
         return persistCacheProofTranscript(transcript, for: report, query: query)
     }
 
     static func persistCacheProofTranscript(
-        _ transcript: CacheProofTranscript, for report: EvalCaseReport, query: String
+        _ transcript: CacheProofTranscript,
+        for report: EvalCaseReport,
+        query: String
     ) -> EvalCaseReport {
-        EvalTranscriptStore.persistIfEnabled(EvalCaseTranscript(
-            caseId: report.id, domain: report.domain, modelId: report.modelId,
-            outcome: report.outcome.rawValue, query: query,
-            finalText: transcript.visibleTurns.joined(separator: "\n\n--- turn ---\n\n"),
-            iterations: transcript.visibleTurns.count, error: transcript.error,
-            cacheProof: transcript
-        ), includeSuccessful: true)
+        EvalTranscriptStore.persistIfEnabled(
+            EvalCaseTranscript(
+                caseId: report.id,
+                domain: report.domain,
+                modelId: report.modelId,
+                outcome: report.outcome.rawValue,
+                query: query,
+                finalText: transcript.visibleTurns.joined(separator: "\n\n--- turn ---\n\n"),
+                iterations: transcript.visibleTurns.count,
+                error: transcript.error,
+                cacheProof: transcript
+            ),
+            includeSuccessful: true
+        )
         return report
     }
 
@@ -162,21 +194,27 @@ extension EvalRunner {
         let label = testCase.label ?? testCase.id
         guard let exp = testCase.expect.cacheProof else {
             return Self.errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "missing `expect.cacheProof`"
             )
         }
 
         if exp.followUpTurns != nil, exp.toolResultFollowUps != nil {
             return Self.errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "cache proof must set either followUpTurns or "
                     + "toolResultFollowUps, not both"
             )
         }
         if let toolFollowUps = exp.toolResultFollowUps, toolFollowUps.isEmpty {
             return Self.errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "toolResultFollowUps must contain at least one payload"
             )
         }
@@ -201,7 +239,9 @@ extension EvalRunner {
         let expectedSessionCount = 1 + sessionBoundaries.count
         if exp.systemPrompt != nil, exp.systemPromptsPerSession != nil {
             return Self.errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "cache proof must set either systemPrompt or "
                     + "systemPromptsPerSession, not both"
             )
@@ -210,7 +250,9 @@ extension EvalRunner {
             prompts.count != expectedSessionCount
         {
             return Self.errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "systemPromptsPerSession has \(prompts.count) entries; "
                     + "\(expectedSessionCount) session(s) are configured"
             )
@@ -245,8 +287,14 @@ extension EvalRunner {
         let elapsedMs = Date().timeIntervalSince(started) * 1000
         let sample = sampler.stop()
 
-        if let report = cacheProofEarlyReport(transcript, id: testCase.id, label: label,
-            query: testCase.query, modelId: modelId, latencyMs: elapsedMs) {
+        if let report = cacheProofEarlyReport(
+            transcript,
+            id: testCase.id,
+            label: label,
+            query: testCase.query,
+            modelId: modelId,
+            latencyMs: elapsedMs
+        ) {
             return report
         }
 
@@ -522,7 +570,8 @@ extension EvalRunner {
                     && over.isEmpty,
                 pass: String(
                     format: "all %d TTFT readings within %.0f ms",
-                    measured.count, ceiling
+                    measured.count,
+                    ceiling
                 ),
                 fail: "missing/over-ceiling TTFT on turn(s) "
                     + turnMetrics.filter {
@@ -533,8 +582,11 @@ extension EvalRunner {
 
         // A measured earlier turn cannot stand in for an unreported final
         // turn. Missing final speed makes the configured gate unverified.
-        for verdict in CacheProofDecodeGate.evaluate(turns: turnMetrics,
-            minimumFinal: exp.minFinalDecodeTps, minimumRatio: exp.minFinalDecodeTpsRatio) {
+        for verdict in CacheProofDecodeGate.evaluate(
+            turns: turnMetrics,
+            minimumFinal: exp.minFinalDecodeTps,
+            minimumRatio: exp.minFinalDecodeTpsRatio
+        ) {
             check(verdict.passed, pass: verdict.note, fail: verdict.note)
         }
 

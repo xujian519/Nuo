@@ -26,7 +26,9 @@ extension EvalRunner {
         let label = testCase.label ?? testCase.id
         guard let exp = testCase.expect.agentChannels else {
             return Self.errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "missing `expect.agentChannels`"
             )
         }

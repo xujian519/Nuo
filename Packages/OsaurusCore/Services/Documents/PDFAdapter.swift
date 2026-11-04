@@ -242,7 +242,8 @@ public struct PDFAdapter: DocumentFormatAdapter {
         // Swift Character. Do not admit a native extension that splits CRLF.
         for boundary in [requested.location, NSMaxRange(requested), selected.location, NSMaxRange(selected)] {
             if boundary > 0, boundary < text.length,
-                text.character(at: boundary - 1) == 13, text.character(at: boundary) == 10 {
+                text.character(at: boundary - 1) == 13, text.character(at: boundary) == 10
+            {
                 return false
             }
         }

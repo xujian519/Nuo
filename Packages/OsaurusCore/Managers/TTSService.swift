@@ -437,15 +437,26 @@ public final class TTSService: ObservableObject {
         switch config.provider {
         case .pocketTTS:
             startPocketPlayback(
-                text: text, messageId: messageId, voiceOverride: voiceOverride, config: config)
+                text: text,
+                messageId: messageId,
+                voiceOverride: voiceOverride,
+                config: config
+            )
         case .openAICompatible:
             startRemotePlayback(
-                text: text, messageId: messageId, voiceOverride: voiceOverride, config: config)
+                text: text,
+                messageId: messageId,
+                voiceOverride: voiceOverride,
+                config: config
+            )
         }
     }
 
     private func startPocketPlayback(
-        text: String, messageId: UUID, voiceOverride: String?, config: TTSConfiguration
+        text: String,
+        messageId: UUID,
+        voiceOverride: String?,
+        config: TTSConfiguration
     ) {
         guard let manager else {
             playingMessageId = nil
@@ -503,7 +514,8 @@ public final class TTSService: ObservableObject {
                 let chunks = TTSTextChunker.split(text)
                 TTSDebugLog.log(
                     "playback start id=\(messageId) voice=\(voice) temp=\(temperature) "
-                        + "textChars=\(text.count) chunks=\(chunks.count)")
+                        + "textChars=\(text.count) chunks=\(chunks.count)"
+                )
                 let playbackStart = Date()
                 for (index, chunk) in chunks.enumerated() {
                     if Task.isCancelled { break }
@@ -513,7 +525,8 @@ public final class TTSService: ObservableObject {
                     var sampleCount = 0
                     TTSDebugLog.log(
                         "  chunk \(index + 1)/\(chunks.count) begin chars=\(chunk.count) "
-                            + "text=\(TTSDebugLog.preview(chunk))")
+                            + "text=\(TTSDebugLog.preview(chunk))"
+                    )
                     let stream = try await manager.synthesizeStreaming(
                         text: chunk,
                         voice: voice,
@@ -541,12 +554,20 @@ public final class TTSService: ObservableObject {
                             + String(
                                 format:
                                     "audioSec=%.2f synthSec=%.2f rtf=%.2f firstFrameSec=%.2f",
-                                audioSec, synthSec, rtf, firstFrameAt ?? -1))
+                                audioSec,
+                                synthSec,
+                                rtf,
+                                firstFrameAt ?? -1
+                            )
+                    )
                 }
                 TTSDebugLog.log(
                     String(
                         format: "playback synthesis complete id=%@ totalWallSec=%.2f",
-                        messageId.uuidString, Date().timeIntervalSince(playbackStart)))
+                        messageId.uuidString,
+                        Date().timeIntervalSince(playbackStart)
+                    )
+                )
                 self?.markStreamFinished(for: messageId)
                 activity.finish(audioSeconds: totalAudioSec, error: nil, cancelled: Task.isCancelled)
             } catch is CancellationError {
@@ -560,7 +581,10 @@ public final class TTSService: ObservableObject {
     }
 
     private func startRemotePlayback(
-        text: String, messageId: UUID, voiceOverride: String?, config: TTSConfiguration
+        text: String,
+        messageId: UUID,
+        voiceOverride: String?,
+        config: TTSConfiguration
     ) {
         streamFinished = false
         pendingBufferCount = 0
@@ -630,7 +654,8 @@ public final class TTSService: ObservableObject {
 
     private func handleRemoteStreamError(_ error: Error, for messageId: UUID) {
         TTSLogger.service.error(
-            "Remote TTS synthesis failed: \(error.localizedDescription, privacy: .public)")
+            "Remote TTS synthesis failed: \(error.localizedDescription, privacy: .public)"
+        )
         // Unlike the local path, don't touch `modelState`: that tracks the
         // PocketTTS download and a network hiccup shouldn't flip it to failed.
         lastRemoteError = error.localizedDescription
@@ -675,7 +700,8 @@ public final class TTSService: ObservableObject {
         // explanation — indistinguishable from the app simply ignoring them. Say what
         // happened, in the one place they are already looking at TTS.
         TTSLogger.service.error(
-            "TTS synthesis failed: \(error.localizedDescription, privacy: .public)")
+            "TTS synthesis failed: \(error.localizedDescription, privacy: .public)"
+        )
         modelState = .failed(error.localizedDescription)
         TTSDebugLog.log("playback error id=\(messageId) error=\(error.localizedDescription)")
         if playingMessageId == messageId {
@@ -730,12 +756,14 @@ enum TTSDebugLog {
         if ["1", "true", "yes"].contains(value.lowercased()) {
             // #filePath → <repo>/Packages/OsaurusCore/Managers/TTSService.swift
             let source = URL(fileURLWithPath: #filePath)
-            let repoRoot = source
+            let repoRoot =
+                source
                 .deletingLastPathComponent()  // Managers
                 .deletingLastPathComponent()  // OsaurusCore
                 .deletingLastPathComponent()  // Packages
                 .deletingLastPathComponent()  // <repo>
-            return repoRoot
+            return
+                repoRoot
                 .appendingPathComponent("tmp", isDirectory: true)
                 .appendingPathComponent("tts-debug.log")
         }
@@ -758,7 +786,9 @@ enum TTSDebugLog {
             guard let data = "\(stamp) \(message)\n".data(using: .utf8) else { return }
             let fm = FileManager.default
             try? fm.createDirectory(
-                at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
             if let handle = try? FileHandle(forWritingTo: url) {
                 defer { try? handle.close() }
                 _ = try? handle.seekToEnd()

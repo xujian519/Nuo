@@ -14,8 +14,12 @@ struct SwiftTransformersTokenizerLoaderTests {
     @Test func appOwnedGemmaFallbackDescribesSchemasWithoutForcingToolChoiceProse() throws {
         let package = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
             .deletingLastPathComponent().deletingLastPathComponent()
-        let source = try String(contentsOf: package.appendingPathComponent(
-            "Services/ModelRuntime/SwiftTransformersTokenizerLoader.swift"), encoding: .utf8)
+        let source = try String(
+            contentsOf: package.appendingPathComponent(
+                "Services/ModelRuntime/SwiftTransformersTokenizerLoader.swift"
+            ),
+            encoding: .utf8
+        )
         let start = try #require(source.range(of: "private static let gemma3FunctionToolMinimal"))
         let end = try #require(source.range(of: "\"\"\"#", range: start.upperBound ..< source.endIndex))
         let template = String(source[start.lowerBound ..< end.lowerBound])
@@ -395,8 +399,14 @@ struct SwiftTransformersTokenizerLoaderTests {
 
         #expect(decoded.contains(finalUser), "Decoded: \(decoded)")
         #expect(decoded.contains("<|tool>declaration:line_count"), "Decoded: \(decoded)")
-        #expect(decoded.contains("red\ngreen\nblue"), "Earlier user/tool arguments must remain available. Decoded: \(decoded)")
-        #expect(decoded.contains("The text contains 3 lines."), "Earlier assistant history was removed. Decoded: \(decoded)")
+        #expect(
+            decoded.contains("red\ngreen\nblue"),
+            "Earlier user/tool arguments must remain available. Decoded: \(decoded)"
+        )
+        #expect(
+            decoded.contains("The text contains 3 lines."),
+            "Earlier assistant history was removed. Decoded: \(decoded)"
+        )
         #expect(decoded.contains("{\"lines\":3}"), "Earlier tool result was removed. Decoded: \(decoded)")
         for injected in [
             "The current assistant response MUST be a function call.",
@@ -406,8 +416,10 @@ struct SwiftTransformersTokenizerLoaderTests {
         ] {
             #expect(!decoded.contains(injected), "Runtime must not append a tool-choice directive. Decoded: \(decoded)")
         }
-        #expect(!decoded.contains(#"<|tool_call>call:line_count{text:<|"|>one\ntwo<|"|>}<tool_call|>"#),
-            "The runtime must not synthesize a call for the latest user request. Decoded: \(decoded)")
+        #expect(
+            !decoded.contains(#"<|tool_call>call:line_count{text:<|"|>one\ntwo<|"|>}<tool_call|>"#),
+            "The runtime must not synthesize a call for the latest user request. Decoded: \(decoded)"
+        )
         #expect(!decoded.contains("<zyphra_tool_call>"), "Decoded: \(decoded)")
     }
 
@@ -455,8 +467,10 @@ struct SwiftTransformersTokenizerLoaderTests {
         let decoded = tokenizer.decode(tokenIds: tokenIds, skipSpecialTokens: false)
 
         #expect(decoded.contains("<|tool>declaration:line_count"), "Decoded: \(decoded)")
-        #expect(decoded.contains("Use the line_count tool on this exact text: red\ngreen\nblue"),
-            "The original multiline request must remain intact. Decoded: \(decoded)")
+        #expect(
+            decoded.contains("Use the line_count tool on this exact text: red\ngreen\nblue"),
+            "The original multiline request must remain intact. Decoded: \(decoded)"
+        )
         for injected in [
             "The current assistant response MUST be a function call.",
             "Tool use is REQUIRED for this assistant turn.",
@@ -465,8 +479,10 @@ struct SwiftTransformersTokenizerLoaderTests {
         ] {
             #expect(!decoded.contains(injected), "Runtime must not append a tool-choice directive. Decoded: \(decoded)")
         }
-        #expect(!decoded.contains("<|tool_call>call:line_count{"),
-            "A schema-only input must not acquire an invented assistant call/example. Decoded: \(decoded)")
+        #expect(
+            !decoded.contains("<|tool_call>call:line_count{"),
+            "A schema-only input must not acquire an invented assistant call/example. Decoded: \(decoded)"
+        )
         #expect(!decoded.contains("<zyphra_tool_call>"), "Decoded: \(decoded)")
     }
 
@@ -824,7 +840,9 @@ struct SwiftTransformersTokenizerLoaderTests {
             additionalContext: nil
         )
         let absentDecoded = tokenizer.decode(
-            tokenIds: absentContext, skipSpecialTokens: false)
+            tokenIds: absentContext,
+            skipSpecialTokens: false
+        )
         #expect(
             absentDecoded.hasSuffix("<\u{FF5C}Assistant\u{FF5C}><think>"),
             "Absent thinking controls must default to the bundle's thinking rail. Decoded tail: \(absentDecoded.suffix(60))"
@@ -922,10 +940,11 @@ struct SwiftTransformersTokenizerLoaderTests {
             ["role": "user", "content": "Turn one."],
             ["role": "assistant", "content": "Answer one."],
         ]
-        let extendedHistory = stableHistory + [
-            ["role": "system", "content": "Use the newest project state."],
-            ["role": "user", "content": "Turn two."],
-        ]
+        let extendedHistory =
+            stableHistory + [
+                ["role": "system", "content": "Use the newest project state."],
+                ["role": "user", "content": "Turn two."],
+            ]
         let context: [String: any Sendable] = ["enable_thinking": false]
         let stableTokens = try controllable.applyChatTemplate(
             messages: stableHistory,

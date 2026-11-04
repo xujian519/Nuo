@@ -379,11 +379,12 @@ public actor AgentBundleService {
             agentDecoder.dateDecodingStrategy = .iso8601
             if let staged = try? agentDecoder.decode(Agent.self, from: agentData) {
                 let locals = await MainActor.run { AgentManager.shared.agents }
-                identityNote = Self.resolveImportIdentity(
-                    agent: staged,
-                    localAgents: locals,
-                    currentDeviceScope: try? DeviceKey.currentDeviceId()
-                ).note
+                identityNote =
+                    Self.resolveImportIdentity(
+                        agent: staged,
+                        localAgents: locals,
+                        currentDeviceScope: try? DeviceKey.currentDeviceId()
+                    ).note
             }
         }
 

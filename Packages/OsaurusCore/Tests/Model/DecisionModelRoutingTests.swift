@@ -6,10 +6,15 @@ import Testing
 struct DecisionModelRoutingTests {
     @Test func decisionPickerCannotChat() {
         let item = ModelPickerItem(
-            id: "fixture", displayName: "Decision fixture", source: .local, isDecision: true)
+            id: "fixture",
+            displayName: "Decision fixture",
+            source: .local,
+            isDecision: true
+        )
         #expect(!item.isLikelyChatCapable)
         #expect(
-            ModelPickerItem(id: "chat", displayName: "Chat", source: .local).isLikelyChatCapable)
+            ModelPickerItem(id: "chat", displayName: "Chat", source: .local).isLikelyChatCapable
+        )
     }
 
     @Test func systemOneIsPeerInference() {

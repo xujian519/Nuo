@@ -109,7 +109,9 @@ struct AgentTemplateCard: View {
             )
             .shadow(
                 color: Color.black.opacity(isHovered ? 0.08 : 0.04),
-                radius: isHovered ? 10 : 5, x: 0, y: isHovered ? 3 : 2
+                radius: isHovered ? 10 : 5,
+                x: 0,
+                y: isHovered ? 3 : 2
             )
             .contentShape(Rectangle())
         }
@@ -160,15 +162,27 @@ struct AgentTemplateCard: View {
     private var menu: some View {
         Menu {
             Button(action: onUse) {
-                Label { Text("Use Template", bundle: .module) } icon: { Image(systemName: "plus.circle") }
+                Label {
+                    Text("Use Template", bundle: .module)
+                } icon: {
+                    Image(systemName: "plus.circle")
+                }
             }
             Button(action: onExportFile) {
-                Label { Text("Export File…", bundle: .module) } icon: { Image(systemName: "square.and.arrow.up") }
+                Label {
+                    Text("Export File…", bundle: .module)
+                } icon: {
+                    Image(systemName: "square.and.arrow.up")
+                }
             }
             if isBuiltIn, let onSaveToLibrary {
                 Divider()
                 Button(action: onSaveToLibrary) {
-                    Label { Text("Save to Library", bundle: .module) } icon: { Image(systemName: "tray.and.arrow.down") }
+                    Label {
+                        Text("Save to Library", bundle: .module)
+                    } icon: {
+                        Image(systemName: "tray.and.arrow.down")
+                    }
                 }
             }
             if !isBuiltIn {
@@ -178,19 +192,28 @@ struct AgentTemplateCard: View {
                         Text(
                             template.availableToOrchestrator
                                 ? "Hide from Orchestrator" : "Show to Orchestrator",
-                            bundle: .module)
+                            bundle: .module
+                        )
                     } icon: {
                         Image(systemName: template.availableToOrchestrator ? "eye.slash" : "eye")
                     }
                 }
                 Button(action: onRename) {
-                    Label { Text("Rename…", bundle: .module) } icon: { Image(systemName: "pencil") }
+                    Label {
+                        Text("Rename…", bundle: .module)
+                    } icon: {
+                        Image(systemName: "pencil")
+                    }
                 }
                 Divider()
                 Button(role: .destructive) {
                     showDeleteConfirm = true
                 } label: {
-                    Label { Text("Delete", bundle: .module) } icon: { Image(systemName: "trash") }
+                    Label {
+                        Text("Delete", bundle: .module)
+                    } icon: {
+                        Image(systemName: "trash")
+                    }
                 }
             }
         } label: {
@@ -262,14 +285,20 @@ struct AgentTemplateCard: View {
                 // A missing model must stay readable; it is the one chip
                 // the user needs to act on.
                 priority: modelMissing ? 2 : 0,
-                isWarning: modelMissing))
+                isWarning: modelMissing
+            )
+        )
         let toolCount = template.agent.tools?.enabled?.count ?? 0
-        let groupCount = (template.agent.mcpServers?.enabled?.count ?? 0) + (template.agent.plugins?.enabled?.count ?? 0)
+        let groupCount =
+            (template.agent.mcpServers?.enabled?.count ?? 0) + (template.agent.plugins?.enabled?.count ?? 0)
         if template.agent.tools?.mode == "manual" || toolCount + groupCount > 0 {
             chips.append(
                 StatChip(
-                    icon: "wrench.and.screwdriver", text: "\(toolCount + groupCount)",
-                    help: L("Custom Tools")))
+                    icon: "wrench.and.screwdriver",
+                    text: "\(toolCount + groupCount)",
+                    help: L("Custom Tools")
+                )
+            )
         }
         if template.agent.sandbox?.enabled == true {
             chips.append(StatChip(icon: "shippingbox", text: nil, help: L("Sandbox")))

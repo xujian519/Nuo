@@ -421,19 +421,20 @@ public final class ChatWindowManager: NSObject, ObservableObject {
         let localAgents = state.agents
         for roster in WorkspaceRosterStore.shared.rosters {
             for agent in roster.agents
-            where !WorkspaceRosterStore.isHostedHere(address: agent.agentAddress, localAgents: localAgents)
-            {
+            where !WorkspaceRosterStore.isHostedHere(address: agent.agentAddress, localAgents: localAgents) {
                 let entry = Entry.workspace(agent.agentAddress.lowercased(), roster.id)
                 if !entries.contains(entry) { entries.append(entry) }
             }
         }
         guard entries.count > 1 else { return }
         let current: Entry =
-            state.workspaceAgentAddress.map { .workspace($0, state.session.workspaceContext?.workspaceId ?? "") } ?? .local(state.agentId)
+            state.workspaceAgentAddress.map { .workspace($0, state.session.workspaceContext?.workspaceId ?? "") }
+            ?? .local(state.agentId)
         let index = entries.firstIndex(of: current) ?? -1
         switch entries[(index + 1) % entries.count] {
         case .local(let id): state.switchAgent(to: id)
-        case .workspace(let address, let workspaceId): state.switchToWorkspaceAgent(address: address, workspaceId: workspaceId)
+        case .workspace(let address, let workspaceId):
+            state.switchToWorkspaceAgent(address: address, workspaceId: workspaceId)
         }
     }
 
@@ -508,7 +509,8 @@ public final class ChatWindowManager: NSObject, ObservableObject {
         guard let relay = state.pairedRelayAgents.first(where: { $0.providerId == providerId })
         else { return }
 
-        state.switchToWorkspaceAgent(address: relay.remoteAgentAddress,
+        state.switchToWorkspaceAgent(
+            address: relay.remoteAgentAddress,
             workspaceId: RemoteAgentManager.shared.remoteAgent(forProviderId: providerId)?.workspaceId ?? ""
         )
     }
@@ -540,10 +542,12 @@ public final class ChatWindowManager: NSObject, ObservableObject {
         excludingWindowId: UUID? = nil,
         showImmediately: Bool = true
     ) -> UUID? {
-        guard let (id, state) = windowStates.first(where: {
-            $0.key != excludingWindowId
-                && $0.value.tabSessions.contains { $0.sessionId == sessionId }
-        }) else { return nil }
+        guard
+            let (id, state) = windowStates.first(where: {
+                $0.key != excludingWindowId
+                    && $0.value.tabSessions.contains { $0.sessionId == sessionId }
+            })
+        else { return nil }
         if showImmediately {
             guard state.focusTab(forSessionId: sessionId) else { return nil }
             showWindow(id: id)
@@ -555,7 +559,8 @@ public final class ChatWindowManager: NSObject, ObservableObject {
         /// Exercise ownership routing without constructing an NSWindow or
         /// loading a model. Registration is scoped to this synchronous body.
         func withRegisteredWindowStateForTesting<T>(
-            _ state: ChatWindowState, _ body: () throws -> T
+            _ state: ChatWindowState,
+            _ body: () throws -> T
         ) rethrows -> T {
             let previous = windowStates[state.windowId]
             windowStates[state.windowId] = state
@@ -1661,7 +1666,8 @@ private final class ChatToolbarDelegate: NSObject, NSToolbarDelegate {
         // that width as the space it needs, and hides the item as too wide.
         NSLayoutConstraint.activate([
             hostingView.widthAnchor.constraint(
-                greaterThanOrEqualToConstant: ChatTabStripView.minimumItemWidth),
+                greaterThanOrEqualToConstant: ChatTabStripView.minimumItemWidth
+            ),
             hostingView.widthAnchor.constraint(lessThanOrEqualToConstant: 10_000),
             hostingView.heightAnchor.constraint(equalToConstant: ChatTabStripView.stripHeight),
         ])
@@ -1760,7 +1766,9 @@ private struct ChatToolbarTrailingView: View {
                     action: {
                         windowState.isWindowPinned.toggle()
                         ChatWindowManager.shared.setWindowPinned(
-                            id: windowState.windowId, pinned: windowState.isWindowPinned)
+                            id: windowState.windowId,
+                            pinned: windowState.isWindowPinned
+                        )
                     }
                 )
             }

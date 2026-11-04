@@ -153,17 +153,31 @@ struct N8nPairingCodeTests {
 
     @Test func lanCandidateIsEmptyWhenNotExposedOrAddressIsLoopback() {
         let notExposed = N8nPairingCode.urlCandidates(
-            N8nPairingCode.Reachability(port: 8080, callerLocation: .lan, exposedToNetwork: false, lanAddress: "10.0.0.5")
+            N8nPairingCode.Reachability(
+                port: 8080,
+                callerLocation: .lan,
+                exposedToNetwork: false,
+                lanAddress: "10.0.0.5"
+            )
         )
         #expect(notExposed.isEmpty)
 
         let loopbackAddress = N8nPairingCode.urlCandidates(
-            N8nPairingCode.Reachability(port: 8080, callerLocation: .lan, exposedToNetwork: true, lanAddress: "127.0.0.1")
+            N8nPairingCode.Reachability(
+                port: 8080,
+                callerLocation: .lan,
+                exposedToNetwork: true,
+                lanAddress: "127.0.0.1"
+            )
         )
         #expect(loopbackAddress.isEmpty)
 
         let relayTrailingSlash = N8nPairingCode.urlCandidates(
-            N8nPairingCode.Reachability(port: 8080, callerLocation: .remote, relayURL: "https://0xabc.agent.osaurus.ai/")
+            N8nPairingCode.Reachability(
+                port: 8080,
+                callerLocation: .remote,
+                relayURL: "https://0xabc.agent.osaurus.ai/"
+            )
         )
         #expect(relayTrailingSlash == ["https://0xabc.agent.osaurus.ai"])
     }
@@ -184,7 +198,8 @@ struct N8nPairingCodeTests {
         #expect(throws: N8nPairingCodeError.malformedPayload) {
             _ = try N8nPairingCode.decode("osrs-n8n-1.!!!")
         }
-        let missingSecret = N8nPairingCode.prefix
+        let missingSecret =
+            N8nPairingCode.prefix
             + Data(#"{"v":1,"cid":"c","secret":"","urls":["http://127.0.0.1:1"],"vfy":"hmac_sha256"}"#.utf8)
             .base64urlEncoded
         #expect(throws: N8nPairingCodeError.missingField("secret")) {

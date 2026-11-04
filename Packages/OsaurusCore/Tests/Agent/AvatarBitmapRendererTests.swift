@@ -106,9 +106,11 @@ struct AvatarBitmapRendererTests {
         source.addRepresentation(stripes)
 
         let image = try #require(AvatarBitmapRenderer.render(source, pixels: 52, scale: 2))
-        let output = try #require(image.representations.first.flatMap { rep -> NSBitmapImageRep? in
-            rep.cgImage(forProposedRect: nil, context: nil, hints: nil).map(NSBitmapImageRep.init(cgImage:))
-        })
+        let output = try #require(
+            image.representations.first.flatMap { rep -> NSBitmapImageRep? in
+                rep.cgImage(forProposedRect: nil, context: nil, hints: nil).map(NSBitmapImageRep.init(cgImage:))
+            }
+        )
         for x in 2 ..< 50 {
             for y in 2 ..< 50 {
                 let white = try #require(output.colorAt(x: x, y: y)?.usingColorSpace(.deviceGray)?.whiteComponent)

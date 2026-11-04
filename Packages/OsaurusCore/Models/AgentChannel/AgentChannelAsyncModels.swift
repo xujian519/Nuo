@@ -353,7 +353,8 @@ struct AgentChannelDispatchRoute: Codable, Equatable, Sendable, Identifiable {
 
     static func normalizedAliases(_ aliases: [String]) -> [String] {
         var seen = Set<String>()
-        return aliases
+        return
+            aliases
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
             .filter { !$0.isEmpty && seen.insert($0).inserted }
     }
@@ -452,9 +453,13 @@ struct AgentChannelInboundDispatchConfiguration: Codable, Equatable, Sendable {
         self.init(
             enabled: try container.decodeIfPresent(Bool.self, forKey: .enabled) ?? false,
             target: try container.decodeAgentTarget(
-                targetKey: .target, legacyAgentIdKey: .targetAgentId),
+                targetKey: .target,
+                legacyAgentIdKey: .targetAgentId
+            ),
             routes: try container.decodeIfPresent(
-                [AgentChannelDispatchRoute].self, forKey: .routes) ?? [],
+                [AgentChannelDispatchRoute].self,
+                forKey: .routes
+            ) ?? [],
             requireMention: try container.decodeIfPresent(Bool.self, forKey: .requireMention)
                 ?? true,
             continueThreads: try container.decodeIfPresent(Bool.self, forKey: .continueThreads)

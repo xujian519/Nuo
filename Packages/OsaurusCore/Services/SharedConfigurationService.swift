@@ -14,7 +14,9 @@ final class SharedConfigurationService {
 
     /// Serial queue so writes and removals apply in call order without blocking the main thread
     private static let ioQueue = DispatchQueue(
-        label: "com.dinoki.osaurus.shared-configuration", qos: .utility)
+        label: "com.dinoki.osaurus.shared-configuration",
+        qos: .utility
+    )
 
     private init() {}
 
@@ -124,7 +126,8 @@ final class SharedConfigurationService {
                 }
             } catch {
                 print(
-                    "[Nuo] SharedConfigurationService: failed to remove instance directory: \(error)")
+                    "[Nuo] SharedConfigurationService: failed to remove instance directory: \(error)"
+                )
             }
         }
     }

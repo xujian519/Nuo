@@ -176,7 +176,9 @@ public enum BrowserSessionCatalog {
     /// Serial write queue: the concurrent global queue could land two rapid
     /// saves on disk in reverse order, persisting stale records.
     private static let persistQueue = DispatchQueue(
-        label: "com.osaurus.browser.catalog-persist", qos: .utility)
+        label: "com.osaurus.browser.catalog-persist",
+        qos: .utility
+    )
 
     private static func persist(_ map: [UUID: BrowserSessionRecord]) {
         let url = fileURL()

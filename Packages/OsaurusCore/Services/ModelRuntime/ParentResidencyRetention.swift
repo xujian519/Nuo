@@ -55,7 +55,8 @@ enum ParentResidencyRetentionError: Error, LocalizedError, Sendable {
             return
                 "Model '\(name)' is retained by a running subagent with model swapping off. Finish or stop that job before switching models."
         case .unloadDidNotComplete(let name):
-            return "Model '\(name)' could not finish unloading. Its residency changed or work has not drained; retry after that work finishes."
+            return
+                "Model '\(name)' could not finish unloading. Its residency changed or work has not drained; retry after that work finishes."
         }
     }
 }

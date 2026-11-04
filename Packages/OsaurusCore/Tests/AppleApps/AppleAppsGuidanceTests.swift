@@ -41,8 +41,13 @@ struct AppleAppsGuidanceTests {
         let reply = tools.first { $0.name == "mail_reply" } as? ArgumentAwarePerCallApprovalTool
         #expect(compose != nil)
         #expect(reply != nil)
-        #expect(compose?.requiresApprovalEveryCall(argumentsJSON: #"{"to":["a@b.c"],"subject":"s","body":"b","send":true}"#) == true)
-        #expect(compose?.requiresApprovalEveryCall(argumentsJSON: #"{"to":["a@b.c"],"subject":"s","body":"b"}"#) == false)
+        #expect(
+            compose?.requiresApprovalEveryCall(argumentsJSON: #"{"to":["a@b.c"],"subject":"s","body":"b","send":true}"#)
+                == true
+        )
+        #expect(
+            compose?.requiresApprovalEveryCall(argumentsJSON: #"{"to":["a@b.c"],"subject":"s","body":"b"}"#) == false
+        )
         #expect(compose?.requiresApprovalEveryCall(argumentsJSON: #"{"send":false}"#) == false)
         #expect(compose?.requiresApprovalEveryCall(argumentsJSON: "not json") == false)
         #expect(reply?.requiresApprovalEveryCall(argumentsJSON: #"{"id":"1","body":"x","send":"true"}"#) == true)
@@ -53,13 +58,22 @@ struct AppleAppsGuidanceTests {
         #expect(!(tools.first { $0.name == "mail_list" } is ArgumentAwarePerCallApprovalTool))
     }
 
-    @Test("spawned children inherit the enabled Apple app families; AppleToolBase is spawn-exposable and grouped per app")
+    @Test(
+        "spawned children inherit the enabled Apple app families; AppleToolBase is spawn-exposable and grouped per app"
+    )
     @MainActor
     func spawnParityAndGrouping() {
         var caps = AgentCapabilities(
-            toolsEnabled: true, memoryEnabled: false, dbEnabled: false, renderChartEnabled: false,
-            speakEnabled: false, searchMemoryEnabled: false, webSearchEnabled: false,
-            selfSchedulingEnabled: false, knowledgeEnabled: false, knowledgeCuratorEnabled: false
+            toolsEnabled: true,
+            memoryEnabled: false,
+            dbEnabled: false,
+            renderChartEnabled: false,
+            speakEnabled: false,
+            searchMemoryEnabled: false,
+            webSearchEnabled: false,
+            selfSchedulingEnabled: false,
+            knowledgeEnabled: false,
+            knowledgeCuratorEnabled: false
         )
         #expect(!TextSubagentKind.autoChildToolNames(capabilities: caps).contains("mail_list"))
         caps.enabledAppleApps = [.mail, .maps]

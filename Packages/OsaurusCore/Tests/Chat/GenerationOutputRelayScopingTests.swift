@@ -125,20 +125,32 @@ struct GenerationOutputRelaySessionScopingTests {
             // Another chat's step, a utility job, and a subagent step finish
             // while this turn is still waiting on its model.
             GenerationOutputRelay.shared.announce(
-                modelName: "local/model", generationTokens: 3,
-                sessionId: UUID().uuidString, activitySource: .chatUI, auxiliary: false
+                modelName: "local/model",
+                generationTokens: 3,
+                sessionId: UUID().uuidString,
+                activitySource: .chatUI,
+                auxiliary: false
             )
             GenerationOutputRelay.shared.announce(
-                modelName: "local/model", generationTokens: 3,
-                sessionId: ownSessionId, activitySource: .chatUI, auxiliary: true
+                modelName: "local/model",
+                generationTokens: 3,
+                sessionId: ownSessionId,
+                activitySource: .chatUI,
+                auxiliary: true
             )
             GenerationOutputRelay.shared.announce(
-                modelName: "local/model", generationTokens: 3,
-                sessionId: ownSessionId, activitySource: .agent, auxiliary: false
+                modelName: "local/model",
+                generationTokens: 3,
+                sessionId: ownSessionId,
+                activitySource: .agent,
+                auxiliary: false
             )
             GenerationOutputRelay.shared.announce(
-                modelName: "local/model", generationTokens: 3,
-                sessionId: nil, activitySource: .httpAPI, auxiliary: false
+                modelName: "local/model",
+                generationTokens: 3,
+                sessionId: nil,
+                activitySource: .httpAPI,
+                auxiliary: false
             )
             // Give any obsolete relay-driven UI path time to fire.
             try await Task.sleep(for: .milliseconds(600))
@@ -155,8 +167,11 @@ struct GenerationOutputRelaySessionScopingTests {
             // Even an own-session global announcement can run ahead of
             // buffered typed deltas. It cannot settle this ordered stream.
             GenerationOutputRelay.shared.announce(
-                modelName: "local/model", generationTokens: 3,
-                sessionId: ownSessionId, activitySource: .chatUI, auxiliary: false
+                modelName: "local/model",
+                generationTokens: 3,
+                sessionId: ownSessionId,
+                activitySource: .chatUI,
+                auxiliary: false
             )
             try await Task.sleep(for: .milliseconds(250))
             #expect(!session.outputComplete)
@@ -301,11 +316,21 @@ private actor GatedChatEngine: ChatEngineProtocol {
 
     func complete(with text: String = "") {
         if !text.isEmpty { continuation?.yield(.outputTextDelta(text)) }
-        continuation?.yield(.responseCompleted(.init(
-            responseID: "resp_visual_fixture", status: .completed, functionCalls: [],
-            tokenCount: 3, tokensPerSecond: 30, unclosedReasoning: false,
-            stopReason: "stop", promptTokensPerSecond: nil, mtp: nil
-        )))
+        continuation?.yield(
+            .responseCompleted(
+                .init(
+                    responseID: "resp_visual_fixture",
+                    status: .completed,
+                    functionCalls: [],
+                    tokenCount: 3,
+                    tokensPerSecond: 30,
+                    unclosedReasoning: false,
+                    stopReason: "stop",
+                    promptTokensPerSecond: nil,
+                    mtp: nil
+                )
+            )
+        )
     }
 
     func finish() {

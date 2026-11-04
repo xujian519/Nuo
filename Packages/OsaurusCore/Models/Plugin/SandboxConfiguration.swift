@@ -204,7 +204,9 @@ public struct SandboxConfigurationStore {
     }
 
     private static let writeQueue = DispatchQueue(
-        label: "com.osaurus.sandboxconfig.write", qos: .utility)
+        label: "com.osaurus.sandboxconfig.write",
+        qos: .utility
+    )
 
     private static func readFromDisk() -> SandboxConfiguration {
         guard let data = try? Data(contentsOf: configURL) else {

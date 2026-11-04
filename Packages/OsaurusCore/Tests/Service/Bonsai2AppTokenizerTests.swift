@@ -62,7 +62,10 @@ struct Bonsai2AppTokenizerTests {
     private func toolJSON(_ rendered: String) throws -> MLXLMCommon.JSONValue {
         let open = try #require(rendered.range(of: "<tools>"))
         let close = try #require(rendered.range(of: "</tools>", range: open.upperBound ..< rendered.endIndex))
-        return try JSONDecoder().decode(MLXLMCommon.JSONValue.self, from: Data(rendered[open.upperBound ..< close.lowerBound].utf8))
+        return try JSONDecoder().decode(
+            MLXLMCommon.JSONValue.self,
+            from: Data(rendered[open.upperBound ..< close.lowerBound].utf8)
+        )
     }
 
     @Test(arguments: Self.bundles)

@@ -503,9 +503,12 @@ public enum MicroPerfEvaluator {
         enableThinking: Bool? = nil
     ) async throws -> MicroPerfSample {
         let request = ResponsesInferenceRequest(
-            model: model, input: [ChatMessage(role: "user", content: prompt)],
+            model: model,
+            input: [ChatMessage(role: "user", content: prompt)],
             generation: ResponsesGenerationOptions(
-                temperature: 0, maxOutputTokens: maxTokens, enableThinking: enableThinking
+                temperature: 0,
+                maxOutputTokens: maxTokens,
+                enableThinking: enableThinking
             ),
             sessionID: sessionId
         )

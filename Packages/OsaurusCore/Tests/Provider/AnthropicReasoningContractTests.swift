@@ -121,7 +121,10 @@ struct AnthropicReasoningContractTests {
     @Test func adaptiveModels_defaultToSummarizedAdaptiveThinkingWithoutEffort() {
         for capabilities in [Self.adaptiveWithDisabled, Self.sonnet55, Self.alwaysOn] {
             let controls = AnthropicReasoningContract.wireControls(
-                capabilities: capabilities, effort: nil, maxTokens: 4096)
+                capabilities: capabilities,
+                effort: nil,
+                maxTokens: 4096
+            )
             #expect(controls?.thinking == AnthropicThinkingConfig(type: "adaptive", display: "summarized"))
             #expect(controls?.effort == nil)
             #expect(controls?.isManualThinking == false)
@@ -130,29 +133,44 @@ struct AnthropicReasoningContractTests {
 
     @Test func adaptiveModels_sendOnlyAdvertisedEfforts() {
         let picked = AnthropicReasoningContract.wireControls(
-            capabilities: Self.adaptiveWithDisabled, effort: "XHigh", maxTokens: 4096)
+            capabilities: Self.adaptiveWithDisabled,
+            effort: "XHigh",
+            maxTokens: 4096
+        )
         #expect(picked?.effort == "xhigh")
         #expect(picked?.thinking?.display == "summarized")
 
         let unadvertised = AnthropicReasoningContract.wireControls(
-            capabilities: Self.lowHighOnly, effort: "medium", maxTokens: 4096)
+            capabilities: Self.lowHighOnly,
+            effort: "medium",
+            maxTokens: 4096
+        )
         #expect(unadvertised?.effort == nil)
         #expect(unadvertised?.thinking?.type == "adaptive")
     }
 
     @Test func offLevel_usesTheModelsOwnOffMode() {
         let disabled = AnthropicReasoningContract.wireControls(
-            capabilities: Self.adaptiveWithDisabled, effort: "none", maxTokens: 4096)
+            capabilities: Self.adaptiveWithDisabled,
+            effort: "none",
+            maxTokens: 4096
+        )
         #expect(disabled?.thinking == AnthropicThinkingConfig(type: "disabled"))
         #expect(disabled?.effort == nil)
 
         let betweenTools = AnthropicReasoningContract.wireControls(
-            capabilities: Self.sonnet55, effort: "none", maxTokens: 4096)
+            capabilities: Self.sonnet55,
+            effort: "none",
+            maxTokens: 4096
+        )
         #expect(betweenTools?.thinking == AnthropicThinkingConfig(type: "between_tools"))
         #expect(betweenTools?.thinking?.display == nil, "display is invalid with between_tools")
 
         let alwaysOn = AnthropicReasoningContract.wireControls(
-            capabilities: Self.alwaysOn, effort: "none", maxTokens: 4096)
+            capabilities: Self.alwaysOn,
+            effort: "none",
+            maxTokens: 4096
+        )
         #expect(alwaysOn?.thinking?.type == "adaptive", "a model that cannot turn off keeps thinking on")
     }
 
@@ -166,16 +184,25 @@ struct AnthropicReasoningContractTests {
                 == nil
         )
         let medium = AnthropicReasoningContract.wireControls(
-            capabilities: Self.manualOnly, effort: "medium", maxTokens: 64_000)
+            capabilities: Self.manualOnly,
+            effort: "medium",
+            maxTokens: 64_000
+        )
         #expect(medium?.thinking == AnthropicThinkingConfig(type: "enabled", budget_tokens: 8192))
         #expect(medium?.isManualThinking == true)
 
         let clamped = AnthropicReasoningContract.wireControls(
-            capabilities: Self.manualOnly, effort: "high", maxTokens: 4096)
+            capabilities: Self.manualOnly,
+            effort: "high",
+            maxTokens: 4096
+        )
         #expect(clamped?.thinking?.budget_tokens == 2048, "budget stays below max_tokens")
 
         let tooSmall = AnthropicReasoningContract.wireControls(
-            capabilities: Self.manualOnly, effort: "high", maxTokens: 1024)
+            capabilities: Self.manualOnly,
+            effort: "high",
+            maxTokens: 1024
+        )
         #expect(tooSmall == nil, "budget_tokens must be >= 1024 and < max_tokens")
     }
 
@@ -201,7 +228,10 @@ struct AnthropicReasoningContractTests {
         let request = await service.buildChatRequest(
             messages: [ChatMessage(role: "user", content: "hi")],
             parameters: GenerationParameters(
-                temperature: 0.7, maxTokens: 8192, modelOptions: ["reasoningEffort": .string("max")]),
+                temperature: 0.7,
+                maxTokens: 8192,
+                modelOptions: ["reasoningEffort": .string("max")]
+            ),
             model: "claude-opus-5-5",
             stream: true,
             tools: nil,
@@ -232,7 +262,10 @@ struct AnthropicReasoningContractTests {
         let request = await service.buildChatRequest(
             messages: [ChatMessage(role: "user", content: "hi")],
             parameters: GenerationParameters(
-                temperature: 0.7, maxTokens: 1024, modelOptions: ["disableThinking": .bool(true)]),
+                temperature: 0.7,
+                maxTokens: 1024,
+                modelOptions: ["disableThinking": .bool(true)]
+            ),
             model: "claude-opus-4-8",
             stream: true,
             tools: nil,
@@ -255,7 +288,10 @@ struct AnthropicReasoningContractTests {
         let thinkingRequest = await service.buildChatRequest(
             messages: [ChatMessage(role: "user", content: "hi")],
             parameters: GenerationParameters(
-                temperature: 0.7, maxTokens: 16_000, modelOptions: ["reasoningEffort": .string("low")]),
+                temperature: 0.7,
+                maxTokens: 16_000,
+                modelOptions: ["reasoningEffort": .string("low")]
+            ),
             model: "claude-sonnet-4-5",
             stream: true,
             tools: [Self.weatherTool],
@@ -301,7 +337,10 @@ struct AnthropicReasoningContractTests {
             await service.buildChatRequest(
                 messages: [ChatMessage(role: "user", content: "hi")],
                 parameters: GenerationParameters(
-                    temperature: 0.7, maxTokens: 1024, modelOptions: ["reasoningEffort": .string("none")]),
+                    temperature: 0.7,
+                    maxTokens: 1024,
+                    modelOptions: ["reasoningEffort": .string("none")]
+                ),
                 model: model,
                 stream: true,
                 tools: nil,
@@ -327,7 +366,10 @@ struct AnthropicReasoningContractTests {
         let request = await service.buildChatRequest(
             messages: [ChatMessage(role: "user", content: "hi")],
             parameters: GenerationParameters(
-                temperature: 0.7, maxTokens: 1024, modelOptions: ["reasoningEffort": .string("high")]),
+                temperature: 0.7,
+                maxTokens: 1024,
+                modelOptions: ["reasoningEffort": .string("high")]
+            ),
             model: "claude-proxy-model",
             stream: true,
             tools: nil,
@@ -351,10 +393,16 @@ struct AnthropicReasoningContractTests {
         )
         let infos: [String: AnthropicModelInfo] = [
             "claude-sonnet-5-5": Self.model(
-                "claude-sonnet-5-5", displayName: "Claude Sonnet 5.5", capabilities: Self.sonnet55,
-                maxInputTokens: 1_000_000),
+                "claude-sonnet-5-5",
+                displayName: "Claude Sonnet 5.5",
+                capabilities: Self.sonnet55,
+                maxInputTokens: 1_000_000
+            ),
             "claude-opus-4-6": Self.model(
-                "claude-opus-4-6", capabilities: Self.adaptiveWithDisabled, lifecycle: "deprecated"),
+                "claude-opus-4-6",
+                capabilities: Self.adaptiveWithDisabled,
+                lifecycle: "deprecated"
+            ),
         ]
 
         let result = ModelPickerItemCache.remoteModelItems(
@@ -390,15 +438,21 @@ struct AnthropicReasoningContractTests {
     }
 
     private static func capabilities(
-        adaptive: Bool, enabled: Bool, disabled: Bool, betweenTools: Bool = false,
+        adaptive: Bool,
+        enabled: Bool,
+        disabled: Bool,
+        betweenTools: Bool = false,
         efforts: [String] = ["low", "medium", "high", "xhigh", "max"]
     ) -> AnthropicModelCapabilities {
         AnthropicModelCapabilities(
             thinking: .init(
                 supported: true,
                 types: .init(
-                    adaptive: support(adaptive), enabled: support(enabled), disabled: support(disabled),
-                    between_tools: support(betweenTools))
+                    adaptive: support(adaptive),
+                    enabled: support(enabled),
+                    disabled: support(disabled),
+                    between_tools: support(betweenTools)
+                )
             ),
             effort: .init(
                 supported: !efforts.isEmpty,
@@ -419,12 +473,24 @@ struct AnthropicReasoningContractTests {
     static let alwaysOn = capabilities(adaptive: true, enabled: false, disabled: false)
     /// 4.6 generation: adaptive plus manual budgets.
     static let adaptiveAndManual = capabilities(
-        adaptive: true, enabled: true, disabled: true, efforts: ["low", "medium", "high", "max"])
+        adaptive: true,
+        enabled: true,
+        disabled: true,
+        efforts: ["low", "medium", "high", "max"]
+    )
     static let lowHighOnly = capabilities(
-        adaptive: true, enabled: false, disabled: true, efforts: ["low", "high"])
+        adaptive: true,
+        enabled: false,
+        disabled: true,
+        efforts: ["low", "high"]
+    )
     /// 4.5 generation: manual `enabled` + `budget_tokens` only.
     static let manualOnly = capabilities(
-        adaptive: false, enabled: true, disabled: true, efforts: [])
+        adaptive: false,
+        enabled: true,
+        disabled: true,
+        efforts: []
+    )
     static let noThinking = AnthropicModelCapabilities(thinking: .init(supported: false), effort: nil)
 
     private static func model(
@@ -435,8 +501,13 @@ struct AnthropicReasoningContractTests {
         lifecycle: String? = "active"
     ) -> AnthropicModelInfo {
         AnthropicModelInfo(
-            id: id, display_name: displayName, created_at: "2026-01-01T00:00:00Z",
-            capabilities: capabilities, max_input_tokens: maxInputTokens, lifecycle: lifecycle)
+            id: id,
+            display_name: displayName,
+            created_at: "2026-01-01T00:00:00Z",
+            capabilities: capabilities,
+            max_input_tokens: maxInputTokens,
+            lifecycle: lifecycle
+        )
     }
 
     private static func makeService() -> RemoteProviderService {
