@@ -1632,6 +1632,13 @@ struct ThemePreviewCard: View {
         }
     }
 
+    /// 「应用主题」是**次级动作**。
+    ///
+    /// 一屏 8 张主题卡就 8 个实心红按钮，红色会从"正在发生的事"退化成
+    /// "到处都是的底色"——这正是这套配色的立身之本被稀释的地方。
+    /// 所以：只有当前生效的那张卡用朱红（洗朱底 + 朱红描边 + 勾），
+    /// 其余一律中性描边按钮；页面级主按钮留给右上角的「创建主题」，
+    /// 一屏一个红，红才有信息量。
     private var applyButton: some View {
         Button(action: { if !isActive { onApply() } }) {
             HStack(spacing: 6) {
@@ -1641,11 +1648,24 @@ struct ThemePreviewCard: View {
                     .font(.system(size: 12, weight: .semibold))
             }
             .frame(maxWidth: .infinity)
-            .foregroundColor(isActive ? currentTheme.successColor : Color.white)
+            .foregroundColor(isActive ? currentTheme.accentColor : currentTheme.primaryText)
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isActive ? currentTheme.successColor.opacity(0.14) : currentTheme.accentColor)
+                    .fill(
+                        isActive
+                            ? currentTheme.accentColor.opacity(0.12)
+                            : (isHovered ? currentTheme.primaryText.opacity(0.05) : currentTheme.cardBackground)
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(
+                        isActive
+                            ? currentTheme.accentColor.opacity(0.55)
+                            : (isHovered ? currentTheme.primaryBorder : currentTheme.secondaryBorder),
+                        lineWidth: 1
+                    )
             )
             .contentShape(RoundedRectangle(cornerRadius: 8))
         }
@@ -2181,6 +2201,13 @@ private struct SystemThemeCard: View {
         }
     }
 
+    /// 「应用主题」是**次级动作**。
+    ///
+    /// 一屏 8 张主题卡就 8 个实心红按钮，红色会从"正在发生的事"退化成
+    /// "到处都是的底色"——这正是这套配色的立身之本被稀释的地方。
+    /// 所以：只有当前生效的那张卡用朱红（洗朱底 + 朱红描边 + 勾），
+    /// 其余一律中性描边按钮；页面级主按钮留给右上角的「创建主题」，
+    /// 一屏一个红，红才有信息量。
     private var applyButton: some View {
         Button(action: { if !isActive { onApply() } }) {
             HStack(spacing: 6) {
@@ -2190,11 +2217,24 @@ private struct SystemThemeCard: View {
                     .font(.system(size: 12, weight: .semibold))
             }
             .frame(maxWidth: .infinity)
-            .foregroundColor(isActive ? currentTheme.successColor : Color.white)
+            .foregroundColor(isActive ? currentTheme.accentColor : currentTheme.primaryText)
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isActive ? currentTheme.successColor.opacity(0.14) : currentTheme.accentColor)
+                    .fill(
+                        isActive
+                            ? currentTheme.accentColor.opacity(0.12)
+                            : (isHovered ? currentTheme.primaryText.opacity(0.05) : currentTheme.cardBackground)
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(
+                        isActive
+                            ? currentTheme.accentColor.opacity(0.55)
+                            : (isHovered ? currentTheme.primaryBorder : currentTheme.secondaryBorder),
+                        lineWidth: 1
+                    )
             )
             .contentShape(RoundedRectangle(cornerRadius: 8))
         }

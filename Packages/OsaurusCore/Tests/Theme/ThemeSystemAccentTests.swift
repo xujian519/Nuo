@@ -10,16 +10,13 @@ import Testing
 
 @Suite("System accent following")
 struct ThemeSystemAccentTests {
-    @Test("only the canonical Dark/Light defaults follow the system accent")
-    func canonicalPresetsOptIn() {
-        #expect(CustomTheme.darkDefault.followsSystemAccent)
-        #expect(CustomTheme.lightDefault.followsSystemAccent)
-        #expect(!CustomTheme.neonPreset.followsSystemAccent)
-        #expect(!CustomTheme.nordPreset.followsSystemAccent)
-        #expect(!CustomTheme.paperPreset.followsSystemAccent)
-        #expect(!CustomTheme.terminalPreset.followsSystemAccent)
-        #expect(!CustomTheme.osaurusDarkPreset.followsSystemAccent)
-        #expect(!CustomTheme.osaurusLightPreset.followsSystemAccent)
+    /// Schema 7 起，强调色是品牌色（朱红），任何内建主题都不跟随系统强调色。
+    /// 跟随能力保留给用户自定义主题。
+    @Test("no built-in theme follows the system accent")
+    func builtInPresetsOptOut() {
+        for theme in CustomTheme.allBuiltInPresets {
+            #expect(!theme.followsSystemAccent, "\(theme.metadata.name) 不应跟随系统强调色")
+        }
     }
 
     @Test("decoding JSON without the flag defaults to false; round-trip preserves true")
@@ -29,8 +26,10 @@ struct ThemeSystemAccentTests {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
 
-        // Round-trip preserves the flag.
-        let encoded = try encoder.encode(CustomTheme.darkDefault)
+        // Round-trip preserves the flag (opt in explicitly — built-ins are opt-out).
+        var following = CustomTheme.darkDefault
+        following.followsSystemAccent = true
+        let encoded = try encoder.encode(following)
         let roundTripped = try decoder.decode(CustomTheme.self, from: encoded)
         #expect(roundTripped.followsSystemAccent)
 
@@ -47,12 +46,13 @@ struct ThemeSystemAccentTests {
     @Test("applying the stored accent is an identity")
     func identityWhenAccentMatchesStoredValue() {
         let dark = CustomTheme.darkDefault.colors
-        #expect(dark.applyingAccent("#0a84ff", isDark: true) == dark)
+        #expect(dark.applyingAccent(dark.accentColor, isDark: true) == dark)
         // Case and prefix insensitive.
-        #expect(dark.applyingAccent("0A84FF", isDark: true) == dark)
+        #expect(dark.applyingAccent(dark.accentColor.uppercased(), isDark: true) == dark)
+        #expect(dark.applyingAccent(String(dark.accentColor.dropFirst()), isDark: true) == dark)
 
         let light = CustomTheme.lightDefault.colors
-        #expect(light.applyingAccent("#007aff", isDark: false) == light)
+        #expect(light.applyingAccent(light.accentColor, isDark: false) == light)
     }
 
     @Test("invalid accent input leaves colors unchanged")

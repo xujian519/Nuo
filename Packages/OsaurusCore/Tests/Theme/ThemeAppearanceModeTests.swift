@@ -29,25 +29,47 @@ struct ThemeAppearanceModeTests {
         #expect(CustomTheme.allBuiltInPresets.contains { $0.metadata.id == CustomTheme.osaurusLightPreset.metadata.id })
     }
 
+    /// Schema 7：默认皮肤是 Nuo 的「纸与印」，色值全部来自 `NuoHex`。
+    /// 这条测试同时钉住两件事：底色/强调色的字面值，以及"强调色不跟随系统"。
     @Test
-    func canonicalDefaultsUseNativeMacOSPalettes() {
+    func canonicalDefaultsUseNuoPalette() {
         let dark = CustomTheme.darkDefault
         #expect(dark.metadata.name == "Dark")
-        #expect(dark.colors.primaryBackground == "#1c1c1e")
-        #expect(dark.colors.accentColor == "#0a84ff")
-        #expect(dark.glass.enabled)
-        #expect(dark.glass.sidebarEnabled)
+        #expect(dark.colors.primaryBackground == "#161512")
+        #expect(dark.colors.primaryText == "#F2EEE4")
+        #expect(dark.colors.accentColor == "#EB5B45")
+        #expect(!dark.followsSystemAccent)
+        // 阶段 1.5：纸是平的。三个玻璃开关必须同时关——
+        // 只关 enabled 会留下侧栏/输入卡两块毛玻璃。
+        #expect(!dark.glass.enabled)
+        #expect(!dark.glass.sidebarEnabled)
+        #expect(!dark.glass.inputEnabled)
         #expect(dark.glass.material == .windowBackground)
         #expect(dark.isDark)
 
         let light = CustomTheme.lightDefault
         #expect(light.metadata.name == "Light")
-        #expect(light.colors.primaryBackground == "#f5f5f7")
-        #expect(light.colors.accentColor == "#007aff")
-        #expect(light.glass.enabled)
-        #expect(light.glass.sidebarEnabled)
+        #expect(light.colors.primaryBackground == "#F7F4ED")
+        #expect(light.colors.primaryText == "#1C1A17")
+        #expect(light.colors.accentColor == "#C93A2B")
+        #expect(!light.followsSystemAccent)
+        #expect(!light.glass.enabled)
+        #expect(!light.glass.sidebarEnabled)
+        #expect(!light.glass.inputEnabled)
         #expect(light.glass.material == .windowBackground)
         #expect(!light.isDark)
+    }
+
+    /// 朱红是品牌语义，不能被系统强调色替换；所有内建主题都不自动跟随。
+    /// 跟随能力仍然保留给用户自定义主题（`applyingAccent` 的测试覆盖了推导本身）。
+    @Test
+    func builtInThemesDoNotFollowSystemAccent() {
+        for theme in CustomTheme.allBuiltInPresets {
+            #expect(
+                !theme.followsSystemAccent,
+                "\(theme.metadata.name) 不应跟随系统强调色"
+            )
+        }
     }
 
     @Test

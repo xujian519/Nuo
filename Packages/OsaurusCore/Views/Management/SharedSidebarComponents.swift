@@ -127,10 +127,14 @@ struct SidebarBackground: View {
                 ThemedGlassSurface(cornerRadius: SidebarStyle.cornerRadius)
             }
 
-            // Layer 1: Semi-transparent card background. Lower opacity when
-            // the sidebar's own glass toggle is on so the behind-window
-            // material shows through.
-            theme.cardBackground.opacity(
+            // Layer 1: The sidebar's own surface. Lower opacity when the
+            // sidebar's own glass toggle is on so the behind-window material
+            // shows through.
+            //
+            // 用 `sidebarBackground` 而不是 `cardBackground`：侧栏是"被推远"的
+            // 一层（纸色更沉），卡片才该比画布亮。此前两者共用 `cardBackground`，
+            // 在关闭玻璃的平面主题里会让侧栏比画布还亮，视觉上反客为主。
+            theme.sidebarBackground.opacity(
                 theme.glassSidebarEnabled
                     ? (theme.isDark ? SidebarStyle.glassOpacityDark : SidebarStyle.glassOpacityLight)
                     : 1.0

@@ -16,7 +16,13 @@ public enum ThemeConfigurationStore {
     /// installations receive the updated colors on next launch.
     /// Schema 6: canonical Dark/Light switched to the native macOS palettes
     /// (issue #2102); previous palettes retained as Osaurus Dark/Light presets.
-    private static let currentBuiltInThemeSchema = 6
+    /// Schema 7: canonical Dark/Light switched to the Nuo "纸与印" palettes
+    /// (`NuoThemeSkin`). The accent no longer follows the system accent color —
+    /// cinnabar carries product meaning (presence / commit) and must not be
+    /// replaced by the user's macOS accent. The pre-2102 Osaurus palettes stay
+    /// selectable as the Nuo Dark/Light presets; the macOS-native pair that
+    /// schema 6 introduced is superseded (recreatable through a theme JSON).
+    private static let currentBuiltInThemeSchema = 7
     private static var builtInThemesInstalled = false
 
     // MARK: - Active Theme

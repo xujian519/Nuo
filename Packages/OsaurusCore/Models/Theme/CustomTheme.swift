@@ -843,7 +843,10 @@ public struct CustomTheme: Codable, Equatable, Sendable {
         followsSystemAccent = try container.decodeIfPresent(Bool.self, forKey: .followsSystemAccent) ?? false
     }
 
-    /// Default dark theme — native macOS dark palette (issue #2102)
+    /// Default dark theme — Nuo "夜纸" palette.
+    ///
+    /// Schema 7 起，默认皮肤是「纸与印」；此前跟随系统强调色的行为被关闭，
+    /// 因为朱红是品牌语义（存在 / 承诺），跟随系统会被替换成蓝色。
     public static var darkDefault: CustomTheme {
         CustomTheme(
             metadata: ThemeMetadata(
@@ -852,52 +855,9 @@ public struct CustomTheme: Codable, Equatable, Sendable {
                 version: "2.0",
                 author: "Nuo"
             ),
-            colors: ThemeColors(
-                primaryText: "#f5f5f7",
-                secondaryText: "#d1d1d6",
-                tertiaryText: "#98989d",
-                primaryBackground: "#1c1c1e",
-                secondaryBackground: "#2c2c2e",
-                tertiaryBackground: "#3a3a3c",
-                sidebarBackground: "#252527",
-                sidebarSelectedBackground: "#0a3d70",
-                accentColor: "#0a84ff",
-                accentColorLight: "#64d2ff",
-                primaryBorder: "#38383a",
-                secondaryBorder: "#48484a",
-                focusBorder: "#0a84ff",
-                successColor: "#30d158",
-                warningColor: "#ff9f0a",
-                errorColor: "#ff453a",
-                infoColor: "#64d2ff",
-                cardBackground: "#2c2c2e",
-                cardBorder: "#48484a",
-                buttonBackground: "#3a3a3c",
-                buttonBorder: "#545458",
-                inputBackground: "#2c2c2e",
-                inputBorder: "#545458",
-                glassTintOverlay: "#00000050",
-                codeBlockBackground: "#1c1c1e",
-                shadowColor: "#000000",
-                selectionColor: "#0a84ff45",
-                cursorColor: "#0a84ff",
-                placeholderText: "#8e8e93"
-            ),
+            colors: NuoThemeSkin.night,
             background: .default,
-            glass: ThemeGlass(
-                enabled: true,
-                sidebarEnabled: true,
-                inputEnabled: false,
-                material: .windowBackground,
-                blurRadius: 20,
-                opacityPrimary: 0.82,
-                opacitySecondary: 0.68,
-                opacityTertiary: 0.5,
-                tintColor: "#000000",
-                tintOpacity: 0.12,
-                edgeLight: "#ffffff30",
-                windowBackingOpacity: 0.94
-            ),
+            glass: NuoThemeSkin.nightGlass,
             typography: ThemeTypography(
                 primaryFont: "SF Pro",
                 monoFont: "SF Mono",
@@ -940,11 +900,15 @@ public struct CustomTheme: Codable, Equatable, Sendable {
             ),
             isBuiltIn: true,
             isDark: true,
-            followsSystemAccent: true
+            // 不跟随系统强调色：朱红是品牌语义，不是可替换的装饰。
+            // 跟随系统会把 accent / focus / cursor / selection 一并换成系统蓝。
+            followsSystemAccent: false
         )
     }
 
-    /// Default light theme — native macOS light palette (issue #2102)
+    /// Default light theme — Nuo "纸" palette.
+    ///
+    /// 暖灰宣纸底 + 印泥朱红；正文 15.8:1、三级文字 4.98:1，全部过 AA。
     public static var lightDefault: CustomTheme {
         CustomTheme(
             metadata: ThemeMetadata(
@@ -953,52 +917,9 @@ public struct CustomTheme: Codable, Equatable, Sendable {
                 version: "2.0",
                 author: "Nuo"
             ),
-            colors: ThemeColors(
-                primaryText: "#1d1d1f",
-                secondaryText: "#515154",
-                tertiaryText: "#6e6e73",
-                primaryBackground: "#f5f5f7",
-                secondaryBackground: "#ececf0",
-                tertiaryBackground: "#f9f9fb",
-                sidebarBackground: "#e9e9ed",
-                sidebarSelectedBackground: "#d8e8ff",
-                accentColor: "#007aff",
-                accentColorLight: "#5ac8fa",
-                primaryBorder: "#d1d1d6",
-                secondaryBorder: "#c7c7cc",
-                focusBorder: "#007aff",
-                successColor: "#248a3d",
-                warningColor: "#b26a00",
-                errorColor: "#d70015",
-                infoColor: "#007aff",
-                cardBackground: "#ffffff",
-                cardBorder: "#d1d1d6",
-                buttonBackground: "#f6f6f7",
-                buttonBorder: "#c7c7cc",
-                inputBackground: "#ffffff",
-                inputBorder: "#c7c7cc",
-                glassTintOverlay: "#ffffff70",
-                codeBlockBackground: "#f2f2f7",
-                shadowColor: "#000000",
-                selectionColor: "#007aff26",
-                cursorColor: "#007aff",
-                placeholderText: "#8e8e93"
-            ),
+            colors: NuoThemeSkin.paper,
             background: .default,
-            glass: ThemeGlass(
-                enabled: true,
-                sidebarEnabled: true,
-                inputEnabled: false,
-                material: .windowBackground,
-                blurRadius: 20,
-                opacityPrimary: 0.78,
-                opacitySecondary: 0.62,
-                opacityTertiary: 0.45,
-                tintColor: "#ffffff",
-                tintOpacity: 0.08,
-                edgeLight: "#ffffffcc",
-                windowBackingOpacity: 0.92
-            ),
+            glass: NuoThemeSkin.paperGlass,
             typography: ThemeTypography(
                 primaryFont: "SF Pro",
                 monoFont: "SF Mono",
@@ -1041,7 +962,9 @@ public struct CustomTheme: Codable, Equatable, Sendable {
             ),
             isBuiltIn: true,
             isDark: false,
-            followsSystemAccent: true
+            // 不跟随系统强调色：朱红是品牌语义，不是可替换的装饰。
+            // 跟随系统会把 accent / focus / cursor / selection 一并换成系统蓝。
+            followsSystemAccent: false
         )
     }
 

@@ -362,6 +362,9 @@ let package = Package(
         .package(url: "https://github.com/21-DOT-DEV/swift-secp256k1", exact: "0.23.2"),
         .package(path: "../OsaurusNetworking"),
         .package(path: "../OsaurusRepository"),
+        // Nuo UI 设计令牌层（颜色 / 字阶 / 间距 / 圆角 / 动效 + 组件）。
+        // 本地包，不发布；与 OsaurusCore 一起演进。见 docs/NUO_UI_PHASE1.md。
+        .package(path: "../NuoDesignSystem"),
         .package(url: "https://github.com/mgriebling/SwiftMath", from: "1.7.3"),
         .package(url: "https://github.com/raspu/Highlightr", from: "2.3.0"),
         .package(url: "https://github.com/AAChartModel/AAChartKit-Swift.git", from: "9.5.0"),
@@ -481,6 +484,7 @@ let package = Package(
             dependencies: [
                 "OsaurusSQLCipher",
                 "OsaurusObjCSupport",
+                "NuoDesignSystem",
                 .product(name: "NIOCore", package: "swift-nio"),
                 .product(name: "NIOHTTP1", package: "swift-nio"),
                 .product(name: "NIOPosix", package: "swift-nio"),

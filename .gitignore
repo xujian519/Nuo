@@ -56,6 +56,10 @@ playground.xcworkspace
 
 .build/
 
+# SwiftPM manifest/database cache written by `swift build` since Swift 6.
+# Lives next to .build/ and must never be committed (binary sqlite files).
+.swiftcache/
+
 # CocoaPods
 #
 # We recommend against adding the Pods directory to your .gitignore. However
