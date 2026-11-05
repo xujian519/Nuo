@@ -83,15 +83,27 @@ final class OsaurusRouterAccountService: ObservableObject {
     /// without a keychain.
     private let identityExists: () -> Bool
 
+    /// Test seam for the Phase 1/2 router master-switch gates: when set, the
+    /// gates read this instead of the process-wide `OsaurusRouter.isEnabled`,
+    /// so account tests exercise the credit paths without racing other
+    /// suites on `UserDefaults.standard`. Production passes nil.
+    private let routerEnabledOverride: Bool?
+
+    private var routerEnabled: Bool {
+        routerEnabledOverride ?? OsaurusRouter.isEnabled
+    }
+
     init(
         client: OsaurusRouterAPIClient = .shared,
         usageRevisionDebounce: TimeInterval = OsaurusRouterAccountService.defaultUsageRevisionDebounce,
         observesNotifications: Bool = true,
-        identityExists: @escaping () -> Bool = { OsaurusIdentity.existsCached() }
+        identityExists: @escaping () -> Bool = { OsaurusIdentity.existsCached() },
+        routerEnabledOverride: Bool? = nil
     ) {
         self.client = client
         self.usageRevisionDebounce = usageRevisionDebounce
         self.identityExists = identityExists
+        self.routerEnabledOverride = routerEnabledOverride
         guard observesNotifications else { return }
         // A deleted or restored identity is a different account: never serve
         // the previous account's balance from the local API cache.
@@ -122,7 +134,7 @@ final class OsaurusRouterAccountService: ObservableObject {
     /// an abandoned Checkout tab would otherwise poll on every activation
     /// forever. Every other surface fetches when it is opened.
     func handleAppActivation() async {
-        guard OsaurusRouter.isEnabled, awaitingTopUpConfirmation else { return }
+        guard routerEnabled, awaitingTopUpConfirmation else { return }
         topUpConfirmationPolls += 1
         await refreshBalance()
         if awaitingTopUpConfirmation, topUpConfirmationPolls >= Self.maxTopUpConfirmationPolls {
@@ -158,7 +170,7 @@ final class OsaurusRouterAccountService: ObservableObject {
     }
 
     func refreshAll() async {
-        guard OsaurusRouter.isEnabled else { return }
+        guard routerEnabled else { return }
         await RemoteProviderManager.shared.connectOsaurusRouterIfPossible()
         await refreshBalance()
         await refreshUsage(reset: true)
@@ -192,7 +204,7 @@ final class OsaurusRouterAccountService: ObservableObject {
     func refreshBalance(ifOlderThan maxAge: TimeInterval? = nil) async {
         // Master switch off: never hit `/credits/balance`. This also neutralizes
         // the activation path, which calls straight in here.
-        guard OsaurusRouter.isEnabled else { return }
+        guard routerEnabled else { return }
         // Eventually-consistent gate: `exists()` issues a synchronous keychain
         // query that blocks the main actor for seconds. The memo is updated
         // in-process on identity install/delete, so the balance refresh never
@@ -284,7 +296,7 @@ final class OsaurusRouterAccountService: ObservableObject {
     }
 
     private func localAPIBalancePrecondition() -> LocalCreditsBalanceResult? {
-        guard OsaurusRouter.isEnabled else { return .routerDisabled }
+        guard routerEnabled else { return .routerDisabled }
         guard OsaurusIdentity.existsCached() else { return .noIdentity }
         return nil
     }
@@ -336,7 +348,7 @@ final class OsaurusRouterAccountService: ObservableObject {
     }
 
     func refreshUsage(reset: Bool = true) async {
-        guard OsaurusRouter.isEnabled else { return }
+        guard routerEnabled else { return }
         guard OsaurusIdentity.exists() else {
             usage = []
             nextUsageCursor = nil
@@ -365,7 +377,7 @@ final class OsaurusRouterAccountService: ObservableObject {
     }
 
     func refreshTransactions(reset: Bool = true) async {
-        guard OsaurusRouter.isEnabled else { return }
+        guard routerEnabled else { return }
         guard OsaurusIdentity.exists() else {
             transactions = []
             nextTransactionsCursor = nil
@@ -466,7 +478,7 @@ final class OsaurusRouterAccountService: ObservableObject {
     // MARK: - Hosted web search
 
     func refreshWebSettings() async {
-        guard OsaurusRouter.isEnabled, OsaurusIdentity.existsCached() else { return }
+        guard routerEnabled, OsaurusIdentity.existsCached() else { return }
         isLoadingWebSettings = true
         defer { isLoadingWebSettings = false }
         do {
@@ -481,7 +493,7 @@ final class OsaurusRouterAccountService: ObservableObject {
     }
 
     func setWebAutoPay(_ enabled: Bool) async {
-        guard OsaurusRouter.isEnabled, OsaurusIdentity.existsCached() else { return }
+        guard routerEnabled, OsaurusIdentity.existsCached() else { return }
         isUpdatingWebSettings = true
         defer { isUpdatingWebSettings = false }
         do {
@@ -493,7 +505,7 @@ final class OsaurusRouterAccountService: ObservableObject {
     }
 
     func refreshWebUsage(reset: Bool = true) async {
-        guard OsaurusRouter.isEnabled, OsaurusIdentity.existsCached() else {
+        guard routerEnabled, OsaurusIdentity.existsCached() else {
             webUsage = []
             nextWebUsageCursor = nil
             return
@@ -601,7 +613,7 @@ final class OsaurusRouterAccountService: ObservableObject {
     /// refresh as reconciliation (the server is authoritative) and bump the
     /// usage revision so an open usage list catches up too.
     func reconcileAfterStreamWithoutSummary() {
-        guard OsaurusRouter.isEnabled else { return }
+        guard routerEnabled else { return }
         scheduleUsageRevisionBump()
         missingSummaryReconcileTask?.cancel()
         missingSummaryReconcileTask = Task { [weak self] in

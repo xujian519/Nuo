@@ -57,7 +57,8 @@ struct OsaurusRouterAccountServiceTests {
     private func makeHarness(
         balances: [String] = ["1000000"],
         identityExists: @escaping () -> Bool = { true },
-        usageRevisionDebounce: TimeInterval = 0.05
+        usageRevisionDebounce: TimeInterval = 0.05,
+        routerEnabled: Bool? = true
     ) throws -> Harness {
         let log = CallLog(balances: balances)
         AccountURLProtocol.handler = { request in
@@ -86,21 +87,14 @@ struct OsaurusRouterAccountServiceTests {
             },
             routerEnabled: { true }
         )
-        let previous = UserDefaults.standard.object(forKey: OsaurusRouter.enabledDefaultsKey)
-        OsaurusRouter.setEnabled(true)
         let service = OsaurusRouterAccountService(
             client: client,
             usageRevisionDebounce: usageRevisionDebounce,
             observesNotifications: false,
-            identityExists: identityExists
+            identityExists: identityExists,
+            routerEnabledOverride: routerEnabled
         )
-        return Harness(service: service, log: log) {
-            if let previous {
-                UserDefaults.standard.set(previous, forKey: OsaurusRouter.enabledDefaultsKey)
-            } else {
-                UserDefaults.standard.removeObject(forKey: OsaurusRouter.enabledDefaultsKey)
-            }
-        }
+        return Harness(service: service, log: log) {}
     }
 
     private func summary(costMicro: String) -> OsaurusRouterSummaryEvent.Summary {
@@ -172,10 +166,10 @@ struct OsaurusRouterAccountServiceTests {
     }
 
     @Test func activation_withRouterDisabled_makesNoRequestEvenWhenPending() async throws {
-        let h = try makeHarness()
-        defer { h.restoreRouter() }
+        // Router-disabled is exercised through the injected override, not by
+        // mutating the process-wide switch (which races parallel suites).
+        let h = try makeHarness(routerEnabled: false)
         h.service.armTopUpConfirmation()
-        OsaurusRouter.setEnabled(false)
 
         await h.service.handleAppActivation()
         #expect(h.log.paths.isEmpty)
