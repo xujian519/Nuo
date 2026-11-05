@@ -53,7 +53,8 @@ struct RedeemCodeServiceTests {
                 session: URLSession(configuration: config),
                 authOverride: { request, _ in
                     request.setValue("0xabc", forHTTPHeaderField: "x-wallet-address")
-                }
+                },
+                routerEnabled: { true }
             )
         }
     }

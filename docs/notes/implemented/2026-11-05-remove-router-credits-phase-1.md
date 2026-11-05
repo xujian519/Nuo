@@ -4,8 +4,7 @@ Status: implemented
 
 The accepted decision is
 [ADR-Nuo-001](../../adr/ADR-Nuo-001-remove-router-credits-and-cloud-sync.md).
-This note records the Phase 1 slice that landed with it. Phases 2 and 3 are
-not implemented.
+This note records Phase 1 and Phase 2. Phase 3 is not implemented.
 
 ## Problem
 
@@ -38,9 +37,34 @@ stays.
   Phase 1. iCloud Keychain Identity sync and announcement deep links are
   leftover risks in the ADR, not work for this change.
 
+## Phase 2
+
+While the Router switch is off, `.osaurusRouter` does not connect or
+complete, hosted search and Router cloud media are not sent, `/credits/*`
+client calls are not signed, and the billing ledger does not gain or
+finalize rows. Explicit `true` still reaches those paths until Phase 3.
+Saved agent model pins are not rewritten.
+
+### Migration
+
+A pin of `nuo/…`, `osaurus/…`, `osaurus-cloud/…`, or the Router provider
+UUID does not complete while the switch is off. Pick a local model or
+connect your own provider. The chat hint from Phase 1 opens those settings.
+Turning the defaults key back on is not the migration.
+
+## Alternatives considered for Phase 2
+
+- **Rewrite every stored Router model id in this change.** Lost. A silent
+  rewrite can point an agent at the wrong local model. The user picks the
+  replacement; the Router path simply refuses to run.
+- **Ignore an explicit `true` as well.** Lost. Phase 3 deletes the source.
+  Phase 2 only stops the path when the switch is off, including when some
+  other flag is still enabled.
+- **Delete the Router service tree now.** Lost. That is Phase 3.
+
 ## Consequences
 
 New and upgraded installs that never wrote the key keep local Identity, local
-models, and BYOK, and do not start the credits or workspace sync traffic.
-Phase 2 still has to migrate stored Router pins and remove the re-enable
-paths. Phase 3 still has to delete the source.
+models, and BYOK. They do not start credits or workspace sync traffic, and
+they do not complete, search, or generate media through the Router. Phase 3
+still has to delete the source.

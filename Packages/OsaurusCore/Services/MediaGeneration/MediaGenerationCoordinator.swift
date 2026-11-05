@@ -111,6 +111,11 @@ actor MediaGenerationCoordinator {
                 throw error
             }
         case .osaurusCloud:
+            guard OsaurusRouter.isEnabled else {
+                throw MediaGenerationError.unsupported(
+                    "Hosted cloud media is off. Use a local model or your own provider."
+                )
+            }
             guard cloudSupported else {
                 throw MediaGenerationError.unsupported("Osaurus Cloud media is not available.")
             }
@@ -193,6 +198,11 @@ actor MediaGenerationCoordinator {
                 throw error
             }
         case .osaurusCloud:
+            guard OsaurusRouter.isEnabled else {
+                throw MediaGenerationError.unsupported(
+                    "Hosted cloud media is off. Use a local model or your own provider."
+                )
+            }
             guard cloudSupported else {
                 throw MediaGenerationError.unsupported("Osaurus Cloud media is not available.")
             }
@@ -386,6 +396,11 @@ actor MediaGenerationCoordinator {
             try await jobs.upsert(job)
             return job
         case .osaurusCloud:
+            guard OsaurusRouter.isEnabled else {
+                throw MediaGenerationError.unsupported(
+                    "Hosted cloud media is off. Use a local model or your own provider."
+                )
+            }
             guard cloudSupported else {
                 throw MediaGenerationError.unsupported("Osaurus Cloud media is not available.")
             }
@@ -568,6 +583,11 @@ actor MediaGenerationCoordinator {
         job: DurableMediaJob,
         progress: @escaping @Sendable (MediaGenerationEvent) -> Void
     ) async throws -> GeneratedMedia {
+        guard OsaurusRouter.isEnabled else {
+            throw MediaGenerationError.unsupported(
+                "Hosted cloud media is off. Use a local model or your own provider."
+            )
+        }
         try await jobs.update(id: job.id, state: .retrieving)
         var retryDelay = 3.0
         while true {

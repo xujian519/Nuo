@@ -1187,7 +1187,8 @@ struct WorkspacesAPIClientTests {
                     "0x" + String(repeating: "1", count: 130),
                     forHTTPHeaderField: "x-wallet-signature"
                 )
-            }
+            },
+            routerEnabled: { true }
         )
     }
 }
@@ -3155,7 +3156,8 @@ struct WorkspacesServiceTests {
             session: session,
             authOverride: { request, _ in
                 request.setValue("0xabc", forHTTPHeaderField: "x-wallet-address")
-            }
+            },
+            routerEnabled: { true }
         )
 
         let suite = "teams-service-\(UUID().uuidString)"

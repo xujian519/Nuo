@@ -166,6 +166,9 @@ struct OsaurusRouterSearchBackend: Sendable {
         extractTextMaxCharacters: Int? = nil,
         idempotencyKey: String
     ) async -> Result<HostedSearchOutcome, HostedSearchFailure> {
+        guard await client.controlPlaneEnabled() else {
+            return .failure(.featureUnavailable)
+        }
         let body = Self.searchBody(
             for: request,
             extractTextMaxCharacters: extractTextMaxCharacters,
@@ -203,6 +206,9 @@ struct OsaurusRouterSearchBackend: Sendable {
         maxCharacters: Int = OsaurusRouterSearchBackend.defaultTextMaxCharacters,
         idempotencyKey: String
     ) async -> Result<HostedContentsOutcome, HostedSearchFailure> {
+        guard await client.controlPlaneEnabled() else {
+            return .failure(.featureUnavailable)
+        }
         let body = OsaurusRouterWebContentsRequestBody(
             urls: urls,
             contents: OsaurusRouterWebContentsSpec(
@@ -359,8 +365,8 @@ struct OsaurusRouterSearchBackend: Sendable {
             default:
                 return .providerError
             }
-        case .firstActionPending, .invalidURL, .invalidResponse, .belowMinimumTopUp:
-            return .providerError
+        case .firstActionPending, .invalidURL, .invalidResponse, .belowMinimumTopUp, .routerDisabled:
+            return .featureUnavailable
         }
     }
 }

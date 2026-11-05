@@ -397,6 +397,12 @@ public final class RemoteProviderManager: ObservableObject {
             throw RemoteProviderError.providerDisabled
         }
 
+        // Phase 2: `.osaurusRouter` is not a chat backend while the master
+        // switch is off, even if this row was left enabled.
+        if provider.providerType == .osaurusRouter, !isOsaurusRouterEnabled {
+            throw RemoteProviderError.providerDisabled
+        }
+
         // Update state to connecting
         var state = providerStates[providerId] ?? RemoteProviderState(providerId: providerId)
         state.isConnecting = true
@@ -834,7 +840,7 @@ public final class RemoteProviderManager: ObservableObject {
                 return status >= 500
             case .noIdentity, .firstActionPending, .invalidURL, .unauthorized,
                 .belowMinimumTopUp, .insufficientFunds, .accountFrozen,
-                .paidWebDisabled, .idempotencyConflict:
+                .paidWebDisabled, .idempotencyConflict, .routerDisabled:
                 return false
             }
         }

@@ -18,13 +18,18 @@ public final class RouterBillingLedger: @unchecked Sendable {
     public static let shared = RouterBillingLedger()
 
     private let database: RouterBillingDatabase
+    private let writesEnabled: () -> Bool
     private let lock = NSLock()
     /// Tri-state: nil = not attempted, true/false = last open outcome. Lets us
     /// skip repeated open attempts after a hard failure within a launch.
     private var openState: Bool?
 
-    init(database: RouterBillingDatabase = .shared) {
+    init(
+        database: RouterBillingDatabase = .shared,
+        writesEnabled: @escaping () -> Bool = { OsaurusRouter.isEnabled }
+    ) {
         self.database = database
+        self.writesEnabled = writesEnabled
     }
 
     // MARK: - Open gate
@@ -68,6 +73,8 @@ public final class RouterBillingLedger: @unchecked Sendable {
         model: String?,
         outcome: RouterBillingOutcome = .pending
     ) -> String? {
+        // Phase 2: a disabled Router must not append billing rows.
+        guard writesEnabled() else { return nil }
         guard ensureOpen() else { return nil }
         let entry = RouterBillingEntry(
             id: UUID().uuidString,
@@ -96,6 +103,7 @@ public final class RouterBillingLedger: @unchecked Sendable {
 
     /// Finalize the rendered outcome for a previously recorded charge.
     public func finalizeOutcome(entryId: String, outcome: RouterBillingOutcome) {
+        guard writesEnabled() else { return }
         guard ensureOpen() else { return }
         try? database.updateOutcome(entryId: entryId, outcome: outcome)
     }

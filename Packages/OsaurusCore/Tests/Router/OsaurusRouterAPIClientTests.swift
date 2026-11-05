@@ -370,7 +370,8 @@ struct OsaurusRouterAPIClientTests {
                 request.setValue(TestKeys.aliceAddress.lowercased(), forHTTPHeaderField: "x-wallet-address")
                 request.setValue("1717171717", forHTTPHeaderField: "x-wallet-timestamp")
                 request.setValue("0x" + String(repeating: "1", count: 130), forHTTPHeaderField: "x-wallet-signature")
-            }
+            },
+            routerEnabled: { true }
         )
     }
 

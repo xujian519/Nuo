@@ -319,7 +319,8 @@ struct OsaurusIDAPIClientTests {
                 request.setValue("0x" + String(repeating: "1", count: 130), forHTTPHeaderField: "x-wallet-signature")
             },
             idSessionToken: token,
-            clearIDSession: clear
+            clearIDSession: clear,
+            routerEnabled: { true }
         )
     }
 }
@@ -628,7 +629,8 @@ extension OsaurusIDStoreAndServiceTests {
                 session: session,
                 authOverride: { request, _ in
                     request.setValue(TestKeys.aliceAddress.lowercased(), forHTTPHeaderField: "x-wallet-address")
-                }
+                },
+                routerEnabled: { true }
             )
             return OsaurusIDService(client: client, canReachOverride: true, observesNotifications: false)
         }

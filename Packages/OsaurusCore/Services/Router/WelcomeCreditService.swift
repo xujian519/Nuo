@@ -220,7 +220,7 @@ final class WelcomeCreditService {
             // malformed. Both are terminal: hide the offer, never retry.
             resolve(.hidden)
             onWelcomeSettled()
-        case .unauthorized, .accountFrozen, .noIdentity, .firstActionPending, .invalidURL:
+        case .unauthorized, .accountFrozen, .noIdentity, .firstActionPending, .invalidURL, .routerDisabled:
             // Not claim verdicts: signing/identity/config problems. A later
             // trigger (identity ready, clock fixed) may succeed.
             break
