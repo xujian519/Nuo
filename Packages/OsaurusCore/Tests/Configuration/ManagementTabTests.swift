@@ -42,9 +42,10 @@ struct ManagementTabTests {
             Set(flattened) == Set(ManagementTab.allCases),
             "flattened sections must cover every ManagementTab case"
         )
-        // The structural sidebar order (Router on) is that same flattening.
-        // `visibleCases` drops Credits and Workspaces while the Router is off.
-        #expect(ManagementTab.sidebarCases(routerEnabled: true) == flattened)
+        // Credits and Workspaces stay in the section list so old deep links
+        // still resolve, but they are not sidebar tabs.
+        let sidebar = ManagementTab.sidebarCases(routerEnabled: true)
+        #expect(sidebar == flattened.filter { !ManagementTab.routerControlPlaneTabs.contains($0) })
     }
 
     @Test func routerOffHidesCreditsAndWorkspaces() {
@@ -56,8 +57,8 @@ struct ManagementTabTests {
         #expect(off.contains(.identity))
         #expect(off.contains(.settings))
         let on = ManagementTab.sidebarCases(routerEnabled: true)
-        #expect(on.contains(.credits))
-        #expect(on.contains(.workspaces))
+        #expect(!on.contains(.credits))
+        #expect(!on.contains(.workspaces))
     }
 
     @Test func generalSectionLeadsAndDevelopersTrails() {

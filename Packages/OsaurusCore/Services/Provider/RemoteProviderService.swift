@@ -698,7 +698,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
     /// Phase 2: `.osaurusRouter` must not stream a completion while the
     /// master switch is off.
     private func refuseRouterCompletionsIfDisabled() throws {
-        guard provider.providerType == .osaurusRouter, !OsaurusRouter.isEnabled else { return }
+        guard provider.providerType == .osaurusRouter else { return }
         throw RemoteProviderServiceError.requestFailed(
             "The hosted router is off. Use a local model or your own provider."
         )
@@ -1866,11 +1866,6 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
             // A relayed team-pool charge must not touch this device's personal
             // balance; the workspace ledger refresh handles it. Direct router
             // streams keep the existing accounting.
-            if providerType == .osaurusRouter || summary.osaurus.billedWorkspaceId != nil {
-                Task { @MainActor in
-                    OsaurusRouterAccountService.shared.noteRouterSummary(summary.osaurus)
-                }
-            }
             // Surface the charge on the stream so the chat layer can keep +
             // explain a billed-but-empty turn and record the on-device ledger
             // row. The `\u{FFFE}` sentinel keeps it out of visible output and
@@ -3021,13 +3016,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
             // charged server-side — and the optimistic local balance
             // decrement never ran. Ask the account service for a debounced
             // server-truth balance/usage refresh.
-            defer {
-                if providerType == .osaurusRouter, routerStreamConnected, !state.routerSummarySeen {
-                    Task { @MainActor in
-                        OsaurusRouterAccountService.shared.reconcileAfterStreamWithoutSummary()
-                    }
-                }
-            }
+            defer {}
             do {
                 // Idempotent connect-phase retry: only retries the
                 // `bytes(for:)` call (no stream data has been delivered

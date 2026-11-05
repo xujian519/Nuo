@@ -90,11 +90,12 @@ public enum ManagementTab: String, CaseIterable, Identifiable, Sendable {
     /// opt-in can show them again; a later phase deletes them.
     public static let routerControlPlaneTabs: Set<ManagementTab> = [.credits, .workspaces]
 
-    /// Sidebar order for the current Router switch. `routerEnabled: true` is
-    /// the full structural order.
+    /// Sidebar order. Credits and Workspaces are gone in Phase 3, whether or
+    /// not an old Router switch is still true. `routerEnabled` is ignored.
     public static func sidebarCases(routerEnabled: Bool) -> [ManagementTab] {
-        ManagementSection.allCases.flatMap(\.tabs).filter { tab in
-            routerEnabled || !routerControlPlaneTabs.contains(tab)
+        _ = routerEnabled
+        return ManagementSection.allCases.flatMap(\.tabs).filter { tab in
+            !routerControlPlaneTabs.contains(tab)
         }
     }
 

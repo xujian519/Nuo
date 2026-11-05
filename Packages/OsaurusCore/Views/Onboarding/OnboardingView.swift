@@ -157,9 +157,6 @@ public struct OnboardingView: View {
                     // action. Persist that choice before identity setup can
                     // notify any Router observers. Phase 1 does not arm the
                     // claim while the Router is off.
-                    if OsaurusRouter.isEnabled {
-                        WelcomeCreditService.shared.selectForFirstLaunch()
-                    }
                     // Commit the usage opt-in here (not on toggle) so the whole
                     // funnel from this point on is captured even if the user
                     // bails before the final step. Granting flushes the events
@@ -307,9 +304,6 @@ public struct OnboardingView: View {
         // Closing on any step is an explicit welcome-claim continuation
         // (idempotent when "Get started" already selected it). Skipped while
         // the Router is off so finish does not arm a credits claim.
-        if OsaurusRouter.isEnabled {
-            WelcomeCreditService.shared.selectForFirstLaunch()
-        }
 
         // Record where the user left and how: `finishButton` (the brain-setup
         // step's CTA) is a real completion, `closeButton` at an earlier step

@@ -38,6 +38,7 @@ struct SettingsSearchSelfFindProbe {
     @Test("every entry is findable by its own title")
     func everyEntryFindsItselfByTitle() {
         let unfindable = SettingsSearchIndex.entries
+            .filter { !ManagementTab.routerControlPlaneTabs.contains($0.tab) }
             .filter { entry in
                 !SettingsSearchIndex.search(entry.title, routerEnabled: true).contains { $0.id == entry.id }
             }
@@ -52,6 +53,7 @@ struct SettingsSearchSelfFindProbe {
     @Test("every entry with a section header is findable by that header")
     func everyEntryFindsItselfBySection() {
         let unfindable = SettingsSearchIndex.entries
+            .filter { !ManagementTab.routerControlPlaneTabs.contains($0.tab) }
             .filter { !$0.section.trimmingCharacters(in: .whitespaces).isEmpty }
             .filter { entry in
                 !SettingsSearchIndex.search(entry.section, routerEnabled: true).contains { $0.id == entry.id }

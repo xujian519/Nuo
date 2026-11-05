@@ -163,45 +163,7 @@ final class WorkspacesService: ObservableObject {
     /// mutations (create / join / leave / delete); the sync stream and the
     /// roster store's activation refresh keep it current otherwise (see
     /// `applyWorkspaceList`).
-    func refreshWorkspaces() async {
-        guard OsaurusRouter.isEnabled else { return }
-        guard !isLoadingWorkspaces else { return }
-        let generation = rootGeneration
-        isLoadingWorkspaces = true
-        defer { isLoadingWorkspaces = false }
-
-        do {
-            let fetched = try await client.listWorkspaces()
-            guard generation == rootGeneration else { return }
-            installWorkspaceList(fetched)
-            // Membership changed (create / join / leave / removed): the chat
-            // sidebar's per-workspace sections follow the same list.
-            let known = Set(WorkspaceRosterStore.shared.rosters.map(\.id))
-            if known != Set(workspaces.map(\.id)) {
-                Task { await WorkspaceRosterStore.shared.refresh(reason: .manual) }
-            }
-            WorkspaceSyncService.shared.noteMembership(hasWorkspaces: !fetched.isEmpty)
-        } catch {
-            noteError(error)
-            return
-        }
-        await refreshBilling()
-        // A manual refresh while a new-workspace Checkout is pending is a
-        // fine moment to notice the webhook landed (not just app activation).
-        if case .checkout(_, let name, let knownIds) = pendingConfirmation,
-            let created = workspaces.first(where: {
-                !knownIds.contains($0.id) && $0.typedRole == .owner && $0.isActive
-            })
-        {
-            endConfirmation()
-            await WorkspaceAuditLog.shared.recordOwnerAction(
-                .workspaceCreated,
-                workspaceId: created.id,
-                details: ["name": name, "via": "checkout"]
-            )
-            await selectWorkspace(id: created.id)
-        }
-    }
+    func refreshWorkspaces() async {}
 
     /// An authoritative workspace list fetched by another surface (the chat
     /// roster store's probe, fallback, or activation refresh). Installs it
@@ -228,15 +190,7 @@ final class WorkspacesService: ObservableObject {
     /// surface, and a router without these routes must not raise a banner.
     /// Prices are public catalog data that change by deploy, not by user
     /// action: fetched once per session.
-    func refreshBilling() async {
-        guard OsaurusRouter.isEnabled else { return }
-        if let summary = try? await client.workspaceBilling() {
-            billing = summary
-        }
-        if prices == nil, let fetched = try? await client.workspacePrices() {
-            prices = fetched
-        }
-    }
+    func refreshBilling() async {}
 
     // MARK: Trial / plan conveniences (nil until billing has loaded)
 
@@ -786,35 +740,8 @@ final class WorkspacesService: ObservableObject {
     /// `SUBSCRIPTION_INACTIVE`).
     @discardableResult
     func topUpPool(workspaceId: String, amountMicro: Int64) async -> String? {
-        let verdict = OsaurusRouterWorkspacePoolCredits.validateTopUp(micro: amountMicro)
-        guard verdict == .ok else {
-            lastError = Self.topUpValidationMessage(verdict)
-            lastErrorCode = nil
-            return nil
-        }
-        var topupId: String?
-        let ok = await performMutation(key: "pool.topup") {
-            let response = try await self.client.workspacePoolCheckout(id: workspaceId, amountMicro: amountMicro)
-            guard let url = URL(string: response.checkoutURL) else {
-                throw OsaurusRouterAPIError.invalidResponse
-            }
-            topupId = response.topupId
-            let before =
-                self.selectedWorkspaceId == workspaceId
-                ? (self.poolBalance?.balanceMicro ?? self.detail?.balanceMicro).flatMap(Int64.init)
-                : nil
-            self.beginConfirmation(
-                .topUp(
-                    workspaceId: workspaceId,
-                    topupId: response.topupId,
-                    amountMicro: amountMicro,
-                    balanceBeforeMicro: before,
-                    startedAt: Date()
-                )
-            )
-            self.openURL(url)
-        }
-        return ok ? topupId : nil
+        _ = (workspaceId, amountMicro)
+        return nil
     }
 
     static func topUpValidationMessage(

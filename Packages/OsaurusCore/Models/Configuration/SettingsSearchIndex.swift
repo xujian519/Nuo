@@ -96,9 +96,11 @@ public enum SettingsSearchIndex {
 
         var ranked: [(entry: SettingsSearchEntry, rank: Int)] = []
         for entry in entries {
-            if !routerEnabled, ManagementTab.routerControlPlaneTabs.contains(entry.tab) {
+            // Phase 3 removed the Credits and Workspaces screens.
+            if ManagementTab.routerControlPlaneTabs.contains(entry.tab) {
                 continue
             }
+            _ = routerEnabled
             if matches(entry.title) {
                 ranked.append((entry, 0))
             } else if matches(entry.section) || entry.keywords.contains(where: matches) {

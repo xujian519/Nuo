@@ -399,7 +399,7 @@ public final class RemoteProviderManager: ObservableObject {
 
         // Phase 2: `.osaurusRouter` is not a chat backend while the master
         // switch is off, even if this row was left enabled.
-        if provider.providerType == .osaurusRouter, !isOsaurusRouterEnabled {
+        if provider.providerType == .osaurusRouter {
             throw RemoteProviderError.providerDisabled
         }
 
@@ -673,13 +673,11 @@ public final class RemoteProviderManager: ObservableObject {
             // a connect task that tests can drain. A first-launch welcome claim
             // must settle before that connect is allowed to discover models.
             osaurusRouterEnableTask = Task { [weak self] in
-                _ = await WelcomeCreditService.shared.claimIfNeeded()
                 await self?.connectOsaurusRouterWithRetry()
             }
         } else {
             osaurusRouterEnableTask?.cancel()
             osaurusRouterEnableTask = nil
-            OsaurusRouterAccountService.shared.clearForDisabledRouter()
         }
 
         // Rebuild the picker and refresh status UI. Open chats observe
@@ -705,9 +703,6 @@ public final class RemoteProviderManager: ObservableObject {
     /// isn't already connected or connecting. Shared by the single-shot and
     /// retrying entry points so their preconditions can't drift apart.
     private func managedRouterNeedsConnect() -> Bool {
-        guard !RouterCreditAcquisitionCoordinator.shared.blocksGeneralSignedRequests else {
-            return false
-        }
         ensureManagedOsaurusRouterProviderIfNeeded()
         guard configuration.provider(id: Self.osaurusRouterProviderId) != nil else { return false }
         let state = providerStates[Self.osaurusRouterProviderId]

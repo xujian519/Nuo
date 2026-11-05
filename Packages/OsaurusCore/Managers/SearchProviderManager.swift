@@ -432,7 +432,7 @@ public final class SearchProviderManager: ObservableObject {
             case .success(let hosted):
                 billing = hosted.billing
                 if let summary = hosted.billing {
-                    OsaurusRouterAccountService.shared.noteWebBilling(summary)
+                    _ = summary
                 }
                 if !hosted.hits.isEmpty {
                     let outcome = SearchEngineOutcome(
@@ -509,9 +509,7 @@ public final class SearchProviderManager: ObservableObject {
         let durationMs = Date().timeIntervalSince(started) * 1000
         switch result {
         case .success(let outcome):
-            if let summary = outcome.billing {
-                OsaurusRouterAccountService.shared.noteWebBilling(summary)
-            }
+            _ = outcome.billing
             SearchActivityLogger.logHostedExtract(
                 urls: urls,
                 outcome: outcome,
@@ -537,17 +535,7 @@ public final class SearchProviderManager: ObservableObject {
     /// succeeds (spec section 5). The preference itself never flips here:
     /// premium recovers automatically after a top-up or setting change.
     private func noteHostedFailure(_ failure: HostedSearchFailure) {
-        switch failure {
-        case .insufficientFunds:
-            OsaurusRouterAccountService.shared.noteWebInsufficientFunds()
-        case .paidWebDisabled:
-            OsaurusRouterAccountService.shared.noteWebPaidDisabled()
-        case .accountFrozen:
-            Task { await OsaurusRouterAccountService.shared.refreshBalance() }
-        case .featureUnavailable, .rateLimited, .idempotencyConflict, .invalidRequest,
-            .unauthorized, .providerError, .transport:
-            break
-        }
+        _ = failure
     }
 
     /// Classify a cascade winner for the UI's source states: keyless bundled

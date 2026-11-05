@@ -62,6 +62,28 @@ Turning the defaults key back on is not the migration.
   other flag is still enabled.
 - **Delete the Router service tree now.** Lost. That is Phase 3.
 
+## Phase 3
+
+Credits, Workspaces, and Router account screens are gone. Checkout,
+welcome credit, and the billing ledger are gone. Router completions are
+refused even when the defaults key is true. The workspace sync stream is
+gone. Relay stays because it also serves mobile pairing and identity
+address rotation.
+
+Identity files that used to live in `Services/Router/` now live in
+`Identity/Hosted/`. Announcements moved to `Services/Announcements/` and
+were not expanded. Launch clears stored Router model pins and does not
+choose a replacement.
+
+## Alternatives considered for Phase 3
+
+- **Delete Relay with the sync client.** Lost. Relay still serves Reach
+  From Anywhere and identity address rotation.
+- **Delete `Identity/Hosted` with the credits client.** Lost. Osaurus ID,
+  its session token, and wallet signing are Identity, not credits.
+- **Pick a local model for every cleared Router pin.** Lost. The Mac may
+  not have that model. The pin is cleared and the user chooses.
+
 ## Consequences
 
 New and upgraded installs that never wrote the key keep local Identity, local

@@ -300,8 +300,8 @@ struct HTTPAuthGateTests {
             let (data, resp) = try await URLSession.shared.data(
                 from: URL(string: "http://\(server.host):\(server.port)\(path)")!
             )
-            #expect((resp as? HTTPURLResponse)?.statusCode == 403)
-            #expect(String(decoding: data, as: UTF8.self).contains("credits_access_not_authorized"))
+            #expect((resp as? HTTPURLResponse)?.statusCode == 404)
+            #expect(String(decoding: data, as: UTF8.self).contains("credits_removed"))
         }
     }
 
@@ -322,7 +322,7 @@ struct HTTPAuthGateTests {
             let server = try await startAuthTestServer(validator: fixture.validator, trustLoopback: trustLoopback)
             let result = try await Self.send("GET", "/credits/balance", token: fixture.token, server: server)
             await server.shutdown()
-            #expect(result.status == 403)
+            #expect(result.status == 404)
         }
     }
 

@@ -6,6 +6,9 @@
 //  Authenticates agents via EIP-191 signed messages, forwards inbound
 //  HTTP requests to the local server, and handles keepalive + reconnect.
 //
+//  Phase 3 keeps this type. It is not only workspace sync: Reach From
+//  Anywhere, mobile pairing, and identity address rotation all use it.
+//
 
 import Foundation
 import LocalAuthentication

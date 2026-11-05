@@ -190,13 +190,6 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
             NSApp.setActivationPolicy(hideDockIcon ? .accessory : .regular)
         }
 
-        // A first-time redeem code is valid only when redemption is the
-        // wallet's first signed Router action. Prepare this persisted gate
-        // before any launch subsystem can attempt a signed request.
-        RouterCreditAcquisitionCoordinator.shared.prepareForLaunch(
-            isFreshInstall: OnboardingService.shared.isFreshInstall
-        )
-
         // Consolidate any agent records stranded in the legacy `Personas/`
         // directory into `agents/` before the first agent load. Enabling a
         // per-agent Database (or writing a custom avatar) creates `agents/`,
@@ -342,15 +335,9 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
         // Configure local notifications
         NotificationService.shared.configureOnLaunch()
 
-        // Welcome-credit auto-claim: instantiating the singleton installs its
-        // identity/app-activation observers, and the bootstrap retries a
-        // claim a previous (e.g. offline) session couldn't finish. The claim
-        // is wallet-signed and idempotent server-side. ADR-Nuo-001 Phase 1
-        // skips the singleton entirely while the Router is off so a default
-        // launch does not arm those observers or the claim request.
-        if OsaurusRouter.isEnabled {
-            WelcomeCreditService.shared.bootstrapAtLaunch()
-        }
+        // Phase 3: drop stored Router model pins. The user picks a local
+        // model or a bring-your-own-key provider; nothing is substituted.
+        RouterPinnedModel.clearStoredRouterPins()
 
         // If PocketTTS models are already on disk, preload them so the first
         // speaker tap plays immediately without routing to settings.
@@ -707,12 +694,6 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
         // ADR-Nuo-001 Phase 1: do not start the workspace sync stream or its
         // membership probe while the Router is off. An explicit opt-in still
         // starts it on the same deferred launch path.
-        if !keychainDisabledTestMode && OsaurusRouter.isEnabled {
-            Task { @MainActor in
-                try? await Task.sleep(for: .seconds(8))
-                WorkspaceSyncService.shared.start()
-            }
-        }
 
         // Start sandbox tool registrar. Internally awaits container
         // auto-start before the initial `registerTools` call, so the first
