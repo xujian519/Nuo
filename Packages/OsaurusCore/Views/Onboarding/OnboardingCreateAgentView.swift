@@ -2,9 +2,9 @@
 //  OnboardingCreateAgentView.swift
 //  osaurus
 //
-//  Onboarding step 2 — Figma screen 2 ("What should your first Dino be
-//  great at?"). Left column: hero title + subtitle + "Create your Dino"
-//  pill. Right panel (green gradient tint): 96pt dino avatar with a
+//  Onboarding step 2 — Figma screen 2 ("What should your first agent be
+//  great at?"). Left column: hero title + subtitle + "Create your agent"
+//  pill. Right panel (green gradient tint): 96pt agent avatar with a
 //  randomize badge, an editable name chip, and three selectable specialty
 //  cards mapped onto the existing starter archetypes.
 //
@@ -66,7 +66,7 @@ enum OnboardingSpecialty: String, CaseIterable, Identifiable {
 @MainActor
 final class CreateAgentState: ObservableObject {
     /// Defaults to the general-purpose everyday helper so a user who just
-    /// wants to move on can tap "Create your Dino" immediately.
+    /// wants to move on can tap "Create your agent" immediately.
     @Published var selectedSpecialty: OnboardingSpecialty = .everyday
     /// Starts on the brand-green dino, per the Figma frame.
     @Published var selectedAvatar: String? = AgentMascot.green.id
@@ -178,7 +178,7 @@ struct CreateAgentStepView: View {
     /// Staggered cascade: title → subtitle → CTA.
     private var leftColumn: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("What should your first Dino be great at?", bundle: .module)
+            Text("What should your first agent be great at?", bundle: .module)
                 .font(OnboardingTypography.heroTitle)
                 .tracking(0.4)
                 .foregroundColor(OnboardingPalette.labelPrimary)
@@ -187,7 +187,7 @@ struct CreateAgentStepView: View {
 
             Spacer().frame(height: 16)
 
-            Text("Change its specialty or create another Dino anytime.", bundle: .module)
+            Text("Change its specialty or create another agent anytime.", bundle: .module)
                 .font(OnboardingTypography.subtitle)
                 .foregroundColor(OnboardingPalette.labelSecondary)
                 .lineSpacing(1.5)
@@ -197,7 +197,7 @@ struct CreateAgentStepView: View {
             Spacer().frame(height: 40)
 
             OnboardingPillButton(
-                title: isFinalStep ? "Create your Dino and start chatting" : "Create your Dino",
+                title: isFinalStep ? "Create your agent and start chatting" : "Create your agent",
                 style: .primary,
                 size: .large,
                 isEnabled: state.canSave,

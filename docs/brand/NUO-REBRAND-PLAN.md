@@ -241,7 +241,9 @@ public enum Brand {                      // 用户可见身份
 
 ### Phase 3 — 界面与文案
 
-**状态：Localizable.xcstrings A/C 类机械替换已落地（2026-11-01）；Swift 字面量与运行时可见面已落地（2026-11-04）**，B 类外部事实（Router / Cloud / ID / osaurus.ai）保留待 `HIDE-UPSTREAM-SERVICES` 一起处理。
+**状态：Localizable.xcstrings A/C 类机械替换已落地（2026-11-01）；Swift 字面量与运行时可见面已落地（2026-11-04）；Dino 隐喻退役（2026-11-05）**，B 类外部事实（Router / Cloud / ID / osaurus.ai）保留待 `HIDE-UPSTREAM-SERVICES` 一起处理。
+
+2026-11-05 追加：onboarding 的 Dino 隐喻整体退役。规则 `ui-text.onboarding-agent-copy`（英文，驱动 key 改名与 Swift 字面量同步）+ 5 条分语言规则把 17 个 catalog key 与 6 语言译文改写为各语言的 "agent"：德语按 Agent 的 n-Deklination 处理（`deinen Agenten` / `dein Agent`），韩语按元音结尾调整助词（`에이전트가/를`），俄语利用词干替换保留格尾（`динозавр→агент` 自动得到 `агента/агенту/агентом`），简繁中文把量词 `一只小恐龙` 改为 `一个智能体`。`AgentMascot.displayName` 的 6 条无障碍标签由 `ui-text.agent-avatar-accessibility` 改为 `Blue agent` 等。视觉资产（6 个恐龙头像、`osaurus-brain`、`*-create` 插画）仍需美术产出，见 Phase 4。
 
 2026-11-04 补的这一批（规则 `13-runtime-surfaces.json` + 扩展后的 `30-ui-text.json`）：
 
@@ -291,6 +293,21 @@ B 类人工清单（保留计数见 baseline）：
 - 5 种非英文语言需要抽查：机械替换后检查语序与冠词（德/俄/韩/简繁）——**A/C 类已抽查通过（2026-11-01）**。
 
 ### Phase 4 — 资产
+
+**状态（2026-11-05 核对）：主视觉与智能体头像已换，装饰插画未换。**
+
+已落地：`AppIcon.appiconset` 全部 10 个尺寸与 `osaurus-app-icon.icon`（Scheme A 朱文印）、`osaurus.imageset`（几何 N，18/36/54 三档，template）、`osaurus-main.imageset`（深底印章）、`osaurus-logo.imageset`（印芯 template）、`AccentColor.colorset`（`#F8141C`）、`assets/dmg-bg.tiff`（纸底 + 朱红印芯）。
+
+智能体头像（2026-11-05）：
+
+- `osaurus-avatar-{blue,green,orange,purple,red,yellow}` 6 张恐龙已换成同一画风的人物肖像（256/512/768 透明 PNG，底边贴齐）。imageset 目录名与文件名保持不变，`AgentMascot` 与全部 27 个调用点零改动。
+- 新增 `nuo-primary-avatar.imageset`：内置 Orchestrator 的肖像。`AgentMascot` 增加 `.primary` case，手写 `allCases` 把它排除在头像选择器、onboarding 头像条与随机之外；`Agent.default.avatar` 由 `"green"` 改为 `"primary"`。
+- 生成流程（可复现）：本机 ComfyUI Z-Image Turbo（8 步、cfg 1.0、`res_multistep`、1024²、固定 seed）→ scipy 最大连通域抠图 → 底边贴齐归一化 → 三档导出。无 IPAdapter/ControlNet/LoRA，角色一致性仅靠 prompt + 固定 seed，属于风格统一而非同一角色锁定。
+
+未落地（需美术产出，阻塞"品牌统一"）：
+- `osaurus-brain`（`OnboardingConfigureAIView` 使用）。
+- `osaurus-{color}-create` 6 张、`osaurus-tool` / `sandbox` / `data` / `built` / `identity` 等装饰插画。
+- `osaurus-logo-wordmark.svg` 仍是 `OSAURUS` outline 字标（当前无 Swift 源码引用，仅资源目录）。
 
 - App 图标（`App/osaurus/osaurus-app-icon.icon`）、`Assets.xcassets` 里 24 个品牌图：先出占位（`N` 字标 + 单色托盘图标），等美术。
 - `osaurus-logo-wordmark.svg` 是 outline 化路径，只能重画，不能改字。

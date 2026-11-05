@@ -74,6 +74,204 @@
       ]
     },
     {
+      "id": "ui-text.onboarding-agent-copy",
+      "op": "xcstrings",
+      "path": "Packages/OsaurusCore/Resources/Localizable.xcstrings",
+      "enforced": true,
+      "languages": [
+        "en"
+      ],
+      "comment": "Scheme A onboarding: retire the Dino metaphor in favour of 'agent', matching the already-accepted welcome headline ('Local agents that keep their word.'). The English pass drives both the catalog key renames and their Swift literal references; per-language rules below translate the same metaphor into each language's word for 'agent'.",
+      "replace": [
+        [
+          "Set up a dino",
+          "Set up an agent"
+        ],
+        [
+          "Dino",
+          "agent"
+        ],
+        [
+          "dino",
+          "agent"
+        ]
+      ],
+      "sync_refs": [
+        "App/osaurus/**/*.swift",
+        "Packages/OsaurusCore/**/*.swift",
+        "Packages/OsaurusCLI/Sources/**/*.swift"
+      ],
+      "sync_refs_exclude": [
+        "Packages/OsaurusCore/Services/MediaGeneration/OsaurusCloudMediaClient.swift",
+        "Packages/OsaurusCore/Services/MCP/OAuth/MCPOAuthClientMetadata.swift",
+        "Packages/OsaurusCore/Services/Provider/OpenRouterOAuthService.swift"
+      ]
+    },
+    {
+      "id": "ui-text.onboarding-agent-copy-de",
+      "op": "xcstrings",
+      "path": "Packages/OsaurusCore/Resources/Localizable.xcstrings",
+      "enforced": true,
+      "languages": [
+        "de"
+      ],
+      "comment": "German keeps Agent in n-declension: accusative/possessive forms take -en (deinen Agenten), nominative stays Agent.",
+      "replace": [
+        [
+          "deinen Dino",
+          "deinen Agenten"
+        ],
+        [
+          "deinem Dino",
+          "deinem Agenten"
+        ],
+        [
+          "einen Dino",
+          "einen Agenten"
+        ],
+        [
+          "dein Dino",
+          "dein Agent"
+        ],
+        [
+          "Dino erstellen",
+          "Agent erstellen"
+        ],
+        [
+          "your dino",
+          "your agent"
+        ]
+      ]
+    },
+    {
+      "id": "ui-text.onboarding-agent-copy-ko",
+      "op": "xcstrings",
+      "path": "Packages/OsaurusCore/Resources/Localizable.xcstrings",
+      "enforced": true,
+      "languages": [
+        "ko"
+      ],
+      "comment": "Korean particle agreement: 공룡 ends in a consonant (을/이), 에이전트 ends in a vowel (를/가).",
+      "replace": [
+        [
+          "공룡이",
+          "에이전트가"
+        ],
+        [
+          "공룡을",
+          "에이전트를"
+        ],
+        [
+          "공룡에게",
+          "에이전트에게"
+        ],
+        [
+          "공룡",
+          "에이전트"
+        ],
+        [
+          "디노가",
+          "에이전트가"
+        ],
+        [
+          "디노의",
+          "에이전트의"
+        ],
+        [
+          "다이노가",
+          "에이전트가"
+        ],
+        [
+          "다이노의",
+          "에이전트의"
+        ],
+        [
+          "Dino 생성",
+          "에이전트 생성"
+        ]
+      ]
+    },
+    {
+      "id": "ui-text.onboarding-agent-copy-ru",
+      "op": "xcstrings",
+      "path": "Packages/OsaurusCore/Resources/Localizable.xcstrings",
+      "enforced": true,
+      "languages": [
+        "ru"
+      ],
+      "comment": "Russian case endings survive the stem swap: динозавр->агент yields динозавра->агента, динозавру->агенту, динозавром->агентом without extra rules.",
+      "replace": [
+        [
+          "динозавр",
+          "агент"
+        ],
+        [
+          "Создать Дино",
+          "Создать агента"
+        ]
+      ]
+    },
+    {
+      "id": "ui-text.onboarding-agent-copy-zh-hans",
+      "op": "xcstrings",
+      "path": "Packages/OsaurusCore/Resources/Localizable.xcstrings",
+      "enforced": true,
+      "languages": [
+        "zh-Hans"
+      ],
+      "comment": "Simplified Chinese: the measure word changes with the noun (一只小恐龙 -> 一个智能体).",
+      "replace": [
+        [
+          "一只小恐龙",
+          "一个智能体"
+        ],
+        [
+          "小恐龙",
+          "智能体"
+        ],
+        [
+          "恐龙",
+          "智能体"
+        ]
+      ]
+    },
+    {
+      "id": "ui-text.onboarding-agent-copy-zh-hant",
+      "op": "xcstrings",
+      "path": "Packages/OsaurusCore/Resources/Localizable.xcstrings",
+      "enforced": true,
+      "languages": [
+        "zh-Hant"
+      ],
+      "comment": "Traditional Chinese: same measure-word rule as Simplified (一隻小恐龍 -> 一個智能體).",
+      "replace": [
+        [
+          "一隻小恐龍",
+          "一個智能體"
+        ],
+        [
+          "小恐龍",
+          "智能體"
+        ],
+        [
+          "恐龍",
+          "智能體"
+        ]
+      ]
+    },
+    {
+      "id": "ui-text.agent-avatar-accessibility",
+      "op": "replace",
+      "mode": "swift-literals",
+      "files": [
+        "Packages/OsaurusCore/Views/Agent/AgentAvatarView.swift"
+      ],
+      "pattern": "\\b(Blue|Green|Orange|Purple|Red|Yellow) dino\\b",
+      "replace": "\\1 agent",
+      "enforced": true,
+      "comment": "Scope-A follow-up: AgentMascot.displayName feeds the onboarding avatar strip's accessibility labels and tooltips. Only string literals are rewritten, so the enum cases and asset names (osaurus-avatar-*) stay untouched."
+    },
+    {
       "id": "ui-text.swift-literals",
       "op": "replace",
       "mode": "swift-literals",

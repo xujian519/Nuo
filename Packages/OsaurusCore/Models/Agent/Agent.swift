@@ -498,8 +498,8 @@ public struct Agent: Codable, Identifiable, Sendable, Equatable {
     /// Osaurus and delegates work. Renders as "Osaurus" in chat and the
     /// picker unless the user set a custom name in Settings →
     /// Orchestrator; subtitle nudges users toward the configure flow
-    /// that's unique to this agent. `avatar: "green"` resolves the
-    /// bundled `osaurus-avatar-green` asset in
+    /// that's unique to this agent. `avatar: "primary"` resolves the
+    /// bundled `nuo-primary-avatar` asset in
     /// `NativeMessageCellView`/`SharedHeaderComponents`.
     public static var `default`: Agent {
         Agent(
@@ -516,7 +516,7 @@ public struct Agent: Codable, Identifiable, Sendable, Equatable {
             isBuiltIn: true,
             createdAt: Date.distantPast,
             updatedAt: Date.distantPast,
-            avatar: "green"
+            avatar: "primary"
         )
     }
 

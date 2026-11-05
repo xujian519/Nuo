@@ -1118,7 +1118,7 @@ private struct ConfigureAILeftColumn: View {
     private var subtitle: LocalizedStringKey {
         state.screen == .claudeCode
             ? "Nuo delegates sign-in and requests to Anthropic's Claude Code CLI. Credentials stay with the CLI; model requests run in the cloud."
-            : "We've picked the best fit for your Mac and the specialty you chose, so your Dino can work locally — even offline."
+            : "We've picked the best fit for your Mac and the specialty you chose, so your agent can work locally — even offline."
     }
 
     /// The design's white comic speech bubble: 196×64 text box, 12pt
