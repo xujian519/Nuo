@@ -77,14 +77,35 @@ Models, or connect a key under Settings → Providers. The Phase 1 chat hint
 opens those two tabs. Do not treat flipping the defaults key back to `true`
 as the migration; Phase 3 removes the Router source.
 
-### Phase 3 — hard-delete
+### Phase 3 — hard removal of the credits client (landed)
 
-- Delete the credits, workspaces, and sync implementations under
-  `Packages/OsaurusCore/Services/Router/`, and the Credits, Workspaces, and
-  Router view trees, once Phase 2 has shipped.
-- Delete Relay only if the remaining call sites exist only to serve that
-  sync. If Relay still serves mobile reachability, that deletion waits on
-  its own decision.
+Removed the Credits, Workspaces, and Router account view trees, the
+checkout and welcome-credit services, and `RouterBillingDatabase` /
+`RouterBillingLedger`. `.osaurusRouter` completions are refused even if
+the defaults key is true. `GET /credits/balance` answers 404.
+`WorkspaceSyncService` is gone. Roster refresh, workspace list refresh,
+and pool top-up no longer call the Router.
+
+Relay stays. `RelayTunnelManager` also serves Reach From Anywhere, mobile
+pairing, and identity address rotation. It is not only cloud sync.
+
+Identity that lived under `Services/Router/` moved to
+`Identity/Hosted/` (`OsaurusIDService`, `OsaurusIDSessionStore`,
+`OsaurusRouterIDTypes`, `OsaurusRouterAuthSigner`, and the API client
+those types sign with). Local Identity, access keys, pairing, BYOK, and
+local models were already outside that folder and stay. Announcements
+moved to `Services/Announcements/` and were not expanded.
+
+Stored Router model pins (`nuo/…`, `osaurus/…`, `osaurus-cloud/…`, or the
+Router provider UUID) are cleared at launch. No replacement model is
+chosen. Use Settings → Local Models or Settings → Providers.
+
+#### Still leftover
+
+- iCloud Keychain may still sync the Identity master key. Whether that
+  Identity-only sync stays is a future ADR.
+- Announcements and ops deep links stay as they are. This phase does not
+  productize them.
 
 ## Consequences
 

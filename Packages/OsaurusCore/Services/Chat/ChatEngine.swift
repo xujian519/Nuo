@@ -495,7 +495,8 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
         serviceIsOsaurusRouter: Bool,
         routerEnabled: Bool
     ) -> EngineError? {
-        guard serviceIsOsaurusRouter, !routerEnabled else { return nil }
+        _ = routerEnabled
+        guard serviceIsOsaurusRouter else { return nil }
         return EngineError(kind: .routerDisabled)
     }
 

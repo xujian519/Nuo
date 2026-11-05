@@ -49,6 +49,22 @@ enum RouterPinnedModel {
         return false
     }
 
+    /// Clears agent and new-chat defaults that still name the managed Router.
+    /// Does not pick a replacement model. The user chooses a local model or
+    /// a bring-your-own-key provider afterwards.
+    @MainActor
+    static func clearStoredRouterPins() {
+        let manager = AgentManager.shared
+        for agent in manager.agents where isRouterModelId(agent.defaultModel) {
+            manager.updateDefaultModel(for: agent.id, model: nil)
+        }
+        var seeded = ChatConfigurationStore.load()
+        if isRouterModelId(seeded.defaultModel) {
+            seeded.defaultModel = nil
+            ChatConfigurationStore.save(seeded)
+        }
+    }
+
     private static func normalized(_ modelId: String?) -> String? {
         guard let trimmed = modelId?.trimmingCharacters(in: .whitespacesAndNewlines),
             !trimmed.isEmpty

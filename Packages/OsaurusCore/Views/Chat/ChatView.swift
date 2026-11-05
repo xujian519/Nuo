@@ -4471,15 +4471,6 @@ final class ChatSession: ObservableObject {
         if billing.outputTokens > 0 {
             turn.generationTokenCount = billing.outputTokens
         }
-        if let entryId = RouterBillingLedger.shared.record(
-            summary: billing,
-            sessionId: sessionId,
-            turnId: turn.id,
-            model: selectedModel,
-            outcome: .pending
-        ) {
-            turn.billingEntryIds.insert(entryId)
-        }
     }
 
     /// Classify how a completed assistant turn ultimately rendered. The same
@@ -4499,16 +4490,7 @@ final class ChatSession: ObservableObject {
     /// Backfill the rendered outcome onto each billed turn's ledger rows. Called
     /// once per run at cleanup. Idempotent; reloaded turns have no transient
     /// entry ids and are skipped since their rows were finalized live.
-    private func finalizeRouterBillingOutcomes() {
-        for turn in turns where turn.role == .assistant {
-            for entryId in turn.billingEntryIds {
-                RouterBillingLedger.shared.finalizeOutcome(
-                    entryId: entryId,
-                    outcome: classifyBillingOutcome(for: turn)
-                )
-            }
-        }
-    }
+    private func finalizeRouterBillingOutcomes() {}
 
     // MARK: - Insufficient funds + post-top-up retry
 
@@ -4529,11 +4511,6 @@ final class ChatSession: ObservableObject {
         // triggers the retry prompt. Left nil until the refresh lands so the
         // refresh's own balance change doesn't read as a top-up.
         balanceMicroAtInsufficientFunds = nil
-        Task {
-            await OsaurusRouterAccountService.shared.refreshBalance()
-            self.balanceMicroAtInsufficientFunds =
-                OsaurusRouterAccountService.shared.balanceMicroValue
-        }
     }
 
     /// Offer a one-tap retry once the balance is restored after an
@@ -4542,19 +4519,7 @@ final class ChatSession: ObservableObject {
     /// Only fires while the blocked turn is still the last turn, because
     /// `regenerate` truncates everything from that turn onward and must not
     /// delete newer messages.
-    func handleBalanceChangeForRetry() {
-        guard let blockedId = insufficientFundsTurnId,
-            let baseline = balanceMicroAtInsufficientFunds
-        else { return }
-        guard turns.last?.id == blockedId else {
-            // The user has moved on; nothing safe to retry.
-            clearInsufficientFundsRetryState()
-            return
-        }
-        let currentMicro = OsaurusRouterAccountService.shared.balanceMicroValue
-        guard currentMicro > baseline, currentMicro > 0 else { return }
-        topUpRetryAlert = true
-    }
+    func handleBalanceChangeForRetry() {}
 
     /// Retry the message that was blocked by insufficient funds by regenerating
     /// the blocked turn (a fresh run that re-bills by design). Safe-guards the
@@ -9401,10 +9366,8 @@ struct ChatView: View {
     @StateObject private var deleteMessageOptions = DeleteMessageOptions()
     /// Presents the credits top-up sheet, opened from the out-of-credits modal
     /// or the composer's credits chip.
-    @State private var showTopUpSheet: Bool = false
     /// Observed so the post-top-up retry watcher reacts to balance changes; the
     /// balance auto-refreshes on app activation when returning from Stripe.
-    @ObservedObject private var accountService = OsaurusRouterAccountService.shared
     /// Privacy-filter review sheet payload. Set by the
     /// `PrivacyReviewService` presenter registration in `.onAppear`;
     /// presented via `.sheet(item:)` below. Identifiable so SwiftUI
@@ -9488,24 +9451,12 @@ struct ChatView: View {
     }
 
     private var insufficientFundsMessage: String {
-        String(
-            localized:
-                "Your balance is \(accountService.formattedBalance). Add credits to keep chatting.",
-            bundle: .module,
-            comment:
-                "Message in the out-of-credits modal shown in chat; the placeholder is the current balance."
-        )
+        L("Credits and Workspaces were removed. Use a local model or your own provider.")
     }
 
     /// Balance-aware copy for the post-top-up retry modal.
     private var creditsAddedRetryMessage: String {
-        String(
-            localized:
-                "Your balance is now \(accountService.formattedBalance). Retry your last message to continue.",
-            bundle: .module,
-            comment:
-                "Message in the credits-added retry modal shown in chat after a top-up; the placeholder is the new balance."
-        )
+        L("Credits and Workspaces were removed. Use a local model or your own provider.")
     }
 
     /// Convenience accessor for the window ID
@@ -10108,7 +10059,9 @@ struct ChatView: View {
                 L("You're out of credits"),
                 isPresented: $observedSession.insufficientFundsAlert,
                 message: insufficientFundsMessage,
-                primaryButton: .primary(L("Add credits")) { showTopUpSheet = true },
+                primaryButton: .primary(L("Connect a provider")) {
+                    AppDelegate.shared?.showManagementWindow(initialTab: .providers)
+                },
                 secondaryButton: .cancel(L("Not now"))
             )
             .themedAlert(
@@ -10133,10 +10086,6 @@ struct ChatView: View {
             // scope explicitly because the environment doesn't reach
             // overlay level.
             .overlay { ConfigApprovalModal(scope: .chat(windowState.windowId)) }
-            .sheet(isPresented: $showTopUpSheet) {
-                CreditsTopUpSheet()
-                    .environment(\.theme, theme)
-            }
             // First-run / progress dialog for LLM context compaction. The
             // sheet's dismissal (Esc, outside interaction) routes through the
             // session so a declined first run resumes the stashed send.
@@ -10152,9 +10101,6 @@ struct ChatView: View {
             ) {
                 CompactionDialogView(session: observedSession)
                     .environment(\.theme, theme)
-            }
-            .onChange(of: accountService.balance) { _, _ in
-                session.handleBalanceChangeForRetry()
             }
             .onChange(of: session.promptQueue.current?.id) { _, newValue in
                 // Hand keyboard focus back to the composer once the last
@@ -10619,7 +10565,9 @@ struct ChatView: View {
                                     queuedSend: $observedSession.queuedSend,
                                     onSendNow: { observedSession.sendNowInterrupting() },
                                     onCancelQueued: { observedSession.cancelQueuedSend() },
-                                    onAddCredits: { showTopUpSheet = true },
+                                    onAddCredits: {
+                                        AppDelegate.shared?.showManagementWindow(initialTab: .providers)
+                                    },
                                     isModelPinned: isRemoteAgentChrome,
                                     pinnedModelLabel: pinnedModelChipLabel,
                                     remoteConnectionPending: windowState.remoteAgentConnectionPhase

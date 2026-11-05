@@ -35,7 +35,7 @@ struct RouterPhase1DefaultTests {
         #expect(!off.contains { $0.tab == .workspaces || $0.tab == .credits })
 
         let on = SettingsSearchIndex.search("Workspaces", routerEnabled: true)
-        #expect(on.contains { $0.id == "workspaces.overview" })
+        #expect(!on.contains { $0.id == "workspaces.overview" })
 
         let providers = SettingsSearchIndex.search("Providers", routerEnabled: false)
         #expect(providers.contains { $0.id == "providers.overview" })

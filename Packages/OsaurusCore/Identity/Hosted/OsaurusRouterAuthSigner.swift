@@ -29,15 +29,9 @@ struct OsaurusRouterAuthSigner: Sendable {
             throw OsaurusRouterAPIError.invalidURL
         }
         let pathAndQuery = Self.pathAndQuery(for: requestURL)
-        let maySign = await MainActor.run {
-            RouterCreditAcquisitionCoordinator.shared.allowsSignedRequest(
-                pathAndQuery: pathAndQuery
-            )
-        }
-        guard maySign else {
-            throw OsaurusRouterAPIError.firstActionPending
-        }
-
+        // Phase 3: credits acquisition no longer gates Identity signing.
+        // The message prefix stays `osaurus-credits:` because it is the
+        // wallet signature domain the identity service already verifies.
         guard OsaurusIdentity.exists() else {
             throw OsaurusRouterAPIError.noIdentity
         }

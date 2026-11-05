@@ -24,7 +24,7 @@
 
 | # | 入口 / 连接 | 现状 | 证据 |
 |---|---|---|---|
-| 1 | **Router 主开关** | `ai.osaurus.router.enabled` **缺省 = 关闭**（ADR-Nuo-001 Phase 1）。显式 `true` 仍打开 | `Services/Router/OsaurusRouterTypes.swift` |
+| 1 | **Router 主开关** | `ai.osaurus.router.enabled` **缺省 = 关闭**（ADR-Nuo-001）。Phase 3 起补全也不再走 Router | `Identity/Hosted/OsaurusRouterTypes.swift` |
 | 2 | Router 设置 UI | Settings → Credits 页含 "Osaurus Router" toggle、credits 余额/充值、"router off" 说明卡 | `Views/Credits/CreditsView.swift:198-205` |
 | 3 | Router usage 中心 | `RouterAccountUsageCenterView`（ChatView 等处引用） | `Views/Router/RouterAccountUsageCenterView.swift` |
 | 4 | Cloud 模型浏览器 | `CloudModelBrowserDialog`，依赖 `isOsaurusRouterEnabled` | `Views/Model/CloudModelBrowserDialog.swift:57` |

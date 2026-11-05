@@ -197,7 +197,7 @@ surfaces and one proposed.
 
 If the user has shared agents into any Workspace, the router lists them.
 All `/workspaces/*` calls are signed with the master key
-([`OsaurusRouterAuthSigner.swift`](../Packages/OsaurusCore/Services/Router/OsaurusRouterAuthSigner.swift)):
+([`OsaurusRouterAuthSigner.swift`](../Packages/OsaurusCore/Identity/Hosted/OsaurusRouterAuthSigner.swift)):
 
 ```
 Headers:

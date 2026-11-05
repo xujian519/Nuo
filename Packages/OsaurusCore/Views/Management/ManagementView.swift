@@ -192,10 +192,8 @@ private extension ManagementView {
     func contentView(for tabId: String) -> some View {
         let tab = ManagementTab.resolved(from: tabId)
         switch tab {
-        case .credits:
-            CreditsView()
-        case .workspaces:
-            WorkspacesView()
+        case .credits, .workspaces:
+            RouterControlPlaneRemovedView()
         case .connect:
             OsaurusConnectView()
         case .models:
@@ -370,6 +368,32 @@ private extension ManagementView {
         withAnimation(.easeOut(duration: 0.2)) {
             stateManager.selectedTab = entry.tab
         }
+    }
+}
+
+// MARK: - Removed control plane
+
+/// Landing for old Credits / Workspaces deep links after Phase 3.
+private struct RouterControlPlaneRemovedView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(L("Credits and Workspaces were removed. Use a local model or your own provider."))
+                .font(.body)
+            HStack(spacing: 8) {
+                Button {
+                    AppDelegate.shared?.showManagementWindow(initialTab: .models)
+                } label: {
+                    Text(L("Run a local model"))
+                }
+                Button {
+                    AppDelegate.shared?.showManagementWindow(initialTab: .providers)
+                } label: {
+                    Text(L("Connect a provider"))
+                }
+            }
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }
 

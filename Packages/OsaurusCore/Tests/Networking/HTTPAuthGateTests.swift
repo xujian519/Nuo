@@ -300,14 +300,18 @@ struct HTTPAuthGateTests {
             let (data, resp) = try await URLSession.shared.data(
                 from: URL(string: "http://\(server.host):\(server.port)\(path)")!
             )
-            #expect((resp as? HTTPURLResponse)?.statusCode == 403)
-            #expect(String(decoding: data, as: UTF8.self).contains("credits_access_not_authorized"))
+            #expect((resp as? HTTPURLResponse)?.statusCode == 404)
+            #expect(String(decoding: data, as: UTF8.self).contains("credits_removed"))
         }
     }
 
     /// Trusted loopback skips scope confinement, so the endpoint itself must
     /// refuse a valid key that is not master-scoped, on either transport.
-    @Test func creditsBalance_agentScopedKey_returns403_onLoopbackAndRemote() async throws {
+    /// Either refusal is correct: the scope gate answers 403 before routing
+    /// when the key is validated, and the removed `/credits/*` endpoint
+    /// answers 404 credits_removed when the request reaches it (loopback
+    /// trust skips key validation). Both fail closed.
+    @Test func creditsBalance_agentScopedKey_refused_onLoopbackAndRemote() async throws {
         let defaults = UserDefaults.standard
         let previous = defaults.object(forKey: OsaurusRouter.allowUnkeyedLoopbackSpendDefaultsKey)
         defaults.removeObject(forKey: OsaurusRouter.allowUnkeyedLoopbackSpendDefaultsKey)
@@ -322,7 +326,10 @@ struct HTTPAuthGateTests {
             let server = try await startAuthTestServer(validator: fixture.validator, trustLoopback: trustLoopback)
             let result = try await Self.send("GET", "/credits/balance", token: fixture.token, server: server)
             await server.shutdown()
-            #expect(result.status == 403)
+            #expect(
+                result.status == 403 || result.status == 404,
+                "agent-scoped key must never read the credit balance; got \(result.status)"
+            )
         }
     }
 

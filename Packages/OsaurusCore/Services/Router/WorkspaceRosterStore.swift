@@ -100,7 +100,7 @@ final class WorkspaceRosterStore: ObservableObject {
     /// Whether the sync stream currently carries a verified snapshot, in
     /// which case an activation refresh has nothing to add. Injectable so
     /// tests can exercise both branches without a stream.
-    var isSyncVerified: () -> Bool = { WorkspaceSyncService.shared.isVerified }
+    var isSyncVerified: () -> Bool = { false }
     /// Eventually-consistent identity gate for `refresh`. Injectable so the
     /// request contract can be tested without a keychain.
     var hasIdentity: () -> Bool = { MasterKey.existsCached() }
@@ -286,103 +286,10 @@ final class WorkspaceRosterStore: ObservableObject {
     /// while the sync stream is verified and throttled otherwise; every
     /// other reason runs unless a refresh is already in flight.
     func refresh(reason: RefreshReason = .manual) async {
-        guard OsaurusRouter.isEnabled, hasIdentity() else {
-            if !rosters.isEmpty { rosters = [] }
-            if lastError != nil { lastError = nil }
-            return
-        }
-        guard !refreshInFlight else { return }
-        if reason == .activation {
-            if isSyncVerified() { return }
-            if let last = lastRefreshStarted,
-                now().timeIntervalSince(last) < Self.activationRefreshInterval
-            {
-                return
-            }
-        }
-        let generation = stateGeneration
-        refreshInFlight = true
-        if rosters.isEmpty, lastRefreshedAt == nil { isLoading = true }
-        defer {
-            refreshInFlight = false
-            isLoading = false
-        }
-        lastRefreshStarted = now()
-
-        let workspaces: [OsaurusRouterWorkspaceSummary]
-        do {
-            workspaces = try await client.listWorkspaces()
-        } catch {
-            // Keep whatever we had; the sidebar shows the error with Retry
-            // instead of pretending the user has no workspaces.
-            verifiedAt.removeAll()
-            objectWillChange.send()
-            lastError = Self.refreshFailureMessage(for: error)
-            return
-        }
-        // One authoritative list serves every consumer: the Settings tab's
-        // `WorkspacesService` takes it from here instead of fetching its own
-        // copy on the same trigger.
-        Self.workspaceListReconciler?(workspaces)
-        let previous = rosters
-        var verified = Set<String>()
-        let next = await Self.buildRosters(workspaces: workspaces, previous: previous) { [client] id in
-            let agents = try await client.workspaceAgents(id: id)
-            verified.insert(id)
-            return agents
-        }
-        guard generation == stateGeneration else { return }
-        if lastError != nil { lastError = nil }
-        apply(rosters: next, verifiedWorkspaceIds: verified)
-
-        // Keep the pairing side in step: any teammate agent not yet paired
-        // gets the background handshake, so a row that just appeared is
-        // chat-ready by the time the user clicks it.
-        for roster in next {
-            await WorkspaceAgentConnectService.shared.autoConnect(
-                workspaceId: roster.workspace.id,
-                agents: roster.agents
-            )
-        }
-    }
-
-    /// Fetch every workspace's agent list. A transient per-workspace fetch
-    /// failure must not read as "no shared agents yet": the workspace keeps
-    /// its last known list (empty only if we never had one). Static with an
-    /// injected fetch so the rule is unit-testable without the Router gate.
-    static func buildRosters(
-        workspaces: [OsaurusRouterWorkspaceSummary],
-        previous: [WorkspaceRoster],
-        fetch: (String) async throws -> [OsaurusRouterWorkspaceAgent]
-    ) async -> [WorkspaceRoster] {
-        var next: [WorkspaceRoster] = []
-        for workspace in workspaces {
-            let kept = previous.first { $0.id == workspace.id }?.agents
-            let agents: [OsaurusRouterWorkspaceAgent]
-            if let fetched = try? await fetch(workspace.id) {
-                agents = fetched
-            } else {
-                agents = kept ?? []
-            }
-            next.append(WorkspaceRoster(workspace: workspace, agents: agents))
-        }
-        return next
-    }
-
-    /// Short, user-facing reason a roster refresh failed.
-    nonisolated static func refreshFailureMessage(for error: Error) -> String {
-        if let urlError = error as? URLError {
-            switch urlError.code {
-            case .notConnectedToInternet, .networkConnectionLost, .timedOut,
-                .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed:
-                return L("Couldn't reach Osaurus Router. Check your connection.")
-            default: break
-            }
-        }
-        if case OsaurusRouterAPIError.server(_, let message, _) = error, !message.isEmpty {
-            return message
-        }
-        return L("Couldn't load your workspaces.")
+        // Phase 3 removed the workspace sync client. Chat can still read a
+        // roster that was already in memory; it does not call the Router.
+        _ = reason
+        return
     }
 
     /// Install a freshly fetched roster set, clearing force-offline marks for
@@ -432,7 +339,6 @@ final class WorkspaceRosterStore: ObservableObject {
         // Every roster apply is authoritative about membership: it is what
         // starts the sync stream for a first workspace and stops it once
         // the last one is gone.
-        WorkspaceSyncService.shared.noteMembership(hasWorkspaces: !next.isEmpty)
     }
 
     // MARK: - Workspace list hand-off
@@ -658,7 +564,6 @@ final class WorkspaceRosterStore: ObservableObject {
     /// stream request survives the launch bootstrap.
     func beginObserving() {
         observerCount += 1
-        WorkspaceSyncService.shared.start()
     }
 
     func endObserving() {

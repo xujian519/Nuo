@@ -96,7 +96,7 @@ public actor StorageRecoveryService {
             case .scheduler:
                 try SchedulerDatabase.shared.open()
             case .routerBilling:
-                try RouterBillingDatabase.shared.open()
+                return true
             case .activityLog:
                 try ActivityLogStore.shared.open()
             }

@@ -1912,23 +1912,17 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         let requestHasOrigin = head.headers.contains(name: "Origin")
 
         runRequestTask(priority: .userInitiated) {
-            let response: (status: Int, json: [String: Any])
-            if LocalCreditsBalance.isAuthorized(
-                callerHasVerifiedMasterKey: hasVerifiedMasterKey,
-                allowsUnkeyedLoopbackSpend: OsaurusRouter.allowsUnkeyedLoopbackSpend,
-                requestHasOrigin: requestHasOrigin
-            ) {
-                let result = await OsaurusRouterAccountService.shared.balanceForLocalAPI()
-                response = LocalCreditsBalance.response(for: result)
-            } else {
-                response = (
-                    403,
-                    LocalCreditsBalance.error(
-                        code: "credits_access_not_authorized",
-                        message: LocalCreditsBalance.unauthorizedMessage
-                    )
-                )
-            }
+            let response: (status: Int, json: [String: Any]) = (
+                404,
+                [
+                    "error": [
+                        "code": "credits_removed",
+                        "message": "Credits checkout has been removed. Use a local model or your own provider.",
+                    ],
+                ]
+            )
+            _ = hasVerifiedMasterKey
+            _ = requestHasOrigin
             let data = try? JSONSerialization.data(withJSONObject: response.json, options: .osaurusCanonical)
             let body = data.flatMap { String(decoding: $0, as: UTF8.self) } ?? "{}"
             let headers: [(String, String)] =

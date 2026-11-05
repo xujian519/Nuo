@@ -38,6 +38,7 @@ struct SettingsSearchSelfFindProbe {
     @Test("every entry is findable by its own title")
     func everyEntryFindsItselfByTitle() {
         let unfindable = SettingsSearchIndex.entries
+            .filter { !ManagementTab.routerControlPlaneTabs.contains($0.tab) }
             .filter { entry in
                 !SettingsSearchIndex.search(entry.title, routerEnabled: true).contains { $0.id == entry.id }
             }
@@ -52,6 +53,7 @@ struct SettingsSearchSelfFindProbe {
     @Test("every entry with a section header is findable by that header")
     func everyEntryFindsItselfBySection() {
         let unfindable = SettingsSearchIndex.entries
+            .filter { !ManagementTab.routerControlPlaneTabs.contains($0.tab) }
             .filter { !$0.section.trimmingCharacters(in: .whitespaces).isEmpty }
             .filter { entry in
                 !SettingsSearchIndex.search(entry.section, routerEnabled: true).contains { $0.id == entry.id }
@@ -292,12 +294,9 @@ struct SettingsSearchSelfFindProbe {
             ("check memory before delegating", "settings.orchestrator.delegation.ramSafety"),
             ("stable_memory_refusal", "settings.orchestrator.delegation.ramSafety"),
             ("delegations", "settings.orchestrator.delegations"),
-            // Workspaces → Shared agents: the per-workspace auto-join switch.
-            ("let the orchestrator delegate to shared agents", "workspaces.agents.orchestratorAutoJoin"),
-            ("auto-join", "workspaces.agents.orchestratorAutoJoin"),
-            // Workspaces → Shared agents: the per-agent pool-billing switch.
-            ("bill the workspace pool", "workspaces.agents.billPool"),
-            ("pool billing", "workspaces.agents.billPool"),
+            // Phase 3 removed the Workspaces screens; workspaces.* rows stay in
+            // the catalog but are never searchable, so they have no on-screen
+            // labels to pin here.
             // Agents → Abilities → Tools: the Apple Apps group row and one picker group per app,
             // by the exact title each picker group shows.
             ("apple apps", "agents.appleApps"),

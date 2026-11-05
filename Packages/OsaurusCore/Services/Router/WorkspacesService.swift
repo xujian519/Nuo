@@ -137,26 +137,15 @@ final class WorkspacesService: ObservableObject {
 
     private let client: OsaurusRouterAPIClient
     private let defaults: UserDefaults
-    /// Test seam for the Phase 1 router master-switch gate: when set, the
-    /// gate reads this instead of the process-wide `OsaurusRouter.isEnabled`,
-    /// so service tests exercise the control-plane paths without mutating
-    /// `UserDefaults.standard`. Production passes nil.
-    private let routerEnabledOverride: Bool?
     // Retained for the lifetime of the (effectively singleton) service.
     private var activationObserver: NSObjectProtocol?
 
-    private var routerEnabled: Bool {
-        routerEnabledOverride ?? OsaurusRouter.isEnabled
-    }
-
     init(
         client: OsaurusRouterAPIClient = .shared,
-        defaults: UserDefaults = .standard,
-        routerEnabledOverride: Bool? = nil
+        defaults: UserDefaults = .standard
     ) {
         self.client = client
         self.defaults = defaults
-        self.routerEnabledOverride = routerEnabledOverride
         activationObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didBecomeActiveNotification,
             object: nil,
@@ -174,52 +163,14 @@ final class WorkspacesService: ObservableObject {
     /// mutations (create / join / leave / delete); the sync stream and the
     /// roster store's activation refresh keep it current otherwise (see
     /// `applyWorkspaceList`).
-    func refreshWorkspaces() async {
-        guard routerEnabled else { return }
-        guard !isLoadingWorkspaces else { return }
-        let generation = rootGeneration
-        isLoadingWorkspaces = true
-        defer { isLoadingWorkspaces = false }
-
-        do {
-            let fetched = try await client.listWorkspaces()
-            guard generation == rootGeneration else { return }
-            installWorkspaceList(fetched)
-            // Membership changed (create / join / leave / removed): the chat
-            // sidebar's per-workspace sections follow the same list.
-            let known = Set(WorkspaceRosterStore.shared.rosters.map(\.id))
-            if known != Set(workspaces.map(\.id)) {
-                Task { await WorkspaceRosterStore.shared.refresh(reason: .manual) }
-            }
-            WorkspaceSyncService.shared.noteMembership(hasWorkspaces: !fetched.isEmpty)
-        } catch {
-            noteError(error)
-            return
-        }
-        await refreshBilling()
-        // A manual refresh while a new-workspace Checkout is pending is a
-        // fine moment to notice the webhook landed (not just app activation).
-        if case .checkout(_, let name, let knownIds) = pendingConfirmation,
-            let created = workspaces.first(where: {
-                !knownIds.contains($0.id) && $0.typedRole == .owner && $0.isActive
-            })
-        {
-            endConfirmation()
-            await WorkspaceAuditLog.shared.recordOwnerAction(
-                .workspaceCreated,
-                workspaceId: created.id,
-                details: ["name": name, "via": "checkout"]
-            )
-            await selectWorkspace(id: created.id)
-        }
-    }
+    func refreshWorkspaces() async {}
 
     /// An authoritative workspace list fetched by another surface (the chat
     /// roster store's probe, fallback, or activation refresh). Installs it
     /// exactly as `refreshWorkspaces` would, without a second
     /// `GET /workspaces` for the same trigger.
     func applyWorkspaceList(_ fetched: [OsaurusRouterWorkspaceSummary]) {
-        guard routerEnabled else { return }
+        guard OsaurusRouter.isEnabled else { return }
         installWorkspaceList(fetched)
     }
 
@@ -239,15 +190,7 @@ final class WorkspacesService: ObservableObject {
     /// surface, and a router without these routes must not raise a banner.
     /// Prices are public catalog data that change by deploy, not by user
     /// action: fetched once per session.
-    func refreshBilling() async {
-        guard routerEnabled else { return }
-        if let summary = try? await client.workspaceBilling() {
-            billing = summary
-        }
-        if prices == nil, let fetched = try? await client.workspacePrices() {
-            prices = fetched
-        }
-    }
+    func refreshBilling() async {}
 
     // MARK: Trial / plan conveniences (nil until billing has loaded)
 
@@ -489,12 +432,12 @@ final class WorkspacesService: ObservableObject {
     // MARK: - Selection
 
     /// Detail tab a deep link asked for (chat sidebar gear → Shared Agents,
-    /// composer pool chip → Overview). `WorkspaceDetailView` consumes and
-    /// clears it, so the user's own tab clicks are never overridden later.
-    @Published var deepLinkTab: WorkspaceDetailView.Tab?
+    /// composer pool chip → Overview). Consumed and cleared by the workspace
+    /// detail surface, so the user's own tab clicks are never overridden later.
+    @Published var deepLinkTab: WorkspaceSettingsTab?
     /// Local agent a deep link wants the Share agent sheet opened for
     /// (chat sidebar → Share to Workspace → <name>). Consumed together with
-    /// `deepLinkTab` by `WorkspaceDetailView`.
+    /// `deepLinkTab`.
     @Published var deepLinkShareAgentId: UUID?
 
     /// Land on one workspace's detail in Settings ▸ Workspaces from anywhere
@@ -505,7 +448,7 @@ final class WorkspacesService: ObservableObject {
     /// additionally opens the Share agent sheet with that agent selected.
     func openInSettings(
         workspaceId: String,
-        tab: WorkspaceDetailView.Tab = .overview,
+        tab: WorkspaceSettingsTab = .overview,
         shareAgentId: UUID? = nil
     ) {
         // Set before the tab: the detail view's tab observer consumes both.
@@ -617,34 +560,6 @@ final class WorkspacesService: ObservableObject {
         }
     }
 
-    /// Install a `/workspaces/sync` snapshot. Every reconnect (and any server
-    /// re-read that finds a difference) delivers a full snapshot, so each
-    /// `@Published` field is only reassigned when its value actually changed:
-    /// an identical snapshot must not re-render the Workspaces tab.
-    func applySyncSnapshot(_ snapshot: WorkspaceSyncSnapshot) {
-        rootGeneration = UUID()
-        let nextWorkspaces = snapshot.workspaces.map(\.workspace)
-        if workspaces != nextWorkspaces { workspaces = nextWorkspaces }
-        lastRootRefresh = Date()
-        reconcileBillingPreferences(validWorkspaceIds: Set(workspaces.map(\.id)))
-        guard let id = selectedWorkspaceId else { return }
-        // Supersede any poll already in flight before publishing this snapshot.
-        selectionGeneration = UUID()
-        if isLoadingDetail { isLoadingDetail = false }
-        guard let entry = snapshot.workspaces.first(where: { $0.workspace.id == id }) else {
-            clearSelection()
-            return
-        }
-        if detail != entry.detail { detail = entry.detail }
-        if members != entry.members { members = entry.members }
-        if workspaceAgents != entry.agents { workspaceAgents = entry.agents }
-        if workspaceInvites != entry.invites { workspaceInvites = entry.invites }
-        reconcileBillingPreferences(
-            workspaceId: id,
-            activeAgentAddresses: Set(entry.agents.map { $0.agentAddress.lowercased() })
-        )
-    }
-
     // MARK: - Billing
 
     /// Opens the Stripe Billing Portal for the caller's owner subscription
@@ -691,7 +606,7 @@ final class WorkspacesService: ObservableObject {
     /// failure — the last known figure stays.
     @discardableResult
     func refreshPoolBalance(workspaceId: String, force: Bool = false) async -> OsaurusRouterWorkspacePoolBalance? {
-        guard routerEnabled else { return poolBalances[workspaceId] }
+        guard OsaurusRouter.isEnabled else { return poolBalances[workspaceId] }
         if !force, let fetched = poolBalanceFetchedAt[workspaceId],
             Date().timeIntervalSince(fetched) < Self.poolBalanceMinRefreshInterval
         {
@@ -797,35 +712,8 @@ final class WorkspacesService: ObservableObject {
     /// `SUBSCRIPTION_INACTIVE`).
     @discardableResult
     func topUpPool(workspaceId: String, amountMicro: Int64) async -> String? {
-        let verdict = OsaurusRouterWorkspacePoolCredits.validateTopUp(micro: amountMicro)
-        guard verdict == .ok else {
-            lastError = Self.topUpValidationMessage(verdict)
-            lastErrorCode = nil
-            return nil
-        }
-        var topupId: String?
-        let ok = await performMutation(key: "pool.topup") {
-            let response = try await self.client.workspacePoolCheckout(id: workspaceId, amountMicro: amountMicro)
-            guard let url = URL(string: response.checkoutURL) else {
-                throw OsaurusRouterAPIError.invalidResponse
-            }
-            topupId = response.topupId
-            let before =
-                self.selectedWorkspaceId == workspaceId
-                ? (self.poolBalance?.balanceMicro ?? self.detail?.balanceMicro).flatMap(Int64.init)
-                : nil
-            self.beginConfirmation(
-                .topUp(
-                    workspaceId: workspaceId,
-                    topupId: response.topupId,
-                    amountMicro: amountMicro,
-                    balanceBeforeMicro: before,
-                    startedAt: Date()
-                )
-            )
-            self.openURL(url)
-        }
-        return ok ? topupId : nil
+        _ = (workspaceId, amountMicro)
+        return nil
     }
 
     static func topUpValidationMessage(
@@ -1450,7 +1338,7 @@ final class WorkspacesService: ObservableObject {
     /// refreshes only the shared-agent roster (whose `online`/`last_seen`
     /// age out in seconds), skipping members/subscription/detail.
     func refreshAgentsPresence() async {
-        guard routerEnabled, let id = selectedWorkspaceId else { return }
+        guard OsaurusRouter.isEnabled, let id = selectedWorkspaceId else { return }
         let generation = selectionGeneration
         guard let agents = try? await client.workspaceAgents(id: id) else { return }
         guard selectedWorkspaceId == id, generation == selectionGeneration else { return }
@@ -1665,7 +1553,7 @@ final class WorkspacesService: ObservableObject {
     /// Internal (not private) so tests can drive activation polling directly
     /// instead of posting `didBecomeActiveNotification` and racing the task.
     func handleAppActivation() async {
-        guard routerEnabled else { return }
+        guard OsaurusRouter.isEnabled else { return }
         // Return-from-Stripe path: the redirect grants nothing, the webhook
         // does, so poll the router while waiting — but give up after a
         // bounded number of fruitless polls (the tab was abandoned; the UI
@@ -1682,10 +1570,9 @@ final class WorkspacesService: ObservableObject {
             }
         }
 
-        // Membership changes reach this surface through the sync stream
-        // (`applySyncSnapshot`) and, when the stream is not verified, through
-        // the roster store's throttled activation refresh (`applyWorkspaceList`).
-        // No list fetch of our own here: that doubled every activation.
+        // Membership changes reach this surface through the roster store's
+        // throttled activation refresh (`applyWorkspaceList`). No list fetch
+        // of our own here: that doubled every activation.
     }
 
     /// One poll for a pending Stripe round-trip. Returns true when the

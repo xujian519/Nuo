@@ -50,12 +50,14 @@ struct RouterPhase2ControlPlaneTests {
             return
         }
         #expect(blocked.httpStatus == 403)
-        #expect(
-            ChatEngine.routerDisabledError(
-                serviceIsOsaurusRouter: true,
-                routerEnabled: true
-            ) == nil
+        let alsoBlocked = ChatEngine.routerDisabledError(
+            serviceIsOsaurusRouter: true,
+            routerEnabled: true
         )
+        guard let alsoBlocked, case .routerDisabled = alsoBlocked.kind else {
+            Issue.record("router completions stay off after Phase 3")
+            return
+        }
         #expect(
             ChatEngine.routerDisabledError(
                 serviceIsOsaurusRouter: false,
@@ -64,27 +66,4 @@ struct RouterPhase2ControlPlaneTests {
         )
     }
 
-    @Test func disabledRouterDoesNotWriteTheBillingLedger() throws {
-        let db = RouterBillingDatabase()
-        try db.openInMemory()
-        let ledger = RouterBillingLedger(database: db, writesEnabled: { false })
-        let summary = RouterBillingSummary(
-            requestId: "phase2-off",
-            costMicro: "100",
-            status: "completed",
-            tokenSource: "provider",
-            inputTokens: 1,
-            outputTokens: 1
-        )
-        #expect(
-            ledger.record(
-                summary: summary,
-                sessionId: nil,
-                turnId: UUID(),
-                model: "nuo/example"
-            ) == nil
-        )
-        ledger.finalizeOutcome(entryId: "missing", outcome: .rendered)
-        #expect(ledger.count() == 0)
-    }
 }

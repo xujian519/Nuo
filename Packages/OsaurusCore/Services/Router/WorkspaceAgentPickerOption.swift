@@ -7,6 +7,10 @@
 //  instance's own agents; presence is UI decoration only — the dispatch
 //  funnel's relay probe is what actually decides whether a run may start.
 //
+//  Lived inside the deleted `Views/Workspaces/`; re-homed here because the
+//  trigger editors and dispatch routing editor still build their pickers
+//  from it.
+//
 
 import Foundation
 import SwiftUI
