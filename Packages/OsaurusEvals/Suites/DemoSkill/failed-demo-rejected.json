@@ -1,0 +1,13 @@
+{
+  "id": "demo_skill.failed-demo-rejected",
+  "domain": "demo_skill",
+  "label": "demo skill \u2022 a failed tool step never becomes a skill",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "One unsuccessful step rejects the recording. Accept does not write SKILL.md. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "demoSkill": {
+      "scenario": "failed_demo_rejected"
+    }
+  }
+}

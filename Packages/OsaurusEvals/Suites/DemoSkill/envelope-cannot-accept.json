@@ -1,0 +1,13 @@
+{
+  "id": "demo_skill.envelope-cannot-accept",
+  "domain": "demo_skill",
+  "label": "demo skill \u2022 mailbox text cannot accept a draft",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "Untrusted envelope content is not a review decision. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "demoSkill": {
+      "scenario": "envelope_cannot_accept"
+    }
+  }
+}

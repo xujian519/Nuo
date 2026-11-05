@@ -1,0 +1,13 @@
+{
+  "id": "demo_skill.empty-recording-rejected",
+  "domain": "demo_skill",
+  "label": "demo skill \u2022 start/stop with no steps is not a skill",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "An explicit stop of an empty recording is rejected. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "demoSkill": {
+      "scenario": "empty_recording_rejected"
+    }
+  }
+}

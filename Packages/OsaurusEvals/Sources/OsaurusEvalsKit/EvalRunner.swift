@@ -716,6 +716,8 @@ public enum EvalRunner {
             return await runMemoryCase(testCase, modelId: modelId)
         case "agent_channels":
             return await runAgentChannelsCase(testCase, modelId: modelId)
+        case "demo_skill":
+            return await runDemoSkillCase(testCase, modelId: modelId)
         case "tools", "streaming", "contract":
             // Retired scaffolds: the live HTTP lane (`http_api`) covers
             // what these placeholders were reserved for. Kept as an

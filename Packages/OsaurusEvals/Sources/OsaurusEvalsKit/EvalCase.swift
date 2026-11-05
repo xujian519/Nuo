@@ -754,6 +754,9 @@ public struct EvalCase: Sendable, Codable, Identifiable {
         /// the production baseline. The census attribution rides in the
         /// report's `context` block. CI-safe like `schema` / `prefix_hash`.
         public let promptSurface: PromptSurfaceExpectations?
+        /// Deterministic expectation for `domain == "demo_skill"`. Replays a
+        /// recorded tool chain through `DemoSkillRecorder` with no model.
+        public let demoSkill: DemoSkillExpectations?
 
         public init(
             schema: SchemaExpectations? = nil,
@@ -778,7 +781,8 @@ public struct EvalCase: Sendable, Codable, Identifiable {
             httpAPI: HTTPAPIExpectations? = nil,
             memory: MemoryExpectations? = nil,
             agentChannels: AgentChannelsExpectations? = nil,
-            promptSurface: PromptSurfaceExpectations? = nil
+            promptSurface: PromptSurfaceExpectations? = nil,
+            demoSkill: DemoSkillExpectations? = nil
         ) {
             self.schema = schema
             self.toolEnvelope = toolEnvelope
@@ -803,6 +807,17 @@ public struct EvalCase: Sendable, Codable, Identifiable {
             self.memory = memory
             self.agentChannels = agentChannels
             self.promptSurface = promptSurface
+            self.demoSkill = demoSkill
+        }
+    }
+
+    /// Expectation for `domain == "demo_skill"`. `scenario` names one golden
+    /// path in `DemoSkillRecorder.runScenario`. No model and no network.
+    public struct DemoSkillExpectations: Sendable, Codable {
+        public let scenario: String
+
+        public init(scenario: String) {
+            self.scenario = scenario
         }
     }
 
