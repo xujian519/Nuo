@@ -877,6 +877,19 @@ public final class ToolRegistry: ObservableObject {
     nonisolated static let missingPermissionUserInfoKey = "ai.osaurus.toolRegistry.permission"
     nonisolated static let missingPermissionSettingsURLUserInfoKey = "ai.osaurus.toolRegistry.systemSettingsURL"
 
+    /// `.ask` 在检查点绑定下先落盘再抛出，工具体不会执行。
+    private func suspendDurableAskIfBound(name: String, argumentsJSON: String) async throws {
+        guard let gate = ChatExecutionContext.approvalBreakpoint else { return }
+        let pending = try await gate.service.interrupt(
+            runId: gate.runId,
+            kind: .ask,
+            toolName: name,
+            argumentsJSON: argumentsJSON,
+            now: Date()
+        )
+        throw ApprovalBreakpointError.suspended(runId: gate.runId, stepIndex: pending.stepIndex)
+    }
+
     /// The permission gate shared by `execute` and `resolvePermissionGate`:
     /// system-permission prompts, the per-tool ask/deny/auto policy
     /// (including the user approval prompt), and `.auto` grant backfill.
@@ -964,6 +977,8 @@ public final class ToolRegistry: ObservableObject {
                     userInfo: [NSLocalizedDescriptionKey: "Execution denied by policy for tool: \(name)"]
                 )
             case .ask:
+                // 持久检查点绑定后，卡片和工具体都先不跑。恢复之前没有副作用。
+                try await suspendDurableAskIfBound(name: name, argumentsJSON: approvalArgumentsJSON)
                 let approved: Bool
                 if permissioned.handlesOwnApproval {
                     // The tool runs its own purpose-built interactive
@@ -1082,6 +1097,7 @@ public final class ToolRegistry: ObservableObject {
                     userInfo: [NSLocalizedDescriptionKey: "Execution denied by policy for tool: \(name)"]
                 )
             } else if effectivePolicy == .ask {
+                try await suspendDurableAskIfBound(name: name, argumentsJSON: approvalArgumentsJSON)
                 let approved: Bool
                 if ChatExecutionContext.autoApproveToolPrompts {
                     approved = true

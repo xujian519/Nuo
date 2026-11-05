@@ -123,7 +123,8 @@ file. P2–P4 are still not accepted.
 - Shared workspace and a persistent browser. The workspace slice is the
   P1 appendix. A resident shared browser is still not accepted.
 - Turning a demo into a Skill.
-- Productizing multi-step checkpoints.
+- Productizing multi-step checkpoints inside the agent loop. P2
+  records the approval breakpoint; it does not rewrite the loop.
 - True Mesh or ROOM.
 - Opening `host.dispatch` so one agent runs as another.
 - A Settings control or a model-visible mailbox tool.
@@ -182,3 +183,37 @@ browser service is follow-up work, not this phase.
 `file_write` and the sandbox tools are not routed into this gate yet. A
 later change has to do that before those tools can place cross-agent
 visible bytes. This appendix does not claim they already do.
+
+## Appendix: P2 approval breakpoints (authorized 2026-11-05)
+
+P2 is the durable form of the pauses that already exist: tool policy
+`.ask`, and the `clarify` tool. It does not add a second pause type, and
+it does not rewrite `AgentToolLoop`. P3 and P4 are not accepted.
+
+A checkpoint is `runId`, the next step index, and refs to outputs of
+steps that already ran (`ApprovalCheckpoint`). It is stored under
+`OsaurusPaths.approvalBreakpointDirectory()`. While a step is pending,
+`recordCompleted` refuses, so the next mutation is not recorded early.
+
+An approval matches the pending **tool name** and the SHA-256 of the
+canonical JSON arguments. Mailbox envelope text is rejected. A mismatch
+does not authorize resume. After a match, `resumeAuthorized` flips and
+the side effect is still the caller's job; `commit` only stores the
+output ref once that effect has run. A second `approve` before `commit`
+is refused, so the effect is not licensed twice.
+
+Pending approvals expire at a deadline (default 24 hours). An approve
+after the deadline does not apply the step. `acknowledgeTimeout` drops
+the pending interrupt and does not invent the missing output. The
+backlog limit (default 32, overridable) refuses a new interrupt instead
+of running it.
+
+`ToolRegistry`'s `.ask` branch calls this store only when
+`ChatExecutionContext.approvalBreakpoint` is bound, and it throws before
+the tool body. With no binding, the existing approval card is unchanged.
+`ClarifyTool` writes the same kind of checkpoint and still returns
+`Awaiting user response`, which is the pause the chat intercept already
+understands.
+
+A resident shared browser, demo→Skill, Mesh, and Router credits stay
+out of this phase.

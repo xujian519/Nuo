@@ -458,6 +458,16 @@ public final class ClarifyTool: OsaurusTool, @unchecked Sendable {
             }
         }
 
+        if let gate = ChatExecutionContext.approvalBreakpoint {
+            _ = try await gate.service.interrupt(
+                runId: gate.runId,
+                kind: .clarify,
+                toolName: name,
+                argumentsJSON: argumentsJSON,
+                now: Date()
+            )
+        }
+
         return ToolEnvelope.success(tool: name, text: "Awaiting user response.")
     }
 
