@@ -63,7 +63,7 @@ public enum OpenRouterOAuthService {
     public enum Attribution {
         public static let host = "openrouter.ai"
         public static let referrerURL = "https://osaurus.ai"
-        public static let appTitle = "Osaurus"
+        public static let appTitle = "Nuo"
         public static let refererHeader = "HTTP-Referer"
         public static let titleHeader = "X-OpenRouter-Title"
     }

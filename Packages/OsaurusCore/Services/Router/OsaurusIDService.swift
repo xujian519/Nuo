@@ -56,15 +56,26 @@ public final class OsaurusIDService: ObservableObject {
 
     private let client: OsaurusRouterAPIClient
     private let canReachOverride: Bool?
+    /// Test seam for the Phase 1 router master-switch gate in `claim`:
+    /// when set, the gate reads this instead of the process-wide
+    /// `OsaurusRouter.isEnabled`, so claim tests need not mutate
+    /// `UserDefaults.standard`. Production passes nil.
+    private let routerEnabledOverride: Bool?
     private var identityObserver: NSObjectProtocol?
+
+    private var routerEnabled: Bool {
+        routerEnabledOverride ?? OsaurusRouter.isEnabled
+    }
 
     init(
         client: OsaurusRouterAPIClient = .shared,
         canReachOverride: Bool? = nil,
+        routerEnabledOverride: Bool? = nil,
         observesNotifications: Bool = true
     ) {
         self.client = client
         self.canReachOverride = canReachOverride
+        self.routerEnabledOverride = routerEnabledOverride
         guard observesNotifications else { return }
         identityObserver = NotificationCenter.default.addObserver(
             forName: .osaurusIdentityChanged,
@@ -137,7 +148,7 @@ public final class OsaurusIDService: ObservableObject {
     /// (claimed on another machine), the existing profile is adopted.
     func claim(handle rawHandle: String) async -> ClaimOutcome {
         let handle = rawHandle.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard OsaurusRouter.isEnabled else {
+        guard routerEnabled else {
             return .failed(L("Turn on the Osaurus Router in Settings to claim an Osaurus ID."))
         }
         guard OsaurusIDValidator.isValid(handle) else {

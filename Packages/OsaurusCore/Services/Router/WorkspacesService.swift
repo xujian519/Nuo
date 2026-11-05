@@ -137,15 +137,26 @@ final class WorkspacesService: ObservableObject {
 
     private let client: OsaurusRouterAPIClient
     private let defaults: UserDefaults
+    /// Test seam for the Phase 1 router master-switch gate: when set, the
+    /// gate reads this instead of the process-wide `OsaurusRouter.isEnabled`,
+    /// so service tests exercise the control-plane paths without mutating
+    /// `UserDefaults.standard`. Production passes nil.
+    private let routerEnabledOverride: Bool?
     // Retained for the lifetime of the (effectively singleton) service.
     private var activationObserver: NSObjectProtocol?
 
+    private var routerEnabled: Bool {
+        routerEnabledOverride ?? OsaurusRouter.isEnabled
+    }
+
     init(
         client: OsaurusRouterAPIClient = .shared,
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        routerEnabledOverride: Bool? = nil
     ) {
         self.client = client
         self.defaults = defaults
+        self.routerEnabledOverride = routerEnabledOverride
         activationObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didBecomeActiveNotification,
             object: nil,
@@ -164,7 +175,7 @@ final class WorkspacesService: ObservableObject {
     /// roster store's activation refresh keep it current otherwise (see
     /// `applyWorkspaceList`).
     func refreshWorkspaces() async {
-        guard OsaurusRouter.isEnabled else { return }
+        guard routerEnabled else { return }
         guard !isLoadingWorkspaces else { return }
         let generation = rootGeneration
         isLoadingWorkspaces = true
@@ -208,7 +219,7 @@ final class WorkspacesService: ObservableObject {
     /// exactly as `refreshWorkspaces` would, without a second
     /// `GET /workspaces` for the same trigger.
     func applyWorkspaceList(_ fetched: [OsaurusRouterWorkspaceSummary]) {
-        guard OsaurusRouter.isEnabled else { return }
+        guard routerEnabled else { return }
         installWorkspaceList(fetched)
     }
 
@@ -229,7 +240,7 @@ final class WorkspacesService: ObservableObject {
     /// Prices are public catalog data that change by deploy, not by user
     /// action: fetched once per session.
     func refreshBilling() async {
-        guard OsaurusRouter.isEnabled else { return }
+        guard routerEnabled else { return }
         if let summary = try? await client.workspaceBilling() {
             billing = summary
         }
@@ -680,7 +691,7 @@ final class WorkspacesService: ObservableObject {
     /// failure — the last known figure stays.
     @discardableResult
     func refreshPoolBalance(workspaceId: String, force: Bool = false) async -> OsaurusRouterWorkspacePoolBalance? {
-        guard OsaurusRouter.isEnabled else { return poolBalances[workspaceId] }
+        guard routerEnabled else { return poolBalances[workspaceId] }
         if !force, let fetched = poolBalanceFetchedAt[workspaceId],
             Date().timeIntervalSince(fetched) < Self.poolBalanceMinRefreshInterval
         {
@@ -1439,7 +1450,7 @@ final class WorkspacesService: ObservableObject {
     /// refreshes only the shared-agent roster (whose `online`/`last_seen`
     /// age out in seconds), skipping members/subscription/detail.
     func refreshAgentsPresence() async {
-        guard OsaurusRouter.isEnabled, let id = selectedWorkspaceId else { return }
+        guard routerEnabled, let id = selectedWorkspaceId else { return }
         let generation = selectionGeneration
         guard let agents = try? await client.workspaceAgents(id: id) else { return }
         guard selectedWorkspaceId == id, generation == selectionGeneration else { return }
@@ -1654,7 +1665,7 @@ final class WorkspacesService: ObservableObject {
     /// Internal (not private) so tests can drive activation polling directly
     /// instead of posting `didBecomeActiveNotification` and racing the task.
     func handleAppActivation() async {
-        guard OsaurusRouter.isEnabled else { return }
+        guard routerEnabled else { return }
         // Return-from-Stripe path: the redirect grants nothing, the webhook
         // does, so poll the router while waiting — but give up after a
         // bounded number of fruitless polls (the tab was abandoned; the UI
