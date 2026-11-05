@@ -23,6 +23,7 @@ public actor DirectedMailboxService {
         self.fileURL = directory.appendingPathComponent(DirectedMailboxSchema.fileName, isDirectory: false)
         let loaded = try Self.read(self.fileURL)
         self.snapshot = loaded
+        // init 不在 actor 隔离域里，冷启动写盘只能走静态方法。
         if !FileManager.default.fileExists(atPath: self.fileURL.path) {
             try Self.write(loaded, to: self.fileURL)
         }

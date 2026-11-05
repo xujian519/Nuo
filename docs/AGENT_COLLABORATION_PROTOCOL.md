@@ -117,3 +117,6 @@ caps live on `DirectedMailboxService`. That service does not implement
 `AgentCollaborationTransport`, because `send` on the transport has no
 admission check. It is not subagent dispatch, and it does not change the
 `host.dispatch` rule that a plugin call keeps the calling agent's context.
+Cross-agent visible files are
+[ADR-Nuo-002](adr/ADR-Nuo-002-orchestrator-mailbox-grokbot-path.md) P1
+(`SharedWorkspaceService`). Envelope text does not approve those writes.

@@ -504,6 +504,11 @@ public enum OsaurusPaths {
         directedMailboxDirectory().appendingPathComponent(DirectedMailboxSchema.fileName)
     }
 
+    /// 跨 Agent 共享工作区：`collaboration/workspace/`。不是某个 Agent 的 DB。
+    public static func sharedCollaborationWorkspace() -> URL {
+        directedMailboxDirectory().appendingPathComponent("workspace", isDirectory: true)
+    }
+
     /// Plugin binaries directory (`~/.nuo/Tools/`)
     public static func tools() -> URL {
         root().appendingPathComponent("Tools", isDirectory: true)

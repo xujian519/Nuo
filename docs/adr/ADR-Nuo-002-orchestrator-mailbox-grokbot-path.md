@@ -117,10 +117,11 @@ sampler defaults.
 
 ## Out of scope
 
-P1–P4 are not defined and not accepted here. Do not treat this ADR as
-approval to land them.
+P0 did not include the items below. P1 is the appendix at the end of this
+file. P2–P4 are still not accepted.
 
-- Shared workspace and a persistent browser.
+- Shared workspace and a persistent browser. The workspace slice is the
+  P1 appendix. A resident shared browser is still not accepted.
 - Turning a demo into a Skill.
 - Productizing multi-step checkpoints.
 - True Mesh or ROOM.
@@ -141,3 +142,43 @@ These stay future work. This ADR does not expand into them.
 - Envelope text is marked untrusted, but no model runner consumes the
   mailbox yet. The runner must keep treating the body as data.
 - Live app proof of the mailbox is not part of P0.
+
+## Appendix: P1 shared workspace (authorized 2026-11-05)
+
+P1 is a separate change stacked on the P0 mailbox. It does not authorize
+P2 (demo → Skill), P3 (multi-step checkpoint productization), or P4
+(Mesh / ROOM). `host.dispatch` still inherits the caller's agent. Envelope
+text stays untrusted. Bot memory is still the existing agentId partition.
+
+### Root and subdirectories
+
+The root is `OsaurusPaths.sharedCollaborationWorkspace()`
+(`collaboration/workspace/`). It sits next to the mailbox file and is not
+an Agent DB and not a vector bucket.
+
+| Subdirectory | Visible to another agent | Write rule |
+|---|---|---|
+| `agreed/<agreement-id>/<exact-relative-path>` | Parties of that agreement, and only paths listed on it | A party may write a listed path. Any other visible write becomes an approval and does not land. |
+| `proposals/<approval-uuid>.bin` | No. `read` never serves this tree | Staged bytes for one pending approval |
+| `scratch/<actor-id>/<exact-relative-path>` | No | Only that actor |
+
+Agreements name exact relative files. A grant of `notes/status.txt` does
+not cover `notes/secrets.txt` or a parent directory. Paths with `..`,
+empty segments, or a leading `/` are rejected. The approver is the
+Orchestrator and is not itself a party. An approval counts only when the
+id, agreement, writer, canonical path, and content hash all match the
+pending record. A mismatch leaves the record pending and writes nothing.
+Mailbox envelope text cannot grant an agreement or approve a write.
+
+### Browser persistence
+
+Each agent already has its own `WKWebsiteDataStore(forIdentifier:)`
+(`Packages/OsaurusCore/Browser/Runtime/BrowserSession.swift`). The catalog
+is `OsaurusPaths.browserSessionsFile()`. P1 keeps that isolation.
+`BrowserSessionPersistencePolicy.sharedPersistentSessionEnabled` is false.
+Selecting `sharedPersistentSession` fails closed. A resident shared
+browser service is follow-up work, not this phase.
+
+`file_write` and the sandbox tools are not routed into this gate yet. A
+later change has to do that before those tools can place cross-agent
+visible bytes. This appendix does not claim they already do.
