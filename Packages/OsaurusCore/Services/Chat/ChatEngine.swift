@@ -19,6 +19,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
     /// Host execution source controls residency as well as attribution. The
     /// evaluation override is scoped to this run, never sticky on a reused engine.
     private let baseInferenceSource: InferenceSource
+    private let routerEnabledProvider: @Sendable () -> Bool
     private var inferenceSource: InferenceSource {
         ChatExecutionContext.resolvedInferenceSource(baseInferenceSource)
     }
@@ -89,7 +90,8 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
             },
         source: InferenceSource = .httpAPI,
         activitySource: InferenceSource? = nil,
-        privacyReviewMode: PrivacyReviewMode = .interactive
+        privacyReviewMode: PrivacyReviewMode = .interactive,
+        routerEnabledProvider: @escaping @Sendable () -> Bool = { OsaurusRouter.isEnabled }
     ) {
         self.services = services
         self.installedModelsProvider = installedModelsProvider
@@ -97,6 +99,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
         self.reasoningCapabilityProvider = reasoningCapabilityProvider
         self.agentModelOptionsProvider = agentModelOptionsProvider
         self.agentReasoningChoicesProvider = agentReasoningChoicesProvider
+        self.routerEnabledProvider = routerEnabledProvider
         self.baseInferenceSource = source
         self.activitySource = activitySource
         self.privacyReviewMode = privacyReviewMode
@@ -505,7 +508,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
             (service as? RemoteProviderService)?.provider.providerType == .osaurusRouter
         if let error = Self.routerDisabledError(
             serviceIsOsaurusRouter: isRouter,
-            routerEnabled: OsaurusRouter.isEnabled
+            routerEnabled: routerEnabledProvider()
         ) {
             throw error
         }

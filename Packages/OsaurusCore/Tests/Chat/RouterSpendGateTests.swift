@@ -125,7 +125,11 @@ struct RouterSpendGateTests {
             services: [],
             installedModelsProvider: { [] },
             remoteServicesProvider: { [router] },
-            source: .httpAPI
+            source: .httpAPI,
+            // The spend gate is what's under test, not the Phase 2
+            // router-disabled refusal: pin the switch on so the unkeyed
+            // path actually reaches the authorization check.
+            routerEnabledProvider: { true }
         )
 
         await #expect(throws: ChatEngine.EngineError.self) {
@@ -150,7 +154,8 @@ struct RouterSpendGateTests {
             services: [],
             installedModelsProvider: { [] },
             remoteServicesProvider: { [router] },
-            source: .httpAPI
+            source: .httpAPI,
+            routerEnabledProvider: { true }
         )
 
         await HTTPCallerContext.$current.withValue(
