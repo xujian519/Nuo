@@ -6,7 +6,7 @@ order: 170
 
 # Privacy, Storage, and Encryption
 
-Osaurus is local-first: chats, memory, agents, and config all live under `~/.osaurus/` on your Mac.
+Nuo is local-first: chats, memory, agents, and config all live under `~/.nuo/` on your Mac.
 
 ## What leaves your Mac
 
@@ -17,12 +17,12 @@ Osaurus is local-first: chats, memory, agents, and config all live under `~/.osa
 
 ## Storage layout
 
-- `~/.osaurus/chat-history/history.sqlite` (chats), `memory/memory.sqlite`, `agents/<uuid>/db.sqlite`, `activity/activity.sqlite` (the Insights activity log), `skills/`, `themes/`, `config/*.json`, attachments as content-addressed blobs.
+- `~/.nuo/chat-history/history.sqlite` (chats), `memory/memory.sqlite`, `agents/<uuid>/db.sqlite`, `activity/activity.sqlite` (the Insights activity log), `skills/`, `themes/`, `config/*.json`, attachments as content-addressed blobs.
 - Local models are separate, in `~/MLXModels/`.
 
 ## Encryption
 
-- Default: plaintext SQLite protected by macOS FileVault. If you don't use FileVault, backups of `~/.osaurus` are readable.
+- Default: plaintext SQLite protected by macOS FileVault. If you don't use FileVault, backups of `~/.nuo` are readable.
 - Opt-in at-rest encryption: Settings… (⌘,) → General → Advanced → Data & Storage → "Encrypt local data at rest (SQLCipher)". Migration runs both ways.
 - The encryption key lives in this device's Keychain only (not iCloud-synced). Losing the key means losing the data — export a plaintext backup first.
 - Rotate storage key is available while encryption is on.
@@ -30,7 +30,7 @@ Osaurus is local-first: chats, memory, agents, and config all live under `~/.osa
 ## Backup and recovery
 
 - General → Advanced → Data & Storage → "Export plaintext backup…" copies databases, attachments, and config to a folder you choose (decrypting if needed). Do this before a macOS reinstall or Mac migration.
-- "Stores needing attention" lists degraded stores with Retry / Reset; Reset quarantines the file to `~/.osaurus/quarantine/` — nothing is deleted.
+- "Stores needing attention" lists degraded stores with Retry / Reset; Reset quarantines the file to `~/.nuo/quarantine/` — nothing is deleted.
 
 ## Secrets
 

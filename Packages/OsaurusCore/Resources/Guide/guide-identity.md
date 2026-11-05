@@ -6,7 +6,7 @@ order: 175
 
 # Identity, Pairing, and Access Keys
 
-Osaurus gives every participant — you, each agent, and each device — a cryptographic address. External clients authenticate with signed, revocable keys instead of shared passwords, and nothing depends on a central server.
+Nuo gives every participant — you, each agent, and each device — a cryptographic address. External clients authenticate with signed, revocable keys instead of shared passwords, and nothing depends on a central server.
 
 ## The pieces
 
@@ -22,7 +22,7 @@ Osaurus gives every participant — you, each agent, and each device — a crypt
 - An agent lives on one device at a time. If the same agent's tunnel is opened from a second machine (for example after copying a backup), the newer one serves it and the other shows "Served From Another Device"; use *Serve From This Mac* to take it back.
 - A device that holds your identity can request access to an agent hosted on another of your devices directly — no workspace or invite needed. It proves it holds the master key by signing a one-time challenge; the host then issues a 90-day agent-scoped access key labelled "Owner device – <device name>", which shows up in that agent's key list and can be revoked like any other.
 - Rotating an agent's key moves everything that pointed at the old address: the relay tunnel re-authenticates with the new one and every workspace share is re-issued. Access keys for the old address stop working; other devices and teammates re-request access automatically.
-- If an agent's address was saved by an older version of Osaurus that did not know about device-scoped addresses, the Identity view restores the missing device scope automatically when it can reproduce the address. No keys change and nothing needs to be re-shared.
+- If an agent's address was saved by an older version of Nuo that did not know about device-scoped addresses, the Identity view restores the missing device scope automatically when it can reproduce the address. No keys change and nothing needs to be re-shared.
 - The built-in Default agent is never reachable from another device.
 
 ## Backup and recovery
@@ -32,7 +32,7 @@ Osaurus gives every participant — you, each agent, and each device — a crypt
 
 ## Access keys (osk-v1)
 
-- Portable tokens (`osk-v1.…`) that let external tools, MCP clients, and remote agents authenticate against your Osaurus server without biometrics.
+- Portable tokens (`osk-v1.…`) that let external tools, MCP clients, and remote agents authenticate against your Nuo server without biometrics.
 - **Master-scoped** keys grant access to all agents; **agent-scoped** keys work only for one agent (cross-agent requests are rejected).
 - Expiration options: 30 days, 90 days, 1 year, or never (explicit opt-in only). The full key is shown once and never stored — only metadata (label, prefix, dates) is kept.
 - Generate master-scoped keys under Server → Access Keys; agent-scoped keys come from the agent's row in the Identity view (or from pairing). Revocation takes effect immediately, no server restart needed.

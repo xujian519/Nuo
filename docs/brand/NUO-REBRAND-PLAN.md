@@ -98,7 +98,7 @@ scripts/brand/
                                 Claude Code helper、Release 脚本、模板/Issue/WhatsApp 设备名
   rules/20-runtime.json         Phase 2（待加）
   rules/30-ui-text.json         Phase 3：Localizable.xcstrings key/value（xcstrings op）+ Swift key 引用同步
-  rules/40-docs.json            Phase 5（待加）
+  rules/40-docs.json            Phase 5：内置指南语料（产品名 / 数据根 / CLI 与 MCP 命令 / 冠词 / 安装指令）
   brand.py            引擎：apply / verify / snapshot / inventory
   apply.sh            重放（每次 upstream merge 后跑）
   verify.sh           CI 守卫（<1s）
@@ -264,8 +264,8 @@ public enum Brand {                      // 用户可见身份
 
 剩余（下一批/人工）：
 
-- 内置指南 `Packages/OsaurusCore/Resources/Guide/**`（28 篇，约 217 处）——Phase 5；它已在 `strict_pending`，只统计不拦截。
-- 文档面：`README.md`、`COMMUNITY_EVALS.md`、`docs/plugins/**`、`docs/examples/**`——Phase 5。
+- 文档面：`README.md`、`COMMUNITY_EVALS.md`、`docs/plugins/**`、`docs/examples/**`——Phase 5（README 需重写，不是替换）。
+- 内置指南已完成，见下节 Phase 5 状态；`Guide/**` 已从 `strict_pending` 并入 `strict`。
 - 资产：App 图标、托盘图标、wordmark、DMG 背景——Phase 4。
 - B 类上游服务文案与入口——`HIDE-UPSTREAM-SERVICES`，与默认开关一起做。
 - Codex `profileName = "osaurus"`：UI 文案与 `~/.codex` 默认 profile 名要一起改，影响既有配置。
@@ -300,6 +300,22 @@ B 类人工清单（保留计数见 baseline）：
 **不重命名 imageset 目录**：Swift 里有 925 行按名字引用，改名纯属自伤；可见品牌在图像内容，不在资源名。
 
 ### Phase 5 — 文档
+
+**状态（2026-11-05）：内置指南已落地。** `rules/40-docs.json` 用 6 条规则处理 28 篇语料，共 158 处（产品名 103 + 数据根 25 + CLI 23 + MCP 1 + 冠词 5 + 安装指令 1）：
+
+| 规则 | 内容 |
+|---|---|
+| `docs.guide-brand` | 产品自称 `Osaurus` → `Nuo`；`(?!\s+(?:Cloud|Router|ID|Identity|Secure|Premium|Connect)\b)` 前瞻把 B 类上游服务留在原样 |
+| `docs.guide-data-root` | `~/.osaurus` → `~/.nuo`（Phase 2 已迁移的数据根，指南此前仍指向旧目录） |
+| `docs.guide-cli-command` | 反引号内与行首的 `osaurus ui/serve/status/config/mcp/import/tools/version` → `nuo …` |
+| `docs.guide-mcp-launch-command` | MCP 宿主示例的 `command: "osaurus"` → `command: "nuo"` |
+| `docs.guide-article` | `an Nuo` → `a Nuo`（`Osaurus` 元音开头、`Nuo` 不是） |
+| `docs.guide-install-instruction` | 删掉 `` `brew install --cask osaurus` ``：那是上游应用，装上来的不是 Nuo.app |
+| — | 未改：`Osaurus Cloud` / `Osaurus Router` 等 B 类，`osaurus_config` / `osaurus_inspect` / `osaurus_help` / `OSAURUS_*` / `ai.osaurus.` / `osaurus.ai` / `OsaurusAI` / `[model_providers.osaurus]` / `codex --profile osaurus` / `@osaurus/n8n-nodes-osaurus`（R7 冻结） |
+
+棘轮：`Guide/**` 从 `strict_pending` 并入 `strict`，基线重测为 **strict 64 文件 / 895 处**（含上述冻结项），`apply.sh` 二次运行 0 变更，`verify.sh` OK。
+
+剩余（人工）：
 
 - `README.md` 重写（不是替换）：badge 指向上游仓库、Discord、X、`docs.osaurus.ai` 全部失效，需要换成 nuo 的或删掉。
 - `COMMUNITY_EVALS.md`、`docs/plugins/**`（12 篇）、`Resources/Guide/**`（28 篇）机械替换 + 人工校对链接。

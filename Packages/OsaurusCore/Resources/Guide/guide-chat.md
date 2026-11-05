@@ -6,7 +6,7 @@ order: 50
 
 # Chat and the Agent Loop
 
-Every **custom-agent** chat is an agent loop: the model thinks, calls tools, tracks progress, and finishes with a summary. There is no separate "agent mode" — the loop is always on for custom agents. The built-in Orchestrator is the exception (see The Orchestrator topic): it configures Osaurus and delegates work; it can read a working folder but never gets write, shell, or sandbox tools.
+Every **custom-agent** chat is an agent loop: the model thinks, calls tools, tracks progress, and finishes with a summary. There is no separate "agent mode" — the loop is always on for custom agents. The built-in Orchestrator is the exception (see The Orchestrator topic): it configures Nuo and delegates work; it can read a working folder but never gets write, shell, or sandbox tools.
 
 ## What you'll see in chat
 
@@ -14,7 +14,7 @@ Every **custom-agent** chat is an agent loop: the model thinks, calls tools, tra
 - Tool cards: each tool call renders as a card with its arguments and result; some tools (shell, config changes) show a one-tap approval before running.
 - Completed banner: the agent ends a run with a real summary of what it did.
 - Clarifying questions: when the agent needs input, a bottom overlay appears (optionally with answer chips); answering resumes the run.
-- Artifacts: files, charts, and reports the agent shares appear as cards; artifacts are stored under `~/.osaurus/artifacts/<sessionId>/`.
+- Artifacts: files, charts, and reports the agent shares appear as cards; artifacts are stored under `~/.nuo/artifacts/<sessionId>/`.
 
 ## Sidebar and inspector
 

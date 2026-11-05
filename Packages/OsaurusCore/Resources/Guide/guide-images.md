@@ -6,7 +6,7 @@ order: 58
 
 # Image Generation
 
-Osaurus can create and edit images entirely on your Mac using local image models (FLUX, Qwen-Image, Z-Image Turbo, and other bundles via vMLX/mflux). No image ever leaves the device.
+Nuo can create and edit images entirely on your Mac using local image models (FLUX, Qwen-Image, Z-Image Turbo, and other bundles via vMLX/mflux). No image ever leaves the device.
 
 ## Setup
 

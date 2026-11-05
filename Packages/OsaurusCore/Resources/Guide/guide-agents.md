@@ -6,12 +6,12 @@ order: 40
 
 # Agents
 
-Agents are the core of Osaurus. Each agent has its own system prompt, default model, tool grants, memory, and look. The built-in "Osaurus" default agent — the Orchestrator — configures the app, answers questions about it, and delegates work to your custom agents; custom agents do everything else (see The Orchestrator topic).
+Agents are the core of Nuo. Each agent has its own system prompt, default model, tool grants, memory, and look. The built-in "Nuo" default agent — the Orchestrator — configures the app, answers questions about it, and delegates work to your custom agents; custom agents do everything else (see The Orchestrator topic).
 
 ## Creating and managing agents
 
 - Settings… (⌘,) → Agents → create, edit, or delete agents.
-- Or ask the default Osaurus assistant: "create a coding agent" — it can create, update, and switch agents for you.
+- Or ask the default Nuo assistant: "create a coding agent" — it can create, update, and switch agents for you.
 - Switch agents from the agent menu in the chat window.
 
 ## Agent templates (Agents → Templates)
@@ -19,11 +19,11 @@ Agents are the core of Osaurus. Each agent has its own system prompt, default mo
 - A template is one agent's configuration as portable JSON: prompt, model, tool selection (MCP servers and plugins by name), sandbox, subagent settings, and a `requires` list of what the author relied on (working folder, knowledge collections, plugins, MCP servers, permissions, model). Secrets, folder access grants, and knowledge files never travel.
 - Open the Templates page with the **Templates** button in the Agents header (**Agents** at the top returns). Built-in **Cloud Agent**, **Local Agent**, and **Sub Agent** templates are always there.
 - Save one from any agent card (**…** → **Save as Template**) or the agent page's Share menu (**Save as Template**). Import one with **Import Template** (choose a `.osaurustemplate` or `.json` file) or by dropping the file on the Templates page. The import review shows the author signature, the model and tools, what it needs on this Mac, and how to connect its MCP servers before anything is saved; the same version with different content asks **Keep both** or **Replace**.
-- A template card's **…** menu has **Use Template**, **Export File…** (a `.osaurustemplate` file, signed with your Osaurus identity when this Mac has one; saved answers, secret values, and absolute paths are left out), **Save to Library** for built-ins, and for your own templates **Show to Orchestrator** / **Hide from Orchestrator**, **Rename…**, and **Delete**.
+- A template card's **…** menu has **Use Template**, **Export File…** (a `.osaurustemplate` file, signed with your Nuo identity when this Mac has one; saved answers, secret values, and absolute paths are left out), **Save to Library** for built-ins, and for your own templates **Show to Orchestrator** / **Hide from Orchestrator**, **Rename…**, and **Delete**.
 - **Use Template** opens **Create Agent from Template**: one step for each thing this Mac is missing (Model, Working Folder, Knowledge, Tools, Permissions) then Review. The agent is created only when nothing blocks it. Agents made this way show **From the … template** on their card and page.
 - An agent with unfinished setup shows **Needs setup** on its card; **Run Setup** in the card menu, or the **Finish setting up …** prompt when you first open it in chat, walks through the gaps. Delegating to it is refused while something it needs is still missing.
 - A template shown to the Orchestrator lets you say "make me an agent from the Cloud Agent template that does X"; the Orchestrator bases the new agent on the template instead of enabling every tool.
-- Templates live in `~/.osaurus/template-library/<template-id>/v<N>.json` (one file per version). Whole-config YAML templates saved by `osaurus_config export` stay in `~/.osaurus/templates/`.
+- Templates live in `~/.nuo/template-library/<template-id>/v<N>.json` (one file per version). Whole-config YAML templates saved by `osaurus_config export` stay in `~/.nuo/templates/`.
 
 ## Per-agent features (agent → Abilities → Overview)
 
@@ -34,18 +34,18 @@ Agents are the core of Osaurus. Each agent has its own system prompt, default mo
 ## Skills per agent (agent → Abilities → Tools)
 
 - Skills come from the shared library (**Skills** in the sidebar). By default every custom agent can use every installed skill.
-- **Limit to selected skills** above the tool picker narrows that to a list: only ticked skills appear in the agent's prompt, `capabilities_load`, and its slash commands. Turning it on starts with every installed skill ticked; **Choose Skills…** opens the checklist. A listed skill that is not installed here is flagged **not installed** and starts working once it is installed (for example by an `osaurus import` bundle).
+- **Limit to selected skills** above the tool picker narrows that to a list: only ticked skills appear in the agent's prompt, `capabilities_load`, and its slash commands. Turning it on starts with every installed skill ticked; **Choose Skills…** opens the checklist. A listed skill that is not installed here is flagged **not installed** and starts working once it is installed (for example by a`nuo import` bundle).
 - In config YAML this is `agents[].skills`: omit it to leave it unchanged, `null` for all skills, a list (skill names or slugs) for only those. Templates and bundles carry the list; the Templates review shows missing skills as an advisory.
 
 ## Runtime (agent → Configure → Runtime)
 
-- **Runs on** chooses who runs the agent's chats: Osaurus (built-in), or a harness registered under Settings → Agents → **Runtimes**, such as Claude Code, Pi, or a Pi-based harness. The chat model picker lists the same runtimes as columns, so you can switch from the composer; it changes this setting for the agent.
-- On a harness, each chat is a long-running process in the chat's folder that brings its own model, tools, and history. The agent's system prompt is passed to Claude Code, and to a Pi runtime whose arguments include `{system_prompt_file}`; Osaurus abilities, memory, and the sandbox don't apply.
+- **Runs on** chooses who runs the agent's chats: Nuo (built-in), or a harness registered under Settings → Agents → **Runtimes**, such as Claude Code, Pi, or a Pi-based harness. The chat model picker lists the same runtimes as columns, so you can switch from the composer; it changes this setting for the agent.
+- On a harness, each chat is a long-running process in the chat's folder that brings its own model, tools, and history. The agent's system prompt is passed to Claude Code, and to a Pi runtime whose arguments include `{system_prompt_file}`; Nuo abilities, memory, and the sandbox don't apply.
 - Harness agents can't be delegated to or run through `/agents/{id}/run`, Computer Use, or AppleScript yet; those return an error naming the harness.
 
 ## The Orchestrator (default agent) vs custom agents
 
-- The Orchestrator configures and explains Osaurus, answers short questions inline, and delegates everything else to the agents you allow. It has a working folder it can **read** (`file_read`, `file_search`) but no shell, sandbox, browser, computer use, skills, knowledge, or media tools — that keeps setup safe and predictable.
+- The Orchestrator configures and explains Nuo, answers short questions inline, and delegates everything else to the agents you allow. It has a working folder it can **read** (`file_read`, `file_search`) but no shell, sandbox, browser, computer use, skills, knowledge, or media tools — that keeps setup safe and predictable.
 - For hands-on work (edit files, run code, browse, generate images) the Orchestrator delegates to a custom agent. An agent without its own working folder works inside the Orchestrator's folder, so a fresh agent can write deliverables there right away. You can also switch to the agent and work with it directly.
 - Custom agents get the full capability surface, gated by your per-agent feature toggles and tool permissions. Delegated agents run with their normal tools; only the delegation tool itself is withheld from a worker.
 - New agents the Orchestrator creates with no model default to its current model. `template: coder | researcher | writer | assistant | productivity` fills in the system prompt and a routing description; a `description` is optional and is generated in the background from the system prompt when omitted; Settings → Orchestrator → Subagents → **Create starter agents** makes Coder, Researcher, and Writer in one click.
@@ -53,7 +53,7 @@ Agents are the core of Osaurus. Each agent has its own system prompt, default mo
 ## Agent identity and settings
 
 - Each agent can have its own theme (activating the agent applies it), avatar, greeting, quick actions, and voice.
-- Custom agents are stored as JSON under `~/.osaurus/agents/<uuid>.json`. The Orchestrator's own settings (name, persona, temperature, max tokens, delegation helpers) live in Settings → Orchestrator, or ask the assistant to change them.
+- Custom agents are stored as JSON under `~/.nuo/agents/<uuid>.json`. The Orchestrator's own settings (name, persona, temperature, max tokens, delegation helpers) live in Settings → Orchestrator, or ask the assistant to change them.
 
 ## Generation overrides for each custom agent
 

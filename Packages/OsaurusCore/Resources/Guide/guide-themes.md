@@ -6,7 +6,7 @@ order: 140
 
 # Themes and Appearance
 
-Osaurus's look is fully customizable: appearance mode, built-in and custom themes, and per-agent themes.
+Nuo's look is fully customizable: appearance mode, built-in and custom themes, and per-agent themes.
 
 ## Appearance mode
 
@@ -29,4 +29,4 @@ Each agent can carry its own theme — switching to that agent applies it, so di
 
 ## Font size
 
-A global UI font scale lives in settings (independent of the theme's own font sizing). Themes are stored under `~/.osaurus/themes/`.
+A global UI font scale lives in settings (independent of the theme's own font sizing). Themes are stored under `~/.nuo/themes/`.

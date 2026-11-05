@@ -6,7 +6,7 @@ order: 175
 
 # Insights and the Activity Log
 
-Insights is the audit dashboard. Every interaction Osaurus performs is recorded as one row, persisted on this Mac, and marked **Local** (data stayed on this Mac) or **Cloud** (data left this Mac). Open it from Settings… (⌘,) → Insights, from Privacy → Activity Log → **Review Activity in Insights**, or from the Insights button on any assistant message (which jumps to that turn's row).
+Insights is the audit dashboard. Every interaction Nuo performs is recorded as one row, persisted on this Mac, and marked **Local** (data stayed on this Mac) or **Cloud** (data left this Mac). Open it from Settings… (⌘,) → Insights, from Privacy → Activity Log → **Review Activity in Insights**, or from the Insights button on any assistant message (which jumps to that turn's row).
 
 ## What gets recorded
 
@@ -58,7 +58,7 @@ The log is tamper-**evident**, not tamper-proof: someone with write access to yo
 
 **Export** writes the current filter (or everything) as:
 
-- **JSONL** — a manifest line (export time, filters, record count, head hash, whether the chain was intact, and the exact hash recipe) followed by one canonical record per line, so a reviewer can re-verify the chain without Osaurus.
+- **JSONL** — a manifest line (export time, filters, record count, head hash, whether the chain was intact, and the exact hash recipe) followed by one canonical record per line, so a reviewer can re-verify the chain without Nuo.
 - **CSV** — one row per record for spreadsheets (no bodies).
 - **Markdown** — a readable report.
 
@@ -87,4 +87,4 @@ Retention and content policy live under Settings… (⌘,) → Privacy → **Act
 
 ## Storage
 
-`~/.osaurus/activity/activity.sqlite` (plus an `activity.head` sidecar with the chain head). Covered by the same at-rest encryption and backup controls as the rest of `~/.osaurus` (General → Advanced → Data & Storage).
+`~/.nuo/activity/activity.sqlite` (plus an `activity.head` sidecar with the chain head). Covered by the same at-rest encryption and backup controls as the rest of `~/.nuo` (General → Advanced → Data & Storage).

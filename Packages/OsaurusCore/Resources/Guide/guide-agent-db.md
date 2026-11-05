@@ -10,7 +10,7 @@ Two per-agent capabilities turn a stateless chat agent into something that remem
 
 ## Agent Database
 
-- Toggle **Database** on a custom agent and it gets its own private SQLite file (`~/.osaurus/agents/<id>/db.sqlite`) plus the `db_*` tools: schema management (`db_create_table`, `db_alter_table`, `db_migrate`), row writes (`db_insert`, `db_upsert`, `db_update`), reads (`db_query`, saved views via `db_define_view` / `db_run_view`), and bulk `db_import` / `db_export` (CSV/TSV/JSON/JSONL).
+- Toggle **Database** on a custom agent and it gets its own private SQLite file (`~/.nuo/agents/<id>/db.sqlite`) plus the `db_*` tools: schema management (`db_create_table`, `db_alter_table`, `db_migrate`), row writes (`db_insert`, `db_upsert`, `db_update`), reads (`db_query`, saved views via `db_define_view` / `db_run_view`), and bulk `db_import` / `db_export` (CSV/TSV/JSON/JSONL).
 - Every table gets `_created_at` / `_updated_at` / `_deleted_at` system columns. Deletes are **soft** — `db_delete` stamps a tombstone and `db_restore` brings the row back; there is no hard-delete tool.
 - Destructive SQL is blocked (`DROP TABLE`, `DELETE` without `WHERE` warnings, extension loading, writes to system tables). Every mutation is recorded in a changelog you can audit.
 - The agent detail view gains Home, Schema, Data, Views, and Activity tabs for browsing the schema, rows (Active/Deleted/All), saved views, and run history.

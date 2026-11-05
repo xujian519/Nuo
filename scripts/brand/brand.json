@@ -62,14 +62,14 @@
       "scripts/**",
       "Packages/OsaurusRepository/**",
       "Packages/OsaurusCore/Resources/Templates/**",
-      "helpers/**"
+      "helpers/**",
+      "Packages/OsaurusCore/Resources/Guide/**"
     ],
     "strict_pending": [
       "App/osaurus/AppIntents/**",
       "Packages/OsaurusCore/AppDelegate.swift",
       "Packages/OsaurusCore/Utils/OsaurusPaths.swift",
       "Packages/OsaurusCore/Services/Keychain/**",
-      "Packages/OsaurusCore/Resources/Guide/**",
       "Packages/OsaurusCLI/Sources/**"
     ]
   },

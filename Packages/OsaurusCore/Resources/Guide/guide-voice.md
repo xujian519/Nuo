@@ -13,7 +13,7 @@ All voice features run on-device — no audio ever leaves your Mac.
 - Settings… (⌘,) → Voice → Setup: grant Microphone access, download a Parakeet model (~600 MB), set the detection sensitivity, and test with the mic button. Voice settings are split into tabs: **Setup**, **Chat Voice**, **Transcription**, **Text-to-Speech**, **Wake Word**, and **Models**.
 - Models: Parakeet TDT v3 (multilingual, 25 European languages — recommended) or v2 (English-only, slightly better English recall). Runs on the Neural Engine.
 - In chat: turn on **Enable Voice Input** under Voice → Chat Voice, then tap the mic button. Sensitivity lives on Setup; Stop Mode, Pause Duration (default 2.0s auto-send; 0 = manual send), Confirmation Delay, and Clean Up Transcription live under Voice → Transcription → Stop Behavior & Cleanup.
-- Audio Input can also capture System Audio (needs Screen Recording permission; excludes Osaurus's own output).
+- Audio Input can also capture System Audio (needs Screen Recording permission; excludes Nuo's own output).
 
 ## Wake phrase / VAD mode
 

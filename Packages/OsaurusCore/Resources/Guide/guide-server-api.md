@@ -1,12 +1,12 @@
 ---
 title: Server and API
-summary: The local OpenAI-compatible HTTP server — endpoints, port, auth, and using Osaurus from other apps.
+summary: The local OpenAI-compatible HTTP server — endpoints, port, auth, and using Nuo from other apps.
 order: 110
 ---
 
 # Server and API
 
-Osaurus runs a local HTTP server so other apps, scripts, and SDKs can use your models. It speaks the OpenAI API (plus Anthropic and Ollama formats).
+Nuo runs a local HTTP server so other apps, scripts, and SDKs can use your models. It speaks the OpenAI API (plus Anthropic and Ollama formats).
 
 ## Basics
 
@@ -22,23 +22,23 @@ By default, callers on this Mac need no key. Turning on Settings → Server → 
 - Without a valid access key (`Authorization: Bearer osk-v1…`) these return `401`. Inference and model routes (`/v1/chat/completions`, `/v1/models`, …) are unaffected.
 - A request carrying a browser `Origin` header is refused with `403` (`browser_origin_refused`), key or not, unless that origin is listed by name in **Allowed Origins (CORS)**; `*` does not count. A listed origin still needs a key.
 - An all-agents key gets the same local behavior as before. An agent-scoped key is confined exactly as it is for a remote caller.
-- Siri / Shortcuts and local harness tokens keep working. `osaurus mcp`, `osaurus config` and `osaurus import` take `--access-key KEY` or `OSAURUS_API_KEY`. Without one, `osaurus import` still queues the bundle, and it applies the next time Osaurus opens.
-- An Osaurus bundle can switch this (and add to Allowed Origins) during `osaurus import`, through its `settings` object. Turning it off or adding an origin needs `--yes`.
+- Siri / Shortcuts and local harness tokens keep working. `nuo mcp`, `nuo config` and `nuo import` take `--access-key KEY` or `OSAURUS_API_KEY`. Without one, `nuo import` still queues the bundle, and it applies the next time Nuo opens.
+- ANuo bundle can switch this (and add to Allowed Origins) during `nuo import`, through its `settings` object. Turning it off or adding an origin needs `--yes`.
 
-## Using Osaurus from Codex CLI
+## Using Nuo from Codex CLI
 
-OpenAI's Codex CLI can run against your local models. Settings → Server → Overview has a **Use with Codex CLI** card: pick a model, then **Copy** the generated config or click **Add to ~/.codex** to write it. Osaurus adds a `[model_providers.osaurus]` table to `~/.codex/config.toml` (inside marked comments it maintains; the rest of the file is untouched) and writes an `osaurus` profile at `~/.codex/osaurus.config.toml` holding `model` and `model_provider`. Start Codex with `codex --profile osaurus`. `CODEX_HOME` is honoured when set.
+OpenAI's Codex CLI can run against your local models. Settings → Server → Overview has a **Use with Codex CLI** card: pick a model, then **Copy** the generated config or click **Add to ~/.codex** to write it. Nuo adds a `[model_providers.osaurus]` table to `~/.codex/config.toml` (inside marked comments it maintains; the rest of the file is untouched) and writes an `osaurus` profile at `~/.codex/osaurus.config.toml` holding `model` and `model_provider`. Start Codex with `codex --profile osaurus`. `CODEX_HOME` is honoured when set.
 
 - Codex only speaks the Responses API (`wire_api = "responses"`), so requests land on `POST /v1/responses`.
 - With network exposure off, Codex on the same Mac needs no key. With it on, the generated block adds `env_key = "OSAURUS_API_KEY"`; create an access key and export that variable in the shell running Codex.
 - If `config.toml` already defines `model_providers.osaurus` by hand, the write is refused rather than duplicated; remove the manual table first.
 - The profile's `model_context_window` is what the server actually keeps: the model's context length, capped by **KV Retention Override** under Settings… (⌘,) → Server → Settings → Cache. A blank override uses the Memory Safety profile. Codex compacts the thread against it.
 - Each Codex thread is its own conversation for the on-disk prompt cache (its `prompt_cache_key` becomes the session id), so resuming a thread reuses its cached prefix.
-- To resume a non-interactive run, put the profile before the subcommand: `codex exec --profile osaurus resume --last "…"`. Placed after `resume` the flag is rejected, and without it Codex uses OpenAI instead of Osaurus.
+- To resume a non-interactive run, put the profile before the subcommand: `codex exec --profile osaurus resume --last "…"`. Placed after `resume` the flag is rejected, and without it Codex uses OpenAI instead of Nuo.
 
 ## Two ways to run tools
 
-- `POST /v1/chat/completions` is strict OpenAI semantics: Osaurus returns `tool_calls` and your client executes them. No Osaurus memory or skills are injected.
+- `POST /v1/chat/completions` is strict OpenAI semantics: Nuo returns `tool_calls` and your client executes them. No Nuo memory or skills are injected.
 - `POST /agents/{id}/run` runs a full server-side agent loop (what in-app chat uses): the agent executes its own tools, with memory and context, capped at 30 iterations.
 - Dangerous tools (`file_write`, `file_edit`, `shell_run`, `git_commit`, …) are denied to external HTTP callers by default.
 
@@ -52,7 +52,7 @@ Port, network exposure, Sampling Defaults (temperature / top-p / top-k / max tok
 
 ## MCP surface
 
-`GET /mcp/tools` and `POST /mcp/call` expose Osaurus tools over HTTP; `osaurus mcp` runs Osaurus as a stdio MCP server for other AI apps. With **Require Access Key for Local Admin Routes** on, give the MCP host's `osaurus mcp` entry an access key (`--access-key KEY` or `OSAURUS_MCP_ACCESS_KEY`).
+`GET /mcp/tools` and `POST /mcp/call` expose Nuo tools over HTTP; `nuo mcp` runs Nuo as a stdio MCP server for other AI apps. With **Require Access Key for Local Admin Routes** on, give the MCP host's `nuo mcp` entry an access key (`--access-key KEY` or `OSAURUS_MCP_ACCESS_KEY`).
 
 ## Configuration endpoints (loopback only)
 
@@ -62,4 +62,4 @@ The declarative configuration surface (see the Declarative Configuration topic) 
 - `POST /admin/config/plan` — body `{"yaml": "<document>"}` (or `{"template": "<name>"}`), optional `"prune": true`; returns the diff without changing anything.
 - `POST /admin/config/apply` — same body; high-risk changes return `409` with the risk list until re-sent with `"confirm_high_risk": true`.
 
-Unlike other admin routes, these are strictly restricted to local (loopback) callers — an access key never admits a remote caller, even with network exposure on. With **Require Access Key for Local Admin Routes** on, local callers also need a key. The `osaurus config` CLI wraps these endpoints and sends `--access-key KEY` / `OSAURUS_API_KEY` when given.
+Unlike other admin routes, these are strictly restricted to local (loopback) callers — an access key never admits a remote caller, even with network exposure on. With **Require Access Key for Local Admin Routes** on, local callers also need a key. The `nuo config` CLI wraps these endpoints and sends `--access-key KEY` / `OSAURUS_API_KEY` when given.

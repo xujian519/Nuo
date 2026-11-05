@@ -6,25 +6,25 @@ order: 30
 
 # Cloud Providers
 
-Osaurus can use cloud or peer inference providers alongside local models. Your context, memory, and agents stay on your Mac regardless of which provider serves the model.
+Nuo can use cloud or peer inference providers alongside local models. Your context, memory, and agents stay on your Mac regardless of which provider serves the model.
 
 ## Adding a provider
 
 - Settings… (⌘,) → Providers → Add Provider → pick a preset or Custom → Save.
 - Presets include Anthropic, OpenAI, xAI, and OpenRouter; Gemini, Venice AI, and Osaurus Router are also supported. Custom works with any OpenAI-, Anthropic-, or Open Responses-format API.
-- Or ask the default Osaurus assistant in chat to add a provider — API keys are entered through a secure native sheet that stores them straight to the macOS Keychain (never through chat text).
+- Or ask the default Nuo assistant in chat to add a provider — API keys are entered through a secure native sheet that stores them straight to the macOS Keychain (never through chat text).
 
 ## Provider settings
 
 - Name, Host, Protocol, Port, Base Path, Auth Type (None / API Key), Enabled, Auto-connect, Timeout, and custom headers (secret headers go to Keychain).
-- Connection states on each card: Connected (green), Connecting, Disconnected, Disabled, Error (red). Non-secret config is stored in `~/.osaurus/providers/remote.json`.
+- Connection states on each card: Connected (green), Connecting, Disconnected, Disabled, Error (red). Non-secret config is stored in `~/.nuo/providers/remote.json`.
 
 ## Using remote models
 
 - The chat model picker groups each provider's discovered models under the provider name.
-- Anthropic models list the thinking efforts, context window, and lifecycle that Anthropic's Models API reports for each model. Deprecated models are labelled "Deprecated". When thinking is available, Osaurus requests summarized thinking, so the reasoning panel shows a summary. Picking an effort sends that level; picking Off turns thinking off on models that allow it. Thinking can't be turned off on Opus 5.5, Fable 5.1, or Mythos 5.1, so those models have no Off option.
+- Anthropic models list the thinking efforts, context window, and lifecycle that Anthropic's Models API reports for each model. Deprecated models are labelled "Deprecated". When thinking is available, Nuo requests summarized thinking, so the reasoning panel shows a summary. Picking an effort sends that level; picking Off turns thinking off on models that allow it. Thinking can't be turned off on Opus 5.5, Fable 5.1, or Mythos 5.1, so those models have no Off option.
 - OpenAI reasoning models (API key and ChatGPT sign-in) always request reasoning summaries, so the reasoning panel fills even at the model's default effort.
-- Local apps pointed at Osaurus's API (`http://127.0.0.1:1337/v1/chat/completions`) can use remote models through the same endpoint — Osaurus routes by model id (e.g. `anthropic/claude-...`).
+- Local apps pointed at Nuo's API (`http://127.0.0.1:1337/v1/chat/completions`) can use remote models through the same endpoint — Nuo routes by model id (e.g. `anthropic/claude-...`).
 
 ## Local servers as providers
 
@@ -33,5 +33,5 @@ Osaurus can use cloud or peer inference providers alongside local models. Your c
 
 ## Osaurus Router and peers
 
-- Osaurus Router is a hosted routing service tied to your Osaurus identity (Credits tab shows usage); it auto-connects at startup when configured.
-- Paired Osaurus devices (peers) can share models, or expose whole remote agents that run with their own tools on the other machine.
+- Osaurus Router is a hosted routing service tied to your Nuo identity (Credits tab shows usage); it auto-connects at startup when configured.
+- Paired Nuo devices (peers) can share models, or expose whole remote agents that run with their own tools on the other machine.

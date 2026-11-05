@@ -1,24 +1,24 @@
 ---
 title: Plugins
-summary: Extend Osaurus with native tool plugins and imported Claude plugin bundles.
+summary: Extend Nuo with native tool plugins and imported Claude plugin bundles.
 order: 70
 ---
 
 # Plugins
 
-Plugins add new tools to Osaurus. There are two kinds: native plugins (compiled, from the Osaurus plugin registry) and imported Claude plugins (skills, schedules, commands, and MCP servers bundled from a GitHub repo).
+Plugins add new tools to Nuo. There are two kinds: native plugins (compiled, from the Nuo plugin registry) and imported Claude plugins (skills, schedules, commands, and MCP servers bundled from a GitHub repo).
 
 ## Native plugins
 
 - Settings… (⌘,) → Tools & MCP → Plugins: browse the registry, install, update, uninstall.
-- Or ask the default Osaurus assistant to search and install a plugin for you.
+- Or ask the default Nuo assistant to search and install a plugin for you.
 - Release plugins must be code-signed; unsigned plugins are refused.
 - Some plugins need secrets (API keys): open the plugin card and choose Configure Secrets — they go to the Keychain, never through chat.
 - Plugin activity (every host API call) is logged in Settings… (⌘,) → Insights — pick the **Tools** scope tab (Plugin call rows); plugin console lines (**Plugin log**) appear there once you enable Filter → Show plugin console logs.
 
-## Built into Osaurus (superseded plugins)
+## Built into Nuo (superseded plugins)
 
-Web search, the browser, and the Apple app plugins (`osaurus.calendar`, `osaurus.reminders`, `osaurus.contacts`, `osaurus.notes`, `osaurus.mail`, `osaurus.messages`, `osaurus.maps`, `osaurus.music`) are now part of Osaurus itself. Their cards show a "Built into Osaurus" banner and the plugin is never loaded. Apple app tools are turned on per custom agent under Settings… (⌘,) → Agents → *agent* → Abilities → Tools, where each app is a group in the tool picker (or by asking the assistant to enable them on an agent); they are off by default. Agents whose tool lists named the old plugin tools were migrated once to the built-in names and had the matching Apple app enabled.
+Web search, the browser, and the Apple app plugins (`osaurus.calendar`, `osaurus.reminders`, `osaurus.contacts`, `osaurus.notes`, `osaurus.mail`, `osaurus.messages`, `osaurus.maps`, `osaurus.music`) are now part of Nuo itself. Their cards show a "Built into Nuo" banner and the plugin is never loaded. Apple app tools are turned on per custom agent under Settings… (⌘,) → Agents → *agent* → Abilities → Tools, where each app is a group in the tool picker (or by asking the assistant to enable them on an agent); they are off by default. Agents whose tool lists named the old plugin tools were migrated once to the built-in names and had the matching Apple app enabled.
 
 ## Claude plugins
 
@@ -32,4 +32,4 @@ Web search, the browser, and the Apple app plugins (`osaurus.calendar`, `osaurus
 
 - Plugin failed to load? Check the card's error and the Plugin log rows in Insights; Retry from the plugin detail page.
 - Plugin web UIs opened in a browser need the Open Web App button (it appends the agent id the plugin needs).
-- Developers: `osaurus tools create`, `osaurus tools dev` (hot reload), `osaurus tools list` — install the CLI from Settings… (⌘,) → Server → Overview → Command Line Tool → Install CLI.
+- Developers: `nuo tools create`, `nuo tools dev` (hot reload), `nuo tools list` — install the CLI from Settings… (⌘,) → Server → Overview → Command Line Tool → Install CLI.

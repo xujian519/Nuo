@@ -1,0 +1,72 @@
+{
+  "phase": 5,
+  "title": "Documentation surfaces — the built-in guide corpus",
+  "rules": [
+    {
+      "id": "docs.guide-brand",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCore/Resources/Guide/**/*.md"
+      ],
+      "pattern": "\\bOsaurus\\b(?!\\s+(?:Cloud|Router|ID|Identity|Secure|Premium|Connect)\\b)",
+      "replace": "{brand_display}",
+      "enforced": true,
+      "why": "The 28 built-in guide topics are shown by osaurus_help and read as product documentation, so the product name must match the app. The negative lookahead keeps the B-class upstream services (Osaurus Cloud/Router/ID/Identity/Secure/Premium/Connect) untouched per R7; lowercase identifiers, OSAURUS_* env vars, domains and the OsaurusAI HF org are already shielded by the frozen-literal list in brand.json."
+    },
+    {
+      "id": "docs.guide-data-root",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCore/Resources/Guide/**/*.md"
+      ],
+      "pattern": "~/\\.osaurus\\b",
+      "replace": "~/{brand_data_root}",
+      "enforced": true,
+      "why": "The data root moved to ~/.nuo in Phase 2. Guides that still print ~/.osaurus send users to a directory the app no longer writes (the legacy tree stays untouched on disk by design)."
+    },
+    {
+      "id": "docs.guide-cli-command",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCore/Resources/Guide/**/*.md"
+      ],
+      "pattern": "(^|`)osaurus (?=ui|serve|status|config|mcp|import|tools|version)",
+      "replace": "\\1{brand_slug} ",
+      "enforced": true,
+      "why": "The installed helper is `nuo`; `osaurus ui` and friends no longer exist as commands. Matches both the inline form (`osaurus ui`) and the line-start synopsis blocks (`osaurus config export …`). Subcommands stay intact; prose that merely mentions the old name (the frozen Codex profile `codex --profile osaurus`) has no backtick and no line start, so it is out of scope."
+    },
+    {
+      "id": "docs.guide-article",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCore/Resources/Guide/**/*.md"
+      ],
+      "pattern": "\\b([Aa])n (?=(?:Nuo|nuo)\\b|`nuo\\b)",
+      "replace": "\\1",
+      "enforced": true,
+      "why": "`Osaurus` starts with a vowel sound and `Nuo` does not, so the article the rename inherited is wrong: 'an Nuo identity' reads as a typo. Mirrors ui-text's article rule, extended to the backticked `nuo` command form."
+    },
+    {
+      "id": "docs.guide-install-instruction",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCore/Resources/Guide/**/*.md"
+      ],
+      "pattern": "the GitHub releases page or `brew install --cask osaurus`",
+      "replace": "the GitHub releases page",
+      "enforced": true,
+      "why": "The upstream cask installs the upstream app, not Nuo.app. Until the fork publishes its own cask, the guide must not offer a command that fetches a different product (same reasoning as the README badge rewrite in Phase 5)."
+    },
+    {
+      "id": "docs.guide-mcp-launch-command",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCore/Resources/Guide/**/*.md"
+      ],
+      "pattern": "command: \"osaurus\"",
+      "replace": "command: \"{brand_slug}\"",
+      "enforced": true,
+      "why": "The example tells an MCP host which executable to spawn. The installed helper is `nuo`; pointing hosts at the retired name only works while the one-release compatibility symlink exists."
+    }
+  ]
+}

@@ -10,13 +10,13 @@ Skills are reusable packages of instructions (plus optional reference files) tha
 
 ## Built-in skills
 
-Osaurus ships nine: Web Researcher, Content Summarizer, Mac Automator, Personal Organizer, Document Builder, Workspace Assistant, Data Keeper, Autonomous Scheduler, Data Visualizer.
+Nuo ships nine: Web Researcher, Content Summarizer, Mac Automator, Personal Organizer, Document Builder, Workspace Assistant, Data Keeper, Autonomous Scheduler, Data Visualizer.
 
 ## Using skills
 
 - Skills load on demand automatically during chat — no toggles, no per-agent assignment. Installing a skill puts it in the library for every custom agent.
 - Type `/skill-name` in chat to force-load one for a single message.
-- Exception: the built-in Osaurus configuration agent does not use skills (it answers questions from its built-in guide instead).
+- Exception: the built-in Nuo configuration agent does not use skills (it answers questions from its built-in guide instead).
 
 ## Managing skills
 
@@ -31,6 +31,6 @@ Osaurus ships nine: Web Researcher, Content Summarizer, Mac Automator, Personal 
 
 ## On disk and caveats
 
-- Stored at `~/.osaurus/skills/<skill-name>/SKILL.md` (plus `references/`, `assets/`; reference files up to 100 KB each).
+- Stored at `~/.nuo/skills/<skill-name>/SKILL.md` (plus `references/`, `assets/`; reference files up to 100 KB each).
 - Skills require the agent's tool mode to be Auto with tools enabled; Manual tool mode won't auto-load them.
 - A brand-new skill may need a new chat to enter the session manifest — or force it with `/skill-name`.

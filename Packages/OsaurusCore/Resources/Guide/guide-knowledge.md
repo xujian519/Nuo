@@ -33,4 +33,4 @@ Files are indexed in place and never moved or modified; edits to the folder are 
 ## Limits and storage
 
 - 2 MB per file, 5,000 files per collection; symlinks are skipped.
-- The index lives under `~/.osaurus/knowledge/` and is a derived artifact — deleting a collection removes only Osaurus's index, never your folder.
+- The index lives under `~/.nuo/knowledge/` and is a derived artifact — deleting a collection removes only Nuo's index, never your folder.
