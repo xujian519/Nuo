@@ -78,6 +78,7 @@ default_agent:
 - **In-app only.** The Orchestrator is never exposed on external surfaces: `POST /agents/{id}/run` and `/agents/{id}/dispatch` reject `Agent.defaultId` with `built_in_agent_not_exposable`. Only your saved custom agents are reachable over HTTP, plugins, or schedulers.
 - **No hands-on writes.** The Orchestrator's tool surface (`ToolRegistry.ToolSurface.orchestrator`) can read its working folder (`file_read`, `file_search`) and excludes writes, shell, sandbox, browser, and computer-use tools by construction (`orchestratorExcludedToolNames`).
 - **Spawn pool is default-on for custom agents.** Existing custom agents are seeded into the Orchestrator's spawn pool once, and newly created agents are added automatically (`SubagentConfiguration.spawnableAgentIDs` / `AgentManager.registerInDefaultSpawnPool`). Removals in Settings → Orchestrator persist. Local/cloud model targets and helper models remain explicit allow-lists.
+- **Directed mailbox is not the spawn pool.** Cross-agent send and inbox persistence is [ADR-Nuo-002](adr/ADR-Nuo-002-orchestrator-mailbox-grokbot-path.md). It does not replace subagent dispatch, and it does not change the `host.dispatch` rule that a plugin call keeps the calling agent's context.
 
 ## Where its settings are stored
 
@@ -91,3 +92,4 @@ Identity and the working folder persist to `~/.osaurus/config/default-agent.json
 - `Packages/OsaurusCore/Services/Chat/DefaultAgentSystemPromptBuilder.swift` — system prompt
 - `Packages/OsaurusCore/Views/Settings/OrchestratorSettingsView.swift` — Settings → Orchestrator
 - `Packages/OsaurusCore/Subagent/` — spawn host, residency handoff, subagent kinds
+- `Packages/OsaurusCore/Services/AgentCollaboration/DirectedMailboxService.swift` — persisted directed mailbox (ADR-Nuo-002). Not subagent dispatch.

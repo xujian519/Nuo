@@ -32,7 +32,10 @@ This protocol does not:
 - Grant workspace, memory, access-key, or data-location permissions.
 - Change model prompting, tool routing, sampler defaults, or agent-loop
   behavior.
-- Persist collaboration runs.
+- Persist collaboration runs inside this in-memory service. Durable directed
+  delivery is the mailbox in
+  [ADR-Nuo-002](adr/ADR-Nuo-002-orchestrator-mailbox-grokbot-path.md). It
+  reuses this envelope and does not define a second wire schema.
 
 Those layers can consume this contract later, but they should not redefine the
 wire envelope or negotiation semantics.
@@ -104,3 +107,13 @@ A minimal handoff flow is:
 The in-memory service exists to prove this contract in unit tests. Production
 team orchestration should keep the same envelope semantics when it adds
 persistence, UI, or network transport.
+
+## Directed mailbox
+
+[ADR-Nuo-002](adr/ADR-Nuo-002-orchestrator-mailbox-grokbot-path.md) P0 persists
+this envelope under `OsaurusPaths.directedMailboxFile()`. Payload text stays
+untrusted. Who may send, who may spawn or resume a target, and the per-run
+caps live on `DirectedMailboxService`. That service does not implement
+`AgentCollaborationTransport`, because `send` on the transport has no
+admission check. It is not subagent dispatch, and it does not change the
+`host.dispatch` rule that a plugin call keeps the calling agent's context.
