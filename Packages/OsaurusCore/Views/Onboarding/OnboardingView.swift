@@ -3,7 +3,7 @@
 //  osaurus
 //
 //  Main container view managing the redesigned 3-screen onboarding flow
-//  (Welcome → Create Dino → Brain setup) at a fixed dark 1000×640 window,
+//  (Welcome → Create agent → Brain setup) at a fixed dark 1000×640 window,
 //  per the Figma onboarding kit. Each step renders a full-window
 //  `OnboardingStepLayout`; the overlay Back/Close glass buttons and the
 //  modal hosts (model chooser, provider connect) live here so

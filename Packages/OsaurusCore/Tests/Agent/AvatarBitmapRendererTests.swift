@@ -130,6 +130,23 @@ struct AvatarBitmapRendererTests {
     }
 
     @Test(.enabled(if: mascotAssetsAvailable))
+    func primaryMascotRendersButIsNotSelectable() throws {
+        // The built-in Orchestrator portrait ships its own imageset, so it
+        // must resolve like any other mascot…
+        let image = try #require(AvatarBitmapRenderer.shared.image(mascot: .primary, pointSize: 26, scale: 2))
+        let (width, height) = try #require(pixelDimensions(image))
+        #expect(width == 52)
+        #expect(height == 52)
+
+        // …but it is reserved for that one agent: `allCases` feeds the
+        // avatar picker, the onboarding strip, and the randomizer, and none
+        // of those may offer it.
+        #expect(!AgentMascot.allCases.contains(.primary))
+        #expect(AgentMascot.allCases.count == 6)
+        #expect(Agent.default.avatar == AgentMascot.primary.rawValue)
+    }
+
+    @Test(.enabled(if: mascotAssetsAvailable))
     func repeatedMascotRequestsHitTheCache() throws {
         let first = try #require(AvatarBitmapRenderer.shared.image(mascot: .blue, pointSize: 24, scale: 2))
         let second = try #require(AvatarBitmapRenderer.shared.image(mascot: .blue, pointSize: 24, scale: 2))

@@ -14,17 +14,32 @@ import SwiftUI
 /// persisted on `Agent.avatar`. `assetName` resolves to an imageset in
 /// `OsaurusCore/Resources/Assets.xcassets`
 public enum AgentMascot: String, CaseIterable, Identifiable, Sendable {
+    /// Portrait reserved for the built-in Orchestrator. It is deliberately
+    /// absent from `allCases` so it never appears in the avatar picker, the
+    /// onboarding strip, or the randomizer — those iterate `allCases`.
+    case primary
     case blue, green, orange, purple, red, yellow
 
-    public var id: String { rawValue }
-    public var assetName: String { "osaurus-avatar-\(rawValue)" }
+    /// User-selectable mascots. `primary` is excluded by design.
+    public static var allCases: [AgentMascot] {
+        [.blue, .green, .orange, .purple, .red, .yellow]
+    }
 
-    /// The dino's signature color, used to theme surfaces around the mascot
-    /// (e.g. the onboarding hero glow, avatar tint, and selection ring) so
-    /// the UI reacts in the selected dino's actual color rather than a
-    /// name-hash approximation.
+    public var id: String { rawValue }
+
+    public var assetName: String {
+        switch self {
+        case .primary: return "nuo-primary-avatar"
+        default: return "osaurus-avatar-\(rawValue)"
+        }
+    }
+
+    /// The mascot's signature color, used to theme surfaces around it (the
+    /// onboarding hero glow and avatar tint) so the UI reacts in the selected
+    /// mascot's actual color rather than a name-hash approximation.
     public var color: Color {
         switch self {
+        case .primary: return Color(red: 0.973, green: 0.078, blue: 0.110)
         case .blue: return Color(red: 0.30, green: 0.56, blue: 0.92)
         case .green: return Color(red: 0.36, green: 0.72, blue: 0.42)
         case .orange: return Color(red: 0.95, green: 0.58, blue: 0.24)
@@ -39,12 +54,13 @@ public enum AgentMascot: String, CaseIterable, Identifiable, Sendable {
     /// strip in onboarding used to read `"Avatar: blue"`.
     public var displayName: String {
         switch self {
-        case .blue: return "Blue dino"
-        case .green: return "Green dino"
-        case .orange: return "Orange dino"
-        case .purple: return "Purple dino"
-        case .red: return "Red dino"
-        case .yellow: return "Yellow dino"
+        case .primary: return "Primary agent"
+        case .blue: return "Blue agent"
+        case .green: return "Green agent"
+        case .orange: return "Orange agent"
+        case .purple: return "Purple agent"
+        case .red: return "Red agent"
+        case .yellow: return "Yellow agent"
         }
     }
 
@@ -57,6 +73,7 @@ public enum AgentMascot: String, CaseIterable, Identifiable, Sendable {
     /// imageset upstream if you want to fix it.
     public var createPoseAssetName: String {
         switch self {
+        case .primary: return "nuo-primary-avatar"
         case .yellow: return "osuarus-yellow-create"
         default: return "osaurus-\(rawValue)-create"
         }
