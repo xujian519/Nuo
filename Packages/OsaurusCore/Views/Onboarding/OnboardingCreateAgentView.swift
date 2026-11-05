@@ -212,7 +212,7 @@ struct CreateAgentStepView: View {
     /// Figma "Right": 40pt padding, avatar group pinned to the top and the
     /// specialty cards pinned to the bottom (space-between).
     private var rightPanel: some View {
-        OnboardingRightPanel(gradientTint: OnboardingPalette.createGradientGreen) {
+        OnboardingRightPanel(gradientTint: OnboardingPalette.createGradientSeal) {
             VStack(spacing: 0) {
                 VStack(spacing: 16) {
                     avatarBlock

@@ -2,7 +2,7 @@
   "fill-specializations" : [
     {
       "value" : {
-        "solid" : "display-p3:0.12941,0.25098,0.60000,1.00000"
+        "solid" : "display-p3:0.97832,0.96902,0.95100,1.00000"
       }
     },
     {
@@ -14,11 +14,11 @@
     {
       "layers" : [
         {
-          "glass" : true,
+          "glass" : false,
           "image-name" : "Image 9.png",
           "name" : "Image 9",
           "position" : {
-            "scale" : 0.675,
+            "scale" : 1,
             "translation-in-points" : [
               0,
               0
@@ -28,11 +28,11 @@
       ],
       "shadow" : {
         "kind" : "neutral",
-        "opacity" : 0.5
+        "opacity" : 0
       },
       "translucency" : {
-        "enabled" : true,
-        "value" : 0.5
+        "enabled" : false,
+        "value" : 0
       }
     }
   ],
