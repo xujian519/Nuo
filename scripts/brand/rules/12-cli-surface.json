@@ -77,6 +77,33 @@
       "why": "`an Osaurus bundle` becomes `an Nuo` after the rename; fix the article the copy carried."
     },
     {
+      "id": "cli.test-version-banner-expectations",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCLI/Tests/OsaurusCLITests/InstallationDiagnosticsTests.swift"
+      ],
+      "mode": "swift-literals",
+      "exclude_substrings": [
+        "Osaurus.app"
+      ],
+      "pattern": "\\bOsaurus\\b",
+      "replace": "Nuo",
+      "enforced": true,
+      "why": "VersionCommand prints `Nuo` after cli.prose-name, and these three assertions check the user-visible banner. No rule covered the CLI test suite, so CI kept asserting the old name. `Osaurus.app` occurrences are legacy-bundle fixtures that must keep the old path."
+    },
+    {
+      "id": "cli.test-import-message-expectations",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCLI/Tests/OsaurusCLITests/ImportCommandTests.swift"
+      ],
+      "mode": "swift-literals",
+      "pattern": "\\bOsaurus\\b",
+      "replace": "Nuo",
+      "enforced": true,
+      "why": "Import validation/install messages name the app (`needs Nuo x.y or newer`, keychain `-T /Applications/Nuo.app`); the Sources rules rewrote the messages but these two assertions still expected `Osaurus`. swift-literals mode skips identifiers like testMinimumOsaurusVersion."
+    },
+    {
       "id": "cli.app-control-launch",
       "op": "block",
       "path": "Packages/OsaurusCLI/Sources/OsaurusCLICore/Services/AppControl.swift",
