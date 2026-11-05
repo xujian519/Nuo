@@ -137,7 +137,9 @@ final class PrivacyReviewService {
 
             // Honor per-session auto-approve.
             if await SessionRedactionStore.shared.isAutoApproveEnabled(sessionId) {
-                print("[PrivacyReview] auto-approved \(detections.count) item(s): session \(sessionId) has always-approve on")
+                print(
+                    "[PrivacyReview] auto-approved \(detections.count) item(s): session \(sessionId) has always-approve on"
+                )
                 return .approved(detections)
             }
         }
@@ -176,7 +178,9 @@ final class PrivacyReviewService {
                 )
                 return .blockedNonInteractive
             }
-            print("[PrivacyReview] auto-approved \(detections.count) item(s): no reviewer and non-interactive review is not required")
+            print(
+                "[PrivacyReview] auto-approved \(detections.count) item(s): no reviewer and non-interactive review is not required"
+            )
             return .approved(detections)
         }
 
@@ -219,7 +223,6 @@ final class PrivacyReviewService {
             }
         }
     }
-
 
     // MARK: - Remote review (Osaurus Connect)
 
@@ -274,7 +277,9 @@ final class PrivacyReviewService {
             print("[PrivacyReview] phone answered review \(id), but it is no longer pending")
             return false
         }
-        print("[PrivacyReview] phone answered review \(id): redact \(redactedIds.intersection(Set(state.entities.map(\.id))).count) of \(state.entities.count)")
+        print(
+            "[PrivacyReview] phone answered review \(id): redact \(redactedIds.intersection(Set(state.entities.map(\.id))).count) of \(state.entities.count)"
+        )
         remoteStates.removeValue(forKey: id)
         for entity in state.entities {
             state.setApproval(entity, to: redactedIds.contains(entity.id))
@@ -308,7 +313,9 @@ final class PrivacyReviewService {
         let state = RedactionReviewState(detections: detections, sessionId: sessionId)
         let stateId = state.id
         remoteStates[stateId] = state
-        print("[PrivacyReview] remote review \(stateId) parked for session \(sessionId): \(detections.count) item(s), waiting on the phone")
+        print(
+            "[PrivacyReview] remote review \(stateId) parked for session \(sessionId): \(detections.count) item(s), waiting on the phone"
+        )
         return await withTaskCancellationHandler {
             await withCheckedContinuation { (cont: CheckedContinuation<PrivacyReviewOutcome, Never>) in
                 state.onResolve = { outcome in
@@ -327,7 +334,9 @@ final class PrivacyReviewService {
 
     private func cancelRemoteState(id: UUID) {
         if remoteStates[id] != nil {
-            print("[PrivacyReview] remote review \(id) cancelled: its run was cancelled (client hung up or the run was stopped)")
+            print(
+                "[PrivacyReview] remote review \(id) cancelled: its run was cancelled (client hung up or the run was stopped)"
+            )
         }
         remoteStates[id]?.cancel()
     }

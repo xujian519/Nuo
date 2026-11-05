@@ -309,18 +309,31 @@ struct AgentTaskStateTests {
         ] {
             let state = AgentTaskState()
             state.record(
-                name: "file_read", argsJSON: #"{"mode":"content","path":"deck.pptx"}"#,
-                result: fileContentEnvelope(path: "deck.pptx", text: "before"))
+                name: "file_read",
+                argsJSON: #"{"mode":"content","path":"deck.pptx"}"#,
+                result: fileContentEnvelope(path: "deck.pptx", text: "before")
+            )
             #expect(state.isDuplicate(name: "file_read", argsJSON: #"{"mode":"content","path":"deck.pptx"}"#))
-            state.record(name: "file_edit", argsJSON: editArgs, result: ToolEnvelope.success(tool: "file_edit", text: "edited"))
+            state.record(
+                name: "file_edit",
+                argsJSON: editArgs,
+                result: ToolEnvelope.success(tool: "file_edit", text: "edited")
+            )
             #expect(
                 state.heldResult(name: "file_read", argsJSON: #"{"mode":"content","path":"deck.pptx"}"#) == nil,
-                "the verify-read after \(editArgs) must re-execute")
+                "the verify-read after \(editArgs) must re-execute"
+            )
         }
         // Entries naming different files resolve to no single target.
         #expect(
-            AgentTaskState.sharedEntryPath(["edits": [["path": "a.txt", "old_string": "x", "new_string": "y"], ["path": "b.txt", "old_string": "x", "new_string": "y"]]])
-                == nil)
+            AgentTaskState.sharedEntryPath([
+                "edits": [
+                    ["path": "a.txt", "old_string": "x", "new_string": "y"],
+                    ["path": "b.txt", "old_string": "x", "new_string": "y"],
+                ]
+            ])
+                == nil
+        )
         #expect(AgentTaskState.sharedEntryPath(["edits": [["old_string": "x", "new_string": "y"]]]) == nil)
     }
 
@@ -443,7 +456,7 @@ struct AgentTaskStateTests {
     /// notice still requires the model to disclose the partial read.
     @Test func bias_partialReadSwitchesToBoundedNoticeAtLimit() {
         let state = AgentTaskState()
-        for step in 0...2 {
+        for step in 0 ... 2 {
             state.record(
                 name: "file_read",
                 argsJSON: #"{"path":"big.md","start_line":\#(step * 100 + 1)}"#,
@@ -467,7 +480,7 @@ struct AgentTaskStateTests {
     /// exhausted budget.
     @Test func bias_partialReadBudgetIsPerPath() {
         let state = AgentTaskState()
-        for step in 0...2 {
+        for step in 0 ... 2 {
             state.record(
                 name: "file_read",
                 argsJSON: #"{"path":"big.md","start_line":\#(step * 100 + 1)}"#,
@@ -495,7 +508,7 @@ struct AgentTaskStateTests {
     /// path starts over instead of landing straight on the bounded notice.
     @Test func bias_completeReadReleasesPartialReadBudget() {
         let state = AgentTaskState()
-        for step in 0...2 {
+        for step in 0 ... 2 {
             state.record(
                 name: "file_read",
                 argsJSON: #"{"path":"big.md","start_line":\#(step * 100 + 1)}"#,
@@ -524,7 +537,7 @@ struct AgentTaskStateTests {
     /// The budget is per user message: a new send starts with a full one.
     @Test func bias_partialReadBudgetResetsPerMessage() {
         let state = AgentTaskState()
-        for step in 0...2 {
+        for step in 0 ... 2 {
             state.record(
                 name: "file_read",
                 argsJSON: #"{"path":"big.md","start_line":\#(step * 100 + 1)}"#,
@@ -1165,7 +1178,7 @@ struct AgentTaskStateTests {
                         "extracted": false,
                         "extract_status": "challenge",
                         "extract_error": "challenge_page",
-                    ],
+                    ]
                 ],
             ]
         )
@@ -1207,7 +1220,7 @@ struct AgentTaskStateTests {
                         "url": "https://example.com/temporarily-slow",
                         "extracted": false,
                         "extract_status": "timeout",
-                    ],
+                    ]
                 ],
             ]
         )
@@ -1255,7 +1268,7 @@ struct AgentTaskStateTests {
                         "extracted": true,
                         "extract_status": "ok",
                         "markdown": "verified model card content",
-                    ],
+                    ]
                 ],
             ]
         )
@@ -1513,10 +1526,15 @@ struct AgentTaskStateTests {
         state.record(name: "file_read", argsJSON: restoredArgs, result: stale)
         state.record(name: "file_read", argsJSON: otherArgs, result: stale)
         state.record(
-            name: "file_undo", argsJSON: #"{"operation_id":"saved-operation"}"#,
-            result: ToolEnvelope.success(tool: "file_undo", result: [
-                "undone_count": 1, "undone": [["path": "ops.xlsx"]],
-            ] as [String: Any]))
+            name: "file_undo",
+            argsJSON: #"{"operation_id":"saved-operation"}"#,
+            result: ToolEnvelope.success(
+                tool: "file_undo",
+                result: [
+                    "undone_count": 1, "undone": [["path": "ops.xlsx"]],
+                ] as [String: Any]
+            )
+        )
         #expect(state.heldResult(name: "file_read", argsJSON: restoredArgs) == nil)
         #expect(state.heldResult(name: "file_read", argsJSON: otherArgs) == stale)
     }
@@ -1654,27 +1672,36 @@ struct AgentTaskStateTests {
 
         let searchArgs = #"{"query":"deployment runbook"}"#
         let searchEnv = ToolEnvelope.success(
-            tool: "search_knowledge", text: "Found 2 knowledge excerpt(s)")
+            tool: "search_knowledge",
+            text: "Found 2 knowledge excerpt(s)"
+        )
         state.record(name: "search_knowledge", argsJSON: searchArgs, result: searchEnv)
         #expect(AgentTaskState.isReplayEligible(name: "search_knowledge"))
         #expect(state.heldResult(name: "search_knowledge", argsJSON: searchArgs) == searchEnv)
 
         let readArgs = #"{"path":"usage/how-to-deploy.md"}"#
         let readEnv = ToolEnvelope.success(
-            tool: "read_knowledge", text: "# How to deploy\n...")
+            tool: "read_knowledge",
+            text: "# How to deploy\n..."
+        )
         state.record(name: "read_knowledge", argsJSON: readArgs, result: readEnv)
         #expect(state.heldResult(name: "read_knowledge", argsJSON: readArgs) == readEnv)
 
         let listArgs = #"{"collection":"ops"}"#
         let listEnv = ToolEnvelope.success(
-            tool: "list_knowledge", text: "Found 3 knowledge document(s)")
+            tool: "list_knowledge",
+            text: "Found 3 knowledge document(s)"
+        )
         state.record(name: "list_knowledge", argsJSON: listArgs, result: listEnv)
         #expect(state.heldResult(name: "list_knowledge", argsJSON: listArgs) == listEnv)
 
         // A different query is a different call — never held.
         #expect(
             state.heldResult(
-                name: "search_knowledge", argsJSON: #"{"query":"alerts"}"#) == nil)
+                name: "search_knowledge",
+                argsJSON: #"{"query":"alerts"}"#
+            ) == nil
+        )
     }
 
     /// `read_knowledge` not_found is deterministic on an unchanged store: the
@@ -1704,17 +1731,25 @@ struct AgentTaskStateTests {
         let readArgs = #"{"path":"usage/how-to-deploy.md"}"#
         let otherReadArgs = #"{"path":"reference/alerts.md"}"#
         state.record(
-            name: "search_knowledge", argsJSON: searchArgs,
-            result: ToolEnvelope.success(tool: "search_knowledge", text: "excerpts"))
+            name: "search_knowledge",
+            argsJSON: searchArgs,
+            result: ToolEnvelope.success(tool: "search_knowledge", text: "excerpts")
+        )
         state.record(
-            name: "list_knowledge", argsJSON: listArgs,
-            result: ToolEnvelope.success(tool: "list_knowledge", text: "documents"))
+            name: "list_knowledge",
+            argsJSON: listArgs,
+            result: ToolEnvelope.success(tool: "list_knowledge", text: "documents")
+        )
         state.record(
-            name: "read_knowledge", argsJSON: readArgs,
-            result: ToolEnvelope.success(tool: "read_knowledge", text: "old content"))
+            name: "read_knowledge",
+            argsJSON: readArgs,
+            result: ToolEnvelope.success(tool: "read_knowledge", text: "old content")
+        )
         state.record(
-            name: "read_knowledge", argsJSON: otherReadArgs,
-            result: ToolEnvelope.success(tool: "read_knowledge", text: "alerts"))
+            name: "read_knowledge",
+            argsJSON: otherReadArgs,
+            result: ToolEnvelope.success(tool: "read_knowledge", text: "alerts")
+        )
 
         // Batch write shape: `documents[].path`, no top-level `path`.
         state.record(
@@ -1726,16 +1761,20 @@ struct AgentTaskStateTests {
 
         #expect(
             state.heldResult(name: "search_knowledge", argsJSON: searchArgs) == nil,
-            "a knowledge write must stale knowledge search results")
+            "a knowledge write must stale knowledge search results"
+        )
         #expect(
             state.heldResult(name: "list_knowledge", argsJSON: listArgs) == nil,
-            "a knowledge write must stale knowledge listings")
+            "a knowledge write must stale knowledge listings"
+        )
         #expect(
             state.heldResult(name: "read_knowledge", argsJSON: readArgs) == nil,
-            "the verify-read of a written document must re-execute")
+            "the verify-read of a written document must re-execute"
+        )
         #expect(
             state.heldResult(name: "read_knowledge", argsJSON: otherReadArgs) != nil,
-            "a read of an untouched document stays fresh — invalidation is per path")
+            "a read of an untouched document stays fresh — invalidation is per path"
+        )
     }
 
     /// Regression check for the 0.24.7 "listing truncated at 50" report:
@@ -1747,30 +1786,40 @@ struct AgentTaskStateTests {
         let state = AgentTaskState()
         let page0 = #"{"collection":"Obsidian Vault","limit":100,"offset":0}"#
         let env0 = ToolEnvelope.success(
-            tool: "list_knowledge", text: "Found 312 knowledge document(s) in total; showing 1–100")
+            tool: "list_knowledge",
+            text: "Found 312 knowledge document(s) in total; showing 1–100"
+        )
         state.record(name: "list_knowledge", argsJSON: page0, result: env0)
         #expect(state.heldResult(name: "list_knowledge", argsJSON: page0) == env0)
         // Same page, keys reordered → same call → replayed.
         #expect(
             state.heldResult(
                 name: "list_knowledge",
-                argsJSON: #"{"offset":0,"limit":100,"collection":"Obsidian Vault"}"#) == env0)
+                argsJSON: #"{"offset":0,"limit":100,"collection":"Obsidian Vault"}"#
+            ) == env0
+        )
         // Next page → not held.
         #expect(
             state.heldResult(
                 name: "list_knowledge",
-                argsJSON: #"{"collection":"Obsidian Vault","limit":100,"offset":100}"#) == nil)
+                argsJSON: #"{"collection":"Obsidian Vault","limit":100,"offset":100}"#
+            ) == nil
+        )
         // Larger limit → not held.
         #expect(
             state.heldResult(
                 name: "list_knowledge",
-                argsJSON: #"{"collection":"Obsidian Vault","limit":500,"offset":0}"#) == nil)
+                argsJSON: #"{"collection":"Obsidian Vault","limit":500,"offset":0}"#
+            ) == nil
+        )
         // A string limit ("20") is a different signature from the integer:
         // never confused with a held integer call.
         let intArgs = #"{"limit":20}"#
         state.record(
-            name: "list_knowledge", argsJSON: intArgs,
-            result: ToolEnvelope.success(tool: "list_knowledge", text: "20 rows"))
+            name: "list_knowledge",
+            argsJSON: intArgs,
+            result: ToolEnvelope.success(tool: "list_knowledge", text: "20 rows")
+        )
         #expect(state.heldResult(name: "list_knowledge", argsJSON: #"{"limit":"20"}"#) == nil)
     }
 
@@ -1794,7 +1843,8 @@ struct AgentTaskStateTests {
         )
         #expect(
             state.heldResult(name: "read_knowledge", argsJSON: args) == nil,
-            "the write may have created the document — the read must re-execute")
+            "the write may have created the document — the read must re-execute"
+        )
     }
 
     // MARK: - Dynamic-tool same-name run
@@ -1810,7 +1860,9 @@ struct AgentTaskStateTests {
                 name: "underwriting_underwriter_activity",
                 argsJSON: #"{"query":"variation \#(n)"}"#,
                 result: ToolEnvelope.success(
-                    tool: "underwriting_underwriter_activity", text: "rows")
+                    tool: "underwriting_underwriter_activity",
+                    text: "rows"
+                )
             )
             #expect(state.nextStepBias() == nil, "call \(n) is still legitimate querying")
         }
@@ -1818,7 +1870,9 @@ struct AgentTaskStateTests {
             name: "underwriting_underwriter_activity",
             argsJSON: #"{"query":"variation 4"}"#,
             result: ToolEnvelope.success(
-                tool: "underwriting_underwriter_activity", text: "rows")
+                tool: "underwriting_underwriter_activity",
+                text: "rows"
+            )
         )
         let bias = state.nextStepBias() ?? ""
         #expect(bias.contains("underwriting_underwriter_activity"))
@@ -1835,7 +1889,9 @@ struct AgentTaskStateTests {
                 name: "underwriting_underwriter_activity",
                 argsJSON: #"{"query":"variation \#(n)"}"#,
                 result: ToolEnvelope.success(
-                    tool: "underwriting_underwriter_activity", text: "rows")
+                    tool: "underwriting_underwriter_activity",
+                    text: "rows"
+                )
             )
         }
         state.record(
@@ -1847,7 +1903,9 @@ struct AgentTaskStateTests {
             name: "underwriting_underwriter_activity",
             argsJSON: #"{"query":"variation 4"}"#,
             result: ToolEnvelope.success(
-                tool: "underwriting_underwriter_activity", text: "rows")
+                tool: "underwriting_underwriter_activity",
+                text: "rows"
+            )
         )
         #expect(state.nextStepBias() == nil, "the interleaved read reset the same-name run")
     }
@@ -1941,7 +1999,9 @@ struct AgentTaskStateTests {
                 name: "underwriting_underwriter_activity",
                 argsJSON: args,
                 result: ToolEnvelope.success(
-                    tool: "underwriting_underwriter_activity", text: "rows")
+                    tool: "underwriting_underwriter_activity",
+                    text: "rows"
+                )
             )
         }
         let bias = state.nextStepBias() ?? ""
@@ -1983,7 +2043,10 @@ struct AgentTaskStateTests {
         // Key-order-insensitive, like the dedupe signature.
         #expect(
             state.repeatCount(
-                name: "file_read", argsJSON: #"{ "path" : "config.json" }"#) == 2)
+                name: "file_read",
+                argsJSON: #"{ "path" : "config.json" }"#
+            ) == 2
+        )
         // Different args are a different signature.
         #expect(state.repeatCount(name: "file_read", argsJSON: #"{"path":"other"}"#) == 0)
 

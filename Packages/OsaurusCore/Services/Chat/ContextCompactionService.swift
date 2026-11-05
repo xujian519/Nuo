@@ -65,7 +65,8 @@ enum ContextCompactionError: Error, LocalizedError, Equatable {
         case .summaryNotSmaller:
             return "The summary would not reduce context usage, so no conversation history was replaced"
         case .truncatedSummary(let model):
-            return "'\(model)' hit its output limit before finishing the summary, so nothing was replaced. If it is a reasoning model served remotely, its server may be ignoring the request to turn reasoning off"
+            return
+                "'\(model)' hit its output limit before finishing the summary, so nothing was replaced. If it is a reasoning model served remotely, its server may be ignoring the request to turn reasoning off"
         case .timedOut:
             return "Context compaction timed out"
         case .requestFailed(let model, let message):
@@ -271,7 +272,7 @@ final class ContextCompactionService {
         if afterToolBatch,
             let batchStart = toolBatchStart,
             batchStart > alreadyCovered,
-            ContextBudgetManager.estimateTokens(for: Array(turns[alreadyCovered..<batchStart]))
+            ContextBudgetManager.estimateTokens(for: Array(turns[alreadyCovered ..< batchStart]))
                 >= minimumCoveredTokens
         {
             return batchStart
@@ -342,7 +343,9 @@ final class ContextCompactionService {
     /// This is scoped to the summary request, never chat or saved agent defaults.
     /// Complete-output validation rejects truncation on every route.
     nonisolated static func summaryParameters(
-        sessionId: UUID?, requestSource: RequestSource, remote: Bool,
+        sessionId: UUID?,
+        requestSource: RequestSource,
+        remote: Bool,
         localThinkingCapability: LocalReasoningCapability.Capability = .none
     ) -> GenerationParameters {
         GenerationParameters(
@@ -387,8 +390,12 @@ final class ContextCompactionService {
         else {
             throw ContextCompactionError.needsModelSelection
         }
-        guard let cut = Self.compactionCutIndex(
-            turns: turns, existingSummary: existingSummary, afterToolBatch: afterToolBatch)
+        guard
+            let cut = Self.compactionCutIndex(
+                turns: turns,
+                existingSummary: existingSummary,
+                afterToolBatch: afterToolBatch
+            )
         else {
             throw ContextCompactionError.nothingToCompact
         }
@@ -426,11 +433,15 @@ final class ContextCompactionService {
             ChatMessage(role: "user", content: Self.userPrompt(transcript: transcript)),
         ]
         let remoteConn = ChatEngine.remoteConnectionInfo(for: service, runAsRemoteAgent: false)
-        let localThinkingCapability = service is MLXService
+        let localThinkingCapability =
+            service is MLXService
             ? await LocalReasoningCapability.resolveForDispatch(modelId: modelId) : .none
         let params = Self.summaryParameters(
-            sessionId: sessionId, requestSource: invocation.source?.inferenceSource ?? .chatUI,
-            remote: remoteConn != nil, localThinkingCapability: localThinkingCapability)
+            sessionId: sessionId,
+            requestSource: invocation.source?.inferenceSource ?? .chatUI,
+            remote: remoteConn != nil,
+            localThinkingCapability: localThinkingCapability
+        )
 
         onPhase(.summarizing)
         let startedAt = Date()
@@ -475,40 +486,71 @@ final class ContextCompactionService {
                 }
             }
             summary = try Self.validatedSummary(
-                generatedText, covered: covered, modelId: modelId)
+                generatedText,
+                covered: covered,
+                modelId: modelId
+            )
         } catch is DeadlineExceededError {
             Self.logToInsights(
-                model: modelId, messages: messages, response: nil,
-                startedAt: startedAt, error: "timed out", context: logContext)
+                model: modelId,
+                messages: messages,
+                response: nil,
+                startedAt: startedAt,
+                error: "timed out",
+                context: logContext
+            )
             throw ContextCompactionError.timedOut
         } catch is CancellationError {
             throw CancellationError()
         } catch RemoteProviderServiceError.outputTruncated {
             Self.logToInsights(
-                model: modelId, messages: messages, response: nil,
-                startedAt: startedAt, error: "truncated at output limit", context: logContext)
+                model: modelId,
+                messages: messages,
+                response: nil,
+                startedAt: startedAt,
+                error: "truncated at output limit",
+                context: logContext
+            )
             throw ContextCompactionError.truncatedSummary(model: modelId)
         } catch MLXService.OneShotError.outputTruncated {
             Self.logToInsights(
-                model: modelId, messages: messages, response: nil,
-                startedAt: startedAt, error: "truncated at output limit", context: logContext)
+                model: modelId,
+                messages: messages,
+                response: nil,
+                startedAt: startedAt,
+                error: "truncated at output limit",
+                context: logContext
+            )
             throw ContextCompactionError.truncatedSummary(model: modelId)
         } catch ContextCompactionError.emptySummary {
             Self.logToInsights(
-                model: modelId, messages: messages, response: nil,
-                startedAt: startedAt, error: ContextCompactionError.emptySummary.localizedDescription,
-                context: logContext)
+                model: modelId,
+                messages: messages,
+                response: nil,
+                startedAt: startedAt,
+                error: ContextCompactionError.emptySummary.localizedDescription,
+                context: logContext
+            )
             throw ContextCompactionError.emptySummary
         } catch ContextCompactionError.summaryNotSmaller {
             Self.logToInsights(
-                model: modelId, messages: messages, response: nil,
-                startedAt: startedAt, error: ContextCompactionError.summaryNotSmaller.localizedDescription,
-                context: logContext)
+                model: modelId,
+                messages: messages,
+                response: nil,
+                startedAt: startedAt,
+                error: ContextCompactionError.summaryNotSmaller.localizedDescription,
+                context: logContext
+            )
             throw ContextCompactionError.summaryNotSmaller
         } catch {
             Self.logToInsights(
-                model: modelId, messages: messages, response: nil,
-                startedAt: startedAt, error: error.localizedDescription, context: logContext)
+                model: modelId,
+                messages: messages,
+                response: nil,
+                startedAt: startedAt,
+                error: error.localizedDescription,
+                context: logContext
+            )
             throw ContextCompactionError.requestFailed(
                 model: modelId,
                 message: error.localizedDescription
@@ -516,8 +558,13 @@ final class ContextCompactionService {
         }
 
         Self.logToInsights(
-            model: modelId, messages: messages, response: summary.summaryText,
-            startedAt: startedAt, error: nil, context: logContext)
+            model: modelId,
+            messages: messages,
+            response: summary.summaryText,
+            startedAt: startedAt,
+            error: nil,
+            context: logContext
+        )
 
         onPhase(.applying)
         logger.info(
@@ -529,7 +576,9 @@ final class ContextCompactionService {
     /// INVARIANT: validate before reporting success or applying a summary.
     /// Failed, empty or non-shrinking output never replaces outbound history.
     static func validatedSummary(
-        _ responseText: String, covered: [ChatTurn], modelId: String
+        _ responseText: String,
+        covered: [ChatTurn],
+        modelId: String
     ) throws -> ConversationSummary {
         let summaryText = responseText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !summaryText.isEmpty else { throw ContextCompactionError.emptySummary }
@@ -684,7 +733,9 @@ final class ContextCompactionService {
             ]
             guard
                 let data = try? JSONSerialization.data(
-                    withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
+                    withJSONObject: payload,
+                    options: [.prettyPrinted, .sortedKeys]
+                )
             else { return nil }
             return String(decoding: data, as: UTF8.self)
         }()

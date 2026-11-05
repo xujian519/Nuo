@@ -66,10 +66,15 @@ actor MediaGenerationCoordinator {
                     steps: request.steps,
                     guidance: request.guidance.map(Float.init),
                     seed: request.seed.flatMap { $0 >= 0 ? UInt64($0) : nil },
-                    numImages: request.count, seeds: request.seeds, batchSize: request.batchSize,
+                    numImages: request.count,
+                    seeds: request.seeds,
+                    batchSize: request.batchSize,
                     outputFormat: request.format,
-                    sampler: request.sampler, scheduler: request.scheduler, shift: request.shift,
-                    previewInterval: request.previewInterval, previewMaxPixel: request.previewMaxPixel,
+                    sampler: request.sampler,
+                    scheduler: request.scheduler,
+                    shift: request.shift,
+                    previewInterval: request.previewInterval,
+                    previewMaxPixel: request.previewMaxPixel,
                     adapters: request.adapters,
                     context: .current()
                 )
@@ -92,7 +97,11 @@ actor MediaGenerationCoordinator {
             guard let provider else { throw MediaGenerationError.providerUnavailable }
             // Activity log: the prompt leaves this Mac for the provider.
             let activity = Self.remoteMediaActivity(
-                provider: provider, kind: .image, operation: .generate, request: request)
+                provider: provider,
+                kind: .image,
+                operation: .generate,
+                request: request
+            )
             do {
                 let generated = try await VeniceMediaClient(provider: provider).generateImage(request)
                 activity?.finish(producedCount: generated.count, error: nil)
@@ -127,7 +136,12 @@ actor MediaGenerationCoordinator {
             provider: provider.name,
             endpoint: provider.baseURL?.absoluteString ?? provider.host,
             requestedCount: request.count,
-            size: Self.sizeLabel(width: request.width, height: request.height, aspect: request.aspectRatio, resolution: request.resolution),
+            size: Self.sizeLabel(
+                width: request.width,
+                height: request.height,
+                aspect: request.aspectRatio,
+                resolution: request.resolution
+            ),
             steps: request.steps,
             trigger: ChatExecutionContext.currentToolCallId != nil ? .chatTool : .imagePanel
         )
@@ -202,8 +216,12 @@ actor MediaGenerationCoordinator {
         try Task.checkCancellation()
 
         if request.target.backend == .local {
-            return try await NativeImageJobCoordinator.shared.generateVideo(request,
-                context: .current(), interrupt: interrupt, progress: progress)
+            return try await NativeImageJobCoordinator.shared.generateVideo(
+                request,
+                context: .current(),
+                interrupt: interrupt,
+                progress: progress
+            )
         }
 
         var durableID: UUID?
@@ -258,18 +276,38 @@ actor MediaGenerationCoordinator {
             try await validateVideoRequest(request)
             _ = try await ImageGenerationService.shared.validateVideo(request)
             let id = UUID()
-            let job = DurableMediaJob(id: id, backend: .local, providerID: nil,
-                modelID: request.target.modelID, kind: request.sourceImage == nil ? .textToVideo : .imageToVideo,
-                queueID: id.uuidString, downloadURL: nil, quoteUSD: 0, state: .queued, outputURL: nil,
-                errorMessage: nil, cleanupPending: false, createdAt: Date(), updatedAt: Date())
+            let job = DurableMediaJob(
+                id: id,
+                backend: .local,
+                providerID: nil,
+                modelID: request.target.modelID,
+                kind: request.sourceImage == nil ? .textToVideo : .imageToVideo,
+                queueID: id.uuidString,
+                downloadURL: nil,
+                quoteUSD: 0,
+                state: .queued,
+                outputURL: nil,
+                errorMessage: nil,
+                cleanupPending: false,
+                createdAt: Date(),
+                updatedAt: Date()
+            )
             try await jobs.upsert(job)
             let context = NativeImageJobContext.current()
             recoveryTasks[id] = Task {
                 do {
-                    let media = try await NativeImageJobCoordinator.shared.generateVideo(request,
-                        context: context, interrupt: nil, progress: { _ in })
-                    try await self.jobs.update(id: id, state: .completed, outputURL: media.url,
-                        effectiveVideo: media.effectiveVideo)
+                    let media = try await NativeImageJobCoordinator.shared.generateVideo(
+                        request,
+                        context: context,
+                        interrupt: nil,
+                        progress: { _ in }
+                    )
+                    try await self.jobs.update(
+                        id: id,
+                        state: .completed,
+                        outputURL: media.url,
+                        effectiveVideo: media.effectiveVideo
+                    )
                 } catch {
                     try? await self.jobs.update(id: id, state: .failed, errorMessage: error.localizedDescription)
                 }
@@ -436,7 +474,9 @@ actor MediaGenerationCoordinator {
                 case .osaurusCloud:
                     _ = try await self.retrieveCloud(job: job, progress: { _ in })
                 case .local:
-                    throw MediaGenerationError.unsupported("Local video generation was interrupted by an app restart. Submit the job again.")
+                    throw MediaGenerationError.unsupported(
+                        "Local video generation was interrupted by an app restart. Submit the job again."
+                    )
                 }
             } catch {
                 try? await self.jobs.update(
@@ -588,8 +628,11 @@ actor MediaGenerationCoordinator {
         guard request.target.backend != .local else { return }
         guard request.sampler == nil, request.scheduler == nil, request.shift == nil,
             request.seeds == nil, request.batchSize == 1,
-            request.previewInterval == nil, request.previewMaxPixel == 256, request.adapters.isEmpty else {
-            throw MediaGenerationError.invalidRequest("Sampling, batching, adapters and previews require a local image model.")
+            request.previewInterval == nil, request.previewMaxPixel == 256, request.adapters.isEmpty
+        else {
+            throw MediaGenerationError.invalidRequest(
+                "Sampling, batching, adapters and previews require a local image model."
+            )
         }
         let model = try await requiredMediaModel(for: request.target)
         guard model.kind == .image else {
@@ -650,8 +693,11 @@ actor MediaGenerationCoordinator {
             return
         }
         guard request.width == nil, request.height == nil, request.frameCount == nil,
-            request.fps == nil, request.steps == nil, request.guidance == nil, request.seed == nil else {
-            throw MediaGenerationError.invalidRequest("Explicit dimensions, frames, fps, steps, guidance and seed require a local video model.")
+            request.fps == nil, request.steps == nil, request.guidance == nil, request.seed == nil
+        else {
+            throw MediaGenerationError.invalidRequest(
+                "Explicit dimensions, frames, fps, steps, guidance and seed require a local video model."
+            )
         }
         let model = try await requiredMediaModel(for: request.target)
         let expectedKind: MediaGenerationKind =

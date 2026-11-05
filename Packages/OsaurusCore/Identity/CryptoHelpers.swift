@@ -246,9 +246,14 @@ func recoverAddress(payload: Data, signature: Data, domainPrefix: String) throws
     let context = P256K.Context.rawRepresentation
     var recoverable = secp256k1_ecdsa_recoverable_signature()
     let sigBytes = [UInt8](compactSig)
-    guard secp256k1_ecdsa_recoverable_signature_parse_compact(
-        context, &recoverable, sigBytes, v
-    ) == 1 else {
+    guard
+        secp256k1_ecdsa_recoverable_signature_parse_compact(
+            context,
+            &recoverable,
+            sigBytes,
+            v
+        ) == 1
+    else {
         throw OsaurusIdentityError.signingFailed
     }
 
@@ -263,9 +268,15 @@ func recoverAddress(payload: Data, signature: Data, domainPrefix: String) throws
 
     var serialized = [UInt8](repeating: 0, count: 65)
     var serializedLength = serialized.count
-    guard secp256k1_ec_pubkey_serialize(
-        context, &serialized, &serializedLength, &pubKey, UInt32(SECP256K1_EC_UNCOMPRESSED)
-    ) == 1, serializedLength == 65 else {
+    guard
+        secp256k1_ec_pubkey_serialize(
+            context,
+            &serialized,
+            &serializedLength,
+            &pubKey,
+            UInt32(SECP256K1_EC_UNCOMPRESSED)
+        ) == 1, serializedLength == 65
+    else {
         throw OsaurusIdentityError.signingFailed
     }
 

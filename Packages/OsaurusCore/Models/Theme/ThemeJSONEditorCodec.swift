@@ -33,7 +33,9 @@ enum ThemeJSONEditorCodec {
 
     static func imageDataPlaceholder(byteCount: Int) -> String {
         let size = ByteCountFormatter.string(
-            fromByteCount: Int64(byteCount), countStyle: .file)
+            fromByteCount: Int64(byteCount),
+            countStyle: .file
+        )
         return "\(imageDataPlaceholderPrefix): \(size)>"
     }
 

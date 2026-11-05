@@ -95,15 +95,21 @@ struct OpenAICompatibleStreamParserTests {
         }
         for index in names.indices {
             let event: [String: Any] = [
-                "choices": [[
-                    "index": 0,
-                    "delta": ["tool_calls": [[
+                "choices": [
+                    [
                         "index": 0,
-                        "id": "call_3fa8be2a",
-                        "type": "function",
-                        "function": ["name": names[index], "arguments": arguments[index]],
-                    ]]],
-                ]],
+                        "delta": [
+                            "tool_calls": [
+                                [
+                                    "index": 0,
+                                    "id": "call_3fa8be2a",
+                                    "type": "function",
+                                    "function": ["name": names[index], "arguments": arguments[index]],
+                                ]
+                            ]
+                        ],
+                    ]
+                ]
             ]
             let outcome = try OpenAICompatibleStreamParser.handleEvent(
                 jsonData: JSONSerialization.data(withJSONObject: event),
@@ -167,7 +173,8 @@ struct OpenAICompatibleStreamParserTests {
 
     @Test(arguments: [7_996, 9_000, 16_000])
     func parser_preservesLargeSingleEventToolArguments(contentBytes: Int) throws {
-        let arguments = #"{"path":"probe.txt","content":""#
+        let arguments =
+            #"{"path":"probe.txt","content":""#
             + String(repeating: "x", count: contentBytes)
             + #""}"#
         let event: [String: Any] = [
@@ -525,7 +532,8 @@ struct OpenAICompatibleStreamParserTests {
         let thinking = try OpenAICompatibleStreamParser.handleEvent(
             jsonData: Data(
                 #"{"id":"x","object":"chat.completion.chunk","created":0,"model":"mistral-medium-3.5","choices":[{"index":0,"delta":{"content":[{"type":"thinking","thinking":[{"type":"text","text":"let me think"}]}]},"finish_reason":null}]}"#
-                    .utf8),
+                    .utf8
+            ),
             options: .strict,
             state: &state,
             yield: { yielded.append($0) }
@@ -539,7 +547,8 @@ struct OpenAICompatibleStreamParserTests {
         _ = try OpenAICompatibleStreamParser.handleEvent(
             jsonData: Data(
                 #"{"id":"x","object":"chat.completion.chunk","created":0,"model":"mistral-medium-3.5","choices":[{"index":0,"delta":{"content":[{"type":"thinking","thinking":[{"type":"text","text":" done"}]},{"type":"text","text":"Answer"}]},"finish_reason":null}]}"#
-                    .utf8),
+                    .utf8
+            ),
             options: .strict,
             state: &state,
             yield: { yielded.append($0) }
@@ -547,7 +556,10 @@ struct OpenAICompatibleStreamParserTests {
 
         // Answer phase: `content` becomes a plain string.
         _ = try OpenAICompatibleStreamParser.handleEvent(
-            jsonData: Data(#"{"id":"x","object":"chat.completion.chunk","created":0,"model":"mistral-medium-3.5","choices":[{"index":0,"delta":{"content":" text"},"finish_reason":null}]}"#.utf8),
+            jsonData: Data(
+                #"{"id":"x","object":"chat.completion.chunk","created":0,"model":"mistral-medium-3.5","choices":[{"index":0,"delta":{"content":" text"},"finish_reason":null}]}"#
+                    .utf8
+            ),
             options: .strict,
             state: &state,
             yield: { yielded.append($0) }
@@ -569,7 +581,8 @@ struct OpenAICompatibleStreamParserTests {
         _ = try OpenAICompatibleStreamParser.handleEvent(
             jsonData: Data(
                 #"{"id":"x","object":"chat.completion.chunk","created":0,"model":"deepseek-reasoner","choices":[{"index":0,"delta":{"reasoning_content":"thinking"},"finish_reason":null}]}"#
-                    .utf8),
+                    .utf8
+            ),
             options: .strict,
             state: &state,
             yield: { yielded.append($0) }
@@ -577,7 +590,8 @@ struct OpenAICompatibleStreamParserTests {
         _ = try OpenAICompatibleStreamParser.handleEvent(
             jsonData: Data(
                 #"{"id":"x","object":"chat.completion.chunk","created":0,"model":"deepseek-reasoner","choices":[{"index":0,"delta":{"content":"answer"},"finish_reason":null}]}"#
-                    .utf8),
+                    .utf8
+            ),
             options: .strict,
             state: &state,
             yield: { yielded.append($0) }

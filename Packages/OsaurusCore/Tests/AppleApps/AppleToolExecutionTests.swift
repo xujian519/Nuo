@@ -30,8 +30,26 @@ private func result(_ raw: String) throws -> [String: Any] {
 
 private final class FakeCalendarService: CalendarServicing, @unchecked Sendable {
     var calendars: [CalendarInfo] = [
-        CalendarInfo(id: "cal-1", title: "Work", account: "iCloud", color: "#FF0000", isEditable: true, isDefault: true, isSubscribed: false, type: "calDAV"),
-        CalendarInfo(id: "cal-2", title: "Holidays", account: "Subscribed", color: nil, isEditable: false, isDefault: false, isSubscribed: true, type: "subscription"),
+        CalendarInfo(
+            id: "cal-1",
+            title: "Work",
+            account: "iCloud",
+            color: "#FF0000",
+            isEditable: true,
+            isDefault: true,
+            isSubscribed: false,
+            type: "calDAV"
+        ),
+        CalendarInfo(
+            id: "cal-2",
+            title: "Holidays",
+            account: "Subscribed",
+            color: nil,
+            isEditable: false,
+            isDefault: false,
+            isSubscribed: true,
+            type: "subscription"
+        ),
     ]
     var events: [CalendarEventInfo] = []
     var error: AppleToolError?
@@ -47,8 +65,13 @@ private final class FakeCalendarService: CalendarServicing, @unchecked Sendable 
     func events(_ query: CalendarEventQuery) async throws -> CalendarEventsResult {
         if let error { throw error }
         lastQuery = query
-        let effectiveEnd = clampEnd ? (Calendar.current.date(byAdding: .year, value: 4, to: query.start) ?? query.end) : query.end
-        return CalendarEventsResult(events: events, effectiveEnd: effectiveEnd, endWasClamped: clampEnd && effectiveEnd < query.end)
+        let effectiveEnd =
+            clampEnd ? (Calendar.current.date(byAdding: .year, value: 4, to: query.start) ?? query.end) : query.end
+        return CalendarEventsResult(
+            events: events,
+            effectiveEnd: effectiveEnd,
+            endWasClamped: clampEnd && effectiveEnd < query.end
+        )
     }
     func event(id: String, occurrenceStart: Date?) async throws -> CalendarEventInfo {
         if let error { throw error }
@@ -60,7 +83,9 @@ private final class FakeCalendarService: CalendarServicing, @unchecked Sendable 
         lastDraft = draft
         return Self.event(id: "new-1", title: draft.title, start: draft.start, end: draft.end, allDay: draft.isAllDay)
     }
-    func update(id: String, occurrenceStart: Date?, span: CalendarEditSpan, patch: CalendarEventPatch) async throws -> CalendarEventInfo {
+    func update(id: String, occurrenceStart: Date?, span: CalendarEditSpan, patch: CalendarEventPatch) async throws
+        -> CalendarEventInfo
+    {
         if let error { throw error }
         return try await event(id: id, occurrenceStart: occurrenceStart)
     }
@@ -71,19 +96,40 @@ private final class FakeCalendarService: CalendarServicing, @unchecked Sendable 
         return e
     }
 
-    static func event(id: String, title: String, start: Date, end: Date, allDay: Bool = false, recurring: Bool = false) -> CalendarEventInfo {
+    static func event(id: String, title: String, start: Date, end: Date, allDay: Bool = false, recurring: Bool = false)
+        -> CalendarEventInfo
+    {
         CalendarEventInfo(
-            id: id, calendarId: "cal-1", calendarTitle: "Work", title: title, start: start, end: end, isAllDay: allDay,
+            id: id,
+            calendarId: "cal-1",
+            calendarTitle: "Work",
+            title: title,
+            start: start,
+            end: end,
+            isAllDay: allDay,
             allDayDates: allDay ? CalendarArgs.allDayRange(start: start, end: end) : nil,
-            location: nil, notes: nil, url: nil, status: "confirmed", availability: "busy", organizer: nil,
-            attendees: [], alarms: [], recurrence: nil, isRecurring: recurring, isDetached: false, lastModified: nil,
+            location: nil,
+            notes: nil,
+            url: nil,
+            status: "confirmed",
+            availability: "busy",
+            organizer: nil,
+            attendees: [],
+            alarms: [],
+            recurrence: nil,
+            isRecurring: recurring,
+            isDetached: false,
+            lastModified: nil,
             openURL: "ical://ekevent/\(id)"
         )
     }
 }
 
 private final class FakeShortcutsService: ShortcutsServicing, @unchecked Sendable {
-    var shortcuts = [ShortcutInfo(name: "Morning Brief", identifier: "0F0F0F0F-0000-4000-8000-000000000001", folder: nil), ShortcutInfo(name: "Log Water", identifier: nil, folder: nil)]
+    var shortcuts = [
+        ShortcutInfo(name: "Morning Brief", identifier: "0F0F0F0F-0000-4000-8000-000000000001", folder: nil),
+        ShortcutInfo(name: "Log Water", identifier: nil, folder: nil),
+    ]
     var runError: AppleToolError?
     private(set) var lastRun: (name: String, input: String?, timeout: TimeInterval)?
 
@@ -91,7 +137,15 @@ private final class FakeShortcutsService: ShortcutsServicing, @unchecked Sendabl
     func run(name: String, input: String?, timeout: TimeInterval) async throws -> ShortcutRunResult {
         lastRun = (name, input, timeout)
         if let runError { throw runError }
-        return ShortcutRunResult(name: name, output: "ran \(name) with \(input ?? "-")", outputIsEmpty: false, outputIsBinary: false, outputBytes: 10, outputTruncated: false, durationSeconds: 0.5)
+        return ShortcutRunResult(
+            name: name,
+            output: "ran \(name) with \(input ?? "-")",
+            outputIsEmpty: false,
+            outputIsBinary: false,
+            outputBytes: 10,
+            outputTruncated: false,
+            durationSeconds: 0.5
+        )
     }
 }
 
@@ -122,7 +176,12 @@ struct CalendarToolExecutionTests {
         #expect(span > 6.9 * 86_400 && span < 7.1 * 86_400)
         #expect(q.includeAllDay)
 
-        _ = try result(await tool.execute(argumentsJSON: #"{"start":"2026-09-19","end":"2026-09-19","limit":99999,"calendars":["cal-1"],"query":"standup"}"#))
+        _ = try result(
+            await tool.execute(
+                argumentsJSON:
+                    #"{"start":"2026-09-19","end":"2026-09-19","limit":99999,"calendars":["cal-1"],"query":"standup"}"#
+            )
+        )
         let q2 = try #require(service.lastQuery)
         // Date-only end is inclusive → exclusive bound is the next day.
         #expect(q2.end.timeIntervalSince(q2.start) >= 23 * 3600)
@@ -135,7 +194,12 @@ struct CalendarToolExecutionTests {
         let service = FakeCalendarService()
         let start = Date(timeIntervalSince1970: 1_789_000_000)
         service.events = (0 ..< 3).map { i in
-            FakeCalendarService.event(id: "e\(i)", title: "Event \(i)", start: start.addingTimeInterval(Double(i) * 3600), end: start.addingTimeInterval(Double(i + 1) * 3600))
+            FakeCalendarService.event(
+                id: "e\(i)",
+                title: "Event \(i)",
+                start: start.addingTimeInterval(Double(i) * 3600),
+                end: start.addingTimeInterval(Double(i + 1) * 3600)
+            )
         }
         let tool = CalendarEventsTool(service: service)
         let payload = try result(await tool.execute(argumentsJSON: #"{"limit":2}"#))
@@ -216,11 +280,17 @@ struct CalendarToolExecutionTests {
     func deleteContract() async throws {
         let service = FakeCalendarService()
         let start = Date(timeIntervalSince1970: 1_789_000_000)
-        service.events = [FakeCalendarService.event(id: "e1", title: "Weekly", start: start, end: start.addingTimeInterval(1800))]
+        service.events = [
+            FakeCalendarService.event(id: "e1", title: "Weekly", start: start, end: start.addingTimeInterval(1800))
+        ]
         let tool = CalendarDeleteEventTool(service: service)
         #expect(tool is PerCallApprovalTool)
         #expect(tool.defaultPermissionPolicy == .ask)
-        let payload = try result(await tool.execute(argumentsJSON: #"{"id":"e1","occurrence_start":"2026-09-19T10:00:00-07:00","span":"future_events"}"#))
+        let payload = try result(
+            await tool.execute(
+                argumentsJSON: #"{"id":"e1","occurrence_start":"2026-09-19T10:00:00-07:00","span":"future_events"}"#
+            )
+        )
         #expect(payload["deleted"] as? Bool == true)
         #expect(payload["span"] as? String == "future_events")
         #expect(service.deleted.count == 1)
@@ -245,7 +315,9 @@ struct CalendarOpenEventToolTests {
 
         let service = FakeCalendarService()
         let start = Date(timeIntervalSince1970: 1_789_000_000)
-        service.events = [FakeCalendarService.event(id: "e1", title: "Standup", start: start, end: start.addingTimeInterval(900))]
+        service.events = [
+            FakeCalendarService.event(id: "e1", title: "Standup", start: start, end: start.addingTimeInterval(900))
+        ]
         let tool = CalendarOpenEventTool(service: service)
 
         let recorder = Recorder()
@@ -290,7 +362,9 @@ struct ShortcutsToolExecutionTests {
         #expect(missing["kind"] as? String == "invalid_args")
         #expect(missing["field"] as? String == "name")
 
-        let payload = try result(await tool.execute(argumentsJSON: #"{"name":"Morning Brief","input":"hello","timeout_seconds":99999}"#))
+        let payload = try result(
+            await tool.execute(argumentsJSON: #"{"name":"Morning Brief","input":"hello","timeout_seconds":99999}"#)
+        )
         let run = try #require(payload["result"] as? [String: Any])
         #expect(run["output"] as? String == "ran Morning Brief with hello")
         #expect(service.lastRun?.timeout == 600)
@@ -352,7 +426,9 @@ struct MessagesServiceHelperTests {
             func read(_ query: MessagesReadQuery) async throws -> [MessagesMessage] { [] }
             func unread(limit: Int) async throws -> [MessagesMessage] { [] }
             func search(_ text: String, limit: Int) async throws -> [MessagesMessage] { [] }
-            func send(to recipient: String?, chatId: String?, text: String, service: MessagesSendService) async throws -> MessagesSendResult {
+            func send(to recipient: String?, chatId: String?, text: String, service: MessagesSendService) async throws
+                -> MessagesSendResult
+            {
                 sent = (recipient, chatId, text, service)
                 return MessagesSendResult(service: "iMessage", target: recipient ?? chatId ?? "", delivered: true)
             }
@@ -365,7 +441,9 @@ struct MessagesServiceHelperTests {
         let noTarget = try envelope(await tool.execute(argumentsJSON: #"{"text":"hi"}"#))
         #expect(noTarget["kind"] as? String == "invalid_args")
 
-        let badService = try envelope(await tool.execute(argumentsJSON: #"{"text":"hi","to":"+14155551234","service":"carrier-pigeon"}"#))
+        let badService = try envelope(
+            await tool.execute(argumentsJSON: #"{"text":"hi","to":"+14155551234","service":"carrier-pigeon"}"#)
+        )
         #expect(badService["kind"] as? String == "invalid_args")
         #expect(badService["field"] as? String == "service")
 
@@ -387,7 +465,9 @@ private final class FakeMapsService: MapsServicing, @unchecked Sendable {
     var lastETA: (from: MapsPlaceReference, to: MapsPlaceReference, transport: MapsTransportType)?
     var lastDirections: (from: MapsPlaceReference, to: MapsPlaceReference, transport: MapsTransportType)?
 
-    func currentLocation() async throws -> CurrentLocationInfo { throw AppleToolError.unavailable("no location in tests") }
+    func currentLocation() async throws -> CurrentLocationInfo {
+        throw AppleToolError.unavailable("no location in tests")
+    }
     func geocode(_ address: String, limit: Int) async throws -> [PlaceInfo] { [] }
     func reverseGeocode(_ coordinate: GeoCoordinate) async throws -> [PlaceInfo] { [] }
     func search(_ query: String, near: MapsSearchRegion?, limit: Int) async throws -> [PlaceInfo] {
@@ -395,13 +475,21 @@ private final class FakeMapsService: MapsServicing, @unchecked Sendable {
         return []
     }
     func explore(category: String, near: MapsSearchRegion, limit: Int) async throws -> [PlaceInfo] { [] }
-    func directions(from: MapsPlaceReference, to: MapsPlaceReference, transport: MapsTransportType, alternatives: Bool) async throws -> [RouteInfo] {
+    func directions(from: MapsPlaceReference, to: MapsPlaceReference, transport: MapsTransportType, alternatives: Bool)
+        async throws -> [RouteInfo]
+    {
         lastDirections = (from, to, transport)
         return []
     }
     func eta(from: MapsPlaceReference, to: MapsPlaceReference, transport: MapsTransportType) async throws -> ETAInfo {
         lastETA = (from, to, transport)
-        return ETAInfo(expectedTravelSeconds: 800, distanceMeters: 14_000, transportType: transport.rawValue, expectedDeparture: nil, expectedArrival: nil)
+        return ETAInfo(
+            expectedTravelSeconds: 800,
+            distanceMeters: 14_000,
+            transportType: transport.rawValue,
+            expectedDeparture: nil,
+            expectedArrival: nil
+        )
     }
 }
 
@@ -432,11 +520,21 @@ struct MapsToolArgumentContractTests {
         #expect(fake.lastETA?.to == .query("San Jose, CA"))
 
         // `{latitude, longitude}` objects pass validation and parse to coordinates.
-        _ = try result(await validated(eta, #"{"from":{"latitude":37.3349,"longitude":-122.009},"to":{"latitude":37.3377,"longitude":-121.8875}}"#))
+        _ = try result(
+            await validated(
+                eta,
+                #"{"from":{"latitude":37.3349,"longitude":-122.009},"to":{"latitude":37.3377,"longitude":-121.8875}}"#
+            )
+        )
         #expect(fake.lastETA?.to == .coordinate(GeoCoordinate(latitude: 37.3377, longitude: -121.8875)))
 
         // A place echoed back from a previous result: `{name, coordinate: {…}}`.
-        let echoed = try result(await validated(eta, #"{"from":{"name":"Espresso Bar","coordinate":{"latitude":37.3361,"longitude":-122.0105}},"to":"San Jose, CA"}"#))
+        let echoed = try result(
+            await validated(
+                eta,
+                #"{"from":{"name":"Espresso Bar","coordinate":{"latitude":37.3361,"longitude":-122.0105}},"to":"San Jose, CA"}"#
+            )
+        )
         #expect(fake.lastETA?.from == .coordinate(GeoCoordinate(latitude: 37.3361, longitude: -122.0105)))
         let etaPayload = try #require(echoed["eta"] as? [String: Any])
         #expect(etaPayload["expectedTravelText"] as? String == "13 min")
@@ -461,9 +559,19 @@ struct MapsToolArgumentContractTests {
     func nearRegion() async throws {
         let fake = FakeMapsService()
         let tool = MapsSearchTool(service: fake)
-        _ = try result(await validated(tool, #"{"query":"coffee","near":{"latitude":37.3349,"longitude":-122.009,"radius_meters":2000}}"#))
-        #expect(fake.lastSearch?.near == MapsSearchRegion(center: GeoCoordinate(latitude: 37.3349, longitude: -122.009), radiusMeters: 2000))
-        _ = try result(await validated(tool, #"{"query":"coffee","near":{"latitude":0,"longitude":0,"radius_meters":999999}}"#))
+        _ = try result(
+            await validated(
+                tool,
+                #"{"query":"coffee","near":{"latitude":37.3349,"longitude":-122.009,"radius_meters":2000}}"#
+            )
+        )
+        #expect(
+            fake.lastSearch?.near
+                == MapsSearchRegion(center: GeoCoordinate(latitude: 37.3349, longitude: -122.009), radiusMeters: 2000)
+        )
+        _ = try result(
+            await validated(tool, #"{"query":"coffee","near":{"latitude":0,"longitude":0,"radius_meters":999999}}"#)
+        )
         #expect(fake.lastSearch?.near?.radiusMeters == 50_000)
         _ = try result(await validated(tool, #"{"query":"coffee"}"#))
         #expect(fake.lastSearch?.near == nil)
@@ -479,18 +587,24 @@ struct MapsToolArgumentContractTests {
         #expect(bad["field"] as? String == "from")
         #expect(fake.lastETA == nil)
 
-        let badObject = try envelope(await validated(eta, #"{"from":{"latitude":91,"longitude":0},"to":"San Jose, CA"}"#))
+        let badObject = try envelope(
+            await validated(eta, #"{"from":{"latitude":91,"longitude":0},"to":"San Jose, CA"}"#)
+        )
         #expect(badObject["kind"] as? String == "invalid_args")
 
         let search = MapsSearchTool(service: fake)
-        let badNear = try envelope(await validated(search, #"{"query":"coffee","near":{"latitude":37,"longitude":-181}}"#))
+        let badNear = try envelope(
+            await validated(search, #"{"query":"coffee","near":{"latitude":37,"longitude":-181}}"#)
+        )
         #expect(badNear["kind"] as? String == "invalid_args")
         #expect(fake.lastSearch == nil)
     }
 
     @Test("maps_open uses dirflg=c for cycling and d/w/r for the others")
     func dirflg() throws {
-        for (mode, flag) in [("cycling", "c"), ("driving", "d"), ("walking", "w"), ("transit", "r"), ("automobile", "d")] {
+        for (mode, flag) in [
+            ("cycling", "c"), ("driving", "d"), ("walking", "w"), ("transit", "r"), ("automobile", "d"),
+        ] {
             let url = try MapsOpenTool.buildURL(["directions_to": "Cupertino", "mode": mode]).absoluteString
             #expect(url.contains("dirflg=\(flag)"), "\(mode) → \(url)")
             #expect(url.contains("daddr=Cupertino"))
@@ -506,11 +620,24 @@ private final class FakeContactsService: ContactsServicing, @unchecked Sendable 
     var lastDraft: ContactDraft?
     private func card(_ d: ContactDraft) -> ContactInfo {
         ContactInfo(
-            id: "c-1", displayName: "\(d.givenName ?? "") \(d.familyName ?? "")", givenName: d.givenName ?? "",
-            familyName: d.familyName ?? "", middleName: nil, nickname: nil, organization: nil, jobTitle: nil,
-            department: nil, phones: d.phones ?? [], emails: d.emails ?? [], urls: d.urls ?? [],
-            postalAddresses: d.postalAddresses ?? [], birthday: nil, relations: [], socialProfiles: [],
-            hasImage: false, openURL: "addressbook://c-1"
+            id: "c-1",
+            displayName: "\(d.givenName ?? "") \(d.familyName ?? "")",
+            givenName: d.givenName ?? "",
+            familyName: d.familyName ?? "",
+            middleName: nil,
+            nickname: nil,
+            organization: nil,
+            jobTitle: nil,
+            department: nil,
+            phones: d.phones ?? [],
+            emails: d.emails ?? [],
+            urls: d.urls ?? [],
+            postalAddresses: d.postalAddresses ?? [],
+            birthday: nil,
+            relations: [],
+            socialProfiles: [],
+            hasImage: false,
+            openURL: "addressbook://c-1"
         )
     }
     func me() async throws -> ContactInfo? { nil }
@@ -518,22 +645,31 @@ private final class FakeContactsService: ContactsServicing, @unchecked Sendable 
     func list(offset: Int, limit: Int) async throws -> (contacts: [ContactSummary], total: Int) { ([], 0) }
     func contact(id: String) async throws -> ContactInfo { throw AppleToolError.notFound("no contact \(id)") }
     func create(_ draft: ContactDraft) async throws -> ContactInfo { lastDraft = draft; return card(draft) }
-    func update(id: String, draft: ContactDraft, replaceLabeledValues: Bool) async throws -> ContactInfo { lastDraft = draft; return card(draft) }
+    func update(id: String, draft: ContactDraft, replaceLabeledValues: Bool) async throws -> ContactInfo {
+        lastDraft = draft; return card(draft)
+    }
 }
 
 @Suite("Apple tools: Contacts argument contracts")
 struct ContactsToolArgumentContractTests {
 
-    @Test("contacts_create accepts bare strings and {label, value} objects for phones/emails and typed postal addresses")
+    @Test(
+        "contacts_create accepts bare strings and {label, value} objects for phones/emails and typed postal addresses"
+    )
     func labeledArrays() async throws {
         let fake = FakeContactsService()
         let tool = ContactsCreateTool(service: fake)
-        _ = try result(await validated(tool, #"""
-            {"given_name":"Ada","family_name":"Lovelace",
-             "phones":["+15555550100",{"label":"work","value":"+15555550101"},{"label":"home","number":"+15555550102"}],
-             "emails":[{"label":"work","email":"ada@example.com"}],
-             "postal_addresses":[{"label":"home","street":"1 Analytical Way","city":"London","postal_code":"N1","country":"UK"}]}
-            """#))
+        _ = try result(
+            await validated(
+                tool,
+                #"""
+                {"given_name":"Ada","family_name":"Lovelace",
+                 "phones":["+15555550100",{"label":"work","value":"+15555550101"},{"label":"home","number":"+15555550102"}],
+                 "emails":[{"label":"work","email":"ada@example.com"}],
+                 "postal_addresses":[{"label":"home","street":"1 Analytical Way","city":"London","postal_code":"N1","country":"UK"}]}
+                """#
+            )
+        )
         let draft = try #require(fake.lastDraft)
         #expect(draft.phones?.map(\.value) == ["+15555550100", "+15555550101", "+15555550102"])
         #expect(draft.phones?.map(\.label) == [nil, "work", "home"])
@@ -542,7 +678,9 @@ struct ContactsToolArgumentContractTests {
         #expect(draft.postalAddresses?.first?.formatted == "1 Analytical Way, London, N1, UK")
 
         // Unknown keys inside a nested object are still rejected (closed schemas).
-        let rejected = try envelope(await validated(tool, #"{"given_name":"Ada","postal_addresses":[{"street":"x","planet":"Mars"}]}"#))
+        let rejected = try envelope(
+            await validated(tool, #"{"given_name":"Ada","postal_addresses":[{"street":"x","planet":"Mars"}]}"#)
+        )
         #expect(rejected["ok"] as? Bool == false)
     }
 }

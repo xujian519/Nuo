@@ -62,7 +62,9 @@ struct ConfigApplyOptions: Sendable, Equatable {
 
     static let `default` = ConfigApplyOptions()
     static let bundleImport = ConfigApplyOptions(
-        keepUnregisteredTools: true, registerWithUnresolvedSecrets: true)
+        keepUnregisteredTools: true,
+        registerWithUnresolvedSecrets: true
+    )
 }
 
 enum ConfigApplier {
@@ -108,7 +110,12 @@ enum ConfigApplier {
         if let entries = document.agents {
             results.append(
                 contentsOf: await applyAgents(
-                    entries, prune: prune, pendingModelIds: document.models ?? [], options: options))
+                    entries,
+                    prune: prune,
+                    pendingModelIds: document.models ?? [],
+                    options: options
+                )
+            )
         }
         if let section = document.tools {
             results.append(contentsOf: await applyTools(section))
@@ -224,8 +231,12 @@ enum ConfigApplier {
                 guard let agent = AgentManager.shared.agent(for: id) else { return nil }
                 let routing = agent.routingDescription
                 return SpawnAgentDescriptor(
-                    id: agent.id, name: agent.name, description: routing.isEmpty ? nil : routing,
-                    modelId: agent.defaultModel, isLocal: nil, providerName: nil
+                    id: agent.id,
+                    name: agent.name,
+                    description: routing.isEmpty ? nil : routing,
+                    modelId: agent.defaultModel,
+                    isLocal: nil,
+                    providerName: nil
                 )
             }
             let baseSpecs = ToolRegistry.shared.specs(
@@ -246,7 +257,9 @@ enum ConfigApplier {
                 perAgentTargets: workspaceCaps.spawnableWorkspaceAgents
             )
             let workspaceDescriptions = SpawnDescriptors.resolveForPreview(
-                agentIDs: [], launcherModelOverride: nil, workspaceAgents: allowedWorkspaceAgents
+                agentIDs: [],
+                launcherModelOverride: nil,
+                workspaceAgents: allowedWorkspaceAgents
             ).workspaceAgents
             let allowedWorkspaceAddresses = workspaceDescriptions.map(\.ref.agentAddress)
             let allNames =
@@ -284,7 +297,8 @@ enum ConfigApplier {
 
     @MainActor
     private static func applyDefaultAgent(
-        _ desired: DefaultAgentSection, pendingModelIds: [String]
+        _ desired: DefaultAgentSection,
+        pendingModelIds: [String]
     ) -> ConfigApplyResult {
         var config = DefaultAgentConfigurationStore.load()
         var nameChanged = false
@@ -313,8 +327,11 @@ enum ConfigApplier {
                 case .invalid(let message):
                     if !unchanged {
                         return ConfigApplyResult(
-                            section: "default_agent", target: "default_agent",
-                            status: .failed, message: "model: \(message)")
+                            section: "default_agent",
+                            target: "default_agent",
+                            status: .failed,
+                            message: "model: \(message)"
+                        )
                     }
                 }
             } else {
@@ -335,8 +352,11 @@ enum ConfigApplier {
         if let raw = desired.runtime {
             guard let resolved = ConfigHarness.resolve(raw) else {
                 return ConfigApplyResult(
-                    section: "default_agent", target: "default_agent", status: .failed,
-                    message: "runtime: `\(raw)` is not a registered runtime.")
+                    section: "default_agent",
+                    target: "default_agent",
+                    status: .failed,
+                    message: "runtime: `\(raw)` is not a registered runtime."
+                )
             }
             config.runtime = resolved == .builtIn ? nil : resolved
         }
@@ -375,8 +395,11 @@ enum ConfigApplier {
             })
         else {
             return ConfigApplyResult(
-                section: ConfigSectionID.activeAgent.rawValue, target: name, status: .failed,
-                message: "No agent named `\(name)` found.")
+                section: ConfigSectionID.activeAgent.rawValue,
+                target: name,
+                status: .failed,
+                message: "No agent named `\(name)` found."
+            )
         }
         AgentManager.shared.setNewChatAgent(agent.id)
         return ConfigApplyResult(section: ConfigSectionID.activeAgent.rawValue, target: agent.name, status: .done)
@@ -385,7 +408,10 @@ enum ConfigApplier {
     // MARK: - Agents
 
     private static func applyAgents(
-        _ entries: [AgentEntry], prune: Bool, pendingModelIds: [String], options: ConfigApplyOptions
+        _ entries: [AgentEntry],
+        prune: Bool,
+        pendingModelIds: [String],
+        options: ConfigApplyOptions
     ) async -> [ConfigApplyResult] {
         var results: [ConfigApplyResult] = []
         var matchedIds = Set<UUID>()
@@ -394,8 +420,9 @@ enum ConfigApplier {
             let result: ConfigApplyResult = await MainActor.run {
                 var entry = entry
                 let existing = AgentManager.shared.agents.first {
-                    !$0.isBuiltIn && $0.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                        == entry.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                    !$0.isBuiltIn
+                        && $0.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                            == entry.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
                 }
                 // Every validation failure must preserve an existing match
                 // during prune, including invalid templates.
@@ -409,9 +436,12 @@ enum ConfigApplier {
                         template != .blank
                     else {
                         return ConfigApplyResult(
-                            section: "agents", target: entry.name, status: .failed,
+                            section: "agents",
+                            target: entry.name,
+                            status: .failed,
                             message: "template: `\(rawTemplate)` is not a starter template. Valid: "
-                                + AgentStarterTemplate.configTemplateIds.joined(separator: ", ") + ".")
+                                + AgentStarterTemplate.configTemplateIds.joined(separator: ", ") + "."
+                        )
                     }
                     if entry.systemPrompt?.isEmpty ?? true { entry.systemPrompt = template.systemPrompt }
                     if entry.description?.isEmpty ?? true { entry.description = template.routingDescription }
@@ -437,8 +467,11 @@ enum ConfigApplier {
                             entry.model = .absent
                         } else {
                             return ConfigApplyResult(
-                                section: "agents", target: entry.name,
-                                status: .failed, message: "model: \(message)")
+                                section: "agents",
+                                target: entry.name,
+                                status: .failed,
+                                message: "model: \(message)"
+                            )
                         }
                     }
                 }
@@ -459,9 +492,11 @@ enum ConfigApplier {
                     }
                     applyRelay(entry.capabilities?.relayEnabled, to: agent.id)
                     return ConfigApplyResult(
-                        section: "agents", target: agent.name,
+                        section: "agents",
+                        target: agent.name,
                         status: outcome.needsUserAction ? .needsUserAction : .done,
-                        message: outcome.notes.isEmpty ? nil : outcome.notes.joined(separator: " "))
+                        message: outcome.notes.isEmpty ? nil : outcome.notes.joined(separator: " ")
+                    )
                 } else {
                     // The live chat can have a selected model without any
                     // persisted default (for example on first launch). Carry
@@ -475,7 +510,7 @@ enum ConfigApplier {
                         systemPrompt: entry.systemPrompt ?? "",
                         defaultModel: entry.model.valueOrNil
                             ?? (chatModel?.isEmpty == false ? chatModel : nil)
-                            ?? AgentManager.shared.orchestratorModelForNewAgents(),
+                                ?? AgentManager.shared.orchestratorModelForNewAgents(),
                         temperature: entry.temperature.valueOrNil.map(Float.init),
                         maxTokens: entry.maxTokens.valueOrNil
                     )
@@ -514,9 +549,11 @@ enum ConfigApplier {
                         message += " " + outcome.notes.joined(separator: " ")
                     }
                     return ConfigApplyResult(
-                        section: "agents", target: agent.name,
+                        section: "agents",
+                        target: agent.name,
                         status: outcome.needsUserAction ? .needsUserAction : .done,
-                        message: message)
+                        message: message
+                    )
                 }
             }
             results.append(result)
@@ -568,7 +605,9 @@ enum ConfigApplier {
     @MainActor
     @discardableResult
     private static func patch(
-        _ agent: inout Agent, from entry: AgentEntry, options: ConfigApplyOptions = .default
+        _ agent: inout Agent,
+        from entry: AgentEntry,
+        options: ConfigApplyOptions = .default
     ) -> AgentPatchOutcome {
         var outcome = AgentPatchOutcome()
         if let v = entry.description { agent.description = v }
@@ -606,7 +645,9 @@ enum ConfigApplier {
     /// what to register.
     @MainActor
     private static func patchRuntime(
-        _ agent: inout Agent, from entry: AgentEntry, outcome: inout AgentPatchOutcome
+        _ agent: inout Agent,
+        from entry: AgentEntry,
+        outcome: inout AgentPatchOutcome
     ) {
         if let raw = entry.runtime {
             if let resolved = ConfigHarness.resolve(raw) {
@@ -618,7 +659,8 @@ enum ConfigApplier {
             } else {
                 outcome.notes.append(
                     "runtime: `\(raw)` is not registered on this Mac, so the agent runs on Nuo's "
-                        + "own loop. Add it under Agents → Runtimes, then pick it in the chat model picker.")
+                        + "own loop. Add it under Agents → Runtimes, then pick it in the chat model picker."
+                )
             }
         }
         if var entry = entry.claudeCode {
@@ -633,7 +675,8 @@ enum ConfigApplier {
 
     @MainActor
     private static func applyHarnessRuntimes(
-        _ entries: [HarnessRuntimeEntry], prune: Bool
+        _ entries: [HarnessRuntimeEntry],
+        prune: Bool
     ) -> [ConfigApplyResult] {
         let store = HarnessRuntimeStore.shared
         var results: [ConfigApplyResult] = []
@@ -655,25 +698,38 @@ enum ConfigApplier {
                     Task { await HarnessSessionManager.shared.closeIdleSessions(runtimeId: runtimeId) }
                 }
                 results.append(
-                    ConfigApplyResult(section: "harness_runtimes", target: runtime.displayName, status: .done))
+                    ConfigApplyResult(section: "harness_runtimes", target: runtime.displayName, status: .done)
+                )
             } else {
                 guard let kind = entry.kind.flatMap(ConfigHarness.kind(forKey:)) else {
                     results.append(
                         ConfigApplyResult(
-                            section: "harness_runtimes", target: name, status: .failed,
-                            message: "kind: required to add a runtime (claude_code or pi_rpc)."))
+                            section: "harness_runtimes",
+                            target: name,
+                            status: .failed,
+                            message: "kind: required to add a runtime (claude_code or pi_rpc)."
+                        )
+                    )
                     continue
                 }
                 let runtime = HarnessRuntime(
-                    name: name, kind: kind, executable: executable, arguments: entry.arguments,
-                    environment: entry.environment ?? [:])
+                    name: name,
+                    kind: kind,
+                    executable: executable,
+                    arguments: entry.arguments,
+                    environment: entry.environment ?? [:]
+                )
                 store.upsert(runtime)
                 matched.insert(runtime.id)
                 results.append(
                     ConfigApplyResult(
-                        section: "harness_runtimes", target: runtime.displayName, status: .done,
+                        section: "harness_runtimes",
+                        target: runtime.displayName,
+                        status: .done,
                         message: "Added. Agents run on it with `runtime: \(runtime.displayName)`, "
-                            + "or by picking it in the chat model picker."))
+                            + "or by picking it in the chat model picker."
+                    )
+                )
             }
         }
         if prune {
@@ -682,7 +738,8 @@ enum ConfigApplier {
                 let runtimeId = runtime.id
                 Task { await HarnessSessionManager.shared.closeIdleSessions(runtimeId: runtimeId) }
                 results.append(
-                    ConfigApplyResult(section: "harness_runtimes", target: runtime.displayName, status: .done))
+                    ConfigApplyResult(section: "harness_runtimes", target: runtime.displayName, status: .done)
+                )
             }
         }
         return results
@@ -692,7 +749,9 @@ enum ConfigApplier {
     /// same import or later) and reported, never fatal.
     @MainActor
     private static func patchSkills(
-        _ agent: inout Agent, from field: ConfigField<[String]>, outcome: inout AgentPatchOutcome
+        _ agent: inout Agent,
+        from field: ConfigField<[String]>,
+        outcome: inout AgentPatchOutcome
     ) {
         switch field {
         case .absent:
@@ -701,21 +760,25 @@ enum ConfigApplier {
             agent.skillNames = nil
         case .value(let names):
             var seen = Set<String>()
-            agent.skillNames = names
+            agent.skillNames =
+                names
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { !$0.isEmpty && seen.insert(Skill.agentSkillsSlug(for: $0)).inserted }
             let missing = agent.missingAllowListedSkills(in: SkillManager.shared.skills)
             if !missing.isEmpty {
                 outcome.notes.append(
                     "skills: not installed here yet: \(missing.joined(separator: ", ")). "
-                        + "The agent sees them once they are installed.")
+                        + "The agent sees them once they are installed."
+                )
             }
         }
     }
 
     @MainActor
     private static func patchToolSelection(
-        _ agent: inout Agent, from entry: AgentEntry, options: ConfigApplyOptions,
+        _ agent: inout Agent,
+        from entry: AgentEntry,
+        options: ConfigApplyOptions,
         outcome: inout AgentPatchOutcome
     ) {
         let hasGroups = entry.mcpServers != nil || entry.plugins != nil
@@ -747,12 +810,14 @@ enum ConfigApplier {
         agent.manualToolNames = applied.manualToolNames
         if !applied.missingTools.isEmpty {
             outcome.notes.append(
-                "Skipped tools not installed here: \(applied.missingTools.joined(separator: ", ")).")
+                "Skipped tools not installed here: \(applied.missingTools.joined(separator: ", "))."
+            )
         }
         if !applied.keptUnregistered.isEmpty {
             outcome.notes.append(
                 "Kept tools no server provides yet (they work once their server connects): "
-                    + applied.keptUnregistered.joined(separator: ", ") + ".")
+                    + applied.keptUnregistered.joined(separator: ", ") + "."
+            )
         }
         // A configured server only has a tool group once it has connected.
         let configuredServers = Set(MCPProviderManager.shared.configuration.providers.map { $0.name.lowercased() })
@@ -762,19 +827,22 @@ enum ConfigApplier {
                     configuredServers.contains(name.lowercased())
                 else { return nil }
                 return name
-            })
+            }
+        )
         let absent = applied.missingGroups.filter { !offline.contains($0) }
         let notConnected = applied.missingGroups.filter { offline.contains($0) }
         if !notConnected.isEmpty {
             outcome.notes.append(
                 "Not connected yet, so none of their tools were added (re-apply once connected): "
-                    + notConnected.joined(separator: ", ") + ".")
+                    + notConnected.joined(separator: ", ") + "."
+            )
             outcome.needsUserAction = true
         }
         if !absent.isEmpty {
             outcome.notes.append(
                 "Not set up on this Mac (add them in Settings, then re-apply): "
-                    + absent.joined(separator: ", ") + ".")
+                    + absent.joined(separator: ", ") + "."
+            )
             outcome.needsUserAction = true
         }
     }
@@ -796,7 +864,9 @@ enum ConfigApplier {
 
     @MainActor
     private static func patchSubagents(
-        _ agent: inout Agent, from section: AgentSubagentsEntry, outcome: inout AgentPatchOutcome
+        _ agent: inout Agent,
+        from section: AgentSubagentsEntry,
+        outcome: inout AgentPatchOutcome
     ) {
         if let v = section.enabled { agent.settings.spawnDelegationEnabled = v }
         if let names = section.agents {
@@ -815,13 +885,15 @@ enum ConfigApplier {
             agent.settings.spawnableAgentIDs = ids
             if !missing.isEmpty {
                 outcome.notes.append(
-                    "subagents.agents: no agent named \(missing.map { "`\($0)`" }.joined(separator: ", ")) here.")
+                    "subagents.agents: no agent named \(missing.map { "`\($0)`" }.joined(separator: ", ")) here."
+                )
             }
         }
         if let models = section.models, !models.isEmpty {
             outcome.notes.append(
                 "subagents.models was removed: create an agent with that model "
-                    + "(agents[].model) and list it in subagents.agents.")
+                    + "(agents[].model) and list it in subagents.agents."
+            )
         }
     }
 
@@ -832,7 +904,9 @@ enum ConfigApplier {
     /// "orchestrator said it has folder access but it loops forever").
     @MainActor
     private static func patchWorkingFolder(
-        _ agent: inout Agent, from field: ConfigField<String>, outcome: inout AgentPatchOutcome
+        _ agent: inout Agent,
+        from field: ConfigField<String>,
+        outcome: inout AgentPatchOutcome
     ) {
         switch field {
         case .absent:
@@ -867,7 +941,8 @@ enum ConfigApplier {
                 agent.workingFolderBookmark = nil
                 outcome.notes.append(
                     "working_folder: `\(raw)` is not accessible here. Pick the agent's folder "
-                        + "in the Agents pane (Working folder) to grant access.")
+                        + "in the Agents pane (Working folder) to grant access."
+                )
                 outcome.needsUserAction = true
             }
         }
@@ -961,8 +1036,11 @@ enum ConfigApplier {
                     })
                 else {
                     return ConfigApplyResult(
-                        section: "delegation", target: "delegation", status: .failed,
-                        message: "spawnable_agents: no agent named `\(name)`.")
+                        section: "delegation",
+                        target: "delegation",
+                        status: .failed,
+                        message: "spawnable_agents: no agent named `\(name)`."
+                    )
                 }
                 ids.append(agent.id)
             }
@@ -977,8 +1055,11 @@ enum ConfigApplier {
                     refs.append(ref)
                 case .failure(let message):
                     return ConfigApplyResult(
-                        section: "delegation", target: "delegation", status: .failed,
-                        message: "spawnable_workspace_agents: " + message)
+                        section: "delegation",
+                        target: "delegation",
+                        status: .failed,
+                        message: "spawnable_workspace_agents: " + message
+                    )
                 }
             }
             resolvedWorkspaceRefs = refs
@@ -988,8 +1069,11 @@ enum ConfigApplier {
         for (key, enabled) in desired.workspaceAutoJoin ?? [:] {
             guard let id = resolveWorkspaceId(key) else {
                 return ConfigApplyResult(
-                    section: "delegation", target: "delegation", status: .failed,
-                    message: "workspace_auto_join: no workspace named or identified by `\(key)`.")
+                    section: "delegation",
+                    target: "delegation",
+                    status: .failed,
+                    message: "workspace_auto_join: no workspace named or identified by `\(key)`."
+                )
             }
             workspaceAutoJoin.append((id, enabled))
         }
@@ -1029,8 +1113,11 @@ enum ConfigApplier {
             if let v = desired.coexistenceEnabled { config.subagentCoexistenceEnabled = v }
         }
         return ConfigApplyResult(
-            section: "delegation", target: "delegation", status: .done,
-            message: hints.isEmpty ? nil : hints.joined(separator: " "))
+            section: "delegation",
+            target: "delegation",
+            status: .done,
+            message: hints.isEmpty ? nil : hints.joined(separator: " ")
+        )
     }
 
     /// Resolve one `spawnable_workspace_agents` entry: the durable
@@ -1050,15 +1137,18 @@ enum ConfigApplier {
             return .success(ref)
         case .success(.local):
             return .failure(
-                "`\(raw)` is one of this Nuo's own agents; list it under spawnable_agents.")
+                "`\(raw)` is one of this Nuo's own agents; list it under spawnable_agents."
+            )
         case .failure(.ambiguous(let forms)):
             return .failure(
                 "`\(raw)` matches more than one shared agent; use one of: "
-                    + forms.map { "`\($0)`" }.joined(separator: ", ") + ".")
+                    + forms.map { "`\($0)`" }.joined(separator: ", ") + "."
+            )
         case .failure(.notFound):
             return .failure(
                 "`\(raw)` is not a shared agent on any workspace you belong to. Use "
-                    + "`Name@Workspace` or `<workspace_id>:<0x-address>`.")
+                    + "`Name@Workspace` or `<workspace_id>:<0x-address>`."
+            )
         }
     }
 
@@ -1083,7 +1173,8 @@ enum ConfigApplier {
 
     @MainActor
     private static func applyCommands(
-        _ entries: [CommandEntry], prune: Bool
+        _ entries: [CommandEntry],
+        prune: Bool
     ) -> [ConfigApplyResult] {
         var results: [ConfigApplyResult] = []
         let registry = SlashCommandRegistry.shared
@@ -1100,7 +1191,8 @@ enum ConfigApplier {
                 if let v = entry.template { command.template = v }
                 registry.update(command)
                 results.append(
-                    ConfigApplyResult(section: "commands", target: entry.name, status: .done))
+                    ConfigApplyResult(section: "commands", target: entry.name, status: .done)
+                )
             } else {
                 // Validation guarantees `template` for new commands.
                 let command = registry.create(
@@ -1111,7 +1203,8 @@ enum ConfigApplier {
                 )
                 matched.insert(command.id)
                 results.append(
-                    ConfigApplyResult(section: "commands", target: entry.name, status: .done))
+                    ConfigApplyResult(section: "commands", target: entry.name, status: .done)
+                )
             }
         }
 
@@ -1120,7 +1213,8 @@ enum ConfigApplier {
             where !matched.contains(command.id) {
                 registry.delete(id: command.id)
                 results.append(
-                    ConfigApplyResult(section: "commands", target: command.name, status: .done))
+                    ConfigApplyResult(section: "commands", target: command.name, status: .done)
+                )
             }
         }
         return results
@@ -1130,7 +1224,8 @@ enum ConfigApplier {
 
     @MainActor
     private static func applyKnowledgeCollections(
-        _ entries: [KnowledgeCollectionEntry], prune: Bool
+        _ entries: [KnowledgeCollectionEntry],
+        prune: Bool
     ) async -> [ConfigApplyResult] {
         var results: [ConfigApplyResult] = []
         let manager = KnowledgeManager.shared
@@ -1151,13 +1246,21 @@ enum ConfigApplier {
                 manager.update(collection)
                 results.append(
                     ConfigApplyResult(
-                        section: "knowledge_collections", target: entry.name, status: .done))
+                        section: "knowledge_collections",
+                        target: entry.name,
+                        status: .done
+                    )
+                )
             } else {
                 guard let folderPath = entry.folderPath else {
                     results.append(
                         ConfigApplyResult(
-                            section: "knowledge_collections", target: entry.name, status: .failed,
-                            message: "`folder_path` is required to create a collection."))
+                            section: "knowledge_collections",
+                            target: entry.name,
+                            status: .failed,
+                            message: "`folder_path` is required to create a collection."
+                        )
+                    )
                     continue
                 }
                 var collection = await manager.create(
@@ -1174,8 +1277,12 @@ enum ConfigApplier {
                 matched.insert(collection.id)
                 results.append(
                     ConfigApplyResult(
-                        section: "knowledge_collections", target: entry.name, status: .done,
-                        message: "Registered; indexing runs in the background."))
+                        section: "knowledge_collections",
+                        target: entry.name,
+                        status: .done,
+                        message: "Registered; indexing runs in the background."
+                    )
+                )
             }
         }
 
@@ -1184,8 +1291,12 @@ enum ConfigApplier {
                 manager.delete(id: collection.id)
                 results.append(
                     ConfigApplyResult(
-                        section: "knowledge_collections", target: collection.name, status: .done,
-                        message: "Deregistered. Documents in the folder were not touched."))
+                        section: "knowledge_collections",
+                        target: collection.name,
+                        status: .done,
+                        message: "Deregistered. Documents in the folder were not touched."
+                    )
+                )
             }
         }
         return results
@@ -1201,13 +1312,18 @@ enum ConfigApplier {
             do {
                 try ChannelWriteKillSwitch.shared.setWriteEnabled(enabled)
                 results.append(
-                    ConfigApplyResult(section: "channels", target: "channels", status: .done))
+                    ConfigApplyResult(section: "channels", target: "channels", status: .done)
+                )
             } catch {
                 results.append(
                     ConfigApplyResult(
-                        section: "channels", target: "channels", status: .failed,
+                        section: "channels",
+                        target: "channels",
+                        status: .failed,
                         message: "Could not persist the write kill switch: "
-                            + error.localizedDescription))
+                            + error.localizedDescription
+                    )
+                )
             }
         }
 
@@ -1224,9 +1340,13 @@ enum ConfigApplier {
                 guard let secret else {
                     results.append(
                         ConfigApplyResult(
-                            section: "channels", target: platform.rawValue, status: .failed,
+                            section: "channels",
+                            target: platform.rawValue,
+                            status: .failed,
                             message: "bot_token_ref: could not resolve \(display) — nothing "
-                                + "was changed."))
+                                + "was changed."
+                        )
+                    )
                     continue
                 }
                 botToken = (secret, display)
@@ -1237,9 +1357,13 @@ enum ConfigApplier {
                 guard let secret else {
                     results.append(
                         ConfigApplyResult(
-                            section: "channels", target: platform.rawValue, status: .failed,
+                            section: "channels",
+                            target: platform.rawValue,
+                            status: .failed,
                             message: "app_token_ref: could not resolve \(display) — nothing "
-                                + "was changed."))
+                                + "was changed."
+                        )
+                    )
                     continue
                 }
                 appToken = (secret, display)
@@ -1263,8 +1387,12 @@ enum ConfigApplier {
                 } else {
                     results.append(
                         ConfigApplyResult(
-                            section: "channels", target: platform.rawValue, status: .failed,
-                            message: "inbound_agent: no custom agent named `\(name)`."))
+                            section: "channels",
+                            target: platform.rawValue,
+                            status: .failed,
+                            message: "inbound_agent: no custom agent named `\(name)`."
+                        )
+                    )
                     continue
                 }
             }
@@ -1294,7 +1422,8 @@ enum ConfigApplier {
                         tokenFailed = true
                         messages.append(
                             "Could not store the bot token from \(botToken.display) — "
-                                + "Keychain unavailable; set it in Settings.")
+                                + "Keychain unavailable; set it in Settings."
+                        )
                     }
                 }
                 if let appToken {
@@ -1304,19 +1433,27 @@ enum ConfigApplier {
                         tokenFailed = true
                         messages.append(
                             "Could not store the app token from \(appToken.display) — "
-                                + "Keychain unavailable; set it in Settings.")
+                                + "Keychain unavailable; set it in Settings."
+                        )
                     }
                 }
                 results.append(
                     ConfigApplyResult(
-                        section: "channels", target: platform.rawValue,
+                        section: "channels",
+                        target: platform.rawValue,
                         status: tokenFailed ? .needsUserAction : .done,
-                        message: messages.isEmpty ? nil : messages.joined(separator: " ")))
+                        message: messages.isEmpty ? nil : messages.joined(separator: " ")
+                    )
+                )
             } catch {
                 results.append(
                     ConfigApplyResult(
-                        section: "channels", target: platform.rawValue, status: .failed,
-                        message: "Could not save the configuration: \(error.localizedDescription)"))
+                        section: "channels",
+                        target: platform.rawValue,
+                        status: .failed,
+                        message: "Could not save the configuration: \(error.localizedDescription)"
+                    )
+                )
             }
         }
 
@@ -1351,7 +1488,8 @@ enum ConfigApplier {
     /// the slot to fill. Returns the headers whose Keychain write failed.
     @MainActor
     private static func storeHeaderSecrets(
-        _ refs: [ResolvedSecretRef], in provider: inout MCPProvider
+        _ refs: [ResolvedSecretRef],
+        in provider: inout MCPProvider
     ) -> [String] {
         var failures: [String] = []
         for ref in refs {
@@ -1368,7 +1506,9 @@ enum ConfigApplier {
 
     @MainActor
     private static func applyMCPServers(
-        _ entries: [MCPServerEntry], prune: Bool, options: ConfigApplyOptions = .default
+        _ entries: [MCPServerEntry],
+        prune: Bool,
+        options: ConfigApplyOptions = .default
     ) async -> [ConfigApplyResult] {
         var results: [ConfigApplyResult] = []
         let manager = MCPProviderManager.shared
@@ -1417,13 +1557,15 @@ enum ConfigApplier {
                                 secretFailure = true
                                 secretMessages.append(
                                     "Could not store the token from \(display) — Keychain "
-                                        + "unavailable.")
+                                        + "unavailable."
+                                )
                             }
                         } else {
                             secretFailure = true
                             unresolvedRefs.append(display)
                             secretMessages.append(
-                                "Could not resolve \(display) — no token was stored.")
+                                "Could not resolve \(display) — no token was stored."
+                            )
                         }
                     }
                     let failures = storeHeaderSecrets(resolvedHeaderRefs, in: &provider)
@@ -1433,11 +1575,13 @@ enum ConfigApplier {
                             unresolvedRefs.append(ref.display)
                             secretMessages.append(
                                 "Could not resolve \(ref.display) for header \(ref.key) — nothing "
-                                    + "was stored.")
+                                    + "was stored."
+                            )
                         } else if failures.contains(ref.key) {
                             secretFailure = true
                             secretMessages.append(
-                                "Could not store header \(ref.key) — Keychain unavailable.")
+                                "Could not store header \(ref.key) — Keychain unavailable."
+                            )
                         } else {
                             secretMessages.append("Stored secret header \(ref.key) from \(ref.display).")
                         }
@@ -1464,7 +1608,8 @@ enum ConfigApplier {
                             unresolvedRefs.append(ref.display)
                             secretMessages.append(
                                 "Could not resolve \(ref.display) for env \(ref.key) — nothing "
-                                    + "was stored.")
+                                    + "was stored."
+                            )
                             if options.registerWithUnresolvedSecrets,
                                 !provider.secretEnvKeys.contains(ref.key)
                             {
@@ -1483,7 +1628,8 @@ enum ConfigApplier {
                         } else {
                             secretFailure = true
                             secretMessages.append(
-                                "Could not store env \(ref.key) — Keychain unavailable.")
+                                "Could not store env \(ref.key) — Keychain unavailable."
+                            )
                         }
                     }
                 }
@@ -1497,20 +1643,32 @@ enum ConfigApplier {
                 if secretFailure {
                     results.append(
                         ConfigApplyResult(
-                            section: "mcp_servers", target: entry.name, status: .needsUserAction,
+                            section: "mcp_servers",
+                            target: entry.name,
+                            status: .needsUserAction,
                             message: secretMessages.joined(separator: " "),
-                            unresolvedSecretRefs: unresolvedRefs))
+                            unresolvedSecretRefs: unresolvedRefs
+                        )
+                    )
                 } else if authChangedToKeyed {
                     results.append(
                         ConfigApplyResult(
-                            section: "mcp_servers", target: entry.name, status: .needsUserAction,
-                            message: "Finish sign-in / token entry in Settings → Tools & MCP → Services."))
+                            section: "mcp_servers",
+                            target: entry.name,
+                            status: .needsUserAction,
+                            message: "Finish sign-in / token entry in Settings → Tools & MCP → Services."
+                        )
+                    )
                 } else {
                     results.append(
                         ConfigApplyResult(
-                            section: "mcp_servers", target: entry.name, status: .done,
+                            section: "mcp_servers",
+                            target: entry.name,
+                            status: .done,
                             message: secretMessages.isEmpty
-                                ? nil : secretMessages.joined(separator: " ")))
+                                ? nil : secretMessages.joined(separator: " ")
+                        )
+                    )
                 }
             } else if entry.transport?.lowercased() == "stdio" {
                 guard let command = entry.command,
@@ -1518,8 +1676,12 @@ enum ConfigApplier {
                 else {
                     results.append(
                         ConfigApplyResult(
-                            section: "mcp_servers", target: entry.name, status: .failed,
-                            message: "`command` is required to add a stdio server."))
+                            section: "mcp_servers",
+                            target: entry.name,
+                            status: .failed,
+                            message: "`command` is required to add a stdio server."
+                        )
+                    )
                     continue
                 }
                 // Secret env refs resolve BEFORE the server is registered so
@@ -1529,11 +1691,15 @@ enum ConfigApplier {
                 guard unresolved.isEmpty || options.registerWithUnresolvedSecrets else {
                     results.append(
                         ConfigApplyResult(
-                            section: "mcp_servers", target: entry.name, status: .failed,
+                            section: "mcp_servers",
+                            target: entry.name,
+                            status: .failed,
                             message: "secret_env_refs: could not resolve "
                                 + unresolved.map { "\($0.display) (env \($0.key))" }.joined(separator: ", ")
                                 + " — the server was not added.",
-                            unresolvedSecretRefs: unresolved.map(\.display)))
+                            unresolvedSecretRefs: unresolved.map(\.display)
+                        )
+                    )
                     continue
                 }
                 var provider = MCPProvider(
@@ -1570,26 +1736,35 @@ enum ConfigApplier {
                     notes.append(
                         "Registered without secret env "
                             + unresolved.map { "\($0.key) (\($0.display) not found)" }.joined(separator: ", ")
-                            + ". Add the Keychain item and import again, or set it in Settings → Tools & MCP → Services.")
+                            + ". Add the Keychain item and import again, or set it in Settings → Tools & MCP → Services."
+                    )
                 }
                 if !storeFailures.isEmpty {
                     notes.append(
                         "Registered, but could not store secret env "
                             + storeFailures.joined(separator: ", ")
-                            + " — Keychain unavailable; set them in Settings → Tools & MCP → Services.")
+                            + " — Keychain unavailable; set them in Settings → Tools & MCP → Services."
+                    )
                 }
                 results.append(
                     ConfigApplyResult(
-                        section: "mcp_servers", target: entry.name,
+                        section: "mcp_servers",
+                        target: entry.name,
                         status: notes.isEmpty ? .done : .needsUserAction,
                         message: notes.isEmpty ? nil : notes.joined(separator: " "),
-                        unresolvedSecretRefs: unresolved.map(\.display)))
+                        unresolvedSecretRefs: unresolved.map(\.display)
+                    )
+                )
             } else {
                 guard let url = entry.url else {
                     results.append(
                         ConfigApplyResult(
-                            section: "mcp_servers", target: entry.name, status: .failed,
-                            message: "`url` is required to add a new server."))
+                            section: "mcp_servers",
+                            target: entry.name,
+                            status: .failed,
+                            message: "`url` is required to add a new server."
+                        )
+                    )
                     continue
                 }
                 var auth = entry.auth.flatMap(ConfigMCPAuth.auth(forKey:)) ?? MCPProviderAuthType.none
@@ -1607,10 +1782,14 @@ enum ConfigApplier {
                     } else {
                         results.append(
                             ConfigApplyResult(
-                                section: "mcp_servers", target: entry.name, status: .failed,
+                                section: "mcp_servers",
+                                target: entry.name,
+                                status: .failed,
                                 message: "token_ref: could not resolve \(display) — the server "
                                     + "was not added.",
-                                unresolvedSecretRefs: [display]))
+                                unresolvedSecretRefs: [display]
+                            )
+                        )
                         continue
                     }
                 }
@@ -1618,12 +1797,16 @@ enum ConfigApplier {
                 guard unresolvedHeaders.isEmpty || options.registerWithUnresolvedSecrets else {
                     results.append(
                         ConfigApplyResult(
-                            section: "mcp_servers", target: entry.name, status: .failed,
+                            section: "mcp_servers",
+                            target: entry.name,
+                            status: .failed,
                             message: "secret_header_refs: could not resolve "
                                 + unresolvedHeaders.map { "\($0.display) (header \($0.key))" }
                                 .joined(separator: ", ")
                                 + " — the server was not added.",
-                            unresolvedSecretRefs: unresolvedHeaders.map(\.display)))
+                            unresolvedSecretRefs: unresolvedHeaders.map(\.display)
+                        )
+                    )
                     continue
                 }
                 unresolvedRefs += unresolvedHeaders.map(\.display)
@@ -1643,7 +1826,8 @@ enum ConfigApplier {
                 let storedHeaders = resolvedHeaderRefs.filter { $0.secret != nil && !headerFailures.contains($0.key) }
                 if !storedHeaders.isEmpty {
                     notes.append(
-                        "Stored secret header " + storedHeaders.map(\.key).joined(separator: ", ") + ".")
+                        "Stored secret header " + storedHeaders.map(\.key).joined(separator: ", ") + "."
+                    )
                 }
                 var needsUser = false
                 if !unresolvedRefs.isEmpty {
@@ -1651,27 +1835,33 @@ enum ConfigApplier {
                     notes.append(
                         "Registered without " + unresolvedRefs.joined(separator: ", ")
                             + " (not found). Add the Keychain item and import again, or enter it in "
-                            + "Settings → Tools & MCP → Services.")
+                            + "Settings → Tools & MCP → Services."
+                    )
                 }
                 if !headerFailures.isEmpty {
                     needsUser = true
                     notes.append(
                         "Could not store header " + headerFailures.joined(separator: ", ")
-                            + " — Keychain unavailable; set it in Settings → Tools & MCP → Services.")
+                            + " — Keychain unavailable; set it in Settings → Tools & MCP → Services."
+                    )
                 }
                 if tokenDisplay == nil, unresolvedRefs.isEmpty, auth != .none {
                     needsUser = true
                     notes.append(
                         "Registered. Finish "
                             + (auth == .oauth ? "sign-in" : "token entry")
-                            + " in Settings → Tools & MCP → Services.")
+                            + " in Settings → Tools & MCP → Services."
+                    )
                 }
                 results.append(
                     ConfigApplyResult(
-                        section: "mcp_servers", target: entry.name,
+                        section: "mcp_servers",
+                        target: entry.name,
                         status: needsUser ? .needsUserAction : .done,
                         message: notes.isEmpty ? nil : notes.joined(separator: " "),
-                        unresolvedSecretRefs: unresolvedRefs))
+                        unresolvedSecretRefs: unresolvedRefs
+                    )
+                )
             }
         }
 
@@ -1680,7 +1870,8 @@ enum ConfigApplier {
             where !matched.contains(provider.id) {
                 manager.removeProvider(id: provider.id)
                 results.append(
-                    ConfigApplyResult(section: "mcp_servers", target: provider.name, status: .done))
+                    ConfigApplyResult(section: "mcp_servers", target: provider.name, status: .done)
+                )
             }
         }
         return results
@@ -1698,8 +1889,12 @@ enum ConfigApplier {
             } catch {
                 results.append(
                     ConfigApplyResult(
-                        section: "plugins", target: pluginId, status: .failed,
-                        message: "Install failed: \(error.localizedDescription)"))
+                        section: "plugins",
+                        target: pluginId,
+                        status: .failed,
+                        message: "Install failed: \(error.localizedDescription)"
+                    )
+                )
                 continue
             }
             // Required secrets never travel through the document — surface
@@ -1709,11 +1904,15 @@ enum ConfigApplier {
                     let loaded = PluginManager.shared.plugins.first(where: { $0.plugin.id == pluginId }),
                     let secrets = loaded.plugin.manifest.secrets
                 else { return [] }
-                return secrets
+                return
+                    secrets
                     .filter { spec in
                         spec.required
                             && !ToolSecretsKeychain.hasSecret(
-                                id: spec.id, for: pluginId, agentId: Agent.defaultId)
+                                id: spec.id,
+                                for: pluginId,
+                                agentId: Agent.defaultId
+                            )
                     }
                     .map { $0.label }
             }
@@ -1722,9 +1921,14 @@ enum ConfigApplier {
             } else {
                 results.append(
                     ConfigApplyResult(
-                        section: "plugins", target: pluginId, status: .needsUserAction,
-                        message: "Installed. Needs secrets in Settings… (⌘,) → Tools & MCP → Plugins (Configure Secrets on the plugin card): "
-                            + missingSecretLabels.joined(separator: ", ")))
+                        section: "plugins",
+                        target: pluginId,
+                        status: .needsUserAction,
+                        message:
+                            "Installed. Needs secrets in Settings… (⌘,) → Tools & MCP → Plugins (Configure Secrets on the plugin card): "
+                            + missingSecretLabels.joined(separator: ", ")
+                    )
+                )
             }
         }
 
@@ -1734,12 +1938,17 @@ enum ConfigApplier {
                 do {
                     try await PluginRepositoryService.shared.uninstall(pluginId: pluginId)
                     results.append(
-                        ConfigApplyResult(section: "plugins", target: pluginId, status: .done))
+                        ConfigApplyResult(section: "plugins", target: pluginId, status: .done)
+                    )
                 } catch {
                     results.append(
                         ConfigApplyResult(
-                            section: "plugins", target: pluginId, status: .failed,
-                            message: "Uninstall failed: \(error.localizedDescription)"))
+                            section: "plugins",
+                            target: pluginId,
+                            status: .failed,
+                            message: "Uninstall failed: \(error.localizedDescription)"
+                        )
+                    )
                 }
             }
         }
@@ -1763,16 +1972,24 @@ enum ConfigApplier {
             else {
                 results.append(
                     ConfigApplyResult(
-                        section: "models", target: repoId, status: .failed,
+                        section: "models",
+                        target: repoId,
+                        status: .failed,
                         message: "`\(repoId)` is not MLX-compatible (expected an mlx-community/* "
-                            + "or other MLX build)."))
+                            + "or other MLX build)."
+                    )
+                )
                 continue
             }
             await MainActor.run { ModelManager.shared.downloadModel(model) }
             results.append(
                 ConfigApplyResult(
-                    section: "models", target: model.id, status: .started,
-                    message: "Download started — poll osaurus_inspect({action: 'status'})."))
+                    section: "models",
+                    target: model.id,
+                    status: .started,
+                    message: "Download started — poll osaurus_inspect({action: 'status'})."
+                )
+            )
         }
 
         if prune {
@@ -1792,7 +2009,8 @@ enum ConfigApplier {
     // MARK: - Cloud providers
 
     private static func applyProviders(
-        _ entries: [ProviderEntry], prune: Bool
+        _ entries: [ProviderEntry],
+        prune: Bool
     ) async -> [ConfigApplyResult] {
         var results: [ConfigApplyResult] = []
         var matched = Set<UUID>()
@@ -1825,7 +2043,10 @@ enum ConfigApplier {
                     let updated = provider
                     await MainActor.run {
                         RemoteProviderManager.shared.updateProvider(
-                            updated, apiKey: nil, oauthTokens: nil)
+                            updated,
+                            apiKey: nil,
+                            oauthTokens: nil
+                        )
                     }
                 }
                 // The old short-circuit reported `done` here even when the
@@ -1844,9 +2065,13 @@ enum ConfigApplier {
                     guard let secret else {
                         results.append(
                             ConfigApplyResult(
-                                section: "providers", target: entry.name, status: .failed,
+                                section: "providers",
+                                target: entry.name,
+                                status: .failed,
                                 message: "api_key_ref: could not resolve \(display) — "
-                                    + "nothing was stored."))
+                                    + "nothing was stored."
+                            )
+                        )
                         continue
                     }
                     // Re-read the provider after the suspension: `frozen` is a
@@ -1861,12 +2086,19 @@ enum ConfigApplier {
                         else { return }
                         current.authType = .apiKey
                         RemoteProviderManager.shared.updateProvider(
-                            current, apiKey: secret, oauthTokens: nil)
+                            current,
+                            apiKey: secret,
+                            oauthTokens: nil
+                        )
                     }
                     results.append(
                         ConfigApplyResult(
-                            section: "providers", target: entry.name, status: .done,
-                            message: "Stored the API key from \(display)."))
+                            section: "providers",
+                            target: entry.name,
+                            status: .done,
+                            message: "Stored the API key from \(display)."
+                        )
+                    )
                     continue
                 }
                 // `set_api_key: true` is an explicit request to open the
@@ -1882,15 +2114,20 @@ enum ConfigApplier {
                 switch availability {
                 case .present:
                     results.append(
-                        ConfigApplyResult(section: "providers", target: entry.name, status: .done))
+                        ConfigApplyResult(section: "providers", target: entry.name, status: .done)
+                    )
                 case .absent, .corrupt:
                     results.append(await requestCredentials(forExisting: frozen, entryName: entry.name))
                 case .unavailable:
                     results.append(
                         ConfigApplyResult(
-                            section: "providers", target: entry.name, status: .needsUserAction,
+                            section: "providers",
+                            target: entry.name,
+                            status: .needsUserAction,
                             message: "Could not verify stored credentials (Keychain unavailable "
-                                + "right now) — check Settings → Providers."))
+                                + "right now) — check Settings → Providers."
+                        )
+                    )
                 }
             } else {
                 let result = await addProvider(entry)
@@ -1974,24 +2211,33 @@ enum ConfigApplier {
     /// shows) and persist the outcome through the manager. Secrets never
     /// touch the document or the result payload.
     private static func requestCredentials(
-        forExisting provider: RemoteProvider, entryName: String
+        forExisting provider: RemoteProvider,
+        entryName: String
     ) async -> ConfigApplyResult {
         let request = ProviderCredentialRequest(
-            provider: provider, providerName: provider.name,
-            mode: .rotate(existingId: provider.id))
+            provider: provider,
+            providerName: provider.name,
+            mode: .rotate(existingId: provider.id)
+        )
         // From the paired phone there is nobody at this Mac to type the key:
         // the panel would hold the run with nothing on the phone saying why.
         // Leave it for the Mac and say so.
         if ChatExecutionContext.hasRemoteReviewer {
             return ConfigApplyResult(
-                section: "providers", target: entryName, status: .needsUserAction,
-                message: Self.credentialsNeedTheMac(providerName: provider.name))
+                section: "providers",
+                target: entryName,
+                status: .needsUserAction,
+                message: Self.credentialsNeedTheMac(providerName: provider.name)
+            )
         }
         let outcome = await ProviderCredentialPromptService.requestCredentials(request)
         if Task.isCancelled {
             return ConfigApplyResult(
-                section: "providers", target: entryName, status: .cancelled,
-                message: "Cancelled before credential entry completed.")
+                section: "providers",
+                target: entryName,
+                status: .cancelled,
+                message: "Cancelled before credential entry completed."
+            )
         }
         switch outcome {
         case .cancelled:
@@ -1999,16 +2245,22 @@ enum ConfigApplier {
             // keyless; a rotate sheet leaves the OLD key in place. Either
             // way nothing was stored — never describe this as a rotation.
             return ConfigApplyResult(
-                section: "providers", target: entryName, status: .cancelled,
+                section: "providers",
+                target: entryName,
+                status: .cancelled,
                 message: "Credential entry was dismissed before a key was entered — nothing "
                     + "was stored: the provider's credentials are unchanged and no key was "
-                    + "set or rotated.")
+                    + "set or rotated."
+            )
         case .apiKey(let key, _):
             let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !trimmed.isEmpty else {
                 return ConfigApplyResult(
-                    section: "providers", target: entryName, status: .needsUserAction,
-                    message: "No key was entered — finish credential entry in Settings → Providers.")
+                    section: "providers",
+                    target: entryName,
+                    status: .needsUserAction,
+                    message: "No key was entered — finish credential entry in Settings → Providers."
+                )
             }
             // The credential the user entered decides the auth mode. Without
             // this, entering an API key on an OAuth-connected provider stored
@@ -2023,10 +2275,13 @@ enum ConfigApplier {
             }
             let switched = provider.authType != .apiKey
             return ConfigApplyResult(
-                section: "providers", target: entryName, status: .done,
+                section: "providers",
+                target: entryName,
+                status: .done,
                 message: switched
                     ? "Stored the API key and switched the provider to API-key auth."
-                    : "Stored the credentials.")
+                    : "Stored the credentials."
+            )
         case .oauthTokens(let tokens):
             var updated = provider
             if updated.authType != .openAICodexOAuth, updated.authType != .xaiOAuth {
@@ -2038,8 +2293,11 @@ enum ConfigApplier {
                 RemoteProviderManager.shared.updateProvider(toSave, apiKey: nil, oauthTokens: tokens)
             }
             return ConfigApplyResult(
-                section: "providers", target: entryName, status: .done,
-                message: "Signed in via OAuth.")
+                section: "providers",
+                target: entryName,
+                status: .done,
+                message: "Signed in via OAuth."
+            )
         }
     }
 
@@ -2050,8 +2308,12 @@ enum ConfigApplier {
         guard let resolution = ConfigProviderPresets.resolve(entry.provider) else {
             return ProviderAddOutcome(
                 result: ConfigApplyResult(
-                    section: "providers", target: entry.name, status: .failed,
-                    message: "`provider` must be one of: \(ConfigProviderPresets.canonicalIdsList)."))
+                    section: "providers",
+                    target: entry.name,
+                    status: .failed,
+                    message: "`provider` must be one of: \(ConfigProviderPresets.canonicalIdsList)."
+                )
+            )
         }
 
         // A secret reference creates the provider without the sheet: the key
@@ -2062,9 +2324,13 @@ enum ConfigApplier {
             guard let secret else {
                 return ProviderAddOutcome(
                     result: ConfigApplyResult(
-                        section: "providers", target: entry.name, status: .failed,
+                        section: "providers",
+                        target: entry.name,
+                        status: .failed,
                         message: "api_key_ref: could not resolve \(display) — the provider "
-                            + "was not created."))
+                            + "was not created."
+                    )
+                )
             }
             let id = await MainActor.run {
                 buildAndAddProvider(
@@ -2073,13 +2339,18 @@ enum ConfigApplier {
                     storageAuthType: .apiKey,
                     extraFields: nil,
                     apiKey: secret,
-                    oauthTokens: nil)
+                    oauthTokens: nil
+                )
             }
             return ProviderAddOutcome(
                 result: ConfigApplyResult(
-                    section: "providers", target: entry.name, status: .done,
-                    message: "Created with the API key from \(display)."),
-                createdProviderId: id)
+                    section: "providers",
+                    target: entry.name,
+                    status: .done,
+                    message: "Created with the API key from \(display)."
+                ),
+                createdProviderId: id
+            )
         }
 
         let request: ProviderCredentialRequest
@@ -2088,10 +2359,16 @@ enum ConfigApplier {
             request = ProviderCredentialRequest(preset: preset, providerName: entry.name, mode: .addNew)
         case .codexOAuth:
             request = ProviderCredentialRequest(
-                providerType: .openAICodex, providerName: entry.name, mode: .addNew)
+                providerType: .openAICodex,
+                providerName: entry.name,
+                mode: .addNew
+            )
         case .osaurusAgent:
             request = ProviderCredentialRequest(
-                providerType: .osaurus, providerName: entry.name, mode: .addNew)
+                providerType: .osaurus,
+                providerName: entry.name,
+                mode: .addNew
+            )
         }
 
         // See `requestCredentials(forExisting:)`: no Mac panel for a phone run.
@@ -2107,11 +2384,13 @@ enum ConfigApplier {
                         storageAuthType: .none,
                         extraFields: nil,
                         apiKey: nil,
-                        oauthTokens: nil)
+                        oauthTokens: nil
+                    )
                 }
                 return ProviderAddOutcome(
                     result: ConfigApplyResult(section: "providers", target: entry.name, status: .done),
-                    createdProviderId: id)
+                    createdProviderId: id
+                )
             }
             let step: String
             switch resolution {
@@ -2121,25 +2400,37 @@ enum ConfigApplier {
             }
             return ProviderAddOutcome(
                 result: ConfigApplyResult(
-                    section: "providers", target: entry.name, status: .needsUserAction,
+                    section: "providers",
+                    target: entry.name,
+                    status: .needsUserAction,
                     message: "'\(entry.name)' was not added: \(step) on the Mac, which can't be done "
                         + "from the phone. Tell the user to add it in Nuo → Settings → Providers "
-                        + "on their Mac, or to run this setup from the Mac."))
+                        + "on their Mac, or to run this setup from the Mac."
+                )
+            )
         }
         let outcome = await ProviderCredentialPromptService.requestCredentials(request)
         if Task.isCancelled {
             return ProviderAddOutcome(
                 result: ConfigApplyResult(
-                    section: "providers", target: entry.name, status: .cancelled,
-                    message: "Cancelled before credential entry completed."))
+                    section: "providers",
+                    target: entry.name,
+                    status: .cancelled,
+                    message: "Cancelled before credential entry completed."
+                )
+            )
         }
 
         switch outcome {
         case .cancelled:
             return ProviderAddOutcome(
                 result: ConfigApplyResult(
-                    section: "providers", target: entry.name, status: .cancelled,
-                    message: "User cancelled credential entry."))
+                    section: "providers",
+                    target: entry.name,
+                    status: .cancelled,
+                    message: "User cancelled credential entry."
+                )
+            )
         case .apiKey(let key, let headers):
             let storageAuthType = request.instructions.storageAuthType
             let trimmedKey = key.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -2152,11 +2443,13 @@ enum ConfigApplier {
                     storageAuthType: storageAuthType,
                     extraFields: headers,
                     apiKey: resolvedKey,
-                    oauthTokens: nil)
+                    oauthTokens: nil
+                )
             }
             return ProviderAddOutcome(
                 result: ConfigApplyResult(section: "providers", target: entry.name, status: .done),
-                createdProviderId: id)
+                createdProviderId: id
+            )
         case .oauthTokens(let tokens):
             let id = await MainActor.run {
                 buildAndAddProvider(
@@ -2165,12 +2458,18 @@ enum ConfigApplier {
                     storageAuthType: request.instructions.storageAuthType,
                     extraFields: nil,
                     apiKey: nil,
-                    oauthTokens: tokens)
+                    oauthTokens: tokens
+                )
             }
             return ProviderAddOutcome(
                 result: ConfigApplyResult(
-                    section: "providers", target: entry.name, status: .done, message: "Signed in via OAuth."),
-                createdProviderId: id)
+                    section: "providers",
+                    target: entry.name,
+                    status: .done,
+                    message: "Signed in via OAuth."
+                ),
+                createdProviderId: id
+            )
         }
     }
 
@@ -2279,7 +2578,8 @@ enum ConfigApplier {
 
     @MainActor
     private static func applySearchProviders(
-        _ desired: SearchProvidersSection, prune: Bool
+        _ desired: SearchProvidersSection,
+        prune: Bool
     ) -> [ConfigApplyResult] {
         var results: [ConfigApplyResult] = []
         let manager = SearchProviderManager.shared
@@ -2288,8 +2588,12 @@ enum ConfigApplier {
             guard let def = manager.definition(id: entry.id) else {
                 results.append(
                     ConfigApplyResult(
-                        section: "search_providers", target: entry.id, status: .failed,
-                        message: "Unknown provider id."))
+                        section: "search_providers",
+                        target: entry.id,
+                        status: .failed,
+                        message: "Unknown provider id."
+                    )
+                )
                 continue
             }
             let alreadyConfigured = manager.configuration.provider(id: entry.id) != nil
@@ -2298,16 +2602,20 @@ enum ConfigApplier {
                 let needsKey = !def.isKeyless && !manager.configuredProviderIds.contains(def.id)
                 results.append(
                     ConfigApplyResult(
-                        section: "search_providers", target: entry.id,
+                        section: "search_providers",
+                        target: entry.id,
                         status: needsKey ? .needsUserAction : .done,
                         message: needsKey
-                            ? "Added. Paste the API key in Settings → Search." : nil))
+                            ? "Added. Paste the API key in Settings → Search." : nil
+                    )
+                )
             } else {
                 if let enabled = entry.enabled {
                     manager.setEnabled(enabled, for: entry.id)
                 }
                 results.append(
-                    ConfigApplyResult(section: "search_providers", target: entry.id, status: .done))
+                    ConfigApplyResult(section: "search_providers", target: entry.id, status: .done)
+                )
             }
         }
 
@@ -2317,14 +2625,16 @@ enum ConfigApplier {
             for id in configured where !wanted.contains(id) {
                 manager.removeProvider(definitionId: id)
                 results.append(
-                    ConfigApplyResult(section: "search_providers", target: id, status: .done))
+                    ConfigApplyResult(section: "search_providers", target: id, status: .done)
+                )
             }
         }
 
         if let ranking = desired.ranking {
             manager.setDefaultRanking(ranking)
             results.append(
-                ConfigApplyResult(section: "search_providers", target: "ranking", status: .done))
+                ConfigApplyResult(section: "search_providers", target: "ranking", status: .done)
+            )
         }
         return results
     }
@@ -2340,7 +2650,8 @@ enum ConfigApplier {
 
     @MainActor
     private static func applySchedules(
-        _ entries: [ScheduleEntry], prune: Bool
+        _ entries: [ScheduleEntry],
+        prune: Bool
     ) -> [ConfigApplyResult] {
         var results: [ConfigApplyResult] = []
         let manager = ScheduleManager.shared
@@ -2354,14 +2665,21 @@ enum ConfigApplier {
             var frequency: ScheduleFrequency?
             if let raw = entry.frequency {
                 switch ConfigScheduleFrequency.parse(
-                    frequency: raw, value: entry.frequencyValue, timeOfDay: entry.frequencyTimeOfDay)
+                    frequency: raw,
+                    value: entry.frequencyValue,
+                    timeOfDay: entry.frequencyTimeOfDay
+                )
                 {
                 case .success(let f): frequency = f
                 case .failure(let error):
                     results.append(
                         ConfigApplyResult(
-                            section: "schedules", target: entry.name, status: .failed,
-                            message: error.message))
+                            section: "schedules",
+                            target: entry.name,
+                            status: .failed,
+                            message: error.message
+                        )
+                    )
                     continue
                 }
             }
@@ -2375,8 +2693,12 @@ enum ConfigApplier {
                 } else {
                     results.append(
                         ConfigApplyResult(
-                            section: "schedules", target: entry.name, status: .failed,
-                            message: "No custom agent named `\(agentName)`."))
+                            section: "schedules",
+                            target: entry.name,
+                            status: .failed,
+                            message: "No custom agent named `\(agentName)`."
+                        )
+                    )
                     continue
                 }
             }
@@ -2389,13 +2711,18 @@ enum ConfigApplier {
                 if let v = entry.enabled { schedule.isEnabled = v }
                 manager.update(schedule)
                 results.append(
-                    ConfigApplyResult(section: "schedules", target: entry.name, status: .done))
+                    ConfigApplyResult(section: "schedules", target: entry.name, status: .done)
+                )
             } else {
                 guard let target, let instructions = entry.instructions, let frequency else {
                     results.append(
                         ConfigApplyResult(
-                            section: "schedules", target: entry.name, status: .failed,
-                            message: "Creating a schedule needs `agent`, `instructions`, and `frequency`."))
+                            section: "schedules",
+                            target: entry.name,
+                            status: .failed,
+                            message: "Creating a schedule needs `agent`, `instructions`, and `frequency`."
+                        )
+                    )
                     continue
                 }
                 // Chat/document-created schedules attach no security-scoped
@@ -2412,7 +2739,8 @@ enum ConfigApplier {
                 )
                 matched.insert(schedule.id)
                 results.append(
-                    ConfigApplyResult(section: "schedules", target: entry.name, status: .done))
+                    ConfigApplyResult(section: "schedules", target: entry.name, status: .done)
+                )
             }
         }
 
@@ -2420,7 +2748,8 @@ enum ConfigApplier {
             for schedule in manager.schedules where !matched.contains(schedule.id) {
                 _ = manager.delete(id: schedule.id)
                 results.append(
-                    ConfigApplyResult(section: "schedules", target: schedule.name, status: .done))
+                    ConfigApplyResult(section: "schedules", target: schedule.name, status: .done)
+                )
             }
         }
         return results
@@ -2446,8 +2775,12 @@ enum ConfigApplier {
                 } else {
                     results.append(
                         ConfigApplyResult(
-                            section: "watchers", target: entry.name, status: .failed,
-                            message: "No custom agent named `\(agentName)`."))
+                            section: "watchers",
+                            target: entry.name,
+                            status: .failed,
+                            message: "No custom agent named `\(agentName)`."
+                        )
+                    )
                     continue
                 }
             }
@@ -2461,8 +2794,12 @@ enum ConfigApplier {
                 else {
                     results.append(
                         ConfigApplyResult(
-                            section: "watchers", target: entry.name, status: .failed,
-                            message: "`\(expanded)` is not an existing directory."))
+                            section: "watchers",
+                            target: entry.name,
+                            status: .failed,
+                            message: "`\(expanded)` is not an existing directory."
+                        )
+                    )
                     continue
                 }
                 path = expanded
@@ -2488,13 +2825,18 @@ enum ConfigApplier {
                 if let v = entry.enabled { watcher.isEnabled = v }
                 manager.update(watcher)
                 results.append(
-                    ConfigApplyResult(section: "watchers", target: entry.name, status: .done))
+                    ConfigApplyResult(section: "watchers", target: entry.name, status: .done)
+                )
             } else {
                 guard let target, let instructions = entry.instructions, let path else {
                     results.append(
                         ConfigApplyResult(
-                            section: "watchers", target: entry.name, status: .failed,
-                            message: "Creating a watcher needs `agent`, `instructions`, and `path`."))
+                            section: "watchers",
+                            target: entry.name,
+                            status: .failed,
+                            message: "Creating a watcher needs `agent`, `instructions`, and `path`."
+                        )
+                    )
                     continue
                 }
                 let watcher = manager.create(
@@ -2510,9 +2852,13 @@ enum ConfigApplier {
                 matched.insert(watcher.id)
                 results.append(
                     ConfigApplyResult(
-                        section: "watchers", target: entry.name, status: .done,
+                        section: "watchers",
+                        target: entry.name,
+                        status: .done,
                         message: "Uses a plain folder path — if macOS blocks access, re-pick the "
-                            + "folder in the Watchers tab."))
+                            + "folder in the Watchers tab."
+                    )
+                )
             }
         }
 
@@ -2520,7 +2866,8 @@ enum ConfigApplier {
             for watcher in manager.watchers where !matched.contains(watcher.id) {
                 _ = manager.delete(id: watcher.id)
                 results.append(
-                    ConfigApplyResult(section: "watchers", target: watcher.name, status: .done))
+                    ConfigApplyResult(section: "watchers", target: watcher.name, status: .done)
+                )
             }
         }
         return results

@@ -9,7 +9,9 @@ import Testing
 @MainActor
 @Suite(.serialized, .timeLimit(.minutes(1)))
 struct ResponsesRunningToolPresentationTests {
-    private func call(_ id: String = "fixture-call", name: String = "shell_run", command: String = "printf old") -> ToolCall {
+    private func call(_ id: String = "fixture-call", name: String = "shell_run", command: String = "printf old")
+        -> ToolCall
+    {
         ToolCall(id: id, type: "function", function: .init(name: name, arguments: "{\"command\":\"\(command)\"}"))
     }
     private func rows(_ blocks: [ContentBlock]) -> [ToolCallItem] {
@@ -40,7 +42,11 @@ struct ResponsesRunningToolPresentationTests {
             if await condition() { return }
             try await Task.sleep(for: .milliseconds(10))
         }
-        throw NSError(domain: "ResponsesRunningToolPresentationTests.timeout", code: 1, userInfo: [NSLocalizedDescriptionKey: phase])
+        throw NSError(
+            domain: "ResponsesRunningToolPresentationTests.timeout",
+            code: 1,
+            userInfo: [NSLocalizedDescriptionKey: phase]
+        )
     }
 
     /// Marker subscribers use the same scheduler, after the row's observers.
@@ -112,9 +118,16 @@ struct ResponsesRunningToolPresentationTests {
     @Test func sameIDArgumentCorrectionRefreshesAfterCollapsedUpdate() async throws {
         let row = NativeToolCallRowView(frame: .zero)
         func configure(_ command: String, expanded: Bool) {
-            row.configure(item: ToolCallItem(call: call(command: command), result: nil),
-                index: 0, totalCount: 1, isExpanded: expanded, width: 640, theme: LightTheme(),
-                onToggle: {}, onHeightChanged: {})
+            row.configure(
+                item: ToolCallItem(call: call(command: command), result: nil),
+                index: 0,
+                totalCount: 1,
+                isExpanded: expanded,
+                width: 640,
+                theme: LightTheme(),
+                onToggle: {},
+                onHeightChanged: {}
+            )
         }
         func text() -> String {
             descendants(row, as: NSTextView.self).map(\.string).joined(separator: "\n")
@@ -123,7 +136,9 @@ struct ResponsesRunningToolPresentationTests {
         try await wait("initial arguments mounted") { text().contains("printf old") }
         configure("printf new", expanded: false)
         configure("printf new", expanded: true)
-        try await wait("corrected arguments mounted") { text().contains("printf new") && !text().contains("printf old") }
+        try await wait("corrected arguments mounted") {
+            text().contains("printf new") && !text().contains("printf old")
+        }
     }
     private final class Stream: @unchecked Sendable {
         let output = PassthroughSubject<Data, Never>()
@@ -142,38 +157,60 @@ struct ResponsesRunningToolPresentationTests {
         #expect(item.result == nil, "The row must exist while dispatch is still awaiting a result")
         let row = NativeToolCallRowView(frame: .zero)
         func configure(_ item: ToolCallItem) {
-            row.configure(item: item, index: 0, totalCount: 1, isExpanded: true, width: 640,
-                theme: LightTheme(), onToggle: {}, onHeightChanged: {})
+            row.configure(
+                item: item,
+                index: 0,
+                totalCount: 1,
+                isExpanded: true,
+                width: 640,
+                theme: LightTheme(),
+                onToggle: {},
+                onHeightChanged: {}
+            )
         }
         configure(item)
         try await deliverRegistrySnapshots()
         #expect(descendants(row, as: TerminalDisplayView.self).isEmpty)
         let stream = Stream()
         let terminations = Terminations()
-        let entry = LiveExecRegistry.Entry(toolCallId: id, pid: "fixture", command: "printf old",
-            startedAt: Date(), outputPublisher: stream.output.eraseToAnyPublisher(),
-            statusPublisher: stream.status.eraseToAnyPublisher(), currentStatus: { stream.status.value },
-            seed: { Data("seed output\n".utf8) }, terminate: { _ in
+        let entry = LiveExecRegistry.Entry(
+            toolCallId: id,
+            pid: "fixture",
+            command: "printf old",
+            startedAt: Date(),
+            outputPublisher: stream.output.eraseToAnyPublisher(),
+            statusPublisher: stream.status.eraseToAnyPublisher(),
+            currentStatus: { stream.status.value },
+            seed: { Data("seed output\n".utf8) },
+            terminate: { _ in
                 await terminations.record()
                 stream.status.send(.killed(reason: "user"))
-            })
+            }
+        )
         defer { Task { await LiveExecRegistry.shared.unregister(toolCallId: id) } }
         // Registration happens after the row exists, as in real dispatch.
         await LiveExecRegistry.shared.register(entry)
-        try await wait("live terminal mounted after registration") { descendants(row, as: TerminalDisplayView.self).first != nil }
+        try await wait("live terminal mounted after registration") {
+            descendants(row, as: TerminalDisplayView.self).first != nil
+        }
         let terminal = try #require(descendants(row, as: TerminalDisplayView.self).first)
         defer { terminal.unbind() }
         #expect(!terminal._test_terminateHidden)
         try await wait("seed output rendered") { terminal._test_textStorageString.contains("seed output") }
         stream.output.send(Data("live output\n".utf8))
         try await wait("live output rendered") { terminal._test_textStorageString.contains("live output") }
-        let terminate = try #require(descendants(row, as: NSButton.self).first { $0.accessibilityLabel() == "Terminate" })
+        let terminate = try #require(
+            descendants(row, as: NSButton.self).first { $0.accessibilityLabel() == "Terminate" }
+        )
         terminate.performClick(nil)
         try await wait("terminate action invoked exactly once") { await terminations.count == 1 }
         try await wait("terminate control hidden after killed status") { terminal._test_terminateHidden }
-        let result = ToolEnvelope.success(tool: "shell_run", result: [
-            "stdout": "seed output\nlive output\n", "stderr": "", "exit_code": 143, "killed_by": "user",
-        ])
+        let result = ToolEnvelope.success(
+            tool: "shell_run",
+            result: [
+                "stdout": "seed output\nlive output\n", "stderr": "", "exit_code": 143, "killed_by": "user",
+            ]
+        )
         turn.setToolResult(result, for: id)
         configure(try #require(rows(blocks(memoizer, [turn])).first))
         let completed = try #require(descendants(row, as: TerminalDisplayView.self).first)
@@ -187,9 +224,16 @@ struct ResponsesRunningToolPresentationTests {
         let id = "responses-late-feed-" + UUID().uuidString
         let replacementId = "responses-reused-feed-" + UUID().uuidString
         func configure(_ callId: String, expanded: Bool = true) {
-            row.configure(item: ToolCallItem(call: call(callId, name: "spawn_agent"), result: nil),
-                index: 0, totalCount: 1, isExpanded: expanded, width: 640,
-                theme: LightTheme(), onToggle: {}, onHeightChanged: {})
+            row.configure(
+                item: ToolCallItem(call: call(callId, name: "spawn_agent"), result: nil),
+                index: 0,
+                totalCount: 1,
+                isExpanded: expanded,
+                width: 640,
+                theme: LightTheme(),
+                onToggle: {},
+                onHeightChanged: {}
+            )
         }
         func panes() -> [NSHostingView<SubagentFeedView>] {
             descendants(row, as: NSHostingView<SubagentFeedView>.self)
@@ -199,8 +243,12 @@ struct ResponsesRunningToolPresentationTests {
         configure(id)
         try await deliverRegistrySnapshots()
         #expect(panes().isEmpty)
-        let feed = SubagentFeed(toolCallId: id, kindId: "spawn", title: "Late helper",
-            suppressActivityMirror: true)
+        let feed = SubagentFeed(
+            toolCallId: id,
+            kindId: "spawn",
+            title: "Late helper",
+            suppressActivityMirror: true
+        )
         registry.register(feed)
         try await wait("late helper pane mounted") { panes().count == 1 }
         let first = try #require(panes().first)
@@ -223,8 +271,12 @@ struct ResponsesRunningToolPresentationTests {
         registry.register(feed)
         try await deliverRegistrySnapshots()
         #expect(panes().isEmpty, "A reused row must not display its previous call's feed")
-        let replacement = SubagentFeed(toolCallId: replacementId, kindId: "spawn", title: "Next helper",
-            suppressActivityMirror: true)
+        let replacement = SubagentFeed(
+            toolCallId: replacementId,
+            kindId: "spawn",
+            title: "Next helper",
+            suppressActivityMirror: true
+        )
         registry.register(replacement)
         try await wait("replacement helper pane mounted") { panes().count == 1 }
         #expect(panes().first !== beforeReuse)

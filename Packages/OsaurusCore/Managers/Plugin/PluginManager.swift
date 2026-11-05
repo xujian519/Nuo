@@ -514,7 +514,8 @@ final class PluginManager {
 
         // Tunnel URLs for routed plugins, resolved on the main actor now so
         // the off-main sweep below doesn't need `RelayTunnelManager` state.
-        let tunnelPushes: [(pluginId: String, agentId: UUID, url: String)] = loadedPlugins
+        let tunnelPushes: [(pluginId: String, agentId: UUID, url: String)] =
+            loadedPlugins
             .filter { !$0.routes.isEmpty }
             .flatMap { loaded in
                 agents.compactMap { agent -> (String, UUID, String)? in
@@ -616,13 +617,18 @@ final class PluginManager {
         // a key saved once on the Plugins tab reaches every agent's
         // `on_config_changed`, not just the Default agent's.
         var values = ToolSecretsKeychain.resolvedSecretsWithDefaults(
-            pluginId: pluginId, agentId: agentId)
+            pluginId: pluginId,
+            agentId: agentId
+        )
 
         for section in configSpec.sections {
             for field in section.fields {
                 if values[field.key] == nil, field.type != .readonly, field.type != .status,
                     let val = ToolSecretsKeychain.resolvedSecret(
-                        id: field.key, for: pluginId, agentId: agentId)
+                        id: field.key,
+                        for: pluginId,
+                        agentId: agentId
+                    )
                 {
                     values[field.key] = val
                 }
@@ -631,7 +637,10 @@ final class PluginManager {
                 }
                 if let connKey = field.connected_when, values[connKey] == nil,
                     let val = ToolSecretsKeychain.resolvedSecret(
-                        id: connKey, for: pluginId, agentId: agentId)
+                        id: connKey,
+                        for: pluginId,
+                        agentId: agentId
+                    )
                 {
                     values[connKey] = val
                 }
@@ -1430,7 +1439,9 @@ final class PluginManager {
                 // dispatch, so validation and runtime can never disagree
                 // about which paths the mount captures.
                 let isShadowed = PluginManifest.WebSpec.mountCaptures(
-                    subpath: routePath, mount: mount)
+                    subpath: routePath,
+                    mount: mount
+                )
                 if isShadowed {
                     let errorMsg =
                         "Plugin \(manifest.plugin_id) declares route '\(route.path)' under web mount '\(mount)'; the static web branch would shadow this route. Move the route outside the web mount or remove the web mount overlap."
@@ -1709,7 +1720,9 @@ final class PluginManager {
         writeQuarantineEntries(entries.filter { $0.id != pluginId })
         NSLog(
             "[Nuo] Releasing quarantined plugin '%@' for one retry (crashed at version %@ under build %@)",
-            pluginId, entry.version ?? "unknown", entry.build ?? "unknown"
+            pluginId,
+            entry.version ?? "unknown",
+            entry.build ?? "unknown"
         )
         return true
     }
@@ -1789,7 +1802,9 @@ final class PluginManager {
     /// disks and hung the UI when the sweep ran on the main actor — while
     /// writes stay synchronous for crash durability.
     private nonisolated static let markerQueue = DispatchQueue(
-        label: "ai.osaurus.plugin-loading-marker", qos: .utility)
+        label: "ai.osaurus.plugin-loading-marker",
+        qos: .utility
+    )
 
     private nonisolated static func clearLoadingMarker() {
         markerQueue.async {
@@ -1834,7 +1849,8 @@ final class PluginManager {
 
     private nonisolated static func installedVersionDirectory(forPluginId pluginId: String) -> URL? {
         resolveVersionDirectory(
-            toolsRootDirectory().appendingPathComponent(pluginId, isDirectory: true))
+            toolsRootDirectory().appendingPathComponent(pluginId, isDirectory: true)
+        )
     }
 
     /// Returns dylib URLs to load and a dictionary of verification failures (pluginId -> error message)

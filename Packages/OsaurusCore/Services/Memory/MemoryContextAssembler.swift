@@ -43,8 +43,12 @@ public actor MemoryContextAssembler {
         includeGlobalBlocks: Bool = true
     ) async -> String {
         await shared.assemble(
-            agentId: agentId, config: config, query: query,
-            budgetTokensOverride: budgetTokensOverride, includeGlobalBlocks: includeGlobalBlocks)
+            agentId: agentId,
+            config: config,
+            query: query,
+            budgetTokensOverride: budgetTokensOverride,
+            includeGlobalBlocks: includeGlobalBlocks
+        )
     }
 
     private func assemble(

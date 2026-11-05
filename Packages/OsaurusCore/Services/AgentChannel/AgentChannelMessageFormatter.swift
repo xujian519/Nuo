@@ -92,7 +92,8 @@ enum AgentChannelMessageFormatter {
             case .heading(_, let text):
                 return AgentChannelRenderedBlock(body: stripInlineMarkdown(text))
             case .blockquote(let content):
-                let quoted = content
+                let quoted =
+                    content
                     .split(separator: "\n", omittingEmptySubsequences: false)
                     .map { "> \(stripInlineMarkdown(String($0)))" }
                     .joined(separator: "\n")
@@ -196,7 +197,8 @@ enum AgentChannelMessageFormatter {
                     return AgentChannelRenderedBlock(body: "**\(text)**")
                 }
             case .blockquote(let content):
-                let quoted = content
+                let quoted =
+                    content
                     .split(separator: "\n", omittingEmptySubsequences: false)
                     .map { "> \($0)" }
                     .joined(separator: "\n")
@@ -296,7 +298,8 @@ enum AgentChannelMessageFormatter {
                 return AgentChannelRenderedBlock(body: lines.joined(separator: "\n"))
             case .code(let code, let lang):
                 let language = lang?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                let openTag = language.isEmpty
+                let openTag =
+                    language.isEmpty
                     ? "<pre>"
                     : "<pre><code class=\"language-\(escapeHTMLAttribute(language))\">"
                 let closeTag = language.isEmpty ? "</pre>" : "</code></pre>"
@@ -364,14 +367,16 @@ enum AgentChannelMessageFormatter {
                 let marker = String(rest.prefix(1))
                 let innerStart = text.index(index, offsetBy: 1)
                 if let close = findClosing(in: text, after: innerStart, marker: marker),
-                   close > innerStart {
+                    close > innerStart
+                {
                     let inner = text[innerStart ..< close]
                     output += "<i>\(telegramInlineHTML(String(inner)))</i>"
                     index = text.index(after: close)
                     continue
                 }
             } else if rest.hasPrefix("["),
-                      let link = parseInlineLink(in: text, from: index) {
+                let link = parseInlineLink(in: text, from: index)
+            {
                 if isSafeLinkURL(link.url) {
                     output += "<a href=\"\(escapeHTMLAttribute(link.url))\">\(telegramInlineHTML(link.label))</a>"
                 } else {

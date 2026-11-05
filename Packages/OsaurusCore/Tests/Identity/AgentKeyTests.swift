@@ -106,7 +106,7 @@ struct AgentKeyTests {
         // And across a handful of indices on both devices no address repeats.
         var seen = Set<String>()
         for scope in ["aaaa0001", "bbbb0002"] {
-            for index: UInt32 in 0..<8 {
+            for index: UInt32 in 0 ..< 8 {
                 let address = try AgentKey.deriveAddress(master: master, index: index, scope: scope)
                 #expect(seen.insert(address.lowercased()).inserted, "collision at \(scope)/\(index)")
             }
@@ -136,7 +136,8 @@ struct AgentKeyTests {
         // silently minting a third layout.
         #expect(!AgentKeyPath(index: 5, deviceScope: "").isDeviceScoped)
         let viaEmptyScope = try AgentKey.deriveAddress(
-            masterKey: TestKeys.alicePrivateKey, path: AgentKeyPath(index: 5, deviceScope: "")
+            masterKey: TestKeys.alicePrivateKey,
+            path: AgentKeyPath(index: 5, deviceScope: "")
         )
         #expect(viaEmptyScope == viaIndex)
     }
@@ -166,7 +167,8 @@ struct AgentKeyTests {
         )
         let expected = Data(mac.prefix(32))
         let actual = AgentKey.derive(
-            masterKey: master, path: .deviceScoped(index: 7, deviceScope: "a1b2c3d4")
+            masterKey: master,
+            path: .deviceScoped(index: 7, deviceScope: "a1b2c3d4")
         )
         #expect(actual == expected)
     }
@@ -178,7 +180,9 @@ struct AgentKeyTests {
         let payload = Data("scoped payload".utf8)
         let signature = try AgentKey.sign(payload: payload, masterKey: master, path: path)
         let recovered = try recoverAddress(
-            payload: payload, signature: signature, domainPrefix: "Nuo Signed Access"
+            payload: payload,
+            signature: signature,
+            domainPrefix: "Nuo Signed Access"
         )
         #expect(recovered.lowercased() == address.lowercased())
     }
@@ -200,7 +204,8 @@ struct AgentKeyTests {
         var legacyJSON = try JSONSerialization.jsonObject(with: encoder.encode(agent)) as! [String: Any]
         legacyJSON.removeValue(forKey: "agentDeviceScope")
         let legacyDecoded = try decoder.decode(
-            Agent.self, from: JSONSerialization.data(withJSONObject: legacyJSON)
+            Agent.self,
+            from: JSONSerialization.data(withJSONObject: legacyJSON)
         )
         #expect(legacyDecoded.agentKeyPath == .legacy(index: 4))
     }

@@ -61,8 +61,14 @@ struct ReopenedSessionHydrationTests {
 
             // A brand-new, never-saved session keeps the data it was given.
             let fresh = ChatSessionData(
-                id: UUID(), title: "New Chat", createdAt: Date(), updatedAt: Date(),
-                selectedModel: nil, turns: [], agentId: agentId)
+                id: UUID(),
+                title: "New Chat",
+                createdAt: Date(),
+                updatedAt: Date(),
+                selectedModel: nil,
+                turns: [],
+                agentId: agentId
+            )
             let freshState = ChatWindowState(windowId: UUID(), agentId: agentId, sessionData: fresh)
             #expect(freshState.session.sessionId == fresh.id)
             #expect(freshState.session.turns.isEmpty)

@@ -80,7 +80,8 @@ struct AgentDelegationDispatcherTests {
                 .deletingLastPathComponent()  // Tests/
                 .deletingLastPathComponent()  // OsaurusCore/
                 .appendingPathComponent(
-                    "Services/AgentDelegation/AgentDelegationDispatcher.swift"),
+                    "Services/AgentDelegation/AgentDelegationDispatcher.swift"
+                ),
             encoding: .utf8
         )
         #expect(source?.contains("prompt: delegatedPrompt(") == true)
@@ -359,18 +360,36 @@ struct AgentDelegationDispatcherTests {
         defer { lease.release() }
         // Supply a described, runnable request-local target; a random missing
         // UUID must no longer expose delegation merely because it is stored.
-        let worker = Agent(name: "Boundary probe", description: "Checks delegated tasks for the tool boundary probe.",
-            defaultModel: "local/boundary-probe")
+        let worker = Agent(
+            name: "Boundary probe",
+            description: "Checks delegated tasks for the tool boundary probe.",
+            defaultModel: "local/boundary-probe"
+        )
         SubagentConfigurationStore.save(SubagentConfiguration(spawnableAgentIDs: [worker.id]))
         let targets = SpawnTargetAvailabilitySnapshot(agentTargets: [
-            .init(descriptor: .init(id: worker.id, name: worker.name, description: worker.description,
-                modelId: worker.defaultModel, isLocal: true, providerName: nil), state: .runnable)
+            .init(
+                descriptor: .init(
+                    id: worker.id,
+                    name: worker.name,
+                    description: worker.description,
+                    modelId: worker.defaultModel,
+                    isLocal: true,
+                    providerName: nil
+                ),
+                state: .runnable
+            )
         ])
 
         let snapshot = AgentConfigSnapshot(
-            agentId: Agent.defaultId, toolsDisabled: false, memoryDisabled: true,
-            autonomousConfig: nil, toolMode: .auto, model: nil, manualToolNames: nil,
-            systemPrompt: "", dbEnabled: false
+            agentId: Agent.defaultId,
+            toolsDisabled: false,
+            memoryDisabled: true,
+            autonomousConfig: nil,
+            toolMode: .auto,
+            model: nil,
+            manualToolNames: nil,
+            systemPrompt: "",
+            dbEnabled: false
         )
         let spawnNames = Set(SubagentCapabilityRegistry.spawn.toolNames)
 

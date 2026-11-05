@@ -38,7 +38,7 @@ struct FileDiffStreamingPreviewTests {
 
     @Test("drops a trailing truncated escape instead of decoding it wrong")
     func truncatedEscape() throws {
-        let args = #"{"path": "a.txt", "content": "line one\"# // ends mid-escape
+        let args = #"{"path": "a.txt", "content": "line one\"#  // ends mid-escape
         let diff = try #require(
             FileDiff.streamingPreview(toolName: "file_write", partialArgs: args)
         )
@@ -98,7 +98,9 @@ struct FileDiffStreamingPreviewTests {
         let args = #"{"new_string": "let x = 2", "old_string": "let x = 1""#
         let diff = try #require(
             FileDiff.streamingPreview(
-                toolName: "file_edit", partialArgs: args, fallbackPath: "merge_sort.cpp"
+                toolName: "file_edit",
+                partialArgs: args,
+                fallbackPath: "merge_sort.cpp"
             )
         )
         #expect(diff.fileName == "merge_sort.cpp")
@@ -108,7 +110,9 @@ struct FileDiffStreamingPreviewTests {
         let withPath = args + #", "path": "other.swift""#
         let resolved = try #require(
             FileDiff.streamingPreview(
-                toolName: "file_edit", partialArgs: withPath, fallbackPath: "merge_sort.cpp"
+                toolName: "file_edit",
+                partialArgs: withPath,
+                fallbackPath: "merge_sort.cpp"
             )
         )
         #expect(resolved.fileName == "other.swift")
@@ -148,7 +152,9 @@ struct FileDiffStreamingPreviewTests {
         let args = #"{"content": "hello""#
         let diff = try #require(
             FileDiff.streamingPreview(
-                toolName: "file_write", partialArgs: args, fallbackPath: "old.txt"
+                toolName: "file_write",
+                partialArgs: args,
+                fallbackPath: "old.txt"
             )
         )
         #expect(diff.fileName.isEmpty)
@@ -201,7 +207,8 @@ struct FileDiffStreamingPreviewTests {
 
     @Test("minimax invoke envelope streams name and content")
     func minimaxEnvelope() throws {
-        let args = "<invoke name=\"sandbox_write_file\"><parameter name=\"path\">m.py</parameter><parameter name=\"content\">a = 2\nb = 3"
+        let args =
+            "<invoke name=\"sandbox_write_file\"><parameter name=\"path\">m.py</parameter><parameter name=\"content\">a = 2\nb = 3"
         #expect(FileDiff.partialToolName(inArgs: args) == "sandbox_write_file")
         let diff = try #require(
             FileDiff.streamingPreview(toolName: "sandbox_write_file", partialArgs: args)
@@ -212,7 +219,8 @@ struct FileDiffStreamingPreviewTests {
 
     @Test("arg_key arg_value envelope streams name and content")
     func glm4Envelope() throws {
-        let args = "file_write<arg_key>path</arg_key><arg_value>g.py</arg_value><arg_key>content</arg_key><arg_value>import sys"
+        let args =
+            "file_write<arg_key>path</arg_key><arg_value>g.py</arg_value><arg_key>content</arg_key><arg_value>import sys"
         #expect(FileDiff.partialToolName(inArgs: args) == "file_write")
         let diff = try #require(
             FileDiff.streamingPreview(toolName: "file_write", partialArgs: args)

@@ -354,7 +354,9 @@ public actor MemoryService {
         guard !residencyObserverArmed else { return }
         residencyObserverArmed = true
         NotificationCenter.default.addObserver(
-            forName: .modelRuntimeResidencyChanged, object: nil, queue: nil
+            forName: .modelRuntimeResidencyChanged,
+            object: nil,
+            queue: nil
         ) { _ in
             Task { await MemoryService.shared.residencyDidChange() }
         }
@@ -1283,7 +1285,8 @@ public actor MemoryService {
             }
         } catch {
             MemoryLogger.service.error(
-                "distill: project mirror failed for \(conversationId): \(error)")
+                "distill: project mirror failed for \(conversationId): \(error)"
+            )
         }
     }
 

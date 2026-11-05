@@ -137,7 +137,7 @@ enum HeadTailTruncation {
         while headEnd > 0, headEnd + (utf8.count - tailStart) > contentBudget {
             headEnd = scalarStart(headEnd - 1)
         }
-        let head = String(decoding: utf8[0..<headEnd], as: UTF8.self)
+        let head = String(decoding: utf8[0 ..< headEnd], as: UTF8.self)
         let tail = String(decoding: utf8[tailStart...], as: UTF8.self)
         return head + marker + tail
     }

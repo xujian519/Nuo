@@ -19,7 +19,9 @@ struct DOCXEditor {
     private let ns = OOXMLNamespace.wordprocessing
     private var mainPart = "word/document.xml"
 
-    static let operations = ["replace_text", "insert_paragraph", "delete_paragraph", "set_table_cell", "append_markdown"]
+    static let operations = [
+        "replace_text", "insert_paragraph", "delete_paragraph", "set_table_cell", "append_markdown",
+    ]
 
     init(package: OOXMLPackage) throws {
         self.package = package
@@ -63,9 +65,10 @@ struct DOCXEditor {
     }
 
     func paragraphStyleIds() throws -> [String: String] {
-        guard let stylesPart = try package.relationships(of: mainPart)
-            .first(where: { $0.type.hasSuffix("/styles") })
-            .map({ OOXMLPackage.resolve($0.target, from: mainPart) }),
+        guard
+            let stylesPart = try package.relationships(of: mainPart)
+                .first(where: { $0.type.hasSuffix("/styles") })
+                .map({ OOXMLPackage.resolve($0.target, from: mainPart) }),
             package.has(stylesPart)
         else { return [:] }
         var out: [String: String] = [:]
@@ -116,7 +119,8 @@ struct DOCXEditor {
                 throw second.isMatchMiss ? error : second
             }
             summaries.append(
-                "Markdown syntax in `old_string` (list markers, heading hashes, emphasis) was treated as formatting — Word stores it as paragraph and run styling, not text")
+                "Markdown syntax in `old_string` (list markers, heading hashes, emphasis) was treated as formatting — Word stores it as paragraph and run styling, not text"
+            )
         }
     }
 
@@ -176,7 +180,8 @@ struct DOCXEditor {
                 rest = rest.dropFirst()
             } else {
                 let digits = rest.prefix { $0.isNumber }
-                guard (1...3).contains(digits.count), let punct = rest.dropFirst(digits.count).first, punct == "." || punct == ")"
+                guard (1 ... 3).contains(digits.count), let punct = rest.dropFirst(digits.count).first,
+                    punct == "." || punct == ")"
                 else { return line }
                 rest = rest.dropFirst(digits.count + 1)
             }
@@ -218,12 +223,14 @@ struct DOCXEditor {
             throw op.fail(
                 "\"\(OOXMLText.preview(needle, max: 80))\" wasn't found in the document text."
                     + Self.closestParagraphHint(for: needle, in: try paragraphs()),
-                isMatchMiss: true)
+                isMatchMiss: true
+            )
         }
         guard all || total == 1 else {
             throw op.fail(
                 "\"\(OOXMLText.preview(needle, max: 80))\" appears \(total) times (\(Self.describeParts(perPart))); "
-                    + "add surrounding words to `old_string`, or pass `replace_all: true`.")
+                    + "add surrounding words to `old_string`, or pass `replace_all: true`."
+            )
         }
 
         // A multi-line replacement means "these paragraphs": the first line
@@ -235,7 +242,13 @@ struct DOCXEditor {
         // later `old_string` could address the new paragraphs.
         let replacementLines = Self.editLines(replacement)
         if replacementLines.count > 1 {
-            let expanded = try expandIntoParagraphs(op, needle: needle, lines: replacementLines, paragraphsByPart: paragraphsByPart, mode: mode)
+            let expanded = try expandIntoParagraphs(
+                op,
+                needle: needle,
+                lines: replacementLines,
+                paragraphsByPart: paragraphsByPart,
+                mode: mode
+            )
             var summary =
                 "Replaced \(expanded) occurrence\(expanded == 1 ? "" : "s") of \"\(OOXMLText.preview(needle, max: 60))\" with \(replacementLines.count) paragraphs (each line of `new_string` is a paragraph; `## ` headings and `- ` bullets became styles)"
             if mode == .normalized { summary += " (matched with punctuation and whitespace normalized)" }
@@ -253,15 +266,18 @@ struct DOCXEditor {
                 } catch OOXMLText.ReplaceError.spansBreak {
                     throw op.fail(
                         "\"\(OOXMLText.preview(needle, max: 80))\" runs across a tab or line break in the document; replace the text on each side of it separately.",
-                        isMatchMiss: true)
+                        isMatchMiss: true
+                    )
                 }
                 if n > 0 { changed = true; replaced += n }
             }
             if changed { package.markDirty(part) }
         }
-        var summary = "Replaced \(replaced) occurrence\(replaced == 1 ? "" : "s") of \"\(OOXMLText.preview(needle, max: 60))\""
+        var summary =
+            "Replaced \(replaced) occurrence\(replaced == 1 ? "" : "s") of \"\(OOXMLText.preview(needle, max: 60))\""
         if mode == .normalized {
-            summary += " (matched with punctuation and whitespace normalized: the document's own quotes/dashes differed from `old_string`)"
+            summary +=
+                " (matched with punctuation and whitespace normalized: the document's own quotes/dashes differed from `old_string`)"
         }
         summaries.append(summary)
     }
@@ -273,8 +289,11 @@ struct DOCXEditor {
     /// Markdown next to the matched paragraph. Returns the number of
     /// paragraphs expanded.
     private mutating func expandIntoParagraphs(
-        _ op: DocumentOperation, needle: String, lines: [String],
-        paragraphsByPart: [(part: String, paras: [XMLElement])], mode: OOXMLText.MatchMode
+        _ op: DocumentOperation,
+        needle: String,
+        lines: [String],
+        paragraphsByPart: [(part: String, paras: [XMLElement])],
+        mode: OOXMLText.MatchMode
     ) throws -> Int {
         var expanded = 0
         for (part, paras) in paragraphsByPart {
@@ -285,26 +304,40 @@ struct DOCXEditor {
                 guard let range = ranges.first else { continue }
                 guard ranges.count == 1 else {
                     throw op.fail(
-                        "\"\(OOXMLText.preview(needle, max: 80))\" appears \(ranges.count) times inside one paragraph; a multi-line `new_string` splits the paragraph there, so add surrounding words to match one occurrence.")
+                        "\"\(OOXMLText.preview(needle, max: 80))\" appears \(ranges.count) times inside one paragraph; a multi-line `new_string` splits the paragraph there, so add surrounding words to match one occurrence."
+                    )
                 }
                 let units = Array(text.utf16)
-                let tailIsBlank = units[range.upperBound...].allSatisfy { OOXMLText.foldUnit($0) == [0x20] || OOXMLText.foldUnit($0).isEmpty }
+                let tailIsBlank = units[range.upperBound...].allSatisfy {
+                    OOXMLText.foldUnit($0) == [0x20] || OOXMLText.foldUnit($0).isEmpty
+                }
                 var tailHolder: XMLElement?
                 if !tailIsBlank {
                     let clone = p.deepCopy()
                     try Self.spansBreak {
-                        try OOXMLText.replace(in: clone, ranges: [0..<range.upperBound], with: Self.blockMarkdown(lines[lines.count - 1]).text, flavor: .word)
+                        try OOXMLText.replace(
+                            in: clone,
+                            ranges: [0 ..< range.upperBound],
+                            with: Self.blockMarkdown(lines[lines.count - 1]).text,
+                            flavor: .word
+                        )
                     }
                     Self.pruneEmptyTextRuns(clone)
                     tailHolder = clone
                 }
                 let firstText =
-                    range.lowerBound == 0 ? Self.lineText(lines[0], replacingStartOf: text) : Self.blockMarkdown(lines[0]).text
+                    range.lowerBound == 0
+                    ? Self.lineText(lines[0], replacingStartOf: text) : Self.blockMarkdown(lines[0]).text
                 try Self.spansBreak {
-                    try OOXMLText.replace(in: p, ranges: [range.lowerBound..<units.count], with: firstText, flavor: .word)
+                    try OOXMLText.replace(
+                        in: p,
+                        ranges: [range.lowerBound ..< units.count],
+                        with: firstText,
+                        flavor: .word
+                    )
                 }
                 Self.pruneEmptyTextRuns(p)
-                let fresh = tailHolder == nil ? lines[1...] : lines[1..<(lines.count - 1)]
+                let fresh = tailHolder == nil ? lines[1...] : lines[1 ..< (lines.count - 1)]
                 var cursor: XMLNode = p
                 for line in fresh {
                     let paragraph = try markdownParagraph(line, near: p)
@@ -326,7 +359,9 @@ struct DOCXEditor {
     private static func pruneEmptyTextRuns(_ paragraph: XMLElement) {
         for run in paragraph.childElements("r") {
             let content = run.elementChildren.filter { $0.local != "rPr" }
-            guard !content.isEmpty, content.allSatisfy({ $0.local == "t" && ($0.stringValue ?? "").isEmpty }) else { continue }
+            guard !content.isEmpty, content.allSatisfy({ $0.local == "t" && ($0.stringValue ?? "").isEmpty }) else {
+                continue
+            }
             run.detach()
         }
     }
@@ -335,7 +370,8 @@ struct DOCXEditor {
         do { return try work() } catch OOXMLText.ReplaceError.spansBreak {
             throw DocumentEditError(
                 "`old_string` runs across a tab or line break inside a paragraph; replace the text on each side of it separately.",
-                isMatchMiss: true)
+                isMatchMiss: true
+            )
         }
     }
 
@@ -426,7 +462,9 @@ struct DOCXEditor {
     /// Closest paragraph whose text starts with a literal bullet glyph and
     /// a tab/space, with that prefix, for documents that carry bullets as
     /// text rather than numbering.
-    static func nearestLiteralBulletParagraph(to anchor: XMLElement, in paras: [XMLElement]) -> (paragraph: XMLElement, prefix: String)? {
+    static func nearestLiteralBulletParagraph(to anchor: XMLElement, in paras: [XMLElement]) -> (
+        paragraph: XMLElement, prefix: String
+    )? {
         func prefix(of paragraph: XMLElement) -> String? { literalBulletPrefix(OOXMLText.text(of: paragraph)) }
         guard let paragraph = nearest(to: anchor, in: paras, where: { prefix(of: $0) != nil }),
             let found = prefix(of: paragraph)
@@ -444,7 +482,7 @@ struct DOCXEditor {
             return String(glyph) + String(separator)
         }
         let digits = text.prefix { $0.isNumber }
-        guard (1...3).contains(digits.count) else { return nil }
+        guard (1 ... 3).contains(digits.count) else { return nil }
         let rest = text.dropFirst(digits.count)
         guard let punct = rest.first, punct == "." || punct == ")",
             let separator = rest.dropFirst().first, separator == "\t" || separator == " "
@@ -465,7 +503,9 @@ struct DOCXEditor {
         return block.text
     }
 
-    private static func nearest(to anchor: XMLElement, in paras: [XMLElement], where matches: (XMLElement) -> Bool) -> XMLElement? {
+    private static func nearest(to anchor: XMLElement, in paras: [XMLElement], where matches: (XMLElement) -> Bool)
+        -> XMLElement?
+    {
         if matches(anchor) { return anchor }
         guard let index = paras.firstIndex(where: { $0 === anchor }) else {
             return paras.first(where: matches)
@@ -493,7 +533,12 @@ struct DOCXEditor {
     /// same paragraphs (first/last keep their unmatched text and run
     /// formatting; middles are rewritten, added as clones, or removed as the
     /// line counts require), so paragraph styles survive the edit.
-    private mutating func replaceAcrossParagraphs(_ op: DocumentOperation, lines: [String], replacement: String, all: Bool) throws {
+    private mutating func replaceAcrossParagraphs(
+        _ op: DocumentOperation,
+        lines: [String],
+        replacement: String,
+        all: Bool
+    ) throws {
         let paras = try paragraphs()
         let texts = paras.map { OOXMLText.text(of: $0) }
         var mode: OOXMLText.MatchMode = .exact
@@ -512,14 +557,17 @@ struct DOCXEditor {
                 starts.append(index + 1)
             }
             if starts.isEmpty {
-                message += "Its first line wasn't found in any body paragraph."
+                message +=
+                    "Its first line wasn't found in any body paragraph."
                     + Self.closestParagraphHint(for: first, in: paras)
             } else {
-                message += "Its first line occurs in paragraph\(starts.count == 1 ? "" : "s") \(starts.prefix(8).map(String.init).joined(separator: ", ")); "
+                message +=
+                    "Its first line occurs in paragraph\(starts.count == 1 ? "" : "s") \(starts.prefix(8).map(String.init).joined(separator: ", ")); "
                     + "the following paragraph\(lines.count == 2 ? "" : "s") there read"
                 if let start = starts.first {
-                    let following = texts[start..<min(start + lines.count - 1, texts.count)]
-                    message += ":\n" + following.map { "  \"\(OOXMLText.preview($0, max: 120))\"" }.joined(separator: "\n")
+                    let following = texts[start ..< min(start + lines.count - 1, texts.count)]
+                    message +=
+                        ":\n" + following.map { "  \"\(OOXMLText.preview($0, max: 120))\"" }.joined(separator: "\n")
                 }
                 message += "\nCopy the paragraph text as `file_read` mode \"structure\" lists it."
             }
@@ -528,7 +576,8 @@ struct DOCXEditor {
         guard all || matches.count == 1 else {
             throw op.fail(
                 "the \(lines.count)-line `old_string` matches \(matches.count) paragraph runs (starting at paragraphs \(matches.map { String($0.start + 1) }.joined(separator: ", "))); "
-                    + "add surrounding text, or pass `replace_all: true`.")
+                    + "add surrounding text, or pass `replace_all: true`."
+            )
         }
 
         let newLines = Self.editLines(replacement)
@@ -553,7 +602,8 @@ struct DOCXEditor {
         let lastRange: Range<Int>
     }
 
-    static func paragraphRunMatches(lines: [String], texts: [String], mode: OOXMLText.MatchMode) -> [ParagraphRunMatch] {
+    static func paragraphRunMatches(lines: [String], texts: [String], mode: OOXMLText.MatchMode) -> [ParagraphRunMatch]
+    {
         let k = lines.count
         guard k >= 2, texts.count >= k else { return [] }
         var out: [ParagraphRunMatch] = []
@@ -566,7 +616,8 @@ struct DOCXEditor {
                 continue
             }
             var middlesMatch = true
-            for offset in 1..<(k - 1) where edgeRange(of: lines[offset], in: texts[start + offset], edge: .whole, mode: mode) == nil {
+            for offset in 1 ..< (k - 1)
+            where edgeRange(of: lines[offset], in: texts[start + offset], edge: .whole, mode: mode) == nil {
                 middlesMatch = false
                 break
             }
@@ -595,23 +646,28 @@ struct DOCXEditor {
         }
         let prefixLength = literalBulletPrefix(text)?.utf16.count ?? 0
         func leadingBlank(_ upper: Int) -> Bool {
-            blank(0..<upper) || (upper >= prefixLength && blank(prefixLength..<upper))
+            blank(0 ..< upper) || (upper >= prefixLength && blank(prefixLength ..< upper))
         }
         let ranges = OOXMLText.matchRanges(of: line, in: text, mode: mode)
         switch edge {
         case .suffix:
-            return ranges.last { blank($0.upperBound..<units.count) }
+            return ranges.last { blank($0.upperBound ..< units.count) }
         case .prefix:
             return ranges.first { leadingBlank($0.lowerBound) }
         case .whole:
-            return ranges.first { leadingBlank($0.lowerBound) && blank($0.upperBound..<units.count) }
+            return ranges.first { leadingBlank($0.lowerBound) && blank($0.upperBound ..< units.count) }
         }
     }
 
-    private mutating func applyParagraphRun(_ match: ParagraphRunMatch, paras: [XMLElement], newLines: [String], mode: OOXMLText.MatchMode) throws {
+    private mutating func applyParagraphRun(
+        _ match: ParagraphRunMatch,
+        paras: [XMLElement],
+        newLines: [String],
+        mode: OOXMLText.MatchMode
+    ) throws {
         let first = paras[match.start]
         let last = paras[match.start + match.count - 1]
-        let middles = Array(paras[(match.start + 1)..<(match.start + match.count - 1)])
+        let middles = Array(paras[(match.start + 1) ..< (match.start + match.count - 1)])
         let firstLength = OOXMLText.text(of: first).utf16.count
         // Lines written into existing paragraphs keep those paragraphs'
         // styles, so a block-Markdown prefix is formatting to drop, not
@@ -619,7 +675,8 @@ struct DOCXEditor {
         let firstParagraphText = OOXMLText.text(of: first)
         let firstText =
             newLines.first.map {
-                match.firstRange.lowerBound == 0 ? Self.lineText($0, replacingStartOf: firstParagraphText) : Self.blockMarkdown($0).text
+                match.firstRange.lowerBound == 0
+                    ? Self.lineText($0, replacingStartOf: firstParagraphText) : Self.blockMarkdown($0).text
             } ?? ""
         // A literal list prefix ("•\t" — a `<w:tab/>` in the document) that
         // the match was anchored after stays in place and is written around;
@@ -636,10 +693,20 @@ struct DOCXEditor {
             // head, the (optional) single new line, then the last
             // paragraph's unmatched tail (runs moved over, formatting kept).
             try Self.spansBreak {
-                try OOXMLText.replace(in: first, ranges: [match.firstRange.lowerBound..<firstLength], with: firstText, flavor: .word)
+                try OOXMLText.replace(
+                    in: first,
+                    ranges: [match.firstRange.lowerBound ..< firstLength],
+                    with: firstText,
+                    flavor: .word
+                )
             }
             try Self.spansBreak {
-                try OOXMLText.replace(in: last, ranges: [lastKeep..<match.lastRange.upperBound], with: "", flavor: .word)
+                try OOXMLText.replace(
+                    in: last,
+                    ranges: [lastKeep ..< match.lastRange.upperBound],
+                    with: "",
+                    flavor: .word
+                )
             }
             // A last paragraph reduced to its literal bullet has no tail to
             // carry over; moving the bullet would prepend it to the first.
@@ -659,14 +726,24 @@ struct DOCXEditor {
         }
 
         try Self.spansBreak {
-            try OOXMLText.replace(in: first, ranges: [match.firstRange.lowerBound..<firstLength], with: firstText, flavor: .word)
+            try OOXMLText.replace(
+                in: first,
+                ranges: [match.firstRange.lowerBound ..< firstLength],
+                with: firstText,
+                flavor: .word
+            )
         }
         try Self.spansBreak {
-            try OOXMLText.replace(in: last, ranges: [lastKeep..<match.lastRange.upperBound], with: lastText, flavor: .word)
+            try OOXMLText.replace(
+                in: last,
+                ranges: [lastKeep ..< match.lastRange.upperBound],
+                with: lastText,
+                flavor: .word
+            )
         }
-        let newMiddles = Array(newLines[1..<(newLines.count - 1)])
+        let newMiddles = Array(newLines[1 ..< (newLines.count - 1)])
         let paired = min(middles.count, newMiddles.count)
-        for index in 0..<paired {
+        for index in 0 ..< paired {
             let block = Self.blockMarkdown(newMiddles[index])
             // A heading or list line landing on a paragraph that isn't one
             // is rebuilt with the matching style; otherwise the paragraph
@@ -676,7 +753,8 @@ struct DOCXEditor {
             case .heading: needsRestyle = Self.styleId(of: middles[index])?.lowercased().hasPrefix("heading") != true
             case .listItem:
                 needsRestyle =
-                    !Self.isListParagraph(middles[index]) && Self.literalBulletPrefix(OOXMLText.text(of: middles[index])) == nil
+                    !Self.isListParagraph(middles[index])
+                    && Self.literalBulletPrefix(OOXMLText.text(of: middles[index])) == nil
             case .plain: needsRestyle = false
             }
             if needsRestyle {
@@ -689,10 +767,18 @@ struct DOCXEditor {
                 if keep > 0 {
                     try Self.spansBreak {
                         try OOXMLText.replace(
-                            in: middles[index], ranges: [keep..<middleText.utf16.count], with: block.text, flavor: .word)
+                            in: middles[index],
+                            ranges: [keep ..< middleText.utf16.count],
+                            with: block.text,
+                            flavor: .word
+                        )
                     }
                 } else {
-                    OOXMLText.setText(middles[index], Self.lineText(newMiddles[index], replacingStartOf: middleText), flavor: .word)
+                    OOXMLText.setText(
+                        middles[index],
+                        Self.lineText(newMiddles[index], replacingStartOf: middleText),
+                        flavor: .word
+                    )
                 }
             }
         }
@@ -738,7 +824,8 @@ struct DOCXEditor {
             if score > (best?.score ?? 0) { best = (index, text, score) }
         }
         guard let best, best.score >= max(4, needleNorm.count / 2) else { return "" }
-        return " The closest paragraph text is (paragraph \(best.index + 1)):\n\"\(OOXMLText.preview(best.text, max: 400))\"\nCompare it against your `old_string`."
+        return
+            " The closest paragraph text is (paragraph \(best.index + 1)):\n\"\(OOXMLText.preview(best.text, max: 400))\"\nCompare it against your `old_string`."
     }
 
     /// Length of the longest common contiguous run of code units — cheap
@@ -747,9 +834,9 @@ struct DOCXEditor {
         guard !a.isEmpty, !b.isEmpty, a.count * b.count <= 4_000_000 else { return 0 }
         var previous = [Int](repeating: 0, count: b.count + 1)
         var best = 0
-        for i in 1...a.count {
+        for i in 1 ... a.count {
             var current = [Int](repeating: 0, count: b.count + 1)
-            for j in 1...b.count where a[i - 1] == b[j - 1] {
+            for j in 1 ... b.count where a[i - 1] == b[j - 1] {
                 current[j] = previous[j - 1] + 1
                 if current[j] > best { best = current[j] }
             }
@@ -817,11 +904,15 @@ struct DOCXEditor {
             throw op.fail("that would delete every paragraph; a Word document needs at least one.")
         }
         for (number, p) in zip(unique, doomed) where p.firstChild("pPr")?.firstChild("sectPr") != nil {
-            throw op.fail("paragraph \(number) ends a section (it carries page layout); deleting it would change the layout of the pages before it.")
+            throw op.fail(
+                "paragraph \(number) ends a section (it carries page layout); deleting it would change the layout of the pages before it."
+            )
         }
         for p in doomed { p.detach() }
         package.markDirty(mainPart)
-        summaries.append("Deleted paragraph\(unique.count == 1 ? "" : "s") \(unique.map(String.init).joined(separator: ", "))")
+        summaries.append(
+            "Deleted paragraph\(unique.count == 1 ? "" : "s") \(unique.map(String.init).joined(separator: ", "))"
+        )
     }
 
     private mutating func setTableCell(_ op: DocumentOperation) throws {
@@ -904,11 +995,13 @@ struct DOCXEditor {
             p.addChild(pPr)
         }
         if let style {
-            let pPr = p.firstChild("pPr") ?? {
-                let created = p.makeChild("pPr", uri: ns)
-                p.insertChild(created, at: 0)
-                return created
-            }()
+            let pPr =
+                p.firstChild("pPr")
+                ?? {
+                    let created = p.makeChild("pPr", uri: ns)
+                    p.insertChild(created, at: 0)
+                    return created
+                }()
             pPr.firstChild("numPr")?.detach()
             if let existing = pPr.firstChild("pStyle") {
                 existing.setAttr("w:val", style, uri: ns)
@@ -924,7 +1017,13 @@ struct DOCXEditor {
         return p
     }
 
-    private func makeRun(_ text: String, like template: XMLElement?, parent: XMLElement, bold: Bool = false, italic: Bool = false)
+    private func makeRun(
+        _ text: String,
+        like template: XMLElement?,
+        parent: XMLElement,
+        bold: Bool = false,
+        italic: Bool = false
+    )
         -> XMLElement
     {
         let run = parent.makeChild("r", uri: ns)

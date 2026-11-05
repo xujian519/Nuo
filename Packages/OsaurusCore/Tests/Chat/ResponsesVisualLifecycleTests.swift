@@ -34,9 +34,13 @@ struct ResponsesVisualLifecycleTests {
         config.warmModelsOnLoad = false
         config.autoGenerateChatTitles = false
         ChatConfigurationStore.save(config)
-        DefaultAgentConfigurationStore.save(DefaultAgentConfiguration(
-            autonomousExec: nil, toolSelectionMode: .manual, manualToolNames: ["todo"]
-        ))
+        DefaultAgentConfigurationStore.save(
+            DefaultAgentConfiguration(
+                autonomousExec: nil,
+                toolSelectionMode: .manual,
+                manualToolNames: ["todo"]
+            )
+        )
         DefaultAgentConfigurationStore.resetCacheForTests()
         AgentManager.shared.refresh()
         UserDefaults.standard.set(false, forKey: "chatSmoothStreamingEnabled")
@@ -58,9 +62,19 @@ struct ResponsesVisualLifecycleTests {
         throw NSError(domain: "ResponsesVisualLifecycleTests.timeout", code: 1)
     }
     private func completion() -> ResponsesGenerationEvent {
-        .responseCompleted(.init(responseID: "resp_ui_fixture", status: .completed,
-            functionCalls: [], tokenCount: 7, tokensPerSecond: 40.123,
-            unclosedReasoning: false, stopReason: "stop", promptTokensPerSecond: nil, mtp: nil))
+        .responseCompleted(
+            .init(
+                responseID: "resp_ui_fixture",
+                status: .completed,
+                functionCalls: [],
+                tokenCount: 7,
+                tokensPerSecond: 40.123,
+                unclosedReasoning: false,
+                stopReason: "stop",
+                promptTokensPerSecond: nil,
+                mtp: nil
+            )
+        )
     }
 
     @Test(arguments: ["id", "encrypted", "items", "signed"])
@@ -68,8 +82,11 @@ struct ResponsesVisualLifecycleTests {
         try await ChatHistoryTestStorage.run {
             let smooth = UserDefaults.standard.object(forKey: "chatSmoothStreamingEnabled")
             defer {
-                if let smooth { UserDefaults.standard.set(smooth, forKey: "chatSmoothStreamingEnabled") }
-                else { UserDefaults.standard.removeObject(forKey: "chatSmoothStreamingEnabled") }
+                if let smooth {
+                    UserDefaults.standard.set(smooth, forKey: "chatSmoothStreamingEnabled")
+                } else {
+                    UserDefaults.standard.removeObject(forKey: "chatSmoothStreamingEnabled")
+                }
             }
             configure()
             let engine = Engine()
@@ -78,14 +95,20 @@ struct ResponsesVisualLifecycleTests {
             switch carrier {
             case "id": owner.reasoningItemId = "rs_actual_fixture"
             case "encrypted": owner.reasoningEncrypted = "actual-opaque-provider-bytes"
-            case "items": owner.responsesOutputItems = [.object([
-                "type": .string("reasoning"), "id": .string("rs_raw_fixture"),
-                "encrypted_content": .string("actual-raw-provider-bytes"),
-            ])]
-            default: owner.anthropicThinkingBlocks = [.object([
-                "type": .string("thinking"), "thinking": .string("Native signed state"),
-                "signature": .string("actual-provider-signature"),
-            ])]
+            case "items":
+                owner.responsesOutputItems = [
+                    .object([
+                        "type": .string("reasoning"), "id": .string("rs_raw_fixture"),
+                        "encrypted_content": .string("actual-raw-provider-bytes"),
+                    ])
+                ]
+            default:
+                owner.anthropicThinkingBlocks = [
+                    .object([
+                        "type": .string("thinking"), "thinking": .string("Native signed state"),
+                        "signature": .string("actual-provider-signature"),
+                    ])
+                ]
             }
             session.turns = [ChatTurn(role: .user, content: "Earlier actual user turn"), owner]
             #expect(ChatSession.modelVisibleAssistantMessage(owner, isLastTurn: true) != nil)
@@ -128,23 +151,43 @@ struct ResponsesVisualLifecycleTests {
         let first = ChatTurn(role: .assistant, content: "")
         let second = ChatTurn(role: .assistant, content: "")
         let memoizer = BlockMemoizer()
-        let before = memoizer.blocks(from: [first], streamingTurnId: first.id,
-            activeTurnId: first.id, agentName: "Assistant")
+        let before = memoizer.blocks(
+            from: [first],
+            streamingTurnId: first.id,
+            activeTurnId: first.id,
+            agentName: "Assistant"
+        )
         #expect(before.allSatisfy { $0.prefillProgress == nil })
         for stage in [PrefillProgressStage.cacheRestore, .prefill] {
             first.prefillProgress = .init(stage: stage, completedUnitCount: 512, totalUnitCount: 1024, detail: nil)
-            let changed = memoizer.blocks(from: [first], streamingTurnId: first.id,
-                activeTurnId: first.id, agentName: "Assistant")
-            let row = try #require(changed.first { if case .typingIndicator = $0.kind { return true }; return false })
+            let changed = memoizer.blocks(
+                from: [first],
+                streamingTurnId: first.id,
+                activeTurnId: first.id,
+                agentName: "Assistant"
+            )
+            let row = try #require(
+                changed.first {
+                    if case .typingIndicator = $0.kind { return true }; return false
+                }
+            )
             #expect(row.prefillProgress == first.prefillProgress)
             #expect(row.prefillProgress?.percentCompleted == 50)
             #expect(row.withPosition(.only).prefillProgress == first.prefillProgress)
         }
-        let switched = memoizer.blocks(from: [second], streamingTurnId: second.id,
-            activeTurnId: second.id, agentName: "Assistant")
+        let switched = memoizer.blocks(
+            from: [second],
+            streamingTurnId: second.id,
+            activeTurnId: second.id,
+            agentName: "Assistant"
+        )
         #expect(switched.allSatisfy { $0.prefillProgress == nil })
-        let finishing = ContentBlock.typingIndicator(turnId: first.id, phase: .finishing,
-            prefillProgress: first.prefillProgress, position: .only)
+        let finishing = ContentBlock.typingIndicator(
+            turnId: first.id,
+            phase: .finishing,
+            prefillProgress: first.prefillProgress,
+            position: .only
+        )
         #expect(finishing.prefillProgress == nil)
     }
 
@@ -154,13 +197,29 @@ struct ResponsesVisualLifecycleTests {
         turn.appendThinking("First reasoning.", at: start)
         turn.finalizeThinkingDuration(at: start.addingTimeInterval(2))
         let memoizer = BlockMemoizer()
-        let stopped = memoizer.blocks(from: [turn], streamingTurnId: turn.id,
-            activeTurnId: turn.id, agentName: "Assistant")
-        #expect(stopped.contains { if case let .thinking(_, _, active, _) = $0.kind { return !active }; return false })
+        let stopped = memoizer.blocks(
+            from: [turn],
+            streamingTurnId: turn.id,
+            activeTurnId: turn.id,
+            agentName: "Assistant"
+        )
+        #expect(
+            stopped.contains {
+                if case let .thinking(_, _, active, _) = $0.kind { return !active }; return false
+            }
+        )
         turn.appendThinking(" Resumed reasoning.", at: start.addingTimeInterval(20))
-        let resumed = memoizer.blocks(from: [turn], streamingTurnId: turn.id,
-            activeTurnId: turn.id, agentName: "Assistant")
-        #expect(resumed.contains { if case let .thinking(_, _, active, _) = $0.kind { return active }; return false })
+        let resumed = memoizer.blocks(
+            from: [turn],
+            streamingTurnId: turn.id,
+            activeTurnId: turn.id,
+            agentName: "Assistant"
+        )
+        #expect(
+            resumed.contains {
+                if case let .thinking(_, _, active, _) = $0.kind { return active }; return false
+            }
+        )
         turn.finalizeThinkingDuration(at: start.addingTimeInterval(21))
         #expect(turn.thinkingDuration == 3, "intervening tool/queue time is not active reasoning")
         #expect(turn.thinking == "First reasoning. Resumed reasoning.")
@@ -171,8 +230,11 @@ struct ResponsesVisualLifecycleTests {
         let key = "chatSmoothStreamingEnabled"
         let previous = UserDefaults.standard.object(forKey: key)
         defer {
-            if let previous { UserDefaults.standard.set(previous, forKey: key) }
-            else { UserDefaults.standard.removeObject(forKey: key) }
+            if let previous {
+                UserDefaults.standard.set(previous, forKey: key)
+            } else {
+                UserDefaults.standard.removeObject(forKey: key)
+            }
         }
         UserDefaults.standard.set(true, forKey: key)
         let turn = ChatTurn(role: .assistant, content: "")
@@ -180,7 +242,9 @@ struct ResponsesVisualLifecycleTests {
         let text = String(repeating: "Received text. ", count: 100)
         processor.receiveDelta(text)
         var returned = false
-        let finalizer = Task { @MainActor in await processor.finalize(); returned = true }
+        let finalizer = Task { @MainActor in
+            await processor.finalize(); returned = true
+        }
         await Task.yield()
         processor.finishImmediately()
         await finalizer.value
@@ -195,8 +259,11 @@ struct ResponsesVisualLifecycleTests {
         try await ChatHistoryTestStorage.run {
             let smooth = UserDefaults.standard.object(forKey: "chatSmoothStreamingEnabled")
             defer {
-                if let smooth { UserDefaults.standard.set(smooth, forKey: "chatSmoothStreamingEnabled") }
-                else { UserDefaults.standard.removeObject(forKey: "chatSmoothStreamingEnabled") }
+                if let smooth {
+                    UserDefaults.standard.set(smooth, forKey: "chatSmoothStreamingEnabled")
+                } else {
+                    UserDefaults.standard.removeObject(forKey: "chatSmoothStreamingEnabled")
+                }
             }
             configure()
             let engine = Engine()
@@ -208,7 +275,11 @@ struct ResponsesVisualLifecycleTests {
             manager.prefillDidUpdate(.init(stage: .prefill, completedUnitCount: 1, totalUnitCount: 9999, detail: nil))
             defer { manager._testEndModelLoad(at: Date()); manager.prefillDidFinish() }
             await engine.emit(.inputTokenCount(1024))
-            await engine.emit(.prefillProgress(.init(stage: .cacheRestore, completedUnitCount: 512, totalUnitCount: 1024, detail: nil)))
+            await engine.emit(
+                .prefillProgress(
+                    .init(stage: .cacheRestore, completedUnitCount: 512, totalUnitCount: 1024, detail: nil)
+                )
+            )
             try await wait { session.turns.last?.prefillProgress?.completedUnitCount == 512 }
             let turn = try #require(session.turns.last)
             #expect(turn.timeToFirstToken == nil)
@@ -236,16 +307,20 @@ struct ResponsesVisualLifecycleTests {
         try await ChatHistoryTestStorage.run {
             let smooth = UserDefaults.standard.object(forKey: "chatSmoothStreamingEnabled")
             defer {
-                if let smooth { UserDefaults.standard.set(smooth, forKey: "chatSmoothStreamingEnabled") }
-                else { UserDefaults.standard.removeObject(forKey: "chatSmoothStreamingEnabled") }
+                if let smooth {
+                    UserDefaults.standard.set(smooth, forKey: "chatSmoothStreamingEnabled")
+                } else {
+                    UserDefaults.standard.removeObject(forKey: "chatSmoothStreamingEnabled")
+                }
             }
             configure()
             let engine = Engine()
             let session = self.session(engine)
             session.send("fixture")
             try await wait { await engine.requestCount == 1 }
-            if shape == "premature-drain" { await engine.emit(.drained) }
-            else {
+            if shape == "premature-drain" {
+                await engine.emit(.drained)
+            } else {
                 await engine.emit(.outputTextDelta("Received partial answer."))
                 if shape != "missing" { await engine.emit(completion()) }
                 if shape == "duplicate" { await engine.emit(completion()) }
@@ -255,7 +330,11 @@ struct ResponsesVisualLifecycleTests {
             try await wait { !session.isSendActiveForComposer }
             #expect(session.lastStreamError != nil)
             #expect(session.turns.last?.prefillProgress == nil)
-            #expect(!session.visibleBlocks.contains { if case .typingIndicator = $0.kind { return true }; return false })
+            #expect(
+                !session.visibleBlocks.contains {
+                    if case .typingIndicator = $0.kind { return true }; return false
+                }
+            )
         }
     }
 }

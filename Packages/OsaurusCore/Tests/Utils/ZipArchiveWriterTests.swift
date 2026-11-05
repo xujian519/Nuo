@@ -31,15 +31,19 @@ struct ZipArchiveWriterTests {
 
     private let big = Data(String(repeating: "<w:p>hello world</w:p>", count: 400).utf8)
     private let tiny = Data("ok".utf8)
-    private let binary = Data((0..<2048).map { UInt8(truncatingIfNeeded: $0 &* 7919) })
+    private let binary = Data((0 ..< 2048).map { UInt8(truncatingIfNeeded: $0 &* 7919) })
 
     @Test func roundTripsStoredAndDeflatedEntries() throws {
-        let zip = try archive([("word/document.xml", big), ("a.txt", tiny), ("media/img.bin", binary), ("empty", Data())])
+        let zip = try archive([
+            ("word/document.xml", big), ("a.txt", tiny), ("media/img.bin", binary), ("empty", Data()),
+        ])
         let entries = try ZipArchive.entries(in: zip)
         #expect(entries.map(\.name) == ["word/document.xml", "a.txt", "media/img.bin", "empty"])
         #expect(entries[0].method == 8 && entries[0].compressedSize < big.count)
         #expect(entries[1].method == 0)
-        #expect(try contents(zip) == ["word/document.xml": big, "a.txt": tiny, "media/img.bin": binary, "empty": Data()])
+        #expect(
+            try contents(zip) == ["word/document.xml": big, "a.txt": tiny, "media/img.bin": binary, "empty": Data()]
+        )
     }
 
     /// Streaming zippers set general-purpose flag bit 3 and leave the
@@ -54,9 +58,11 @@ struct ZipArchiveWriterTests {
         // central directory flags |= 8.
         let local = keep.localHeaderOffset
         source[local + 6] |= 0x08
-        for i in 14..<26 { source[local + i] = 0 }
+        for i in 14 ..< 26 { source[local + i] = 0 }
         let eocd = source.count - 22
-        let cdOffset = Int(source[eocd + 16]) | Int(source[eocd + 17]) << 8 | Int(source[eocd + 18]) << 16 | Int(source[eocd + 19]) << 24
+        let cdOffset =
+            Int(source[eocd + 16]) | Int(source[eocd + 17]) << 8 | Int(source[eocd + 18]) << 16 | Int(source[eocd + 19])
+            << 24
         source[cdOffset + 8] |= 0x08
         #expect(try ZipArchive.entries(in: source)[0].flags & 0x08 != 0)
 
@@ -65,7 +71,9 @@ struct ZipArchiveWriterTests {
         #expect(entries.allSatisfy { $0.flags & 0x08 == 0 })
         let keepAfter = try #require(entries.first { $0.name == "keep.xml" })
         // Local header now carries the real CRC (offset 14) instead of zeros.
-        let localCRC = (0..<4).reduce(UInt32(0)) { $0 | UInt32(rewritten[keepAfter.localHeaderOffset + 14 + $1]) << (8 * UInt32($1)) }
+        let localCRC = (0 ..< 4).reduce(UInt32(0)) {
+            $0 | UInt32(rewritten[keepAfter.localHeaderOffset + 14 + $1]) << (8 * UInt32($1))
+        }
         #expect(localCRC == keep.crc32)
         #expect(try contents(rewritten) == ["keep.xml": big, "edit.xml": Data("new".utf8)])
     }
@@ -74,14 +82,17 @@ struct ZipArchiveWriterTests {
         let source = try archive([("keep.xml", big), ("edit.xml", Data("old".utf8)), ("drop.xml", tiny)])
         let rewritten = try ZipArchive.rewrite(
             source,
-            replacing: ["edit.xml": Data("new".utf8), "drop.xml": nil, "added/new.xml": big])
+            replacing: ["edit.xml": Data("new".utf8), "drop.xml": nil, "added/new.xml": big]
+        )
 
         let before = try ZipArchive.entries(in: source)
         let after = try ZipArchive.entries(in: rewritten)
         #expect(after.map(\.name) == ["keep.xml", "edit.xml", "added/new.xml"])
         let keepBefore = try #require(before.first { $0.name == "keep.xml" })
         let keepAfter = try #require(after.first { $0.name == "keep.xml" })
-        #expect(try ZipArchive.rawPayload(keepBefore, from: source) == ZipArchive.rawPayload(keepAfter, from: rewritten))
+        #expect(
+            try ZipArchive.rawPayload(keepBefore, from: source) == ZipArchive.rawPayload(keepAfter, from: rewritten)
+        )
         #expect(keepBefore.crc32 == keepAfter.crc32 && keepBefore.method == keepAfter.method)
         #expect(try contents(rewritten) == ["keep.xml": big, "edit.xml": Data("new".utf8), "added/new.xml": big])
     }

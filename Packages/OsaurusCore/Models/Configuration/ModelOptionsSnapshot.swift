@@ -75,7 +75,9 @@ struct ModelOptionsSnapshot: Encodable, Equatable {
                 status.speculationAvailable
             else { return nil }
             return NativeMTP(
-                blocked: status.speculationBlocked, familyDefaultOn: status.familyDefaultOn)
+                blocked: status.speculationBlocked,
+                familyDefaultOn: status.familyDefaultOn
+            )
         }
     }
 
@@ -207,7 +209,9 @@ struct ModelOptionsSnapshot: Encodable, Equatable {
         settings.mtp.draftTokenLimit = nil
         settings.mtp.explicitDepth = nil
         _ = await ServerController.applyRuntimeSettingsFromConfigureTool(
-            settings, mtpSelectionIsFamilyDefault: mode == .familyDefault)
+            settings,
+            mtpSelectionIsFamilyDefault: mode == .familyDefault
+        )
     }
 
     /// Stores one choice the way the Mac composer's picker rows do. A nil

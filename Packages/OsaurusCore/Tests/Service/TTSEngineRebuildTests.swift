@@ -28,7 +28,8 @@ struct TTSEngineRebuildTests {
             .deletingLastPathComponent()  // OsaurusCore/
         return try String(
             contentsOf: packageRoot.appendingPathComponent("Managers/TTSService.swift"),
-            encoding: .utf8)
+            encoding: .utf8
+        )
     }
 
     @Test("A route change forces the audio graph to be rebuilt")

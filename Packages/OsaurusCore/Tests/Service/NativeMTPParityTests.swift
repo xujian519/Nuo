@@ -33,7 +33,9 @@ struct NativeMTPParityTests {
     /// native-MTP greedy coercion, because its equivalence story is its own.
     @Test func dflash2DoesNotCountAsNativeMTP() {
         let d = MLXLMCommon.DraftStrategy.dflash2(
-            drafterPath: URL(fileURLWithPath: "/tmp/d"), blockSize: nil)
+            drafterPath: URL(fileURLWithPath: "/tmp/d"),
+            blockSize: nil
+        )
         #expect(d.usesNativeMTP == false)
     }
 

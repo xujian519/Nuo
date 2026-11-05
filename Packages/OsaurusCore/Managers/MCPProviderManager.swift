@@ -496,7 +496,9 @@ public final class MCPProviderManager: ObservableObject {
                 let providerName = provider.name
                 group.addTask {
                     await self.connectProviderWithTransientRetry(
-                        providerId: providerId, providerName: providerName)
+                        providerId: providerId,
+                        providerName: providerName
+                    )
                 }
             }
         }
@@ -599,7 +601,9 @@ public final class MCPProviderManager: ObservableObject {
 
     private func registerRecoveryObservers() {
         NotificationCenter.default.addObserver(
-            forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
                 await self?.reconnectTransientlyFailedProviders()
@@ -609,7 +613,9 @@ public final class MCPProviderManager: ObservableObject {
         // slept (or right before) are transient by nature. NSWorkspace posts
         // wake through its own notification center, not `.default`.
         NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.scheduleTransientRecoverySweep()
@@ -748,7 +754,10 @@ public final class MCPProviderManager: ObservableObject {
     /// manually reconnected. We now reconnect once (which rebuilds the
     /// transport with fresh auth and a fresh session) and retry the call.
     public func executeTool(
-        providerId: UUID, toolName: String, argumentsJSON: String, exposedToolName: String? = nil
+        providerId: UUID,
+        toolName: String,
+        argumentsJSON: String,
+        exposedToolName: String? = nil
     ) async throws -> String {
         guard let provider = configuration.provider(id: providerId) else {
             throw MCPProviderError.providerNotFound
@@ -792,8 +801,12 @@ public final class MCPProviderManager: ObservableObject {
                 )
             } catch let error where Self.isRecoverableSessionError(error) {
                 result = try await reconnectAndRetry(
-                    provider: provider, providerId: providerId, toolName: toolName,
-                    arguments: arguments, timeout: timeout)
+                    provider: provider,
+                    providerId: providerId,
+                    toolName: toolName,
+                    arguments: arguments,
+                    timeout: timeout
+                )
             }
         } catch {
             if provider.authType == .oauth, Self.isForbiddenError(error) {
@@ -935,7 +948,9 @@ public final class MCPProviderManager: ObservableObject {
         if provider.authType == .none, let url = URL(string: provider.url) {
             oauthAvailable =
                 (try? await MCPOAuthDiscovery.shared.discover(
-                    serverURL: url, hint: probe?.challenge?.resourceMetadataURL)) != nil
+                    serverURL: url,
+                    hint: probe?.challenge?.resourceMetadataURL
+                )) != nil
         }
         if var state = providerStates[providerId] {
             state.requiresAuth = true
@@ -948,7 +963,8 @@ public final class MCPProviderManager: ObservableObject {
         }
         notifyStatusChanged()
         return MCPProviderError.toolExecutionFailed(
-            Self.authRequiredToolMessage(providerName: provider.name, authType: provider.authType))
+            Self.authRequiredToolMessage(providerName: provider.name, authType: provider.authType)
+        )
     }
 
     /// A tool call was refused with 403 even after a reconnect retry with a
@@ -1035,7 +1051,10 @@ public final class MCPProviderManager: ObservableObject {
                 client: client,
                 requestID: context.requestID,
                 reason: Self.deadlineReason(
-                    elapsed: Date().timeIntervalSince(startedAt), idleTimeout: timeout, hardCap: progressHardCap)
+                    elapsed: Date().timeIntervalSince(startedAt),
+                    idleTimeout: timeout,
+                    hardCap: progressHardCap
+                )
             )
             throw MCPProviderError.timeout
         } catch is CancellationError {
@@ -1047,7 +1066,9 @@ public final class MCPProviderManager: ObservableObject {
     /// Cancellation reason for a tripped deadline: the total cap when the call
     /// ran that long (it kept reporting progress), otherwise the idle gap.
     nonisolated static func deadlineReason(
-        elapsed: TimeInterval, idleTimeout: TimeInterval, hardCap: TimeInterval
+        elapsed: TimeInterval,
+        idleTimeout: TimeInterval,
+        hardCap: TimeInterval
     ) -> String {
         let cap = max(hardCap, idleTimeout)
         if elapsed >= cap - 1 {
@@ -1493,7 +1514,10 @@ public final class MCPProviderManager: ObservableObject {
         let clientKey = ObjectIdentifier(client)
         _ = await client.withElicitationHandler { params in
             try await MCPElicitationCoordinator.shared.handle(
-                params, clientKey: clientKey, providerName: providerName)
+                params,
+                clientKey: clientKey,
+                providerName: providerName
+            )
         }
         await client.onNotification(ElicitationCompleteNotification.self) { message in
             MCPElicitationCoordinator.shared.complete(elicitationId: message.params.elicitationId)

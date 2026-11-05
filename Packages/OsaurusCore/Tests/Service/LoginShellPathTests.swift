@@ -35,13 +35,18 @@ struct LoginShellPathTests {
         let dir = try tempDir("fake-shell")
         defer { try? FileManager.default.removeItem(at: dir) }
         let shell = dir.appendingPathComponent("zsh")
-        try script(shell, """
+        try script(
+            shell,
+            """
             #!/bin/sh
             echo "rc noise that must be ignored"
             printf '%s' '__OSAURUS_LOGIN_PATH__/Users/u/.local/share/mise/installs/node/lts/bin:/usr/bin__OSAURUS_LOGIN_PATH__'
-            """)
-        #expect(LoginShellPath.probe(shell: shell.path, timeout: 5)
-            == ["/Users/u/.local/share/mise/installs/node/lts/bin", "/usr/bin"])
+            """
+        )
+        #expect(
+            LoginShellPath.probe(shell: shell.path, timeout: 5)
+                == ["/Users/u/.local/share/mise/installs/node/lts/bin", "/usr/bin"]
+        )
     }
 
     @Test func aHungShellTimesOutInsteadOfBlocking() throws {
@@ -59,16 +64,23 @@ struct LoginShellPathTests {
         defer { try? FileManager.default.removeItem(at: dir) }
         let shell = dir.appendingPathComponent("zsh")
         let pidFile = dir.appendingPathComponent("owned.pid")
-        try script(shell, """
+        try script(
+            shell,
+            """
             #!/bin/sh
             trap '' TERM
             echo $$ > '\(pidFile.path)'
             while :; do :; done
-            """)
+            """
+        )
         let start = Date()
         let result = LoginShellPath.probe(shell: shell.path, timeout: 0.2)
-        let pid = try #require(Int32(String(contentsOf: pidFile, encoding: .utf8)
-            .trimmingCharacters(in: .whitespacesAndNewlines)))
+        let pid = try #require(
+            Int32(
+                String(contentsOf: pidFile, encoding: .utf8)
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+            )
+        )
         defer { if kill(pid, 0) == 0 { _ = kill(pid, SIGKILL) } }
         #expect(result == nil)
         #expect(Date().timeIntervalSince(start) < 5)
@@ -79,7 +91,9 @@ struct LoginShellPathTests {
         let dir = try tempDir("chatty-shell")
         defer { try? FileManager.default.removeItem(at: dir) }
         let shell = dir.appendingPathComponent("zsh")
-        try script(shell, """
+        try script(
+            shell,
+            """
             #!/bin/sh
             i=0
             while [ "$i" -lt 10000 ]; do
@@ -87,13 +101,16 @@ struct LoginShellPathTests {
               i=$((i + 1))
             done
             printf '%s' '__OSAURUS_LOGIN_PATH__/fixture/bin:/usr/bin__OSAURUS_LOGIN_PATH__'
-            """)
+            """
+        )
         #expect(LoginShellPath.probe(shell: shell.path, timeout: 5) == ["/fixture/bin", "/usr/bin"])
     }
 
     @Test func childPathPutsLoginShellEntriesFirstWithoutDuplicates() {
         let path = ExecutableLocator.childPath(
-            inherited: ["PATH": "/usr/bin:/bin"], loginShellEntries: ["/mise/node/bin", "/usr/bin"])
+            inherited: ["PATH": "/usr/bin:/bin"],
+            loginShellEntries: ["/mise/node/bin", "/usr/bin"]
+        )
         let entries = path.split(separator: ":").map(String.init)
         #expect(entries.first == "/mise/node/bin")
         #expect(entries.filter { $0 == "/usr/bin" }.count == 1)
@@ -147,8 +164,10 @@ struct LoginShellPathTests {
             process.standardError = Pipe()
             try process.run()
             process.waitUntilExit()
-            return (process.terminationStatus,
-                    String(decoding: out.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self))
+            return (
+                process.terminationStatus,
+                String(decoding: out.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+            )
         }
         // Before (#3024): GUI PATH only -> `env: node: No such file or directory`.
         #expect(try run(path: "/usr/bin:/bin").0 != 0)

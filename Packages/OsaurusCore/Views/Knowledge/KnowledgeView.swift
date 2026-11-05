@@ -193,7 +193,12 @@ struct KnowledgeView: View {
                 initialName: creationPrefillName,
                 onSave: {
                     [grantProjectId = creationGrantProjectId]
-                    name, summary, folderPath, remoteURL, includeGlobs, excludeGlobs in
+                    name,
+                    summary,
+                    folderPath,
+                    remoteURL,
+                    includeGlobs,
+                    excludeGlobs in
                     isCreating = false
                     if let remoteURL, !remoteURL.isEmpty {
                         showSuccess("Cloning \"\(name)\"…")
@@ -541,7 +546,7 @@ struct KnowledgeView: View {
         // `write_knowledge`, which shows a diff for approval at call time.
         let collectionName =
             (UUID(uuidString: ticket.collectionId)
-            .flatMap { KnowledgeManager.shared.collection(for: $0)?.name }) ?? ""
+                .flatMap { KnowledgeManager.shared.collection(for: $0)?.name }) ?? ""
         let collectionClause = collectionName.isEmpty ? "" : " in the \"\(collectionName)\" collection"
         let briefing =
             "Please work knowledge ticket #\(ticket.id) for `\(ticket.relPath)`\(collectionClause).\n"
@@ -889,7 +894,9 @@ private struct KnowledgeCollectionCard: View {
                 : String(
                     format: L(
                         "%lld documents have no category. This is optional, agents can still search and read them. To let agents filter by category, add a `type:` line (e.g. `type: policy`) to the top of each file. Click for the list."
-                    ), count)
+                    ),
+                    count
+                )
         case .unknown:
             return L("Checking that every document declares a category (its `type`)…")
         }
@@ -1097,10 +1104,11 @@ private struct KnowledgeCollectionEditorSheet: View {
     init(
         collection: KnowledgeCollection?,
         initialName: String = "",
-        onSave: @escaping (
-            _ name: String, _ summary: String, _ folderPath: String, _ remoteURL: String?,
-            _ includeGlobs: [String], _ excludeGlobs: [String]
-        ) -> Void,
+        onSave:
+            @escaping (
+                _ name: String, _ summary: String, _ folderPath: String, _ remoteURL: String?,
+                _ includeGlobs: [String], _ excludeGlobs: [String]
+            ) -> Void,
         onCancel: @escaping () -> Void
     ) {
         self.collection = collection
@@ -1794,7 +1802,8 @@ private struct KnowledgeCollectionDetailSheet: View {
                 } label: {
                     Text("Delete Collection", bundle: .module)
                 }
-                Button(role: .cancel) {} label: {
+                Button(role: .cancel) {
+                } label: {
                     Text("Cancel", bundle: .module)
                 }
             } message: {
@@ -2022,7 +2031,9 @@ private struct KnowledgeCollectionDetailSheet: View {
             .foregroundColor(doc.effectiveType.isEmpty ? theme.secondaryText : theme.accentColor)
             .help(
                 doc.isTypeInferred
-                    ? L("Category inferred from the folder name. Add a `type:` line to the file's frontmatter to override it.")
+                    ? L(
+                        "Category inferred from the folder name. Add a `type:` line to the file's frontmatter to override it."
+                    )
                     : ""
             )
         }

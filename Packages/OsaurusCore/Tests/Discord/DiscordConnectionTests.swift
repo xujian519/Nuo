@@ -87,8 +87,8 @@ struct DiscordConnectionTests {
             let fake = FakeDiscordAPIClient()
             await fake.setMessages([
                 "222222222222222222": [
-                    .fixture(id: "90001", channelId: "222222222222222222", content: "existing"),
-                ],
+                    .fixture(id: "90001", channelId: "222222222222222222", content: "existing")
+                ]
             ])
             let service = DiscordConnectionService(
                 client: fake,
@@ -113,7 +113,7 @@ struct DiscordConnectionTests {
                 "222222222222222222": [
                     .fixture(id: "90002", channelId: "222222222222222222", content: "new"),
                     .fixture(id: "90001", channelId: "222222222222222222", content: "existing"),
-                ],
+                ]
             ])
             let next = try await service.pollInboundMessages()
 
@@ -132,8 +132,8 @@ struct DiscordConnectionTests {
             let fake = FakeDiscordAPIClient()
             await fake.setMessages([
                 "222222222222222222": [
-                    .fixture(id: "90001", channelId: "222222222222222222", content: "existing"),
-                ],
+                    .fixture(id: "90001", channelId: "222222222222222222", content: "existing")
+                ]
             ])
             let activity = AgentChannelInboundActivityCenter()
             let service = DiscordConnectionService(
@@ -171,7 +171,7 @@ struct DiscordConnectionTests {
                     ),
                     .fixture(id: "90002", channelId: "222222222222222222", content: "authorized question"),
                     .fixture(id: "90001", channelId: "222222222222222222", content: "existing"),
-                ],
+                ]
             ])
             _ = try await service.pollInboundMessages()
 
@@ -179,7 +179,8 @@ struct DiscordConnectionTests {
 
             // Authorized message travels received → stored, then dispatch is
             // suppressed because no agent dispatch is configured.
-            let acceptedStages = events
+            let acceptedStages =
+                events
                 .filter { $0.providerEventId == "discord:90002" }
                 .map(\.stage)
                 .reversed()
@@ -190,7 +191,8 @@ struct DiscordConnectionTests {
             #expect(suppressed?.reason == "inbound_dispatch_not_configured")
 
             // Unauthorized sender is rejected with the boundary reason.
-            let rejectedStages = events
+            let rejectedStages =
+                events
                 .filter { $0.providerEventId == "discord:90003" }
                 .map(\.stage)
                 .reversed()
@@ -231,7 +233,8 @@ struct DiscordConnectionTests {
                         targetAgentId: liveAgent,
                         routes: [
                             AgentChannelDispatchRoute(
-                                roomId: "222222222222222222", agentId: missingAgent
+                                roomId: "222222222222222222",
+                                agentId: missingAgent
                             )
                         ]
                     )
@@ -358,7 +361,7 @@ struct DiscordConnectionTests {
                     contentType: "image/png",
                     sizeBytes: 1234,
                     remoteURL: "https://cdn.discord.test/report.png"
-                ),
+                )
             ],
             payloadJSON: #"{"id":"9001"}"#,
             providerTimestamp: "2026-06-19T20:00:00.000000+00:00"
@@ -2349,7 +2352,7 @@ private actor FakeDiscordAPIClient: DiscordAPIClientProtocol {
                     bot: false
                 ),
                 nick: nil
-            ),
+            )
         ]
     }
 

@@ -136,7 +136,11 @@ struct SelectedChatWarmupLifecycleTests {
         controller.scheduleWarmup(session: session, debounce: .zero)
         controller.handleContextShapeChange(session: session)
         controller.handleRunCompleted(
-            session: session, wasCancelled: false, hadError: false, hadToolActivity: true)
+            session: session,
+            wasCancelled: false,
+            hadError: false,
+            hadToolActivity: true
+        )
         controller.handleSessionBecameActive(session: session, debounce: .zero)
         await controller.awaitSessionActivation()
         await controller.awaitActiveModelSwitch()

@@ -114,7 +114,8 @@ struct CacheSection: View {
             guard !Task.isCancelled else { return }
             let resolution = await Task.detached(priority: .utility) {
                 ModelRuntime.diskCacheCap(
-                    for: cache, directory: ModelRuntime.diskCacheDirectoryForDisplay(for: cache)
+                    for: cache,
+                    directory: ModelRuntime.diskCacheDirectoryForDisplay(for: cache)
                 )
             }.value
             guard !Task.isCancelled else { return }
@@ -252,7 +253,11 @@ struct CacheSection: View {
         case .automatic:
             label = String(format: L("Automatic: %@ (30%% of free space plus this cache)"), effective)
         case .explicitPercent:
-            label = String(format: L("%@%% of disk: %@ effective"), String(format: "%g", draft.cache.blockDisk.maxSizePercent ?? 0), effective)
+            label = String(
+                format: L("%@%% of disk: %@ effective"),
+                String(format: "%g", draft.cache.blockDisk.maxSizePercent ?? 0),
+                effective
+            )
         case .legacyGB:
             label = String(format: L("Saved legacy size: %@ effective"), effective)
         case .unknownVolume:
@@ -260,7 +265,9 @@ struct CacheSection: View {
         }
         let warning: String
         if result.exceedsAvailableSpace {
-            warning = L("The cache limit exceeds currently available space. Other files may prevent the cache from reaching this size.")
+            warning = L(
+                "The cache limit exceeds currently available space. Other files may prevent the cache from reaching this size."
+            )
         } else if result.lowFreeSpace {
             warning = L("Disk space is low. SSD caching remains enabled.")
         } else {
@@ -286,7 +293,8 @@ struct CacheSection: View {
     }
 
     nonisolated static func hasUnsavedDiskCacheDirectory(
-        draft: VMLXServerCacheSettings, saved: VMLXServerCacheSettings
+        draft: VMLXServerCacheSettings,
+        saved: VMLXServerCacheSettings
     ) -> Bool {
         ModelRuntime.diskCacheDirectoryForDisplay(for: draft).standardizedFileURL
             != ModelRuntime.diskCacheDirectoryForDisplay(for: saved).standardizedFileURL
@@ -308,7 +316,8 @@ struct CacheSection: View {
             OptionalDoubleField(
                 label: "Disk Cache Size (% of disk)",
                 placeholder: "Blank = Automatic (30% of available space)",
-                help: "Automatic uses 30% of free space plus this cache's own bytes. An explicit percentage uses total disk size without a free-space cap. This is a maximum cache size, not reserved space. Saving updates loaded models without unloading them; a lower cap applies on the next cache write.",
+                help:
+                    "Automatic uses 30% of free space plus this cache's own bytes. An explicit percentage uses total disk size without a free-space cap. This is a maximum cache size, not reserved space. Saving updates loaded models without unloading them; a lower cap applies on the next cache write.",
                 value: diskCachePercentBinding,
                 format: "%g"
             )
@@ -320,8 +329,10 @@ struct CacheSection: View {
             } label: {
                 Text("Use Automatic Cache Size", bundle: .module)
             }
-            .disabled(draft.cache.blockDisk.maxSizePercent == nil
-                && draft.cache.blockDisk.maxSizeGB == nil && draft.cache.legacyDisk.maxSizeGB == nil)
+            .disabled(
+                draft.cache.blockDisk.maxSizePercent == nil
+                    && draft.cache.blockDisk.maxSizeGB == nil && draft.cache.legacyDisk.maxSizeGB == nil
+            )
             .settingsLandingAnchor("settings.server.diskCacheAutomatic")
             Text(verbatim: resolvedDiskCacheLabel)
                 .font(.system(size: 10))

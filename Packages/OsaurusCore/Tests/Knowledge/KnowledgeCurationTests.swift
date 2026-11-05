@@ -59,7 +59,11 @@ struct KnowledgeCurationDatabaseTests {
         guard let db = makeDBOrSkip() else { return }
         _ = try db.createTicket(collectionId: "granted", relPath: "a.md", reason: "r1", evidence: "", createdBy: "")
         let other = try db.createTicket(
-            collectionId: "other", relPath: "b.md", reason: "r2", evidence: "", createdBy: ""
+            collectionId: "other",
+            relPath: "b.md",
+            reason: "r2",
+            evidence: "",
+            createdBy: ""
         )
         try db.updateTicketStatus(id: other, status: .dismissed)
 
@@ -78,7 +82,11 @@ struct KnowledgeCurationDatabaseTests {
     func proposalRoundTripAndStatusTransitions() throws {
         guard let db = makeDBOrSkip() else { return }
         let ticketId = try db.createTicket(
-            collectionId: "c1", relPath: "wp.md", reason: "stale", evidence: "", createdBy: ""
+            collectionId: "c1",
+            relPath: "wp.md",
+            reason: "stale",
+            evidence: "",
+            createdBy: ""
         )
         let id = try db.createProposal(
             ticketId: ticketId,
@@ -122,7 +130,11 @@ struct KnowledgeCurationDatabaseTests {
     func dismissedProposalReopensItsTicket() throws {
         guard let db = makeDBOrSkip() else { return }
         let ticketId = try db.createTicket(
-            collectionId: "c1", relPath: "wp.md", reason: "stale", evidence: "", createdBy: ""
+            collectionId: "c1",
+            relPath: "wp.md",
+            reason: "stale",
+            evidence: "",
+            createdBy: ""
         )
         let proposalId = try db.createProposal(
             ticketId: ticketId,
@@ -194,7 +206,6 @@ struct KnowledgeCurationToolsTests {
         let result = try await tool.execute(argumentsJSON: #"{"status":"open"}"#)
         #expect(ToolEnvelope.isError(result))
     }
-
 
     /// A spawned subagent keeps `currentAgentId` inherited from its launcher
     /// (budget/limiter accounting), but its knowledge tools must resolve grants

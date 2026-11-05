@@ -410,16 +410,37 @@ public final class ActivityLogStore: @unchecked Sendable {
         }
         egress.details = out
         return RequestLog(
-            id: log.id, timestamp: log.timestamp, source: log.source, turnId: log.turnId,
-            requestId: log.requestId, method: log.method, path: log.path, statusCode: log.statusCode,
-            durationMs: log.durationMs, requestBody: log.requestBody, responseBody: log.responseBody,
-            userAgent: log.userAgent, pluginId: log.pluginId, model: log.model,
-            inputTokens: log.inputTokens, outputTokens: log.outputTokens, temperature: log.temperature,
-            maxTokens: log.maxTokens, toolCalls: log.toolCalls, finishReason: log.finishReason,
-            errorMessage: log.errorMessage, wireRequestBody: log.wireRequestBody,
-            wireResponseBody: log.wireResponseBody, connection: log.connection,
-            category: log.category, locality: log.locality, egress: egress, agentId: log.agentId,
-            agentName: log.agentName, sessionId: log.sessionId, clientIP: log.clientIP
+            id: log.id,
+            timestamp: log.timestamp,
+            source: log.source,
+            turnId: log.turnId,
+            requestId: log.requestId,
+            method: log.method,
+            path: log.path,
+            statusCode: log.statusCode,
+            durationMs: log.durationMs,
+            requestBody: log.requestBody,
+            responseBody: log.responseBody,
+            userAgent: log.userAgent,
+            pluginId: log.pluginId,
+            model: log.model,
+            inputTokens: log.inputTokens,
+            outputTokens: log.outputTokens,
+            temperature: log.temperature,
+            maxTokens: log.maxTokens,
+            toolCalls: log.toolCalls,
+            finishReason: log.finishReason,
+            errorMessage: log.errorMessage,
+            wireRequestBody: log.wireRequestBody,
+            wireResponseBody: log.wireResponseBody,
+            connection: log.connection,
+            category: log.category,
+            locality: log.locality,
+            egress: egress,
+            agentId: log.agentId,
+            agentName: log.agentName,
+            sessionId: log.sessionId,
+            clientIP: log.clientIP
         )
     }
 
@@ -591,7 +612,9 @@ public final class ActivityLogStore: @unchecked Sendable {
                 var newAnchor: (Int, String)?
                 try executeRaw("SELECT seq, prev_hash FROM activity WHERE seq = \(boundary)") { stmt in
                     if sqlite3_step(stmt) == SQLITE_ROW {
-                        newAnchor = (Int(sqlite3_column_int64(stmt, 0)) - 1, String(cString: sqlite3_column_text(stmt, 1)))
+                        newAnchor = (
+                            Int(sqlite3_column_int64(stmt, 0)) - 1, String(cString: sqlite3_column_text(stmt, 1))
+                        )
                     }
                 }
                 guard let newAnchor else { return (0, 0) }
@@ -809,8 +832,12 @@ public final class ActivityLogStore: @unchecked Sendable {
             binds: binds
         ) { stmt in
             guard sqlite3_step(stmt) == SQLITE_ROW else { return }
-            func int(_ i: Int32) -> Int { sqlite3_column_type(stmt, i) == SQLITE_NULL ? 0 : Int(sqlite3_column_int64(stmt, i)) }
-            func dbl(_ i: Int32) -> Double { sqlite3_column_type(stmt, i) == SQLITE_NULL ? 0 : sqlite3_column_double(stmt, i) }
+            func int(_ i: Int32) -> Int {
+                sqlite3_column_type(stmt, i) == SQLITE_NULL ? 0 : Int(sqlite3_column_int64(stmt, i))
+            }
+            func dbl(_ i: Int32) -> Double {
+                sqlite3_column_type(stmt, i) == SQLITE_NULL ? 0 : sqlite3_column_double(stmt, i)
+            }
             s.totalCount = int(0)
             s.localCount = int(1)
             s.remoteCount = int(2)
@@ -902,7 +929,8 @@ public final class ActivityLogStore: @unchecked Sendable {
 
         let text = f.text.trimmingCharacters(in: .whitespacesAndNewlines)
         if !text.isEmpty {
-            let pattern = "%" + text.replacingOccurrences(of: "%", with: "\\%").replacingOccurrences(of: "_", with: "\\_") + "%"
+            let pattern =
+                "%" + text.replacingOccurrences(of: "%", with: "\\%").replacingOccurrences(of: "_", with: "\\_") + "%"
             let p = add(.text(pattern))
             clauses.append(
                 "(title LIKE \(p) ESCAPE '\\' OR path LIKE \(p) ESCAPE '\\' OR model LIKE \(p) ESCAPE '\\' "

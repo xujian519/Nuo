@@ -35,14 +35,20 @@ struct ModelPrefillTuningStoreTests {
         try withTempStore { _ in
             try ModelPrefillTuningStore.save(
                 record: .init(
-                    prefillStepSize: 2_048, chip: "Apple M5 Max",
-                    measuredAt: "2026-07-06", benchTTFTMs: 9_420),
-                for: "Qwen3.6-35B-A3B-MXFP4-MTP")
+                    prefillStepSize: 2_048,
+                    chip: "Apple M5 Max",
+                    measuredAt: "2026-07-06",
+                    benchTTFTMs: 9_420
+                ),
+                for: "Qwen3.6-35B-A3B-MXFP4-MTP"
+            )
             #expect(
-                ModelPrefillTuningStore.tunedStepSize(for: "Qwen3.6-35B-A3B-MXFP4-MTP") == 2_048)
+                ModelPrefillTuningStore.tunedStepSize(for: "Qwen3.6-35B-A3B-MXFP4-MTP") == 2_048
+            )
             // The chat router lowercases model names; lookup must still hit.
             #expect(
-                ModelPrefillTuningStore.tunedStepSize(for: "qwen3.6-35b-a3b-mxfp4-mtp") == 2_048)
+                ModelPrefillTuningStore.tunedStepSize(for: "qwen3.6-35b-a3b-mxfp4-mtp") == 2_048
+            )
         }
     }
 
@@ -50,7 +56,8 @@ struct ModelPrefillTuningStoreTests {
         try withTempStore { url in
             try ModelPrefillTuningStore.save(
                 record: .init(prefillStepSize: 512, chip: nil, measuredAt: nil, benchTTFTMs: nil),
-                for: "model-a")
+                for: "model-a"
+            )
             #expect(ModelPrefillTuningStore.tunedStepSize(for: "model-a") == 512)
 
             // Simulate the CLI process rewriting the file (fresh JSON, no
@@ -58,7 +65,9 @@ struct ModelPrefillTuningStoreTests {
             let json = #"{"model-a": {"prefillStepSize": 4096}}"#
             try Data(json.utf8).write(to: url, options: .atomic)
             try FileManager.default.setAttributes(
-                [.modificationDate: Date().addingTimeInterval(2)], ofItemAtPath: url.path)
+                [.modificationDate: Date().addingTimeInterval(2)],
+                ofItemAtPath: url.path
+            )
 
             #expect(ModelPrefillTuningStore.tunedStepSize(for: "model-a") == 4_096)
         }
@@ -68,10 +77,12 @@ struct ModelPrefillTuningStoreTests {
         try withTempStore { _ in
             try ModelPrefillTuningStore.save(
                 record: .init(prefillStepSize: 512, chip: nil, measuredAt: nil, benchTTFTMs: nil),
-                for: "model-a")
+                for: "model-a"
+            )
             try ModelPrefillTuningStore.save(
                 record: .init(prefillStepSize: 2_048, chip: nil, measuredAt: nil, benchTTFTMs: nil),
-                for: "model-b")
+                for: "model-b"
+            )
             #expect(ModelPrefillTuningStore.tunedStepSize(for: "model-a") == 512)
             #expect(ModelPrefillTuningStore.tunedStepSize(for: "model-b") == 2_048)
 

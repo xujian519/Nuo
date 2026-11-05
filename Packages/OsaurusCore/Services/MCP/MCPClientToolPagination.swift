@@ -24,7 +24,7 @@ extension MCP.Client {
         var allTools: [MCP.Tool] = []
         var cursor: String? = nil
         var seenCursors = Set<String>()
-        for _ in 0..<maxPages {
+        for _ in 0 ..< maxPages {
             let (tools, nextCursor) = try await listTools(cursor: cursor)
             allTools.append(contentsOf: tools)
             guard let next = nextCursor, !next.isEmpty else {

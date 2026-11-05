@@ -52,7 +52,8 @@ struct InlineMathScannerTests {
         let segments = InlineMathScanner.split(source)
         #expect(
             segments.count == 1 && segments[0].isMath,
-            "\(source) should be one math span, got \(segments)")
+            "\(source) should be one math span, got \(segments)"
+        )
     }
 
     /// Currency must never be typeset. `$5 to $10` is the shape that makes a naive

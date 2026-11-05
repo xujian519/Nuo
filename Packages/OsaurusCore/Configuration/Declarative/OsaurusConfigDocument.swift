@@ -43,7 +43,8 @@ public enum ConfigField<T: Equatable & Sendable>: Equatable, Sendable {
 
 extension KeyedDecodingContainer {
     func configField<T: Decodable & Equatable & Sendable>(
-        _ type: T.Type, forKey key: Key
+        _ type: T.Type,
+        forKey key: Key
     ) throws -> ConfigField<T> {
         guard contains(key) else { return .absent }
         if try decodeNil(forKey: key) { return .null }
@@ -53,7 +54,8 @@ extension KeyedDecodingContainer {
 
 extension KeyedEncodingContainer {
     mutating func encode<T: Encodable & Equatable & Sendable>(
-        configField field: ConfigField<T>, forKey key: Key
+        configField field: ConfigField<T>,
+        forKey key: Key
     ) throws {
         switch field {
         case .absent: break
@@ -218,7 +220,9 @@ extension OsaurusConfigDocument: Codable {
         delegation = try c.decodeIfPresent(DelegationSection.self, forKey: .delegation)
         commands = try c.decodeIfPresent([CommandEntry].self, forKey: .commands)
         knowledgeCollections = try c.decodeIfPresent(
-            [KnowledgeCollectionEntry].self, forKey: .knowledgeCollections)
+            [KnowledgeCollectionEntry].self,
+            forKey: .knowledgeCollections
+        )
         channels = try c.decodeIfPresent(ChannelsSection.self, forKey: .channels)
         mcpServers = try c.decodeIfPresent([MCPServerEntry].self, forKey: .mcpServers)
         models = try c.decodeIfPresent([String].self, forKey: .models)

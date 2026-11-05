@@ -373,7 +373,8 @@ struct DeclarativeSearchBackendTests {
 
     @Test func serperImagesBuildsSameBodyAndMapsImageFields() throws {
         let endpoint = try #require(
-            SearchProviderCatalog.definition(id: "serper")?.endpoints?[SearchCategory.images])
+            SearchProviderCatalog.definition(id: "serper")?.endpoints?[SearchCategory.images]
+        )
 
         let built = try DeclarativeSearchBackend.buildRequest(
             endpoint: endpoint,
@@ -415,7 +416,7 @@ struct DeclarativeSearchBackendTests {
 
     @Test func mapResponseTruncatesToMaxResults() {
         let fixture: [String: Any] = [
-            "results": (1...10).map {
+            "results": (1 ... 10).map {
                 ["title": "T\($0)", "url": "https://example.com/\($0)", "content": "c"]
             }
         ]

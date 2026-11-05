@@ -178,7 +178,9 @@ public final class PendingImportProcessor {
         do {
             try ImportQueue.complete(pending, result: result)
         } catch {
-            log.error("Could not record import result \(request.id, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            log.error(
+                "Could not record import result \(request.id, privacy: .public): \(error.localizedDescription, privacy: .public)"
+            )
         }
         log.notice(
             "Applied import \(request.id, privacy: .public) from \(request.bundleId, privacy: .public): \(result.status.rawValue, privacy: .public)"
@@ -229,8 +231,11 @@ public final class PendingImportProcessor {
         case mcp(entry: MCPServerEntry, existingId: UUID?)
         case harnessRuntime(entry: HarnessRuntimeEntry)
         case agent(
-            entry: AgentEntry, existingId: UUID?, quickActions: [AgentQuickAction]?,
-            source: OsaurusBundle.Agent)
+            entry: AgentEntry,
+            existingId: UUID?,
+            quickActions: [AgentQuickAction]?,
+            source: OsaurusBundle.Agent
+        )
         case setting(BundleSetting, value: BundleSettingValue)
     }
 
@@ -249,7 +254,10 @@ public final class PendingImportProcessor {
     /// Resolves an operation against the bundle, this Mac, and the
     /// receipts: what it would install, and whether it may.
     private func prepare(
-        _ op: ImportOperation, bundle: OsaurusBundle, bundleVersion: String?, receipts: [ImportReceipt]
+        _ op: ImportOperation,
+        bundle: OsaurusBundle,
+        bundleVersion: String?,
+        receipts: [ImportReceipt]
     ) throws -> PreparedItem {
         guard let hash = bundle.contentHash(kind: op.kind, name: op.name) else {
             throw PrepareFailure(message: "Not found in the bundle.")
@@ -270,18 +278,32 @@ public final class PendingImportProcessor {
                 } ?? SkillManager.shared.skill(named: source.name)
             if let existing, existing.isBuiltIn || existing.isFromPlugin {
                 return PreparedItem(
-                    op: op, hash: hash, receipt: receipt,
+                    op: op,
+                    hash: hash,
+                    receipt: receipt,
                     decision: .conflict(
                         "A \(existing.isBuiltIn ? "built-in" : "plugin") skill is already named \"\(existing.name)\". "
-                            + "Rename the bundle's skill."),
-                    payload: .skill(source: source, existing: existing))
+                            + "Rename the bundle's skill."
+                    ),
+                    payload: .skill(source: source, existing: existing)
+                )
             }
             let decision = decide(
-                op, bundle: bundle, bundleVersion: bundleVersion, hash: hash, receipt: receipt,
-                exists: existing != nil, what: "skill")
+                op,
+                bundle: bundle,
+                bundleVersion: bundleVersion,
+                hash: hash,
+                receipt: receipt,
+                exists: existing != nil,
+                what: "skill"
+            )
             return PreparedItem(
-                op: op, hash: hash, receipt: receipt, decision: decision,
-                payload: .skill(source: source, existing: existing))
+                op: op,
+                hash: hash,
+                receipt: receipt,
+                decision: decision,
+                payload: .skill(source: source, existing: existing)
+            )
 
         case .mcp:
             guard let raw = try? bundle.rawMCPServerEntries()[op.name.lowercased()] else {
@@ -301,8 +323,14 @@ public final class PendingImportProcessor {
                     providers.first { $0.id == id }
                 } ?? providers.first { $0.name.caseInsensitiveCompare(entry.name) == .orderedSame }
             let decision = decide(
-                op, bundle: bundle, bundleVersion: bundleVersion, hash: hash, receipt: receipt,
-                exists: existing != nil, what: "MCP server")
+                op,
+                bundle: bundle,
+                bundleVersion: bundleVersion,
+                hash: hash,
+                receipt: receipt,
+                exists: existing != nil,
+                what: "MCP server"
+            )
             // A server the user renamed keeps its name; the applier matches by it.
             if let existing, decision == .replace { entry.name = existing.name }
             var document = OsaurusConfigDocument()
@@ -314,8 +342,12 @@ public final class PendingImportProcessor {
                 throw PrepareFailure(message: Self.describe(error))
             }
             return PreparedItem(
-                op: op, hash: hash, receipt: receipt, decision: decision,
-                payload: .mcp(entry: entry, existingId: existing?.id))
+                op: op,
+                hash: hash,
+                receipt: receipt,
+                decision: decision,
+                payload: .mcp(entry: entry, existingId: existing?.id)
+            )
 
         case .harnessRuntime:
             guard let raw = try? bundle.rawHarnessRuntimeEntries()[Self.runtimeKey(op.name)] else {
@@ -334,8 +366,14 @@ public final class PendingImportProcessor {
                     HarnessRuntimeStore.shared.runtime(id: $0)
                 } ?? ConfigHarness.runtime(named: entry.name)
             let decision = decide(
-                op, bundle: bundle, bundleVersion: bundleVersion, hash: hash, receipt: receipt,
-                exists: existing != nil, what: "harness runtime")
+                op,
+                bundle: bundle,
+                bundleVersion: bundleVersion,
+                hash: hash,
+                receipt: receipt,
+                exists: existing != nil,
+                what: "harness runtime"
+            )
             // A runtime the user renamed keeps its name; the applier matches by it.
             if let existing, decision == .replace { entry.name = existing.displayName }
             var document = OsaurusConfigDocument()
@@ -347,8 +385,12 @@ public final class PendingImportProcessor {
                 throw PrepareFailure(message: Self.describe(error))
             }
             return PreparedItem(
-                op: op, hash: hash, receipt: receipt, decision: decision,
-                payload: .harnessRuntime(entry: entry))
+                op: op,
+                hash: hash,
+                receipt: receipt,
+                decision: decision,
+                payload: .harnessRuntime(entry: entry)
+            )
 
         case .agent:
             guard let source = bundle.agent(named: op.name) else {
@@ -376,7 +418,8 @@ public final class PendingImportProcessor {
                 needsUser = true
                 notes.append(
                     "Needs model \(requested), which is not installed. Download it, or choose another "
-                        + "model for the agent.")
+                        + "model for the agent."
+                )
             }
 
             let owned = receipt?.bundleId == bundle.id ? receipt : nil
@@ -386,13 +429,22 @@ public final class PendingImportProcessor {
                 ?? agents.first { $0.name.caseInsensitiveCompare(entry.name) == .orderedSame }
             if let existing, existing.isBuiltIn {
                 return PreparedItem(
-                    op: op, hash: hash, receipt: receipt,
+                    op: op,
+                    hash: hash,
+                    receipt: receipt,
                     decision: .conflict("\"\(existing.name)\" is a built-in agent. Rename the bundle's agent."),
-                    payload: .agent(entry: entry, existingId: existing.id, quickActions: nil, source: source))
+                    payload: .agent(entry: entry, existingId: existing.id, quickActions: nil, source: source)
+                )
             }
             let decision = decide(
-                op, bundle: bundle, bundleVersion: bundleVersion, hash: hash, receipt: receipt,
-                exists: existing != nil, what: "agent")
+                op,
+                bundle: bundle,
+                bundleVersion: bundleVersion,
+                hash: hash,
+                receipt: receipt,
+                exists: existing != nil,
+                what: "agent"
+            )
             // An agent the user renamed keeps its name; the applier matches by it.
             if let existing, decision == .replace { entry.name = existing.name }
             planEntry.name = entry.name
@@ -409,9 +461,17 @@ public final class PendingImportProcessor {
                 throw PrepareFailure(message: Self.describe(error))
             }
             var item = PreparedItem(
-                op: op, hash: hash, receipt: receipt, decision: decision,
+                op: op,
+                hash: hash,
+                receipt: receipt,
+                decision: decision,
                 payload: .agent(
-                    entry: entry, existingId: existing?.id, quickActions: template.quickActions, source: source))
+                    entry: entry,
+                    existingId: existing?.id,
+                    quickActions: template.quickActions,
+                    source: source
+                )
+            )
             item.notes = notes
             item.needsUser = needsUser
             return item
@@ -421,11 +481,20 @@ public final class PendingImportProcessor {
                 throw PrepareFailure(message: "Not found in the bundle.")
             }
             let decision = decideSetting(
-                op, setting: entry.setting, wanted: entry.value, bundle: bundle, bundleVersion: bundleVersion,
-                receipts: receipts)
+                op,
+                setting: entry.setting,
+                wanted: entry.value,
+                bundle: bundle,
+                bundleVersion: bundleVersion,
+                receipts: receipts
+            )
             return PreparedItem(
-                op: op, hash: hash, receipt: receipt, decision: decision,
-                payload: .setting(entry.setting, value: entry.value))
+                op: op,
+                hash: hash,
+                receipt: receipt,
+                decision: decision,
+                payload: .setting(entry.setting, value: entry.value)
+            )
         }
     }
 
@@ -433,8 +502,12 @@ public final class PendingImportProcessor {
     /// `update` leaves it once the user has changed what the bundle set.
     /// A bundle may not ask for the opposite of what another bundle set.
     private func decideSetting(
-        _ op: ImportOperation, setting: BundleSetting, wanted: BundleSettingValue, bundle: OsaurusBundle,
-        bundleVersion: String?, receipts: [ImportReceipt]
+        _ op: ImportOperation,
+        setting: BundleSetting,
+        wanted: BundleSettingValue,
+        bundle: OsaurusBundle,
+        bundleVersion: String?,
+        receipts: [ImportReceipt]
     ) -> Decision {
         let current = settings.value(of: setting)
         let own = receipts.first { $0.bundleId == bundle.id && $0.matches(kind: .setting, name: setting.key) }
@@ -446,7 +519,8 @@ public final class PendingImportProcessor {
         {
             return .conflict(
                 "\(other.bundleId) turned it \(theirs). Change it in \(setting.location), or remove that "
-                    + "bundle's setting first.")
+                    + "bundle's setting first."
+            )
         }
         guard let own else { return setting.isSatisfied(wanted, by: current) ? .unchanged : .create }
         if let installed = own.bundleVersion.flatMap(SemanticVersion.parse),
@@ -458,7 +532,8 @@ public final class PendingImportProcessor {
         if op.action == .update, let applied = own.settingValue, !setting.isSatisfied(applied, by: current) {
             return .skip(
                 "Changed in \(setting.location) since \(bundle.id) set it; left as it is. "
-                    + "Run install to set it again.")
+                    + "Run install to set it again."
+            )
         }
         return setting.isSatisfied(wanted, by: current) ? .unchanged : .replace
     }
@@ -479,14 +554,20 @@ public final class PendingImportProcessor {
     /// Ownership rules. An item another bundle (or the user) owns is never
     /// touched. `update` does not bring back an item the user deleted.
     private func decide(
-        _ op: ImportOperation, bundle: OsaurusBundle, bundleVersion: String?, hash: String,
-        receipt: ImportReceipt?, exists: Bool, what: String
+        _ op: ImportOperation,
+        bundle: OsaurusBundle,
+        bundleVersion: String?,
+        hash: String,
+        receipt: ImportReceipt?,
+        exists: Bool,
+        what: String
     ) -> Decision {
         guard let receipt else {
             if exists {
                 return .conflict(
                     "A \(what) named \"\(op.name)\" already exists and was not installed by \(bundle.id). "
-                        + "Rename or remove it in Nuo, then run the import again.")
+                        + "Rename or remove it in Nuo, then run the import again."
+                )
             }
             return .create
         }
@@ -513,14 +594,22 @@ public final class PendingImportProcessor {
     // MARK: - Install / update
 
     private func install(
-        _ op: ImportOperation, bundle: OsaurusBundle, request: ImportRequest, receipts: inout [ImportReceipt]
+        _ op: ImportOperation,
+        bundle: OsaurusBundle,
+        request: ImportRequest,
+        receipts: inout [ImportReceipt]
     ) async -> ImportItemResult {
         func result(_ status: ImportItemStatus, _ message: String?, pending: [String]? = nil, name: String? = nil)
             -> ImportItemResult
         {
             ImportItemResult(
-                kind: op.kind, name: name ?? op.name, action: op.action, status: status, message: message,
-                pendingSecrets: pending)
+                kind: op.kind,
+                name: name ?? op.name,
+                action: op.action,
+                status: status,
+                message: message,
+                pendingSecrets: pending
+            )
         }
 
         let item: PreparedItem
@@ -543,8 +632,14 @@ public final class PendingImportProcessor {
                 var receipt =
                     own
                     ?? ImportReceipt(
-                        bundleId: bundle.id, bundleName: bundle.manifest.name, bundleVersion: nil,
-                        kind: .setting, name: setting.key, explicit: op.explicit, contentHash: item.hash)
+                        bundleId: bundle.id,
+                        bundleName: bundle.manifest.name,
+                        bundleVersion: nil,
+                        kind: .setting,
+                        name: setting.key,
+                        explicit: op.explicit,
+                        contentHash: item.hash
+                    )
                 receipt.bundleVersion = request.bundleVersion
                 receipt.contentHash = item.hash
                 receipt.settingValue = value
@@ -566,14 +661,22 @@ public final class PendingImportProcessor {
         let risks = bundle.risks(for: [BundleItemRef(kind: op.kind, name: op.name, explicit: op.explicit)])
         if !risks.isEmpty && !request.confirmHighRisk {
             return result(
-                .failed, "High-risk change not confirmed: \(risks.joined(separator: "; ")). Re-run with --yes.")
+                .failed,
+                "High-risk change not confirmed: \(risks.joined(separator: "; ")). Re-run with --yes."
+            )
         }
 
         var receipt =
             item.receipt.flatMap { $0.bundleId == bundle.id ? $0 : nil }
             ?? ImportReceipt(
-                bundleId: bundle.id, bundleName: nil, bundleVersion: nil, kind: op.kind, name: op.name,
-                explicit: op.explicit, contentHash: item.hash)
+                bundleId: bundle.id,
+                bundleName: nil,
+                bundleVersion: nil,
+                kind: op.kind,
+                name: op.name,
+                explicit: op.explicit,
+                contentHash: item.hash
+            )
         receipt.bundleName = bundle.manifest.name
         receipt.bundleVersion = bundle.manifest.version
         receipt.contentHash = item.hash
@@ -585,7 +688,9 @@ public final class PendingImportProcessor {
         case .skill(let source, let existing):
             do {
                 let installed = try await SkillManager.shared.installSkill(
-                    fromDirectory: source.directory, replacing: item.decision == .replace ? existing : nil)
+                    fromDirectory: source.directory,
+                    replacing: item.decision == .replace ? existing : nil
+                )
                 receipt.skillDirectory = installed.directoryName ?? OsaurusBundle.skillSlug(for: installed.name)
                 receipt.needsUserAction = nil
                 upsert(receipt, into: &receipts)
@@ -602,7 +707,9 @@ public final class PendingImportProcessor {
             guard let row = rows.first(where: { $0.section == "mcp_servers" }) else {
                 return result(.failed, "The server was not applied.")
             }
-            if row.status == .failed { return result(.failed, row.message, pending: nonEmpty(row.unresolvedSecretRefs)) }
+            if row.status == .failed {
+                return result(.failed, row.message, pending: nonEmpty(row.unresolvedSecretRefs))
+            }
             let provider = MCPProviderManager.shared.configuration.providers.first {
                 $0.name.caseInsensitiveCompare(entry.name) == .orderedSame
             }
@@ -611,7 +718,12 @@ public final class PendingImportProcessor {
             receipt.needsUserAction = row.status == .needsUserAction ? true : nil
             upsert(receipt, into: &receipts)
             let status: ImportItemStatus = row.status == .needsUserAction ? .needsUserAction : .done
-            return result(status, row.message ?? "\(verb) MCP server.", pending: receipt.pendingSecrets, name: entry.name)
+            return result(
+                status,
+                row.message ?? "\(verb) MCP server.",
+                pending: receipt.pendingSecrets,
+                name: entry.name
+            )
 
         case .harnessRuntime(let entry):
             var document = OsaurusConfigDocument()
@@ -638,7 +750,9 @@ public final class PendingImportProcessor {
                 })
             {
                 return result(
-                    .failed, "Its harness runtime \"\(bundleRuntime.name)\" from this bundle is not installed.")
+                    .failed,
+                    "Its harness runtime \"\(bundleRuntime.name)\" from this bundle is not installed."
+                )
             }
             var document = OsaurusConfigDocument()
             document.version = 1
@@ -669,12 +783,15 @@ public final class PendingImportProcessor {
                         source.mcpServers.flatMap { server in
                             receipts.first { $0.bundleId == bundle.id && $0.matches(kind: .mcp, name: server) }?
                                 .pendingSecrets ?? []
-                        })
-                ).sorted())
+                        }
+                    )
+                ).sorted()
+            )
             if pendingSecrets != nil {
                 notes.append(
                     "Its MCP servers are missing secrets; once they are in the Keychain, run "
-                        + "`osaurus import update` to wire their tools.")
+                        + "`osaurus import update` to wire their tools."
+                )
             }
             let needsUser =
                 item.needsUser || row.status == .needsUserAction || !blockers.isEmpty || pendingSecrets != nil
@@ -688,7 +805,8 @@ public final class PendingImportProcessor {
                 needsUser ? .needsUserAction : .done,
                 notes.isEmpty ? "\(verb) agent." : notes.joined(separator: " "),
                 pending: pendingSecrets,
-                name: agent.name)
+                name: agent.name
+            )
 
         case .setting(let setting, let value):
             let stored = setting.applying(value, to: settings.value(of: setting))
@@ -699,7 +817,8 @@ public final class PendingImportProcessor {
             case (.requireLocalAccessKey, .bool(true)):
                 notes.append(
                     "Apps and scripts on this Mac now need an access key for /sessions, /agents, /mcp/*, "
-                        + "/admin/config/* and /admin/import/*.")
+                        + "/admin/config/* and /admin/import/*."
+                )
                 if !settings.hasAccessKeys() {
                     needsUser = true
                     notes.append("No access key exists yet. Create one in Server → Overview.")
@@ -735,7 +854,8 @@ public final class PendingImportProcessor {
                 manager.configuration.providers.first {
                     $0.enabled && $0.name.caseInsensitiveCompare(name) == .orderedSame
                 }?.id
-            })
+            }
+        )
         guard !ids.isEmpty else { return }
         let start = Date()
         var kicked = Set<UUID>()
@@ -765,16 +885,26 @@ public final class PendingImportProcessor {
     // MARK: - Remove
 
     private func remove(
-        _ op: ImportOperation, request: ImportRequest, receipts: inout [ImportReceipt], removed: inout Set<String>
+        _ op: ImportOperation,
+        request: ImportRequest,
+        receipts: inout [ImportReceipt],
+        removed: inout Set<String>
     ) async -> [ImportItemResult] {
         let key = Self.removalKey(op.kind, op.name)
-        guard let receipt = receipts.first(where: { $0.bundleId == request.bundleId && $0.matches(kind: op.kind, name: op.name) })
+        guard
+            let receipt = receipts.first(where: {
+                $0.bundleId == request.bundleId && $0.matches(kind: op.kind, name: op.name)
+            })
         else {
             if removed.contains(key) { return [] }
             return [
                 ImportItemResult(
-                    kind: op.kind, name: op.name, action: .remove, status: .skipped,
-                    message: "\(request.bundleId) did not install it.")
+                    kind: op.kind,
+                    name: op.name,
+                    action: .remove,
+                    status: .skipped,
+                    message: "\(request.bundleId) did not install it."
+                )
             ]
         }
 
@@ -783,9 +913,13 @@ public final class PendingImportProcessor {
             if !users.isEmpty {
                 return [
                     ImportItemResult(
-                        kind: op.kind, name: op.name, action: .remove, status: .failed,
+                        kind: op.kind,
+                        name: op.name,
+                        action: .remove,
+                        status: .failed,
                         message: "Still used by \(users.joined(separator: ", ")). Remove or change "
-                            + (users.count == 1 ? "that agent" : "those agents") + " first.")
+                            + (users.count == 1 ? "that agent" : "those agents") + " first."
+                    )
                 ]
             }
         }
@@ -860,7 +994,9 @@ public final class PendingImportProcessor {
     }
 
     private func removeItem(
-        _ receipt: ImportReceipt, receipts: inout [ImportReceipt], removed: inout Set<String>
+        _ receipt: ImportReceipt,
+        receipts: inout [ImportReceipt],
+        removed: inout Set<String>
     ) async -> ImportItemResult {
         func row(_ status: ImportItemStatus, _ message: String?) -> ImportItemResult {
             ImportItemResult(kind: receipt.kind, name: receipt.name, action: .remove, status: status, message: message)
@@ -911,7 +1047,8 @@ public final class PendingImportProcessor {
             return row(
                 .done,
                 "\(setting.title) stays \(settings.value(of: setting)); removing a bundle does not change "
-                    + "its settings back.")
+                    + "its settings back."
+            )
         }
         receipts.removeAll { $0.bundleId == receipt.bundleId && $0.matches(kind: receipt.kind, name: receipt.name) }
         removed.insert(Self.removalKey(receipt.kind, receipt.name))
@@ -930,16 +1067,19 @@ public final class PendingImportProcessor {
         let unfinished = items.filter { $0.status == .needsUserAction }
         let receipts = ImportQueue.loadReceipts()
         let bundles = Array(
-            Set(results.map { result in
-                receipts.first { $0.bundleId == result.bundleId }?.bundleName ?? result.bundleId
-            })
+            Set(
+                results.map { result in
+                    receipts.first { $0.bundleId == result.bundleId }?.bundleName ?? result.bundleId
+                }
+            )
         ).sorted()
         let source = L("From \(bundles.joined(separator: ", "))")
         if failed.isEmpty && unfinished.isEmpty {
             guard !agents.isEmpty else { return }
             ToastManager.shared.success(
                 agents.count == 1 ? L("Agent ready") : L("Agents ready"),
-                message: agents.joined(separator: ", ") + " · " + source)
+                message: agents.joined(separator: ", ") + " · " + source
+            )
         } else {
             var parts: [String] = [source]
             if !agents.isEmpty { parts.append(L("Added \(agents.joined(separator: ", "))")) }
@@ -949,7 +1089,10 @@ public final class PendingImportProcessor {
             if !failed.isEmpty {
                 parts.append(L("\(failed.map(\.name).joined(separator: ", ")) could not be installed"))
             }
-            ToastManager.shared.warning(L("Bundle import finished with issues"), message: parts.joined(separator: " · "))
+            ToastManager.shared.warning(
+                L("Bundle import finished with issues"),
+                message: parts.joined(separator: " · ")
+            )
         }
     }
 }

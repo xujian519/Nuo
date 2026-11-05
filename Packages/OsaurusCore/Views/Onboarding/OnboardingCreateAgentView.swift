@@ -333,7 +333,8 @@ struct CreateAgentStepView: View {
     private var specialtyCards: some View {
         VStack(spacing: 16) {
             ForEach(
-                Array(OnboardingSpecialty.allCases.enumerated()), id: \.element.id
+                Array(OnboardingSpecialty.allCases.enumerated()),
+                id: \.element.id
             ) { index, specialty in
                 OnboardingSelectableCard(
                     symbol: specialty.symbol,

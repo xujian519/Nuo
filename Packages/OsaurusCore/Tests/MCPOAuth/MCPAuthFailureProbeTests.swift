@@ -28,9 +28,15 @@ struct MCPAuthFailureProbeTests {
     }
 
     @Test func evaluateIgnoresNonAuthStatuses() {
-        #expect(MCPAuthFailureProbe.evaluate(response: response(status: 200), body: nil, sentAuthorization: true) == nil)
-        #expect(MCPAuthFailureProbe.evaluate(response: response(status: 500), body: nil, sentAuthorization: true) == nil)
-        #expect(MCPAuthFailureProbe.evaluate(response: response(status: 404), body: nil, sentAuthorization: false) == nil)
+        #expect(
+            MCPAuthFailureProbe.evaluate(response: response(status: 200), body: nil, sentAuthorization: true) == nil
+        )
+        #expect(
+            MCPAuthFailureProbe.evaluate(response: response(status: 500), body: nil, sentAuthorization: true) == nil
+        )
+        #expect(
+            MCPAuthFailureProbe.evaluate(response: response(status: 404), body: nil, sentAuthorization: false) == nil
+        )
     }
 
     @Test func evaluateClassifiesBare401WithoutChallengeHeader() {

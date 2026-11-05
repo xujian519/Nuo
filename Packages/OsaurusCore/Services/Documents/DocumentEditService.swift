@@ -67,8 +67,13 @@ enum DocumentEditService {
         private var finished = false
 
         init(
-            fileURL: URL, tempURL: URL, originalData: Data, summaries: [String], warnings: [String],
-            diffText: String?, diffTruncated: Bool
+            fileURL: URL,
+            tempURL: URL,
+            originalData: Data,
+            summaries: [String],
+            warnings: [String],
+            diffText: String?,
+            diffTruncated: Bool
         ) {
             self.fileURL = fileURL
             self.tempURL = tempURL
@@ -104,7 +109,9 @@ enum DocumentEditService {
             do {
                 _ = try FileManager.default.replaceItemAt(fileURL, withItemAt: tempURL)
             } catch {
-                throw DocumentEditError("Couldn't save '\(fileURL.lastPathComponent)': \(error.localizedDescription). The original is unchanged.")
+                throw DocumentEditError(
+                    "Couldn't save '\(fileURL.lastPathComponent)': \(error.localizedDescription). The original is unchanged."
+                )
             }
         }
     }
@@ -119,11 +126,15 @@ enum DocumentEditService {
     ) async throws -> PreparedEdit {
         let ext = fileURL.pathExtension.lowercased()
         guard isEditable(ext) else {
-            throw DocumentEditError(".\(ext) files can't be edited with `operations`; only .docx, .xlsx, .pptx and .pdf.")
+            throw DocumentEditError(
+                ".\(ext) files can't be edited with `operations`; only .docx, .xlsx, .pptx and .pdf."
+            )
         }
         guard !rawOperations.isEmpty else { throw DocumentEditError("`operations` is empty.") }
         guard rawOperations.count <= maxOperations else {
-            throw DocumentEditError("\(rawOperations.count) operations is over the \(maxOperations)-per-call limit; split them up.")
+            throw DocumentEditError(
+                "\(rawOperations.count) operations is over the \(maxOperations)-per-call limit; split them up."
+            )
         }
         let allowed = operationNames(for: ext)
         let operations = try rawOperations.enumerated().map {
@@ -132,7 +143,9 @@ enum DocumentEditService {
 
         let size = (try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
         guard size <= maxFileBytes else {
-            throw DocumentEditError("'\(displayPath)' is \(size / 1_048_576) MB; documents over \(maxFileBytes / 1_048_576) MB aren't edited in place.")
+            throw DocumentEditError(
+                "'\(displayPath)' is \(size / 1_048_576) MB; documents over \(maxFileBytes / 1_048_576) MB aren't edited in place."
+            )
         }
         let original: Data
         do {
@@ -202,15 +215,23 @@ enum DocumentEditService {
             }
         }
         return PreparedEdit(
-            fileURL: fileURL, tempURL: tempURL, originalData: original, summaries: summaries,
-            warnings: warnings, diffText: diffText, diffTruncated: diffTruncated)
+            fileURL: fileURL,
+            tempURL: tempURL,
+            originalData: original,
+            summaries: summaries,
+            warnings: warnings,
+            diffText: diffText,
+            diffTruncated: diffTruncated
+        )
     }
 
     /// Re-open the staged file with the same parsers the app reads with.
     static func validate(_ url: URL, ext: String) async throws {
         if ext == "pdf" {
             guard let document = PDFDocument(url: url), document.pageCount > 0 else {
-                throw DocumentEditError("The edited PDF didn't re-open cleanly, so it was discarded. The original is unchanged.")
+                throw DocumentEditError(
+                    "The edited PDF didn't re-open cleanly, so it was discarded. The original is unchanged."
+                )
             }
         }
         DocumentAdaptersBootstrap.registerBuiltIns()
@@ -257,7 +278,10 @@ enum DocumentEditService {
                     "columns": rows.map { $0.childElements("tc").count }.max() ?? 0,
                     "first_row": rows.first.map { row in
                         row.childElements("tc").map { cell in
-                            OOXMLText.preview(cell.childElements("p").map(OOXMLText.text(of:)).joined(separator: " "), max: 40)
+                            OOXMLText.preview(
+                                cell.childElements("p").map(OOXMLText.text(of:)).joined(separator: " "),
+                                max: 40
+                            )
                         }
                     } ?? [],
                 ]
@@ -301,7 +325,9 @@ enum DocumentEditService {
         case "pptx":
             let package = try OOXMLPackage(data: try Data(contentsOf: url))
             let editor = try PPTXEditor(package: package)
-            out["slides"] = try editor.slides().prefix(structureListLimit).enumerated().map { index, slide -> [String: Any] in
+            out["slides"] = try editor.slides().prefix(structureListLimit).enumerated().map {
+                index,
+                slide -> [String: Any] in
                 let root = try package.root(slide.part)
                 let shapes = PPTXEditor.textShapes(in: root).enumerated().map { shapeIndex, shape -> [String: Any] in
                     var entry: [String: Any] = [
@@ -318,7 +344,7 @@ enum DocumentEditService {
             guard let document = PDFDocument(url: url) else { throw DocumentEditError("The PDF couldn't be opened.") }
             if document.isLocked { throw DocumentEditError("The PDF is password-protected.") }
             out["page_count"] = document.pageCount
-            out["pages"] = (0..<min(document.pageCount, structureListLimit)).compactMap { index -> [String: Any]? in
+            out["pages"] = (0 ..< min(document.pageCount, structureListLimit)).compactMap { index -> [String: Any]? in
                 guard let page = document.page(at: index) else { return nil }
                 let bounds = page.bounds(for: .cropBox)
                 return [

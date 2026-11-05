@@ -185,7 +185,8 @@ struct SlackConnectionConfiguration: Codable, Equatable, Sendable {
 
     static func normalizedIds(_ ids: [String]) -> [String] {
         var seen = Set<String>()
-        return ids
+        return
+            ids
             .map(normalizedId)
             .filter { !$0.isEmpty && seen.insert($0).inserted }
     }
@@ -580,9 +581,9 @@ enum SlackSignatureVerifier {
         let trimmedTimestamp = timestamp.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedSignature = signature.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !trimmedSecret.isEmpty,
-              let timestampSeconds = TimeInterval(trimmedTimestamp),
-              abs(now.timeIntervalSince1970 - timestampSeconds) <= tolerance,
-              trimmedSignature.hasPrefix("v0=")
+            let timestampSeconds = TimeInterval(trimmedTimestamp),
+            abs(now.timeIntervalSince1970 - timestampSeconds) <= tolerance,
+            trimmedSignature.hasPrefix("v0=")
         else {
             return false
         }

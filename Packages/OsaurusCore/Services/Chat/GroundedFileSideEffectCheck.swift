@@ -69,7 +69,8 @@ enum GroundedFileSideEffectCheck {
     private static let claimPatterns: [NSRegularExpression] = {
         let writePredicate = "\\b(?:append(?:ed|ing)?|wrote|writing|saved|saving|created|creating)\\b"
         let destinationPredicate = "(?:" + writePredicate + "|\\b(?:added|adding|pasted|pasting)\\b)"
-        let fileObject = "(?:it\\s+|this\\s+|that\\s+|the\\s+|your\\s+|a\\s+|an\\s+)?"
+        let fileObject =
+            "(?:it\\s+|this\\s+|that\\s+|the\\s+|your\\s+|a\\s+|an\\s+)?"
             + "(?:file|note|document|markdown|report)s?\\b"
         let sources = [
             writePredicate + "\\s+" + fileObject,

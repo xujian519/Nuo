@@ -64,7 +64,10 @@ struct ChatHistoryOpenRecoveryTests {
             ChatHistoryDatabase.shared.close()
             let connection = try OsaurusStorageOpener.open(path: OsaurusPaths.chatHistoryDatabaseFile().path)
             defer { sqlite3_close(connection) }
-            #expect(sqlite3_exec(connection, "DROP TABLE turns; CREATE TABLE turns (broken TEXT)", nil, nil, nil) == SQLITE_OK)
+            #expect(
+                sqlite3_exec(connection, "DROP TABLE turns; CREATE TABLE turns (broken TEXT)", nil, nil, nil)
+                    == SQLITE_OK
+            )
             #expect(throws: (any Error).self) { try ChatHistoryDatabase.shared.open() }
             #expect(!ChatHistoryDatabase.shared.isOpen)
             #expect(!ChatHistoryDatabase.shared.isOpenNonBlocking)

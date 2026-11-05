@@ -64,38 +64,58 @@ extension ConfigChannelPlatform {
         case .discord:
             let c = DiscordConnectionConfigurationStore.load()
             return ConfigChannelSnapshot(
-                writeEnabled: c.writeEnabled, defaultReadLimit: c.defaultReadLimit,
-                spaceAllowlist: c.configuredGuildIds, readAllowlist: c.readableChannelIds,
-                writeAllowlist: c.writableChannelIds, senderAllowlist: c.senderAllowlist,
-                inbound: c.inboundDispatch)
+                writeEnabled: c.writeEnabled,
+                defaultReadLimit: c.defaultReadLimit,
+                spaceAllowlist: c.configuredGuildIds,
+                readAllowlist: c.readableChannelIds,
+                writeAllowlist: c.writableChannelIds,
+                senderAllowlist: c.senderAllowlist,
+                inbound: c.inboundDispatch
+            )
         case .slack:
             let c = SlackConnectionConfigurationStore.load()
             return ConfigChannelSnapshot(
-                writeEnabled: c.writeEnabled, defaultReadLimit: c.defaultReadLimit,
-                spaceAllowlist: c.configuredTeamIds, readAllowlist: c.readableChannelIds,
-                writeAllowlist: c.writableChannelIds, senderAllowlist: c.senderAllowlist,
-                inbound: c.inboundDispatch)
+                writeEnabled: c.writeEnabled,
+                defaultReadLimit: c.defaultReadLimit,
+                spaceAllowlist: c.configuredTeamIds,
+                readAllowlist: c.readableChannelIds,
+                writeAllowlist: c.writableChannelIds,
+                senderAllowlist: c.senderAllowlist,
+                inbound: c.inboundDispatch
+            )
         case .telegram:
             let c = TelegramConnectionConfigurationStore.load()
             return ConfigChannelSnapshot(
-                writeEnabled: c.writeEnabled, defaultReadLimit: c.defaultReadLimit,
-                spaceAllowlist: nil, readAllowlist: c.readableChatIds,
-                writeAllowlist: c.writableChatIds, senderAllowlist: c.senderAllowlist,
-                inbound: c.inboundDispatch)
+                writeEnabled: c.writeEnabled,
+                defaultReadLimit: c.defaultReadLimit,
+                spaceAllowlist: nil,
+                readAllowlist: c.readableChatIds,
+                writeAllowlist: c.writableChatIds,
+                senderAllowlist: c.senderAllowlist,
+                inbound: c.inboundDispatch
+            )
         case .imessage:
             let c = IMessageConnectionConfigurationStore.load()
             return ConfigChannelSnapshot(
-                writeEnabled: c.writeEnabled, defaultReadLimit: c.defaultReadLimit,
-                spaceAllowlist: nil, readAllowlist: c.readableChatIds,
-                writeAllowlist: c.writableChatIds, senderAllowlist: c.senderAllowlist,
-                inbound: c.inboundDispatch)
+                writeEnabled: c.writeEnabled,
+                defaultReadLimit: c.defaultReadLimit,
+                spaceAllowlist: nil,
+                readAllowlist: c.readableChatIds,
+                writeAllowlist: c.writableChatIds,
+                senderAllowlist: c.senderAllowlist,
+                inbound: c.inboundDispatch
+            )
         case .whatsapp:
             let c = WhatsAppConnectionConfigurationStore.load()
             return ConfigChannelSnapshot(
-                writeEnabled: c.writeEnabled, defaultReadLimit: c.defaultReadLimit,
-                spaceAllowlist: nil, readAllowlist: c.readableChatIds,
-                writeAllowlist: c.writableChatIds, senderAllowlist: c.senderAllowlist,
-                inbound: c.inboundDispatch)
+                writeEnabled: c.writeEnabled,
+                defaultReadLimit: c.defaultReadLimit,
+                spaceAllowlist: nil,
+                readAllowlist: c.readableChatIds,
+                writeAllowlist: c.writableChatIds,
+                senderAllowlist: c.senderAllowlist,
+                inbound: c.inboundDispatch
+            )
         }
     }
 

@@ -108,7 +108,8 @@ enum GroundedConfigClaimCheck {
     static func isFabricatedEnvelopeAnswer(_ text: String) -> Bool {
         var trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.hasPrefix("```") {
-            trimmed = trimmed
+            trimmed =
+                trimmed
                 .split(separator: "\n", omittingEmptySubsequences: false)
                 .dropFirst()
                 .joined(separator: "\n")

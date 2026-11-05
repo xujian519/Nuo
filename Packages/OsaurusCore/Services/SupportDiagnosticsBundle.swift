@@ -250,7 +250,8 @@ enum SupportDiagnosticsBundleBuilder {
             toolMode: redactedMetadata(toolMode)
         )
 
-        let registeredRecords = registeredTools
+        let registeredRecords =
+            registeredTools
             .map {
                 SupportDiagnosticsBundle.ToolRecord(
                     name: $0.name,
@@ -269,7 +270,8 @@ enum SupportDiagnosticsBundleBuilder {
         )
 
         let limit = max(0, recentLogLimit)
-        let recentRequests = logs
+        let recentRequests =
+            logs
             .sorted { lhs, rhs in
                 if lhs.timestamp == rhs.timestamp {
                     return lhs.id.uuidString < rhs.id.uuidString
@@ -365,16 +367,18 @@ enum SupportDiagnosticsBundleBuilder {
 
     private static func sanitizedEndpoint(_ value: String?) -> String? {
         guard let value = redactedMetadata(value) else { return nil }
-        let withoutQuery = value.split(
-            separator: "?",
-            maxSplits: 1,
-            omittingEmptySubsequences: false
-        ).first.map(String.init) ?? value
-        let withoutFragment = withoutQuery.split(
-            separator: "#",
-            maxSplits: 1,
-            omittingEmptySubsequences: false
-        ).first.map(String.init) ?? withoutQuery
+        let withoutQuery =
+            value.split(
+                separator: "?",
+                maxSplits: 1,
+                omittingEmptySubsequences: false
+            ).first.map(String.init) ?? value
+        let withoutFragment =
+            withoutQuery.split(
+                separator: "#",
+                maxSplits: 1,
+                omittingEmptySubsequences: false
+            ).first.map(String.init) ?? withoutQuery
         return redactIdentitySegments(in: withoutFragment)
     }
 
@@ -447,7 +451,8 @@ enum SupportDiagnosticsBundleBuilder {
             template: "$1\(redactedValue)"
         )
         output = replacing(
-            pattern: #"(?i)((?:^|[^\w])"?(?:api[_-]?key|access[_-]?token|refresh[_-]?token|token|secret|password|code)"?\s*[=:]\s*)"?[^\s"&;,}]+"?"#,
+            pattern:
+                #"(?i)((?:^|[^\w])"?(?:api[_-]?key|access[_-]?token|refresh[_-]?token|token|secret|password|code)"?\s*[=:]\s*)"?[^\s"&;,}]+"?"#,
             in: output,
             template: "$1\(redactedValue)"
         )
@@ -468,7 +473,7 @@ enum SupportDiagnosticsBundleBuilder {
         guard let expression = try? NSRegularExpression(pattern: pattern) else {
             return value
         }
-        let range = NSRange(value.startIndex..<value.endIndex, in: value)
+        let range = NSRange(value.startIndex ..< value.endIndex, in: value)
         return expression.stringByReplacingMatches(
             in: value,
             options: [],

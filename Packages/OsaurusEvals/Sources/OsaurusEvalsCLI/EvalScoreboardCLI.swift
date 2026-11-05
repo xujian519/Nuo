@@ -32,9 +32,13 @@ extension OsaurusEvalsCLI {
             try writeEvalScoreboard(scoreboard, outDir: opts.outDir)
             print("wrote eval watcher scoreboard to \(opts.outDir.path)")
             print("  json: \(opts.outDir.appendingPathComponent(EvalScoreboardBundle.jsonFileName).path)")
-            print("  registry: \(opts.outDir.appendingPathComponent(EvalScoreboardBundle.evidenceRegistryFileName).path)")
+            print(
+                "  registry: \(opts.outDir.appendingPathComponent(EvalScoreboardBundle.evidenceRegistryFileName).path)"
+            )
             print("  markdown: \(opts.outDir.appendingPathComponent("scoreboard.md").path)")
-            print("  verdict: \(scoreboard.hasBlockingRegressions ? "REGRESSED" : (scoreboard.hasRunFailures ? "EVAL FAILURES PRESENT" : "PASS"))")
+            print(
+                "  verdict: \(scoreboard.hasBlockingRegressions ? "REGRESSED" : (scoreboard.hasRunFailures ? "EVAL FAILURES PRESENT" : "PASS"))"
+            )
             return scoreboard.hasBlockingRegressions || scoreboard.hasRunFailures ? 1 : 0
         } catch {
             FileHandle.standardError.write(

@@ -315,7 +315,8 @@ struct SubagentBatchAdmissionPlan: Sendable, Equatable {
         localCapacity = min(localCapacity, 1)
         localParallelism = min(localParallelism, 1)
         localSubwaveSizes = SubagentBatchAdmissionPlanner.subwaveSizes(
-            jobCount: jobCount, slots: localParallelism
+            jobCount: jobCount,
+            slots: localParallelism
         )
     }
 
@@ -406,7 +407,9 @@ enum SubagentBatchAdmissionPlanner {
         // Nor do we trim just to widen a batch that can already serialize.
         if let budget = facts.resolvedLoadBudgetBytes,
             saturatingSubtract(budget, saturatingAdd(footprint, facts.effectiveAllocatorAllowanceBytes)) < perChild
-        { return initial }
+        {
+            return initial
+        }
         guard await reclaim(), !Task.isCancelled else { return initial }
         do {
             try await waitForPostReclaimSample()
@@ -422,7 +425,9 @@ enum SubagentBatchAdmissionPlanner {
     }
 
     private static let log = Logger(
-        subsystem: "ai.osaurus", category: "SubagentAdmission")
+        subsystem: "ai.osaurus",
+        category: "SubagentAdmission"
+    )
 
     /// One complete diagnostics line per admission decision. Every term of
     /// the RAM math is named so a 16 GB rejection can be attributed to the
@@ -457,7 +462,8 @@ enum SubagentBatchAdmissionPlanner {
             ramSlots=\(plan.ramSlots.map(String.init) ?? "nil", privacy: .public) \
             localCapacity=\(plan.localCapacity) parallelism=\(plan.localParallelism) \
             limiting=\(plan.limitingFactors.map(\.rawValue).sorted().joined(separator: ","), privacy: .public)
-            """)
+            """
+        )
     }
 
     static func plan(_ input: SubagentBatchAdmissionInput) -> SubagentBatchAdmissionPlan {
@@ -626,7 +632,8 @@ enum SubagentBatchAdmissionPlanner {
         // not this model-only budget.
         if let budget = facts.resolvedLoadBudgetBytes {
             let budgetResidual = saturatingSubtract(
-                budget, saturatingAdd(footprint, facts.effectiveAllocatorAllowanceBytes)
+                budget,
+                saturatingAdd(footprint, facts.effectiveAllocatorAllowanceBytes)
             )
             slots = min(slots, clampedSlotCount(budgetResidual / perChild))
         }

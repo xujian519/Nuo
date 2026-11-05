@@ -134,9 +134,15 @@ enum SafeDiskCachePurge {
         sqlite3_finalize(statement)
         if code == SQLITE_DONE { return true }
         guard code == SQLITE_ROW else { return false }
-        guard sqlite3_prepare_v2(
-            db, "DELETE FROM legacy_companions WHERE key = ?", -1, &statement, nil
-        ) == SQLITE_OK else { return false }
+        guard
+            sqlite3_prepare_v2(
+                db,
+                "DELETE FROM legacy_companions WHERE key = ?",
+                -1,
+                &statement,
+                nil
+            ) == SQLITE_OK
+        else { return false }
         defer { sqlite3_finalize(statement) }
         for key in keys.sorted() {
             sqlite3_reset(statement)

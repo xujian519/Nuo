@@ -114,7 +114,12 @@ struct AgentDeletionPluginTeardownOrderingTests {
             plugin_id: pluginId,
             description: nil,
             capabilities: .init(
-                tools: nil, routes: [route], config: nil, web: nil, artifact_handler: nil),
+                tools: nil,
+                routes: [route],
+                config: nil,
+                web: nil,
+                artifact_handler: nil
+            ),
             instructions: nil,
             name: nil,
             version: nil,
@@ -289,7 +294,8 @@ struct ToolSecretsResolutionPolicyTests {
         defer { ctx.teardown() }
 
         let (fallback, exact): (String?, String?) = PluginHostContext.withTLSScope(
-            pluginId: pluginId, agentId: agent
+            pluginId: pluginId,
+            agentId: agent
         ) {
             (ctx.configGet(key: "bot_token"), ctx.configGet(key: "other_key"))
         }

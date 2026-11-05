@@ -123,7 +123,9 @@ public struct ChatSessionData: Codable, Identifiable, Sendable {
         folderBookmark = try container.decodeIfPresent(Data.self, forKey: .folderBookmark)
         folderPath = try container.decodeIfPresent(String.self, forKey: .folderPath)
         conversationSummary = try container.decodeIfPresent(
-            ConversationSummary.self, forKey: .conversationSummary)
+            ConversationSummary.self,
+            forKey: .conversationSummary
+        )
         projectId = try container.decodeIfPresent(UUID.self, forKey: .projectId)
         workspace = try container.decodeIfPresent(WorkspaceSessionContext.self, forKey: .workspace)
     }

@@ -58,7 +58,9 @@ struct EffectiveSamplerReadoutTests {
         let text = LiveActivitySection.describe(
             settings(
                 temperature: 0.7,
-                mtpFallbackReason: "tuning artifact did not assert output_equivalent"))
+                mtpFallbackReason: "tuning artifact did not assert output_equivalent"
+            )
+        )
 
         #expect(text.contains("MTP off — tuning artifact did not assert output_equivalent"))
         #expect(!text.contains("draft none"), "a named reason must replace the bare state")
@@ -66,7 +68,8 @@ struct EffectiveSamplerReadoutTests {
 
     @Test func readout_namesTheDrafterWhenSpeculativeDecodingIsLive() {
         let text = LiveActivitySection.describe(
-            settings(temperature: 0.7, draftStrategy: "nativeMTP"))
+            settings(temperature: 0.7, draftStrategy: "nativeMTP")
+        )
 
         #expect(text.contains("draft nativeMTP"))
     }

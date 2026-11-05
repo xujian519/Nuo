@@ -63,7 +63,8 @@ enum VLMDetection {
         let url = parts.reduce(base) { $0.appendingPathComponent($1, isDirectory: true) }
         guard
             FileManager.default.fileExists(
-                atPath: url.appendingPathComponent("config.json", isDirectory: false).path)
+                atPath: url.appendingPathComponent("config.json", isDirectory: false).path
+            )
         else { return nil }
         return url
     }

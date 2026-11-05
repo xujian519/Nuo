@@ -282,7 +282,7 @@ struct SlackConversationPage: Equatable, Sendable {
 
     static func normalizedCursor(_ cursor: String?) -> String? {
         guard let trimmed = cursor?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !trimmed.isEmpty
+            !trimmed.isEmpty
         else { return nil }
         return trimmed
     }
@@ -411,7 +411,8 @@ protocol SlackAPIClientProtocol: Sendable {
         cursor: String?
     ) async throws -> SlackMessagePage
     func sendMessage(_ request: SlackOutboundMessageRequest, token: String) async throws -> SlackMessage
-    func updateMessage(channelId: String, messageId: String, content: String, token: String) async throws -> SlackMessage
+    func updateMessage(channelId: String, messageId: String, content: String, token: String) async throws
+        -> SlackMessage
     func deleteMessage(channelId: String, messageId: String, token: String) async throws
     func addReaction(channelId: String, messageId: String, reaction: String, token: String) async throws
     func removeReaction(channelId: String, messageId: String, reaction: String, token: String) async throws
@@ -535,7 +536,7 @@ final class SlackAPIClient: SlackAPIClientProtocol, @unchecked Sendable {
             form: [:]
         )
         guard let url = URL(string: payload.url),
-              ["wss", "ws"].contains(url.scheme?.lowercased() ?? "")
+            ["wss", "ws"].contains(url.scheme?.lowercased() ?? "")
         else {
             throw SlackAPIError.invalidResponse("Slack Socket Mode response did not include a WebSocket URL.")
         }
@@ -723,7 +724,8 @@ final class SlackAPIClient: SlackAPIClientProtocol, @unchecked Sendable {
         var request = makeRequest(method: method, token: token)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.httpBody = form
+        request.httpBody =
+            form
             .map { key, value in
                 "\(Self.urlEncode(key))=\(Self.urlEncode(value))"
             }
@@ -762,7 +764,8 @@ final class SlackAPIClient: SlackAPIClientProtocol, @unchecked Sendable {
             }
             guard http.statusCode != 429 else {
                 let retryAfterHeader = http.value(forHTTPHeaderField: "Retry-After")
-                let retryAfter = retryAfterHeader
+                let retryAfter =
+                    retryAfterHeader
                     .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                     .flatMap(TimeInterval.init)
                     .map { max(0, $0) }

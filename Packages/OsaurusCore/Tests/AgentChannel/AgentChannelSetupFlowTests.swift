@@ -93,9 +93,11 @@ struct AgentChannelSetupFlowTests {
         #expect(N8nSetupSection.requiredSectionIds == ["basics", "location", "reply", "connect"])
         #expect(N8nSetupSection.fallbackSectionId == "live")
         #expect(N8nSetupSection.basics.caption == L("Display name and id"))
-        #expect(N8nSetupSection.sections.map(\.title) == [
-            L("Name it"), L("Where is your n8n?"), L("Who answers?"), L("Pair"), L("Prove it"),
-        ])
+        #expect(
+            N8nSetupSection.sections.map(\.title) == [
+                L("Name it"), L("Where is your n8n?"), L("Who answers?"), L("Pair"), L("Prove it"),
+            ]
+        )
     }
 
     @Test func addCatalogListsGuidedProvidersFirstAndCustomLastAsAdvanced() {

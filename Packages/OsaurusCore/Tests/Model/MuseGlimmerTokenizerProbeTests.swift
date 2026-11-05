@@ -23,7 +23,8 @@ struct MuseGlimmerTokenizerProbeTests {
 
     static var bundleExists: Bool {
         FileManager.default.fileExists(
-            atPath: bundle.appendingPathComponent("tokenizer.json").path)
+            atPath: bundle.appendingPathComponent("tokenizer.json").path
+        )
     }
 
     @Test("special tokens encode as single ids", .enabled(if: bundleExists))
@@ -42,8 +43,10 @@ struct MuseGlimmerTokenizerProbeTests {
         }
     }
 
-    @Test("template renders one reasoning line and the assistant opener",
-        .enabled(if: bundleExists))
+    @Test(
+        "template renders one reasoning line and the assistant opener",
+        .enabled(if: bundleExists)
+    )
     func templateRendersStrength() async throws {
         let tokenizer = try await SwiftTransformersTokenizerLoader()
             .load(from: Self.bundle)
@@ -51,17 +54,24 @@ struct MuseGlimmerTokenizerProbeTests {
         let ids = try tokenizer.applyChatTemplate(
             messages: [["role": "user", "content": "hi"]],
             tools: nil,
-            additionalContext: ["reasoning_strength": "low", "add_generation_prompt": true])
+            additionalContext: ["reasoning_strength": "low", "add_generation_prompt": true]
+        )
         let rendered = tokenizer.decode(tokenIds: ids, skipSpecialTokens: false)
 
         let strengthLines = rendered.components(separatedBy: "Reasoning strength:").count - 1
         #expect(strengthLines == 1, "expected exactly 1 strength line, got \(strengthLines)")
-        #expect(rendered.contains("Reasoning strength: low"),
-            "reasoning_strength variable did not reach the template")
-        #expect(rendered.contains("<|start|>assistant"),
-            "generation prompt missing — template not applied")
-        #expect(!rendered.hasSuffix("<|message|>"),
-            "generation prompt must NOT end with <|message|>")
+        #expect(
+            rendered.contains("Reasoning strength: low"),
+            "reasoning_strength variable did not reach the template"
+        )
+        #expect(
+            rendered.contains("<|start|>assistant"),
+            "generation prompt missing — template not applied"
+        )
+        #expect(
+            !rendered.hasSuffix("<|message|>"),
+            "generation prompt must NOT end with <|message|>"
+        )
     }
 
     @Test("plain text round-trips", .enabled(if: bundleExists))
@@ -74,8 +84,10 @@ struct MuseGlimmerTokenizerProbeTests {
         #expect(back == text, "round-trip mangled: \(back)")
     }
 
-    @Test("all four strengths render, and only the strength line differs",
-        .enabled(if: bundleExists))
+    @Test(
+        "all four strengths render, and only the strength line differs",
+        .enabled(if: bundleExists)
+    )
     func allFourStrengthsRenderDistinctPrefixes() async throws {
         let tokenizer = try await SwiftTransformersTokenizerLoader()
             .load(from: Self.bundle)
@@ -87,14 +99,17 @@ struct MuseGlimmerTokenizerProbeTests {
                 tools: nil,
                 additionalContext: [
                     "reasoning_strength": level, "add_generation_prompt": true,
-                ])
+                ]
+            )
             let text = tokenizer.decode(tokenIds: ids, skipSpecialTokens: false)
             rendered[level] = text
 
             let count = text.components(separatedBy: "Reasoning strength:").count - 1
             #expect(count == 1, "\(level): expected 1 strength line, got \(count)")
-            #expect(text.contains("Reasoning strength: \(level)"),
-                "\(level) did not reach the template")
+            #expect(
+                text.contains("Reasoning strength: \(level)"),
+                "\(level) did not reach the template"
+            )
         }
 
         // Every level must produce a DIFFERENT prompt — that is what forces a
@@ -105,39 +120,52 @@ struct MuseGlimmerTokenizerProbeTests {
         // …and they must differ ONLY at the strength word: erasing the level
         // from each should make them identical. If anything else moves, the
         // prefix divergence is wider than the salt models.
-        let normalized = Set(rendered.map { level, text in
-            text.replacingOccurrences(of: "Reasoning strength: \(level)",
-                                      with: "Reasoning strength: <LEVEL>")
-        })
-        #expect(normalized.count == 1,
-            "levels differ beyond the strength word: \(normalized.count) shapes")
+        let normalized = Set(
+            rendered.map { level, text in
+                text.replacingOccurrences(
+                    of: "Reasoning strength: \(level)",
+                    with: "Reasoning strength: <LEVEL>"
+                )
+            }
+        )
+        #expect(
+            normalized.count == 1,
+            "levels differ beyond the strength word: \(normalized.count) shapes"
+        )
     }
 
-    @Test("the strength line lands in the system prefix, not the tail",
-        .enabled(if: bundleExists))
+    @Test(
+        "the strength line lands in the system prefix, not the tail",
+        .enabled(if: bundleExists)
+    )
     func strengthLineIsInThePrefix() async throws {
         let tokenizer = try await SwiftTransformersTokenizerLoader()
             .load(from: Self.bundle)
         let ids = try tokenizer.applyChatTemplate(
             messages: [["role": "user", "content": "hello there"]],
             tools: nil,
-            additionalContext: ["reasoning_strength": "high", "add_generation_prompt": true])
+            additionalContext: ["reasoning_strength": "high", "add_generation_prompt": true]
+        )
         let text = tokenizer.decode(tokenIds: ids, skipSpecialTokens: false)
 
         guard let strengthAt = text.range(of: "Reasoning strength:"),
-              let userAt = text.range(of: "hello there")
+            let userAt = text.range(of: "hello there")
         else {
             Issue.record("template missing the strength line or the user turn")
             return
         }
         // Strength precedes the user turn ⇒ an effort flip invalidates the
         // whole prefix; no suffix-only reuse is possible for this family.
-        #expect(strengthAt.lowerBound < userAt.lowerBound,
-            "strength line is not in the prefix — cache reasoning would be wrong")
+        #expect(
+            strengthAt.lowerBound < userAt.lowerBound,
+            "strength line is not in the prefix — cache reasoning would be wrong"
+        )
     }
 
-    @Test("structured image part renders a <|patch|> placeholder",
-        .enabled(if: bundleExists))
+    @Test(
+        "structured image part renders a <|patch|> placeholder",
+        .enabled(if: bundleExists)
+    )
     func imagePartRendersPatch() async throws {
         let tokenizer = try await SwiftTransformersTokenizerLoader()
             .load(from: Self.bundle)
@@ -148,7 +176,8 @@ struct MuseGlimmerTokenizerProbeTests {
         let ids = try tokenizer.applyChatTemplate(
             messages: [["role": "user", "content": content]],
             tools: nil,
-            additionalContext: ["add_generation_prompt": true])
+            additionalContext: ["add_generation_prompt": true]
+        )
         let text = tokenizer.decode(tokenIds: ids, skipSpecialTokens: false)
         print("[patch-probe] rendered: \(text.suffix(220))")
         #expect(text.contains("<|patch|>"), "no <|patch|> in render")
@@ -167,8 +196,10 @@ struct MuseGlimmerTokenizerProbeTests {
         print("[media-probe] patch id should be 200092, video 200091")
     }
 
-    @Test("image part still renders <|patch|> with nil additionalContext",
-        .enabled(if: bundleExists))
+    @Test(
+        "image part still renders <|patch|> with nil additionalContext",
+        .enabled(if: bundleExists)
+    )
     func imagePartRendersPatchWithNilContext() async throws {
         let tokenizer = try await SwiftTransformersTokenizerLoader()
             .load(from: Self.bundle)
@@ -179,7 +210,8 @@ struct MuseGlimmerTokenizerProbeTests {
         let ids = try tokenizer.applyChatTemplate(
             messages: [["role": "user", "content": content]],
             tools: nil,
-            additionalContext: nil)
+            additionalContext: nil
+        )
         let patchCount = ids.filter { $0 == 200_092 }.count
         print("[nilctx-probe] patch tokens: \(patchCount) of \(ids.count) ids")
         #expect(patchCount == 1, "nil additionalContext dropped the placeholder")

@@ -49,16 +49,21 @@ public enum RequestValidator {
         // preserving number spelling so those encodings cannot bypass preflight.
         let prefix = Array(data.prefix(4))
         let encoding: String.Encoding
-        if prefix.starts(with: [0, 0, 254, 255]) || (prefix.count == 4 && prefix[0...2].allSatisfy({ $0 == 0 })) {
+        if prefix.starts(with: [0, 0, 254, 255]) || (prefix.count == 4 && prefix[0 ... 2].allSatisfy({ $0 == 0 })) {
             encoding = .utf32BigEndian
-        } else if prefix.starts(with: [255, 254, 0, 0]) || (prefix.count == 4 && prefix[1...3].allSatisfy({ $0 == 0 })) {
+        } else if prefix.starts(with: [255, 254, 0, 0])
+            || (prefix.count == 4 && prefix[1 ... 3].allSatisfy({ $0 == 0 }))
+        {
             encoding = .utf32LittleEndian
         } else if prefix.starts(with: [254, 255]) || (prefix.count >= 2 && prefix[0] == 0) {
             encoding = .utf16BigEndian
         } else if prefix.starts(with: [255, 254]) || (prefix.count >= 2 && prefix[1] == 0) {
             encoding = .utf16LittleEndian
-        } else { encoding = .utf8 }
-        guard var text = String(data: data, encoding: encoding) else { return nil } // decoder rejects malformed encoding
+        } else {
+            encoding = .utf8
+        }
+        // decoder rejects malformed encoding
+        guard var text = String(data: data, encoding: encoding) else { return nil }
         if text.first == "\u{feff}" { text.removeFirst() }
         let source = SchemaJSONSlices(bytes: Array(text.utf8))
         let formatPath = responses ? ["text", "format"] : ["response_format"]
@@ -70,7 +75,8 @@ public enum RequestValidator {
                 for schema in source.members(named: "schema", in: payload) {
                     do {
                         try JSONSchemaGrammar.validateSupportedSchema(
-                            String(decoding: source.bytes[schema], as: UTF8.self))
+                            String(decoding: source.bytes[schema], as: UTF8.self)
+                        )
                     } catch { return "Unsupported JSON schema: \(error.localizedDescription)" }
                 }
             }
@@ -86,9 +92,10 @@ public enum RequestValidator {
         }
         guard !payload.name.isEmpty, payload.name.count <= 64,
             payload.name.unicodeScalars.allSatisfy({
-                (65...90).contains($0.value) || (97...122).contains($0.value)
-                    || (48...57).contains($0.value) || $0 == "_" || $0 == "-"
-            }) else { return "json_schema.name must contain 1–64 letters, digits, underscores or hyphens." }
+                (65 ... 90).contains($0.value) || (97 ... 122).contains($0.value)
+                    || (48 ... 57).contains($0.value) || $0 == "_" || $0 == "-"
+            })
+        else { return "json_schema.name must contain 1–64 letters, digits, underscores or hyphens." }
         do {
             try JSONSchemaGrammar.validateSupportedSchema(payload.encodedSchema())
             return nil
@@ -96,7 +103,6 @@ public enum RequestValidator {
             return "Unsupported JSON schema: \(error.localizedDescription)"
         }
     }
-
 
     /// Reasons we reject a `ChatCompletionRequest` (or its primitive
     /// equivalents) outright with HTTP 400. We only flag the cases our
@@ -200,14 +206,15 @@ private struct SchemaJSONSlices {
             skipSpace(&i, end: range.upperBound)
             if i < range.upperBound, bytes[i] == 125 { return matches }
             guard let keyEnd = stringEnd(i, end: range.upperBound),
-                  let key = string(in: i..<keyEnd) else { return [] }
+                let key = string(in: i ..< keyEnd)
+            else { return [] }
             i = keyEnd
             skipSpace(&i, end: range.upperBound)
             guard i < range.upperBound, bytes[i] == 58 else { return [] }
             i += 1
             skipSpace(&i, end: range.upperBound)
             guard let end = valueEnd(i, end: range.upperBound) else { return [] }
-            if key == name { matches.append(i..<end) }
+            if key == name { matches.append(i ..< end) }
             i = end
             skipSpace(&i, end: range.upperBound)
             guard i < range.upperBound else { return [] }
@@ -219,7 +226,7 @@ private struct SchemaJSONSlices {
     }
 
     func values(at path: [String]) -> [Range<Int>] {
-        path.reduce([bytes.startIndex..<bytes.endIndex]) { ranges, key in
+        path.reduce([bytes.startIndex ..< bytes.endIndex]) { ranges, key in
             ranges.flatMap { members(named: key, in: $0) }
         }
     }

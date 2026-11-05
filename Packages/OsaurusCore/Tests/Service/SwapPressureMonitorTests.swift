@@ -12,23 +12,33 @@ import Testing
 @Suite struct SwapPressureMonitorTests {
 
     private func classify(
-        current: Int64, peak: Int64? = nil,
-        used: UInt64 = 6 << 30, total: UInt64 = 8 << 30,
-        previous: SwapPressureMonitor.Severity, streak: inout Int
+        current: Int64,
+        peak: Int64? = nil,
+        used: UInt64 = 6 << 30,
+        total: UInt64 = 8 << 30,
+        previous: SwapPressureMonitor.Severity,
+        streak: inout Int
     ) -> SwapPressureMonitor.Severity {
         SwapPressureMonitor.classify(
             currentGrowthBytes: current,
             peakGrowthBytes: peak ?? current,
-            usedBytes: used, totalBytes: total,
-            previous: previous, exitStreak: &streak)
+            usedBytes: used,
+            totalBytes: total,
+            previous: previous,
+            exitStreak: &streak
+        )
     }
 
     @Test("a Mac already deep in swap with no episode growth stays quiet")
     func absoluteSwapWithoutGrowthIsNone() {
         var streak = 0
         let severity = classify(
-            current: 100 << 20, used: 7_500 << 20, total: 8 << 30,
-            previous: .none, streak: &streak)
+            current: 100 << 20,
+            used: 7_500 << 20,
+            total: 8 << 30,
+            previous: .none,
+            streak: &streak
+        )
         #expect(severity == .none)
     }
 
@@ -47,13 +57,16 @@ import Testing
         // until the exit streak completes.
         #expect(
             classify(current: 0, peak: 5 << 30, previous: .critical, streak: &streak)
-                == .critical)
+                == .critical
+        )
         #expect(
             classify(current: 0, peak: 5 << 30, previous: .critical, streak: &streak)
-                == .critical)
+                == .critical
+        )
         #expect(
             classify(current: 0, peak: 5 << 30, previous: .critical, streak: &streak)
-                == .none)
+                == .none
+        )
     }
 
     @Test("near-exhausted swap is critical only when the episode coincided with growth")
@@ -61,12 +74,22 @@ import Testing
         var streak = 0
         #expect(
             classify(
-                current: 512 << 20, used: (8 << 30) - (60 << 20), total: 8 << 30,
-                previous: .none, streak: &streak) == .none)
+                current: 512 << 20,
+                used: (8 << 30) - (60 << 20),
+                total: 8 << 30,
+                previous: .none,
+                streak: &streak
+            ) == .none
+        )
         #expect(
             classify(
-                current: 2 << 30, used: (8 << 30) - (60 << 20), total: 8 << 30,
-                previous: .none, streak: &streak) == .critical)
+                current: 2 << 30,
+                used: (8 << 30) - (60 << 20),
+                total: 8 << 30,
+                previous: .none,
+                streak: &streak
+            ) == .critical
+        )
     }
 
     @Test("exit needs sustained current-growth calm below half the enter threshold")
@@ -75,27 +98,33 @@ import Testing
         #expect(classify(current: 2 << 30, previous: .none, streak: &streak) == .elevated)
         #expect(
             classify(current: 100 << 20, peak: 2 << 30, previous: .elevated, streak: &streak)
-                == .elevated)
+                == .elevated
+        )
         // Calm interrupted: streak resets.
         #expect(
             classify(current: 1 << 30, peak: 2 << 30, previous: .elevated, streak: &streak)
-                == .elevated)
+                == .elevated
+        )
         #expect(
             classify(current: 100 << 20, peak: 2 << 30, previous: .elevated, streak: &streak)
-                == .elevated)
+                == .elevated
+        )
         #expect(
             classify(current: 100 << 20, peak: 2 << 30, previous: .elevated, streak: &streak)
-                == .elevated)
+                == .elevated
+        )
         #expect(
             classify(current: 100 << 20, peak: 2 << 30, previous: .elevated, streak: &streak)
-                == .none)
+                == .none
+        )
     }
 
     @Test("worsening re-enters instantly regardless of streak")
     func worseningWins() {
         var streak = 2
         #expect(
-            classify(current: 5 << 30, previous: .elevated, streak: &streak) == .critical)
+            classify(current: 5 << 30, previous: .elevated, streak: &streak) == .critical
+        )
         #expect(streak == 0)
     }
 
@@ -195,19 +224,24 @@ import Testing
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("swap-emulate-test-\(UUID().uuidString)")
         try FileManager.default.createDirectory(
-            at: root.appendingPathComponent("debug"), withIntermediateDirectories: true)
+            at: root.appendingPathComponent("debug"),
+            withIntermediateDirectories: true
+        )
         defer { try? FileManager.default.removeItem(at: root) }
 
         #expect(SwapPressureMonitor.emulationOverride(dataRoot: root) == nil)
         try "critical".write(
             to: root.appendingPathComponent("debug/swap-emulate"),
-            atomically: true, encoding: .utf8)
+            atomically: true,
+            encoding: .utf8
+        )
         #expect(SwapPressureMonitor.emulationOverride(dataRoot: root) == .critical)
         let state = SwapPressureMonitor().currentState(dataRoot: root)
         #expect(state.severity == .critical)
         #expect(state.emulated)
         try FileManager.default.removeItem(
-            at: root.appendingPathComponent("debug/swap-emulate"))
+            at: root.appendingPathComponent("debug/swap-emulate")
+        )
         #expect(SwapPressureMonitor.emulationOverride(dataRoot: root) == nil)
     }
 

@@ -108,7 +108,10 @@ struct DetectPIITool: OsaurusTool {
                 return pathReq.failureEnvelope ?? ""
             }
             switch await RedactionFileAccess.readText(
-                relativePath: relativePath, fixedRoot: fixedRootPath, tool: name)
+                relativePath: relativePath,
+                fixedRoot: fixedRootPath,
+                tool: name
+            )
             {
             case .success(let content):
                 text = content
@@ -143,7 +146,10 @@ struct DetectPIITool: OsaurusTool {
         for entity in entities {
             let key = entity.category.rawValue
             let line = RedactionFileAccess.lineNumber(
-                of: entity.range.lowerBound, in: text, lineStarts: lineStarts)
+                of: entity.range.lowerBound,
+                in: text,
+                lineStarts: lineStarts
+            )
             var forCategory = byCategory[key] ?? [:]
             if let existing = forCategory[entity.original] {
                 forCategory[entity.original] = (existing.line, existing.occurrences + 1)
@@ -333,7 +339,10 @@ struct RedactFileTool: OsaurusTool, PermissionedTool {
         }
 
         let resolution = await RedactionFileAccess.resolveWritable(
-            relativePath: relativePath, fixedRoot: fixedRootPath, tool: name)
+            relativePath: relativePath,
+            fixedRoot: fixedRootPath,
+            tool: name
+        )
         let fileURL: URL
         let rootPath: URL
         switch resolution {
@@ -345,7 +354,10 @@ struct RedactFileTool: OsaurusTool, PermissionedTool {
 
         let originalContent: String
         switch WorkspaceWriteSafety.existingText(
-            at: fileURL, relativePath: relativePath, toolName: name)
+            at: fileURL,
+            relativePath: relativePath,
+            toolName: name
+        )
         {
         case .success(let content):
             guard let content else {
@@ -357,7 +369,9 @@ struct RedactFileTool: OsaurusTool, PermissionedTool {
         }
 
         let outcome = await RedactionToolSupport.detect(
-            in: originalContent, customRules: parsed.rules)
+            in: originalContent,
+            customRules: parsed.rules
+        )
 
         // Deduplicate overlapping spans (defensive: the engine merges,
         // but replacement must never double-apply), filter to allowed
@@ -545,11 +559,13 @@ enum RedactionFileAccess {
                     field: "path",
                     expected: "relative path under the working folder",
                     tool: tool
-                ))
+                )
+            )
         }
         if FolderToolHelpers.shouldRefuseSecret(fileURL: fileURL) {
             return .failureEnvelope(
-                FolderToolHelpers.secretRefusalEnvelope(relativePath: relativePath, tool: tool))
+                FolderToolHelpers.secretRefusalEnvelope(relativePath: relativePath, tool: tool)
+            )
         }
         guard FileManager.default.fileExists(atPath: fileURL.path) else {
             return .failureEnvelope(
@@ -559,7 +575,8 @@ enum RedactionFileAccess {
                     field: "path",
                     expected: "existing file under the working folder",
                     tool: tool
-                ))
+                )
+            )
         }
         // Documents scan as text only after extraction: point at file_read
         // rather than failing on the binary bytes.
@@ -574,7 +591,10 @@ enum RedactionFileAccess {
             return .failureEnvelope(rejected)
         }
         switch WorkspaceWriteSafety.existingText(
-            at: fileURL, relativePath: relativePath, toolName: tool)
+            at: fileURL,
+            relativePath: relativePath,
+            toolName: tool
+        )
         {
         case .success(let content):
             return .success(content ?? "")
@@ -599,11 +619,13 @@ enum RedactionFileAccess {
                     field: "path",
                     expected: "relative path under the working folder",
                     tool: tool
-                ))
+                )
+            )
         }
         if FolderToolHelpers.shouldRefuseSecret(fileURL: fileURL) {
             return .failureEnvelope(
-                FolderToolHelpers.secretWriteRefusalEnvelope(relativePath: relativePath, tool: tool))
+                FolderToolHelpers.secretWriteRefusalEnvelope(relativePath: relativePath, tool: tool)
+            )
         }
         if let rejected = WorkspaceWriteSafety.documentEditRejection(
             path: relativePath,
@@ -622,7 +644,8 @@ enum RedactionFileAccess {
                     field: "path",
                     expected: "existing file under the working folder",
                     tool: tool
-                ))
+                )
+            )
         }
         return .success((fileURL, rootPath))
     }

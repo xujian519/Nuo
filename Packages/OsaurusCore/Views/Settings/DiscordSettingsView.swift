@@ -308,8 +308,8 @@ struct DiscordSettingsView: View {
                 "Saved to the macOS Keychain when you press “Load from Discord”, Test Connection, or Done.",
                 bundle: .module
             )
-                .font(.system(size: 11))
-                .foregroundColor(theme.tertiaryText)
+            .font(.system(size: 11))
+            .foregroundColor(theme.tertiaryText)
         }
     }
 
@@ -395,7 +395,9 @@ struct DiscordSettingsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 SettingsToggle(
                     title: L("Allow Sending on Discord"),
-                    description: L("Let agents post to write-allowlisted Discord destinations. The global Sending switch in Channels must also be on."),
+                    description: L(
+                        "Let agents post to write-allowlisted Discord destinations. The global Sending switch in Channels must also be on."
+                    ),
                     isOn: $writeEnabled.animation(.easeOut(duration: 0.2))
                 )
 
@@ -470,7 +472,9 @@ struct DiscordSettingsView: View {
                 connectionId: DiscordConnectionService.nativeConnectionId,
                 transportId: DiscordPollingTransportRuntime.transportId,
                 title: L("Discord receive polling"),
-                notRunningHint: L("Polling is not running. Add a bot token, readable channels, and authorized sender IDs to start it."),
+                notRunningHint: L(
+                    "Polling is not running. Add a bot token, readable channels, and authorized sender IDs to start it."
+                ),
                 refreshToken: healthRefreshToken
             )
 
@@ -911,7 +915,9 @@ struct DiscordSettingsView: View {
     private func verifyIncomingMessage() {
         isVerifying = true
         showStatus(
-            L("Waiting for a Discord message. Send the test message now from an authorized sender in a readable channel."),
+            L(
+                "Waiting for a Discord message. Send the test message now from an authorized sender in a readable channel."
+            ),
             isError: false
         )
         let start = Date()

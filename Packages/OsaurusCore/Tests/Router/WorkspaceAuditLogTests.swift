@@ -56,8 +56,12 @@ struct WorkspaceAuditLogChainTests {
         let log = await makeLog(dir)
         let ws = "ws-chain"
 
-        let first = try #require(await log.append(.workspaceCreated, workspaceId: ws, actor: .me(), details: ["name": "Ops"]))
-        let second = try #require(await log.append(.agentShared, workspaceId: ws, agentAddress: "0xABC", agentName: "HR"))
+        let first = try #require(
+            await log.append(.workspaceCreated, workspaceId: ws, actor: .me(), details: ["name": "Ops"])
+        )
+        let second = try #require(
+            await log.append(.agentShared, workspaceId: ws, agentAddress: "0xABC", agentName: "HR")
+        )
         let third = try #require(await log.append(.inviteCreated, workspaceId: ws, target: "inv-1"))
 
         #expect(first.seq == 1)
@@ -215,7 +219,8 @@ struct WorkspaceAuditLogChainTests {
         let log = await makeLog(makeTempDirectory("audit"))
         let record = try #require(
             await log.append(
-                .runFinished, workspaceId: "ws-bound",
+                .runFinished,
+                workspaceId: "ws-bound",
                 details: ["summary": String(repeating: "x", count: 5000), "k": "v"]
             )
         )
@@ -272,7 +277,10 @@ struct WorkspaceAuditRecorderTests {
         #expect(rows[1].target == record.keyId.uuidString)
         #expect(rows[1].details["sealed"] == "true")
         // The attestation token itself must never be persisted in the trail.
-        let raw = try String(contentsOf: try #require(await log.exportURL(workspaceId: record.workspaceId)), encoding: .utf8)
+        let raw = try String(
+            contentsOf: try #require(await log.exportURL(workspaceId: record.workspaceId)),
+            encoding: .utf8
+        )
         #expect(!raw.contains("tok.sig"))
     }
 
@@ -293,8 +301,14 @@ struct WorkspaceAuditRecorderTests {
         let agentId = UUID()
         await log.recordRunStarted(record: record, agentId: agentId, runKey: "r1", model: "m", callerName: "Alice")
         await log.recordRunFinished(
-            record: record, agentId: agentId, runKey: "r1", model: "m",
-            success: false, summary: "Stopped", toolNames: ["read_file", "shell"], toolErrorCount: 1
+            record: record,
+            agentId: agentId,
+            runKey: "r1",
+            model: "m",
+            success: false,
+            summary: "Stopped",
+            toolNames: ["read_file", "shell"],
+            toolErrorCount: 1
         )
         await log.recordRunStopped(record: record, agentId: agentId, runKey: "r1")
         await log.recordRunRejected(record: record, agentId: agentId, reason: "model_override", detail: "gpt-x")
@@ -318,7 +332,8 @@ struct WorkspaceAuditRecorderTests {
         let factory = ScopePolicyAttestationFactory()
         let token = try factory.token(workspaceId: "ws-denied", wallet: TestKeys.bobAddress, role: "viewer")
         let attestation = try WorkspaceMembershipAttestation.verify(
-            token: token, publicKeyBase64URL: factory.publicKeyBase64URL
+            token: token,
+            publicKeyBase64URL: factory.publicKeyBase64URL
         )
         await log.recordAttestationDenied(attestation: attestation, agentAddress: "0xABC", rejection: .notShared)
         let rows = await log.records(workspaceId: "ws-denied")
@@ -332,7 +347,12 @@ struct WorkspaceAuditRecorderTests {
 
     @Test func ownerActionsAreAttributedToSelf() async {
         let log = await makeLog(makeTempDirectory("audit"))
-        await log.recordOwnerAction(.memberRoleChanged, workspaceId: "ws-own", target: "acct-2", details: ["role": "viewer"])
+        await log.recordOwnerAction(
+            .memberRoleChanged,
+            workspaceId: "ws-own",
+            target: "acct-2",
+            details: ["role": "viewer"]
+        )
         let rows = await log.records(workspaceId: "ws-own")
         #expect(rows.first?.actor?.isSelf == true)
         #expect(rows.first?.target == "acct-2")
@@ -397,7 +417,8 @@ struct WorkspaceKeyRecordPersistenceTests {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         let onDisk = try decoder.decode(
-            [String: WorkspaceAgentAccessHost.WorkspaceKeyRecord].self, from: Data(contentsOf: file)
+            [String: WorkspaceAgentAccessHost.WorkspaceKeyRecord].self,
+            from: Data(contentsOf: file)
         )
         #expect(onDisk.keys.sorted() == ["nonce-live"])
     }
@@ -408,8 +429,14 @@ struct WorkspaceKeyRecordPersistenceTests {
         let auditDir = makeTempDirectory("audit")
         let record = sampleRecord()
         let other = WorkspaceAgentAccessHost.WorkspaceKeyRecord(
-            keyId: UUID(), workspaceId: "ws-other", accountId: "a", wallet: record.wallet, role: "member",
-            agentAddressLower: record.agentAddressLower, attestationToken: "t", attestationExpiresAt: wholeSeconds(fromNow: 600)
+            keyId: UUID(),
+            workspaceId: "ws-other",
+            accountId: "a",
+            wallet: record.wallet,
+            role: "member",
+            agentAddressLower: record.agentAddressLower,
+            attestationToken: "t",
+            attestationExpiresAt: wholeSeconds(fromNow: 600)
         )
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -430,7 +457,8 @@ struct WorkspaceKeyRecordPersistenceTests {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         let onDisk = try decoder.decode(
-            [String: WorkspaceAgentAccessHost.WorkspaceKeyRecord].self, from: Data(contentsOf: file)
+            [String: WorkspaceAgentAccessHost.WorkspaceKeyRecord].self,
+            from: Data(contentsOf: file)
         )
         #expect(onDisk.keys.sorted() == ["n2"])
 

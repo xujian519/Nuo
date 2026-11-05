@@ -9,8 +9,12 @@ enum HTTPMediaContract {
             .lowercased() == expected
     }
 
-    static func maySkipUnsupported(status: Int, errorType: String?,
-                                   installedSupportsMedia: Bool?, required: Bool) -> Bool {
+    static func maySkipUnsupported(
+        status: Int,
+        errorType: String?,
+        installedSupportsMedia: Bool?,
+        required: Bool
+    ) -> Bool {
         !required && installedSupportsMedia == false
             && status == 400 && errorType == "invalid_request_error"
     }

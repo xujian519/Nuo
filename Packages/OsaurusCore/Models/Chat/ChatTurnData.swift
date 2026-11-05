@@ -171,7 +171,8 @@ public struct ChatTurnData: Codable, Identifiable, Sendable {
         reasoningEncrypted = try container.decodeIfPresent(String.self, forKey: .reasoningEncrypted)
         responsesOutputItems =
             try container.decodeIfPresent([JSONValue].self, forKey: .responsesOutputItems) ?? []
-        anthropicThinkingBlocks = try container.decodeIfPresent([JSONValue].self, forKey: .anthropicThinkingBlocks) ?? []
+        anthropicThinkingBlocks =
+            try container.decodeIfPresent([JSONValue].self, forKey: .anthropicThinkingBlocks) ?? []
         inputTokenCount = try container.decodeIfPresent(Int.self, forKey: .inputTokenCount)
         cachedInputTokenCount =
             try container.decodeIfPresent(Int.self, forKey: .cachedInputTokenCount)
@@ -224,7 +225,9 @@ public struct ChatTurnData: Codable, Identifiable, Sendable {
         if !responsesOutputItems.isEmpty {
             try container.encode(responsesOutputItems, forKey: .responsesOutputItems)
         }
-        if !anthropicThinkingBlocks.isEmpty { try container.encode(anthropicThinkingBlocks, forKey: .anthropicThinkingBlocks) }
+        if !anthropicThinkingBlocks.isEmpty {
+            try container.encode(anthropicThinkingBlocks, forKey: .anthropicThinkingBlocks)
+        }
         try container.encodeIfPresent(inputTokenCount, forKey: .inputTokenCount)
         try container.encodeIfPresent(cachedInputTokenCount, forKey: .cachedInputTokenCount)
         if modelContextExcluded {

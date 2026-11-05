@@ -64,7 +64,8 @@ final class SessionActivityMonitor: ObservableObject {
     /// Called by `BackgroundTaskState` on status transitions so queued
     /// dispatches surface as working before their stream starts.
     func reportQueued(_ sessionId: UUID, isQueued: Bool) {
-        let changed = isQueued
+        let changed =
+            isQueued
             ? queuedSessionIds.insert(sessionId).inserted
             : queuedSessionIds.remove(sessionId) != nil
         guard changed else { return }

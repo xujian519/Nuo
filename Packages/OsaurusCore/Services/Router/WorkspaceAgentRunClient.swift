@@ -44,7 +44,9 @@ enum WorkspaceAgentRunError: Error, Equatable, Sendable {
     func message(agentName: String, now: Date = Date()) -> String {
         switch self {
         case .routerDisabled:
-            return L("Osaurus Router is turned off, so \(agentName) (a workspace agent) can't be reached. Turn it on in Settings → Osaurus Router.")
+            return L(
+                "Osaurus Router is turned off, so \(agentName) (a workspace agent) can't be reached. Turn it on in Settings → Osaurus Router."
+            )
         case .noIdentity:
             return L("This Mac has no Nuo identity yet, so it can't sign in to the workspace to reach \(agentName).")
         case .notShared:

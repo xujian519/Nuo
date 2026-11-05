@@ -421,7 +421,9 @@ struct N8nSettingsView: View {
         VStack(alignment: .leading, spacing: 12) {
             AgentChannelSectionHeading(
                 L("Name it"),
-                detail: L("A name you will recognize in the channel list. The id below follows it and appears in the webhook URL.")
+                detail: L(
+                    "A name you will recognize in the channel list. The id below follows it and appears in the webhook URL."
+                )
             )
 
             StyledSettingsTextField(
@@ -436,7 +438,9 @@ struct N8nSettingsView: View {
                 text: $draft.id,
                 placeholder: "n8n-accounting-channel",
                 help: draft.isNew
-                    ? L("Filled from the name; edit if you like. Lowercase letters, digits and dashes. Locked after Save.")
+                    ? L(
+                        "Filled from the name; edit if you like. Lowercase letters, digits and dashes. Locked after Save."
+                    )
                     : L("Stable id used in the webhook URL and by agent_channel tools. Cannot change after Save.")
             )
             .disabled(!draft.isNew)
@@ -525,11 +529,17 @@ struct N8nSettingsView: View {
 
             switch location {
             case .thisMac:
-                consequenceRow(icon: "lock.fill", tone: .neutral, text: L("Pairing code URL: http://127.0.0.1:\(serverPort)"))
+                consequenceRow(
+                    icon: "lock.fill",
+                    tone: .neutral,
+                    text: L("Pairing code URL: http://127.0.0.1:\(serverPort)")
+                )
                 consequenceRow(
                     icon: "checkmark.shield",
                     tone: .success,
-                    text: L("Loopback traffic never leaves this Mac. Encryption is optional; binding a local agent in Who answers? adds it.")
+                    text: L(
+                        "Loopback traffic never leaves this Mac. Encryption is optional; binding a local agent in Who answers? adds it."
+                    )
                 )
             case .dockerDesktop:
                 consequenceRow(
@@ -547,32 +557,45 @@ struct N8nSettingsView: View {
                     icon: serverExposedToNetwork ? "network" : "network.slash",
                     tone: serverExposedToNetwork ? .success : .warning,
                     text: serverExposedToNetwork
-                        ? L("Server is exposed to the network. Pairing code URL: http://\(lanAddress ?? "<this-mac-ip>"):\(serverPort)")
-                        : L("The server is not exposed to the network yet. Turn on Expose to Network in Server settings, then come back.")
+                        ? L(
+                            "Server is exposed to the network. Pairing code URL: http://\(lanAddress ?? "<this-mac-ip>"):\(serverPort)"
+                        )
+                        : L(
+                            "The server is not exposed to the network yet. Turn on Expose to Network in Server settings, then come back."
+                        )
                 )
                 consequenceRow(
                     icon: shareableAgent != nil ? "lock.shield" : "lock.open",
                     tone: shareableAgent != nil ? .success : .neutral,
                     text: shareableAgent != nil
                         ? L("A local agent is bound, so n8n speaks Secure Channel and plaintext is never needed.")
-                        : L("Without a bound agent, another machine can only reach this channel over plaintext HTTP. Bind a local agent in Who answers?, or allow plaintext below.")
+                        : L(
+                            "Without a bound agent, another machine can only reach this channel over plaintext HTTP. Bind a local agent in Who answers?, or allow plaintext below."
+                        )
                 )
                 transportPolicySection
             case .remote:
                 consequenceRow(
                     icon: "globe",
                     tone: .neutral,
-                    text: L("n8n reaches this Mac through the Nuo relay. No ports to open, no plaintext from the internet.")
+                    text: L(
+                        "n8n reaches this Mac through the Nuo relay. No ports to open, no plaintext from the internet."
+                    )
                 )
                 consequenceRow(
                     icon: "lock.shield",
                     tone: .success,
-                    text: L("Requires a local agent in Who answers? with Relay enabled. The pairing code carries only the relay URL and is end-to-end encrypted.")
+                    text: L(
+                        "Requires a local agent in Who answers? with Relay enabled. The pairing code carries only the relay URL and is end-to-end encrypted."
+                    )
                 )
                 if shareableAgent == nil {
                     jumpButton(L("Choose the agent in Who answers?"), to: .howOsaurusReplies)
                 } else if relayURLForPairing == nil {
-                    jumpButton(L("Enable Relay on \(shareableAgent?.name ?? "") in Who answers?"), to: .howOsaurusReplies)
+                    jumpButton(
+                        L("Enable Relay on \(shareableAgent?.name ?? "") in Who answers?"),
+                        to: .howOsaurusReplies
+                    )
                 }
             }
         }
@@ -696,13 +719,19 @@ struct N8nSettingsView: View {
                     consequenceRow(
                         icon: "exclamationmark.triangle.fill",
                         tone: .warning,
-                        text: L("Remote n8n needs a local agent as the default: it is the endpoint the relay serves and the key n8n encrypts to.")
+                        text: L(
+                            "Remote n8n needs a local agent as the default: it is the endpoint the relay serves and the key n8n encrypts to."
+                        )
                     )
                 } else {
                     Text(
                         shareableAgent != nil
-                            ? L("n8n reads the reply by polling. The default agent is local, so the pairing code is end-to-end encrypted.")
-                            : L("n8n reads the reply by polling. Pick a local agent as the default to make the pairing code end-to-end encrypted.")
+                            ? L(
+                                "n8n reads the reply by polling. The default agent is local, so the pairing code is end-to-end encrypted."
+                            )
+                            : L(
+                                "n8n reads the reply by polling. Pick a local agent as the default to make the pairing code end-to-end encrypted."
+                            )
                     )
                     .font(.system(size: 11))
                     .foregroundColor(theme.tertiaryText)
@@ -719,8 +748,12 @@ struct N8nSettingsView: View {
             AgentChannelSectionHeading(
                 L("Relay for \(shareableAgent?.name ?? L("the bound agent"))"),
                 detail: draft.callerLocation == .remote
-                    ? L("Gives the agent a public URL via agent.osaurus.ai. The pairing code is issued once the relay is connected.")
-                    : L("Optional for LAN: with Relay on, the same pairing code also works when n8n moves off your network.")
+                    ? L(
+                        "Gives the agent a public URL via agent.osaurus.ai. The pairing code is issued once the relay is connected."
+                    )
+                    : L(
+                        "Optional for LAN: with Relay on, the same pairing code also works when n8n moves off your network."
+                    )
             )
             .settingsLandingAnchor("agentChannels.n8n.relay")
 
@@ -741,7 +774,9 @@ struct N8nSettingsView: View {
                 consequenceRow(
                     icon: "exclamationmark.triangle.fill",
                     tone: .warning,
-                    text: L("Another device is serving this agent's address on the relay. Re-enable here to take it back.")
+                    text: L(
+                        "Another device is serving this agent's address on the relay. Re-enable here to take it back."
+                    )
                 )
                 relayEnableButton(title: L("Take over Relay on \(shareableAgent?.name ?? "")"))
             case .disconnected?, nil:
@@ -1118,7 +1153,9 @@ struct N8nSettingsView: View {
             return L("Docker Desktop reaches this Mac as host.docker.internal; it counts as a same-Mac caller.")
         case .lan:
             return serverExposedToNetwork
-                ? L("Plain HTTP from the LAN needs Allow plaintext HTTP in Where is your n8n?, unless the node speaks Secure Channel.")
+                ? L(
+                    "Plain HTTP from the LAN needs Allow plaintext HTTP in Where is your n8n?, unless the node speaks Secure Channel."
+                )
                 : L("Expose the server to the network in Server settings first.")
         case .remote:
             return L(
@@ -1517,7 +1554,10 @@ struct N8nSettingsView: View {
     private func enableRelayOnBoundAgent() {
         guard let agent = shareableAgent else { return }
         relayManager.setTunnelEnabled(true, for: agent.id)
-        showStatus(L("Enabling Relay on \(agent.name)… the pairing code appears in Pair once it connects."), isError: false)
+        showStatus(
+            L("Enabling Relay on \(agent.name)… the pairing code appears in Pair once it connects."),
+            isError: false
+        )
     }
 
     // MARK: Approvals
@@ -1537,7 +1577,9 @@ struct N8nSettingsView: View {
             onDidChange()
             healthRefreshToken += 1
             showStatus(
-                L("Allowed '\(contact.conversationId)' from '\(contact.senderId)'. Run the workflow again — it will reach the agent now."),
+                L(
+                    "Allowed '\(contact.conversationId)' from '\(contact.senderId)'. Run the workflow again — it will reach the agent now."
+                ),
                 isError: false
             )
         } catch {
@@ -1551,7 +1593,9 @@ struct N8nSettingsView: View {
             reloadPendingContacts()
         }
         showStatus(
-            L("Denied '\(contact.conversationId)' from '\(contact.senderId)' for this session. Its events stay rejected."),
+            L(
+                "Denied '\(contact.conversationId)' from '\(contact.senderId)' for this session. Its events stay rejected."
+            ),
             isError: false
         )
     }
@@ -1560,7 +1604,9 @@ struct N8nSettingsView: View {
         guard let originalId = draft.originalId else {
             // Unsaved draft: just edit the text; Save persists it.
             if let conversationId {
-                draft.conversationAllowlistText = allowedConversations.filter { $0 != conversationId }.joined(separator: "\n")
+                draft.conversationAllowlistText = allowedConversations.filter { $0 != conversationId }.joined(
+                    separator: "\n"
+                )
             }
             if let senderId {
                 draft.senderAllowlistText = allowedSenders.filter { $0 != senderId }.joined(separator: "\n")
@@ -1673,7 +1719,10 @@ struct N8nSettingsView: View {
                         )
                         jump(to: .connect)
                     } else {
-                        showStatus(L("Saved. Paste the pairing code into n8n, run the workflow, then allow it below."), isError: false)
+                        showStatus(
+                            L("Saved. Paste the pairing code into n8n, run the workflow, then allow it below."),
+                            isError: false
+                        )
                         jump(to: .liveCheck)
                     }
                 } catch {
@@ -1763,7 +1812,9 @@ struct N8nSettingsView: View {
                     showStatus(
                         L("No n8n event arrived within 90 seconds."),
                         details: [
-                            L("Confirm the n8n credential holds the current pairing code from Pair and its Test passes."),
+                            L(
+                                "Confirm the n8n credential holds the current pairing code from Pair and its Test passes."
+                            ),
                             L("If Where is your n8n? changed since you copied the code, copy it again."),
                             L("Once the event arrives, allow the workflow above if it asks."),
                         ],

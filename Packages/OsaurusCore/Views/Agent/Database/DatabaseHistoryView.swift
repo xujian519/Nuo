@@ -69,10 +69,13 @@ struct DatabaseHistoryView: View {
             if isLoadingRuns {
                 ProgressView().padding(24)
             } else if runs.isEmpty {
-                Text("No runs yet. When the agent works on a schedule or automation, each run shows up here.", bundle: .module)
-                    .font(.system(size: 12))
-                    .foregroundColor(theme.tertiaryText)
-                    .padding(24)
+                Text(
+                    "No runs yet. When the agent works on a schedule or automation, each run shows up here.",
+                    bundle: .module
+                )
+                .font(.system(size: 12))
+                .foregroundColor(theme.tertiaryText)
+                .padding(24)
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 1) {

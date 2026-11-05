@@ -67,7 +67,8 @@ final class SkillUpdateTool: OsaurusTool, PermissionedTool, @unchecked Sendable 
                         "replace": .object([
                             "type": .string("string"),
                             "description": .string(
-                                "Text to put in its place. May be empty to delete."),
+                                "Text to put in its place. May be empty to delete."
+                            ),
                         ]),
                         "all": .object([
                             "type": .string("boolean"),

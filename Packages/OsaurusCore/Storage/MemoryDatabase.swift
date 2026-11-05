@@ -1505,7 +1505,8 @@ public final class MemoryDatabase: @unchecked Sendable {
             // FTS OR-prefix recall can match common words in unrelated facts.
             // Rank the actual query relevance first; salience only resolves
             // equal relevance, with a stable ID as the final tie breaker.
-            sql += " ORDER BY bm25(fts_pinned) ASC, pinned_facts.salience DESC, pinned_facts.id ASC LIMIT ?\(agentId != nil ? 3 : 2)"
+            sql +=
+                " ORDER BY bm25(fts_pinned) ASC, pinned_facts.salience DESC, pinned_facts.id ASC LIMIT ?\(agentId != nil ? 3 : 2)"
             try prepareAndExecute(
                 sql,
                 bind: { stmt in

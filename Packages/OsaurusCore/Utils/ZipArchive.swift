@@ -75,7 +75,7 @@ public enum ZipArchive {
         var eocd: Int? = nil
         var i = bytes.count - 22
         while i >= scanFloor {
-            if bytes[i] == 0x50, Array(bytes[i..<i + 4]) == eocdSignature {
+            if bytes[i] == 0x50, Array(bytes[i ..< i + 4]) == eocdSignature {
                 eocd = i
                 break
             }
@@ -103,7 +103,7 @@ public enum ZipArchive {
         }
 
         var entries: [Entry] = []
-        for _ in 0..<entryCount {
+        for _ in 0 ..< entryCount {
             guard offset + 46 <= bytes.count, u32(bytes, offset) == 0x0201_4B50 else {
                 throw ZipArchiveError.corruptArchive
             }
@@ -121,7 +121,7 @@ public enum ZipArchive {
                 throw ZipArchiveError.corruptArchive
             }
             let name =
-                String(bytes: bytes[offset + 46..<offset + 46 + nameLength], encoding: .utf8)
+                String(bytes: bytes[offset + 46 ..< offset + 46 + nameLength], encoding: .utf8)
                 ?? ""
 
             if flags & 0x1 != 0 {  // bit 0 = encrypted
@@ -232,7 +232,7 @@ public enum ZipArchive {
         guard start + entry.compressedSize <= data.count else {
             throw ZipArchiveError.corruptArchive
         }
-        return data.subdata(in: base + start..<base + start + entry.compressedSize)
+        return data.subdata(in: base + start ..< base + start + entry.compressedSize)
     }
 
     /// Rewrite an archive: entries named in `replacing` get new contents
@@ -318,8 +318,12 @@ public struct ZipArchiveWriter {
             payload = deflated
         }
         try append(
-            path: path, method: method, crc32: ZipCRC32.checksum(data),
-            payload: payload, uncompressedSize: data.count)
+            path: path,
+            method: method,
+            crc32: ZipCRC32.checksum(data),
+            payload: payload,
+            uncompressedSize: data.count
+        )
     }
 
     /// Copy `entry` from `source` exactly as stored (no inflate/deflate).
@@ -329,8 +333,12 @@ public struct ZipArchiveWriter {
         }
         let payload = try ZipArchive.rawPayload(entry, from: source)
         try append(
-            path: entry.name, method: entry.method, crc32: entry.crc32,
-            payload: payload, uncompressedSize: entry.uncompressedSize)
+            path: entry.name,
+            method: entry.method,
+            crc32: entry.crc32,
+            payload: payload,
+            uncompressedSize: entry.uncompressedSize
+        )
     }
 
     public mutating func finalize() throws -> Data {
@@ -374,7 +382,11 @@ public struct ZipArchiveWriter {
     }
 
     private mutating func append(
-        path: String, method: UInt16, crc32: UInt32, payload: Data, uncompressedSize: Int
+        path: String,
+        method: UInt16,
+        crc32: UInt32,
+        payload: Data,
+        uncompressedSize: Int
     ) throws {
         guard !path.isEmpty, !path.hasPrefix("/"), !path.contains("\\"),
             !path.split(separator: "/", omittingEmptySubsequences: false).contains("..")
@@ -410,9 +422,15 @@ public struct ZipArchiveWriter {
 
         central.append(
             CentralEntry(
-                name: name, method: method, flags: flags, crc32: crc32,
-                compressedSize: compressedSize, uncompressedSize: size,
-                localHeaderOffset: offset))
+                name: name,
+                method: method,
+                flags: flags,
+                crc32: crc32,
+                compressedSize: compressedSize,
+                uncompressedSize: size,
+                localHeaderOffset: offset
+            )
+        )
     }
 
     private static func u32(_ value: Int, _ label: String) throws -> UInt32 {
@@ -426,9 +444,9 @@ public struct ZipArchiveWriter {
 // MARK: - CRC-32
 
 enum ZipCRC32 {
-    private static let table: [UInt32] = (0..<256).map { value in
+    private static let table: [UInt32] = (0 ..< 256).map { value in
         var crc = UInt32(value)
-        for _ in 0..<8 {
+        for _ in 0 ..< 8 {
             crc = crc & 1 == 1 ? 0xEDB8_8320 ^ (crc >> 1) : crc >> 1
         }
         return crc

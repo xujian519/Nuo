@@ -17,7 +17,8 @@ enum BrowserChildTools {
         "enum": .array([.string("none"), .string("compact"), .string("standard"), .string("full")]),
         "description": .string(
             "Snapshot verbosity: none (action result only), compact (single-line refs, default), "
-                + "standard (multi-line with attributes), full (all attributes + page text)"),
+                + "standard (multi-line with attributes), full (all attributes + page text)"
+        ),
     ])
 
     static var all: [Tool] {
@@ -29,7 +30,9 @@ enum BrowserChildTools {
                 properties: [
                     "url": string("URL to navigate to (http/https only)"),
                     "wait_until": enumString(
-                        ["load", "networkidle", "domstable"], "When to consider navigation done"),
+                        ["load", "networkidle", "domstable"],
+                        "When to consider navigation done"
+                    ),
                     "timeout": number("Timeout in seconds (default 30)"),
                     "detail": detailProperty,
                 ],
@@ -58,7 +61,8 @@ enum BrowserChildTools {
                 properties: [
                     "filter": enumString(
                         ["all", "inputs", "buttons", "links", "forms"],
-                        "Filter element types (default: all)"),
+                        "Filter element types (default: all)"
+                    ),
                     "max_elements": number("Max elements to return (default: 100)"),
                     "visible_only": bool("Only visible elements (default: true)"),
                     "detail": detailProperty,
@@ -133,7 +137,8 @@ enum BrowserChildTools {
                             "properties": .object([
                                 "action": enumString(
                                     ["click", "type", "select", "hover", "scroll", "press_key", "wait_for"],
-                                    "Action type"),
+                                    "Action type"
+                                ),
                                 "ref": string("Element ref from snapshot"),
                                 "selector": string("CSS selector (fallback)"),
                                 "text": string("Text for type action, or text to wait for in wait_for"),
@@ -153,7 +158,8 @@ enum BrowserChildTools {
                     "detail": detailProperty,
                     "wait_after": enumString(
                         ["none", "domstable", "networkidle"],
-                        "Wait condition after last action before snapshotting"),
+                        "Wait condition after last action before snapshotting"
+                    ),
                 ],
                 required: ["actions"]
             ),
@@ -182,7 +188,8 @@ enum BrowserChildTools {
                 properties: [
                     "path": string(
                         "File name inside ~/Downloads (default: screenshot_<timestamp>.png). "
-                            + "Paths outside ~/Downloads are rejected; existing files are never overwritten."),
+                            + "Paths outside ~/Downloads are rejected; existing files are never overwritten."
+                    ),
                     "full_page": bool("Capture full scrollable page"),
                 ]
             ),
@@ -200,7 +207,8 @@ enum BrowserChildTools {
                 properties: [
                     "level": enumString(
                         ["all", "log", "info", "warn", "error", "debug"],
-                        "Filter by level. Default 'all'."),
+                        "Filter by level. Default 'all'."
+                    ),
                     "since": number("Unix seconds. Only return messages at or after this time."),
                     "clear": bool("Clear the buffer after returning. Default false."),
                 ]
@@ -222,9 +230,11 @@ enum BrowserChildTools {
                 properties: [
                     "action": enumString(
                         ["accept", "dismiss", "status"],
-                        "accept=OK/Yes/use prompt_text; dismiss=Cancel/No/null; status=read last dialog."),
+                        "accept=OK/Yes/use prompt_text; dismiss=Cancel/No/null; status=read last dialog."
+                    ),
                     "prompt_text": string(
-                        "Text to fill into a window.prompt() dialog when action='accept'."),
+                        "Text to fill into a window.prompt() dialog when action='accept'."
+                    ),
                 ]
             ),
             tool(
@@ -235,11 +245,13 @@ enum BrowserChildTools {
                     "domain": string("Filter (get/clear) by domain substring."),
                     "include_values": bool(
                         "For action='get': include raw cookie values (redacted by default; "
-                            + "requires user approval). Only use when a value is genuinely needed."),
+                            + "requires user approval). Only use when a value is genuinely needed."
+                    ),
                     "cookie": .object([
                         "type": .string("object"),
                         "description": .string(
-                            "For action='set': {name, value, domain, path?, secure?, expires?(unix seconds)}."),
+                            "For action='set': {name, value, domain, path?, secure?, expires?(unix seconds)}."
+                        ),
                     ]),
                 ]
             ),
@@ -254,10 +266,12 @@ enum BrowserChildTools {
                 properties: [
                     "url": string(
                         "Optional URL to open in the helper window. If omitted, the window opens "
-                            + "with a small prompt that lets the user enter any URL."),
+                            + "with a small prompt that lets the user enter any URL."
+                    ),
                     "timeout_ms": number(
                         "Maximum time to wait for the user to close the window, in milliseconds. "
-                            + "Default 300000 (5 minutes)."),
+                            + "Default 300000 (5 minutes)."
+                    ),
                 ]
             ),
             tool(
@@ -278,7 +292,8 @@ enum BrowserChildTools {
     // MARK: - Schema helpers
 
     private static func tool(
-        _ name: String, _ description: String,
+        _ name: String,
+        _ description: String,
         properties: [String: JSONValue],
         required: [String] = []
     ) -> Tool {

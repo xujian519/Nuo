@@ -16,10 +16,16 @@ struct ModelRuntimeRAMFeasibilityTests {
 
     @Test("Host refusal overrides the earlier budget approval in runtime telemetry")
     func hostRefusalIsRecordedWithoutChangingSelectedBudget() {
-        let earlier = ModelRuntime.MemorySafetyLoadDecision(modelName: "test-model",
-            estimatedWorkingSetBytes: UInt64(4 * gb), resolvedLoadBudgetBytes: UInt64(8 * gb),
-            allowed: true, displaySummary: "selected-budget", useMmapSafetensors: false,
-            blockingIssues: [], timestamp: .distantPast)
+        let earlier = ModelRuntime.MemorySafetyLoadDecision(
+            modelName: "test-model",
+            estimatedWorkingSetBytes: UInt64(4 * gb),
+            resolvedLoadBudgetBytes: UInt64(8 * gb),
+            allowed: true,
+            displaySummary: "selected-budget",
+            useMmapSafetensors: false,
+            blockingIssues: [],
+            timestamp: .distantPast
+        )
         let refused = earlier.refusingHostCapacity("insufficient host capacity")
         #expect(!refused.allowed)
         #expect(refused.estimatedWorkingSetBytes == earlier.estimatedWorkingSetBytes)
@@ -32,9 +38,12 @@ struct ModelRuntimeRAMFeasibilityTests {
     @Test("Resident admission cannot borrow anonymous memory as reclaim slack")
     func materializedLoadRequiresWorkingSetAndHostReserve() {
         let required = ModelRuntime.materializedLoadRequiredAvailableBytes(
-            loadFootprintBytes: 96 * gb, kvHeadroomBytes: 2 * gb,
-            estimatedWorkingSetBytes: UInt64(103 * gb), inflightOtherBytes: 0,
-            physicalBytes: 128 * gb)
+            loadFootprintBytes: 96 * gb,
+            kvHeadroomBytes: 2 * gb,
+            estimatedWorkingSetBytes: UInt64(103 * gb),
+            inflightOtherBytes: 0,
+            physicalBytes: 128 * gb
+        )
         #expect(required == 106 * gb)
         // The old 10%-of-physical credit admitted this shortfall.
         #expect(!ModelRuntime.materializedLoadFits(requiredBytes: required, availableBytes: 105 * gb))
@@ -46,9 +55,12 @@ struct ModelRuntimeRAMFeasibilityTests {
     @Test("Resident admission reserves KV and competing cold loads on smaller hosts")
     func materializedLoadCountsKVAndInflightWithoutDoubleCountingResidents() {
         let required = ModelRuntime.materializedLoadRequiredAvailableBytes(
-            loadFootprintBytes: 4 * gb, kvHeadroomBytes: 2 * gb,
-            estimatedWorkingSetBytes: UInt64(5 * gb), inflightOtherBytes: 2 * gb,
-            physicalBytes: 16 * gb)
+            loadFootprintBytes: 4 * gb,
+            kvHeadroomBytes: 2 * gb,
+            estimatedWorkingSetBytes: UInt64(5 * gb),
+            inflightOtherBytes: 2 * gb,
+            physicalBytes: 16 * gb
+        )
         #expect(required == 11 * gb)
         #expect(!ModelRuntime.materializedLoadFits(requiredBytes: required, availableBytes: 10 * gb))
         #expect(ModelRuntime.materializedLoadFits(requiredBytes: required, availableBytes: 11 * gb))
@@ -56,15 +68,33 @@ struct ModelRuntimeRAMFeasibilityTests {
 
     @Test("Resident admission fails closed on missing estimates and arithmetic overflow")
     func materializedLoadRejectsInvalidAccounting() {
-        #expect(ModelRuntime.materializedLoadRequiredAvailableBytes(
-            loadFootprintBytes: 4 * gb, kvHeadroomBytes: gb, estimatedWorkingSetBytes: nil,
-            inflightOtherBytes: 0, physicalBytes: 16 * gb) == nil)
-        #expect(ModelRuntime.materializedLoadRequiredAvailableBytes(
-            loadFootprintBytes: .max, kvHeadroomBytes: gb, estimatedWorkingSetBytes: 1,
-            inflightOtherBytes: 0, physicalBytes: 128 * gb) == nil)
-        #expect(ModelRuntime.materializedLoadRequiredAvailableBytes(
-            loadFootprintBytes: gb, kvHeadroomBytes: 0, estimatedWorkingSetBytes: .max,
-            inflightOtherBytes: 0, physicalBytes: 128 * gb) == nil)
+        #expect(
+            ModelRuntime.materializedLoadRequiredAvailableBytes(
+                loadFootprintBytes: 4 * gb,
+                kvHeadroomBytes: gb,
+                estimatedWorkingSetBytes: nil,
+                inflightOtherBytes: 0,
+                physicalBytes: 16 * gb
+            ) == nil
+        )
+        #expect(
+            ModelRuntime.materializedLoadRequiredAvailableBytes(
+                loadFootprintBytes: .max,
+                kvHeadroomBytes: gb,
+                estimatedWorkingSetBytes: 1,
+                inflightOtherBytes: 0,
+                physicalBytes: 128 * gb
+            ) == nil
+        )
+        #expect(
+            ModelRuntime.materializedLoadRequiredAvailableBytes(
+                loadFootprintBytes: gb,
+                kvHeadroomBytes: 0,
+                estimatedWorkingSetBytes: .max,
+                inflightOtherBytes: 0,
+                physicalBytes: 128 * gb
+            ) == nil
+        )
     }
 
     @Test("Resident MiMo admission counts native payloads, auxiliary sidecars, and full KV layers")
@@ -72,22 +102,33 @@ struct ModelRuntimeRAMFeasibilityTests {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
-        let config: [String: Any] = ["model_type": "mimo_v2",
+        let config: [String: Any] = [
+            "model_type": "mimo_v2",
             "attention_projection_layout": "fused_qkv",
             "quantization": ["mode": "affine", "gate": ["mode": "mxfp4"]],
             "num_hidden_layers": 2, "num_key_value_heads": 4,
             "head_dim": 192, "v_head_dim": 128, "swa_num_key_value_heads": 8,
             "swa_head_dim": 192, "swa_v_head_dim": 128,
             "hybrid_layer_pattern": [0, 1], "sliding_window": 128,
-            "max_position_embeddings": 1_048_576, "torch_dtype": "bfloat16"]
+            "max_position_embeddings": 1_048_576, "torch_dtype": "bfloat16",
+        ]
         try VisionBundleFixture.writeJSON(config, to: directory.appendingPathComponent("config.json"))
-        try VisionBundleFixture.writeWeights(["model.layers.0.weight", "model.mtp.weight", "visual.weight"],
-            dtype: "U8", shape: [64], payloadBytesPerTensor: 64,
-            to: directory.appendingPathComponent("model.safetensors"))
+        try VisionBundleFixture.writeWeights(
+            ["model.layers.0.weight", "model.mtp.weight", "visual.weight"],
+            dtype: "U8",
+            shape: [64],
+            payloadBytesPerTensor: 64,
+            to: directory.appendingPathComponent("model.safetensors")
+        )
         let audio = directory.appendingPathComponent("audio_tokenizer")
         try FileManager.default.createDirectory(at: audio, withIntermediateDirectories: true)
-        try VisionBundleFixture.writeWeights(["encoder.weight"], dtype: "U8", shape: [64],
-            payloadBytesPerTensor: 64, to: audio.appendingPathComponent("model.safetensors"))
+        try VisionBundleFixture.writeWeights(
+            ["encoder.weight"],
+            dtype: "U8",
+            shape: [64],
+            payloadBytesPerTensor: 64,
+            to: audio.appendingPathComponent("model.safetensors")
+        )
         #expect(LocalVisionEvidence.residentMiMoPayloadBytes(directory) == 192)
         let mix = ModelRuntime.attentionLayerMix(in: config)
         #expect(mix.declaredPerLayer && mix.fullAttention == 1 && mix.slidingAttention == 1)
@@ -96,19 +137,32 @@ struct ModelRuntimeRAMFeasibilityTests {
         let fullKV: Int64 = 1_048_576 * 4 * 320 * 2
         let slidingKV: Int64 = 128 * 8 * 320 * 2
         let expectedKV = fullKV + slidingKV
-        #expect(ModelRuntime.estimatedKVHeadroomBytes(forWeights: 192,
-            modelDirectory: directory, kvRetentionCap: nil) == expectedKV + expectedKV / 4)
-        let estimate = try #require(ModelRuntime.estimatedMemorySafetyWorkingSetBytes(
-            loadFootprintBytes: 100 * gb, physicalMemoryBytes: UInt64(128 * gb),
-            modelDirectory: directory))
+        #expect(
+            ModelRuntime.estimatedKVHeadroomBytes(
+                forWeights: 192,
+                modelDirectory: directory,
+                kvRetentionCap: nil
+            ) == expectedKV + expectedKV / 4
+        )
+        let estimate = try #require(
+            ModelRuntime.estimatedMemorySafetyWorkingSetBytes(
+                loadFootprintBytes: 100 * gb,
+                physicalMemoryBytes: UInt64(128 * gb),
+                modelDirectory: directory
+            )
+        )
         #expect(estimate >= UInt64(2 * gb + 192))
         #expect(estimate < UInt64(10 * gb))
         // A truncated sidecar invalidates the specialized estimate; never undercount it.
         try Data([0]).write(to: audio.appendingPathComponent("model.safetensors"))
         #expect(LocalVisionEvidence.residentMiMoPayloadBytes(directory) == nil)
-        #expect(ModelRuntime.estimatedMemorySafetyWorkingSetBytes(
-            loadFootprintBytes: 100 * gb, physicalMemoryBytes: UInt64(128 * gb),
-            modelDirectory: directory) == UInt64(125 * gb))
+        #expect(
+            ModelRuntime.estimatedMemorySafetyWorkingSetBytes(
+                loadFootprintBytes: 100 * gb,
+                physicalMemoryBytes: UInt64(128 * gb),
+                modelDirectory: directory
+            ) == UInt64(125 * gb)
+        )
     }
 
     @Test("Resolved allocator cap cannot be overwritten by weight-scaled cache limit")
@@ -146,23 +200,40 @@ struct ModelRuntimeRAMFeasibilityTests {
         // Measured resident multimodal payload plus the existing 2 GiB scratch
         // floor leaves less than 1 GiB, not another 8 GiB for freed buffers.
         let headroom = ModelRuntime.allocatorCacheBudgetHeadroom(
-            workingSets: [106_924_363_672 + 2 * gib], budgets: [109_951_162_777])
+            workingSets: [106_924_363_672 + 2 * gib],
+            budgets: [109_951_162_777]
+        )
         #expect(headroom == 879_315_457)
         for activeWindow in [false, true] {
-            #expect(ModelRuntime.effectiveGenerationMLXCacheLimit(
-                persistentLimit: Int(8 * gib), admittedMemoryLimit: 109_951_162_777,
-                modelWeightsBytes: 106_924_363_672, physicalMemoryBytes: 128 * gib,
-                requiresAdmittedCeiling: activeWindow, configuredLimits: [nil, headroom]
-            ) == headroom)
+            #expect(
+                ModelRuntime.effectiveGenerationMLXCacheLimit(
+                    persistentLimit: Int(8 * gib),
+                    admittedMemoryLimit: 109_951_162_777,
+                    modelWeightsBytes: 106_924_363_672,
+                    physicalMemoryBytes: 128 * gib,
+                    requiresAdmittedCeiling: activeWindow,
+                    configuredLimits: [nil, headroom]
+                ) == headroom
+            )
         }
         // Ordinary smaller models keep their full dynamic reuse pool.
         let small = ModelRuntime.allocatorCacheBudgetHeadroom(
-            workingSets: [10 * gib], budgets: [100 * gib])
-        #expect(ModelRuntime.effectiveMLXCacheLimit(
-            dynamicLimit: Int(8 * gib), configuredLimits: [small]) == Int(8 * gib))
+            workingSets: [10 * gib],
+            budgets: [100 * gib]
+        )
+        #expect(
+            ModelRuntime.effectiveMLXCacheLimit(
+                dynamicLimit: Int(8 * gib),
+                configuredLimits: [small]
+            ) == Int(8 * gib)
+        )
         // Explicit user maxima still win over available capacity.
-        #expect(ModelRuntime.effectiveMLXCacheLimit(
-            dynamicLimit: Int(8 * gib), configuredLimits: [headroom, 64 << 20]) == 64 << 20)
+        #expect(
+            ModelRuntime.effectiveMLXCacheLimit(
+                dynamicLimit: Int(8 * gib),
+                configuredLimits: [headroom, 64 << 20]
+            ) == 64 << 20
+        )
     }
 
     @Test("Remaining-budget clamp never starves the admitted scratch floor")
@@ -178,22 +249,54 @@ struct ModelRuntimeRAMFeasibilityTests {
 
     @Test("Shared allocator accounts for every resident once and handles unbounded plans")
     func allocatorBudgetComposition() {
-        #expect(ModelRuntime.allocatorCacheBudgetHeadroom(
-            workingSets: [60, 30], budgets: [100, 120]) == 10)
-        #expect(ModelRuntime.allocatorCacheBudgetHeadroom(
-            workingSets: [60, 30], budgets: [100, nil]) == 10)
-        #expect(ModelRuntime.allocatorCacheBudgetHeadroom(
-            workingSets: [100], budgets: [100]) == 0)
-        #expect(ModelRuntime.allocatorCacheBudgetHeadroom(
-            workingSets: [101], budgets: [100]) == 0)
-        #expect(ModelRuntime.allocatorCacheBudgetHeadroom(
-            workingSets: [.max, 1], budgets: [.max]) == 0)
-        #expect(ModelRuntime.allocatorCacheBudgetHeadroom(
-            workingSets: [0], budgets: [.max]) == Int.max)
-        #expect(ModelRuntime.allocatorCacheBudgetHeadroom(
-            workingSets: [60], budgets: [nil]) == nil)
-        #expect(ModelRuntime.allocatorCacheBudgetHeadroom(
-            workingSets: [60, nil], budgets: [100, 100]) == nil)
+        #expect(
+            ModelRuntime.allocatorCacheBudgetHeadroom(
+                workingSets: [60, 30],
+                budgets: [100, 120]
+            ) == 10
+        )
+        #expect(
+            ModelRuntime.allocatorCacheBudgetHeadroom(
+                workingSets: [60, 30],
+                budgets: [100, nil]
+            ) == 10
+        )
+        #expect(
+            ModelRuntime.allocatorCacheBudgetHeadroom(
+                workingSets: [100],
+                budgets: [100]
+            ) == 0
+        )
+        #expect(
+            ModelRuntime.allocatorCacheBudgetHeadroom(
+                workingSets: [101],
+                budgets: [100]
+            ) == 0
+        )
+        #expect(
+            ModelRuntime.allocatorCacheBudgetHeadroom(
+                workingSets: [.max, 1],
+                budgets: [.max]
+            ) == 0
+        )
+        #expect(
+            ModelRuntime.allocatorCacheBudgetHeadroom(
+                workingSets: [0],
+                budgets: [.max]
+            ) == Int.max
+        )
+        #expect(
+            ModelRuntime.allocatorCacheBudgetHeadroom(
+                workingSets: [60],
+                budgets: [nil]
+            ) == nil
+        )
+        #expect(
+            ModelRuntime.allocatorCacheBudgetHeadroom(
+                workingSets: [60, nil],
+                budgets: [100, 100]
+            ) == nil
+        )
     }
 
     @Test("Admitted allocator ceiling is request-scoped")

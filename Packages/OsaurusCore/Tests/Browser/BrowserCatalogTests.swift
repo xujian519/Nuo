@@ -120,9 +120,15 @@ struct BrowserSessionCatalogTests {
         withTemporaryBrowserStores {
             let agentId = UUID()
             BrowserSessionManager.shared.recordNavigation(
-                agentId: agentId, url: "https://github.com/login", title: "Sign in to GitHub")
+                agentId: agentId,
+                url: "https://github.com/login",
+                title: "Sign in to GitHub"
+            )
             BrowserSessionManager.shared.recordNavigation(
-                agentId: agentId, url: "https://github.com/pulls", title: "Pull requests")
+                agentId: agentId,
+                url: "https://github.com/pulls",
+                title: "Pull requests"
+            )
             let record = BrowserSessionCatalog.record(for: agentId)
             #expect(record?.services["github.com"] == .observedSignedIn)
         }
@@ -135,7 +141,10 @@ struct BrowserSessionCatalogTests {
             // "signed in" (the plan's observed-status rule).
             let agentId = UUID()
             BrowserSessionManager.shared.recordNavigation(
-                agentId: agentId, url: "https://example.com/pricing", title: "Pricing")
+                agentId: agentId,
+                url: "https://example.com/pricing",
+                title: "Pricing"
+            )
             let record = BrowserSessionCatalog.record(for: agentId)
             #expect(record?.services["example.com"] == nil)
             #expect(record?.lastDomain == "example.com")
@@ -146,7 +155,9 @@ struct BrowserSessionCatalogTests {
         withTemporaryBrowserStores {
             let agentId = UUID()
             BrowserSessionManager.shared.recordObservedSignIn(
-                agentId: agentId, host: "mail.example.com")
+                agentId: agentId,
+                host: "mail.example.com"
+            )
             let record = BrowserSessionCatalog.record(for: agentId)
             #expect(record?.services["mail.example.com"] == .observedSignedIn)
         }
@@ -170,7 +181,9 @@ struct BrowserSessionCatalogTests {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             let records = try decoder.decode(
-                [BrowserSessionRecord].self, from: Data(contentsOf: url))
+                [BrowserSessionRecord].self,
+                from: Data(contentsOf: url)
+            )
             #expect(records.first { $0.agentId == agentId }?.lastTitle == "step-25")
         }
     }
@@ -238,7 +251,9 @@ struct BrowserConfigurationStoreTests {
             let url = BrowserConfigurationStore.overrideDirectory!
                 .appendingPathComponent("browser.json")
             let config = try JSONDecoder().decode(
-                BrowserConfiguration.self, from: Data(contentsOf: url))
+                BrowserConfiguration.self,
+                from: Data(contentsOf: url)
+            )
             #expect(config.pluginProfilesMigrated == true)
         }
     }
@@ -299,7 +314,8 @@ struct BrowserPluginMigrationTests {
 
             // The Default agent's own record migrates its own profile…
             #expect(
-                BrowserSessionCatalog.record(for: Agent.defaultId)?.profileId == defaultProfile)
+                BrowserSessionCatalog.record(for: Agent.defaultId)?.profileId == defaultProfile
+            )
             // …but the custom agent gets NO record (it mints fresh on first use).
             #expect(BrowserSessionCatalog.record(for: customAgent) == nil)
         }

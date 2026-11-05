@@ -99,7 +99,8 @@ struct DDGScrapeBackend: SearchBackend {
                             url: url,
                             snippet: "",
                             engine: "ddg"
-                        ))
+                        )
+                    )
                 }
             }
         }
@@ -112,7 +113,8 @@ struct DDGScrapeBackend: SearchBackend {
     private func searchImages(_ request: SearchRequest) async throws -> [SearchHit] {
         let q = SearchHTML.urlEncode(request.query)
         let (_, bootData) = try await SearchHTTPClient.request(
-            url: "https://duckduckgo.com/?q=\(q)&iax=images&ia=images")
+            url: "https://duckduckgo.com/?q=\(q)&iax=images&ia=images"
+        )
         guard let bootHtml = String(data: bootData, encoding: .utf8) else {
             throw SearchBackendError("DDG image bootstrap failed", kind: .providerHTTP)
         }
@@ -122,7 +124,9 @@ struct DDGScrapeBackend: SearchBackend {
 
         let url = "https://duckduckgo.com/i.js?l=wt-wt&o=json&q=\(q)&vqd=\(vqd)&p=1"
         let (status, data) = try await SearchHTTPClient.request(
-            url: url, headers: ["Referer": "https://duckduckgo.com/"])
+            url: url,
+            headers: ["Referer": "https://duckduckgo.com/"]
+        )
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
             let arr = json["results"] as? [[String: Any]]
         else {
@@ -225,7 +229,8 @@ struct BraveScrapeBackend: SearchBackend {
                         url: url,
                         snippet: SearchHTML.stripHTML(String(html[snipR])),
                         engine: "brave_html"
-                    ))
+                    )
+                )
             }
         }
         return hits
@@ -280,7 +285,8 @@ struct BingScrapeBackend: SearchBackend {
                         url: SearchHTML.decodeHTMLEntities(String(html[urlR])),
                         snippet: snippet,
                         engine: "bing_html"
-                    ))
+                    )
+                )
             }
         }
         return hits

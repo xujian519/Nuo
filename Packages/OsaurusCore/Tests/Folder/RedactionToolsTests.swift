@@ -46,7 +46,10 @@ struct RedactionToolsTests {
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         try "line one\nreach me: a@b.co\n".write(
-            to: root.appendingPathComponent("note.txt"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("note.txt"),
+            atomically: true,
+            encoding: .utf8
+        )
 
         let output = try await DetectPIITool(rootPath: root).execute(
             argumentsJSON: #"{"path":"note.txt"}"#

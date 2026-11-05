@@ -190,7 +190,8 @@ actor IMessageWatchTransportRuntime: AgentChannelReceiveTransportRuntime {
                 summary: reason.isEmpty
                     ? "The iMessage receive stream was interrupted; reconnecting."
                     : reason,
-                detail: "Nuo restarts the helper and resumes from the saved cursor automatically (attempt \(consecutiveFailures)).",
+                detail:
+                    "Nuo restarts the helper and resumes from the saved cursor automatically (attempt \(consecutiveFailures)).",
                 isRunning: worker != nil,
                 receiveEnabled: true,
                 lastFailureAt: failedAt,

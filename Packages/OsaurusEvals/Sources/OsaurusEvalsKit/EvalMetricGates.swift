@@ -19,7 +19,9 @@ enum EvalTokenCost {
     }
 
     static func ceiling(
-        _ ceiling: Int, estimatedPrompt: Int?, reportedCompletion: Int?
+        _ ceiling: Int,
+        estimatedPrompt: Int?,
+        reportedCompletion: Int?
     ) -> CeilingVerdict {
         guard let total = total(estimatedPrompt: estimatedPrompt, reportedCompletion: reportedCompletion)
         else { return .unreported }
@@ -34,14 +36,21 @@ enum CacheProofDecodeGate {
     }
 
     static func evaluate(
-        turns: [CacheProofTurnMetrics], minimumFinal: Double?, minimumRatio: Double?
+        turns: [CacheProofTurnMetrics],
+        minimumFinal: Double?,
+        minimumRatio: Double?
     ) -> [Check] {
         guard minimumFinal != nil || minimumRatio != nil else { return [] }
         guard let final = turns.last,
             let finalRate = final.decodeTokensPerSecond, finalRate > 0, finalRate.isFinite
         else {
-            return [Check(passed: false,
-                note: "sustained-decode gate unverified: actual final turn has no positive finite decode measurement")]
+            return [
+                Check(
+                    passed: false,
+                    note:
+                        "sustained-decode gate unverified: actual final turn has no positive finite decode measurement"
+                )
+            ]
         }
         var checks: [Check] = []
         if let floor = minimumRatio {
@@ -52,18 +61,42 @@ enum CacheProofDecodeGate {
                 return rate > 0 && rate.isFinite
             }), let firstRate = baseline.decodeTokensPerSecond {
                 let ratio = finalRate / firstRate
-                checks.append(Check(passed: ratio.isFinite && ratio >= floor,
-                    note: String(format: "sustained decode: final turn %d %.1f tok/s vs measured turn %d %.1f tok/s (ratio %.2f; floor %.2f)",
-                        final.turnNumber, finalRate, baseline.turnNumber, firstRate, ratio, floor)))
+                checks.append(
+                    Check(
+                        passed: ratio.isFinite && ratio >= floor,
+                        note: String(
+                            format:
+                                "sustained decode: final turn %d %.1f tok/s vs measured turn %d %.1f tok/s (ratio %.2f; floor %.2f)",
+                            final.turnNumber,
+                            finalRate,
+                            baseline.turnNumber,
+                            firstRate,
+                            ratio,
+                            floor
+                        )
+                    )
+                )
             } else {
-                checks.append(Check(passed: false,
-                    note: "sustained-decode ratio unverified: no earlier measured baseline turn"))
+                checks.append(
+                    Check(
+                        passed: false,
+                        note: "sustained-decode ratio unverified: no earlier measured baseline turn"
+                    )
+                )
             }
         }
         if let floor = minimumFinal {
-            checks.append(Check(passed: finalRate >= floor,
-                note: String(format: "actual final turn %d decode %.1f tok/s; floor %.1f",
-                    final.turnNumber, finalRate, floor)))
+            checks.append(
+                Check(
+                    passed: finalRate >= floor,
+                    note: String(
+                        format: "actual final turn %d decode %.1f tok/s; floor %.1f",
+                        final.turnNumber,
+                        finalRate,
+                        floor
+                    )
+                )
+            )
         }
         return checks
     }

@@ -577,11 +577,17 @@ struct ChatWindowStateWorkspaceAgentTests {
                 #expect(window.workspaceAgentAddress == address)
 
                 window.remoteAgentConnectionPhase = .failed("Remote agent rejected the connection.")
-                #expect(connect.connectFailure(for: address, workspaceId: "ws-acme") == "Remote agent rejected the connection.")
+                #expect(
+                    connect.connectFailure(for: address, workspaceId: "ws-acme")
+                        == "Remote agent rejected the connection."
+                )
                 #expect(connect.hasAttempted(address, workspaceId: "ws-acme"))
 
                 window.remoteAgentConnectionPhase = .connecting
-                #expect(connect.connectFailure(for: address, workspaceId: "ws-acme") == nil, "a fresh attempt supersedes the verdict")
+                #expect(
+                    connect.connectFailure(for: address, workspaceId: "ws-acme") == nil,
+                    "a fresh attempt supersedes the verdict"
+                )
 
                 window.remoteAgentConnectionPhase = .failed("timed out")
                 #expect(connect.connectFailure(for: address, workspaceId: "ws-acme") == "timed out")

@@ -9,9 +9,11 @@ struct CloudModelCategoryTests {
 
     private func chat(_ name: String, vision: Bool = false, context: Int? = nil) -> ModelPickerItem {
         ModelPickerItem(
-            id: name, displayName: name,
+            id: name,
+            displayName: name,
             source: .remote(providerName: "Osaurus Cloud", providerId: providerID),
-            isVLM: vision, contextLength: context
+            isVLM: vision,
+            contextLength: context
         )
     }
 
@@ -19,8 +21,11 @@ struct CloudModelCategoryTests {
         .fromMediaModel(
             MediaModelInfo(
                 target: MediaModelTarget(backend: .osaurusCloud, modelID: name),
-                displayName: name, providerName: "Osaurus Cloud", kind: kind,
-                constraints: MediaModelConstraints(), offline: false
+                displayName: name,
+                providerName: "Osaurus Cloud",
+                kind: kind,
+                constraints: MediaModelConstraints(),
+                offline: false
             ),
             providerId: providerID
         )
@@ -49,8 +54,10 @@ struct CloudModelCategoryTests {
     @Test func categoryChoicesReflectTheCatalogAndRetainAllForEmptyCatalogs() {
         #expect(CloudModelCategory.available(in: []) == [.all])
         #expect(CloudModelCategory.available(in: [media(.image)]) == [.all, .image])
-        #expect(CloudModelCategory.available(in: [chat("Vision", vision: true), media(.imageToVideo)])
-            == [.all, .textToText, .imageToText, .imageToVideo])
+        #expect(
+            CloudModelCategory.available(in: [chat("Vision", vision: true), media(.imageToVideo)])
+                == [.all, .textToText, .imageToText, .imageToVideo]
+        )
     }
 
     @Test func categoryCombinesWithSearchAndContextWithoutChangingOrder() {
@@ -58,7 +65,8 @@ struct CloudModelCategoryTests {
         let long = chat("Atlas large", vision: true, context: 128_000)
         let other = chat("Other", vision: true, context: 256_000)
         let items = [short, long, other, media(.image)]
-        let result = items
+        let result =
+            items
             .filter { $0.matches(searchQuery: "Atlas") }
             .filteredByContext(.min128K)
             .filter(CloudModelCategory.imageToText.includes)

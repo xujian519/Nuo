@@ -468,9 +468,10 @@ public enum ServerRuntimeSettingsStore {
         let kv = plan.cache.defaultMaxKVSize.map(String.init) ?? "unlimited"
         // This is a configured load plan, not a sample of the process-wide
         // inference allocator. Its actual limit is memory_status.cache_limit.
-        let inferenceAllocator = settings.memorySafety.customAllocatorCacheBytes.map {
-            "custom_max:\($0)"
-        } ?? "runtime_managed"
+        let inferenceAllocator =
+            settings.memorySafety.customAllocatorCacheBytes.map {
+                "custom_max:\($0)"
+            } ?? "runtime_managed"
         return
             "mode=\(settings.memorySafety.mode.rawValue) keep_model_in_memory=\(settings.memorySafety.keepModelInMemory) slider=\(settings.memorySafety.slider) load_cap=\(residentCapSummary(plan.loadConfiguration.memoryLimit)) load_allocator_cap=\(residentCapSummary(plan.loadConfiguration.maxResidentBytes)) inference_allocator=\(inferenceAllocator) max_concurrent=\(concurrency) kv_cap=\(kv)"
     }
@@ -497,7 +498,8 @@ public enum ServerRuntimeSettingsStore {
         // Retire only defaults whose provenance was recorded by the old family
         // selector, including API-only launches with no chat view present.
         normalized.mtp = NativeMTPSelectionDefault.adaptiveSelection(
-            NativeMTPSelectionDefault.retiringOwnedDefault(normalized.mtp))
+            NativeMTPSelectionDefault.retiringOwnedDefault(normalized.mtp)
+        )
         // Osaurus product default for block-diffusion models: 16 denoising
         // steps (~74 tok/s on diffusiongemma-26B-A4B MXFP4, coherent) vs the
         // bundle's 48 (~37 tok/s). Seeded exactly once; afterwards a blank

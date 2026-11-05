@@ -227,7 +227,8 @@ final class BrowserSession: NSObject, WKNavigationDelegate, WKUIDelegate {
         let box: JSResultBox = await withCheckedContinuation { continuation in
             webView.evaluateJavaScript(script) { result, error in
                 continuation.resume(
-                    returning: JSResultBox(result: result, error: error?.localizedDescription))
+                    returning: JSResultBox(result: result, error: error?.localizedDescription)
+                )
             }
         }
         return (box.result, box.error)
@@ -392,7 +393,8 @@ final class BrowserSession: NSObject, WKNavigationDelegate, WKUIDelegate {
             filterCondition = "true"
         }
 
-        let visibilityCheck = options.visibleOnly
+        let visibilityCheck =
+            options.visibleOnly
             ? """
                 try {
                     const rect = el.getBoundingClientRect();
@@ -681,7 +683,11 @@ final class BrowserSession: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     func typeText(
-        ref: String?, selector: String?, text: String, clear: Bool, submit: Bool
+        ref: String?,
+        selector: String?,
+        text: String,
+        clear: Bool,
+        submit: Bool
     ) async -> (success: Bool, error: String?) {
         guard hasNavigated else { return (false, "No page loaded. Call browser_navigate first.") }
         var getEl = ""
@@ -731,7 +737,8 @@ final class BrowserSession: NSObject, WKNavigationDelegate, WKUIDelegate {
         guard let validation = refPreamble(ref: ref, selector: selector, target: &getEl) else {
             return (false, "Either ref or selector must be provided")
         }
-        let valuesJSON = values
+        let valuesJSON =
+            values
             .map { "\"\($0.replacingOccurrences(of: "\"", with: "\\\""))\"" }
             .joined(separator: ",")
         let script = """
@@ -834,7 +841,8 @@ final class BrowserSession: NSObject, WKNavigationDelegate, WKUIDelegate {
             "end": ("End", "End", 35), "pageup": ("PageUp", "PageUp", 33),
             "pagedown": ("PageDown", "PageDown", 34), "space": (" ", "Space", 32),
         ]
-        let keyInfo = keyMap[key.lowercased()]
+        let keyInfo =
+            keyMap[key.lowercased()]
             ?? (key, "Key\(key.uppercased())", Int(key.unicodeScalars.first?.value ?? 0))
         let ctrl = modifiers.contains("ctrl") || modifiers.contains("control")
         let shift = modifiers.contains("shift")
@@ -856,7 +864,10 @@ final class BrowserSession: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     func waitFor(
-        text: String?, textGone: String?, time: TimeInterval?, timeout: TimeInterval
+        text: String?,
+        textGone: String?,
+        time: TimeInterval?,
+        timeout: TimeInterval
     ) async -> (success: Bool, error: String?) {
         if let time {
             try? await Task.sleep(nanoseconds: UInt64(time * 1_000_000_000))
@@ -892,7 +903,9 @@ final class BrowserSession: NSObject, WKNavigationDelegate, WKUIDelegate {
     // MARK: - Inspection
 
     func consoleMessages(level: String?, since: Double?, clear: Bool) async -> [[String: Any]] {
-        let result = await evaluateJavaScript("(function(){try{return window.__osaurus_console||[];}catch(e){return [];}})()")
+        let result = await evaluateJavaScript(
+            "(function(){try{return window.__osaurus_console||[];}catch(e){return [];}})()"
+        )
         var messages = (result.result as? [[String: Any]]) ?? []
         let levelFilter = level?.lowercased() ?? "all"
         if levelFilter != "all" {
@@ -907,14 +920,19 @@ final class BrowserSession: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     func networkRequests(
-        failedOnly: Bool, methodFilter: String?, urlContains: String?, clear: Bool
+        failedOnly: Bool,
+        methodFilter: String?,
+        urlContains: String?,
+        clear: Bool
     ) async -> [[String: Any]] {
-        let result = await evaluateJavaScript("(function(){try{return window.__osaurus_network||[];}catch(e){return [];}})()")
+        let result = await evaluateJavaScript(
+            "(function(){try{return window.__osaurus_network||[];}catch(e){return [];}})()"
+        )
         var requests = (result.result as? [[String: Any]]) ?? []
         if failedOnly {
             requests = requests.filter {
                 let status = $0["status"] as? Int ?? 0
-                return status == 0 || !(200...399 ~= status)
+                return status == 0 || !(200 ... 399 ~= status)
             }
         }
         if let m = methodFilter?.uppercased() { requests = requests.filter { ($0["method"] as? String) == m } }
@@ -1075,13 +1093,15 @@ final class BrowserSession: NSObject, WKNavigationDelegate, WKUIDelegate {
         guard navigationResponse.canShowMIMEType else {
             decisionHandler(.cancel)
             if navigationResponse.isForMainFrame {
-                let mime = (navigationResponse.response as? HTTPURLResponse)?
+                let mime =
+                    (navigationResponse.response as? HTTPURLResponse)?
                     .value(forHTTPHeaderField: "Content-Type") ?? "unknown type"
                 resumeNavigation(
                     with: BrowserNavigationBlocked(
                         reason:
                             "The page responded with a file download (\(mime)). Downloads aren't supported in the agent browser."
-                    ))
+                    )
+                )
             }
             return
         }
@@ -1099,7 +1119,9 @@ final class BrowserSession: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     func webView(
-        _ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error
+        _ webView: WKWebView,
+        didFailProvisionalNavigation navigation: WKNavigation!,
+        withError error: Error
     ) {
         guard belongsToPendingNavigate(navigation) else { return }
         resumeNavigation(with: error)
@@ -1166,7 +1188,8 @@ final class BrowserSession: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     func webView(
-        _ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String,
+        _ webView: WKWebView,
+        runJavaScriptAlertPanelWithMessage message: String,
         initiatedByFrame frame: WKFrameInfo,
         completionHandler: @escaping @MainActor @Sendable () -> Void
     ) {
@@ -1175,7 +1198,8 @@ final class BrowserSession: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     func webView(
-        _ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String,
+        _ webView: WKWebView,
+        runJavaScriptConfirmPanelWithMessage message: String,
         initiatedByFrame frame: WKFrameInfo,
         completionHandler: @escaping @MainActor @Sendable (Bool) -> Void
     ) {
@@ -1189,8 +1213,10 @@ final class BrowserSession: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     func webView(
-        _ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String,
-        defaultText: String?, initiatedByFrame frame: WKFrameInfo,
+        _ webView: WKWebView,
+        runJavaScriptTextInputPanelWithPrompt prompt: String,
+        defaultText: String?,
+        initiatedByFrame frame: WKFrameInfo,
         completionHandler: @escaping @MainActor @Sendable (String?) -> Void
     ) {
         let text = pendingDialogPolicy.accept ? (pendingDialogPolicy.promptText ?? defaultText ?? "") : nil

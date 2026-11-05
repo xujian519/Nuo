@@ -153,10 +153,14 @@ public final class AgentDescriptionBackfill {
             case .timedOut, .unresponsive:
                 retryAfter[id] = (hash, Date().addingTimeInterval(retryInterval))
             }
-            logger.debug("description backfill skipped for \(id.uuidString, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            logger.debug(
+                "description backfill skipped for \(id.uuidString, privacy: .public): \(error.localizedDescription, privacy: .public)"
+            )
         } catch {
             retryAfter[id] = (hash, Date().addingTimeInterval(retryInterval))
-            logger.debug("description backfill failed for \(id.uuidString, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            logger.debug(
+                "description backfill failed for \(id.uuidString, privacy: .public): \(error.localizedDescription, privacy: .public)"
+            )
         }
     }
 }

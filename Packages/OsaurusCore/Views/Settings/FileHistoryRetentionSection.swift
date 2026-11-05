@@ -79,14 +79,18 @@ struct FileHistoryRetentionSection: View {
     private var ageBinding: Binding<Int?> {
         Binding(
             get: { retention.maxAgeDays },
-            set: { retention.maxAgeDays = $0; save() }
+            set: {
+                retention.maxAgeDays = $0; save()
+            }
         )
     }
 
     private var sizeBinding: Binding<Int64?> {
         Binding(
             get: { retention.maxBytes },
-            set: { retention.maxBytes = $0; save() }
+            set: {
+                retention.maxBytes = $0; save()
+            }
         )
     }
 

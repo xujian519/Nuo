@@ -42,7 +42,8 @@ struct PluginQuarantineUpgradeTests {
     }
 
     private func writeEntries(
-        _ entries: [PluginManager.QuarantineEntry], in toolsRoot: URL
+        _ entries: [PluginManager.QuarantineEntry],
+        in toolsRoot: URL
     ) throws {
         try JSONEncoder().encode(entries)
             .write(to: toolsRoot.appendingPathComponent(".quarantine"))
@@ -62,7 +63,8 @@ struct PluginQuarantineUpgradeTests {
             try writeLegacyQuarantine(["ai.osaurus.alpha", "ai.osaurus.beta"], in: toolsRoot)
 
             #expect(
-                PluginManager.quarantinedPluginIds() == ["ai.osaurus.alpha", "ai.osaurus.beta"])
+                PluginManager.quarantinedPluginIds() == ["ai.osaurus.alpha", "ai.osaurus.beta"]
+            )
             // Decoded with no stamps — nothing to compare, so nothing is claimed
             // about what crashed.
             let entries = PluginManager.quarantineEntries()
@@ -95,11 +97,17 @@ struct PluginQuarantineUpgradeTests {
     func pluginUpgradeReleasesRow() async throws {
         try await withTempToolsRoot { toolsRoot in
             try writeEntries(
-                [.init(id: "ai.osaurus.alpha", version: "1.0.10", build: "42")], in: toolsRoot)
+                [.init(id: "ai.osaurus.alpha", version: "1.0.10", build: "42")],
+                in: toolsRoot
+            )
 
             #expect(
                 PluginManager.releaseQuarantineIfUpgraded(
-                    pluginId: "ai.osaurus.alpha", installedVersion: "1.0.11", hostBuild: "42"))
+                    pluginId: "ai.osaurus.alpha",
+                    installedVersion: "1.0.11",
+                    hostBuild: "42"
+                )
+            )
             // Consumed, not merely ignored — otherwise every launch would retry.
             #expect(PluginManager.quarantinedPluginIds().isEmpty)
         }
@@ -109,11 +117,17 @@ struct PluginQuarantineUpgradeTests {
     func hostUpgradeReleasesRow() async throws {
         try await withTempToolsRoot { toolsRoot in
             try writeEntries(
-                [.init(id: "ai.osaurus.alpha", version: "1.0.10", build: "42")], in: toolsRoot)
+                [.init(id: "ai.osaurus.alpha", version: "1.0.10", build: "42")],
+                in: toolsRoot
+            )
 
             #expect(
                 PluginManager.releaseQuarantineIfUpgraded(
-                    pluginId: "ai.osaurus.alpha", installedVersion: "1.0.10", hostBuild: "43"))
+                    pluginId: "ai.osaurus.alpha",
+                    installedVersion: "1.0.10",
+                    hostBuild: "43"
+                )
+            )
             #expect(PluginManager.quarantinedPluginIds().isEmpty)
         }
     }
@@ -123,12 +137,18 @@ struct PluginQuarantineUpgradeTests {
     func unchangedPairStaysQuarantined() async throws {
         try await withTempToolsRoot { toolsRoot in
             try writeEntries(
-                [.init(id: "ai.osaurus.alpha", version: "1.0.10", build: "42")], in: toolsRoot)
+                [.init(id: "ai.osaurus.alpha", version: "1.0.10", build: "42")],
+                in: toolsRoot
+            )
 
             #expect(
                 PluginManager.releaseQuarantineIfUpgraded(
-                    pluginId: "ai.osaurus.alpha", installedVersion: "1.0.10", hostBuild: "42")
-                    == false)
+                    pluginId: "ai.osaurus.alpha",
+                    installedVersion: "1.0.10",
+                    hostBuild: "42"
+                )
+                    == false
+            )
             #expect(PluginManager.quarantinedPluginIds() == ["ai.osaurus.alpha"])
         }
     }
@@ -142,11 +162,17 @@ struct PluginQuarantineUpgradeTests {
                 [
                     .init(id: "ai.osaurus.alpha", version: "1.0.10", build: "42"),
                     .init(id: "ai.osaurus.beta", version: "2.0.0", build: "42"),
-                ], in: toolsRoot)
+                ],
+                in: toolsRoot
+            )
 
             #expect(
                 PluginManager.releaseQuarantineIfUpgraded(
-                    pluginId: "ai.osaurus.alpha", installedVersion: "1.0.11", hostBuild: "42"))
+                    pluginId: "ai.osaurus.alpha",
+                    installedVersion: "1.0.11",
+                    hostBuild: "42"
+                )
+            )
 
             #expect(PluginManager.quarantinedPluginIds() == ["ai.osaurus.beta"])
         }
@@ -159,7 +185,11 @@ struct PluginQuarantineUpgradeTests {
         try await withTempToolsRoot { _ in
             #expect(
                 PluginManager.releaseQuarantineIfUpgraded(
-                    pluginId: "ai.osaurus.unknown", installedVersion: "1.0.0", hostBuild: "42"))
+                    pluginId: "ai.osaurus.unknown",
+                    installedVersion: "1.0.0",
+                    hostBuild: "42"
+                )
+            )
         }
     }
 
@@ -171,11 +201,17 @@ struct PluginQuarantineUpgradeTests {
     func vanishedInstallReleasesRow() async throws {
         try await withTempToolsRoot { toolsRoot in
             try writeEntries(
-                [.init(id: "ai.osaurus.alpha", version: "1.0.10", build: "42")], in: toolsRoot)
+                [.init(id: "ai.osaurus.alpha", version: "1.0.10", build: "42")],
+                in: toolsRoot
+            )
 
             #expect(
                 PluginManager.releaseQuarantineIfUpgraded(
-                    pluginId: "ai.osaurus.alpha", installedVersion: nil, hostBuild: "42"))
+                    pluginId: "ai.osaurus.alpha",
+                    installedVersion: nil,
+                    hostBuild: "42"
+                )
+            )
             #expect(PluginManager.quarantinedPluginIds().isEmpty)
         }
     }
@@ -193,10 +229,16 @@ struct PluginQuarantineUpgradeTests {
             try FileManager.default.createDirectory(at: versionDir, withIntermediateDirectories: true)
 
             try writeEntries(
-                [.init(id: "ai.osaurus.alpha", version: "1.0.10", build: "42")], in: toolsRoot)
+                [.init(id: "ai.osaurus.alpha", version: "1.0.10", build: "42")],
+                in: toolsRoot
+            )
             #expect(
                 PluginManager.releaseQuarantineIfUpgraded(
-                    pluginId: "ai.osaurus.alpha", installedVersion: "1.0.11", hostBuild: "42"))
+                    pluginId: "ai.osaurus.alpha",
+                    installedVersion: "1.0.11",
+                    hostBuild: "42"
+                )
+            )
 
             // The retry aborts: a stale loading marker is what survives.
             try Data("ai.osaurus.alpha".utf8)
@@ -220,7 +262,8 @@ struct PluginQuarantineUpgradeTests {
             for v in ["1.0.9", "1.0.10", "1.0.2"] {
                 try FileManager.default.createDirectory(
                     at: pluginDir.appendingPathComponent(v, isDirectory: true),
-                    withIntermediateDirectories: true)
+                    withIntermediateDirectories: true
+                )
             }
 
             #expect(PluginManager.resolveVersionDirectory(pluginDir)?.lastPathComponent == "1.0.10")

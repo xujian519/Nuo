@@ -32,7 +32,8 @@ struct ToolPermissionHeadlessGuardTests {
     @Test func testProcessIsDetectedAsUnderTests() {
         #expect(
             RuntimeEnvironment.isUnderTests,
-            "the headless guard keys off this; if it is false here the suite can hang on a modal")
+            "the headless guard keys off this; if it is false here the suite can hang on a modal"
+        )
     }
 
     /// The real proof: calling the approval path RETURNS instead of hanging.
@@ -93,7 +94,10 @@ struct ToolPermissionHeadlessGuardTests {
     /// thing Eric could not click or quit.
     @Test func noPermissionPanelSurvivesTheCall() async {
         _ = await ToolPermissionPromptService.requestApproval(
-            toolName: "image", description: "d", argumentsJSON: "{}")
+            toolName: "image",
+            description: "d",
+            argumentsJSON: "{}"
+        )
 
         let stillOpen = await MainActor.run {
             ToolPermissionPromptService.hasOpenPermissionWindowForTesting

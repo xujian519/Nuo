@@ -45,10 +45,12 @@ struct CancelStampSurvivesTrimTests {
         // without it, the `cancelled` stamp from `finalizeRun` is erased for
         // any Stop that lands before the first delta.
         let trimStart = try #require(
-            chatView.range(of: "private func trimTrailingEmptyAssistantTurn()"))
+            chatView.range(of: "private func trimTrailingEmptyAssistantTurn()")
+        )
         let trimEnd = try #require(
-            chatView.range(of: "private func consolidateAssistantTurns()"))
-        let trimBody = String(chatView[trimStart.lowerBound..<trimEnd.lowerBound])
+            chatView.range(of: "private func consolidateAssistantTurns()")
+        )
+        let trimBody = String(chatView[trimStart.lowerBound ..< trimEnd.lowerBound])
         #expect(trimBody.contains("lastTurn.terminalStopReason == nil"))
         // The stamp itself still exists upstream of the trim.
         #expect(chatView.contains("turns[lastAssistant].terminalStopReason = \"cancelled\""))
@@ -63,9 +65,11 @@ struct CancelStampSurvivesTrimTests {
         // clean trim instead of a ghost marker (model unload was the case
         // that caught this — see explicitModelUnloadPreparationUsesStopLifecycle).
         let stopStart = try #require(
-            chatView.range(of: "func stop(preservesCancelledMarker: Bool = true) {"))
+            chatView.range(of: "func stop(preservesCancelledMarker: Bool = true) {")
+        )
         let stopWindow = String(
-            chatView[stopStart.lowerBound...].prefix(3600))
+            chatView[stopStart.lowerBound...].prefix(3600)
+        )
         // After cleanup at the end of stop(): whenever a user Stop cancels a
         // send before the run task appended its assistant turn (handshake
         // window, or a Stop that simply wins the race to the first append),

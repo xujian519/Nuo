@@ -25,17 +25,20 @@ struct ComposerAudioCapabilityTests {
             modelId: id,
             fallbackSupportsImages: true,
             localModelType: "gemma4",
-            localHasAudioTensors: false)
+            localHasAudioTensors: false
+        )
         #expect(
             !nameOnly.supportsAudio,
-            "guard the control: if the NAME alone already yielded audio this test proves nothing")
+            "guard the control: if the NAME alone already yielded audio this test proves nothing"
+        )
 
         let withCheckpoint = ModelMediaCapabilities.composerCapabilities(
             modelId: id,
             fallbackSupportsImages: true,
             localModelType: "gemma4",
             localHasAudioTensors: true,
-            localCapabilities: .init(supportsImage: true, supportsVideo: false, supportsAudio: true))
+            localCapabilities: .init(supportsImage: true, supportsVideo: false, supportsAudio: true)
+        )
         #expect(withCheckpoint.supportsAudio)
         #expect(withCheckpoint.supportsImage, "audio must not cost the image path")
     }
@@ -49,7 +52,8 @@ struct ComposerAudioCapabilityTests {
             fallbackSupportsImages: true,
             localModelType: "gemma4",
             localHasAudioTensors: true,
-            localCapabilities: .init(supportsImage: true, supportsVideo: false, supportsAudio: true))
+            localCapabilities: .init(supportsImage: true, supportsVideo: false, supportsAudio: true)
+        )
         #expect(caps.summary.contains("audio"), "got \(caps.summary)")
     }
 
@@ -62,7 +66,8 @@ struct ComposerAudioCapabilityTests {
             modelId: "OsaurusAI/gemma-4-26B-A4B-it-qat-JANG_4M",
             fallbackSupportsImages: true,
             localModelType: "gemma4",
-            localHasAudioTensors: false)
+            localHasAudioTensors: false
+        )
         #expect(!caps.supportsAudio)
     }
 

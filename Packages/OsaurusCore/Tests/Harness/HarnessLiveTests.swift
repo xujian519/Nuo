@@ -165,9 +165,17 @@ struct HarnessLiveTests {
             }
             #expect(await session.hasLiveProcess, "a rejected prompt must not kill the process")
         } else {
-            let first = try await run("Remember the codeword HERON-7. Reply with only: OK", on: session, context: context)
+            let first = try await run(
+                "Remember the codeword HERON-7. Reply with only: OK",
+                on: session,
+                context: context
+            )
             let pid = try #require(await session.processId)
-            let second = try await run("What is the codeword? Reply with only the codeword.", on: session, context: context)
+            let second = try await run(
+                "What is the codeword? Reply with only the codeword.",
+                on: session,
+                context: context
+            )
             #expect(first.visibleText.contains("OK"), "got: \(first.visibleText)")
             #expect(second.visibleText.contains("HERON-7"), "got: \(second.visibleText)")
             #expect(await session.processId == pid)

@@ -21,7 +21,8 @@ struct AgentGenerationConfigurationTests {
 
     @Test("strict configuration preserves nested template JSON and exact nullable overrides")
     func strictRoundTrip() throws {
-        let document = try ConfigYAML.decode("""
+        let document = try ConfigYAML.decode(
+            """
             version: 1
             agents:
               - name: Generation fixture
@@ -44,12 +45,16 @@ struct AgentGenerationConfigurationTests {
                       enabled: false
                       count: 0
                       values: [null, value]
-            """)
+            """
+        )
         let entry = try #require(document.agents?.first)
         #expect(entry.generationSettings == .value(AgentGenerationSettingsTests.explicit))
         let yaml = try ConfigYAML.encode(document)
         #expect(try ConfigYAML.decode(yaml).agents?.first?.generationSettings == entry.generationSettings)
-        #expect(try ConfigYAML.decode(ConfigJSON.encode(document)).agents?.first?.generationSettings == entry.generationSettings)
+        #expect(
+            try ConfigYAML.decode(ConfigJSON.encode(document)).agents?.first?.generationSettings
+                == entry.generationSettings
+        )
     }
 
     @Test("only template_kwargs permits arbitrary nested keys")
@@ -87,7 +92,10 @@ struct AgentGenerationConfigurationTests {
         #expect(template.document(overrides: clearing).agents?.first?.generationSettings == .null)
         var replacement = AgentEntry(name: "Probe")
         replacement.generationSettings = .value(AgentGenerationSettings(enableThinking: true))
-        #expect(template.document(overrides: replacement).agents?.first?.generationSettings == replacement.generationSettings)
+        #expect(
+            template.document(overrides: replacement).agents?.first?.generationSettings
+                == replacement.generationSettings
+        )
     }
 
     @Test("JSON schema has a closed nullable override group and an open nullable template object")
@@ -101,10 +109,14 @@ struct AgentGenerationConfigurationTests {
         #expect(group["type"] as? [String] == ["object", "null"])
         #expect(group["additionalProperties"] as? Bool == false)
         let fields = try #require(group["properties"] as? [String: Any])
-        #expect(Set(fields.keys) == Set([
-            "top_p", "top_k", "min_p", "repetition_penalty", "frequency_penalty",
-            "presence_penalty", "seed", "stop", "enable_thinking", "reasoning_effort", "template_kwargs", "speculative_decoding",
-        ]))
+        #expect(
+            Set(fields.keys)
+                == Set([
+                    "top_p", "top_k", "min_p", "repetition_penalty", "frequency_penalty",
+                    "presence_penalty", "seed", "stop", "enable_thinking", "reasoning_effort", "template_kwargs",
+                    "speculative_decoding",
+                ])
+        )
         let kwargs = try #require(fields["template_kwargs"] as? [String: Any])
         #expect(kwargs["type"] as? [String] == ["object", "null"])
         #expect(kwargs["additionalProperties"] as? Bool == true)
@@ -121,7 +133,9 @@ struct AgentGenerationConfigurationPersistenceTests {
     func exportAndApply() async throws {
         try await ChatHistoryTestStorage.run {
             var agent = Agent(
-                name: "Generation fixture", temperature: 0, maxTokens: 1234,
+                name: "Generation fixture",
+                temperature: 0,
+                maxTokens: 1234,
                 generationSettings: AgentGenerationSettingsTests.explicit,
                 autonomousExec: AutonomousExecConfig(enabled: false)
             )

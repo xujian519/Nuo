@@ -263,7 +263,9 @@ private extension SandboxView {
                         icon: "shippingbox",
                         title: L("Set Up Sandbox"),
                         subtitle: isSeatbelt
-                            ? L("Run agent commands confined to a sandbox workspace on this Mac. (macOS 26 or later adds full VM isolation.)")
+                            ? L(
+                                "Run agent commands confined to a sandbox workspace on this Mac. (macOS 26 or later adds full VM isolation.)"
+                            )
                             : L("Run isolated Linux containers for agent plugins and autonomous execution."),
                         examples: [
                             .init(
@@ -487,8 +489,8 @@ private extension SandboxView {
                             ? L("+1 more finding in copied report")
                             : L("+\(hiddenCount) more findings in copied report")
                     )
-                        .font(.system(size: 10))
-                        .foregroundColor(theme.tertiaryText)
+                    .font(.system(size: 10))
+                    .foregroundColor(theme.tertiaryText)
                 }
             }
         }
@@ -1016,9 +1018,9 @@ private extension SandboxView {
                             : "Tests exec, NAT networking, agent users, apk, and vsock bridge",
                         bundle: .module
                     )
-                        .font(.system(size: 11))
-                        .foregroundColor(theme.tertiaryText)
-                        .lineLimit(2)
+                    .font(.system(size: 11))
+                    .foregroundColor(theme.tertiaryText)
+                    .lineLimit(2)
                 }
 
                 // Most recent startup/provisioning failure from the local
@@ -1184,7 +1186,9 @@ private extension SandboxView {
     var networkToggleDescription: String {
         if pendingConfig.network == "proxy" {
             return isSeatbelt
-                ? L("A domain allowlist is configured, which this sandbox can't enforce — network stays fully blocked. Clear agents' Allowed Domains to restore outbound access.")
+                ? L(
+                    "A domain allowlist is configured, which this sandbox can't enforce — network stays fully blocked. Clear agents' Allowed Domains to restore outbound access."
+                )
                 : L("Outbound limited to the provisioning agent's allowed domains")
         }
         return isSeatbelt
@@ -1210,10 +1214,14 @@ private extension SandboxView {
                 .foregroundColor(theme.tertiaryText)
 
                 HStack(spacing: 12) {
-                    destructiveButton(isSeatbelt ? "Reset Sandbox" : "Reset Container", icon: "arrow.counterclockwise") {
+                    destructiveButton(isSeatbelt ? "Reset Sandbox" : "Reset Container", icon: "arrow.counterclockwise")
+                    {
                         showResetConfirm = true
                     }
-                    .alert(Text(isSeatbelt ? "Reset Sandbox?" : "Reset Container?", bundle: .module), isPresented: $showResetConfirm) {
+                    .alert(
+                        Text(isSeatbelt ? "Reset Sandbox?" : "Reset Container?", bundle: .module),
+                        isPresented: $showResetConfirm
+                    ) {
                         Button(role: .cancel) {
                         } label: {
                             Text("Cancel", bundle: .module)
@@ -1235,7 +1243,10 @@ private extension SandboxView {
                     destructiveButton(isSeatbelt ? "Remove Sandbox" : "Remove Container", icon: "trash") {
                         showRemoveConfirm = true
                     }
-                    .alert(Text(isSeatbelt ? "Remove Sandbox?" : "Remove Container?", bundle: .module), isPresented: $showRemoveConfirm) {
+                    .alert(
+                        Text(isSeatbelt ? "Remove Sandbox?" : "Remove Container?", bundle: .module),
+                        isPresented: $showRemoveConfirm
+                    ) {
                         Button(role: .cancel) {
                         } label: {
                             Text("Cancel", bundle: .module)

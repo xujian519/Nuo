@@ -326,7 +326,8 @@ func parseBlocks(_ input: String, preserveBlockquoteHardBreaks: Bool = false) ->
             flushList()
             // Static documents need the original trailing spaces to distinguish
             // an explicit Markdown hard break from a source-only soft wrap.
-            let quoteContent = preserveBlockquoteHardBreaks
+            let quoteContent =
+                preserveBlockquoteHardBreaks
                 ? line.drop(while: { $0 == " " || $0 == "\t" }).dropFirst().drop(while: { $0 == " " || $0 == "\t" })
                 : trimmed.dropFirst().trimmingWhitespace()
             currentBlockquoteLines.append(quoteContent)
@@ -816,7 +817,9 @@ private func parseOrderedListItemWithIndent(_ line: Substring, trimmed: Substrin
 /// configure on the main thread, and compiling the pattern per call showed up
 /// as the hang leaf. NSRegularExpression is immutable and safe to share.
 private let standaloneImagePattern = try? NSRegularExpression(
-    pattern: #"^!\[([^\]]*)\]\(([^)]+)\)$"#, options: [])
+    pattern: #"^!\[([^\]]*)\]\(([^)]+)\)$"#,
+    options: []
+)
 
 private func extractStandaloneImageKind(from text: String) -> MessageBlock.Kind? {
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)

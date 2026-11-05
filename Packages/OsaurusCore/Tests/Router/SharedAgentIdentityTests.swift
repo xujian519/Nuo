@@ -167,7 +167,9 @@ struct SharedAgentIdentityTests {
     // MARK: - Model precedence
 
     @Test func model_teammate_liveBeatsPairedAndPairedBeatsNil() {
-        #expect(make(paired: Self.paired(model: "paired-model"), liveEffectiveModel: "live-model").model == "live-model")
+        #expect(
+            make(paired: Self.paired(model: "paired-model"), liveEffectiveModel: "live-model").model == "live-model"
+        )
         #expect(make(paired: Self.paired(model: "paired-model"), liveEffectiveModel: "").model == "paired-model")
         #expect(make(paired: Self.paired(model: nil)).model == nil)
         #expect(make().modelLabel == nil)
@@ -183,7 +185,10 @@ struct SharedAgentIdentityTests {
     // MARK: - Workspace / avatar / description
 
     @Test func workspace_fromRosterMatchElsePairedWorkspaceId() throws {
-        let withRoster = make(workspace: try Self.workspace(id: "ws-1", name: "One"), paired: Self.paired(workspaceId: "ws-2"))
+        let withRoster = make(
+            workspace: try Self.workspace(id: "ws-1", name: "One"),
+            paired: Self.paired(workspaceId: "ws-2")
+        )
         #expect(withRoster.workspaceId == "ws-1")
         #expect(withRoster.workspaceName == "One")
 
@@ -266,7 +271,13 @@ struct SharedAgentIdentityTests {
     }
 
     @Test func status_teammateServed_isReadOnlyRegardlessOfEverythingElse() {
-        let status = derive(served: true, caller: "Bob", rosterLists: false, presence: .offline(lastSeen: nil), isPaired: false)
+        let status = derive(
+            served: true,
+            caller: "Bob",
+            rosterLists: false,
+            presence: .offline(lastSeen: nil),
+            isPaired: false
+        )
         #expect(status == .readOnlyTeammate(callerName: "Bob"))
         #expect(!status.canSend)
     }
@@ -286,8 +297,10 @@ struct SharedAgentIdentityTests {
     }
 
     @Test func status_neverUnavailableBeforeRosterLoadsOrForDirectShares() {
-        #expect(derive(rosterLists: false, rosterHasLoaded: false, isPaired: false, phase: .idle)
-            == .notConnected(reason: nil, hasAttempted: false))
+        #expect(
+            derive(rosterLists: false, rosterHasLoaded: false, isPaired: false, phase: .idle)
+                == .notConnected(reason: nil, hasAttempted: false)
+        )
         // Empty workspaceId = directly shared (invite link): roster never lists it.
         #expect(derive(workspaceId: "", rosterLists: false) == .ready)
     }
@@ -338,14 +351,19 @@ struct SharedAgentIdentityTests {
     @Test func forOwnAgent_mapsRelayTunnelState() {
         #expect(SharedAgentStatus.forOwnAgent(relayStatus: .connected(url: "https://x")) == .ready)
         #expect(SharedAgentStatus.forOwnAgent(relayStatus: .connecting) == .connecting)
-        #expect(SharedAgentStatus.forOwnAgent(relayStatus: .error("Tunnel rejected")) == .notConnected(reason: "Tunnel rejected", hasAttempted: true))
+        #expect(
+            SharedAgentStatus.forOwnAgent(relayStatus: .error("Tunnel rejected"))
+                == .notConnected(reason: "Tunnel rejected", hasAttempted: true)
+        )
         if case .notConnected(let reason, let attempted) = SharedAgentStatus.forOwnAgent(relayStatus: nil) {
             #expect(attempted == false)
             #expect(reason?.isEmpty == false)
         } else {
             Issue.record("relay off should read as notConnected")
         }
-        #expect(SharedAgentStatus.forOwnAgent(relayStatus: .disconnected) == SharedAgentStatus.forOwnAgent(relayStatus: nil))
+        #expect(
+            SharedAgentStatus.forOwnAgent(relayStatus: .disconnected) == SharedAgentStatus.forOwnAgent(relayStatus: nil)
+        )
     }
 
     // MARK: - Presentation contract (badge mapping)
@@ -376,7 +394,8 @@ struct SharedAgentIdentityTests {
     /// with "isn't connected yet", and reasons are normalized to sentences.
     @Test func noticeTitleAndDetail_splitByAttemptAndNormalizeReason() {
         let failed = SharedAgentStatus.notConnected(
-            reason: "remote agent rejected the connection (check pairing and authorization)", hasAttempted: true
+            reason: "remote agent rejected the connection (check pairing and authorization)",
+            hasAttempted: true
         )
         #expect(failed.title(agentName: "Weather Agent") == "Couldn't connect to Weather Agent")
         #expect(
@@ -386,7 +405,10 @@ struct SharedAgentIdentityTests {
 
         let fresh = SharedAgentStatus.notConnected(reason: nil, hasAttempted: false)
         #expect(fresh.title(agentName: "Weather Agent") == "Weather Agent isn't connected yet")
-        #expect(fresh.detail(agentName: "Weather Agent", hostName: nil) == L("Connect to start chatting over the encrypted relay."))
+        #expect(
+            fresh.detail(agentName: "Weather Agent", hostName: nil)
+                == L("Connect to start chatting over the encrypted relay.")
+        )
 
         let offline = SharedAgentStatus.offline(lastSeen: nil)
         #expect(offline.title(agentName: "Writer") == "Writer is offline")

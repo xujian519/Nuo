@@ -677,16 +677,22 @@ struct SecureChannelE2ETests {
             let (pingData, pingResp) = try await URLSession.shared.data(for: pingRequest)
             #expect((pingResp as? HTTPURLResponse)?.statusCode == 200)
             let pingOpened = try SecureChannelClient.openBufferedResponse(
-                pingData, opener: session.makeResponseOpener(requestSeq: pingSeq))
+                pingData,
+                opener: session.makeResponseOpener(requestSeq: pingSeq)
+            )
             #expect(pingOpened.status == 200)
-            let pingBody = String(decoding: pingOpened.body.flatMap { Data(base64urlEncoded: $0) } ?? Data(), as: UTF8.self)
+            let pingBody = String(
+                decoding: pingOpened.body.flatMap { Data(base64urlEncoded: $0) } ?? Data(),
+                as: UTF8.self
+            )
             #expect(pingBody.contains("\"secure_channel\":true"))
             #expect(pingBody.contains("\"transport\":\"secure_channel\""))
 
             // Inbound envelope through the channel: inner 202 accepted.
             let envelope = Data(
                 #"{"v":1,"event_id":"evt-secure-1","conversation_id":"conv-remote","sender":{"id":"workflow"},"content":"ping"}"#
-                    .utf8)
+                    .utf8
+            )
             let inboundInner = SecureChannel.InnerRequest(
                 method: "POST",
                 path: "/channels/n8n/n8n-remote/inbound",
@@ -707,11 +713,14 @@ struct SecureChannelE2ETests {
             // The wire never shows the envelope status or the task id.
             #expect(!String(decoding: inboundData, as: UTF8.self).contains("accepted"))
             let inboundOpened = try SecureChannelClient.openBufferedResponse(
-                inboundData, opener: session.makeResponseOpener(requestSeq: inboundSeq))
+                inboundData,
+                opener: session.makeResponseOpener(requestSeq: inboundSeq)
+            )
             #expect(inboundOpened.status == 202)
             let inboundBody =
                 (try? JSONSerialization.jsonObject(
-                    with: inboundOpened.body.flatMap { Data(base64urlEncoded: $0) } ?? Data())) as? [String: Any]
+                    with: inboundOpened.body.flatMap { Data(base64urlEncoded: $0) } ?? Data()
+                )) as? [String: Any]
                 ?? [:]
             #expect(inboundBody["status"] as? String == "accepted")
             #expect((inboundBody["poll_url"] as? String)?.hasPrefix("/channels/n8n/n8n-remote/tasks/") == true)
@@ -729,7 +738,9 @@ struct SecureChannelE2ETests {
             badRequest.setValue("1", forHTTPHeaderField: HTTPHandler.relayOriginHeaderName)
             let (badData, _) = try await URLSession.shared.data(for: badRequest)
             let badOpened = try SecureChannelClient.openBufferedResponse(
-                badData, opener: session.makeResponseOpener(requestSeq: badSeq))
+                badData,
+                opener: session.makeResponseOpener(requestSeq: badSeq)
+            )
             #expect(badOpened.status == 401)
         }
     }

@@ -50,9 +50,17 @@ public struct ImageEffectiveParameters: Sendable, Codable, Equatable {
     }
 
     public init(
-        width: Int, height: Int, steps: Int, guidance: Float, seed: UInt64,
-        sampler: String? = nil, scheduler: String? = nil, shift: Float? = nil,
-        strength: Float? = nil, scale: Int? = nil, modelRevision: String? = nil,
+        width: Int,
+        height: Int,
+        steps: Int,
+        guidance: Float,
+        seed: UInt64,
+        sampler: String? = nil,
+        scheduler: String? = nil,
+        shift: Float? = nil,
+        strength: Float? = nil,
+        scale: Int? = nil,
+        modelRevision: String? = nil,
         sampleSigmas: [Float]? = nil
     ) {
         self.width = width

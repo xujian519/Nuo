@@ -52,7 +52,7 @@ struct SkillArchiveProcessRunnerTests {
     }
 
     @Test func repeatedRunsKeepDescriptorLifecycleStable() throws {
-        for _ in 0..<100 {
+        for _ in 0 ..< 100 {
             let result = try SkillArchiveProcessRunner.run(
                 executablePath: "/usr/bin/printf",
                 arguments: ["x"],
@@ -246,7 +246,7 @@ struct SkillArchiveProcessRunnerTests {
     }
 
     private static func waitForFile(at url: URL) async -> Bool {
-        for _ in 0..<200 {
+        for _ in 0 ..< 200 {
             if FileManager.default.fileExists(atPath: url.path) { return true }
             try? await Task.sleep(nanoseconds: 10_000_000)
         }
@@ -254,7 +254,7 @@ struct SkillArchiveProcessRunnerTests {
     }
 
     private static func waitForProcessExit(_ processID: pid_t) async -> Bool {
-        for _ in 0..<100 {
+        for _ in 0 ..< 100 {
             if Darwin.kill(processID, 0) == -1, errno == ESRCH { return true }
             try? await Task.sleep(nanoseconds: 10_000_000)
         }
@@ -262,9 +262,10 @@ struct SkillArchiveProcessRunnerTests {
     }
 
     private static func waitForProcessID(at url: URL) async -> pid_t? {
-        for _ in 0..<200 {
+        for _ in 0 ..< 200 {
             if let contents = try? String(contentsOf: url, encoding: .utf8),
-                let processID = pid_t(contents.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                let processID = pid_t(contents.trimmingCharacters(in: .whitespacesAndNewlines))
+            {
                 return processID
             }
             try? await Task.sleep(nanoseconds: 10_000_000)

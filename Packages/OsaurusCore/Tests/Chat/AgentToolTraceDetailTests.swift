@@ -43,7 +43,9 @@ struct AgentToolTraceDetailTests {
             isError: true,
             duration: nil
         )
-        #expect(detail.label == ToolDisplayName.friendly(for: "web_search", running: false, arguments: "{}", failed: true))
+        #expect(
+            detail.label == ToolDisplayName.friendly(for: "web_search", running: false, arguments: "{}", failed: true)
+        )
         #expect(detail.durationMs == nil)
     }
 

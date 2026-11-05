@@ -127,8 +127,12 @@ struct DelegatedToolFailureState {
             let rawKind = object["kind"] as? String,
             let kind = ToolEnvelope.Kind(rawValue: rawKind)
         else { return }
-        failure = DelegatedToolFailure(runID: runID, kind: kind,
-            message: ToolEnvelope.failureMessage(envelope), retryable: object["retryable"] as? Bool)
+        failure = DelegatedToolFailure(
+            runID: runID,
+            kind: kind,
+            message: ToolEnvelope.failureMessage(envelope),
+            retryable: object["retryable"] as? Bool
+        )
     }
 
     var current: DelegatedToolFailure? {
@@ -800,21 +804,28 @@ enum AgentDelegationDispatcher {
                 )
             }
         case .failed(let message):
-            throw failureForChild(message: message, targetAgentName: targetAgentName,
-                terminalFailure: completion.terminalToolFailure)
+            throw failureForChild(
+                message: message,
+                targetAgentName: targetAgentName,
+                terminalFailure: completion.terminalToolFailure
+            )
         }
     }
 
     /// Preserve a terminal tool refusal across the child background-task
     /// boundary, without classifying user-facing summary strings.
-    static func failureForChild(message: String, targetAgentName: String,
-        terminalFailure: DelegatedToolFailure?) -> SubagentError
-    {
+    static func failureForChild(
+        message: String,
+        targetAgentName: String,
+        terminalFailure: DelegatedToolFailure?
+    ) -> SubagentError {
         if let terminalFailure, terminalFailure.kind == .userDenied {
             return .userDenied("Delegated agent '\(targetAgentName)' stopped: \(terminalFailure.message)")
         }
-        return .executionFailed(message: "Delegated agent '\(targetAgentName)' failed: \(message)",
-            retryable: terminalFailure?.retryable ?? true)
+        return .executionFailed(
+            message: "Delegated agent '\(targetAgentName)' failed: \(message)",
+            retryable: terminalFailure?.retryable ?? true
+        )
     }
 
     /// Read the persisted child session (saved by `markCompleted` before the

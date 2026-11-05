@@ -88,7 +88,8 @@ struct ChatTabStripView: View {
     private var leadingInset: CGFloat {
         let inset = Self.leadingInset(
             sidebarWidth: windowState.sidebarColumnWidth,
-            chromeWidth: measuredChromeX ?? leadingChromeWidth)
+            chromeWidth: measuredChromeX ?? leadingChromeWidth
+        )
         return inset > 0 ? inset + Self.edgeGap : 0
     }
 
@@ -107,7 +108,8 @@ struct ChatTabStripView: View {
     private var trailingInset: CGFloat {
         let inset = Self.trailingInset(
             inspectorWidth: windowState.inspectorColumnWidth,
-            chromeWidth: measuredTrailingChrome ?? trailingChromeWidth)
+            chromeWidth: measuredTrailingChrome ?? trailingChromeWidth
+        )
         return inset > 0 ? inset + Self.edgeGap - Self.headerButtonPadding : 0
     }
 
@@ -201,7 +203,8 @@ struct ChatTabStripView: View {
         let visibleCount = visibleTabs(stripWidth: stripWidth).count
         let count = CGFloat(max(visibleCount, 1))
         let hasHidden = windowState.scopedTabs.count > visibleCount
-        let available = tabsBudget(stripWidth: stripWidth) - (count - 1) * Self.separatorWidth
+        let available =
+            tabsBudget(stripWidth: stripWidth) - (count - 1) * Self.separatorWidth
             - (hasHidden ? Self.overflowButtonReserve : 0)
         // Floor at the compact chip: below it a tab is unreadable, so tabs
         // that would push under the floor drop into the overflow menu
@@ -243,7 +246,8 @@ struct ChatTabStripView: View {
     /// agent (other agents' tabs stay live but out of sight until selected).
     private func visibleTabs(stripWidth: CGFloat) -> [ChatTab] {
         let tabs = windowState.scopedTabs
-        let fitsAll = tabsBudget(stripWidth: stripWidth) - CGFloat(tabs.count - 1) * Self.separatorWidth
+        let fitsAll =
+            tabsBudget(stripWidth: stripWidth) - CGFloat(tabs.count - 1) * Self.separatorWidth
             >= CGFloat(tabs.count) * Self.minTabWidth
         if fitsAll { return tabs }
         let budget = tabsBudget(stripWidth: stripWidth) - Self.overflowButtonReserve
@@ -334,7 +338,8 @@ struct ChatTabStripView: View {
                 NotificationCenter.default.post(
                     name: .chatToolbarBackToProject,
                     object: nil,
-                    userInfo: ["windowId": windowState.windowId])
+                    userInfo: ["windowId": windowState.windowId]
+                )
             },
             onDragChanged: { translation in
                 handleDragChanged(tab.id, translation: translation)
@@ -353,7 +358,6 @@ struct ChatTabStripView: View {
     private func isProminent(_ id: UUID) -> Bool {
         id == windowState.activeTabId || id == hoveredTabId
     }
-
 
     // MARK: Drag to reorder
 
@@ -453,7 +457,9 @@ struct ChatTabStripView: View {
         for tab in hiddenTabs {
             let item = NSMenuItem(
                 title: tab.session.title.isEmpty ? L("New Chat") : tab.session.title,
-                action: #selector(TabMenuTarget.select(_:)), keyEquivalent: "")
+                action: #selector(TabMenuTarget.select(_:)),
+                keyEquivalent: ""
+            )
             let target = TabMenuTarget { [windowState] in windowState.selectTab(id: tab.id) }
             item.target = target
             item.representedObject = target  // keeps the target alive with the item
@@ -739,45 +745,45 @@ private struct ChatTabItemView: View {
 
     var body: some View {
         chipContent
-        .frame(width: width)
-        .frame(maxHeight: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(pillFill)
-        )
-        .contentShape(Rectangle())
-        .offset(x: dragOffset)
-        .zIndex(isDragging ? 1 : 0)
-        .modifier(LoneTabTitleBarDoubleClick(isLone: !hasSiblings))
-        .onTapGesture(perform: onSelect)
-        // A short travel threshold keeps plain clicks as taps; beyond it
-        // the press becomes a reorder drag.
-        .gesture(
-            DragGesture(minimumDistance: 4, coordinateSpace: .global)
-                .onChanged { onDragChanged($0.translation.width) }
-                .onEnded { _ in onDragEnded() }
-        )
-        .onHover(perform: onHover)
-        .animation(.easeOut(duration: 0.1), value: isHovered)
-        // Same actions the History dialog / sidebar rows offer, plus Close
-        // Tab, so a chat can be managed without leaving the strip.
-        .overlay(
-            TabRightClickCatcher {
-                ChatTabContextMenu(
-                    windowState: windowState,
-                    session: session,
-                    activityStatus: activityStatus,
-                    canClose: canClose,
-                    onClose: onClose
-                ).makeMenu()
-            }
-        )
-        // The title is hidden on narrow chips and truncated on medium ones,
-        // so the tooltip is how a tab is recognised in a small window. It
-        // carries the agent name too, since avatars alone don't identify a
-        // chat once several tabs share an agent, and the origin for runs
-        // that didn't start from the composer.
-        .help(Text(verbatim: helpText))
+            .frame(width: width)
+            .frame(maxHeight: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(pillFill)
+            )
+            .contentShape(Rectangle())
+            .offset(x: dragOffset)
+            .zIndex(isDragging ? 1 : 0)
+            .modifier(LoneTabTitleBarDoubleClick(isLone: !hasSiblings))
+            .onTapGesture(perform: onSelect)
+            // A short travel threshold keeps plain clicks as taps; beyond it
+            // the press becomes a reorder drag.
+            .gesture(
+                DragGesture(minimumDistance: 4, coordinateSpace: .global)
+                    .onChanged { onDragChanged($0.translation.width) }
+                    .onEnded { _ in onDragEnded() }
+            )
+            .onHover(perform: onHover)
+            .animation(.easeOut(duration: 0.1), value: isHovered)
+            // Same actions the History dialog / sidebar rows offer, plus Close
+            // Tab, so a chat can be managed without leaving the strip.
+            .overlay(
+                TabRightClickCatcher {
+                    ChatTabContextMenu(
+                        windowState: windowState,
+                        session: session,
+                        activityStatus: activityStatus,
+                        canClose: canClose,
+                        onClose: onClose
+                    ).makeMenu()
+                }
+            )
+            // The title is hidden on narrow chips and truncated on medium ones,
+            // so the tooltip is how a tab is recognised in a small window. It
+            // carries the agent name too, since avatars alone don't identify a
+            // chat once several tabs share an agent, and the origin for runs
+            // that didn't start from the composer.
+            .help(Text(verbatim: helpText))
     }
 
     private var helpText: String {
@@ -833,7 +839,9 @@ private struct ChatTabContextMenu {
         if let persisted {
             add(to: menu, L("Open in New Window"), icon: "macwindow.badge.plus") {
                 ChatWindowManager.shared.createWindow(
-                    agentId: persisted.agentId, sessionData: persisted)
+                    agentId: persisted.agentId,
+                    sessionData: persisted
+                )
             }
             menu.addItem(.separator())
         } else if isBlank {
@@ -857,7 +865,9 @@ private struct ChatTabContextMenu {
             if !projects.isEmpty {
                 let item = NSMenuItem(
                     title: session.projectId == nil ? L("Move to Project") : L("Change Project"),
-                    action: nil, keyEquivalent: "")
+                    action: nil,
+                    keyEquivalent: ""
+                )
                 item.submenu = makeProjectSubmenu(projects: projects)
                 menu.addItem(item)
             }
@@ -901,7 +911,10 @@ private struct ChatTabContextMenu {
 
     @discardableResult
     private func add(
-        to menu: NSMenu, _ title: String, icon: String? = nil, handler: @escaping () -> Void
+        to menu: NSMenu,
+        _ title: String,
+        icon: String? = nil,
+        handler: @escaping () -> Void
     ) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: #selector(TabMenuTarget.select(_:)), keyEquivalent: "")
         if let icon { item.image = NSImage(systemSymbolName: icon, accessibilityDescription: nil) }
@@ -1249,7 +1262,6 @@ private struct TabCloseButtonStyle: ButtonStyle {
             .onHover { isHovered = $0 }
     }
 }
-
 
 /// Invisible AppKit layer over a tab chip that pops the given menu on a
 /// right-click (or control-click) landing on the chip. It never takes part

@@ -116,7 +116,8 @@ import Foundation
             let keep = templateFile(key: key).lastPathComponent
             guard
                 let entries = try? fm.contentsOfDirectory(
-                    at: templatesDir(), includingPropertiesForKeys: nil
+                    at: templatesDir(),
+                    includingPropertiesForKeys: nil
                 )
             else { return }
             for entry in entries where entry.lastPathComponent != keep {
@@ -219,7 +220,8 @@ import Foundation
             let fm = FileManager.default
             guard
                 let entries = try? fm.contentsOfDirectory(
-                    at: environmentsDir(), includingPropertiesForKeys: [.isDirectoryKey]
+                    at: environmentsDir(),
+                    includingPropertiesForKeys: [.isDirectoryKey]
                 )
             else { return [] }
             return

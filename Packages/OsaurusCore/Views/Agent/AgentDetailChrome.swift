@@ -1088,12 +1088,17 @@ private struct AgentDetailTabViewportWidthKey: PreferenceKey {
                         icon: "gear",
                         items: [
                             .init(
-                                id: "general.configure", label: "Configure", icon: "gear",
-                                help: "Identity, model, and behavior overrides."),
+                                id: "general.configure",
+                                label: "Configure",
+                                icon: "gear",
+                                help: "Identity, model, and behavior overrides."
+                            ),
                             .init(
-                                id: "general.appearance", label: "Appearance",
+                                id: "general.appearance",
+                                label: "Appearance",
                                 icon: "paintpalette.fill",
-                                help: "Avatar, empty state, and visual theme."),
+                                help: "Avatar, empty state, and visual theme."
+                            ),
                         ]
                     ),
                     AgentDetailTabGroup(
@@ -1103,14 +1108,21 @@ private struct AgentDetailTabViewportWidthKey: PreferenceKey {
                         items: [
                             .init(id: "abilities.overview", label: "Overview", icon: "switch.2"),
                             .init(
-                                id: "abilities.tools", label: "Tools",
-                                icon: "wrench.and.screwdriver"),
+                                id: "abilities.tools",
+                                label: "Tools",
+                                icon: "wrench.and.screwdriver"
+                            ),
                             .init(
-                                id: "abilities.subagents", label: "Subagents",
-                                icon: "person.2.wave.2"),
+                                id: "abilities.subagents",
+                                label: "Subagents",
+                                icon: "person.2.wave.2"
+                            ),
                             .init(
-                                id: "abilities.broken", label: "Broken Plugin",
-                                icon: "exclamationmark.triangle.fill", isWarning: true),
+                                id: "abilities.broken",
+                                label: "Broken Plugin",
+                                icon: "exclamationmark.triangle.fill",
+                                isWarning: true
+                            ),
                         ],
                         isWarning: true
                     ),
@@ -1121,8 +1133,10 @@ private struct AgentDetailTabViewportWidthKey: PreferenceKey {
                         items: [
                             .init(id: "connections.network", label: "Network", icon: "network"),
                             .init(
-                                id: "connections.remote", label: "Remote Connections",
-                                icon: "person.2.badge.key"),
+                                id: "connections.remote",
+                                label: "Remote Connections",
+                                icon: "person.2.badge.key"
+                            ),
                         ]
                     ),
                     AgentDetailTabGroup(
@@ -1131,8 +1145,10 @@ private struct AgentDetailTabViewportWidthKey: PreferenceKey {
                         icon: "clock.badge.checkmark",
                         items: [
                             .init(
-                                id: "automation.automation", label: "Automation",
-                                icon: "clock.badge.checkmark")
+                                id: "automation.automation",
+                                label: "Automation",
+                                icon: "clock.badge.checkmark"
+                            )
                         ],
                         badgeCount: 3
                     ),
@@ -1142,11 +1158,16 @@ private struct AgentDetailTabViewportWidthKey: PreferenceKey {
                         icon: "brain.head.profile",
                         items: [
                             .init(
-                                id: "memory.memory", label: "Memory", icon: "brain.head.profile",
-                                badgeCount: 359),
+                                id: "memory.memory",
+                                label: "Memory",
+                                icon: "brain.head.profile",
+                                badgeCount: 359
+                            ),
                             .init(
-                                id: "memory.database", label: "Database",
-                                icon: "cylinder.split.1x2"),
+                                id: "memory.database",
+                                label: "Database",
+                                icon: "cylinder.split.1x2"
+                            ),
                         ],
                         badgeCount: 359
                     ),

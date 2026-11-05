@@ -66,7 +66,8 @@ enum MediaActivityLogger {
             if let voice, !voice.isEmpty { details["voice"] = voice }
             if let audioSeconds, audioSeconds > 0 { details["audio_seconds"] = String(format: "%.1f", audioSeconds) }
             if cancelled { details["cancelled"] = "true" }
-            let egress = isRemote
+            let egress =
+                isRemote
                 ? EgressInfo(
                     destinationLabel: provider,
                     destinationHost: host,
@@ -109,8 +110,13 @@ enum MediaActivityLogger {
         trigger: Trigger
     ) -> SpeechJob {
         SpeechJob(
-            text: text, model: model, voice: voice, provider: provider, endpoint: endpoint,
-            trigger: trigger, attribution: .current()
+            text: text,
+            model: model,
+            voice: voice,
+            provider: provider,
+            endpoint: endpoint,
+            trigger: trigger,
+            attribution: .current()
         )
     }
 
@@ -165,8 +171,12 @@ enum MediaActivityLogger {
     ) -> TranscriptionJob? {
         guard !servingHTTPRequest() else { return nil }
         return TranscriptionJob(
-            model: model, audioSeconds: audioSeconds, audioBytes: audioBytes, audioFormat: audioFormat,
-            mode: mode, attribution: .current()
+            model: model,
+            audioSeconds: audioSeconds,
+            audioBytes: audioBytes,
+            audioFormat: audioFormat,
+            mode: mode,
+            attribution: .current()
         )
     }
 
@@ -238,9 +248,18 @@ enum MediaActivityLogger {
         /// coordinator picks the default model after the row is opened).
         func withModel(_ resolved: String) -> MediaJob {
             var copy = MediaJob(
-                kind: kind, operation: operation, model: resolved, prompt: prompt, provider: provider,
-                endpoint: endpoint, requestedCount: requestedCount, size: size, steps: steps,
-                durationSeconds: durationSeconds, trigger: trigger, attribution: attribution
+                kind: kind,
+                operation: operation,
+                model: resolved,
+                prompt: prompt,
+                provider: provider,
+                endpoint: endpoint,
+                requestedCount: requestedCount,
+                size: size,
+                steps: steps,
+                durationSeconds: durationSeconds,
+                trigger: trigger,
+                attribution: attribution
             )
             copy.started = started
             return copy
@@ -260,11 +279,14 @@ enum MediaActivityLogger {
             ]
             if let size, !size.isEmpty { details["size"] = size }
             if let steps { details["steps"] = String(steps) }
-            if let durationSeconds, durationSeconds > 0 { details["duration_seconds"] = String(format: "%.0f", durationSeconds) }
+            if let durationSeconds, durationSeconds > 0 {
+                details["duration_seconds"] = String(format: "%.0f", durationSeconds)
+            }
             if let jobId, !jobId.isEmpty { details["job_id"] = jobId }
             if let prompt { details["prompt_chars"] = String(prompt.count) }
             details = ImageEffectiveParameters.activityDetails(details, images: images)
-            let egress = isRemote
+            let egress =
+                isRemote
                 ? EgressInfo(
                     destinationLabel: provider,
                     destinationHost: host,
@@ -276,7 +298,9 @@ enum MediaActivityLogger {
             InsightsService.logRequest(
                 source: trigger == .chatTool ? .tool : .chatUI,
                 method: "POST",
-                path: isRemote ? "/v1/\(kind.rawValue)s/\(operation.rawValue)" : "/internal/\(kind.rawValue)_\(operation.rawValue)",
+                path: isRemote
+                    ? "/v1/\(kind.rawValue)s/\(operation.rawValue)"
+                    : "/internal/\(kind.rawValue)_\(operation.rawValue)",
                 statusCode: error == nil ? 200 : 500,
                 durationMs: durationMs,
                 requestBody: prompt,
@@ -313,9 +337,18 @@ enum MediaActivityLogger {
     ) -> MediaJob? {
         guard !servingHTTPRequest() else { return nil }
         return MediaJob(
-            kind: kind, operation: operation, model: model, prompt: prompt, provider: provider,
-            endpoint: endpoint, requestedCount: requestedCount, size: size, steps: steps,
-            durationSeconds: durationSeconds, trigger: trigger, attribution: .current()
+            kind: kind,
+            operation: operation,
+            model: model,
+            prompt: prompt,
+            provider: provider,
+            endpoint: endpoint,
+            requestedCount: requestedCount,
+            size: size,
+            steps: steps,
+            durationSeconds: durationSeconds,
+            trigger: trigger,
+            attribution: .current()
         )
     }
 }

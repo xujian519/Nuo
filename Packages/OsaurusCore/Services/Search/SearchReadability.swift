@@ -61,7 +61,8 @@ enum SearchReadability {
     /// after ~5 minutes while the tool promised 25 s) held the tool loop for
     /// the whole time. Both intervals are pinned to `timeout`.
     static func boundedConfiguration(
-        _ base: URLSessionConfiguration, timeout: TimeInterval
+        _ base: URLSessionConfiguration,
+        timeout: TimeInterval
     ) -> URLSessionConfiguration {
         let configuration = base
         configuration.timeoutIntervalForRequest = timeout
@@ -125,7 +126,9 @@ enum SearchReadability {
         let delegate = SearchReadabilityRedirectDelegate()
         let session = URLSession(
             configuration: Self.boundedConfiguration(configuration, timeout: timeout),
-            delegate: delegate, delegateQueue: nil)
+            delegate: delegate,
+            delegateQueue: nil
+        )
         defer {
             session.invalidateAndCancel()
         }
@@ -141,7 +144,8 @@ enum SearchReadability {
                 // changing the URL. A persistent 401/403/404 is not a
                 // transport outage; labeling it `fetch_failed` previously
                 // invited the agent to request the same blocked page forever.
-                let retryableHTTPStatus = status == 408 || status == 425 || status == 429
+                let retryableHTTPStatus =
+                    status == 408 || status == 425 || status == 429
                     || (500 ... 599).contains(status)
                 return (
                     failure(

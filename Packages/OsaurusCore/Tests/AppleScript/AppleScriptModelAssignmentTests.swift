@@ -24,7 +24,8 @@ struct AppleScriptModelAssignmentTests {
         let assigned = "SomeOrg/Definitely-Not-Installed-AppleScript-Model"
         #expect(
             AppleScriptModelCatalog.resolveAssignment(preferred: assigned)
-                == .assignedButNotInstalled(assigned))
+                == .assignedButNotInstalled(assigned)
+        )
         // The compatibility shim maps that to nil rather than to another
         // model — a caller that ignores the distinction still cannot run the
         // wrong model.
@@ -36,9 +37,13 @@ struct AppleScriptModelAssignmentTests {
         try await OsaurusTestGlobals.withPathsLock {
             let fm = FileManager.default
             let manifestRoot = fm.temporaryDirectory.appendingPathComponent(
-                "osaurus-applescript-auto-manifest-\(UUID().uuidString)", isDirectory: true)
+                "osaurus-applescript-auto-manifest-\(UUID().uuidString)",
+                isDirectory: true
+            )
             let modelsRoot = fm.temporaryDirectory.appendingPathComponent(
-                "osaurus-applescript-auto-models-\(UUID().uuidString)", isDirectory: true)
+                "osaurus-applescript-auto-models-\(UUID().uuidString)",
+                isDirectory: true
+            )
             let previousRoot = OsaurusPaths.overrideRoot
             let previousOverride = ExternalModelLocator.testRootsOverride
             OsaurusPaths.overrideRoot = manifestRoot
@@ -82,9 +87,13 @@ struct AppleScriptModelAssignmentTests {
         await OsaurusTestGlobals.withPathsLock {
             let fm = FileManager.default
             let manifestRoot = fm.temporaryDirectory.appendingPathComponent(
-                "osaurus-applescript-assign-manifest-\(UUID().uuidString)", isDirectory: true)
+                "osaurus-applescript-assign-manifest-\(UUID().uuidString)",
+                isDirectory: true
+            )
             let modelsRoot = fm.temporaryDirectory.appendingPathComponent(
-                "osaurus-applescript-assign-models-\(UUID().uuidString)", isDirectory: true)
+                "osaurus-applescript-assign-models-\(UUID().uuidString)",
+                isDirectory: true
+            )
             // Deliberately NOT one of the AppleScript repo prefixes: this is
             // the shape the old gate dropped.
             let assignedId = "JANGQ-AI/Ornith-1.0-9B-JANG_6M"
@@ -114,7 +123,8 @@ struct AppleScriptModelAssignmentTests {
 
             #expect(
                 AppleScriptModelCatalog.resolveAssignment(preferred: assignedId)
-                    == .resolved(assignedId))
+                    == .resolved(assignedId)
+            )
             // Still never an AUTOMATIC pick: the curated-only rule for the
             // unassigned case is unchanged.
             #expect(AppleScriptModelCatalog.resolveAssignment(preferred: nil) == .noneInstalled)

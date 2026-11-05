@@ -117,8 +117,7 @@ actor SpawnWaveGate {
     /// test around the batch; the decision task inherits it from the joiner
     /// whose arrival completed the rendezvous.
     @TaskLocal
-    static var authorizeOverrideForTests:
-        (@Sendable (_ members: [Member], _ leader: Member) async -> SubagentDecision)?
+    static var authorizeOverrideForTests: (@Sendable (_ members: [Member], _ leader: Member) async -> SubagentDecision)?
 
     // MARK: - Lifecycle
 

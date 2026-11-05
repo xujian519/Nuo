@@ -176,7 +176,9 @@ public struct Template: Codable, Equatable, Sendable, Identifiable {
         payload = .agent(
             AgentTemplatePayload(
                 agent: try c.decode(AgentEntry.self, forKey: .agent),
-                actions: try c.decodeIfPresent([TemplateAction].self, forKey: .actions)))
+                actions: try c.decodeIfPresent([TemplateAction].self, forKey: .actions)
+            )
+        )
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -309,16 +311,20 @@ public struct Template: Codable, Equatable, Sendable, Identifiable {
             let prior = carried.models.first { $0.slot == ModelRequirement.agentSlot }
             out.models = [
                 ModelRequirement(
-                    slot: ModelRequirement.agentSlot, preferred: model,
+                    slot: ModelRequirement.agentSlot,
+                    preferred: model,
                     strictness: prior?.strictness ?? .preferred,
                     locality: prior?.locality ?? .cloudAllowed,
-                    needsToolUse: entry.capabilities?.toolsEnabled ?? true)
+                    needsToolUse: entry.capabilities?.toolsEnabled ?? true
+                )
             ]
         }
         out.mcpServers = entry.mcpServers?.enabled ?? []
         out.plugins = entry.plugins?.enabled ?? []
         var permissions: [String] = []
-        if entry.capabilities?.computerUseEnabled == true { permissions.append(SystemPermission.accessibility.rawValue) }
+        if entry.capabilities?.computerUseEnabled == true {
+            permissions.append(SystemPermission.accessibility.rawValue)
+        }
         for raw in carried.permissions where !permissions.contains(raw) { permissions.append(raw) }
         out.permissions = permissions
         out.knowledge = carried.knowledge
@@ -380,10 +386,19 @@ public struct Template: Codable, Equatable, Sendable, Identifiable {
     /// on an import conflict uses this so the two never share history.
     public func forked(named newName: String) -> Template {
         var copy = Template(
-            id: UUID(), version: 1, changelog: L("Copied from \(name) v\(version)"),
-            name: name, summary: summary, author: nil, createdAt: Date(),
-            availableToOrchestrator: availableToOrchestrator, requirements: requirements,
-            payload: payload, bundled: bundled, serverHints: serverHints)
+            id: UUID(),
+            version: 1,
+            changelog: L("Copied from \(name) v\(version)"),
+            name: name,
+            summary: summary,
+            author: nil,
+            createdAt: Date(),
+            availableToOrchestrator: availableToOrchestrator,
+            requirements: requirements,
+            payload: payload,
+            bundled: bundled,
+            serverHints: serverHints
+        )
         copy = copy.renamed(to: newName)
         return copy.sealed()
     }
@@ -392,9 +407,19 @@ public struct Template: Codable, Equatable, Sendable, Identifiable {
     /// built-in loader and tests need this.
     func withID(_ id: UUID) -> Template {
         let t = Template(
-            id: id, version: version, changelog: changelog, name: name, summary: summary,
-            author: author, createdAt: createdAt, availableToOrchestrator: availableToOrchestrator,
-            requirements: requirements, payload: payload, bundled: bundled, serverHints: serverHints)
+            id: id,
+            version: version,
+            changelog: changelog,
+            name: name,
+            summary: summary,
+            author: author,
+            createdAt: createdAt,
+            availableToOrchestrator: availableToOrchestrator,
+            requirements: requirements,
+            payload: payload,
+            bundled: bundled,
+            serverHints: serverHints
+        )
         return t.sealed()
     }
 
@@ -506,15 +531,19 @@ extension Template {
             }
             let entry = try strictAgentEntry(from: only)
             return Template(
-                name: entry.name, summary: entry.description,
-                payload: .agent(AgentTemplatePayload(agent: entry)))
+                name: entry.name,
+                summary: entry.description,
+                payload: .agent(AgentTemplatePayload(agent: entry))
+            )
         }
 
         if root["name"] is String {
             let entry = try strictAgentEntry(from: root)
             return Template(
-                name: entry.name, summary: entry.description,
-                payload: .agent(AgentTemplatePayload(agent: entry)))
+                name: entry.name,
+                summary: entry.description,
+                payload: .agent(AgentTemplatePayload(agent: entry))
+            )
         }
 
         throw TemplateError.notATemplate("Expected a `format` key, an `agents` list, or an agent with a `name`.")

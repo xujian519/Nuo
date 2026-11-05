@@ -46,7 +46,8 @@ struct AgentSkillAllowListCard: View {
                 .frame(width: 26, height: 26)
                 .background(
                     RoundedRectangle(cornerRadius: 6, style: .continuous).fill(
-                        isLimited ? theme.accentColor.opacity(0.12) : theme.inputBackground)
+                        isLimited ? theme.accentColor.opacity(0.12) : theme.inputBackground
+                    )
                 )
 
             VStack(alignment: .leading, spacing: 2) {

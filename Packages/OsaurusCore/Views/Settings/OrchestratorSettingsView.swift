@@ -207,7 +207,9 @@ struct OrchestratorSettingsView: View {
     }
 
     private func capabilityTile(
-        icon: String, title: LocalizedStringKey, caption: LocalizedStringKey
+        icon: String,
+        title: LocalizedStringKey,
+        caption: LocalizedStringKey
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {

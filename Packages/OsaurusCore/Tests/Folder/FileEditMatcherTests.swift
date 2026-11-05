@@ -17,7 +17,10 @@ import Testing
 struct FileEditMatcherTests {
 
     private func applied(
-        _ old: String, _ new: String, to content: String, replaceAll: Bool = false
+        _ old: String,
+        _ new: String,
+        to content: String,
+        replaceAll: Bool = false
     ) throws -> FileEditMatcher.Applied {
         switch FileEditMatcher.apply(oldString: old, newString: new, to: content, replaceAll: replaceAll) {
         case .applied(let result): return result
@@ -38,13 +41,18 @@ struct FileEditMatcherTests {
         let result = try applied("debug = True", "debug = False", to: "cfg:\n    debug = True  # flag\n")
         #expect(result.strategy == .exact)
         #expect(result.content == "cfg:\n    debug = False  # flag\n")
-        #expect(result.matchedLines == [2...2])
+        #expect(result.matchedLines == [2 ... 2])
         #expect(result.matchedText == nil)
     }
 
     @Test func exact_multipleWithoutReplaceAllIsAmbiguous() {
-        guard case .ambiguous(let count, let strategy) = FileEditMatcher.apply(
-            oldString: "x", newString: "y", to: "x x", replaceAll: false)
+        guard
+            case .ambiguous(let count, let strategy) = FileEditMatcher.apply(
+                oldString: "x",
+                newString: "y",
+                to: "x x",
+                replaceAll: false
+            )
         else { Issue.record("expected ambiguous"); return }
         #expect(count == 2)
         #expect(strategy == .exact)
@@ -66,7 +74,12 @@ struct FileEditMatcherTests {
         // Decomposed e + combining acute in the file, precomposed in the
         // request: exact must not match, the unicode tier does (NFC).
         let file = "caf\u{0065}\u{0301} au lait\n"
-        let result = FileEditMatcher.apply(oldString: "caf\u{00E9} au lait", newString: "tea", to: file, replaceAll: false)
+        let result = FileEditMatcher.apply(
+            oldString: "caf\u{00E9} au lait",
+            newString: "tea",
+            to: file,
+            replaceAll: false
+        )
         guard case .applied(let applied) = result else { Issue.record("expected applied"); return }
         // Swift `==` on the normalized lines is canonical, so the whitespace
         // tier already resolves NFC drift; what matters is that "exact" was
@@ -87,7 +100,7 @@ struct FileEditMatcherTests {
         )
         #expect(result.strategy == .whitespaceNormalized)
         #expect(result.content == "def f():\n\tif x:\n\t\treturn 2\n\treturn 0\n")
-        #expect(result.matchedLines == [2...3])
+        #expect(result.matchedLines == [2 ... 3])
         #expect(result.matchedText == "\tif x:\n\t\treturn 1")
     }
 
@@ -134,7 +147,9 @@ struct FileEditMatcherTests {
             "def f(self):\n  if self.x:\n    return 2\n  return 1",
             to: file
         )
-        #expect(result.content == "class A:\n    def f(self):\n        if self.x:\n            return 2\n        return 1\n")
+        #expect(
+            result.content == "class A:\n    def f(self):\n        if self.x:\n            return 2\n        return 1\n"
+        )
     }
 
     @Test func whitespace_ambiguousRelaxedMatchIsRejected() {
@@ -161,7 +176,7 @@ struct FileEditMatcherTests {
         #expect(result.strategy == .whitespaceNormalized)
         #expect(result.replacements == 2)
         #expect(result.content == "\tfoo(2)\n\tbar\n\tfoo(2)\n")
-        #expect(result.matchedLines == [1...1, 3...3])
+        #expect(result.matchedLines == [1 ... 1, 3 ... 3])
     }
 
     // MARK: - Blank lines collapsed
@@ -248,13 +263,15 @@ struct FileEditMatcherTests {
     // MARK: - Not found
 
     @Test func notFound_whenNothingResembles() {
-        guard case .notFound = FileEditMatcher.apply(oldString: "zzz", newString: "y", to: "abc\n", replaceAll: false) else {
+        guard case .notFound = FileEditMatcher.apply(oldString: "zzz", newString: "y", to: "abc\n", replaceAll: false)
+        else {
             Issue.record("expected notFound"); return
         }
     }
 
     @Test func notFound_forWhitespaceOnlyOldString() {
-        guard case .notFound = FileEditMatcher.apply(oldString: "   ", newString: "y", to: "a b\n", replaceAll: false) else {
+        guard case .notFound = FileEditMatcher.apply(oldString: "   ", newString: "y", to: "a b\n", replaceAll: false)
+        else {
             Issue.record("expected notFound"); return
         }
     }
@@ -270,8 +287,8 @@ struct FileEditMatcherTests {
     @Test func lineSpan_countsCorrectly() {
         let content = "l1\nl2\nl3\nl4\n"
         let range = content.range(of: "l2\nl3\n")!
-        #expect(FileEditMatcher.lineSpan(of: range, in: content) == 2...3)
+        #expect(FileEditMatcher.lineSpan(of: range, in: content) == 2 ... 3)
         let single = content.range(of: "l4")!
-        #expect(FileEditMatcher.lineSpan(of: single, in: content) == 4...4)
+        #expect(FileEditMatcher.lineSpan(of: single, in: content) == 4 ... 4)
     }
 }

@@ -119,12 +119,14 @@ public struct EvalCaseTranscript: Codable, Sendable {
             self.toolArgumentCharacters = toolArgumentCharacters
             self.completionTokens = completionTokens
             self.decodeTokensPerSecond = decodeTokensPerSecond
-            self.decodeThroughputAttribution = decodeThroughputAttribution
+            self.decodeThroughputAttribution =
+                decodeThroughputAttribution
                 ?? (decodeTokensPerSecond != nil
                     ? "measured_vmlx_info"
                     : "unavailable_no_vmlx_info")
             self.requestedEnableThinking = requestedEnableThinking
-            self.thinkingState = thinkingState
+            self.thinkingState =
+                thinkingState
                 ?? requestedEnableThinking.map {
                     $0 ? "explicitEnabled" : "explicitDisabled"
                 } ?? "runtimeDefault"
@@ -168,17 +170,20 @@ public struct EvalCaseTranscript: Codable, Sendable {
                 Double.self,
                 forKey: .decodeTokensPerSecond
             )
-            decodeThroughputAttribution = try container.decodeIfPresent(
-                String.self,
-                forKey: .decodeThroughputAttribution
-            ) ?? (decodeTokensPerSecond != nil
-                ? "measured_vmlx_info"
-                : "unavailable_legacy_transcript")
+            decodeThroughputAttribution =
+                try container.decodeIfPresent(
+                    String.self,
+                    forKey: .decodeThroughputAttribution
+                )
+                ?? (decodeTokensPerSecond != nil
+                    ? "measured_vmlx_info"
+                    : "unavailable_legacy_transcript")
             requestedEnableThinking = try container.decodeIfPresent(
                 Bool.self,
                 forKey: .requestedEnableThinking
             )
-            thinkingState = try container.decodeIfPresent(String.self, forKey: .thinkingState)
+            thinkingState =
+                try container.decodeIfPresent(String.self, forKey: .thinkingState)
                 ?? requestedEnableThinking.map {
                     $0 ? "explicitEnabled" : "explicitDisabled"
                 } ?? "runtimeDefault"
@@ -286,8 +291,9 @@ public enum EvalTranscriptStore {
         let persisted: Set<String> = [
             EvalCaseOutcome.failed.rawValue, EvalCaseOutcome.errored.rawValue,
         ]
-        guard persisted.contains(transcript.outcome)
-            || (includeSuccessful && transcript.outcome == EvalCaseOutcome.passed.rawValue)
+        guard
+            persisted.contains(transcript.outcome)
+                || (includeSuccessful && transcript.outcome == EvalCaseOutcome.passed.rawValue)
         else { return }
         do {
             try FileManager.default.createDirectory(

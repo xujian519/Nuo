@@ -150,14 +150,30 @@ struct RouterCacheTelemetryDecodingTests {
     @Test func creditsSummary_sumsCachedInputAcrossRows() {
         let rows = [
             OsaurusRouterUsageItem(
-                id: "a", requestId: nil, model: "m", provider: "openai",
-                inputTokens: 100, outputTokens: 1, cachedInputTokens: 80, cacheWriteTokens: 0,
-                costMicro: "1", status: "completed", tokenSource: "provider", createdAt: "2026-06-13T18:00:00Z"
+                id: "a",
+                requestId: nil,
+                model: "m",
+                provider: "openai",
+                inputTokens: 100,
+                outputTokens: 1,
+                cachedInputTokens: 80,
+                cacheWriteTokens: 0,
+                costMicro: "1",
+                status: "completed",
+                tokenSource: "provider",
+                createdAt: "2026-06-13T18:00:00Z"
             ),
             OsaurusRouterUsageItem(
-                id: "b", requestId: nil, model: "m", provider: "venice",
-                inputTokens: 50, outputTokens: 1,
-                costMicro: "1", status: "completed", tokenSource: "provider", createdAt: "2026-06-13T18:00:00Z"
+                id: "b",
+                requestId: nil,
+                model: "m",
+                provider: "venice",
+                inputTokens: 50,
+                outputTokens: 1,
+                costMicro: "1",
+                status: "completed",
+                tokenSource: "provider",
+                createdAt: "2026-06-13T18:00:00Z"
             ),
         ]
         let summary = RouterAccountUsageCenter.creditsSummary(rows)
@@ -167,17 +183,33 @@ struct RouterCacheTelemetryDecodingTests {
 
     @Test func activityRow_tokensLineAppendsCachedOnlyWhenNonZero() {
         let cached = OsaurusRouterUsageItem(
-            id: "a", requestId: nil, model: "m", provider: "openai",
-            inputTokens: 1200, outputTokens: 340, cachedInputTokens: 900, cacheWriteTokens: 0,
-            costMicro: "1", status: "completed", tokenSource: "provider", createdAt: "2026-06-13T18:00:00Z"
+            id: "a",
+            requestId: nil,
+            model: "m",
+            provider: "openai",
+            inputTokens: 1200,
+            outputTokens: 340,
+            cachedInputTokens: 900,
+            cacheWriteTokens: 0,
+            costMicro: "1",
+            status: "completed",
+            tokenSource: "provider",
+            createdAt: "2026-06-13T18:00:00Z"
         )
         let cachedRow = CreditsActivityRow(usage: cached, match: nil, insightsReference: nil)
         #expect(cachedRow.tokensLine == "1,200 in / 340 out (900 cached)")
 
         let plain = OsaurusRouterUsageItem(
-            id: "b", requestId: nil, model: "m", provider: "venice",
-            inputTokens: 1200, outputTokens: 340,
-            costMicro: "1", status: "completed", tokenSource: "provider", createdAt: "2026-06-13T18:00:00Z"
+            id: "b",
+            requestId: nil,
+            model: "m",
+            provider: "venice",
+            inputTokens: 1200,
+            outputTokens: 340,
+            costMicro: "1",
+            status: "completed",
+            tokenSource: "provider",
+            createdAt: "2026-06-13T18:00:00Z"
         )
         let plainRow = CreditsActivityRow(usage: plain, match: nil, insightsReference: nil)
         #expect(plainRow.tokensLine == "1,200 in / 340 out")
@@ -194,7 +226,10 @@ struct RouterCacheTelemetryDecodingTests {
         // Ratio omitted when the total is unknown, zero, or inconsistent.
         #expect(OsaurusRouter.formatCachedInputLabel(cachedTokens: 10, inputTokens: 0) == "10 cached")
         #expect(OsaurusRouter.formatCachedInputLabel(cachedTokens: 10, inputTokens: 5) == "10 cached")
-        #expect(OsaurusRouter.formatCachedInputLabel(cachedTokens: 1_234_567, inputTokens: 1_234_567) == "1,234,567 cached · 100%")
+        #expect(
+            OsaurusRouter.formatCachedInputLabel(cachedTokens: 1_234_567, inputTokens: 1_234_567)
+                == "1,234,567 cached · 100%"
+        )
     }
 
     @Test @MainActor func statsFooter_showsCachedChipOnlyWhenPositive() {
@@ -212,8 +247,12 @@ struct RouterCacheTelemetryDecodingTests {
         #expect(turn.effectiveCachedInputTokens == nil)
 
         turn.routerBilling = RouterBillingSummary(
-            costMicro: "1", status: "completed", tokenSource: "provider",
-            inputTokens: 100, outputTokens: 1, cachedInputTokens: 70
+            costMicro: "1",
+            status: "completed",
+            tokenSource: "provider",
+            inputTokens: 100,
+            outputTokens: 1,
+            cachedInputTokens: 70
         )
         #expect(turn.effectiveCachedInputTokens == 70)
 
@@ -370,12 +409,18 @@ struct ProviderCachedUsageParsingTests {
         #expect(empty.cachedPromptTokens == nil)
         let over = try JSONDecoder().decode(
             Usage.self,
-            from: Data(#"{"prompt_tokens":5,"completion_tokens":1,"total_tokens":6,"prompt_tokens_details":{"cached_tokens":9}}"#.utf8)
+            from: Data(
+                #"{"prompt_tokens":5,"completion_tokens":1,"total_tokens":6,"prompt_tokens_details":{"cached_tokens":9}}"#
+                    .utf8
+            )
         )
         #expect(over.cachedPromptTokens == 5)
         let negative = try JSONDecoder().decode(
             Usage.self,
-            from: Data(#"{"prompt_tokens":5,"completion_tokens":1,"total_tokens":6,"prompt_tokens_details":{"cached_tokens":-2}}"#.utf8)
+            from: Data(
+                #"{"prompt_tokens":5,"completion_tokens":1,"total_tokens":6,"prompt_tokens_details":{"cached_tokens":-2}}"#
+                    .utf8
+            )
         )
         #expect(negative.cachedPromptTokens == 0)
     }
@@ -425,7 +470,10 @@ struct ProviderCachedUsageParsingTests {
     @Test func anthropicInputAccounting_sumsThreeBuckets() throws {
         let usage = try JSONDecoder().decode(
             AnthropicUsage.self,
-            from: Data(#"{"input_tokens":12,"output_tokens":1,"cache_creation_input_tokens":2048,"cache_read_input_tokens":4096}"#.utf8)
+            from: Data(
+                #"{"input_tokens":12,"output_tokens":1,"cache_creation_input_tokens":2048,"cache_read_input_tokens":4096}"#
+                    .utf8
+            )
         )
         let accounting = RemoteProviderService.anthropicInputAccounting(usage)
         #expect(accounting.totalInputTokens == 12 + 2048 + 4096)
@@ -563,7 +611,12 @@ struct ProviderCachedUsageParsingTests {
     @Test func geminiUsage_clampsCachedToPrompt() {
         var state = RemoteProviderService.StreamingState(stopSequences: [], trackContent: false)
         RemoteProviderService.captureGeminiUsage(
-            GeminiUsageMetadata(promptTokenCount: 10, candidatesTokenCount: 1, totalTokenCount: 11, cachedContentTokenCount: 99),
+            GeminiUsageMetadata(
+                promptTokenCount: 10,
+                candidatesTokenCount: 1,
+                totalTokenCount: 11,
+                cachedContentTokenCount: 99
+            ),
             state: &state
         )
         #expect(state.providerCachedInputTokens == 10)
@@ -616,7 +669,8 @@ struct ProviderCachedUsageParsingTests {
                 """
                 {"id":"c","object":"chat.completion.chunk","created":1,"model":"m","choices":[],
                  "usage":{"prompt_tokens":3000,"completion_tokens":12,"total_tokens":3012,"prompt_tokens_details":{"cached_tokens":2816}}}
-                """.utf8),
+                """.utf8
+            ),
             providerType: .openaiLegacy,
             state: &openai,
             yield: { _ in }
@@ -653,7 +707,8 @@ struct ProviderCachedUsageParsingTests {
                 """
                 {"candidates":[{"content":{"parts":[{"text":"ok"}],"role":"model"},"finishReason":"STOP","index":0}],
                  "usageMetadata":{"promptTokenCount":700,"candidatesTokenCount":4,"totalTokenCount":704,"cachedContentTokenCount":512}}
-                """.utf8),
+                """.utf8
+            ),
             providerType: .gemini,
             state: &gemini,
             yield: { _ in }

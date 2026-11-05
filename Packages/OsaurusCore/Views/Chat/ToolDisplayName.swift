@@ -78,14 +78,22 @@ enum ToolDisplayName {
             guard pendingBytes > 0 else { return L("Preparing tool call") }
             return String(
                 format: L("Preparing tool call (%@)"),
-                formattedByteCount(pendingBytes))
+                formattedByteCount(pendingBytes)
+            )
         }
         // A completed call whose result was an error must not read as success:
         // the past tense ("Wrote a file") would contradict the red error node
         // when e.g. `file_write` returns `ok:false`. Name the tool and mark the
         // failure instead. Only applies once the call has completed.
         if failed, !running {
-            return String(format: L("Failed: %@"), humanize(rawName.hasPrefix("osaurus_") ? "nuo_" + rawName.dropFirst("osaurus_".count) : rawName))
+            // Failed calls humanise the frozen tool id (`osaurus_config`), which
+            // would otherwise render as "Osaurus config" in the chip.
+            let legacyPrefix = "osaurus_"
+            let displayName =
+                rawName.hasPrefix(legacyPrefix)
+                ? "nuo_" + rawName.dropFirst(legacyPrefix.count)
+                : rawName
+            return String(format: L("Failed: %@"), humanize(displayName))
         }
         if isSearchTool(rawName) {
             return searchLabel(rawName, running: running, arguments: arguments)
@@ -232,7 +240,10 @@ enum ToolDisplayName {
         var result = sentenceCased
         for (word, acronym) in [("pii", "PII"), ("Pii", "PII"), ("url", "URL"), ("Url", "URL")] {
             result = result.replacingOccurrences(
-                of: "\\b\(word)\\b", with: acronym, options: .regularExpression)
+                of: "\\b\(word)\\b",
+                with: acronym,
+                options: .regularExpression
+            )
         }
         return result
     }
@@ -286,9 +297,13 @@ enum ToolDisplayName {
         "file_tree": ToolLabel(L("Browsing files"), L("Browsed files")),
         "shell_run": ToolLabel(L("Running a command"), L("Ran a command")),
         "detect_pii": ToolLabel(
-            L("Scanning for personal information"), L("Scanned for personal information")),
+            L("Scanning for personal information"),
+            L("Scanned for personal information")
+        ),
         "redact_file": ToolLabel(
-            L("Redacting personal information"), L("Redacted personal information")),
+            L("Redacting personal information"),
+            L("Redacted personal information")
+        ),
         "git_status": ToolLabel(L("Checking git status"), L("Checked git status")),
         "git_diff": ToolLabel(L("Viewing changes"), L("Viewed changes")),
         "git_commit": ToolLabel(L("Committing changes"), L("Committed changes")),

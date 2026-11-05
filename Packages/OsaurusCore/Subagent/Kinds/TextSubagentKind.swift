@@ -105,15 +105,19 @@ final class TextSubagentKind:
     /// signal + debounce for the spawn's own conversation id WITHOUT
     /// re-pointing the target agent's `activeConversation` (a spawn landing
     /// mid-direct-chat must not force-distill the live session early).
-    typealias MemoryTurnRecorder = @Sendable (
-        _ userMessage: String,
-        _ assistantMessage: String,
-        _ agentId: String,
-        _ conversationId: String
-    ) async -> Void
+    typealias MemoryTurnRecorder =
+        @Sendable (
+            _ userMessage: String,
+            _ assistantMessage: String,
+            _ agentId: String,
+            _ conversationId: String
+        ) async -> Void
 
     var memoryRecorder: MemoryTurnRecorder = {
-        userMessage, assistantMessage, agentId, conversationId in
+        userMessage,
+        assistantMessage,
+        agentId,
+        conversationId in
         await MemoryService.shared.bufferDelegatedTurn(
             userMessage: userMessage,
             assistantMessage: assistantMessage,
@@ -684,9 +688,11 @@ final class TextSubagentKind:
             // reserves). Execution mode mirrors the dispatched session's:
             // sandbox when the agent has autonomous exec, else none.
             let window = await AgentLoopBudget.resolveContextWindow(
-                modelId: resolved.model)
+                modelId: resolved.model
+            )
             let dispatchedPrompt = AgentDelegationDispatcher.delegatedPrompt(
-                input: input)
+                input: input
+            )
             let composed = await SystemPromptComposer.composeChatContext(
                 agentId: agent.id,
                 executionMode: (agent.autonomousExec?.enabled ?? false) ? .sandbox : .none,
@@ -704,14 +710,15 @@ final class TextSubagentKind:
             self.admissionContextWasMemoryFitted = false
             var firstRoundBudgets = budgets
             firstRoundBudgets.maxDelegateTurns = 1
-            self.minimumAdmissionContextPositions = DelegatedRunContract.derive(
-                seedCharacters: dispatchedPrompt.count,
-                systemPromptCharacters: composed.prompt.count,
-                toolSchemaTokens: composed.toolTokens,
-                budgets: firstRoundBudgets,
-                toolEnabled: !composed.tools.isEmpty,
-                resolvedContextWindow: window
-            )?.contextPositions
+            self.minimumAdmissionContextPositions =
+                DelegatedRunContract.derive(
+                    seedCharacters: dispatchedPrompt.count,
+                    systemPromptCharacters: composed.prompt.count,
+                    toolSchemaTokens: composed.toolTokens,
+                    budgets: firstRoundBudgets,
+                    toolEnabled: !composed.tools.isEmpty,
+                    resolvedContextWindow: window
+                )?.contextPositions
         }
         return ResolvedModel(
             name: resolved.model,
@@ -757,10 +764,12 @@ final class TextSubagentKind:
         }
 
         let afterPermission = await authoritySnapshot(for: scope)
-        guard Self.matchesApprovedAuthority(
-            approvedAuthority,
-            current: afterPermission
-        ) else {
+        guard
+            Self.matchesApprovedAuthority(
+                approvedAuthority,
+                current: afterPermission
+            )
+        else {
             throw SubagentError.denied(
                 "Spawn settings, launcher, or target agent changed while approval was open. "
                     + "No subagent was started; review the current Subagents settings and retry."
@@ -806,7 +815,7 @@ final class TextSubagentKind:
         // linearizable read. A cold load must not look like a mutation.
         let storeSnapshot =
             SubagentConfigurationStore
-                .snapshotWithSpawnAuthorityRevisions()
+            .snapshotWithSpawnAuthorityRevisions()
         let configuration = storeSnapshot.configuration
         let isDefault = scope.agentId == Agent.defaultId
         let targetAgentID: UUID? = {
@@ -883,8 +892,9 @@ final class TextSubagentKind:
             current.effectivePermission == .alwaysAllow
         {
             if approved.isDefaultLauncher {
-                guard let approvedDefault =
-                    approved.configurationRevision.defaultLauncher,
+                guard
+                    let approvedDefault =
+                        approved.configurationRevision.defaultLauncher,
                     let currentDefault =
                         current.configurationRevision.defaultLauncher
                 else { return false }
@@ -1053,50 +1063,49 @@ final class TextSubagentKind:
         // the TARGET agent (isolation), not the launcher identity that owns the
         // surrounding model run, admission, handoff, and usage accounting.
         let result = try await ChatExecutionContext.$knowledgeGrantAgentIdOverride
-            .withValue(resolvedAgentId)
-        {
-            try await AgentSubagentRunner.run(
-                modelName: resolved.name,
-                seedMessages: seed,
-                maxTokens: budgets.maxDelegateTokens,
-                admissionPositionLimit: admissionRequestEstimate()?.boundedPositionBudget(),
-                maxIterations: maxTurns,
-                deadline: deadline,
-                sessionId: sessionId,
-                temperature: temperature,
-                agentMaxTokens: targetMaxTokens,
-                generationSettings: generationSettings,
-                enableThinking: scope.enableThinking(forDelegatedModel: resolved.name),
+            .withValue(resolvedAgentId) {
+                try await AgentSubagentRunner.run(
+                    modelName: resolved.name,
+                    seedMessages: seed,
+                    maxTokens: budgets.maxDelegateTokens,
+                    admissionPositionLimit: admissionRequestEstimate()?.boundedPositionBudget(),
+                    maxIterations: maxTurns,
+                    deadline: deadline,
+                    sessionId: sessionId,
+                    temperature: temperature,
+                    agentMaxTokens: targetMaxTokens,
+                    generationSettings: generationSettings,
+                    enableThinking: scope.enableThinking(forDelegatedModel: resolved.name),
                     reasoningEffort: scope.reasoningEffort(forDelegatedModel: resolved.name),
                     isInterrupted: { interrupt.isInterrupted },
-                toolset: toolset,
-                onProgress: { [feed] tokens, tokensPerSecond in
-                    // Live "generating" row: coalesced in place by the feed, so
-                    // long generations show advancing tokens + tok/s.
-                    var detail = "\(tokens) tokens"
-                    if let tokensPerSecond {
-                        detail += String(format: " · %.1f tok/s", tokensPerSecond)
+                    toolset: toolset,
+                    onProgress: { [feed] tokens, tokensPerSecond in
+                        // Live "generating" row: coalesced in place by the feed, so
+                        // long generations show advancing tokens + tok/s.
+                        var detail = "\(tokens) tokens"
+                        if let tokensPerSecond {
+                            detail += String(format: " · %.1f tok/s", tokensPerSecond)
+                        }
+                        feed.emitProgress("generating", step: tokens, detail: detail)
+                    },
+                    onChannelDelta: { [feed] delta in
+                        switch delta {
+                        case .reasoning(let fragment):
+                            feed.emitStreamDelta(
+                                kind: .reasoning,
+                                title: "reasoning",
+                                delta: fragment
+                            )
+                        case .content(let fragment):
+                            feed.emitStreamDelta(
+                                kind: .response,
+                                title: "response",
+                                delta: fragment
+                            )
+                        }
                     }
-                    feed.emitProgress("generating", step: tokens, detail: detail)
-                },
-                onChannelDelta: { [feed] delta in
-                    switch delta {
-                    case .reasoning(let fragment):
-                        feed.emitStreamDelta(
-                            kind: .reasoning,
-                            title: "reasoning",
-                            delta: fragment
-                        )
-                    case .content(let fragment):
-                        feed.emitStreamDelta(
-                            kind: .response,
-                            title: "response",
-                            delta: fragment
-                        )
-                    }
-                }
-            )
-        }
+                )
+            }
         let elapsed = Date().timeIntervalSince(started)
 
         switch result.exit {
@@ -1307,7 +1316,8 @@ final class TextSubagentKind:
             payload["needs_input_marker_off_prefix"] = true
             print(
                 "[TextSubagentKind] worker \(resolvedAgentName) (\(outcome.sessionId.uuidString)) "
-                    + "used NEEDS INPUT off-prefix; needs_input stays false")
+                    + "used NEEDS INPUT off-prefix; needs_input stays false"
+            )
         }
         // Deliverables: the files the child's session wrote (its file-change
         // journal, net of reverts), as paths the parent can `file_read` when

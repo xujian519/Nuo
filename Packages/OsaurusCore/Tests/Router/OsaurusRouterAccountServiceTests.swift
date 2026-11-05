@@ -104,8 +104,14 @@ struct OsaurusRouterAccountServiceTests {
 
     private func summary(costMicro: String) -> OsaurusRouterSummaryEvent.Summary {
         OsaurusRouterSummaryEvent.Summary(
-            requestId: "req-1", costMicro: costMicro, status: "ok", tokenSource: "provider",
-            inputTokens: 10, outputTokens: 5, billedTo: nil)
+            requestId: "req-1",
+            costMicro: costMicro,
+            status: "ok",
+            tokenSource: "provider",
+            inputTokens: 10,
+            outputTokens: 5,
+            billedTo: nil
+        )
     }
 
     // MARK: - Activation
@@ -116,7 +122,7 @@ struct OsaurusRouterAccountServiceTests {
         let h = try makeHarness()
         defer { h.restoreRouter() }
 
-        for _ in 0..<5 {
+        for _ in 0 ..< 5 {
             await h.service.handleAppActivation()
         }
         #expect(h.log.paths.isEmpty)
@@ -135,7 +141,7 @@ struct OsaurusRouterAccountServiceTests {
         #expect(h.service.awaitingTopUpConfirmation)
 
         let bound = OsaurusRouterAccountService.maxTopUpConfirmationPolls
-        for i in 1...bound {
+        for i in 1 ... bound {
             await h.service.handleAppActivation()
             #expect(h.log.count(of: "/credits/balance") == 1 + i)
         }
@@ -185,7 +191,7 @@ struct OsaurusRouterAccountServiceTests {
         await h.service.refreshBalance()
         #expect(h.service.usageRevision == 0)
 
-        for _ in 0..<6 {
+        for _ in 0 ..< 6 {
             h.service.noteRouterSummary(summary(costMicro: "1500"))
         }
         #expect(h.service.balanceMicroValue == 1_000_000 - 6 * 1500)
@@ -300,8 +306,11 @@ private final class AccountURLProtocol: URLProtocol, @unchecked Sendable {
         }
         let (status, data) = handler(request)
         let response = HTTPURLResponse(
-            url: request.url!, statusCode: status, httpVersion: "HTTP/1.1",
-            headerFields: ["content-type": "application/json"])!
+            url: request.url!,
+            statusCode: status,
+            httpVersion: "HTTP/1.1",
+            headerFields: ["content-type": "application/json"]
+        )!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: data)
         client?.urlProtocolDidFinishLoading(self)

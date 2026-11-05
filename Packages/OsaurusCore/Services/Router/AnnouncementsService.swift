@@ -144,7 +144,8 @@ final class AnnouncementsService: ObservableObject {
                     // Strict dedicated limit — honor `retry-after`, fall back
                     // to a conservative pause when it's absent/unparseable.
                     self.retryNotBefore = self.now().addingTimeInterval(
-                        Self.backoffInterval(retryAfter: retryAfter))
+                        Self.backoffInterval(retryAfter: retryAfter)
+                    )
                 }
                 // Every other failure (transport, non-200, malformed body):
                 // keep the previous list; the next natural trigger retries.

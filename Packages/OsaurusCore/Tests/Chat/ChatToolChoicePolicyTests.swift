@@ -151,17 +151,20 @@ struct ChatToolChoicePolicyTests {
         #expect(Self.isAuto(choice))
     }
 
-    @Test("Tool-result recall does not require another call", arguments: [
-        "Do not run another tool.",
-        "Don't run tools.",
-        "Dont run file_read again.",
-        "Answer without running tools.",
-        "Answer without calling tools.",
-        "Do not invoke file_read again.",
-        "Don't invoke another tool.",
-        "Dont invoke file_read.",
-        "Answer without invoking any tools.",
-    ])
+    @Test(
+        "Tool-result recall does not require another call",
+        arguments: [
+            "Do not run another tool.",
+            "Don't run tools.",
+            "Dont run file_read again.",
+            "Answer without running tools.",
+            "Answer without calling tools.",
+            "Do not invoke file_read again.",
+            "Don't invoke another tool.",
+            "Dont invoke file_read.",
+            "Answer without invoking any tools.",
+        ]
+    )
     func toolResultRecallRespectsNoExecutionRequest(instruction: String) {
         let choice = ChatToolChoicePolicy.resolve(
             tools: [Self.tool("file_read")],

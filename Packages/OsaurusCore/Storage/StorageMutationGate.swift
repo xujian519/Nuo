@@ -46,7 +46,8 @@ public final class StorageMutationGate {
     /// the file was being opened and the fresh connection may span the
     /// swap — close and retry (see `PluginDatabase.open()`).
     nonisolated private static let mutationEpochAtomic = OSAllocatedUnfairLock<UInt64>(
-        initialState: 0)
+        initialState: 0
+    )
 
     nonisolated public static var mutationEpoch: UInt64 {
         mutationEpochAtomic.withLock { $0 }
@@ -148,7 +149,8 @@ public final class StorageMutationGate {
             // rotation that never ends would still be a user-visible stall —
             // the watchdog should attribute it to the storage gate.
             let token = MainThreadOperationLedger.shared.begin(
-                subsystem: "storage", operation: "await-key-rotation"
+                subsystem: "storage",
+                operation: "await-key-rotation"
             )
             defer { MainThreadOperationLedger.shared.end(token) }
             while semaphore.wait(timeout: .now() + 0.05) == .timedOut {

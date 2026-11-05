@@ -46,7 +46,10 @@ struct SubagentRunLogTests {
 
     @Test func finishedRunLog_nilWhileRunningOrForOtherKinds() {
         let running = SubagentFeed(
-            toolCallId: "c", kindId: SubagentCapabilityRegistry.appleScript.id, title: "t")
+            toolCallId: "c",
+            kindId: SubagentCapabilityRegistry.appleScript.id,
+            title: "t"
+        )
         #expect(running.finishedRunLog() == nil)
         let spawn = Self.finishedFeed(kindId: SubagentCapabilityRegistry.spawn.id)
         #expect(spawn.finishedRunLog() == nil)
@@ -60,8 +63,11 @@ struct SubagentRunLogTests {
         }
         feed.emit(
             SubagentActivityEvent(
-                kind: .reasoning, title: "long",
-                detail: String(repeating: "x", count: SubagentRunLog.maxPersistedDetailCharacters + 500)))
+                kind: .reasoning,
+                title: "long",
+                detail: String(repeating: "x", count: SubagentRunLog.maxPersistedDetailCharacters + 500)
+            )
+        )
         feed.finish(success: true, summary: "done")
 
         let log = try #require(feed.finishedRunLog())

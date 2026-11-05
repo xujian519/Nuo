@@ -177,7 +177,8 @@ public final class BackgroundTaskState: ObservableObject, Identifiable {
     public func originLabel(pluginDisplayName: String? = nil) -> String? {
         let base = source.originLabel(pluginDisplayName: pluginDisplayName)
         guard isWorkspaceRun else { return base }
-        let agent = workspaceAgentName ?? target.workspaceRef.map { OsaurusRouterWorkspacePerson.shortWallet($0.agentAddress) }
+        let agent =
+            workspaceAgentName ?? target.workspaceRef.map { OsaurusRouterWorkspacePerson.shortWallet($0.agentAddress) }
         let onAgent = "on \(agent ?? "workspace agent")"
         return base.map { "\($0) · \(onAgent)" } ?? onAgent
     }

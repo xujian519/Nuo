@@ -229,7 +229,7 @@ final class ServerController: ObservableObject {
                         serverConfiguration: self.configuration
                     )
                     break
-                } catch where Self.isAddressInUse(error) && attempt < Self.bindAttempts {
+                } catch  where Self.isAddressInUse(error) && attempt < Self.bindAttempts {
                     MobileConnectLog.write(
                         "server: port \(configuration.port) busy, retrying (\(attempt)/\(Self.bindAttempts))"
                     )

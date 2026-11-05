@@ -54,7 +54,10 @@ public enum TemplateSigner {
         else { return .unsigned }
         guard template.hashIsValid, let signature = Data(hexEncoded: signatureHex),
             let recovered = try? recoverAddress(
-                payload: Data(template.contentHash.utf8), signature: signature, domainPrefix: templateSignatureDomain),
+                payload: Data(template.contentHash.utf8),
+                signature: signature,
+                domainPrefix: templateSignatureDomain
+            ),
             recovered.lowercased() == address.lowercased()
         else { return .invalid }
         return .signed(address: recovered, knownAgentID: knownAgent(recovered))
@@ -70,7 +73,9 @@ public enum TemplateSigner {
     /// signature or is signed by someone else is not an update of it.
     /// Returns the address the local version was signed by on a mismatch.
     static func continuityBreak(
-        from local: [Template], to incoming: Template, knownAgent: (String) -> UUID? = { _ in nil }
+        from local: [Template],
+        to incoming: Template,
+        knownAgent: (String) -> UUID? = { _ in nil }
     ) -> String? {
         let signed = local.sorted { $0.version > $1.version }
             .compactMap { status(of: $0, knownAgent: knownAgent).address }

@@ -9,7 +9,7 @@ struct InterruptTokenObserverTests {
         let counts = Counts()
         let id = token.observeInterrupt {
             #expect(token.isInterrupted)
-            token.interrupt() // Would deadlock if callbacks held the token lock.
+            token.interrupt()  // Would deadlock if callbacks held the token lock.
             counts.increment()
         }
         token.interrupt()

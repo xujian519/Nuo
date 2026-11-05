@@ -63,7 +63,7 @@ struct DelegatedWorkingFolderTests {
         try await ChatHistoryTestStorage.run {
             let lease = await acquireSubagentStoreSandbox("delegated-working-folder")
             defer { lease.release() }
-            let agents = (0..<count).map { _ in makeAgent() }
+            let agents = (0 ..< count).map { _ in makeAgent() }
             for agent in agents { AgentManager.shared.add(agent) }
             var thrown: Error?
             do {
@@ -122,7 +122,9 @@ struct DelegatedWorkingFolderTests {
             #expect(mode.usesHostFolderTools)
             #expect(sameFolder(mode.folderContext?.rootPath, dir))
             let sandboxDefault = session.resolveExecutionModeForSend(
-                agentId: agent.id, autonomousEnabled: true)
+                agentId: agent.id,
+                autonomousEnabled: true
+            )
             #expect(sandboxDefault.usesHostFolderTools)
 
             // Turn root binding is the folder, not nil.
@@ -204,7 +206,9 @@ struct DelegatedWorkingFolderTests {
         let folder = "/Users/probe/Documents/Reports"
 
         let withFolder = AgentDelegationDispatcher.delegatedPrompt(
-            input: input, workingFolderPath: folder)
+            input: input,
+            workingFolderPath: folder
+        )
         #expect(withFolder.hasPrefix(input))
         #expect(withFolder.contains("[Delegated task]"))
         #expect(withFolder.contains("ONLY your final message"))
@@ -227,7 +231,10 @@ struct DelegatedWorkingFolderTests {
         // Workspace (remote) child: the host owns its folder; the remote
         // contract wins even if a caller passes a local path.
         let remote = AgentDelegationDispatcher.delegatedPrompt(
-            input: input, remote: true, workingFolderPath: folder)
+            input: input,
+            remote: true,
+            workingFolderPath: folder
+        )
         #expect(remote == input + "\n\n" + AgentDelegationDispatcher.remoteDeliveryContract)
         #expect(!remote.contains(folder))
     }
@@ -265,7 +272,9 @@ struct DelegatedWorkingFolderTests {
         #expect(inherited.folder?.path == "/tmp/launcher")
         #expect(inherited.inherited)
         let empty = AgentDelegationDispatcher.resolveChildWorkingFolder(
-            targetFolder: DelegatedWorkingFolder(bookmark: nil, path: ""), launcherFolder: nil)
+            targetFolder: DelegatedWorkingFolder(bookmark: nil, path: ""),
+            launcherFolder: nil
+        )
         #expect(empty.folder == nil)
     }
 
@@ -304,7 +313,9 @@ struct DelegatedWorkingFolderTests {
 
         // With a launcher folder, folder-less agents inherit it.
         let inherited = SystemPromptTemplates.spawnGuidance(
-            agents: [reader], launcherHasFolder: true)
+            agents: [reader],
+            launcherHasFolder: true
+        )
         #expect(inherited.contains("work in YOUR working folder"))
         #expect(inherited.contains("save deliverables"))
         #expect(!inherited.contains("cannot write files to disk"))
@@ -316,14 +327,18 @@ struct DelegatedWorkingFolderTests {
             let agent = agents[0]
             let bare = agents[1]
             AgentManager.shared.updateWorkingFolder(
-                for: agent.id, bookmark: Data([0xA]), path: "/Users/probe/agent-folder")
+                for: agent.id,
+                bookmark: Data([0xA]),
+                path: "/Users/probe/agent-folder"
+            )
 
             let snapshot = SpawnDescriptors.resolveForPreview(
                 agentIDs: [agent.id, bare.id],
                 launcherModelOverride: nil
             )
             let byId = Dictionary(
-                uniqueKeysWithValues: snapshot.agentTargets.map { ($0.descriptor.id, $0.descriptor) })
+                uniqueKeysWithValues: snapshot.agentTargets.map { ($0.descriptor.id, $0.descriptor) }
+            )
             #expect(byId[agent.id]?.workingFolderPath == "/Users/probe/agent-folder")
             #expect(byId[bare.id]?.workingFolderPath == nil)
 
@@ -331,7 +346,9 @@ struct DelegatedWorkingFolderTests {
             // resolve — prompt and runtime move together.
             AgentManager.shared.clearWorkingFolder(for: agent.id)
             let cleared = SpawnDescriptors.resolveForPreview(
-                agentIDs: [agent.id], launcherModelOverride: nil)
+                agentIDs: [agent.id],
+                launcherModelOverride: nil
+            )
             #expect(cleared.agentTargets.first?.descriptor.workingFolderPath == nil)
         }
     }

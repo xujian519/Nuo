@@ -1247,7 +1247,9 @@ struct AgentChannelDestinationEditorSheet: View {
         VStack(alignment: .leading, spacing: 10) {
             fieldLabel(
                 L("Allowed Run Kinds"),
-                hint: L("Which kinds of agent runs may post here. Replies to incoming messages are separate and unaffected.")
+                hint: L(
+                    "Which kinds of agent runs may post here. Replies to incoming messages are separate and unaffected."
+                )
             )
             HStack(spacing: 16) {
                 ForEach(AgentChannelBindingRunSource.allCases, id: \.self) { source in
@@ -1287,11 +1289,11 @@ struct AgentChannelDestinationEditorSheet: View {
         VStack(alignment: .leading, spacing: 10) {
             fieldLabel(L("Rate Limits"))
             HStack(spacing: 18) {
-                Stepper(value: $maxSendsPerHour, in: 1...120) {
+                Stepper(value: $maxSendsPerHour, in: 1 ... 120) {
                     Text(L("Max \(maxSendsPerHour)/hour"))
                         .font(.system(size: 12))
                 }
-                Stepper(value: $minSecondsBetweenSends, in: 0...3_600, step: 15) {
+                Stepper(value: $minSecondsBetweenSends, in: 0 ... 3_600, step: 15) {
                     Text(L("Min \(minSecondsBetweenSends)s between sends"))
                         .font(.system(size: 12))
                 }

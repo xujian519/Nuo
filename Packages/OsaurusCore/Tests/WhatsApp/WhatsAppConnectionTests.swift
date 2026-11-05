@@ -145,7 +145,8 @@ struct WhatsAppRPCFramingTests {
         )
         transport.emitNotification(method: "passkey", params: ["stage": "confirm", "code": "ABCD-EFGH"])
         transport.emitNotification(
-            method: "login", params: ["status": "success", "self_number": "+15550001111"]
+            method: "login",
+            params: ["status": "success", "self_number": "+15550001111"]
         )
 
         var events: [WhatsAppPairingEvent] = []
@@ -445,14 +446,18 @@ struct WhatsAppConnectionServiceTests {
 
             await #expect(throws: WhatsAppConnectionServiceError.sendConfirmationRequired) {
                 _ = try await service.sendMessage(
-                    chatId: Self.dmChat, content: "hi", confirmSend: false
+                    chatId: Self.dmChat,
+                    content: "hi",
+                    confirmSend: false
                 )
             }
             // With the global write switch off the precise gate is
             // `.writeDisabled`; `.chatNotWritable` is for allowlist misses.
             await #expect(throws: WhatsAppConnectionServiceError.writeDisabled) {
                 _ = try await service.sendMessage(
-                    chatId: Self.dmChat, content: "hi", confirmSend: true
+                    chatId: Self.dmChat,
+                    content: "hi",
+                    confirmSend: true
                 )
             }
 
@@ -464,7 +469,9 @@ struct WhatsAppConnectionServiceTests {
             )
             await #expect(throws: WhatsAppConnectionServiceError.chatNotWritable("+15559990000")) {
                 _ = try await service.sendMessage(
-                    chatId: "+15559990000", content: "hi", confirmSend: true
+                    chatId: "+15559990000",
+                    content: "hi",
+                    confirmSend: true
                 )
             }
             #expect(transport.calls(for: WhatsAppRPCMethod.send).isEmpty)
@@ -498,7 +505,9 @@ struct WhatsAppConnectionServiceTests {
                 count: AgentChannelMessageFormatter.plainTextChunkLimit + 100
             )
             let result = try await service.sendMessage(
-                chatId: Self.dmChat, content: long, confirmSend: true
+                chatId: Self.dmChat,
+                content: long,
+                confirmSend: true
             )
             #expect(transport.calls(for: WhatsAppRPCMethod.send).count == 2)
             #expect(result["chunk_count"] as? Int == 2)
@@ -510,7 +519,9 @@ struct WhatsAppConnectionServiceTests {
             )
             await #expect(throws: WhatsAppConnectionServiceError.messageTooLong) {
                 _ = try await service.sendMessage(
-                    chatId: Self.dmChat, content: overLimit, confirmSend: true
+                    chatId: Self.dmChat,
+                    content: overLimit,
+                    confirmSend: true
                 )
             }
         }
@@ -550,12 +561,18 @@ struct WhatsAppConnectionServiceTests {
             }
 
             let search = try service.searchMessages(
-                query: "DEPLOY", chatIds: nil, limitPerChat: nil, maxMatches: nil
+                query: "DEPLOY",
+                chatIds: nil,
+                limitPerChat: nil,
+                maxMatches: nil
             )
             #expect(search["match_count"] as? Int == 1)
             #expect(throws: WhatsAppConnectionServiceError.emptyMessage) {
                 _ = try service.searchMessages(
-                    query: "   ", chatIds: nil, limitPerChat: nil, maxMatches: nil
+                    query: "   ",
+                    chatIds: nil,
+                    limitPerChat: nil,
+                    maxMatches: nil
                 )
             }
         }
@@ -588,8 +605,11 @@ struct WhatsAppConnectionServiceTests {
             )
 
             _ = try await service.setReaction(
-                chatId: Self.dmChat, messageId: "WAMID-1", reaction: "👍",
-                adding: true, confirmSend: true
+                chatId: Self.dmChat,
+                messageId: "WAMID-1",
+                reaction: "👍",
+                adding: true,
+                confirmSend: true
             )
             var params = transport.calls(for: WhatsAppRPCMethod.react).last
             #expect(params?["emoji"] as? String == "👍")
@@ -599,16 +619,22 @@ struct WhatsAppConnectionServiceTests {
 
             // Removal is an empty emoji in the WhatsApp protocol.
             _ = try await service.setReaction(
-                chatId: Self.dmChat, messageId: "WAMID-1", reaction: "👍",
-                adding: false, confirmSend: true
+                chatId: Self.dmChat,
+                messageId: "WAMID-1",
+                reaction: "👍",
+                adding: false,
+                confirmSend: true
             )
             params = transport.calls(for: WhatsAppRPCMethod.react).last
             #expect(params?["emoji"] as? String == "")
 
             await #expect(throws: WhatsAppConnectionServiceError.emptyMessage) {
                 _ = try await service.setReaction(
-                    chatId: Self.dmChat, messageId: "WAMID-1", reaction: "  ",
-                    adding: true, confirmSend: true
+                    chatId: Self.dmChat,
+                    messageId: "WAMID-1",
+                    reaction: "  ",
+                    adding: true,
+                    confirmSend: true
                 )
             }
         }
@@ -756,11 +782,13 @@ struct WhatsAppConnectionServiceTests {
             defer { store.close() }
             let transport = FakeWhatsAppTransport()
             transport.setResponse(
-                for: WhatsAppRPCMethod.watchSubscribe, result: ["subscribed": true]
+                for: WhatsAppRPCMethod.watchSubscribe,
+                result: ["subscribed": true]
             )
             transport.onCall(WhatsAppRPCMethod.watchSubscribe) {
                 transport.emitNotification(
-                    method: WhatsAppRPCNotification.helperTerminated, params: [:]
+                    method: WhatsAppRPCNotification.helperTerminated,
+                    params: [:]
                 )
             }
             let service = WhatsAppConnectionService(transport: transport, messageStore: store)
@@ -1083,7 +1111,10 @@ struct WhatsAppConnectionServiceTests {
             #expect(
                 summary
                     == AgentChannelReceiveBatchSummary(
-                        received: 0, stored: 0, dispatchAttempted: 0, dispatchSuppressed: 0
+                        received: 0,
+                        stored: 0,
+                        dispatchAttempted: 0,
+                        dispatchSuppressed: 0
                     )
             )
         }
@@ -1152,15 +1183,20 @@ struct WhatsAppConnectionServiceTests {
             #expect(sendCall?["to"] as? String == Self.dmChat)
 
             _ = try await service.editMessage(
-                connectionId: "whatsapp", roomId: Self.dmChat, messageId: "WAMID-R",
-                content: "fixed", confirmSend: true
+                connectionId: "whatsapp",
+                roomId: Self.dmChat,
+                messageId: "WAMID-R",
+                content: "fixed",
+                confirmSend: true
             )
             let editCall = transport.calls(for: WhatsAppRPCMethod.messageEdit).last
             #expect(editCall?["message_id"] as? String == "WAMID-R")
             #expect(editCall?["text"] as? String == "fixed")
 
             _ = try await service.deleteMessage(
-                connectionId: "whatsapp", roomId: Self.dmChat, messageId: "WAMID-R",
+                connectionId: "whatsapp",
+                roomId: Self.dmChat,
+                messageId: "WAMID-R",
                 confirmSend: true
             )
             #expect(
@@ -1198,14 +1234,18 @@ struct WhatsAppConnectionServiceTests {
             // Malformed thread ids fail before any gating or helper call.
             await #expect(throws: WhatsAppConnectionServiceError.invalidThreadId("no-colon")) {
                 _ = try await service.replyToThread(
-                    threadId: "no-colon", content: "hi", confirmSend: true
+                    threadId: "no-colon",
+                    content: "hi",
+                    confirmSend: true
                 )
             }
             await #expect(
                 throws: WhatsAppConnectionServiceError.invalidThreadId("\(Self.dmChat):")
             ) {
                 _ = try await service.replyToThread(
-                    threadId: "\(Self.dmChat):", content: "hi", confirmSend: true
+                    threadId: "\(Self.dmChat):",
+                    content: "hi",
+                    confirmSend: true
                 )
             }
             #expect(transport.calls(for: WhatsAppRPCMethod.send).isEmpty)
@@ -1255,12 +1295,17 @@ struct WhatsAppConnectionServiceTests {
             // Both actions require explicit confirmation.
             await #expect(throws: WhatsAppConnectionServiceError.sendConfirmationRequired) {
                 _ = try await service.editMessage(
-                    chatId: Self.dmChat, messageId: "WAMID-D", content: "x", confirmSend: false
+                    chatId: Self.dmChat,
+                    messageId: "WAMID-D",
+                    content: "x",
+                    confirmSend: false
                 )
             }
             await #expect(throws: WhatsAppConnectionServiceError.sendConfirmationRequired) {
                 _ = try await service.deleteMessage(
-                    chatId: Self.dmChat, messageId: "WAMID-D", confirmSend: false
+                    chatId: Self.dmChat,
+                    messageId: "WAMID-D",
+                    confirmSend: false
                 )
             }
 
@@ -1272,7 +1317,9 @@ struct WhatsAppConnectionServiceTests {
             )
             await #expect(throws: WhatsAppConnectionServiceError.messageTooLong) {
                 _ = try await service.editMessage(
-                    chatId: Self.dmChat, messageId: "WAMID-D", content: tooLong,
+                    chatId: Self.dmChat,
+                    messageId: "WAMID-D",
+                    content: tooLong,
                     confirmSend: true
                 )
             }
@@ -1281,7 +1328,9 @@ struct WhatsAppConnectionServiceTests {
             // Revoking someone else's message rides the stored author along
             // in the revoke key (needed for group-admin revokes).
             _ = try await service.deleteMessage(
-                chatId: Self.dmChat, messageId: "WAMID-D", confirmSend: true
+                chatId: Self.dmChat,
+                messageId: "WAMID-D",
+                confirmSend: true
             )
             let revoke = transport.calls(for: WhatsAppRPCMethod.messageRevoke).last
             #expect(revoke?["sender"] as? String == Self.dmChat)
@@ -1299,7 +1348,8 @@ struct WhatsAppConnectionServiceTests {
 
             let transport = FakeWhatsAppTransport()
             transport.setResponse(
-                for: WhatsAppRPCMethod.sendAttachment, result: ["message_id": "WAMID-M"]
+                for: WhatsAppRPCMethod.sendAttachment,
+                result: ["message_id": "WAMID-M"]
             )
             let service = WhatsAppConnectionService(transport: transport)
             try service.saveConfiguration(
@@ -1313,7 +1363,10 @@ struct WhatsAppConnectionServiceTests {
 
             await #expect(throws: WhatsAppConnectionServiceError.sendConfirmationRequired) {
                 _ = try await service.sendAttachment(
-                    chatId: Self.dmChat, path: insidePath, caption: nil, confirmSend: false
+                    chatId: Self.dmChat,
+                    path: insidePath,
+                    caption: nil,
+                    confirmSend: false
                 )
             }
             // Outside the allowlisted roots: refused before helper dispatch.
@@ -1321,14 +1374,20 @@ struct WhatsAppConnectionServiceTests {
                 throws: WhatsAppConnectionServiceError.attachmentNotAllowed("/etc/hosts")
             ) {
                 _ = try await service.sendAttachment(
-                    chatId: Self.dmChat, path: "/etc/hosts", caption: nil, confirmSend: true
+                    chatId: Self.dmChat,
+                    path: "/etc/hosts",
+                    caption: nil,
+                    confirmSend: true
                 )
             }
             #expect(transport.calls(for: WhatsAppRPCMethod.sendAttachment).isEmpty)
 
             // Allowed path with caption dispatches to the helper.
             let result = try await service.sendAttachment(
-                chatId: Self.dmChat, path: insidePath, caption: "  look  ", confirmSend: true
+                chatId: Self.dmChat,
+                path: insidePath,
+                caption: "  look  ",
+                confirmSend: true
             )
             #expect(result["kind"] as? String == "whatsapp_attachment_sent")
             let call = transport.calls(for: WhatsAppRPCMethod.sendAttachment).last
@@ -1354,7 +1413,10 @@ struct WhatsAppConnectionServiceTests {
                 throws: WhatsAppConnectionServiceError.attachmentTooLarge(64 * 1_024)
             ) {
                 _ = try await service.sendAttachment(
-                    chatId: Self.dmChat, path: bigPath, caption: nil, confirmSend: true
+                    chatId: Self.dmChat,
+                    path: bigPath,
+                    caption: nil,
+                    confirmSend: true
                 )
             }
         }
@@ -1379,7 +1441,8 @@ struct WhatsAppConnectionServiceTests {
 
             let transport = FakeWhatsAppTransport()
             transport.setResponse(
-                for: WhatsAppRPCMethod.sendAttachment, result: ["message_id": "WAMID-A"]
+                for: WhatsAppRPCMethod.sendAttachment,
+                result: ["message_id": "WAMID-A"]
             )
             let service = WhatsAppConnectionService(transport: transport)
 
@@ -1394,7 +1457,9 @@ struct WhatsAppConnectionServiceTests {
             )
             await #expect(throws: WhatsAppConnectionServiceError.attachmentNotAllowed(artifactPath)) {
                 try await service.sendArtifactReply(
-                    chatId: Self.dmChat, hostPath: artifactPath, caption: nil
+                    chatId: Self.dmChat,
+                    hostPath: artifactPath,
+                    caption: nil
                 )
             }
             #expect(transport.calls(for: WhatsAppRPCMethod.sendAttachment).isEmpty)
@@ -1408,7 +1473,9 @@ struct WhatsAppConnectionServiceTests {
                 )
             )
             try await service.sendArtifactReply(
-                chatId: Self.dmChat, hostPath: artifactPath, caption: "your cat"
+                chatId: Self.dmChat,
+                hostPath: artifactPath,
+                caption: "your cat"
             )
             let call = transport.calls(for: WhatsAppRPCMethod.sendAttachment).last
             #expect(call?["to"] as? String == Self.dmChat)
@@ -1636,11 +1703,10 @@ private final class FakeWhatsAppTransport: WhatsAppRPCTransport, @unchecked Send
         params: [String: any Sendable],
         timeout: TimeInterval
     ) async throws -> WhatsAppRPCResponse {
-        let (error, result, observer):
-            (WhatsAppRPCError?, [String: Any], (@Sendable () -> Void)?) = lock.withLock {
-                recordedCalls.append((method, params as [String: Any]))
-                return (errors[method], responses[method] ?? [:], callObservers[method])
-            }
+        let (error, result, observer): (WhatsAppRPCError?, [String: Any], (@Sendable () -> Void)?) = lock.withLock {
+            recordedCalls.append((method, params as [String: Any]))
+            return (errors[method], responses[method] ?? [:], callObservers[method])
+        }
         observer?()
         if let error { throw error }
         return WhatsAppRPCResponse(resultJSON: try JSONSerialization.data(withJSONObject: result))

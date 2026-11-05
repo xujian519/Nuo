@@ -395,12 +395,13 @@ struct MetalGateTests {
             .deletingLastPathComponent()  // OsaurusCore/
 
         let runtimeDir = coreRoot.appendingPathComponent("Services/ModelRuntime")
-        let files = try FileManager.default.contentsOfDirectory(
-            at: runtimeDir,
-            includingPropertiesForKeys: nil
-        )
-        .filter { $0.pathExtension == "swift" }
-        + [coreRoot.appendingPathComponent("Services/ModelRuntime.swift")]
+        let files =
+            try FileManager.default.contentsOfDirectory(
+                at: runtimeDir,
+                includingPropertiesForKeys: nil
+            )
+            .filter { $0.pathExtension == "swift" }
+            + [coreRoot.appendingPathComponent("Services/ModelRuntime.swift")]
 
         #expect(!files.isEmpty)
         for file in files {

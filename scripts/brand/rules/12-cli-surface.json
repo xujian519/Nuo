@@ -97,8 +97,8 @@
       "id": "cli.app-control-running-check",
       "op": "block",
       "path": "Packages/OsaurusCLI/Sources/OsaurusCLICore/Services/AppControl.swift",
-      "find": "        var appIsRunning = false\n        if launched {\n            for _ in 0..<20 {  // up to ~2s\n                if !NSRunningApplication.runningApplications(\n                    withBundleIdentifier: \"com.dinoki.osaurus\"\n                ).isEmpty {\n                    appIsRunning = true\n                    break\n                }\n                try? await Task.sleep(nanoseconds: 100_000_000)\n            }\n        }\n",
-      "replace": "        var appIsRunning = false\n        if launched {\n            for _ in 0..<20 {  // up to ~2s\n                if runningAppBundlePath() != nil {\n                    appIsRunning = true\n                    break\n                }\n                try? await Task.sleep(nanoseconds: 100_000_000)\n            }\n        }\n",
+      "find": "        var appIsRunning = false\n        if launched {\n            for _ in 0 ..< 20 {  // up to ~2s\n                if !NSRunningApplication.runningApplications(\n                    withBundleIdentifier: \"com.dinoki.osaurus\"\n                ).isEmpty {\n                    appIsRunning = true\n                    break\n                }\n                try? await Task.sleep(nanoseconds: 100_000_000)\n            }\n        }\n",
+      "replace": "        var appIsRunning = false\n        if launched {\n            for _ in 0 ..< 20 {  // up to ~2s\n                if runningAppBundlePath() != nil {\n                    appIsRunning = true\n                    break\n                }\n                try? await Task.sleep(nanoseconds: 100_000_000)\n            }\n        }\n",
       "enforced": true
     },
     {

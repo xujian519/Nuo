@@ -415,7 +415,7 @@ struct AgentChannelDeliveryUnknownTests {
         // 5 OLD unresolved rows buried under 120 newer terminal rows: a
         // single "latest 100 across all statuses" query would hide them,
         // which is exactly how approvals used to vanish from the outbox.
-        for index in 0..<5 {
+        for index in 0 ..< 5 {
             _ = try store.upsertOutboundIntentIfNew(
                 AgentChannelOutboundIntent(
                     agentId: agentA,
@@ -430,7 +430,7 @@ struct AgentChannelDeliveryUnknownTests {
                 )
             )
         }
-        for index in 0..<120 {
+        for index in 0 ..< 120 {
             _ = try store.upsertOutboundIntentIfNew(
                 AgentChannelOutboundIntent(
                     agentId: agentA,

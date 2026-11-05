@@ -7,11 +7,18 @@ import Testing
 struct ResponsesPluginBatchHistoryTests {
     private func assistant(ids: [String] = ["first", "guarded", "later"]) -> ChatMessage {
         ChatMessage(
-            role: "assistant", content: "Checking.",
-            tool_calls: ids.map { ToolCall(id: $0, type: "function", function: .init(name: "fixture", arguments: "{}")) },
-            tool_call_id: nil, reasoning_content: "Native earlier reasoning",
-            reasoning_item_id: "rs_batch", reasoning_encrypted: "opaque",
-            responses_output_items: [.object(["id": .string("msg_batch"), "phase": .string("commentary"), "future": .bool(true)])]
+            role: "assistant",
+            content: "Checking.",
+            tool_calls: ids.map {
+                ToolCall(id: $0, type: "function", function: .init(name: "fixture", arguments: "{}"))
+            },
+            tool_call_id: nil,
+            reasoning_content: "Native earlier reasoning",
+            reasoning_item_id: "rs_batch",
+            reasoning_encrypted: "opaque",
+            responses_output_items: [
+                .object(["id": .string("msg_batch"), "phase": .string("commentary"), "future": .bool(true)])
+            ]
         )
     }
 
@@ -22,7 +29,10 @@ struct ResponsesPluginBatchHistoryTests {
         history.record(callID: "first", result: "actual-first")
         let guarded = AgentLoopToolOutcome(
             invocation: .init(toolName: "fixture", jsonArguments: "{}", toolCallId: "guarded"),
-            callId: "guarded", result: "guard-refusal", wasDeduped: false, wasError: true
+            callId: "guarded",
+            result: "guard-refusal",
+            wasDeduped: false,
+            wasError: true
         )
         let completed = history.complete([guarded])
         let commit = try #require(completed)
@@ -45,7 +55,9 @@ struct ResponsesPluginBatchHistoryTests {
         #expect(commit.messages.count == 4)
         #expect(commit.results.first?.content == "actual-first")
         for row in commit.results.dropFirst() {
-            let body = try #require(try JSONSerialization.jsonObject(with: Data((row.content ?? "").utf8)) as? [String: Any])
+            let body = try #require(
+                try JSONSerialization.jsonObject(with: Data((row.content ?? "").utf8)) as? [String: Any]
+            )
             #expect(body["execution_state"] as? String == "not_started")
             #expect(body["run_exit"] as? String == "cancelled")
             #expect(body["retryable"] as? Bool == false)

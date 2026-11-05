@@ -8,8 +8,10 @@ import Testing
 @MainActor
 struct DelegatedToolFailureTests {
     private func object(_ error: SubagentError) throws -> [String: Any] {
-        try #require(JSONSerialization.jsonObject(with: Data(error.envelope(tool: "spawn_agent").utf8))
-            as? [String: Any])
+        try #require(
+            JSONSerialization.jsonObject(with: Data(error.envelope(tool: "spawn_agent").utf8))
+                as? [String: Any]
+        )
     }
 
     @Test(arguments: [false, true])
@@ -21,22 +23,32 @@ struct DelegatedToolFailureTests {
             let taskID = UUID(), runID = UUID()
             session.sessionId = taskID
             session.delegatedToolFailure.begin(runID: runID)
-            let state = BackgroundTaskState(id: taskID, taskTitle: "nested-stop-regression",
-                agentId: Agent.defaultId, chatSession: session, executionContext: context,
-                status: .running, currentStep: "Running")
+            let state = BackgroundTaskState(
+                id: taskID,
+                taskTitle: "nested-stop-regression",
+                agentId: Agent.defaultId,
+                chatSession: session,
+                executionContext: context,
+                status: .running,
+                currentStep: "Running"
+            )
             let manager = BackgroundTaskManager.shared
             manager.registerTaskForTesting(state)
             manager.observeChatTask(state, session: session)
             defer { manager.finalizeTask(taskID) }
             session.isStreaming = true
-            let denied = ToolEnvelope.failure(kind: .userDenied,
+            let denied = ToolEnvelope.failure(
+                kind: .userDenied,
                 message: "Run stopped by the user while waiting for another subagent to finish.",
-                tool: "image", retryable: false)
+                tool: "image",
+                retryable: false
+            )
             let invocation = ServiceToolInvocation(toolName: "image", jsonArguments: "{}", toolCallId: "image-stop")
             var hooks = AgentLoopHooks(
                 buildMessages: { _ in AgentLoopIterationInput(messages: [], overBudget: false) },
                 modelStep: { _, _ in .toolCalls([invocation]) },
-                executeTool: { _, _ in AgentLoopToolExecution(result: denied, isError: true) })
+                executeTool: { _, _ in AgentLoopToolExecution(result: denied, isError: true) }
+            )
             hooks.recordTerminalToolRejection = { envelope in
                 session.delegatedToolFailure.record(envelope, runID: runID)
             }
@@ -47,7 +59,9 @@ struct DelegatedToolFailureTests {
             }
             let result = try await AgentToolLoop.run(
                 policy: AgentLoopPolicy(maxIterations: 2, stopOnToolRejection: true, dedupeNoticeEnabled: false),
-                state: AgentTaskState(), hooks: hooks)
+                state: AgentTaskState(),
+                hooks: hooks
+            )
             #expect(result.exit == .toolRejected)
             let captured = try #require(session.delegatedToolFailure.current)
             #expect(captured.runID == runID && captured.kind == .userDenied && captured.retryable == false)
@@ -61,8 +75,13 @@ struct DelegatedToolFailureTests {
                 Issue.record("Expected real background failure, got \(completion)")
                 return
             }
-            let mapped = try object(AgentDelegationDispatcher.failureForChild(message: message,
-                targetAgentName: "image worker", terminalFailure: session.delegatedToolFailure.current))
+            let mapped = try object(
+                AgentDelegationDispatcher.failureForChild(
+                    message: message,
+                    targetAgentName: "image worker",
+                    terminalFailure: session.delegatedToolFailure.current
+                )
+            )
             #expect(mapped["kind"] as? String == "user_denied")
             #expect(mapped["retryable"] as? Bool == false)
         }
@@ -72,10 +91,22 @@ struct DelegatedToolFailureTests {
         var state = DelegatedToolFailureState()
         let run = UUID()
         state.begin(runID: run)
-        state.record(ToolEnvelope.failure(kind: .executionError, message: "temporary engine failure",
-            tool: "image", retryable: true), runID: run)
-        let mapped = try object(AgentDelegationDispatcher.failureForChild(message: "Tool call failed.",
-            targetAgentName: "worker", terminalFailure: state.current))
+        state.record(
+            ToolEnvelope.failure(
+                kind: .executionError,
+                message: "temporary engine failure",
+                tool: "image",
+                retryable: true
+            ),
+            runID: run
+        )
+        let mapped = try object(
+            AgentDelegationDispatcher.failureForChild(
+                message: "Tool call failed.",
+                targetAgentName: "worker",
+                terminalFailure: state.current
+            )
+        )
         #expect(mapped["kind"] as? String == "execution_error")
         #expect(mapped["retryable"] as? Bool == true)
     }
@@ -91,8 +122,13 @@ struct DelegatedToolFailureTests {
         state.record(denied, runID: old)
         state.finish(runID: old)
         #expect(state.runID == next && state.current == nil)
-        let mapped = try object(AgentDelegationDispatcher.failureForChild(message: "new engine failure",
-            targetAgentName: "worker", terminalFailure: state.current))
+        let mapped = try object(
+            AgentDelegationDispatcher.failureForChild(
+                message: "new engine failure",
+                targetAgentName: "worker",
+                terminalFailure: state.current
+            )
+        )
         #expect(mapped["kind"] as? String == "execution_error")
         #expect(mapped["retryable"] as? Bool == true)
     }
@@ -104,17 +140,32 @@ struct DelegatedToolFailureTests {
         state.record(ToolEnvelope.success(tool: "image", text: "done"), runID: run)
         #expect(state.current == nil)
         state.finish(runID: run)
-        state.record(ToolEnvelope.failure(kind: .userDenied, message: "late", tool: "image", retryable: false), runID: run)
+        state.record(
+            ToolEnvelope.failure(kind: .userDenied, message: "late", tool: "image", retryable: false),
+            runID: run
+        )
         #expect(state.current == nil)
     }
     @Test func explicitNonUserNonretryableFailureIsNotUpgraded() throws {
         var state = DelegatedToolFailureState()
         let run = UUID()
         state.begin(runID: run)
-        state.record(ToolEnvelope.failure(kind: .executionError, message: "nonretryable operation failure",
-            tool: "image", retryable: false), runID: run)
-        let mapped = try object(AgentDelegationDispatcher.failureForChild(message: "Tool call failed.",
-            targetAgentName: "worker", terminalFailure: state.current))
+        state.record(
+            ToolEnvelope.failure(
+                kind: .executionError,
+                message: "nonretryable operation failure",
+                tool: "image",
+                retryable: false
+            ),
+            runID: run
+        )
+        let mapped = try object(
+            AgentDelegationDispatcher.failureForChild(
+                message: "Tool call failed.",
+                targetAgentName: "worker",
+                terminalFailure: state.current
+            )
+        )
         #expect(mapped["kind"] as? String == "execution_error")
         #expect(mapped["retryable"] as? Bool == false)
     }
@@ -127,16 +178,29 @@ struct DelegatedToolFailureTests {
             let taskID = UUID(), runID = UUID()
             session.sessionId = taskID
             session.delegatedToolFailure.begin(runID: runID)
-            let state = BackgroundTaskState(id: taskID, taskTitle: "completion-snapshot",
-                agentId: Agent.defaultId, chatSession: session, executionContext: context,
-                status: .running, currentStep: "Running")
+            let state = BackgroundTaskState(
+                id: taskID,
+                taskTitle: "completion-snapshot",
+                agentId: Agent.defaultId,
+                chatSession: session,
+                executionContext: context,
+                status: .running,
+                currentStep: "Running"
+            )
             let manager = BackgroundTaskManager.shared
             manager.registerTaskForTesting(state)
             manager.observeChatTask(state, session: session)
             defer { manager.finalizeTask(taskID) }
             session.isStreaming = true
-            session.delegatedToolFailure.record(ToolEnvelope.failure(kind: .userDenied,
-                message: "stopped", tool: "image", retryable: false), runID: runID)
+            session.delegatedToolFailure.record(
+                ToolEnvelope.failure(
+                    kind: .userDenied,
+                    message: "stopped",
+                    tool: "image",
+                    retryable: false
+                ),
+                runID: runID
+            )
             session.lastStreamError = "Tool call failed."
             session.delegatedToolFailure.finish(runID: runID)
             session.isStreaming = false
@@ -151,8 +215,13 @@ struct DelegatedToolFailureTests {
                 return
             }
             #expect(completion.terminalToolFailure?.runID == runID)
-            let mapped = try object(AgentDelegationDispatcher.failureForChild(message: message,
-                targetAgentName: "worker", terminalFailure: completion.terminalToolFailure))
+            let mapped = try object(
+                AgentDelegationDispatcher.failureForChild(
+                    message: message,
+                    targetAgentName: "worker",
+                    terminalFailure: completion.terminalToolFailure
+                )
+            )
             #expect(mapped["kind"] as? String == "user_denied")
             #expect(mapped["retryable"] as? Bool == false)
         }
@@ -166,9 +235,15 @@ struct DelegatedToolFailureTests {
             let taskID = UUID(), runID = UUID()
             session.sessionId = taskID
             session.delegatedToolFailure.begin(runID: runID)
-            let state = BackgroundTaskState(id: taskID, taskTitle: "pending-completion-snapshot",
-                agentId: Agent.defaultId, chatSession: session, executionContext: context,
-                status: .running, currentStep: "Running")
+            let state = BackgroundTaskState(
+                id: taskID,
+                taskTitle: "pending-completion-snapshot",
+                agentId: Agent.defaultId,
+                chatSession: session,
+                executionContext: context,
+                status: .running,
+                currentStep: "Running"
+            )
             let manager = BackgroundTaskManager.shared
             manager.registerTaskForTesting(state)
             manager.observeChatTask(state, session: session)
@@ -183,8 +258,15 @@ struct DelegatedToolFailureTests {
                 }
                 // Observe actual registration, not an assumed Task.yield order.
                 try #require(manager.hasCompletionWaiterForTesting(taskID))
-                session.delegatedToolFailure.record(ToolEnvelope.failure(kind: .userDenied,
-                    message: "stopped at child", tool: "image", retryable: false), runID: runID)
+                session.delegatedToolFailure.record(
+                    ToolEnvelope.failure(
+                        kind: .userDenied,
+                        message: "stopped at child",
+                        tool: "image",
+                        retryable: false
+                    ),
+                    runID: runID
+                )
                 session.lastStreamError = "Tool call failed."
                 session.delegatedToolFailure.finish(runID: runID)
                 session.isStreaming = false
@@ -199,8 +281,13 @@ struct DelegatedToolFailureTests {
                 }
                 #expect(completion.terminalToolFailure?.runID == runID)
                 #expect(completion.terminalToolFailure?.message == "stopped at child")
-                let mapped = try object(AgentDelegationDispatcher.failureForChild(message: message,
-                    targetAgentName: "worker", terminalFailure: completion.terminalToolFailure))
+                let mapped = try object(
+                    AgentDelegationDispatcher.failureForChild(
+                        message: message,
+                        targetAgentName: "worker",
+                        terminalFailure: completion.terminalToolFailure
+                    )
+                )
                 #expect(mapped["kind"] as? String == "user_denied")
                 #expect(mapped["retryable"] as? Bool == false)
             } catch {

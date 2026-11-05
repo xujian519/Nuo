@@ -53,8 +53,8 @@ struct SettingsSearchResultsView: View {
                     ? L("1 setting matches \"\(query)\"")
                     : L("\(results.count) settings match \"\(query)\"")
             )
-                .font(.system(size: 13))
-                .foregroundColor(theme.secondaryText)
+            .font(.system(size: 13))
+            .foregroundColor(theme.secondaryText)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 24)

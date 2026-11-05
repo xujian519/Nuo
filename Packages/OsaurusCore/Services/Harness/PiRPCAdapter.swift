@@ -120,7 +120,9 @@ final class PiRPCCodec: HarnessCodec {
             decodeMessageEnd(root)
             return ([], [])
         case "tool_execution_start":
-            return ([.toolStarted(callId: root["toolCallId"] as? String, name: (root["toolName"] as? String) ?? "")], [])
+            return (
+                [.toolStarted(callId: root["toolCallId"] as? String, name: (root["toolName"] as? String) ?? "")], []
+            )
         case "tool_execution_end":
             return (
                 [
@@ -134,7 +136,9 @@ final class PiRPCCodec: HarnessCodec {
         case "auto_retry_start":
             let attempt = (root["attempt"] as? Int) ?? 1
             let maxAttempts = (root["maxAttempts"] as? Int) ?? attempt
-            return ([.notice(String(format: L("Retrying (attempt %d of %d)…"), attempt, maxAttempts), isError: false)], [])
+            return (
+                [.notice(String(format: L("Retrying (attempt %d of %d)…"), attempt, maxAttempts), isError: false)], []
+            )
         case "auto_retry_end":
             if (root["success"] as? Bool) == false {
                 lastError = (root["finalError"] as? String) ?? lastError

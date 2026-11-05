@@ -40,7 +40,9 @@ enum MCPHTTPTransportBuilder {
     ) -> URLSessionConfiguration {
         let configuration = GlobalProxySettings.makeConfiguration(base: .default)
         configuration.timeoutIntervalForRequest = max(
-            discoveryTimeout, toolCallTimeout, minimumRequestTimeout
+            discoveryTimeout,
+            toolCallTimeout,
+            minimumRequestTimeout
         )
         return configuration
     }

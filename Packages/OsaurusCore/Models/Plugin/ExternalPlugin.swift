@@ -1042,11 +1042,15 @@ final class ExternalPlugin: @unchecked Sendable {
         // the app restarts. Other isolations stay in-process.
         if isolation == .accessibilityQueue,
             let hostClient = PluginProcessHostManager.shared.client(
-                pluginId: self.id, dylibPath: self.bundlePath
+                pluginId: self.id,
+                dylibPath: self.bundlePath
             )
         {
             return try await hostClient.invoke(
-                type: type, id: id, payload: payload, agentId: agentId
+                type: type,
+                id: id,
+                payload: payload,
+                agentId: agentId
             )
         }
 
@@ -1169,7 +1173,9 @@ final class ExternalPlugin: @unchecked Sendable {
             Task.detached {
                 for change in forwarded {
                     await hostClient.notifyConfigChanged(
-                        key: change.key, value: change.value, agentId: agentId
+                        key: change.key,
+                        value: change.value,
+                        agentId: agentId
                     )
                 }
             }

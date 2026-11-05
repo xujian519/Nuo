@@ -125,14 +125,18 @@ actor PluginProcessHostClient {
         let result: [String: Any]
         do {
             result = try await callWithDeadline(
-                method: "invoke", params: params, deadlineSeconds: deadlineSeconds
+                method: "invoke",
+                params: params,
+                deadlineSeconds: deadlineSeconds
             )
         } catch is DeadlineExceededError {
             // The plugin is wedged in synchronous C code. Kill the helper —
             // the one recovery in-process execution can never offer.
             NSLog(
                 "[PluginProcessHost] plugin=%@ invoke id=%@ exceeded %.0fs — killing helper",
-                pluginId, id, deadlineSeconds
+                pluginId,
+                id,
+                deadlineSeconds
             )
             CrashReportingService.recordBreadcrumb(
                 category: "plugin.host",
@@ -156,7 +160,9 @@ actor PluginProcessHostClient {
         if let value { params["value"] = value }
         if let agentId { params["agent_id"] = agentId.uuidString }
         _ = try? await callWithDeadline(
-            method: "config_changed", params: params, deadlineSeconds: 15
+            method: "config_changed",
+            params: params,
+            deadlineSeconds: 15
         )
     }
 
@@ -192,12 +198,14 @@ actor PluginProcessHostClient {
         self.stdinPipe = inPipe
         self.loaded = false
         startReader(
-            handle: outPipe.fileHandleForReading, generation: processGeneration
+            handle: outPipe.fileHandleForReading,
+            generation: processGeneration
         )
 
         do {
             let result = try await callWithDeadline(
-                method: "load", params: ["path": dylibPath],
+                method: "load",
+                params: ["path": dylibPath],
                 deadlineSeconds: Self.loadDeadlineSeconds
             )
             guard result["manifest"] is String else {
@@ -210,7 +218,8 @@ actor PluginProcessHostClient {
         loaded = true
         NSLog(
             "[PluginProcessHost] plugin=%@ loaded in helper pid=%d",
-            pluginId, proc.processIdentifier
+            pluginId,
+            proc.processIdentifier
         )
     }
 
@@ -241,7 +250,9 @@ actor PluginProcessHostClient {
     // MARK: RPC plumbing
 
     private func callWithDeadline(
-        method: String, params: [String: Any], deadlineSeconds: Double
+        method: String,
+        params: [String: Any],
+        deadlineSeconds: Double
     ) async throws -> [String: Any] {
         let id = nextId
         nextId += 1
@@ -258,7 +269,8 @@ actor PluginProcessHostClient {
         }
 
         let response = try await valueWithDeadline(
-            seconds: deadlineSeconds, operationName: "plugin-host \(method)"
+            seconds: deadlineSeconds,
+            operationName: "plugin-host \(method)"
         ) {
             try await withCheckedThrowingContinuation { continuation in
                 Task {
@@ -306,8 +318,8 @@ actor PluginProcessHostClient {
                 if chunk.isEmpty { break }  // EOF — helper exited or was killed
                 buffer.append(chunk)
                 while let newlineIndex = buffer.firstIndex(of: 0x0A) {
-                    let lineData = buffer.subdata(in: buffer.startIndex..<newlineIndex)
-                    buffer.removeSubrange(buffer.startIndex...newlineIndex)
+                    let lineData = buffer.subdata(in: buffer.startIndex ..< newlineIndex)
+                    buffer.removeSubrange(buffer.startIndex ... newlineIndex)
                     guard !lineData.isEmpty,
                         let object = try? JSONSerialization.jsonObject(with: lineData)
                             as? [String: Any]
@@ -319,7 +331,8 @@ actor PluginProcessHostClient {
                         // serially, and the plugin is blocked inside its
                         // trampoline until we answer).
                         let response = PluginProcessHostCallbacks.handle(
-                            pluginId: pluginId, message: object
+                            pluginId: pluginId,
+                            message: object
                         )
                         if let response {
                             // Box the reply dictionary (parsed-once, single
@@ -341,7 +354,9 @@ actor PluginProcessHostClient {
                         }
                         Task {
                             await client.resolvePendingIfCurrent(
-                                id: id, generation: generation, result: result
+                                id: id,
+                                generation: generation,
+                                result: result
                             )
                         }
                     }
@@ -361,7 +376,9 @@ actor PluginProcessHostClient {
     }
 
     private func resolvePendingIfCurrent(
-        id: Int, generation: Int, result: Result<HelperResponse, Error>
+        id: Int,
+        generation: Int,
+        result: Result<HelperResponse, Error>
     ) {
         guard generation == processGeneration else { return }
         resolvePending(id: id, result: result)
@@ -454,7 +471,9 @@ public final class PluginProcessHostManager: @unchecked Sendable {
         if let existing = clients[pluginId] { return existing }
         guard let helperURL = PluginProcessHostMode.helperURL() else { return nil }
         let client = PluginProcessHostClient(
-            pluginId: pluginId, dylibPath: dylibPath, helperURL: helperURL
+            pluginId: pluginId,
+            dylibPath: dylibPath,
+            helperURL: helperURL
         )
         clients[pluginId] = client
         return client

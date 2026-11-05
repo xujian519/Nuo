@@ -83,7 +83,7 @@ struct AgentStarterTemplateTests {
     @MainActor
     func randomizeAvatarChangesMascot() {
         let state = CreateAgentState()
-        for _ in 0..<10 {
+        for _ in 0 ..< 10 {
             let before = state.selectedAvatar
             state.randomizeAvatar()
             #expect(state.selectedAvatar != before)

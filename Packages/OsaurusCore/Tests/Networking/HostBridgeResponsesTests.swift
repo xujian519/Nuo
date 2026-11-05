@@ -20,11 +20,19 @@ struct HostBridgeResponsesTests {
     }
 
     private func completion(_ status: ResponsesGenerationCompletion.Status) -> ResponsesGenerationEvent {
-        .responseCompleted(.init(
-            responseID: "resp_bridge", status: status, functionCalls: [],
-            tokenCount: nil, tokensPerSecond: nil, unclosedReasoning: false,
-            stopReason: status == .incomplete ? "length" : "stop", promptTokensPerSecond: nil, mtp: nil
-        ))
+        .responseCompleted(
+            .init(
+                responseID: "resp_bridge",
+                status: status,
+                functionCalls: [],
+                tokenCount: nil,
+                tokensPerSecond: nil,
+                unclosedReasoning: false,
+                stopReason: status == .incomplete ? "length" : "stop",
+                promptTokensPerSecond: nil,
+                mtp: nil
+            )
+        )
     }
 
     @Test func logicalTextCompletionPreservesDefaultsAndDoesNotWaitForProducerTail() async throws {
@@ -34,7 +42,9 @@ struct HostBridgeResponsesTests {
         producer.yield(.outputTextDelta("Visible answer"))
         producer.yield(completion(.completed))
         let answer = try await HostBridgeInference.completeContent(
-            model: "bridge-model", input: [ChatMessage(role: "user", content: "hello")], engine: engine
+            model: "bridge-model",
+            input: [ChatMessage(role: "user", content: "hello")],
+            engine: engine
         )
         #expect(answer == "Visible answer")
         let request = try #require(await engine.requests.first)
@@ -51,11 +61,13 @@ struct HostBridgeResponsesTests {
 
     @Test(arguments: [false, true])
     func incompleteAndCancelledBodiesAreNotSuccessfulText(_ cancelled: Bool) async {
-        let engine = Engine(AsyncThrowingStream { c in
-            c.yield(.outputTextDelta("partial"))
-            c.yield(completion(cancelled ? .cancelled : .incomplete))
-            c.finish()
-        })
+        let engine = Engine(
+            AsyncThrowingStream { c in
+                c.yield(.outputTextDelta("partial"))
+                c.yield(completion(cancelled ? .cancelled : .incomplete))
+                c.finish()
+            }
+        )
         do {
             _ = try await HostBridgeInference.completeContent(model: "bridge-model", input: [], engine: engine)
             Issue.record("Unfinished output returned as successful text")
@@ -67,10 +79,12 @@ struct HostBridgeResponsesTests {
     }
 
     @Test func transportFailureDoesNotReplayRequest() async {
-        let engine = Engine(AsyncThrowingStream { c in
-            c.yield(.outputTextDelta("partial"))
-            c.finish(throwing: NSError(domain: "fixture", code: 503))
-        })
+        let engine = Engine(
+            AsyncThrowingStream { c in
+                c.yield(.outputTextDelta("partial"))
+                c.finish(throwing: NSError(domain: "fixture", code: 503))
+            }
+        )
         do {
             _ = try await HostBridgeInference.completeContent(model: "bridge-model", input: [], engine: engine)
             Issue.record("Transport failure became success")

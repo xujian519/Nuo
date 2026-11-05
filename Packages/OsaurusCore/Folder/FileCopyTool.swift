@@ -240,7 +240,9 @@ struct FileCopyTool: OsaurusTool, PermissionedTool {
                 // (disk full, source vanished) can't leave the destination
                 // deleted, and the journal's pre-copy snapshot stays honest.
                 let staging = destinationURL.deletingLastPathComponent()
-                    .appendingPathComponent(".\(destinationURL.lastPathComponent).osaurus-copy-\(UUID().uuidString.prefix(8))")
+                    .appendingPathComponent(
+                        ".\(destinationURL.lastPathComponent).osaurus-copy-\(UUID().uuidString.prefix(8))"
+                    )
                 do {
                     try FileManager.default.copyItem(at: sourceURL, to: staging)
                     _ = try FileManager.default.replaceItemAt(destinationURL, withItemAt: staging)

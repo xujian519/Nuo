@@ -183,7 +183,10 @@ final class NativeActivityGroupView: NSView {
             allStepsExpanded
                 ? "arrow.down.right.and.arrow.up.left"
                 : "arrow.up.left.and.arrow.down.right",
-            accessibilityDescription: nil, pointSize: 10, weight: .semibold)
+            accessibilityDescription: nil,
+            pointSize: 10,
+            weight: .semibold
+        )
         expandAllButton.toolTip =
             allStepsExpanded ? L("Collapse all steps") : L("Expand all steps")
         expandAllButton.setAccessibilityLabel(expandAllButton.toolTip ?? "")
@@ -324,7 +327,9 @@ final class NativeActivityGroupView: NSView {
     /// Flattened per-step descriptors in run order — thinking segments count
     /// as one step each, tool calls one each (mirrors `activityStepCount`).
     private static func stepChips(
-        for children: [ContentBlock], stepCount: Int, isStreaming: Bool
+        for children: [ContentBlock],
+        stepCount: Int,
+        isStreaming: Bool
     ) -> [StepChip] {
         var all: [StepChip] = []
         for child in children {
@@ -432,7 +437,11 @@ final class NativeActivityGroupView: NSView {
             let icon = NSImageView()
             icon.translatesAutoresizingMaskIntoConstraints = false
             icon.image = SymbolImageCache.image(
-                glyph, accessibilityDescription: nil, pointSize: 9, weight: .semibold)
+                glyph,
+                accessibilityDescription: nil,
+                pointSize: 9,
+                weight: .semibold
+            )
             icon.contentTintColor = color
             icon.imageScaling = .scaleProportionallyDown
             circle.addSubview(icon)
@@ -455,7 +464,9 @@ final class NativeActivityGroupView: NSView {
                 label.centerXAnchor.constraint(equalTo: circle.centerXAnchor),
                 label.centerYAnchor.constraint(equalTo: circle.centerYAnchor),
                 label.leadingAnchor.constraint(
-                    greaterThanOrEqualTo: circle.leadingAnchor, constant: 5),
+                    greaterThanOrEqualTo: circle.leadingAnchor,
+                    constant: 5
+                ),
             ])
         }
         return circle
@@ -527,8 +538,11 @@ final class NativeActivityGroupView: NSView {
 
         expandAllButton.translatesAutoresizingMaskIntoConstraints = false
         expandAllButton.image = SymbolImageCache.image(
-            "arrow.up.left.and.arrow.down.right", accessibilityDescription: nil,
-            pointSize: 10, weight: .semibold)
+            "arrow.up.left.and.arrow.down.right",
+            accessibilityDescription: nil,
+            pointSize: 10,
+            weight: .semibold
+        )
         expandAllButton.title = L("Expand All")
         expandAllButton.font = NSFont.systemFont(ofSize: 11, weight: .medium)
         expandAllButton.imagePosition = .imageLeading
@@ -545,7 +559,11 @@ final class NativeActivityGroupView: NSView {
         chevronView.translatesAutoresizingMaskIntoConstraints = false
         chevronView.wantsLayer = true
         chevronView.image = SymbolImageCache.image(
-            "chevron.right", accessibilityDescription: nil, pointSize: 10, weight: .semibold)
+            "chevron.right",
+            accessibilityDescription: nil,
+            pointSize: 10,
+            weight: .semibold
+        )
         chevronView.contentTintColor = .tertiaryLabelColor
         chevronView.imageScaling = .scaleProportionallyDown
         addSubview(chevronView)
@@ -691,7 +709,11 @@ final class NativeActivityGroupView: NSView {
             expanded
             ? SymbolImageCache.rotatedDownChevron(pointSize: 10, weight: .semibold)
             : SymbolImageCache.image(
-                "chevron.right", accessibilityDescription: nil, pointSize: 10, weight: .semibold)
+                "chevron.right",
+                accessibilityDescription: nil,
+                pointSize: 10,
+                weight: .semibold
+            )
     }
 
     @objc private func headerTapped() { onToggle?() }

@@ -14,7 +14,8 @@ public enum AgentDescriptionPolicy {
     public static func normalized(_ value: String) -> String {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.rangeOfCharacter(from: .newlines) != nil else { return trimmed }
-        return trimmed
+        return
+            trimmed
             .components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }

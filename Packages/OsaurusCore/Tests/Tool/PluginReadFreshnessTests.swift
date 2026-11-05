@@ -54,7 +54,8 @@ struct PluginReadFreshnessTests {
             array; every one must call ensureInstalledPluginsLoaded() first, or a \
             session that never opened the Plugins tab reports installed plugins as \
             missing. Found \(ensures) call(s) for \(reads) read(s).
-            """)
+            """
+        )
     }
 
     /// The ensure path must stay local-disk-only. If it ever starts calling
@@ -82,7 +83,9 @@ struct PluginReadFreshnessTests {
     @Test func repositoryRefreshIsStillOnlyDrivenByViews() throws {
         let root = Self.packageRoot()
         let enumerator = FileManager.default.enumerator(
-            at: root, includingPropertiesForKeys: nil)
+            at: root,
+            includingPropertiesForKeys: nil
+        )
         var callers: [String] = []
 
         while let url = enumerator?.nextObject() as? URL {
@@ -90,8 +93,9 @@ struct PluginReadFreshnessTests {
             let path = url.path
             guard !path.contains("/.build/"), !path.contains("/Tests/") else { continue }
             guard let text = try? String(contentsOf: url, encoding: .utf8) else { continue }
-            guard text.contains("PluginRepositoryService.shared.refresh()")
-                || text.contains("repoService.refresh()")
+            guard
+                text.contains("PluginRepositoryService.shared.refresh()")
+                    || text.contains("repoService.refresh()")
             else { continue }
             callers.append(url.lastPathComponent)
         }
@@ -99,6 +103,7 @@ struct PluginReadFreshnessTests {
         let nonViewCallers = callers.filter { !$0.hasSuffix("View.swift") }
         #expect(
             nonViewCallers.isEmpty,
-            "refresh() gained a non-view caller \(nonViewCallers) — re-check whether the agent-facing ensure calls are still required")
+            "refresh() gained a non-view caller \(nonViewCallers) — re-check whether the agent-facing ensure calls are still required"
+        )
     }
 }

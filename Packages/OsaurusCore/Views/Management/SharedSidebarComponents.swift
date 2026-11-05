@@ -292,7 +292,8 @@ struct SidebarLensBar<Value: Hashable>: View {
                         .background(
                             Capsule().fill(
                                 (isSelected ? theme.accentColor : theme.secondaryText)
-                                    .opacity(theme.isDark ? 0.22 : 0.14))
+                                    .opacity(theme.isDark ? 0.22 : 0.14)
+                            )
                         )
                         .accessibilityHidden(true)
                 }
@@ -658,7 +659,8 @@ struct SidebarSearchField: View {
                 isFocused.wrappedValue
                     ? theme.accentColor.opacity(0.3)
                     : (showsRestingBorder ? theme.secondaryText.opacity(0.15) : .clear),
-                lineWidth: 1)
+                lineWidth: 1
+            )
     }
 }
 

@@ -126,7 +126,8 @@ public actor ChatTitleService {
         // First non-empty line only — chatty models sometimes append an
         // explanation on a second line despite the contract.
         guard
-            var title = raw
+            var title =
+                raw
                 .components(separatedBy: .newlines)
                 .map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) })
                 .first(where: { !$0.isEmpty })

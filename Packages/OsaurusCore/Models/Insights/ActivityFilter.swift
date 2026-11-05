@@ -192,7 +192,11 @@ struct ActivityLogVerification: Sendable, Equatable {
             case .anchorMismatch(let expected, let actual):
                 return String(format: L("Chain should resume at row %d but starts at %d"), expected, actual)
             case .headMismatch(let expected, let actual):
-                return String(format: L("Head marker says row %d but the log ends at %d (tail removed)"), expected, actual)
+                return String(
+                    format: L("Head marker says row %d but the log ends at %d (tail removed)"),
+                    expected,
+                    actual
+                )
             }
         }
     }

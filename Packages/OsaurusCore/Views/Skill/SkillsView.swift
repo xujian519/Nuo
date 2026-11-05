@@ -89,7 +89,7 @@ struct SkillsView: View {
                         searchText: searchText,
                         installGeneration: claudePluginInstallGeneration
                     )
-                        .opacity(hasAppeared ? 1 : 0)
+                    .opacity(hasAppeared ? 1 : 0)
                 } else if skillManager.skills.isEmpty && !skillManager.isRefreshing {
                     SettingsEmptyState(
                         icon: "sparkles",
@@ -617,7 +617,7 @@ private struct SkillRow: View {
                                     ? L("1 character")
                                     : L("\(skill.instructions.count) characters")
                             )
-                                .font(.system(size: 11, weight: .medium))
+                            .font(.system(size: 11, weight: .medium))
                         }
                         .foregroundColor(theme.secondaryText)
                         .padding(.horizontal, 8)

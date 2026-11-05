@@ -16,8 +16,10 @@ struct ModelMediaCapabilitiesMCDCTests {
         #expect(LocalVisionEvidence.inspect(root, refresh: true).hasVision)
     }
 
-    @Test(arguments: ["vision.patch_embed", "vision.blocks.1.attn", "vision.blocks.0.mlp",
-                      "vision.norm", "aligner.w2", "image_start", "image_newline"])
+    @Test(arguments: [
+        "vision.patch_embed", "vision.blocks.1.attn", "vision.blocks.0.mlp",
+        "vision.norm", "aligner.w2", "image_start", "image_newline",
+    ])
     func deepseekV41MissingVisionComponentIsTextOnly(component: String) throws {
         let root = try VisionBundleFixture.makeDeepseekV41(omit: component)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -38,16 +40,23 @@ struct ModelMediaCapabilitiesMCDCTests {
     func nemotronVideoRequiresBundleTokenAndTemporalWeights(hasToken: Bool, hasTemporalWeights: Bool) throws {
         let root = try VisionBundleFixture.make(type: "nemotron_h_omni")
         defer { try? FileManager.default.removeItem(at: root) }
-        try VisionBundleFixture.writeJSON([
-            "model_type": "nemotron_h_omni",
-            "vision_config": ["patch_size": 16, "video_temporal_patch_size": 2],
-            "sound_config": NSNull(),
-            "video_context_token_id": hasToken ? 131081 : NSNull(),
-        ], to: root.appendingPathComponent("config_omni.json"))
-        try VisionBundleFixture.writeJSON(["processor_class": "NemotronHOmniProcessor"],
-            to: root.appendingPathComponent("processor_config.json"))
-        var names = ["vision_model.radio_model.model.patch_generator.embedder.weight",
-                     "vision_model.radio_model.model.blocks.0.attn.qkv.weight"]
+        try VisionBundleFixture.writeJSON(
+            [
+                "model_type": "nemotron_h_omni",
+                "vision_config": ["patch_size": 16, "video_temporal_patch_size": 2],
+                "sound_config": NSNull(),
+                "video_context_token_id": hasToken ? 131081 : NSNull(),
+            ],
+            to: root.appendingPathComponent("config_omni.json")
+        )
+        try VisionBundleFixture.writeJSON(
+            ["processor_class": "NemotronHOmniProcessor"],
+            to: root.appendingPathComponent("processor_config.json")
+        )
+        var names = [
+            "vision_model.radio_model.model.patch_generator.embedder.weight",
+            "vision_model.radio_model.model.blocks.0.attn.qkv.weight",
+        ]
         if hasTemporalWeights {
             names.append("vision_model.radio_model.model.patch_generator.video_embedder.weight")
         }
@@ -71,9 +80,11 @@ struct ModelMediaCapabilitiesMCDCTests {
         }
     }
 
-    @Test(arguments: ["visual.patch_embed", "visual.blocks.1", "visual.merger.mlp.2",
-                      "speech_embeddings.1", "audio_encoder.projection.mlp.2",
-                      "audio_encoder.input_local_transformer.layers.1"])
+    @Test(arguments: [
+        "visual.patch_embed", "visual.blocks.1", "visual.merger.mlp.2",
+        "speech_embeddings.1", "audio_encoder.projection.mlp.2",
+        "audio_encoder.input_local_transformer.layers.1",
+    ])
     func mimoMissingComponentOnlyDisablesItsModality(component: String) throws {
         let root = try VisionBundleFixture.makeMiMo(omit: component)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -83,8 +94,10 @@ struct ModelMediaCapabilitiesMCDCTests {
         #expect(caps.supportsAudio == component.hasPrefix("visual"))
     }
 
-    @Test(arguments: ["encoder.conv1", "encoder.down_sample_layer", "encoder.layers.1",
-                      "encoder.quantizer.vq.layers.1"])
+    @Test(arguments: [
+        "encoder.conv1", "encoder.down_sample_layer", "encoder.layers.1",
+        "encoder.quantizer.vq.layers.1",
+    ])
     func mimoAudioRequiresTokenizerWeights(component: String) throws {
         let root = try VisionBundleFixture.makeMiMo(sidecarOmit: component)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -116,16 +129,22 @@ struct ModelMediaCapabilitiesMCDCTests {
         defer { try? FileManager.default.removeItem(at: root) }
         let names = Array(LocalVisionEvidence.inspect(root).tensorNames)
         #expect(ModelFormatDetection.isMLXFormat(at: root))
-        try VisionBundleFixture.writeWeights(names, metadata: ["format": "pt"],
-            to: root.appendingPathComponent("model.safetensors"))
+        try VisionBundleFixture.writeWeights(
+            names,
+            metadata: ["format": "pt"],
+            to: root.appendingPathComponent("model.safetensors")
+        )
         for alias in ["OsaurusAI/renamed", "other/renamed", "vision-looking-name"] {
             let row = InstalledVisionEvaluation.inspect(directory: root, modelID: alias)
             #expect(!row.supportsImage)
             #expect(row.reason.contains("weight format"))
         }
         #expect(!ModelFormatDetection.isMLXFormat(at: root))
-        try VisionBundleFixture.writeWeights(names, metadata: ["format": "mlx"],
-            to: root.appendingPathComponent("model.safetensors"))
+        try VisionBundleFixture.writeWeights(
+            names,
+            metadata: ["format": "mlx"],
+            to: root.appendingPathComponent("model.safetensors")
+        )
         #expect(InstalledVisionEvaluation.inspect(directory: root, modelID: "neutral").supportsImage)
         #expect(ModelFormatDetection.isMLXFormat(at: root))
     }
@@ -136,12 +155,17 @@ struct ModelMediaCapabilitiesMCDCTests {
         defer { try? FileManager.default.removeItem(at: root) }
         // Actual Ornith dense/MoE layout: 27 blocks, vision_tower rather
         // than visual, with the selected preprocessor_config.json sidecar.
-        try VisionBundleFixture.writeJSON(["model_type": type, "vision_config": ["depth": 27]],
-            to: root.appendingPathComponent("config.json"))
-        try VisionBundleFixture.writeJSON(["processor_class": "Qwen3VLProcessor", "patch_size": 16],
-            to: root.appendingPathComponent("preprocessor_config.json"))
-        let names = ["vision_tower.patch_embed.proj.weight", "vision_tower.merger.linear_fc2.weight"]
-            + (0..<27).map { "vision_tower.blocks.\($0).attn.qkv.weight" }
+        try VisionBundleFixture.writeJSON(
+            ["model_type": type, "vision_config": ["depth": 27]],
+            to: root.appendingPathComponent("config.json")
+        )
+        try VisionBundleFixture.writeJSON(
+            ["processor_class": "Qwen3VLProcessor", "patch_size": 16],
+            to: root.appendingPathComponent("preprocessor_config.json")
+        )
+        let names =
+            ["vision_tower.patch_embed.proj.weight", "vision_tower.merger.linear_fc2.weight"]
+            + (0 ..< 27).map { "vision_tower.blocks.\($0).attn.qkv.weight" }
         try VisionBundleFixture.writeWeights(names, to: root.appendingPathComponent("model.safetensors"))
         for alias in ["Ornith-1.5", "ordinary-renamed-model", "Qwen3-VL"] {
             let row = InstalledVisionEvaluation.inspect(directory: root, modelID: alias)
@@ -149,15 +173,19 @@ struct ModelMediaCapabilitiesMCDCTests {
             #expect(row.declaresVision)
             #expect(row.modelType == type)
         }
-        try VisionBundleFixture.writeWeights(names.filter { !$0.contains(".blocks.26.") },
-            to: root.appendingPathComponent("model.safetensors"))
+        try VisionBundleFixture.writeWeights(
+            names.filter { !$0.contains(".blocks.26.") },
+            to: root.appendingPathComponent("model.safetensors")
+        )
         let incomplete = InstalledVisionEvaluation.inspect(directory: root, modelID: "Ornith-1.5")
         #expect(incomplete.declaresVision)
         #expect(!incomplete.supportsImage)
         #expect(incomplete.reason.contains("missing configured"))
     }
 
-    @Test(arguments: ["qwen2_vl", "qwen2_5_vl", "qwen3_vl", "qwen3_5", "qwen3_5_moe", "qwen4_exp", "gemma4", "gemma4_unified"])
+    @Test(arguments: [
+        "qwen2_vl", "qwen2_5_vl", "qwen3_vl", "qwen3_5", "qwen3_5_moe", "qwen4_exp", "gemma4", "gemma4_unified",
+    ])
     func installedFamilies(type: String) throws {
         let root = try VisionBundleFixture.make(type: type)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -177,31 +205,55 @@ struct ModelMediaCapabilitiesMCDCTests {
     }
 
     @Test func explicitLocalNegativeCannotBeOverridden() {
-        #expect(ModelMediaCapabilities.composerCapabilities(modelId: "Qwen3-VL",
-            fallbackSupportsImages: true, localHasAudioTensors: true, localCapabilities: .textOnly) == .textOnly)
-        #expect(ModelMediaCapabilities.composerCapabilities(modelId: "opaque-provider-id",
-            fallbackSupportsImages: true) == .imageOnly)
-        #expect(ModelMediaCapabilities.composerCapabilities(modelId: "Qwen3-VL",
-            fallbackSupportsImages: true, localModelType: "qwen3_5") == .textOnly)
+        #expect(
+            ModelMediaCapabilities.composerCapabilities(
+                modelId: "Qwen3-VL",
+                fallbackSupportsImages: true,
+                localHasAudioTensors: true,
+                localCapabilities: .textOnly
+            ) == .textOnly
+        )
+        #expect(
+            ModelMediaCapabilities.composerCapabilities(
+                modelId: "opaque-provider-id",
+                fallbackSupportsImages: true
+            ) == .imageOnly
+        )
+        #expect(
+            ModelMediaCapabilities.composerCapabilities(
+                modelId: "Qwen3-VL",
+                fallbackSupportsImages: true,
+                localModelType: "qwen3_5"
+            ) == .textOnly
+        )
     }
 
     @Test func missingVisionDoesNotHideIndependentAudioWeights() throws {
         let root = try VisionBundleFixture.make(type: "gemma4")
         defer { try? FileManager.default.removeItem(at: root) }
-        try VisionBundleFixture.writeJSON([
-            "model_type": "gemma4", "vision_config": NSNull(),
-            "audio_config": ["model_type": "gemma4_audio"],
-        ], to: root.appendingPathComponent("config.json"))
-        try VisionBundleFixture.writeWeights(["embed_audio.embedding_projection.weight"],
-                                             to: root.appendingPathComponent("model.safetensors"))
+        try VisionBundleFixture.writeJSON(
+            [
+                "model_type": "gemma4", "vision_config": NSNull(),
+                "audio_config": ["model_type": "gemma4_audio"],
+            ],
+            to: root.appendingPathComponent("config.json")
+        )
+        try VisionBundleFixture.writeWeights(
+            ["embed_audio.embedding_projection.weight"],
+            to: root.appendingPathComponent("model.safetensors")
+        )
         let caps = ModelMediaCapabilities.from(directory: root, modelId: "neutral")
         #expect(!caps.supportsImage)
         #expect(!caps.supportsVideo)
         #expect(caps.supportsAudio)
-        try VisionBundleFixture.writeWeights(["language_model.weight"],
-                                             to: root.appendingPathComponent("model.safetensors"))
-        #expect(!ModelMediaCapabilities.descriptor(directory: root, modelId: "neutral", refresh: true)
-            .capabilities.supportsAudio)
+        try VisionBundleFixture.writeWeights(
+            ["language_model.weight"],
+            to: root.appendingPathComponent("model.safetensors")
+        )
+        #expect(
+            !ModelMediaCapabilities.descriptor(directory: root, modelId: "neutral", refresh: true)
+                .capabilities.supportsAudio
+        )
     }
 
     @Test(arguments: ["patch_embed", "blocks.1", "merger"])
@@ -211,9 +263,11 @@ struct ModelMediaCapabilitiesMCDCTests {
         #expect(!VLMDetection.isVLM(at: root))
     }
 
-    @Test(arguments: ["patch_dense.weight", "patch_dense.bias", "patch_ln1.weight", "patch_ln1.bias",
-                      "patch_ln2.weight", "patch_ln2.bias", "pos_embedding", "pos_norm.weight",
-                      "pos_norm.bias", "embed_vision.embedding_projection.weight"])
+    @Test(arguments: [
+        "patch_dense.weight", "patch_dense.bias", "patch_ln1.weight", "patch_ln1.bias",
+        "patch_ln2.weight", "patch_ln2.bias", "pos_embedding", "pos_norm.weight",
+        "pos_norm.bias", "embed_vision.embedding_projection.weight",
+    ])
     func unifiedEmbedderRequiresEachComponent(component: String) throws {
         let root = try VisionBundleFixture.make(type: "gemma4_unified", omit: component)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -224,11 +278,15 @@ struct ModelMediaCapabilitiesMCDCTests {
     func pixtralPatchConvolutionIsInputEvidence(type: String) throws {
         let root = try VisionBundleFixture.make(type: type)
         defer { try? FileManager.default.removeItem(at: root) }
-        try VisionBundleFixture.writeJSON(["processor_class": "PixtralProcessor"],
-                                          to: root.appendingPathComponent("processor_config.json"))
+        try VisionBundleFixture.writeJSON(
+            ["processor_class": "PixtralProcessor"],
+            to: root.appendingPathComponent("processor_config.json")
+        )
         let block = "vision_tower.transformer.layers.0.attention.wq.weight"
-        try VisionBundleFixture.writeWeights(["vision_tower.patch_conv.weight", block],
-                                            to: root.appendingPathComponent("model.safetensors"))
+        try VisionBundleFixture.writeWeights(
+            ["vision_tower.patch_conv.weight", block],
+            to: root.appendingPathComponent("model.safetensors")
+        )
         #expect(VLMDetection.isVLM(at: root))
         try VisionBundleFixture.writeWeights([block], to: root.appendingPathComponent("model.safetensors"))
         #expect(!LocalVisionEvidence.inspect(root, refresh: true).hasVision)
@@ -237,19 +295,29 @@ struct ModelMediaCapabilitiesMCDCTests {
     @Test func discreteVisionTokenizerUsesItsConfigAndCodebook() throws {
         let root = try VisionBundleFixture.make(type: "apertus1p5")
         defer { try? FileManager.default.removeItem(at: root) }
-        try VisionBundleFixture.writeJSON(["model_type": "apertus1p5",
-            "vision_tokenizer_config": ["codebook_size": 131072]],
-            to: root.appendingPathComponent("config.json"))
-        try VisionBundleFixture.writeJSON(["processor_class": "Apertus1p5Processor"],
-            to: root.appendingPathComponent("processor_config.json"))
-        let weights = ["vision_tokenizer.encoder.conv_in.weight",
+        try VisionBundleFixture.writeJSON(
+            [
+                "model_type": "apertus1p5",
+                "vision_tokenizer_config": ["codebook_size": 131072],
+            ],
+            to: root.appendingPathComponent("config.json")
+        )
+        try VisionBundleFixture.writeJSON(
+            ["processor_class": "Apertus1p5Processor"],
+            to: root.appendingPathComponent("processor_config.json")
+        )
+        let weights = [
+            "vision_tokenizer.encoder.conv_in.weight",
             "vision_tokenizer.encoder.down.0.block.0.conv1.weight",
             "vision_tokenizer.encoder.conv_out.weight", "vision_tokenizer.quant_conv.weight",
-            "vision_tokenizer.quantize.embedding.weight"]
+            "vision_tokenizer.quantize.embedding.weight",
+        ]
         try VisionBundleFixture.writeWeights(weights, to: root.appendingPathComponent("model.safetensors"))
         #expect(VLMDetection.isVLM(at: root))
-        try VisionBundleFixture.writeWeights(Array(weights.dropLast()),
-            to: root.appendingPathComponent("model.safetensors"))
+        try VisionBundleFixture.writeWeights(
+            Array(weights.dropLast()),
+            to: root.appendingPathComponent("model.safetensors")
+        )
         #expect(!LocalVisionEvidence.inspect(root, refresh: true).hasVision)
     }
 
@@ -257,15 +325,19 @@ struct ModelMediaCapabilitiesMCDCTests {
         for value: Any in [NSNull(), [:] as [String: Any], ["depth": 2]] {
             let root = try VisionBundleFixture.make()
             defer { try? FileManager.default.removeItem(at: root) }
-            try VisionBundleFixture.writeJSON(["model_type": "qwen3_5", "vision_config": value],
-                                             to: root.appendingPathComponent("config.json"))
+            try VisionBundleFixture.writeJSON(
+                ["model_type": "qwen3_5", "vision_config": value],
+                to: root.appendingPathComponent("config.json")
+            )
             try FileManager.default.removeItem(at: root.appendingPathComponent("model.safetensors"))
             #expect(!LocalVisionEvidence.inspect(root).hasVision)
         }
         let root = try VisionBundleFixture.make()
         defer { try? FileManager.default.removeItem(at: root) }
-        try VisionBundleFixture.writeJSON(["model_type": "qwen3_5", "vision_config": NSNull()],
-                                         to: root.appendingPathComponent("config.json"))
+        try VisionBundleFixture.writeJSON(
+            ["model_type": "qwen3_5", "vision_config": NSNull()],
+            to: root.appendingPathComponent("config.json")
+        )
         #expect(!VLMDetection.isVLM(at: root))
     }
 
@@ -273,7 +345,10 @@ struct ModelMediaCapabilitiesMCDCTests {
         let root = try VisionBundleFixture.make(indexed: true)
         defer { try? FileManager.default.removeItem(at: root) }
         #expect(LocalVisionEvidence.inspect(root).hasVision)
-        try VisionBundleFixture.writeWeights(["language_model.weight"], to: root.appendingPathComponent("model.safetensors"))
+        try VisionBundleFixture.writeWeights(
+            ["language_model.weight"],
+            to: root.appendingPathComponent("model.safetensors")
+        )
         #expect(!LocalVisionEvidence.inspect(root, refresh: true).hasVision)
     }
 
@@ -284,7 +359,10 @@ struct ModelMediaCapabilitiesMCDCTests {
         let file = root.appendingPathComponent("config.json")
         let original = try Data(contentsOf: file)
         try VisionBundleFixture.writeJSON(["model_type": "qwen3_5"], to: file)
-        #expect(!ModelMediaCapabilities.descriptor(directory: root, modelId: "Qwen3-VL", refresh: true).capabilities.supportsImage)
+        #expect(
+            !ModelMediaCapabilities.descriptor(directory: root, modelId: "Qwen3-VL", refresh: true).capabilities
+                .supportsImage
+        )
         try original.write(to: file)
         NotificationCenter.default.post(name: .localModelsChanged, object: nil)
         #expect(VLMDetection.isVLM(at: root))

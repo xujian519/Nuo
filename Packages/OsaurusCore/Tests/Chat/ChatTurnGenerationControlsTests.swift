@@ -18,7 +18,8 @@ struct ChatTurnGenerationControlsTests {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
         let source = try String(
-            contentsOf: packageRoot
+            contentsOf:
+                packageRoot
                 .appendingPathComponent("Views/Chat/ChatView.swift"),
             encoding: .utf8
         )

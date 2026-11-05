@@ -505,7 +505,9 @@ public struct Agent: Codable, Identifiable, Sendable, Equatable {
         Agent(
             id: defaultId,
             name: defaultAgentNameOverride ?? "Nuo",
-            description: L("Configures Nuo settings and manages agents. Use for app setup; general tasks can stay in the current chat."),
+            description: L(
+                "Configures Nuo settings and manages agents. Use for app setup; general tasks can stay in the current chat."
+            ),
             systemPrompt: "",
             themeId: nil,
             defaultModel: nil,
@@ -548,7 +550,9 @@ extension Agent {
         description = try c.decodeIfPresent(String.self, forKey: .description) ?? ""
         generatedDescription = try c.decodeIfPresent(String.self, forKey: .generatedDescription)
         generatedDescriptionPromptHash = try c.decodeIfPresent(
-            String.self, forKey: .generatedDescriptionPromptHash)
+            String.self,
+            forKey: .generatedDescriptionPromptHash
+        )
         systemPrompt = try c.decode(String.self, forKey: .systemPrompt)
         themeId = try c.decodeIfPresent(UUID.self, forKey: .themeId)
         defaultModel = try c.decodeIfPresent(String.self, forKey: .defaultModel)
@@ -1421,9 +1425,11 @@ public struct AgentSettings: Codable, Sendable, Equatable {
             try? c.decodeIfPresent(MediaModelTarget.self, forKey: .imageGenerationTarget)
         let legacyImageModelID =
             try c.decodeIfPresent(String.self, forKey: .imageGenerationModelId)
-        imageGenerationTarget = decodedImageTarget ?? legacyImageModelID.map {
-            MediaModelTarget(backend: .local, modelID: $0)
-        }
+        imageGenerationTarget =
+            decodedImageTarget
+            ?? legacyImageModelID.map {
+                MediaModelTarget(backend: .local, modelID: $0)
+            }
         imageEditModelId = try c.decodeIfPresent(String.self, forKey: .imageEditModelId)
         textToVideoTarget =
             try? c.decodeIfPresent(MediaModelTarget.self, forKey: .textToVideoTarget)

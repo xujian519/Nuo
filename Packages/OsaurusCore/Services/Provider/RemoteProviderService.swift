@@ -740,27 +740,54 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
     /// authenticated SSE parser; other configured protocols use their named
     /// compatibility adapter, never an automatic replay after output.
     func streamResponses(
-        messages: [ChatMessage], parameters: GenerationParameters,
-        stopSequences: [String], tools: [Tool], toolChoice: ToolChoiceOption?, requestedModel: String?
+        messages: [ChatMessage],
+        parameters: GenerationParameters,
+        stopSequences: [String],
+        tools: [Tool],
+        toolChoice: ToolChoiceOption?,
+        requestedModel: String?
     ) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
-        guard let modelName = extractModelName(requestedModel) else { throw RemoteProviderServiceError.noModelsAvailable }
+        guard let modelName = extractModelName(requestedModel) else {
+            throw RemoteProviderServiceError.noModelsAvailable
+        }
         let responsesNative = provider.providerType == .openResponses || provider.providerType == .openAICodex
         let native = responsesNative || provider.providerType == .anthropic
-        if !responsesNative { try RemoteResponsesCapabilityFallback.validatePortableOptions(parameters.responsesProviderOptions, providerType: provider.providerType) }
+        if !responsesNative {
+            try RemoteResponsesCapabilityFallback.validatePortableOptions(
+                parameters.responsesProviderOptions,
+                providerType: provider.providerType
+            )
+        }
         let (prepared, map) = try await applyPrivacyOutbound(messages: messages, parameters: parameters)
         if !native, provider.providerType == .gemini, Self.isImageCapableModel(modelName) {
-            let legacy = try await geminiImageGenerateContent(messages: prepared, parameters: parameters,
-                model: modelName, stopSequences: stopSequences, tools: tools.isEmpty ? nil : tools, toolChoice: toolChoice)
+            let legacy = try await geminiImageGenerateContent(
+                messages: prepared,
+                parameters: parameters,
+                model: modelName,
+                stopSequences: stopSequences,
+                tools: tools.isEmpty ? nil : tools,
+                toolChoice: toolChoice
+            )
             return ResponsesGenerationStream.compatibility(PrivacyFilterPipeline.wrapInboundStream(legacy, map: map))
         }
         let pair = AsyncThrowingStream<ResponsesGenerationEvent, Error>.makeStream()
         let nativeStream: (any RemoteNativeStreamConsumer)?
-        if responsesNative { nativeStream = RemoteResponsesNativeStream { pair.continuation.yield($0) } }
-        else if provider.providerType == .anthropic { nativeStream = RemoteAnthropicNativeStream { pair.continuation.yield($0) } }
-        else { nativeStream = nil }
-        let legacy = try await _streamRemote(modelName: modelName, messages: prepared, parameters: parameters,
-            stopSequences: stopSequences, tools: tools.isEmpty ? nil : tools, toolChoice: toolChoice,
-            nativeResponses: nativeStream)
+        if responsesNative {
+            nativeStream = RemoteResponsesNativeStream { pair.continuation.yield($0) }
+        } else if provider.providerType == .anthropic {
+            nativeStream = RemoteAnthropicNativeStream { pair.continuation.yield($0) }
+        } else {
+            nativeStream = nil
+        }
+        let legacy = try await _streamRemote(
+            modelName: modelName,
+            messages: prepared,
+            parameters: parameters,
+            stopSequences: stopSequences,
+            tools: tools.isEmpty ? nil : tools,
+            toolChoice: toolChoice,
+            nativeResponses: nativeStream
+        )
         let task = Task {
             do {
                 // Native parser emits directly. In an explicit compatibility
@@ -771,7 +798,9 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
                     if nativeStream?.observed != true { pair.continuation.yield(event) }
                 }
                 if let nativeStream, nativeStream.observed {
-                    guard nativeStream.completed else { throw ResponsesGenerationResult.CollectionError.missingCompletion }
+                    guard nativeStream.completed else {
+                        throw ResponsesGenerationResult.CollectionError.missingCompletion
+                    }
                     pair.continuation.yield(.compatibilityStreamClosed)
                 }
                 pair.continuation.finish()
@@ -2777,7 +2806,9 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
         if state.requireCompleteOutput, finishMarker == "stream-end", state.lastFinishReason == nil {
             continuation.finish(
                 throwing: RemoteProviderServiceError.streamingError(
-                    "The provider closed its stream before sending a completion marker."))
+                    "The provider closed its stream before sending a completion marker."
+                )
+            )
             return
         }
         // Drain any think-splitter tail (a partial tag that never completed, or
@@ -3063,7 +3094,10 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
                     // host (online); 502 agent_offline means no tunnel.
                     if httpResponse.statusCode < 400 {
                         OsaurusRelayPresenceSignal.observe(
-                            url: httpResponse.url, statusCode: httpResponse.statusCode, body: nil)
+                            url: httpResponse.url,
+                            statusCode: httpResponse.statusCode,
+                            body: nil
+                        )
                     }
 
                     if httpResponse.statusCode >= 400 {
@@ -3074,8 +3108,11 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
                         probe?.recordAttempt(request: urlRequest, statusCode: httpResponse.statusCode, accepted: false)
                         if !usedCapabilityFallback, providerType == .openResponses,
                             let capabilityFallback,
-                            RemoteResponsesCapabilityFallback.isUnsupportedEndpoint(status: httpResponse.statusCode,
-                                body: errorData, endpoint: urlRequest.url)
+                            RemoteResponsesCapabilityFallback.isUnsupportedEndpoint(
+                                status: httpResponse.statusCode,
+                                body: errorData,
+                                endpoint: urlRequest.url
+                            )
                         {
                             urlRequest = try await capabilityFallback()
                             providerType = .openaiLegacy
@@ -3111,10 +3148,15 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
                         // JSON body into chat; known upstream rejections map
                         // to actionable copy.
                         OsaurusRelayPresenceSignal.observe(
-                            url: httpResponse.url, statusCode: httpResponse.statusCode, body: errorData)
+                            url: httpResponse.url,
+                            statusCode: httpResponse.statusCode,
+                            body: errorData
+                        )
                         let errorMessage =
                             OsaurusRelayPresenceSignal.unreachableMessage(
-                                statusCode: httpResponse.statusCode, body: errorData)
+                                statusCode: httpResponse.statusCode,
+                                body: errorData
+                            )
                             ?? Self.extractErrorMessage(
                                 from: errorData,
                                 statusCode: httpResponse.statusCode
@@ -3280,7 +3322,9 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
                         if providerType == .osaurusRouter {
                             routerEventCount += 1
                         }
-                        if let nativeResponses, providerType == .openResponses || providerType == .openAICodex || providerType == .anthropic {
+                        if let nativeResponses,
+                            providerType == .openResponses || providerType == .openAICodex || providerType == .anthropic
+                        {
                             if try nativeResponses.consume(dataContent) { continuation.finish(); return }
                             continue
                         }
@@ -3303,7 +3347,10 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
                             if providerType == .osaurusRouter {
                                 routerEventCount += 1
                             }
-                            if let nativeResponses, providerType == .openResponses || providerType == .openAICodex || providerType == .anthropic {
+                            if let nativeResponses,
+                                providerType == .openResponses || providerType == .openAICodex
+                                    || providerType == .anthropic
+                            {
                                 if try nativeResponses.consume(dataContent) { continuation.finish(); return }
                             } else if Self.processEventPayload(
                                 dataContent,
@@ -3319,8 +3366,12 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
                     }
                 }
 
-                if let nativeResponses, providerType == .openResponses || providerType == .openAICodex || providerType == .anthropic {
-                    guard nativeResponses.completed else { throw ResponsesGenerationResult.CollectionError.missingCompletion }
+                if let nativeResponses,
+                    providerType == .openResponses || providerType == .openAICodex || providerType == .anthropic
+                {
+                    guard nativeResponses.completed else {
+                        throw ResponsesGenerationResult.CollectionError.missingCompletion
+                    }
                     continuation.finish()
                     return
                 }
@@ -3413,7 +3464,8 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
         // wire in the form this host reads, or a reasoning model spends the
         // whole budget thinking and answers with empty content (#3036).
         let reasoningOff = reasoningPolicy.reasoningOffControls(
-            disableThinking: RemoteReasoningPolicy.requestsReasoningOff(parameters.modelOptions))
+            disableThinking: RemoteReasoningPolicy.requestsReasoningOff(parameters.modelOptions)
+        )
         let thinking = effortThinking ?? reasoningOff.thinking
         let isAgentRun = parameters.runAsRemoteAgent
         let maxTokens = Self.remoteChatMaxTokens(providerType: provider.providerType, parameters: parameters)
@@ -3438,7 +3490,8 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
         // "Thinking mode does not support this tool_choice"); downgrade
         // `.required`/`.function` to `.auto` there. See
         // `RemoteReasoningPolicy.sanitizedToolChoice`.
-        let wireToolChoice = parameters.responsesProviderOptions?.toolChoice.map(RemoteResponsesCapabilityFallback.portableChoice)
+        let wireToolChoice =
+            parameters.responsesProviderOptions?.toolChoice.map(RemoteResponsesCapabilityFallback.portableChoice)
             ?? reasoningPolicy.sanitizedToolChoice(
                 toolChoice,
                 thinking: thinking,
@@ -3599,9 +3652,17 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
         request.repetition_penalty = parameters.repetitionPenalty
         if !isAgentRun {
             if let format = parameters.responsesProviderOptions?.text?.format {
-                request.response_format = ResponseFormat(type: format.type, json_schema: format.schema.map {
-                    ResponseJSONSchema(name: format.name ?? "", description: format.description, schema: $0, strict: format.strict)
-                })
+                request.response_format = ResponseFormat(
+                    type: format.type,
+                    json_schema: format.schema.map {
+                        ResponseJSONSchema(
+                            name: format.name ?? "",
+                            description: format.description,
+                            schema: $0,
+                            strict: format.strict
+                        )
+                    }
+                )
             } else if parameters.jsonMode {
                 request.response_format = ResponseFormat(type: "json_object")
             }
@@ -3766,11 +3827,11 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
 
         let hex = bytes.map { String(format: "%02x", $0) }
         return [
-            hex[0...3].joined(),
-            hex[4...5].joined(),
-            hex[6...7].joined(),
-            hex[8...9].joined(),
-            hex[10...15].joined(),
+            hex[0 ... 3].joined(),
+            hex[4 ... 5].joined(),
+            hex[6 ... 7].joined(),
+            hex[8 ... 9].joined(),
+            hex[10 ... 15].joined(),
         ].joined(separator: "-")
     }
 
@@ -3956,15 +4017,22 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
     /// `internal` (not `private`) so the Mode 2 defense-in-depth guard — a
     /// `runAsRemoteAgent` request against a non-`.osaurus` provider must throw
     /// rather than POST `/chat/completions` — can be asserted directly in tests.
-    func buildURLRequest(for request: RemoteChatRequest, providerTypeOverride: RemoteProviderType? = nil) async throws -> URLRequest {
+    func buildURLRequest(for request: RemoteChatRequest, providerTypeOverride: RemoteProviderType? = nil) async throws
+        -> URLRequest
+    {
         let url: URL
-        let requestProviderType = providerTypeOverride ?? Self.effectiveRequestProviderType(
-            configuredProviderType: provider.providerType,
-            request: request
-        )
+        let requestProviderType =
+            providerTypeOverride
+            ?? Self.effectiveRequestProviderType(
+                configuredProviderType: provider.providerType,
+                request: request
+            )
         try request.validateSamplingExtensions(for: requestProviderType)
         if requestProviderType != .openResponses && requestProviderType != .openAICodex {
-            try RemoteResponsesCapabilityFallback.validatePortableOptions(request.responsesProviderOptions, providerType: requestProviderType)
+            try RemoteResponsesCapabilityFallback.validatePortableOptions(
+                request.responsesProviderOptions,
+                providerType: requestProviderType
+            )
         }
         let usesCodexResponsesLite =
             requestProviderType == .openAICodex
@@ -4146,7 +4214,9 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
             throw RemoteProviderServiceError.unsupportedParameter("This provider protocol cannot represent min_p.")
         }
         if requestProviderType == .openAICodex, request.top_k != nil || request.min_p != nil {
-            throw RemoteProviderServiceError.unsupportedParameter("This provider protocol cannot represent top_k or min_p.")
+            throw RemoteProviderServiceError.unsupportedParameter(
+                "This provider protocol cannot represent top_k or min_p."
+            )
         }
         var bodyData: Data
         switch requestProviderType {
@@ -5831,10 +5901,12 @@ struct RemoteChatRequest: Encodable {
                 } else {
                     requiredValues = []
                 }
-                let required = Set(requiredValues.compactMap { value -> String? in
-                    guard case .string(let name) = value else { return nil }
-                    return name
-                })
+                let required = Set(
+                    requiredValues.compactMap { value -> String? in
+                        guard case .string(let name) = value else { return nil }
+                        return name
+                    }
+                )
                 guard required == Set(properties.keys),
                     properties.values.allSatisfy(isStrict)
                 else { return false }
@@ -5865,7 +5937,8 @@ struct RemoteChatRequest: Encodable {
         }
         if runAsRemoteAgent, seed != nil || repetition_penalty != nil {
             throw RemoteProviderServiceError.unsupportedParameter(
-                "Remote agents own their sampling settings; seed and repetition_penalty overrides are not supported.")
+                "Remote agents own their sampling settings; seed and repetition_penalty overrides are not supported."
+            )
         }
         var unsupported: [String] = []
         if providerType == .anthropic || providerType == .openAICodex {
@@ -5876,7 +5949,8 @@ struct RemoteChatRequest: Encodable {
         }
         if !unsupported.isEmpty {
             throw RemoteProviderServiceError.unsupportedParameter(
-                "This provider protocol cannot represent: \(unsupported.joined(separator: ", ")).")
+                "This provider protocol cannot represent: \(unsupported.joined(separator: ", "))."
+            )
         }
     }
 
@@ -6283,23 +6357,25 @@ extension OpenResponsesRequest {
                 ] as [String: Any]
             ]
             if let instructions = object["instructions"] as? String, !instructions.isEmpty {
-                prefix.append([
-                    "id": RemoteChatRequest.stableResponsesItemID(
-                        prefix: "msg_",
-                        source: sessionId + "|instructions|" + instructions
-                    ),
-                    "type": "message",
-                    "role": "developer",
-                    "content": [
-                        [
-                            "type": "input_text",
-                            "text": instructions,
-                        ]
-                    ],
-                    "internal_chat_message_metadata_passthrough": [
-                        "content_item_kinds": ["model.base_instructions"]
-                    ],
-                ] as [String: Any])
+                prefix.append(
+                    [
+                        "id": RemoteChatRequest.stableResponsesItemID(
+                            prefix: "msg_",
+                            source: sessionId + "|instructions|" + instructions
+                        ),
+                        "type": "message",
+                        "role": "developer",
+                        "content": [
+                            [
+                                "type": "input_text",
+                                "text": instructions,
+                            ]
+                        ],
+                        "internal_chat_message_metadata_passthrough": [
+                            "content_item_kinds": ["model.base_instructions"]
+                        ],
+                    ] as [String: Any]
+                )
             }
             input.insert(contentsOf: prefix, at: 0)
             object["input"] = Self.strippingImageDetail(from: input)
@@ -6594,7 +6670,8 @@ extension RemoteProviderService {
         for candidate in liveProviders {
             for model in windows.keys {
                 if let liveWindow = manager.customProviderContextLength(
-                    providerId: candidate.id, unprefixedModelId: model
+                    providerId: candidate.id,
+                    unprefixedModelId: model
                 ) {
                     windows[model] = liveWindow
                 }
@@ -6742,7 +6819,8 @@ extension RemoteProviderService {
         }
 
         private static func lenientInt<Key: CodingKey>(
-            _ container: KeyedDecodingContainer<Key>, _ key: Key
+            _ container: KeyedDecodingContainer<Key>,
+            _ key: Key
         ) -> Int? {
             if let int = try? container.decode(Int.self, forKey: key) { return int }
             if let double = try? container.decode(Double.self, forKey: key), double.isFinite {
@@ -7388,7 +7466,8 @@ extension RemoteProviderService {
     static func isFireworksProvider(_ provider: RemoteProvider) -> Bool {
         guard isOpenAICompatibleModelDiscoveryProvider(provider.providerType) else { return false }
         // `host` may embed a path (e.g. "api.fireworks.ai/inference").
-        let host = provider.host.lowercased()
+        let host =
+            provider.host.lowercased()
             .split(separator: "/", maxSplits: 1, omittingEmptySubsequences: true)
             .first.map(String.init) ?? ""
         return host == "fireworks.ai" || host.hasSuffix(".fireworks.ai")
@@ -7442,7 +7521,7 @@ extension RemoteProviderService {
         var allModels: [String] = []
         var pageToken: String?
 
-        for _ in 0..<fireworksCatalogMaxPages {
+        for _ in 0 ..< fireworksCatalogMaxPages {
             guard var components = URLComponents(string: fireworksCatalogURL) else {
                 throw RemoteProviderServiceError.invalidURL
             }

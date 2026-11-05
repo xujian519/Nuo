@@ -190,13 +190,18 @@ enum MCPElicitationPromptService {
         let screen = NSApp.keyWindow?.screen ?? NSApp.mainWindow?.screen ?? NSScreen.main
         if let visible = screen?.visibleFrame {
             let size = ToolPermissionPromptService.clampedWindowSize(
-                NSSize(width: max(fitting.width, 520), height: fitting.height), to: visible.size)
+                NSSize(width: max(fitting.width, 520), height: fitting.height),
+                to: visible.size
+            )
             panel.setFrame(
                 NSRect(
                     x: visible.origin.x + (visible.width - size.width) / 2,
                     y: visible.origin.y + (visible.height - size.height) / 2,
-                    width: size.width, height: size.height),
-                display: false)
+                    width: size.width,
+                    height: size.height
+                ),
+                display: false
+            )
         } else {
             panel.setContentSize(fitting)
             panel.center()
@@ -205,7 +210,9 @@ enum MCPElicitationPromptService {
         // Closing an unanswered card cancels; closing a waiting URL card is Done.
         nonisolated(unsafe) let onClose = onAction
         let closeObserver = NotificationCenter.default.addObserver(
-            forName: NSWindow.willCloseNotification, object: panel, queue: .main
+            forName: NSWindow.willCloseNotification,
+            object: panel,
+            queue: .main
         ) { _ in onClose(.respond(.cancel)) }
 
         weak let weakPanel = panel

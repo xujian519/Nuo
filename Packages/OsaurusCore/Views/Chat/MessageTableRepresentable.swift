@@ -1000,9 +1000,13 @@ extension MessageTableRepresentable {
             for block in blocks {
                 if case let .generationStats(ttft, rate, count, unclosed, load, cached, total) = block.kind {
                     responseStatsByTurn[block.turnId] = NativeStatsView.statsText(
-                        ttft: ttft, tokensPerSecond: rate, tokenCount: count,
-                        unclosedReasoning: unclosed, modelLoad: load,
-                        cachedInputTokens: cached, totalDuration: total
+                        ttft: ttft,
+                        tokensPerSecond: rate,
+                        tokenCount: count,
+                        unclosedReasoning: unclosed,
+                        modelLoad: load,
+                        cachedInputTokens: cached,
+                        totalDuration: total
                     )
                 }
             }
@@ -1941,7 +1945,10 @@ extension MessageTableRepresentable {
             // retry the precise scroll once layout has settled.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
                 self?.scrollToOccurrence(
-                    row: row, localOccurrence: localOccurrence, attempt: attempt + 1)
+                    row: row,
+                    localOccurrence: localOccurrence,
+                    attempt: attempt + 1
+                )
             }
         }
 

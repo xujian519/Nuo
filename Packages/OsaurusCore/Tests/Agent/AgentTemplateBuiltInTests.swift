@@ -60,7 +60,8 @@ struct AgentTemplateBuiltInTests {
             for name in template.agent.tools?.enabled ?? [] {
                 #expect(
                     registered.contains(name),
-                    "\(template.name) lists unknown tool `\(name)`")
+                    "\(template.name) lists unknown tool `\(name)`"
+                )
             }
         }
     }

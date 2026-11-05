@@ -76,8 +76,11 @@ struct EditKnowledgeToolTests {
     }
 
     @Test func anUnmatchedFindIsRejected() {
-        guard case .failure(let failure) = apply(
-            [Edit(find: "nowhere", replace: "x")], to: "hello\n")
+        guard
+            case .failure(let failure) = apply(
+                [Edit(find: "nowhere", replace: "x")],
+                to: "hello\n"
+            )
         else {
             Issue.record("a find that matches nothing must fail")
             return
@@ -193,7 +196,7 @@ struct EditKnowledgeToolTests {
     /// Past a point an edit list is a rewrite in disguise, and should go
     /// through the path where the whole document is reviewed.
     @Test func tooManyEditsIsRejectedAndPointsAtWriteKnowledge() {
-        let many = (0...EditKnowledgeTool.maxEditsPerCall).map {
+        let many = (0 ... EditKnowledgeTool.maxEditsPerCall).map {
             ["find": "f\($0)", "replace": "r"]
         }
         let envelope = edits(["edits": many]).failureEnvelope
@@ -307,7 +310,10 @@ struct EditKnowledgeDiffTests {
             "--- a.md (before)\n+++ a.md (after)\n"
             + "... \(KnowledgeWritePreviewBuilder.boundedPrefixMarker)\n-old line\n+new line"
         let honest = KnowledgeWritePreviewBuilder.honestDiff(
-            bounded, priorLines: 490, newLines: 490)
+            bounded,
+            priorLines: 490,
+            newLines: 490
+        )
 
         #expect(honest.contains("too large to compare line by line"))
         #expect(honest.contains("490 lines before, 490 lines after"))
@@ -319,7 +325,8 @@ struct EditKnowledgeDiffTests {
     @Test func aRealDiffIsLeftAlone() {
         let real = "--- a.md (before)\n+++ a.md (after)\n-one\n+two"
         #expect(
-            KnowledgeWritePreviewBuilder.honestDiff(real, priorLines: 2, newLines: 2) == real)
+            KnowledgeWritePreviewBuilder.honestDiff(real, priorLines: 2, newLines: 2) == real
+        )
     }
 }
 

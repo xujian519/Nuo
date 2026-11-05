@@ -60,7 +60,10 @@ enum DeclaredReasoningEffort {
         /// ("on" maps to `high`, "off" is the `none` rail); `kwargs[level]` is
         /// sent verbatim and nothing else is invented.
         case modeKwargs(
-            [String], defaultLevel: String?, kwargs: [String: [String: ReasoningModeValue]])
+            [String],
+            defaultLevel: String?,
+            kwargs: [String: [String: ReasoningModeValue]]
+        )
     }
 
     /// A declared template-kwarg value (bool or string only).
@@ -115,8 +118,12 @@ enum DeclaredReasoningEffort {
             guard let generation = cache.begin(key, background: false) else { continue }
             let resolved = resolve(modelId: modelId)
             let provisional = resolved == nil && !ModelManager.isLocalModelsCacheWarm
-            if cache.finish(key, generation: generation,
-                value: provisional ? nil : .some(resolved), background: false) {
+            if cache.finish(
+                key,
+                generation: generation,
+                value: provisional ? nil : .some(resolved),
+                background: false
+            ) {
                 return resolved
             }
         }
@@ -139,8 +146,13 @@ enum DeclaredReasoningEffort {
         DispatchQueue.global(qos: .utility).async {
             let resolved = resolve(modelId: modelId)
             let provisionalMiss = resolved == nil && !ModelManager.isLocalModelsCacheWarm
-            guard cache.finish(key, generation: generation,
-                value: provisionalMiss ? nil : .some(resolved), background: true)
+            guard
+                cache.finish(
+                    key,
+                    generation: generation,
+                    value: provisionalMiss ? nil : .some(resolved),
+                    background: true
+                )
             else { return }
             if !provisionalMiss, resolved != nil {
                 DispatchQueue.main.async {
@@ -160,7 +172,8 @@ enum DeclaredReasoningEffort {
             return nil
         }
         if let data = LocalReasoningCapability.readSmallConfigFile(
-            dir.appendingPathComponent("jang_config.json")),
+            dir.appendingPathComponent("jang_config.json")
+        ),
             let declared = parseJangDeclaration(data: data)
         {
             return declared
@@ -217,7 +230,8 @@ enum DeclaredReasoningEffort {
         let declaredDefault = (effort["default"] as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let explicitThinking = (chat["template_kwargs_defaults"] as? [String: Any])?["enable_thinking"] as? Bool
-        let defaultLevel = (explicitThinking ?? enabled)
+        let defaultLevel =
+            (explicitThinking ?? enabled)
             ? declaredDefault.flatMap { levels.contains($0) ? $0 : nil } : "none"
         return .levels(levels, defaultLevel: defaultLevel)
     }
@@ -367,10 +381,13 @@ enum DeclaredReasoningEffort {
         let levels = kwargs.keys.filter { $0 != "none" }
             .sorted { (ladderRank($0) ?? Int.max) < (ladderRank($1) ?? Int.max) }
         guard !levels.isEmpty else { return nil }
-        let thinkingDefault = ((root["chat"] as? [String: Any])?["thinking"] as? [String: Any])?[
-            "default"] as? Bool
+        let thinkingDefault =
+            ((root["chat"] as? [String: Any])?["thinking"] as? [String: Any])?[
+                "default"
+            ] as? Bool
         let defaultLevel: String? =
-            thinkingDefault == false ? (kwargs["none"] != nil ? "none" : nil)
+            thinkingDefault == false
+            ? (kwargs["none"] != nil ? "none" : nil)
             : (levels.contains("high") ? "high" : levels.last)
         return .modeKwargs(levels, defaultLevel: defaultLevel, kwargs: kwargs)
     }
@@ -379,7 +396,8 @@ enum DeclaredReasoningEffort {
     /// effort list or toggle. Read that distinction from its serving contract;
     /// do not infer it from a model name or from unsupported template branches.
     private static func fixedNativeEffort(
-        root: [String: Any], reasoning: [String: Any]
+        root: [String: Any],
+        reasoning: [String: Any]
     ) -> Control? {
         guard let capabilities = root["capabilities"] as? [String: Any],
             capabilities["supports_reasoning_toggle"] as? Bool == false,
@@ -403,7 +421,8 @@ enum DeclaredReasoningEffort {
     /// bundle says travels some other way. An absent transport key keeps the
     /// kwarg convention (the only transport local render supports).
     private static func transportIsChatTemplateKwarg(
-        _ reasoning: [String: Any], key: String
+        _ reasoning: [String: Any],
+        key: String
     ) -> Bool {
         guard let raw = reasoning[key] as? String else { return true }
         return raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -414,7 +433,8 @@ enum DeclaredReasoningEffort {
         guard let raw = reasoning["supported_reasoning_efforts"] as? [String] else {
             return .noEffortControl
         }
-        let levels = raw
+        let levels =
+            raw
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
             .filter { !$0.isEmpty }
         guard !levels.isEmpty,
@@ -455,7 +475,8 @@ enum DeclaredReasoningEffort {
         let full = NSRange(location: 0, length: ns.length)
         guard
             let setRegex = try? NSRegularExpression(
-                pattern: #"reasoning_effort[^\n]{0,160}?not\s+in\s*\(([^)]*)\)"#),
+                pattern: #"reasoning_effort[^\n]{0,160}?not\s+in\s*\(([^)]*)\)"#
+            ),
             let match = setRegex.firstMatch(in: template, range: full),
             match.numberOfRanges > 1
         else { return nil }
@@ -465,14 +486,16 @@ enum DeclaredReasoningEffort {
             return nil
         }
         var levels = quoted.matches(
-            in: tuple, range: NSRange(location: 0, length: tupleNS.length)
+            in: tuple,
+            range: NSRange(location: 0, length: tupleNS.length)
         ).map { tupleNS.substring(with: $0.range(at: 1)).lowercased() }
         guard !levels.isEmpty else { return nil }
         levels.sort { (ladderRank($0) ?? Int.max) < (ladderRank($1) ?? Int.max) }
 
         var defaultLevel: String? = nil
         if let defaultRegex = try? NSRegularExpression(
-            pattern: #"reasoning_effort\s*\|\s*default\(\s*['"]([A-Za-z_]+)['"]"#),
+            pattern: #"reasoning_effort\s*\|\s*default\(\s*['"]([A-Za-z_]+)['"]"#
+        ),
             let dm = defaultRegex.firstMatch(in: template, range: full),
             dm.numberOfRanges > 1
         {
@@ -504,7 +527,9 @@ enum DeclaredReasoningEffort {
     /// silent coerce, matching the DSV4 policy of never rewriting an
     /// explicit invalid choice into a different valid one.
     static func snapped(
-        _ requested: String, ontoLevels levels: [String], defaultLevel: String?
+        _ requested: String,
+        ontoLevels levels: [String],
+        defaultLevel: String?
     ) -> String? {
         var canonical = requested.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if canonical == "highest" { canonical = "xhigh" }

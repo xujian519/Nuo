@@ -28,7 +28,8 @@ struct HarnessLineFramerTests {
     /// Node's `readline`) breaks the record there.
     @Test func lineSeparatorInsideARecordDoesNotSplitIt() throws {
         var framer = HarnessLineFramer()
-        let record = "{\"type\":\"message_update\",\"assistantMessageEvent\":{\"type\":\"text_delta\",\"delta\":\"a\u{2028}b\u{2029}c\"}}"
+        let record =
+            "{\"type\":\"message_update\",\"assistantMessageEvent\":{\"type\":\"text_delta\",\"delta\":\"a\u{2028}b\u{2029}c\"}}"
         let lines = framer.append(Data((record + "\n").utf8))
         #expect(lines.count == 1)
         let line = try #require(lines.first)
@@ -278,7 +279,11 @@ struct HarnessGrantStoreTests {
         #expect(!args.contains { $0.contains("osh_abc123") })
 
         let withoutToken = try #require(
-            ClaudeCodeConfiguration.mcpConfigJSON(cliPath: "/usr/local/bin/osaurus", allowConfigWrites: false, bridgeGrant: nil)
+            ClaudeCodeConfiguration.mcpConfigJSON(
+                cliPath: "/usr/local/bin/osaurus",
+                allowConfigWrites: false,
+                bridgeGrant: nil
+            )
         )
         let bare = HarnessFixtures.json(Data(withoutToken.utf8))
         #expect(((bare["mcpServers"] as? [String: Any])?["osaurus"] as? [String: Any])?["env"] == nil)

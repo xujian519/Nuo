@@ -107,7 +107,9 @@ enum AppleSchema {
                     ]
                 ),
                 "end_date": date("Stop repeating after this date (optional)."),
-                "occurrence_count": integer("Stop after this many occurrences (optional; ignored when end_date is set)."),
+                "occurrence_count": integer(
+                    "Stop after this many occurrences (optional; ignored when end_date is set)."
+                ),
             ],
             required: ["frequency"]
         )

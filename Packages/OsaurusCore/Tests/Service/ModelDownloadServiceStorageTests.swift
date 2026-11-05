@@ -166,7 +166,7 @@ struct VolumeAvailableCapacityCacheTests {
         #expect(Date().timeIntervalSince(start) < 0.5)
 
         var value: Int64?
-        for _ in 0..<50 {
+        for _ in 0 ..< 50 {
             try await Task.sleep(for: .milliseconds(100))
             value = cache.cachedBytes(forPath: path)
             if value != nil { break }
@@ -176,9 +176,12 @@ struct VolumeAvailableCapacityCacheTests {
 
     @Test func aFailedRefreshKeepsTheLastGoodValue() {
         let answers = OSAllocatedUnfairLock<[Int64?]>(initialState: [1_000, nil])
-        let cache = VolumeAvailableCapacityCache(maxAge: 0, query: { _ in
-            answers.withLock { $0.isEmpty ? nil : $0.removeFirst() }
-        })
+        let cache = VolumeAvailableCapacityCache(
+            maxAge: 0,
+            query: { _ in
+                answers.withLock { $0.isEmpty ? nil : $0.removeFirst() }
+            }
+        )
         let path = NSTemporaryDirectory()
         cache.refreshNow(forPath: path)
         cache.refreshNow(forPath: path)

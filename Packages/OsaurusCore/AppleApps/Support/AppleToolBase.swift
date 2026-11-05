@@ -74,7 +74,11 @@ enum AppleToolError: Error, Sendable, Equatable {
         switch self {
         case .invalidArgs(_, let field, let expected):
             return ToolEnvelope.failure(
-                kind: kind, message: message, field: field, expected: expected, tool: tool
+                kind: kind,
+                message: message,
+                field: field,
+                expected: expected,
+                tool: tool
             )
         case .permissionDenied(let permission, _):
             return ToolEnvelope.failure(
@@ -91,7 +95,10 @@ enum AppleToolError: Error, Sendable, Equatable {
             return ToolEnvelope.failure(kind: kind, message: message, tool: tool, retryable: retryable)
         case .timeout(_, let outcomeUnknown):
             return ToolEnvelope.failure(
-                kind: kind, message: message, tool: tool, retryable: outcomeUnknown ? false : nil,
+                kind: kind,
+                message: message,
+                tool: tool,
+                retryable: outcomeUnknown ? false : nil,
                 metadata: outcomeUnknown ? ["outcome": "unknown"] : nil
             )
         default:
@@ -159,12 +166,19 @@ class AppleToolBase: OsaurusTool, PermissionedTool, CapabilityToolGroupDeclaring
         guard case .value(let args) = req else { return req.failureEnvelope ?? "" }
         do {
             let payload = try await run(args: args)
-            return ToolEnvelope.success(tool: name, result: AppleJSON.serializable(payload.result), warnings: payload.warnings)
+            return ToolEnvelope.success(
+                tool: name,
+                result: AppleJSON.serializable(payload.result),
+                warnings: payload.warnings
+            )
         } catch let error as AppleToolError {
             return error.envelope(tool: name)
         } catch is CancellationError {
             return ToolEnvelope.failure(
-                kind: .executionError, message: "\(name) was cancelled.", tool: name, retryable: false
+                kind: .executionError,
+                message: "\(name) was cancelled.",
+                tool: name,
+                retryable: false
             )
         } catch {
             return ToolEnvelope.failure(kind: .executionError, message: error.localizedDescription, tool: name)
@@ -203,7 +217,8 @@ enum AppleArgs {
                 let hint = expected.map { " (\($0))" } ?? ""
                 throw AppleToolError.invalidArgs(
                     "Missing required argument `\(key)`\(hint).",
-                    field: key, expected: expected
+                    field: key,
+                    expected: expected
                 )
             }
             return nil
@@ -212,7 +227,9 @@ enum AppleArgs {
             let trimmed = s.trimmingCharacters(in: .whitespacesAndNewlines)
             if required, trimmed.isEmpty {
                 throw AppleToolError.invalidArgs(
-                    "Argument `\(key)` must not be empty.", field: key, expected: expected
+                    "Argument `\(key)` must not be empty.",
+                    field: key,
+                    expected: expected
                 )
             }
             return trimmed.isEmpty && !required ? nil : s
@@ -220,7 +237,9 @@ enum AppleArgs {
         // Weak-caller tolerance: numbers/bools arrive as strings.
         if let n = raw as? NSNumber { return n.stringValue }
         throw AppleToolError.invalidArgs(
-            "Argument `\(key)` must be a string.", field: key, expected: expected ?? "a JSON string"
+            "Argument `\(key)` must be a string.",
+            field: key,
+            expected: expected ?? "a JSON string"
         )
     }
 
@@ -233,7 +252,9 @@ enum AppleArgs {
         if let n = ArgumentCoercion.int(raw) { return n }
         if let d = raw as? Double, d.rounded() == d { return Int(d) }
         throw AppleToolError.invalidArgs(
-            "Argument `\(key)` must be an integer.", field: key, expected: expected ?? "an integer"
+            "Argument `\(key)` must be an integer.",
+            field: key,
+            expected: expected ?? "an integer"
         )
     }
 
@@ -243,7 +264,9 @@ enum AppleArgs {
         if let n = raw as? NSNumber { return n.doubleValue }
         if let s = raw as? String, let d = Double(s.trimmingCharacters(in: .whitespaces)) { return d }
         throw AppleToolError.invalidArgs(
-            "Argument `\(key)` must be a number.", field: key, expected: expected ?? "a number"
+            "Argument `\(key)` must be a number.",
+            field: key,
+            expected: expected ?? "a number"
         )
     }
 
@@ -251,7 +274,9 @@ enum AppleArgs {
         guard let raw = args[key], !(raw is NSNull) else { return nil }
         if let b = ArgumentCoercion.bool(raw) { return b }
         throw AppleToolError.invalidArgs(
-            "Argument `\(key)` must be a boolean.", field: key, expected: "true or false"
+            "Argument `\(key)` must be a boolean.",
+            field: key,
+            expected: "true or false"
         )
     }
 
@@ -265,7 +290,9 @@ enum AppleArgs {
             return anyArr.compactMap { ($0 as? String) ?? ($0 as? NSNumber)?.stringValue }
         }
         throw AppleToolError.invalidArgs(
-            "Argument `\(key)` must be an array of strings.", field: key, expected: "an array of strings"
+            "Argument `\(key)` must be an array of strings.",
+            field: key,
+            expected: "an array of strings"
         )
     }
 
@@ -278,20 +305,26 @@ enum AppleArgs {
             return dict
         }
         throw AppleToolError.invalidArgs(
-            "Argument `\(key)` must be an object.", field: key, expected: "a JSON object"
+            "Argument `\(key)` must be an object.",
+            field: key,
+            expected: "a JSON object"
         )
     }
 
     /// Validate an enum-like string against `allowed` (case-insensitive).
     static func enumeration(
-        _ args: [String: Any], _ key: String, allowed: [String], default defaultValue: String? = nil
+        _ args: [String: Any],
+        _ key: String,
+        allowed: [String],
+        default defaultValue: String? = nil
     ) throws -> String? {
         guard let raw = try string(args, key) else { return defaultValue }
         let normalized = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard allowed.contains(normalized) else {
             throw AppleToolError.invalidArgs(
                 "`\(key)` must be one of: \(allowed.joined(separator: ", ")). Got `\(raw)`.",
-                field: key, expected: "one of: \(allowed.joined(separator: ", "))"
+                field: key,
+                expected: "one of: \(allowed.joined(separator: ", "))"
             )
         }
         return normalized

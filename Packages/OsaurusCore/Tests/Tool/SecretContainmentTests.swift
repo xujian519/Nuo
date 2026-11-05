@@ -364,6 +364,21 @@ struct SecretArgumentSurfaceWiringTests {
         )
     }
 
+    /// `swift-format` re-wraps argument lists and long calls, so comparing raw
+    /// source text breaks on a pure reformat. Compare with whitespace removed:
+    /// layout stops mattering, the call itself still has to be there.
+    private func sourceContains(_ haystack: String, _ needle: String) -> Bool {
+        stripped(haystack).contains(stripped(needle))
+    }
+
+    private func sourceOccurrences(of needle: String, in haystack: String) -> Int {
+        stripped(haystack).components(separatedBy: stripped(needle)).count - 1
+    }
+
+    private func stripped(_ text: String) -> String {
+        text.filter { !$0.isWhitespace }
+    }
+
     @Test func chatHTTPRegistryAndPluginSurfacesUseRecordedArguments() throws {
         let chat = try source("Views/Chat/ChatView.swift")
         #expect(chat.contains("SecretArgumentScrubber.recordedToolCall("))
@@ -372,7 +387,12 @@ struct SecretArgumentSurfaceWiringTests {
         let http = try source("Networking/HTTPHandler.swift")
         // Canonical Responses record the entire original assistant batch,
         // including native output Items, before any tool is dispatched.
-        #expect(http.contains("let assistant = SecretArgumentScrubber.recordedAssistantMessage(try response.completedAssistantInput())"))
+        #expect(
+            sourceContains(
+                http,
+                "let assistant = SecretArgumentScrubber.recordedAssistantMessage(try response.completedAssistantInput())"
+            )
+        )
         #expect(http.contains("try batchHistory.begin(assistant)"))
         #expect(http.contains("arguments: SecretArgumentScrubber.recordedArguments("))
 
@@ -386,7 +406,12 @@ struct SecretArgumentSurfaceWiringTests {
         // Both one-shot and streaming model steps stage a scrubbed whole
         // batch. The raw execution arguments still reach the registry; only
         // persisted history and streamed argument previews use recorded data.
-        #expect(plugin.components(separatedBy: "try batchHistory.begin(SecretArgumentScrubber.recordedAssistantMessage(").count - 1 == 2)
+        #expect(
+            sourceOccurrences(
+                of: "try batchHistory.begin(SecretArgumentScrubber.recordedAssistantMessage(",
+                in: plugin
+            ) == 2
+        )
         #expect(plugin.contains("try response.completedAssistantInput()"))
         #expect(plugin.contains("argumentsJSON: inv.jsonArguments"))
         #expect(plugin.contains("\"function\": [\"name\": inv.toolName, \"arguments\": recordedArgs]"))

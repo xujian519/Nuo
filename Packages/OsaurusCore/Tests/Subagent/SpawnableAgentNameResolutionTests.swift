@@ -28,7 +28,9 @@ struct SpawnableAgentNameResolutionTests {
                     isDirectory: true
                 )
             try? FileManager.default.createDirectory(
-                at: root, withIntermediateDirectories: true)
+                at: root,
+                withIntermediateDirectories: true
+            )
             let previousRoot = OsaurusPaths.overrideRoot
             OsaurusPaths.overrideRoot = root
             AgentManager.shared.refresh()
@@ -46,8 +48,11 @@ struct SpawnableAgentNameResolutionTests {
     @MainActor
     private static func makeLauncher(targetIDs: [UUID]) -> SubagentScope {
         var launcher = Agent(
-            name: "Article Writer", description: "launcher", systemPrompt: "stable",
-            autonomousExec: AutonomousExecConfig(enabled: false))
+            name: "Article Writer",
+            description: "launcher",
+            systemPrompt: "stable",
+            autonomousExec: AutonomousExecConfig(enabled: false)
+        )
         launcher.settings.spawnDelegationEnabled = true
         launcher.settings.spawnableAgentIDs = targetIDs
         AgentStore.save(launcher)
@@ -60,18 +65,25 @@ struct SpawnableAgentNameResolutionTests {
     func nameResolvesToAllowListedId() async throws {
         try await Self.withIsolatedStore {
             let cleaner = Agent(
-                name: "Transcript Cleaner", description: "cleans", systemPrompt: "x",
-                autonomousExec: AutonomousExecConfig(enabled: false))
+                name: "Transcript Cleaner",
+                description: "cleans",
+                systemPrompt: "x",
+                autonomousExec: AutonomousExecConfig(enabled: false)
+            )
             AgentStore.save(cleaner)
             AgentManager.shared.refresh()
             let scope = Self.makeLauncher(targetIDs: [cleaner.id])
 
             // Exact and case-insensitive names both resolve to the UUID.
             let exact = await SubagentToolVisibility.resolveSpawnableAgentName(
-                "Transcript Cleaner", scope: scope)
+                "Transcript Cleaner",
+                scope: scope
+            )
             #expect(exact.id == cleaner.id)
             let cased = await SubagentToolVisibility.resolveSpawnableAgentName(
-                "transcript cleaner", scope: scope)
+                "transcript cleaner",
+                scope: scope
+            )
             #expect(cased.id == cleaner.id)
         }
     }
@@ -81,14 +93,19 @@ struct SpawnableAgentNameResolutionTests {
     func unknownNameSurfacesValidNames() async throws {
         try await Self.withIsolatedStore {
             let cleaner = Agent(
-                name: "Transcript Cleaner", description: "cleans", systemPrompt: "x",
-                autonomousExec: AutonomousExecConfig(enabled: false))
+                name: "Transcript Cleaner",
+                description: "cleans",
+                systemPrompt: "x",
+                autonomousExec: AutonomousExecConfig(enabled: false)
+            )
             AgentStore.save(cleaner)
             AgentManager.shared.refresh()
             let scope = Self.makeLauncher(targetIDs: [cleaner.id])
 
             let miss = await SubagentToolVisibility.resolveSpawnableAgentName(
-                "Researcher", scope: scope)
+                "Researcher",
+                scope: scope
+            )
             #expect(miss.id == nil)
             #expect(miss.allowedNames.contains("Transcript Cleaner"))
         }
@@ -100,14 +117,19 @@ struct SpawnableAgentNameResolutionTests {
         try await Self.withIsolatedStore {
             // `cleaner` exists in the catalog but is NOT in the launcher's list.
             let cleaner = Agent(
-                name: "Transcript Cleaner", description: "cleans", systemPrompt: "x",
-                autonomousExec: AutonomousExecConfig(enabled: false))
+                name: "Transcript Cleaner",
+                description: "cleans",
+                systemPrompt: "x",
+                autonomousExec: AutonomousExecConfig(enabled: false)
+            )
             AgentStore.save(cleaner)
             AgentManager.shared.refresh()
             let scope = Self.makeLauncher(targetIDs: [])
 
             let miss = await SubagentToolVisibility.resolveSpawnableAgentName(
-                "Transcript Cleaner", scope: scope)
+                "Transcript Cleaner",
+                scope: scope
+            )
             #expect(miss.id == nil)
             #expect(miss.allowedNames.isEmpty)
         }

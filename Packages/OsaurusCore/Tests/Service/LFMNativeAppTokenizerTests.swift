@@ -13,7 +13,7 @@ struct LFMNativeAppTokenizerTests {
     static let nativeTemplate = #"""
         {{- bos_token -}}
         {%- set preserve_thinking = preserve_thinking | default(false) -%}
-        
+
         {%- macro format_arg_value(arg_value) -%}
             {%- if arg_value is string -%}
                 {{- "'" + (arg_value | replace("\\", "\\\\") | replace("'", "\\'") | replace("\n", "\\n") | replace("\r", "\\r")) + "'" -}}
@@ -23,7 +23,7 @@ struct LFMNativeAppTokenizerTests {
                 {{- arg_value | string -}}
             {%- endif -%}
         {%- endmacro -%}
-        
+
         {%- macro parse_content(content) -%}
             {%- if content is string -%}
                 {{- content -}}
@@ -45,7 +45,7 @@ struct LFMNativeAppTokenizerTests {
                 {{- _ns.result -}}
             {%- endif -%}
         {%- endmacro -%}
-        
+
         {%- macro render_tool_calls(tool_calls) -%}
             {%- set tool_calls_ns = namespace(tool_calls=[]) -%}
             {%- for tool_call in tool_calls -%}
@@ -64,7 +64,7 @@ struct LFMNativeAppTokenizerTests {
             {%- endfor -%}
             {{- "<|tool_call_start|>[" + (tool_calls_ns.tool_calls | join(", ")) + "]<|tool_call_end|>" -}}
         {%- endmacro -%}
-        
+
         {%- set ns = namespace(system_prompt="", last_user_index=-1) -%}
         {%- if messages and messages[0]["role"] == "system" -%}
             {%- if messages[0].get("content") -%}
@@ -152,7 +152,10 @@ struct LFMNativeAppTokenizerTests {
         }
         var vocab: [String: Int] = [:]
         for byte in 0 ... 255 { vocab[String(UnicodeScalar(codepoints[byte]!)!)] = byte }
-        let special = ["<|startoftext|>", "<|im_start|>", "<|im_end|>", "<think>", "</think>", "<|tool_call_start|>", "<|tool_call_end|>"]
+        let special = [
+            "<|startoftext|>", "<|im_start|>", "<|im_end|>", "<think>", "</think>", "<|tool_call_start|>",
+            "<|tool_call_end|>",
+        ]
         let added: [[String: Any]] = special.enumerated().map { index, token in
             vocab[token] = 256 + index
             return [
@@ -180,12 +183,14 @@ struct LFMNativeAppTokenizerTests {
         return directory
     }
 
-
     @Test(arguments: [false, true], [false, true])
     func configuredNativeReasoningToolsPreserveTailAndHistory(named: Bool, wrapped: Bool) async throws {
-        let configured: Any = named
-            ? [["name": "default", "template": Self.nativeTemplate],
-               ["name": "tool_use", "template": Self.nativeTemplate]]
+        let configured: Any =
+            named
+            ? [
+                ["name": "default", "template": Self.nativeTemplate],
+                ["name": "tool_use", "template": Self.nativeTemplate],
+            ]
             : Self.nativeTemplate
         let directory = try fixture(template: configured)
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -217,8 +222,10 @@ struct LFMNativeAppTokenizerTests {
             ["role": "user", "content": "Remember alpine-42."],
             ["role": "assistant", "thinking": "Earlier native reasoning", "content": "Stored."],
             ["role": "user", "content": "Count red\nblue."],
-            ["role": "assistant", "thinking": "Current tool reasoning", "content": "",
-             "tool_calls": calls],
+            [
+                "role": "assistant", "thinking": "Current tool reasoning", "content": "",
+                "tool_calls": calls,
+            ],
             ["role": "tool", "content": "2"],
         ]
         for required in [false, true] {
@@ -227,20 +234,28 @@ struct LFMNativeAppTokenizerTests {
                     var context: [String: any Sendable] = ["preserve_thinking": preserve]
                     if required { context["tool_choice"] = "required"; context["tool_choice_name"] = "line_count" }
                     let actual = try bridge.applyChatTemplate(
-                        messages: messages, tools: tools, additionalContext: context,
-                        addGenerationPrompt: addPrompt)
+                        messages: messages,
+                        tools: tools,
+                        additionalContext: context,
+                        addGenerationPrompt: addPrompt
+                    )
                     let expected = try upstream.applyChatTemplate(
-                        messages: messages, chatTemplate: nil, addGenerationPrompt: addPrompt,
-                        truncation: false, maxLength: nil,
+                        messages: messages,
+                        chatTemplate: nil,
+                        addGenerationPrompt: addPrompt,
+                        truncation: false,
+                        maxLength: nil,
                         tools: [function],
-                        additionalContext: context)
+                        additionalContext: context
+                    )
                     #expect(actual == expected)
                     let text = tokenizer.decode(tokenIds: actual, skipSpecialTokens: false)
                     #expect(text.contains("Remember alpine-42."))
                     let toolList = try #require(text.components(separatedBy: "List of tools: ").dropFirst().first)
                         .components(separatedBy: "<|im_end|>")[0]
                     let renderedTools = try #require(
-                        JSONSerialization.jsonObject(with: Data(toolList.utf8)) as? [[String: Any]])
+                        JSONSerialization.jsonObject(with: Data(toolList.utf8)) as? [[String: Any]]
+                    )
                     let renderedFunction = try #require(renderedTools.first)
                     #expect(renderedFunction["name"] as? String == "line_count")
                     #expect(renderedFunction["strict"] as? Bool == true)
@@ -286,26 +301,35 @@ struct LFMNativeAppTokenizerTests {
         let function: [String: any Sendable] = ["name": "line_count", "parameters": ["type": "object"]]
         let messages: [[String: any Sendable]] = [
             ["role": "user", "content": "Count."],
-            ["role": "assistant", "content": "", "tool_calls": [
-                ["function": ["name": "line_count", "arguments": #"{"text":"red"}"#]]
-            ]],
+            [
+                "role": "assistant", "content": "",
+                "tool_calls": [
+                    ["function": ["name": "line_count", "arguments": #"{"text":"red"}"#]]
+                ],
+            ],
         ]
         #expect(throws: (any Error).self) {
             try tokenizer.applyChatTemplate(
                 messages: messages,
                 tools: [["type": "function", "function": function]],
-                additionalContext: nil)
+                additionalContext: nil
+            )
         }
     }
 
     @Test func olderNonReasoningFallbackStillApplies() async throws {
-        let directory = try fixture(template: "{% for m in messages %}{{ m.content }}{% endfor %}{% if add_generation_prompt %}LEGACY-TAIL{% endif %}")
+        let directory = try fixture(
+            template:
+                "{% for m in messages %}{{ m.content }}{% endfor %}{% if add_generation_prompt %}LEGACY-TAIL{% endif %}"
+        )
         defer { try? FileManager.default.removeItem(at: directory) }
         let tokenizer = try await SwiftTransformersTokenizerLoader().load(from: directory)
         let function: [String: any Sendable] = ["name": "line_count", "parameters": ["type": "object"]]
         let ids = try tokenizer.applyChatTemplate(
             messages: [["role": "user", "content": "Count lines."]],
-            tools: [["type": "function", "function": function]], additionalContext: nil)
+            tools: [["type": "function", "function": function]],
+            additionalContext: nil
+        )
         let text = tokenizer.decode(tokenIds: ids, skipSpecialTokens: false)
         #expect(text.contains("List of tools:"))
         #expect(text.hasSuffix("<|im_start|>assistant\n"))

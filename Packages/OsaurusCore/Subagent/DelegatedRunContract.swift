@@ -137,10 +137,12 @@ public struct DelegatedRunContract: Sendable, Equatable {
         guard !turnMulOverflow else { return nil }
         let (promptReserve, promptOverflow) = systemTokens.addingReportingOverflow(toolTokens)
         guard !promptOverflow else { return nil }
-        let (withReserve, reserveOverflow) = turnBudget
+        let (withReserve, reserveOverflow) =
+            turnBudget
             .addingReportingOverflow(promptReserve)
         guard !reserveOverflow else { return nil }
-        let (requested, requestOverflow) = withReserve
+        let (requested, requestOverflow) =
+            withReserve
             .addingReportingOverflow(seedTokens)
         guard !requestOverflow else { return nil }
 

@@ -348,9 +348,17 @@ struct GenerationEventMapperMTPFailureTests {
         }
         private let lock = NSLock()
         private var entries: [Entry] = []
-        func record(_ failure: GenerationFailure, model: String, prompt: Int, generated: Int, context: HandledGPUFailureContext) {
+        func record(
+            _ failure: GenerationFailure,
+            model: String,
+            prompt: Int,
+            generated: Int,
+            context: HandledGPUFailureContext
+        ) {
             lock.lock(); defer { lock.unlock() }
-            entries.append(.init(failure: failure, model: model, prompt: prompt, generated: generated, context: context))
+            entries.append(
+                .init(failure: failure, model: model, prompt: prompt, generated: generated, context: context)
+            )
         }
         func snapshot() -> [Entry] {
             lock.lock(); defer { lock.unlock() }

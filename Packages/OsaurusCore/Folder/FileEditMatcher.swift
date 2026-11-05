@@ -40,7 +40,8 @@ enum FileEditMatcher {
             case .exact:
                 return "exact text"
             case .whitespaceNormalized:
-                return "whole lines compared with leading/trailing whitespace trimmed and inner whitespace runs collapsed"
+                return
+                    "whole lines compared with leading/trailing whitespace trimmed and inner whitespace runs collapsed"
             case .blankLinesCollapsed:
                 return "whole lines compared ignoring whitespace differences and blank lines"
             case .unicodeNormalized:
@@ -133,7 +134,7 @@ enum FileEditMatcher {
                     content: edited.joined(),
                     replacements: matches.count,
                     strategy: strategy,
-                    matchedLines: matches.map { ($0.fileRange.lowerBound + 1)...($0.fileRange.upperBound) },
+                    matchedLines: matches.map { ($0.fileRange.lowerBound + 1) ... ($0.fileRange.upperBound) },
                     matchedText: firstText
                 )
             )
@@ -295,7 +296,8 @@ enum FileEditMatcher {
             emitFile(through: range.upperBound - 1)
 
             let lastTerminator = terminators[range.upperBound - 1]
-            let innerTerminator = terminators[range.lowerBound].isEmpty ? dominantTerminator : terminators[range.lowerBound]
+            let innerTerminator =
+                terminators[range.lowerBound].isEmpty ? dominantTerminator : terminators[range.lowerBound]
             var replacementTerminators = Array(repeating: innerTerminator, count: replacementBodies.count)
             if !replacementTerminators.isEmpty {
                 replacementTerminators[replacementTerminators.count - 1] = lastTerminator
@@ -306,7 +308,9 @@ enum FileEditMatcher {
 
             // Deleting through the final line of a file that had no trailing
             // newline must not invent one.
-            if replacementBodies.isEmpty, lastTerminator.isEmpty, range.lowerBound > 0, range.lowerBound - 1 < terminators.count {
+            if replacementBodies.isEmpty, lastTerminator.isEmpty, range.lowerBound > 0,
+                range.lowerBound - 1 < terminators.count
+            {
                 terminators[range.lowerBound - 1] = ""
             }
             if bodies.isEmpty {
@@ -357,7 +361,10 @@ enum FileEditMatcher {
             // Shallowest line nested deeper than the base on BOTH sides.
             let nested =
                 pairs.dropFirst()
-                .filter { $0.old.count > first.old.count && $0.file.count > first.file.count && $0.old.hasPrefix(first.old) && $0.file.hasPrefix(first.file) }
+                .filter {
+                    $0.old.count > first.old.count && $0.file.count > first.file.count && $0.old.hasPrefix(first.old)
+                        && $0.file.hasPrefix(first.file)
+                }
                 .min { $0.old.count < $1.old.count }
             if let nested {
                 oldUnit = nested.old.count - first.old.count
@@ -398,9 +405,9 @@ enum FileEditMatcher {
             var matches: [RelaxedMatch] = []
             var start = 0
             while start + k <= fileNorm.count {
-                if fileNorm[start..<start + k].elementsEqual(oldNorm) {
+                if fileNorm[start ..< start + k].elementsEqual(oldNorm) {
                     matches.append(
-                        RelaxedMatch(fileRange: start..<start + k, oldToFile: (0..<k).map { start + $0 })
+                        RelaxedMatch(fileRange: start ..< start + k, oldToFile: (0 ..< k).map { start + $0 })
                     )
                     start += k
                 } else {
@@ -420,16 +427,16 @@ enum FileEditMatcher {
             var start = 0
             while start + k <= fileNonBlank.count {
                 var all = true
-                for offset in 0..<k where fileNorm[fileNonBlank[start + offset]] != oldNorm[oldNonBlank[offset]] {
+                for offset in 0 ..< k where fileNorm[fileNonBlank[start + offset]] != oldNorm[oldNonBlank[offset]] {
                     all = false
                     break
                 }
                 if all {
                     var oldToFile = [Int?](repeating: nil, count: oldNorm.count)
-                    for offset in 0..<k { oldToFile[oldNonBlank[offset]] = fileNonBlank[start + offset] }
+                    for offset in 0 ..< k { oldToFile[oldNonBlank[offset]] = fileNonBlank[start + offset] }
                     let first = fileNonBlank[start]
                     let last = fileNonBlank[start + k - 1]
-                    matches.append(RelaxedMatch(fileRange: first..<(last + 1), oldToFile: oldToFile))
+                    matches.append(RelaxedMatch(fileRange: first ..< (last + 1), oldToFile: oldToFile))
                     start += k
                 } else {
                     start += 1
@@ -500,7 +507,7 @@ enum FileEditMatcher {
         for scalar in content[range].unicodeScalars where scalar == "\n" { inner += 1 }
         // A match that ends exactly on a newline doesn't reach the next line.
         if inner > 0, content[range].unicodeScalars.last == "\n" { inner -= 1 }
-        return start...(start + inner)
+        return start ... (start + inner)
     }
 }
 
@@ -525,7 +532,7 @@ extension String {
         var ranges: [Range<String.Index>] = []
         var start = startIndex
         while start < endIndex,
-            let range = self.range(of: needle, options: [.literal], range: start..<endIndex)
+            let range = self.range(of: needle, options: [.literal], range: start ..< endIndex)
         {
             ranges.append(range)
             start = range.upperBound

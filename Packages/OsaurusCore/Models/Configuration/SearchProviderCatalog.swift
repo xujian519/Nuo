@@ -342,7 +342,9 @@ public enum SearchProviderCatalog {
         summary: L("Official Google API. Needs two values — about 5 minutes to set up."),
         pricingNote: L("Free: 100 queries/day"),
         instructions: [
-            L("Create a Programmable Search Engine at programmablesearchengine.google.com (enable \"Search the entire web\")."),
+            L(
+                "Create a Programmable Search Engine at programmablesearchengine.google.com (enable \"Search the entire web\")."
+            ),
             L("Copy the Search engine ID (cx) from its settings."),
             L("Get an API key from the Custom Search JSON API page in Google Cloud."),
             L("Paste both values below."),

@@ -57,8 +57,11 @@ struct AutoTitleDecisionTests {
     @Test("the untouched default title also generates")
     func generatesFromDefaultTitle() {
         let preview = ChatSessionData.generateTitle(from: exchange)
-        guard case .generate(_, _, let previewTitle) = decide(
-            currentTitle: "New Chat", turns: exchange)
+        guard
+            case .generate(_, _, let previewTitle) = decide(
+                currentTitle: "New Chat",
+                turns: exchange
+            )
         else {
             Issue.record("expected .generate")
             return

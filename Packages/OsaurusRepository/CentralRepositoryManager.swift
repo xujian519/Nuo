@@ -79,7 +79,8 @@ public struct CentralRepositoryRefreshFailure: Equatable, LocalizedError, Sendab
             cacheSuffix = " No cached plugin list is available yet."
         }
 
-        let retrySuffix = retryable
+        let retrySuffix =
+            retryable
             ? " You can retry after the connection or service recovers."
             : " Check the repository URL or configuration before retrying."
 
@@ -481,14 +482,14 @@ public final class CentralRepositoryManager: @unchecked Sendable {
         if let urlError = error as? URLError {
             switch urlError.code {
             case .notConnectedToInternet, .cannotFindHost, .cannotConnectToHost,
-                 .networkConnectionLost, .dnsLookupFailed:
+                .networkConnectionLost, .dnsLookupFailed:
                 return (.networkUnavailable, urlError.localizedDescription, true)
             case .timedOut:
                 return (.timedOut, urlError.localizedDescription, true)
             case .secureConnectionFailed, .serverCertificateHasBadDate,
-                 .serverCertificateUntrusted, .serverCertificateHasUnknownRoot,
-                 .serverCertificateNotYetValid, .clientCertificateRejected,
-                 .clientCertificateRequired:
+                .serverCertificateUntrusted, .serverCertificateHasUnknownRoot,
+                .serverCertificateNotYetValid, .clientCertificateRejected,
+                .clientCertificateRequired:
                 return (.tlsTrust, urlError.localizedDescription, false)
             case .cancelled:
                 return (.cancelled, urlError.localizedDescription, true)

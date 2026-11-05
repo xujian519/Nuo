@@ -74,7 +74,9 @@ struct InstalledModelInventoryTests {
         sizeBytes: Int64? = 1
     ) throws -> MLXModel {
         let dir = root.appendingPathComponent(
-            id.replacingOccurrences(of: "/", with: "--"), isDirectory: true)
+            id.replacingOccurrences(of: "/", with: "--"),
+            isDirectory: true
+        )
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         try Data("{}".utf8).write(to: dir.appendingPathComponent("config.json"))
         try Data("{}".utf8).write(to: dir.appendingPathComponent("tokenizer.json"))
@@ -298,7 +300,8 @@ struct InstalledModelInventoryTests {
 
             manager.mergeAvailable(with: externals, refreshLocalInstallationMetadata: true)
             manager.applyOsaurusOrgFetch(
-                autoFetched: (orgCollisionIds + [tailSuggestedId, notInstalledId]).map(Self.orgCard))
+                autoFetched: (orgCollisionIds + [tailSuggestedId, notInstalledId]).map(Self.orgCard)
+            )
 
             let counts = Self.surfaceCounts(manager, ids: fixtureIds)
             // 3 org collisions + 1 curated collision + 2 free + 1 tail = 7.
@@ -402,7 +405,11 @@ struct InstalledModelInventoryTests {
 
         // Neither entry carries evidence: first occurrence wins, as before.
         let other = MLXModel(
-            id: id, name: "Other", description: "Discovered on Hugging Face", downloadURL: "")
+            id: id,
+            name: "Other",
+            description: "Discovered on Hugging Face",
+            downloadURL: ""
+        )
         let plain = ModelManager.deduplicatedModels(suggested: [suggestion], available: [other])
         #expect(plain.count == 1)
         #expect(plain.first?.name == "Curated Name")

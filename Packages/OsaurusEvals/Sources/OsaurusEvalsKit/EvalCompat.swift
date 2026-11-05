@@ -499,7 +499,8 @@ public enum EvalCompatBuilder {
             }
             byName[name] = acc
         }
-        return byName
+        return
+            byName
             .map { name, acc in
                 ContributorRank(
                     name: name,
@@ -537,7 +538,8 @@ public enum EvalCompatBuilder {
                 byDevice[key] = entry
             }
         }
-        return byDevice
+        return
+            byDevice
             .map { key, entry in
                 DeviceCoverage(
                     chip: key.chip,

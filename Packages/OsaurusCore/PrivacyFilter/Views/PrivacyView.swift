@@ -948,7 +948,9 @@ private struct PrivacyOverviewTab: View {
             title: L("Forget Redactions in Every Conversation"),
             // `forgetActionMessage` is already localized by the parent.
             description: forgetActionMessage
-                ?? L("Clear every interned placeholder for every open conversation. Future sends mint fresh placeholders."),
+                ?? L(
+                    "Clear every interned placeholder for every open conversation. Future sends mint fresh placeholders."
+                ),
             anchorId: "privacy.filter.forget"
         ) {
             Button(action: forgetAllRedactions) {

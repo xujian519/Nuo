@@ -184,7 +184,8 @@ public enum RemoteProviderKeychain {
     /// Map the typed read outcome for `account` into a `SecretAvailability`,
     /// using `decodes` to detect a corrupt payload.
     private static func availability(
-        account: String, decodes: (Data) -> Bool
+        account: String,
+        decodes: (Data) -> Bool
     ) -> SecretAvailability {
         switch Keychain.readItem(service: service, account: account) {
         case .found(let data):

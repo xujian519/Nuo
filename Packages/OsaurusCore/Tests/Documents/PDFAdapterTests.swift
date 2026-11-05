@@ -75,7 +75,8 @@ struct PDFAdapterTests {
         for (element, expected) in zip(pages, [firstText, secondText, pages[2].text ?? ""]) {
             let range = try #require(element.anchor.textRange)
             #expect(
-                fallback.substring(with: NSRange(location: range.startUTF16Offset, length: range.length)) == expected)
+                fallback.substring(with: NSRange(location: range.startUTF16Offset, length: range.length)) == expected
+            )
         }
         #expect(pages.map { $0.anchor.sourceRange?.start.pageIndex ?? -1 } == [0, 1, 2])
         #expect(pages.map { $0.anchor.sourceRange?.end?.pageIndex ?? -1 } == [0, 1, 2])
@@ -133,7 +134,8 @@ struct PDFAdapterTests {
         let thirdRange = try #require(pageElements[2].anchor.textRange)
 
         #expect(
-            firstRange == DocumentTextRange(startUTF16Offset: header1.utf16.count, length: "first".utf16.count))
+            firstRange == DocumentTextRange(startUTF16Offset: header1.utf16.count, length: "first".utf16.count)
+        )
         #expect(secondRange.startUTF16Offset == (header1 + "first\n\n" + header2).utf16.count)
         #expect(secondRange.length == "😀se".utf16.count)
         #expect(thirdRange.startUTF16Offset == fallback.utf16.count)
@@ -226,11 +228,13 @@ struct PDFAdapterTests {
         let tables = try PDFTableDetector.detectTables(glyphs: glyphs)
         #expect(tables.count == 1)
         let table = try #require(tables.first)
-        #expect(table.rows.map { $0.cells.map(\.text) } == [
-            ["Metric", "Value"],
-            ["Revenue", "1200"],
-            ["Expenses", "800"],
-        ])
+        #expect(
+            table.rows.map { $0.cells.map(\.text) } == [
+                ["Metric", "Value"],
+                ["Revenue", "1200"],
+                ["Expenses", "800"],
+            ]
+        )
         let nsText = text as NSString
         for glyph in table.rows.flatMap(\.glyphs) {
             let range = NSRange(location: glyph.characterRange.lowerBound, length: glyph.characterRange.count)
@@ -286,9 +290,14 @@ struct PDFAdapterTests {
         let glyphs = try PDFAdapter.glyphs(from: page, pageIndex: 0, text: text)
         let emoji = try #require(glyphs.first { $0.text == "😀" })
         #expect(emoji.characterRange.count == 2)
-        #expect((text as NSString).substring(with: NSRange(
-            location: emoji.characterRange.lowerBound, length: emoji.characterRange.count
-        )) == "😀")
+        #expect(
+            (text as NSString).substring(
+                with: NSRange(
+                    location: emoji.characterRange.lowerBound,
+                    length: emoji.characterRange.count
+                )
+            ) == "😀"
+        )
 
         let doc = try await PDFAdapter().parse(url: url, sizeLimit: 0)
         let representation = try #require(doc.representation.underlying as? PDFDocumentRepresentation)
@@ -307,7 +316,10 @@ struct PDFAdapterTests {
         let rangeCases: [(String, String, NSRange, NSRange, Bool)] = [
             ("exact", "A", NSRange(location: 0, length: 1), NSRange(location: 0, length: 1), true),
             ("trailing_native_newline", "A\n", NSRange(location: 0, length: 1), NSRange(location: 0, length: 2), true),
-            ("prefix_and_suffix_whitespace", " A\n", NSRange(location: 1, length: 1), NSRange(location: 0, length: 3), true),
+            (
+                "prefix_and_suffix_whitespace", " A\n", NSRange(location: 1, length: 1),
+                NSRange(location: 0, length: 3), true
+            ),
             ("extra_visible_suffix", "AB", NSRange(location: 0, length: 1), NSRange(location: 0, length: 2), false),
             ("extra_visible_prefix", "BA", NSRange(location: 1, length: 1), NSRange(location: 0, length: 2), false),
             ("wrong_native_range", "AB", NSRange(location: 0, length: 1), NSRange(location: 1, length: 1), false),
@@ -315,16 +327,34 @@ struct PDFAdapterTests {
             ("range_overflow", "A", NSRange(location: 0, length: 1), NSRange(location: 0, length: Int.max), false),
             ("not_found", "A", NSRange(location: 0, length: 1), NSRange(location: NSNotFound, length: 1), false),
             ("empty_requested", "A", NSRange(location: 0, length: 0), NSRange(location: 0, length: 1), false),
-            ("emoji_complete_with_newline", "😀\n", NSRange(location: 0, length: 2), NSRange(location: 0, length: 3), true),
+            (
+                "emoji_complete_with_newline", "😀\n", NSRange(location: 0, length: 2), NSRange(location: 0, length: 3),
+                true
+            ),
             ("emoji_partial_requested", "😀", NSRange(location: 0, length: 1), NSRange(location: 0, length: 2), false),
-            ("combining_complete", "e\u{301}\n", NSRange(location: 0, length: 2), NSRange(location: 0, length: 3), true),
-            ("combining_partial_requested", "e\u{301}", NSRange(location: 0, length: 1), NSRange(location: 0, length: 2), false),
+            (
+                "combining_complete", "e\u{301}\n", NSRange(location: 0, length: 2), NSRange(location: 0, length: 3),
+                true
+            ),
+            (
+                "combining_partial_requested", "e\u{301}", NSRange(location: 0, length: 1),
+                NSRange(location: 0, length: 2), false
+            ),
             ("complete_CRLF_suffix", "A\r\n", NSRange(location: 0, length: 1), NSRange(location: 0, length: 3), true),
             ("partial_CRLF_suffix", "A\r\n", NSRange(location: 0, length: 1), NSRange(location: 0, length: 2), false),
             ("partial_CRLF_prefix", "\r\nA", NSRange(location: 2, length: 1), NSRange(location: 1, length: 2), false),
-            ("partial_requested_CRLF_CR", "\r\n", NSRange(location: 0, length: 1), NSRange(location: 0, length: 2), false),
-            ("partial_requested_CRLF_LF", "\r\n", NSRange(location: 1, length: 1), NSRange(location: 0, length: 2), false),
-            ("zero_width_is_not_whitespace", "A\u{200B}", NSRange(location: 0, length: 1), NSRange(location: 0, length: 2), false),
+            (
+                "partial_requested_CRLF_CR", "\r\n", NSRange(location: 0, length: 1), NSRange(location: 0, length: 2),
+                false
+            ),
+            (
+                "partial_requested_CRLF_LF", "\r\n", NSRange(location: 1, length: 1), NSRange(location: 0, length: 2),
+                false
+            ),
+            (
+                "zero_width_is_not_whitespace", "A\u{200B}", NSRange(location: 0, length: 1),
+                NSRange(location: 0, length: 2), false
+            ),
         ]
         for (name, text, requested, native, expected) in rangeCases {
             let admitted = PDFAdapter.selectionRange(native, covers: requested, in: text as NSString)
@@ -371,7 +401,8 @@ struct PDFAdapterTests {
     }
 
     private static func writeTablePDF(
-        rows: [[String]], drawingOrder: CellDrawingOrder = .rowMajor
+        rows: [[String]],
+        drawingOrder: CellDrawingOrder = .rowMajor
     ) throws -> URL {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("osaurus-pdf-table-\(UUID().uuidString).pdf")

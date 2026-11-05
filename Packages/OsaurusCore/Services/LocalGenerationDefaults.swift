@@ -367,7 +367,7 @@ enum LocalGenerationDefaults {
         let modelType = (config["model_type"] as? String)?.lowercased()
         let architectures = (config["architectures"] as? [String]) ?? []
         guard modelType == "qwen3_5_moe",
-              architectures.contains("Qwen3_5MoeForConditionalGeneration")
+            architectures.contains("Qwen3_5MoeForConditionalGeneration")
         else {
             return false
         }
@@ -377,11 +377,12 @@ enum LocalGenerationDefaults {
         var jangDeclaresMTP = false
         let jangURL = directory.appendingPathComponent("jang_config.json")
         if let jangData = readSmallConfigFile(jangURL),
-           let jang = try? JSONSerialization.jsonObject(with: jangData) as? [String: Any]
+            let jang = try? JSONSerialization.jsonObject(with: jangData) as? [String: Any]
         {
             let runtime = jang["runtime"] as? [String: Any]
             let mtp = jang["mtp"] as? [String: Any]
-            jangDeclaresMTP = (runtime?["bundle_has_mtp"] as? Bool) == true
+            jangDeclaresMTP =
+                (runtime?["bundle_has_mtp"] as? Bool) == true
                 || (mtp?["artifact_available"] as? Bool) == true
         }
         guard tuningExists || jangDeclaresMTP else { return false }
@@ -415,13 +416,15 @@ enum LocalGenerationDefaults {
         }
 
         var native = root["native_mtp"] as? [String: Any] ?? [:]
-        let alreadyBlocked = (native["blocked"] as? Bool) == true
+        let alreadyBlocked =
+            (native["blocked"] as? Bool) == true
             && (native["manual_blocked"] as? Bool) == true
         guard !alreadyBlocked else { return false }
 
         native["blocked"] = true
         native["manual_blocked"] = true
-        let existingReason = (native["reason"] as? String)?
+        let existingReason =
+            (native["reason"] as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if existingReason.isEmpty {
             native["reason"] =
@@ -443,7 +446,8 @@ enum LocalGenerationDefaults {
     /// intentionally excluded. The identifier may be a repository id
     /// (`org/repo`) or a human-readable picker name.
     private static func isLagunaXS21Identifier(_ identifier: String) -> Bool {
-        let leaf = identifier.split(separator: "/", omittingEmptySubsequences: true).last
+        let leaf =
+            identifier.split(separator: "/", omittingEmptySubsequences: true).last
             .map(String.init) ?? identifier
         let folded = leaf.lowercased().unicodeScalars.map { scalar -> Character in
             if CharacterSet.alphanumerics.contains(scalar) || scalar == "." {
@@ -459,7 +463,8 @@ enum LocalGenerationDefaults {
     }
 
     private static func isOrnith15A3BIdentifier(_ identifier: String) -> Bool {
-        let leaf = identifier.split(separator: "/", omittingEmptySubsequences: true).last
+        let leaf =
+            identifier.split(separator: "/", omittingEmptySubsequences: true).last
             .map(String.init) ?? identifier
         let folded = leaf.lowercased().unicodeScalars.map { scalar -> Character in
             CharacterSet.alphanumerics.contains(scalar) ? Character(String(scalar)) : "-"
@@ -651,7 +656,8 @@ enum LocalGenerationDefaults {
         var out = Defaults()
         // Prefer the canonical valid cap, then the equivalent publisher alias.
         // Neither max_length nor context length is an output-token limit.
-        out.maxTokens = readPositiveInteger(obj["max_new_tokens"])
+        out.maxTokens =
+            readPositiveInteger(obj["max_new_tokens"])
             ?? readPositiveInteger(obj["max_tokens"])
         if let t = readFloat(obj["temperature"]) { out.temperature = t }
         if let p = readFloat(obj["top_p"]) { out.topP = p }

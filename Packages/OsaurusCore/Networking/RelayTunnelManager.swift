@@ -437,7 +437,9 @@ public final class RelayTunnelManager: ObservableObject {
             enabled.contains(agent.id) && agent.agentAddress != nil && agent.agentIndex != nil
         }
         guard !agents.isEmpty else {
-            MobileConnectLog.write("relay: FAILED to connect, none of the \(enabled.count) enabled agents has an identity")
+            MobileConnectLog.write(
+                "relay: FAILED to connect, none of the \(enabled.count) enabled agents has an identity"
+            )
             for id in enabled {
                 let agent = AgentManager.shared.agent(for: id)
                 if agent?.agentAddress == nil {
@@ -626,7 +628,9 @@ public final class RelayTunnelManager: ObservableObject {
     private func handleAuthError(_ json: [String: Any]) {
         let error = json["error"] as? String ?? "auth_failed"
         print("[Relay] Auth error: \(error)")
-        MobileConnectLog.write("relay: auth REFUSED by the relay: \(error) (retry \(authErrorRetries + 1) of \(Self.maxAuthErrorRetries))")
+        MobileConnectLog.write(
+            "relay: auth REFUSED by the relay: \(error) (retry \(authErrorRetries + 1) of \(Self.maxAuthErrorRetries))"
+        )
         for id in configuration.enabledAgentIds {
             agentStatuses[id] = .error(error)
         }

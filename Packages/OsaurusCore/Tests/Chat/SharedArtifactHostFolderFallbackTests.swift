@@ -74,7 +74,10 @@ struct SharedArtifactHostFolderFallbackTests {
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         }
         try "# report".write(
-            to: dir.appendingPathComponent(filename), atomically: true, encoding: .utf8)
+            to: dir.appendingPathComponent(filename),
+            atomically: true,
+            encoding: .utf8
+        )
 
         return SharedArtifact.processToolResultDetailed(
             artifactPayload(filename: filename, path: path),
@@ -84,7 +87,8 @@ struct SharedArtifactHostFolderFallbackTests {
         )
     }
 
-    private func isSuccess(_ outcome: Result<SharedArtifact.ProcessingResult, SharedArtifact.ResolutionFailure>) -> Bool {
+    private func isSuccess(_ outcome: Result<SharedArtifact.ProcessingResult, SharedArtifact.ResolutionFailure>) -> Bool
+    {
         if case .failure = outcome { return false }
         return true
     }
@@ -97,7 +101,11 @@ struct SharedArtifactHostFolderFallbackTests {
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 
             let outcome = try Self.shareOutcome(
-                writing: "report.md", into: String?.none, sharedAs: "Reports/report.md", root: root)
+                writing: "report.md",
+                into: String?.none,
+                sharedAs: "Reports/report.md",
+                root: root
+            )
             #expect(isSuccess(outcome), "folder-name-prefixed path must resolve; got \(outcome)")
         }
     }
@@ -110,7 +118,11 @@ struct SharedArtifactHostFolderFallbackTests {
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 
             let outcome = try Self.shareOutcome(
-                writing: "report.md", into: "output", sharedAs: "report.md", root: root)
+                writing: "report.md",
+                into: "output",
+                sharedAs: "report.md",
+                root: root
+            )
             #expect(isSuccess(outcome), "file in output/ must resolve; got \(outcome)")
         }
     }
@@ -123,7 +135,11 @@ struct SharedArtifactHostFolderFallbackTests {
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 
             let outcome = try Self.shareOutcome(
-                writing: "report.md", into: String?.none, sharedAs: "report.md", root: root)
+                writing: "report.md",
+                into: String?.none,
+                sharedAs: "report.md",
+                root: root
+            )
             #expect(isSuccess(outcome))
         }
     }
@@ -138,9 +154,15 @@ struct SharedArtifactHostFolderFallbackTests {
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
             // A decoy with the same basename living *inside* the root.
             try "decoy".write(
-                to: root.appendingPathComponent("outside.txt"), atomically: true, encoding: .utf8)
+                to: root.appendingPathComponent("outside.txt"),
+                atomically: true,
+                encoding: .utf8
+            )
             try "secret".write(
-                to: tmp.appendingPathComponent("outside.txt"), atomically: true, encoding: .utf8)
+                to: tmp.appendingPathComponent("outside.txt"),
+                atomically: true,
+                encoding: .utf8
+            )
 
             let outcome = SharedArtifact.processToolResultDetailed(
                 Self.artifactPayload(filename: "sibling.txt", path: "../outside.txt"),
@@ -165,7 +187,10 @@ struct SharedArtifactHostFolderFallbackTests {
             let root = tmp.appendingPathComponent("project", isDirectory: true)
             try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
             try "decoy".write(
-                to: root.appendingPathComponent("passwd"), atomically: true, encoding: .utf8)
+                to: root.appendingPathComponent("passwd"),
+                atomically: true,
+                encoding: .utf8
+            )
 
             let outcome = SharedArtifact.processToolResultDetailed(
                 Self.artifactPayload(filename: "passwd", path: "/etc/passwd"),
@@ -203,7 +228,8 @@ struct SharedArtifactHostFolderFallbackTests {
                 #expect(attempted.first?.hasSuffix("/missing.md") == true)
                 #expect(
                     attempted.contains { $0.contains("/output/") },
-                    "the output/ probe should be reported so the model can correct itself")
+                    "the output/ probe should be reported so the model can correct itself"
+                )
             default:
                 Issue.record("expected fileNotFound, got \(outcome)")
             }

@@ -542,4 +542,3 @@ struct PrivacyCustomRuleEditor: View {
         }
     }
 }
-

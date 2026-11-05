@@ -35,7 +35,8 @@ enum AgentDescriptionGenerator {
     /// generated-summary length. Pure so tests can pin the contract.
     static func sanitize(_ raw: String) -> String? {
         guard
-            var line = raw
+            var line =
+                raw
                 .components(separatedBy: .newlines)
                 .map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) })
                 .first(where: { !$0.isEmpty })
@@ -46,7 +47,8 @@ enum AgentDescriptionGenerator {
         line = AgentDescriptionPolicy.normalized(line)
         guard !line.isEmpty else { return nil }
         if line.count > AgentDescriptionPolicy.generatedMaximumCharacters {
-            line = String(line.prefix(AgentDescriptionPolicy.generatedMaximumCharacters - 1))
+            line =
+                String(line.prefix(AgentDescriptionPolicy.generatedMaximumCharacters - 1))
                 .trimmingCharacters(in: .whitespaces) + "…"
         }
         return line

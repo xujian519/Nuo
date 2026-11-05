@@ -18,41 +18,61 @@ struct ChatTemplateEngineCarrierTests {
         var id: String { base.id }
         func isAvailable() -> Bool { base.isAvailable() }
         func handles(requestedModel: String?) -> Bool { base.handles(requestedModel: requestedModel) }
-        func generateOneShot(messages: [ChatMessage], parameters: GenerationParameters,
-            requestedModel: String?) async throws -> String {
-            throw CancellationError() // This regression requires streaming dispatch.
+        func generateOneShot(
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?
+        ) async throws -> String {
+            throw CancellationError()  // This regression requires streaming dispatch.
         }
-        func streamDeltas(messages: [ChatMessage], parameters: GenerationParameters,
-            requestedModel: String?, stopSequences: [String]) async throws -> AsyncThrowingStream<String, Error> {
+        func streamDeltas(
+            messages: [ChatMessage],
+            parameters: GenerationParameters,
+            requestedModel: String?,
+            stopSequences: [String]
+        ) async throws -> AsyncThrowingStream<String, Error> {
             await capture.append(parameters)
-            return try await base.streamDeltas(messages: messages, parameters: parameters,
-                requestedModel: requestedModel, stopSequences: stopSequences)
+            return try await base.streamDeltas(
+                messages: messages,
+                parameters: parameters,
+                requestedModel: requestedModel,
+                stopSequences: stopSequences
+            )
         }
     }
 
     @Test(arguments: ["enable_thinking", "thinking"])
     func realEngineDispatchPreservesTemplateVariablesAndRequestIsolation(thinkingAlias: String) async throws {
         let capture = Capture()
-        let engine = ChatEngine(services: [RecordingService(capture: capture)],
-            installedModelsProvider: { [] }, remoteServicesProvider: { [] }, source: .httpAPI)
+        let engine = ChatEngine(
+            services: [RecordingService(capture: capture)],
+            installedModelsProvider: { [] },
+            remoteServicesProvider: { [] },
+            source: .httpAPI
+        )
         let first: [String: OsaurusCore.JSONValue] = [
             "template": .object(["name": .string("string"), "optional": .null]),
             "examples": .array([.object(["input": .string("Ada"), "output": .null])]),
             "strict": .bool(false), "threshold": .number(0),
             thinkingAlias: .bool(true),
-            "temperature": .number(0.8), "top_p": .number(0.9), "top_k": .number(99)
+            "temperature": .number(0.8), "top_p": .number(0.9), "top_k": .number(99),
         ]
         let second: [String: OsaurusCore.JSONValue] = [
-            "template": .object(["year": .string("integer")]), thinkingAlias: .bool(false)
+            "template": .object(["year": .string("integer")]), thinkingAlias: .bool(false),
         ]
-        func send(_ values: [String: OsaurusCore.JSONValue]?, sampling: Bool,
-            explicitThinking: Bool?) async throws {
+        func send(
+            _ values: [String: OsaurusCore.JSONValue]?,
+            sampling: Bool,
+            explicitThinking: Bool?
+        ) async throws {
             var body: [String: Any] = ["model": "extractor", "input": "Ada", "max_output_tokens": 16]
             if let values { body["chat_template_kwargs"] = values.mapValues(\.anyValue) }
             if sampling { body["temperature"] = 0; body["top_p"] = 0; body["top_k"] = 0; body["min_p"] = 0 }
             if let explicitThinking { body["enable_thinking"] = explicitThinking }
-            let wire = try JSONDecoder().decode(OpenResponsesRequest.self,
-                from: JSONSerialization.data(withJSONObject: body))
+            let wire = try JSONDecoder().decode(
+                OpenResponsesRequest.self,
+                from: JSONSerialization.data(withJSONObject: body)
+            )
             let request = try wire.toResponsesInferenceRequest()
             for try await _ in try await engine.streamResponses(request: request) {}
         }

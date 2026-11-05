@@ -28,7 +28,6 @@ extension ChatSession: ChatWarmupSessionContext {
     // Pure renderers of the committed history in the exact shape a real send
     // uses (compaction and tests reuse them). They build messages only.
 
-
     /// The compaction summary the next send will inject, or nil when there is
     /// none / it no longer lines up with the transcript. Same validity rule as
     /// the send path (`validateConversationSummary` runs at the top of every

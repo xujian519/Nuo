@@ -182,7 +182,9 @@ public actor FileChangeJournal {
         self.ownershipRepairEnabled = true
         self.shadowEntryLimit = Self.maxShadowEntries
         self.legacyBaselinesRoot = OsaurusPaths.root().appendingPathComponent(
-            "sandbox-baselines", isDirectory: true)
+            "sandbox-baselines",
+            isDirectory: true
+        )
     }
 
     /// Test entry point: isolated DB, store, and workspace roots.
@@ -294,8 +296,11 @@ public actor FileChangeJournal {
                     (existing.declaredPaths == nil || t.declaredPaths == nil)
                     ? nil : (existing.declaredPaths ?? []) + (t.declaredPaths ?? [])
                 merged[key] = RootTarget(
-                    kind: t.kind, rootId: t.rootId, declaredPaths: declared,
-                    fallbackPaths: existing.fallbackPaths ?? t.fallbackPaths)
+                    kind: t.kind,
+                    rootId: t.rootId,
+                    declaredPaths: declared,
+                    fallbackPaths: existing.fallbackPaths ?? t.fallbackPaths
+                )
             } else {
                 merged[key] = t
                 order.append(key)
@@ -306,8 +311,14 @@ public actor FileChangeJournal {
 
     private func prepareRoot(_ target: RootTarget) -> RootCapture {
         var capture = RootCapture(
-            kind: target.kind, rootId: target.rootId, mode: .precise, declared: [], pre: [:],
-            preManifest: nil, untrackedReason: nil)
+            kind: target.kind,
+            rootId: target.rootId,
+            mode: .precise,
+            declared: [],
+            pre: [:],
+            preManifest: nil,
+            untrackedReason: nil
+        )
         if let declared = target.declaredPaths,
             let pre = preciseSnapshot(kind: target.kind, rootId: target.rootId, paths: declared)
         {
@@ -341,7 +352,9 @@ public actor FileChangeJournal {
     /// directory, and every missing ancestor (so created parents are
     /// recorded and removed on revert). Nil when a subtree is too large.
     private func preciseSnapshot(
-        kind: SandboxWorkspaceRootKind, rootId: String, paths: [String]
+        kind: SandboxWorkspaceRootKind,
+        rootId: String,
+        paths: [String]
     ) -> [String: PreState]? {
         let root = hostRoot(kind, rootId)
         var pre: [String: PreState] = [:]
@@ -439,7 +452,9 @@ public actor FileChangeJournal {
     }
 
     private func preciseEntries(
-        _ capture: RootCapture, record: CaptureRecord, ordinalBase: Int
+        _ capture: RootCapture,
+        record: CaptureRecord,
+        ordinalBase: Int
     ) -> [FileChangeEntry] {
         let root = hostRoot(capture.kind, capture.rootId)
         var paths = Set(capture.pre.keys)
@@ -457,9 +472,16 @@ public actor FileChangeJournal {
             let live = objects.liveSignature(at: url)
             if Self.sameContent(before, live) { continue }
             let after = live == nil ? nil : objects.captureState(at: url)
-            guard let entry = makeEntry(
-                record: record, kind: capture.kind, rootId: capture.rootId, path: rel,
-                before: before, after: after, ordinal: ordinalBase + entries.count)
+            guard
+                let entry = makeEntry(
+                    record: record,
+                    kind: capture.kind,
+                    rootId: capture.rootId,
+                    path: rel,
+                    before: before,
+                    after: after,
+                    ordinal: ordinalBase + entries.count
+                )
             else { continue }
             entries.append(entry)
         }
@@ -481,14 +503,19 @@ public actor FileChangeJournal {
     /// True when another capture already recorded `live` as the outcome for
     /// `rel` after this capture began: the write belongs to that set.
     private func settledByAnotherCapture(
-        key: String, rel: String, live: FilePathState?, since: Date
+        key: String,
+        rel: String,
+        live: FilePathState?,
+        since: Date
     ) -> Bool {
         guard let settled = settledWhileShared[key]?[rel], settled.at > since else { return false }
         return settled.after == live?.signature
     }
 
     private func shadowEntries(
-        _ capture: RootCapture, record: CaptureRecord, ordinalBase: Int
+        _ capture: RootCapture,
+        record: CaptureRecord,
+        ordinalBase: Int
     ) -> [FileChangeEntry] {
         guard let pre = capture.preManifest else { return [] }
         let root = hostRoot(capture.kind, capture.rootId)
@@ -511,9 +538,14 @@ public actor FileChangeJournal {
             if !Self.sameContent(before, live) {
                 let after = live == nil ? nil : objects.captureState(at: liveURL)
                 if let entry = makeEntry(
-                    record: record, kind: capture.kind, rootId: capture.rootId, path: rel,
-                    before: before, after: after, ordinal: ordinalBase + entries.count)
-                {
+                    record: record,
+                    kind: capture.kind,
+                    rootId: capture.rootId,
+                    path: rel,
+                    before: before,
+                    after: after,
+                    ordinal: ordinalBase + entries.count
+                ) {
                     entries.append(entry)
                 }
             }
@@ -589,7 +621,10 @@ public actor FileChangeJournal {
     /// Start tracking a background job whose writes land after its
     /// launching call returned. Finalized on job exit or next launch.
     public func beginBackgroundJob(
-        sessionId: String, agentName: String, pid: String, toolName: String
+        sessionId: String,
+        agentName: String,
+        pid: String,
+        toolName: String
     ) {
         let token = beginCapture(
             sessionId: sessionId,
@@ -679,7 +714,9 @@ public actor FileChangeJournal {
                     referenced.insert(shadowKey(root.kind, root.rootId))
                 }
             } catch {
-                Self.log.error("shadow prune skipped: root query failed: \(error.localizedDescription, privacy: .public)")
+                Self.log.error(
+                    "shadow prune skipped: root query failed: \(error.localizedDescription, privacy: .public)"
+                )
                 return
             }
         } else {
@@ -729,7 +766,8 @@ public actor FileChangeJournal {
             !FileObjectStore.canClone(from: live, to: storeRoot)
         {
             Self.log.warning(
-                "no shadow for \(kind.rawValue, privacy: .public): \(bytes) bytes on a non-clone volume")
+                "no shadow for \(kind.rawValue, privacy: .public): \(bytes) bytes on a non-clone volume"
+            )
             return nil
         }
         let key = shadowKey(kind, rootId)
@@ -750,8 +788,10 @@ public actor FileChangeJournal {
             do {
                 try? fm.removeItem(at: tree)
                 try fm.createDirectory(
-                    at: tree.deletingLastPathComponent(), withIntermediateDirectories: true,
-                    attributes: [.posixPermissions: 0o700])
+                    at: tree.deletingLastPathComponent(),
+                    withIntermediateDirectories: true,
+                    attributes: [.posixPermissions: 0o700]
+                )
                 try Self.cloneTree(from: live, to: tree)
             } catch {
                 try? fm.removeItem(at: tree)
@@ -795,7 +835,9 @@ public actor FileChangeJournal {
         let url = shadowManifestURL(kind, rootId)
         if let data = try? JSONEncoder().encode(manifest) {
             try? FileManager.default.createDirectory(
-                at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
             try? data.write(to: url, options: .atomic)
         }
     }
@@ -857,8 +899,11 @@ public actor FileChangeJournal {
                 let mode = (attrs?[.posixPermissions] as? NSNumber)?.int64Value ?? 0
                 // Mode is folded into the mtime field so a chmod registers.
                 manifest[rel] = ManifestEntry(
-                    type: .file, size: size, mtimeNs: Int64(mtime * 1_000_000_000) &+ mode,
-                    linkTarget: nil)
+                    type: .file,
+                    size: size,
+                    mtimeNs: Int64(mtime * 1_000_000_000) &+ mode,
+                    linkTarget: nil
+                )
             }
             if manifest.count > shadowEntryLimit { return nil }
         }
@@ -897,8 +942,10 @@ public actor FileChangeJournal {
     private func persistPending(_ record: CaptureRecord) {
         do {
             try FileManager.default.createDirectory(
-                at: pendingDir, withIntermediateDirectories: true,
-                attributes: [.posixPermissions: 0o700])
+                at: pendingDir,
+                withIntermediateDirectories: true,
+                attributes: [.posixPermissions: 0o700]
+            )
             let data = try JSONEncoder().encode(record)
             try data.write(to: pendingDir.appendingPathComponent("\(record.id.uuidString).json"), options: .atomic)
         } catch {
@@ -912,7 +959,8 @@ public actor FileChangeJournal {
 
     func removePending(id: UUID) {
         try? FileManager.default.removeItem(
-            at: pendingDir.appendingPathComponent("\(id.uuidString).json"))
+            at: pendingDir.appendingPathComponent("\(id.uuidString).json")
+        )
     }
 
     /// Captures on disk at first use belong to a previous run that died
@@ -996,21 +1044,35 @@ public actor FileChangeJournal {
                     before == nil ? .created : (after == nil ? .deleted : .modified)
                 entries.append(
                     FileChangeEntry(
-                        setId: setId, sessionId: sessionId, rootKind: row.root, rootId: row.agentName,
-                        path: row.relativePath, kind: kind, before: before, after: after,
-                        ordinal: entries.count))
+                        setId: setId,
+                        sessionId: sessionId,
+                        rootKind: row.root,
+                        rootId: row.agentName,
+                        path: row.relativePath,
+                        kind: kind,
+                        before: before,
+                        after: after,
+                        ordinal: entries.count
+                    )
+                )
             }
             let createdAt = rows.map(\.firstChangedAt).min() ?? Date()
             let set = FileChangeSet(
-                id: setId, sessionId: sessionId, toolName: "earlier_changes", origin: .imported,
-                note: "Changes recorded before file history was upgraded", createdAt: createdAt,
-                entries: entries)
+                id: setId,
+                sessionId: sessionId,
+                toolName: "earlier_changes",
+                origin: .imported,
+                note: "Changes recorded before file history was upgraded",
+                createdAt: createdAt,
+                entries: entries
+            )
             do {
                 try database.upsertFileChangeSet(set)
                 try database.deleteSandboxChanges(sessionId: sessionId)
                 if let legacyBaselinesRoot {
                     try? FileManager.default.removeItem(
-                        at: legacyBaselinesRoot.appendingPathComponent(sessionId, isDirectory: true))
+                        at: legacyBaselinesRoot.appendingPathComponent(sessionId, isDirectory: true)
+                    )
                 }
             } catch {
                 Self.log.error("legacy import failed: \(error.localizedDescription, privacy: .public)")
@@ -1018,7 +1080,8 @@ public actor FileChangeJournal {
         }
         if let legacyBaselinesRoot {
             try? FileManager.default.removeItem(
-                at: legacyBaselinesRoot.appendingPathComponent("pending-jobs", isDirectory: true))
+                at: legacyBaselinesRoot.appendingPathComponent("pending-jobs", isDirectory: true)
+            )
         }
     }
 
@@ -1031,7 +1094,8 @@ public actor FileChangeJournal {
         } else {
             component = row.agentName
         }
-        return legacyBaselinesRoot
+        return
+            legacyBaselinesRoot
             .appendingPathComponent(row.sessionId, isDirectory: true)
             .appendingPathComponent(component, isDirectory: true)
             .appendingPathComponent(row.root.rawValue, isDirectory: true)

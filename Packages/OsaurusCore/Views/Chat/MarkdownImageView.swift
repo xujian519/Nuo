@@ -490,7 +490,9 @@ final class MarkdownSegmentImageView: NSImageView {
             downloadButton.topAnchor.constraint(equalTo: topAnchor, constant: Self.inset),
             trailing,
             downloadButton.trailingAnchor.constraint(
-                lessThanOrEqualTo: trailingAnchor, constant: -Self.inset),
+                lessThanOrEqualTo: trailingAnchor,
+                constant: -Self.inset
+            ),
             downloadButton.widthAnchor.constraint(equalToConstant: Self.buttonSize),
             downloadButton.heightAnchor.constraint(equalToConstant: Self.buttonSize),
         ])

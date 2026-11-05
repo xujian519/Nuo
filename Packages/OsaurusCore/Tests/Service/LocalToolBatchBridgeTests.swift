@@ -34,8 +34,14 @@ struct LocalToolBatchBridgeTests {
     private let first = ModelRuntimeEvent.toolInvocation(name: "read_file", argsJSON: #"{"path":"first.txt"}"#)
     private let second = ModelRuntimeEvent.toolInvocation(name: "read_file", argsJSON: #"{"path":"second.txt"}"#)
     private var completion: ModelRuntimeEvent {
-        .completionInfo(tokenCount: 42, tokensPerSecond: 21, unclosedReasoning: false,
-                        stopReason: "tool_calls", promptTokensPerSecond: 100, mtp: nil)
+        .completionInfo(
+            tokenCount: 42,
+            tokensPerSecond: 21,
+            unclosedReasoning: false,
+            stopReason: "tool_calls",
+            promptTokensPerSecond: 100,
+            mtp: nil
+        )
     }
 
     private func consume(
@@ -167,7 +173,10 @@ struct LocalToolBatchBridgeTests {
             // Keep upstream alive: deinitialization must not mask a lost cancel.
             let cancelled = try await waitFor { await observed.upstreamCancelled }
             withExtendedLifetime(upstream) {}
-            try #require(cancelled, "Lost upstream cancellation at attempt \(attempt), buffered=\(buffered), complete=\(complete)")
+            try #require(
+                cancelled,
+                "Lost upstream cancellation at attempt \(attempt), buffered=\(buffered), complete=\(complete)"
+            )
             #expect(await observed.calls.isEmpty)
         }
     }
@@ -209,10 +218,16 @@ struct LocalToolBatchBridgeTests {
     func lengthExhaustionDoesNotPublishAnExecutableBatch(_ complete: Bool, _ callCount: Int) async {
         let upstream = AsyncThrowingStream<ModelRuntimeEvent, Error> { producer in
             for _ in 0 ..< callCount { producer.yield(first) }
-            producer.yield(.completionInfo(
-                tokenCount: 16_384, tokensPerSecond: 38, unclosedReasoning: false,
-                stopReason: "length", promptTokensPerSecond: 450, mtp: nil
-            ))
+            producer.yield(
+                .completionInfo(
+                    tokenCount: 16_384,
+                    tokensPerSecond: 38,
+                    unclosedReasoning: false,
+                    stopReason: "length",
+                    promptTokensPerSecond: 450,
+                    mtp: nil
+                )
+            )
             producer.finish()
         }
         let observed = Observation()
@@ -220,10 +235,12 @@ struct LocalToolBatchBridgeTests {
         #expect(await observed.failed)
         #expect(await observed.calls.isEmpty)
         #expect(await observed.exhaustedCallCount == callCount)
-        #expect(await observed.deltas.contains {
-            guard let stats = StreamingStatsHint.decode($0) else { return false }
-            return stats.stopReason == "length" && stats.tokenCount == 16_384
-        })
+        #expect(
+            await observed.deltas.contains {
+                guard let stats = StreamingStatsHint.decode($0) else { return false }
+                return stats.stopReason == "length" && stats.tokenCount == 16_384
+            }
+        )
     }
 
     @Test func lengthFailurePreservesTheUpstreamCleanupTail() async throws {
@@ -235,10 +252,16 @@ struct LocalToolBatchBridgeTests {
         let consumer = consume(upstream, observed: observed)
         defer { producer.finish(); consumer.cancel() }
         producer.yield(first)
-        producer.yield(.completionInfo(
-            tokenCount: 16_384, tokensPerSecond: 38, unclosedReasoning: false,
-            stopReason: "length", promptTokensPerSecond: 450, mtp: nil
-        ))
+        producer.yield(
+            .completionInfo(
+                tokenCount: 16_384,
+                tokensPerSecond: 38,
+                unclosedReasoning: false,
+                stopReason: "length",
+                promptTokensPerSecond: 450,
+                mtp: nil
+            )
+        )
         #expect(try await waitFor { await observed.ended })
         #expect(await observed.failed)
         #expect(await observed.calls.isEmpty)
@@ -252,10 +275,16 @@ struct LocalToolBatchBridgeTests {
             producer.yield(.tokens("Partial response"))
             producer.yield(first)
             producer.yield(second)
-            producer.yield(.completionInfo(
-                tokenCount: 16_384, tokensPerSecond: 38, unclosedReasoning: false,
-                stopReason: "length", promptTokensPerSecond: 450, mtp: nil
-            ))
+            producer.yield(
+                .completionInfo(
+                    tokenCount: 16_384,
+                    tokensPerSecond: 38,
+                    unclosedReasoning: false,
+                    stopReason: "length",
+                    promptTokensPerSecond: 450,
+                    mtp: nil
+                )
+            )
             producer.finish()
         }
         do {

@@ -75,7 +75,9 @@ struct ModelParameterBillionsTests {
         #expect(ContextSizeResolver.resolve(modelId: "OsaurusAI/Ornith-1.0-9B-JANG_4").prefersCompactPrompt == true)
         #expect(ContextSizeResolver.resolve(modelId: "Qwen3.5-9B-MXFP8").prefersCompactPrompt == true)
         // Above the ceiling stays verbose cold, matching the warm answer.
-        #expect(ContextSizeResolver.resolve(modelId: "OsaurusAI/Ornith-1.0-35B-A3B-JANG_4").prefersCompactPrompt == false)
+        #expect(
+            ContextSizeResolver.resolve(modelId: "OsaurusAI/Ornith-1.0-35B-A3B-JANG_4").prefersCompactPrompt == false
+        )
         // An UNPARSEABLE size stays verbose in BOTH paths.
         //
         // This assertion originally expected `true`, copying the warm branch's

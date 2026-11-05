@@ -817,7 +817,8 @@ public enum EvalMatrixBuilder {
         var harnessByColumn: [String: String] = [:]
         for report in reports {
             let harness = report.environment?.harness ?? "osaurus"
-            let profile = report.environment?.experimentProfileHash
+            let profile =
+                report.environment?.experimentProfileHash
                 ?? report.environment?.experimentProfile
                 ?? "production"
             let columnKey = "\(report.modelId)\u{1F}\(harness)\u{1F}\(profile)"
@@ -884,7 +885,8 @@ public enum EvalMatrixBuilder {
                     contributorCounts["tool:\(t.name)", default: 0] += 1
                 }
             }
-            let topContributors = contributorTotals
+            let topContributors =
+                contributorTotals
                 .map { (name: $0.key, mean: $0.value / max(1, contributorCounts[$0.key] ?? 1)) }
                 .sorted { $0.mean > $1.mean }
                 .prefix(6)
@@ -922,7 +924,7 @@ public enum EvalMatrixBuilder {
             }
             let agentLoopDiagnostics: EvalMatrixAgentLoopDiagnostics? =
                 rowsWithExitTelemetry == 0
-                && measuredAgentCases.allSatisfy { $0.telemetry?.loopRecoveryRetries == nil }
+                    && measuredAgentCases.allSatisfy { $0.telemetry?.loopRecoveryRetries == nil }
                 ? nil
                 : EvalMatrixAgentLoopDiagnostics(
                     measuredRows: measuredAgentCases.count,

@@ -8,10 +8,10 @@ import MLXLMCommon
 final class SwiftTransformersTokenizerIncrementalTests: XCTestCase {
 
     private func fixture(cleanup: Bool? = false, decoder: String = "ByteLevel") throws -> PreTrainedTokenizer {
-        var bytes = Array(33...126) + Array(161...172) + Array(174...255)
+        var bytes = Array(33 ... 126) + Array(161 ... 172) + Array(174 ... 255)
         var scalars = bytes
         var extra = 0
-        for byte in 0...255 where !bytes.contains(byte) {
+        for byte in 0 ... 255 where !bytes.contains(byte) {
             bytes.append(byte)
             scalars.append(256 + extra)
             extra += 1
@@ -20,7 +20,8 @@ final class SwiftTransformersTokenizerIncrementalTests: XCTestCase {
         for (byte, scalar) in zip(bytes, scalars) { vocab[String(Unicode.Scalar(scalar)!)] = byte }
         var config: [NSString: Any] = ["tokenizer_class": "GPT2Tokenizer"]
         if let cleanup { config["clean_up_tokenization_spaces"] = cleanup }
-        let decoderConfig: [String: Any] = decoder == "Sequence"
+        let decoderConfig: [String: Any] =
+            decoder == "Sequence"
             ? ["type": "Sequence", "decoders": [["type": "ByteLevel"]]]
             : ["type": decoder]
         let data: [NSString: Any] = [
@@ -33,7 +34,6 @@ final class SwiftTransformersTokenizerIncrementalTests: XCTestCase {
         ]
         return try PreTrainedTokenizer(tokenizerConfig: Config(config), tokenizerData: Config(data))
     }
-
 
     private func stream(_ ids: [Int], _ tokenizer: any MLXLMCommon.Tokenizer) -> String {
         var d = NaiveStreamingDetokenizer(tokenizer: tokenizer)
@@ -51,13 +51,18 @@ final class SwiftTransformersTokenizerIncrementalTests: XCTestCase {
         if let cleanup { config["clean_up_tokenization_spaces"] = cleanup }
         let tok = try fixture(cleanup: cleanup, decoder: decoder)
         var vocab: [String: Int] = [:]
-        for id in 0..<256 { vocab[tok.convertIdToToken(id)!] = id }
-        let dc: [String: Any] = decoder == "Sequence"
+        for id in 0 ..< 256 { vocab[tok.convertIdToToken(id)!] = id }
+        let dc: [String: Any] =
+            decoder == "Sequence"
             ? ["type": "Sequence", "decoders": [["type": "ByteLevel"]]] : ["type": decoder]
-        let data: [String: Any] = ["model": ["type": "BPE", "vocab": vocab, "merges": []],
-             "decoder": dc, "added_tokens": [
-                ["id":256,"content":"<ifm|think>","special":true],
-                ["id":257,"content":"<literal-added>","special":false]]]
+        let data: [String: Any] = [
+            "model": ["type": "BPE", "vocab": vocab, "merges": []],
+            "decoder": dc,
+            "added_tokens": [
+                ["id": 256, "content": "<ifm|think>", "special": true],
+                ["id": 257, "content": "<literal-added>", "special": false],
+            ],
+        ]
         for (name, object) in [("tokenizer_config.json", config), ("tokenizer.json", data)] {
             try JSONSerialization.data(withJSONObject: object).write(to: dir.appendingPathComponent(name))
         }
@@ -71,14 +76,17 @@ final class SwiftTransformersTokenizerIncrementalTests: XCTestCase {
         let upstream = try await AutoTokenizer.from(modelFolder: dir)
         XCTAssertNotNil(upstream.incrementalByteLevelDecoder)
         XCTAssertNotNil(tokenizer.incrementalByteLevelDecoder)
-        let ids = Array(String(repeating: "ASCII 🇺🇸 👩🏽‍💻 e\u{301} newline\n", count: 5).utf8).map(Int.init)
+        let ids =
+            Array(String(repeating: "ASCII 🇺🇸 👩🏽‍💻 e\u{301} newline\n", count: 5).utf8).map(Int.init)
             + [256, 0xE2, 0x82, 257, 0xAC, Int.max] + Array(" tool: {\"account\":\"00123\"} end".utf8).map(Int.init)
         let expected = upstream.decode(tokens: ids, skipSpecialTokens: false)
         XCTAssertEqual(stream(ids, tokenizer), expected)
     }
 
     func testPublicLoaderPreservesStrictDecoderFallback() async throws {
-        for (cleanup, decoder) in [(true as Bool?, "ByteLevel"), (nil, "ByteLevel"), (false, "Sequence"), (false, "Fuse")] {
+        for (cleanup, decoder) in [
+            (true as Bool?, "ByteLevel"), (nil, "ByteLevel"), (false, "Sequence"), (false, "Fuse"),
+        ] {
             let dir = try diskFixture(cleanup: cleanup, decoder: decoder)
             defer { try? FileManager.default.removeItem(at: dir) }
             let tokenizer = try await SwiftTransformersTokenizerLoader().load(from: dir)

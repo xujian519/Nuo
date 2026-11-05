@@ -257,7 +257,9 @@ struct RemoteReasoningPolicyTests {
     }
 
     @Test func sanitizedToolChoice_nonOpenAICompatProviders_passThrough() {
-        for providerType: RemoteProviderType in [.anthropic, .openResponses, .openAICodex, .gemini, .osaurus, .osaurusRouter] {
+        for providerType: RemoteProviderType in [
+            .anthropic, .openResponses, .openAICodex, .gemini, .osaurus, .osaurusRouter,
+        ] {
             let policy = RemoteReasoningPolicy.resolve(
                 providerType: providerType,
                 host: "api.deepseek.com",
@@ -277,8 +279,12 @@ struct RemoteReasoningPolicyTests {
                 .allowsReasoningObject == false
         )
         #expect(
-            RemoteReasoningPolicy.resolve(providerType: .openaiLegacy, host: "api.mistral.ai", model: "mistral-medium-3.5")
-                .allowsReasoningObject == false
+            RemoteReasoningPolicy.resolve(
+                providerType: .openaiLegacy,
+                host: "api.mistral.ai",
+                model: "mistral-medium-3.5"
+            )
+            .allowsReasoningObject == false
         )
         #expect(
             RemoteReasoningPolicy.resolve(providerType: .anthropic, host: "api.anthropic.com", model: "x")

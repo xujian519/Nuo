@@ -19,9 +19,11 @@ final class AgentChannelN8nFirstContactNotifier {
     private var observer: NSObjectProtocol?
     private let connectionName: (String) -> String?
 
-    init(connectionName: @escaping (String) -> String? = { id in
-        AgentChannelConnectionManager.shared.connection(id: id)?.name
-    }) {
+    init(
+        connectionName: @escaping (String) -> String? = { id in
+            AgentChannelConnectionManager.shared.connection(id: id)?.name
+        }
+    ) {
         self.connectionName = connectionName
     }
 

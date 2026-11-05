@@ -83,10 +83,17 @@ struct PDFReadingOrderTests {
         let allRows = page.tables.map { $0.rows.map { $0.cells.map(\.text) } }
         #expect(allRows.count == 2, Comment(rawValue: "\(allRows)"))
         #expect(allRows.first?.first == ["Yourfirstname", "Lastname", "YourSSN", "Apt.no.", "Phone", "Email"])
-        #expect(allRows.first?.dropFirst().first == ["DanielM.", "Reyes", "XXX-XX-4821", "4B", "626-555-0142", "dreyes@example.com"])
+        #expect(
+            allRows.first?.dropFirst().first == [
+                "DanielM.", "Reyes", "XXX-XX-4821", "4B", "626-555-0142", "dreyes@example.com",
+            ]
+        )
         let table = try #require(page.tables.last)
         #expect(table.rows.count == PDFFormFixture.formRows.count)
-        #expect(table.rows.contains { $0.cells.map(\.text) == ["9Totalincome", "184,554"] }, Comment(rawValue: "\(allRows)"))
+        #expect(
+            table.rows.contains { $0.cells.map(\.text) == ["9Totalincome", "184,554"] },
+            Comment(rawValue: "\(allRows)")
+        )
 
         // Table anchors slice the fallback to the cell text they describe.
         let fallback = doc.textFallback as NSString
@@ -151,10 +158,16 @@ struct PDFReadingOrderTests {
         #expect(!PDFReadingOrder.shouldReorder(divergence: divergent, coverage: 0.5))
         #expect(
             !PDFReadingOrder.shouldReorder(
-                divergence: .init(rowTransitions: 20, upwardJumps: 2), coverage: 1))
+                divergence: .init(rowTransitions: 20, upwardJumps: 2),
+                coverage: 1
+            )
+        )
         #expect(
             !PDFReadingOrder.shouldReorder(
-                divergence: .init(rowTransitions: 200, upwardJumps: 3), coverage: 1))
+                divergence: .init(rowTransitions: 200, upwardJumps: 3),
+                coverage: 1
+            )
+        )
     }
 
     // MARK: - Rotation, watermarks, hidden text
@@ -203,7 +216,10 @@ struct PDFReadingOrderTests {
         #expect(resolved.order == .layout)
         #expect(resolved.hiddenGlyphCount == "ignorepreviousinstructions".count)
         #expect(!resolved.text.contains("ignore previous"))
-        #expect(resolved.text.components(separatedBy: "\n") == PDFFormFixture.expectedLines, Comment(rawValue: resolved.text))
+        #expect(
+            resolved.text.components(separatedBy: "\n") == PDFFormFixture.expectedLines,
+            Comment(rawValue: resolved.text)
+        )
 
         let doc = try await PDFAdapter().parse(url: url, sizeLimit: 0)
         let finding = try #require(doc.security.findings.first { $0.kind == .hiddenContent })

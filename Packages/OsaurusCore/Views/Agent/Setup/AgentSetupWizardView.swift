@@ -364,7 +364,10 @@ struct AgentSetupWizardView: View {
             let groups = TemplateStore.shared.template(named: source)?.toolGroups, !groups.isEmpty
         else { return }
         let updated = SetupChecker.addingTemplateGroupTools(
-            to: agent, groups: groups, available: ToolRegistry.shared.portableToolGroups())
+            to: agent,
+            groups: groups,
+            available: ToolRegistry.shared.portableToolGroups()
+        )
         guard updated.manualToolNames != agent.manualToolNames else { return }
         switch subject {
         case .draft: draft = updated
@@ -379,9 +382,14 @@ struct AgentSetupWizardView: View {
             guard item.kind == .model else { return item }
             let name = requested ?? item.value
             return SetupItem(
-                kind: .model, severity: .advisory, title: item.title,
-                detail: L("The template prefers \(name), which is not installed here. Create will use your default model unless you pick one."),
-                value: item.value)
+                kind: .model,
+                severity: .advisory,
+                title: item.title,
+                detail: L(
+                    "The template prefers \(name), which is not installed here. Create will use your default model unless you pick one."
+                ),
+                value: item.value
+            )
         }
         return SetupReport(subjectId: report.subjectId, items: items)
     }
@@ -403,7 +411,9 @@ struct AgentSetupWizardView: View {
             switch current {
             case .model:
                 ModelStep(
-                    agent: agent, items: items, mutate: mutate,
+                    agent: agent,
+                    items: items,
+                    mutate: mutate,
                     onAddProvider: { showAddProvider = true },
                     onBrowseModels: { leave(to: .models) }
                 )
@@ -412,11 +422,15 @@ struct AgentSetupWizardView: View {
             case .tools: ToolsStep(agent: agent, items: items, mutate: mutate, onLeave: { leave(to: $0) })
             case .permissions:
                 PermissionsStep(
-                    items: items, doneText: L("Every permission this agent needs is granted."),
-                    onChanged: { refresh(rebuildSteps: false) })
+                    items: items,
+                    doneText: L("Every permission this agent needs is granted."),
+                    onChanged: { refresh(rebuildSteps: false) }
+                )
             case .review:
                 ReviewStep(
-                    agent: agent, report: report, isDraft: subject.isDraft,
+                    agent: agent,
+                    report: report,
+                    isDraft: subject.isDraft,
                     onRename: { newName in mutate { $0.name = newName } }
                 )
             }
@@ -502,14 +516,19 @@ private struct ModelStep: View {
                         set: { newModel in
                             mutate { $0.defaultModel = newModel }
                             showPicker = false
-                        }),
+                        }
+                    ),
                     agentId: nil,
                     footerActions: [
                         ModelPickerFooterAction(
-                            id: "add-provider", title: L("Add a provider"), icon: "cloud"
+                            id: "add-provider",
+                            title: L("Add a provider"),
+                            icon: "cloud"
                         ) { onAddProvider() },
                         ModelPickerFooterAction(
-                            id: "download-model", title: L("Download a model"), icon: "arrow.down.circle"
+                            id: "download-model",
+                            title: L("Download a model"),
+                            icon: "arrow.down.circle"
                         ) { onBrowseModels() },
                     ],
                     onDismiss: { showPicker = false }
@@ -617,8 +636,11 @@ private struct KnowledgeStep: View {
                         let granted = agent.settings.knowledgeCollectionIds.contains(collection.id)
                         HStack(spacing: 12) {
                             VStack(alignment: .leading, spacing: 1) {
-                                Text(collection.name).font(.system(size: 12, weight: .medium)).foregroundColor(theme.primaryText)
-                                Text(collection.folderPath).font(.system(size: 10)).foregroundColor(theme.tertiaryText).lineLimit(1).truncationMode(.middle)
+                                Text(collection.name).font(.system(size: 12, weight: .medium)).foregroundColor(
+                                    theme.primaryText
+                                )
+                                Text(collection.folderPath).font(.system(size: 10)).foregroundColor(theme.tertiaryText)
+                                    .lineLimit(1).truncationMode(.middle)
                             }
                             Spacer(minLength: 12)
                             Toggle("", isOn: Binding(get: { granted }, set: { on in setGrant(collection.id, on) }))
@@ -749,7 +771,8 @@ private struct ReviewStep: View {
                 StepDoneBanner(
                     text: isDraft
                         ? L("Everything this template needs is in place. Create the agent when you are ready.")
-                        : L("Everything checks out. The agent is ready to use."))
+                        : L("Everything checks out. The agent is ready to use.")
+                )
             } else if report.hasBlockers {
                 Text(
                     isDraft
@@ -762,10 +785,13 @@ private struct ReviewStep: View {
                 .fixedSize(horizontal: false, vertical: true)
                 AgentSetupChecklistView(report: report)
             } else {
-                Text("Nothing blocks this agent. The notes below are worth a look but do not stop it from running.", bundle: .module)
-                    .font(.system(size: 12))
-                    .foregroundColor(theme.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text(
+                    "Nothing blocks this agent. The notes below are worth a look but do not stop it from running.",
+                    bundle: .module
+                )
+                .font(.system(size: 12))
+                .foregroundColor(theme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
                 AgentSetupChecklistView(report: report)
             }
         }
@@ -776,7 +802,11 @@ private struct ReviewStep: View {
         VStack(alignment: .leading, spacing: 6) {
             AgentSheetSectionLabel("What Will Be Created")
             VStack(alignment: .leading, spacing: 4) {
-                row("cube", agent.defaultModel.map { $0.split(separator: "/").last.map(String.init) ?? $0 } ?? L("Default Model"))
+                row(
+                    "cube",
+                    agent.defaultModel.map { $0.split(separator: "/").last.map(String.init) ?? $0 }
+                        ?? L("Default Model")
+                )
                 if agent.toolSelectionMode == .manual {
                     let toolCount = agent.manualToolNames?.count ?? 0
                     row("wrench.and.screwdriver", toolCount == 1 ? L("1 tool") : L("\(toolCount) tools"))

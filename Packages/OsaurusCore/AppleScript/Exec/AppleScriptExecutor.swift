@@ -213,7 +213,9 @@ enum AppleScriptExecutor {
                 if let skipIf, skipIf() {
                     resumer.resume(
                         AppleScriptExecutionResult(
-                            status: .timedOut, output: nil, errorNumber: nil,
+                            status: .timedOut,
+                            output: nil,
+                            errorNumber: nil,
                             errorMessage: skippedBeforeStartMessage
                         )
                     )

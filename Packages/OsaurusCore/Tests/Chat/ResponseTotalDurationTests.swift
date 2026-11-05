@@ -11,7 +11,10 @@ struct ResponseTotalDurationTests {
     func statsTextLeadsWithTotalDuration() {
         let text = NativeStatsView.statsText(ttft: 0.5, tokensPerSecond: 40, tokenCount: 12, totalDuration: 80)
         #expect(text.hasPrefix("Worked for 1m20s"))
-        #expect(NativeStatsView.statsText(ttft: nil, tokensPerSecond: nil, tokenCount: nil, totalDuration: 4.2) == "Worked for 4.2s")
+        #expect(
+            NativeStatsView.statsText(ttft: nil, tokensPerSecond: nil, tokenCount: nil, totalDuration: 4.2)
+                == "Worked for 4.2s"
+        )
         #expect(!NativeStatsView.statsText(ttft: 0.5, tokensPerSecond: 40, tokenCount: 12).contains("Worked for"))
     }
 
@@ -46,7 +49,11 @@ struct ResponseTotalDurationTests {
         reply.lastOutputAt = start.addingTimeInterval(5)
         reply.completedAt = start.addingTimeInterval(5)
         let open = ContentBlock.generateBlocks(
-            from: [user, reply], streamingTurnId: nil, activeTurnId: reply.id, agentName: "Assistant")
+            from: [user, reply],
+            streamingTurnId: nil,
+            activeTurnId: reply.id,
+            agentName: "Assistant"
+        )
         #expect(try totalDuration(in: open) == nil)
         let closed = ContentBlock.generateBlocks(from: [user, reply], streamingTurnId: nil, agentName: "Assistant")
         #expect(try totalDuration(in: closed) == 5)
@@ -92,7 +99,10 @@ struct ResponseTotalDurationTests {
         regenerated.completedAt = hourLater.addingTimeInterval(12)
 
         let full = ContentBlock.generateBlocks(
-            from: turns + [regenerated], streamingTurnId: nil, agentName: "Assistant")
+            from: turns + [regenerated],
+            streamingTurnId: nil,
+            agentName: "Assistant"
+        )
         #expect(try totalDuration(in: full) == 12)
 
         // Memoized: the regenerated turn appended to a cached transcript.
@@ -132,7 +142,9 @@ struct ResponseTotalDurationTests {
             if step == 0 { assistant.requestedAt = start.addingTimeInterval(-1) }
             turns.append(assistant)
             if step < steps - 1 {
-                turns.append(ChatTurn(role: .tool, content: "ok", createdAt: start.addingTimeInterval(Double(step) * 20 + 6)))
+                turns.append(
+                    ChatTurn(role: .tool, content: "ok", createdAt: start.addingTimeInterval(Double(step) * 20 + 6))
+                )
             }
         }
         turns.last?.lastOutputAt = start.addingTimeInterval(80)

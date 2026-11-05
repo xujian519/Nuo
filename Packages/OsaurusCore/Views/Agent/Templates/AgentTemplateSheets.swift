@@ -66,9 +66,12 @@ struct SaveAgentTemplateSheet: View {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .font(.system(size: 10, weight: .semibold))
                                     .padding(.top, 1)
-                                Text("A template named \"\(collision.name)\" already exists. Saving adds version \(collision.version + 1); earlier versions stay in its history.", bundle: .module)
-                                    .font(.system(size: 11))
-                                    .fixedSize(horizontal: false, vertical: true)
+                                Text(
+                                    "A template named \"\(collision.name)\" already exists. Saving adds version \(collision.version + 1); earlier versions stay in its history.",
+                                    bundle: .module
+                                )
+                                .font(.system(size: 11))
+                                .fixedSize(horizontal: false, vertical: true)
                             }
                             .foregroundColor(theme.warningColor)
                         }
@@ -76,8 +79,10 @@ struct SaveAgentTemplateSheet: View {
                     VStack(alignment: .leading, spacing: 6) {
                         AgentSheetSectionLabel("Summary")
                         StyledTextField(
-                            placeholder: L("One line about what this agent is for"), text: $summary,
-                            icon: "text.alignleft")
+                            placeholder: L("One line about what this agent is for"),
+                            text: $summary,
+                            icon: "text.alignleft"
+                        )
                     }
                     includeSection
                     HStack(spacing: 12) {
@@ -146,7 +151,9 @@ struct SaveAgentTemplateSheet: View {
             AgentSheetFooter(
                 primary: AgentSheetFooter.Action(
                     label: collision == nil ? "Save Template" : "Save New Version",
-                    isEnabled: canSave, handler: save),
+                    isEnabled: canSave,
+                    handler: save
+                ),
                 secondary: AgentSheetFooter.Action(label: "Cancel", handler: onCancel),
                 hint: nil
             )
@@ -196,13 +203,17 @@ struct SaveAgentTemplateSheet: View {
                             }
                         }
                         Spacer(minLength: 12)
-                        Toggle("", isOn: Binding(
-                            get: { !excluded.contains(section) },
-                            set: { on in
-                                if on { excluded.remove(section) } else { excluded.insert(section) }
-                            }))
-                            .toggleStyle(SwitchToggleStyle(tint: theme.accentColor))
-                            .labelsHidden()
+                        Toggle(
+                            "",
+                            isOn: Binding(
+                                get: { !excluded.contains(section) },
+                                set: { on in
+                                    if on { excluded.remove(section) } else { excluded.insert(section) }
+                                }
+                            )
+                        )
+                        .toggleStyle(SwitchToggleStyle(tint: theme.accentColor))
+                        .labelsHidden()
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 8)
@@ -227,7 +238,8 @@ struct SaveAgentTemplateSheet: View {
             case .sandbox: return entry.sandbox != nil
             case .subagents: return entry.subagents?.enabled == true
             case .workingFolder: return entry.workingFolder.valueOrNil != nil
-            case .knowledge: return entry.capabilities?.knowledgeEnabled == true || !draft.knowledgeCollectionNames.isEmpty
+            case .knowledge:
+                return entry.capabilities?.knowledgeEnabled == true || !draft.knowledgeCollectionNames.isEmpty
             case .pluginInstructions: return !(entry.pluginInstructions ?? [:]).isEmpty
             case .actions: return !(draft.actions ?? []).isEmpty
             }
@@ -241,7 +253,9 @@ struct SaveAgentTemplateSheet: View {
         case .description: return entry.description
         case .model: return entry.model.valueOrNil
         case .tools:
-            let count = (entry.tools?.enabled?.count ?? 0) + (entry.mcpServers?.enabled?.count ?? 0) + (entry.plugins?.enabled?.count ?? 0)
+            let count =
+                (entry.tools?.enabled?.count ?? 0) + (entry.mcpServers?.enabled?.count ?? 0)
+                + (entry.plugins?.enabled?.count ?? 0)
             return count == 1 ? L("1 tool") : L("\(count) tools")
         case .sandbox: return nil
         case .subagents: return L("Can use subagents")
@@ -347,8 +361,10 @@ struct RenameAgentTemplateSheet: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             AgentSheetFooter(
                 primary: AgentSheetFooter.Action(
-                    label: "Rename", isEnabled: !trimmed.isEmpty && !collides && trimmed != template.name,
-                    handler: rename),
+                    label: "Rename",
+                    isEnabled: !trimmed.isEmpty && !collides && trimmed != template.name,
+                    handler: rename
+                ),
                 secondary: AgentSheetFooter.Action(label: "Cancel", handler: onDone),
                 hint: nil
             )

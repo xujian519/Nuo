@@ -25,18 +25,29 @@ struct ResponsesMicroPerfTests {
         status: ResponsesGenerationCompletion.Status = .completed,
         measured: Bool = true
     ) -> ResponsesGenerationEvent {
-        .responseCompleted(.init(
-            responseID: "resp_perf", status: status, functionCalls: [],
-            tokenCount: measured ? 29 : nil, tokensPerSecond: measured ? 52.123456789 : nil,
-            unclosedReasoning: false, stopReason: status == .incomplete ? "length" : "stop",
-            promptTokensPerSecond: measured ? 1024.987654321 : nil, mtp: nil
-        ))
+        .responseCompleted(
+            .init(
+                responseID: "resp_perf",
+                status: status,
+                functionCalls: [],
+                tokenCount: measured ? 29 : nil,
+                tokensPerSecond: measured ? 52.123456789 : nil,
+                unclosedReasoning: false,
+                stopReason: status == .incomplete ? "length" : "stop",
+                promptTokensPerSecond: measured ? 1024.987654321 : nil,
+                mtp: nil
+            )
+        )
     }
 
     private func measure(_ engine: Engine) async throws -> MicroPerfSample {
         try await MicroPerfEvaluator.measureRep(
-            engine: engine, model: "perf-model", prompt: "benchmark fixture", maxTokens: 48,
-            sessionId: "perf-session", enableThinking: true
+            engine: engine,
+            model: "perf-model",
+            prompt: "benchmark fixture",
+            maxTokens: 48,
+            sessionId: "perf-session",
+            enableThinking: true
         )
     }
 
@@ -66,7 +77,7 @@ struct ResponsesMicroPerfTests {
         let request = try #require(await engine.request)
         #expect(request.sessionID == "perf-session")
         #expect(request.generation.maxOutputTokens == 48)
-        #expect(request.generation.temperature == 0) // explicit fixed-shape benchmark contract
+        #expect(request.generation.temperature == 0)  // explicit fixed-shape benchmark contract
         #expect(request.generation.topK == nil && request.generation.enableThinking == true)
     }
 
@@ -88,7 +99,8 @@ struct ResponsesMicroPerfTests {
         } catch let error as ResponsesGenerationResult.CollectionError {
             switch (row, error) {
             case (0, .missingCompletion), (2, .drainFailed("cleanup failed")),
-                (3, .outputAfterCompletion), (4, .drainBeforeCompletion): break
+                (3, .outputAfterCompletion), (4, .drainBeforeCompletion):
+                break
             default: Issue.record("Wrong lifecycle error: \(error)")
             }
         } catch { Issue.record("Unexpected error: \(error)") }

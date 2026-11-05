@@ -64,10 +64,12 @@ struct PDFTableDetectorTests {
         )
 
         #expect(reconciled == geometric)
-        #expect(reconciled.first?.rows.map { $0.cells.map(\.text) } == [
-            ["10", "101"],
-            ["11", "202"],
-        ])
+        #expect(
+            reconciled.first?.rows.map { $0.cells.map(\.text) } == [
+                ["10", "101"],
+                ["11", "202"],
+            ]
+        )
     }
 
     @Test func detectTables_preservesVisualRowsForReversedSourceLines() throws {

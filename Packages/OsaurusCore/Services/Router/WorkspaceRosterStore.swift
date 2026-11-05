@@ -193,7 +193,8 @@ final class WorkspaceRosterStore: ObservableObject {
         let scope = workspaceId ?? workspace(forAgentAddress: lowered)?.id
         guard let scope, let verified = verifiedAt[scope],
             now().timeIntervalSince(verified) < Self.verificationLifetime,
-            let agent = agent(forAddress: lowered, workspaceId: scope) else { return .unknown }
+            let agent = agent(forAddress: lowered, workspaceId: scope)
+        else { return .unknown }
         if forcedOffline[lowered] != nil {
             return .offline(lastSeen: Self.parseLastSeen(agent.lastSeen))
         }
@@ -339,7 +340,8 @@ final class WorkspaceRosterStore: ObservableObject {
         // chat-ready by the time the user clicks it.
         for roster in next {
             await WorkspaceAgentConnectService.shared.autoConnect(
-                workspaceId: roster.workspace.id, agents: roster.agents
+                workspaceId: roster.workspace.id,
+                agents: roster.agents
             )
         }
     }
@@ -505,10 +507,11 @@ final class WorkspaceRosterStore: ObservableObject {
     /// Orchestrator's pool (respecting removal tombstones and the
     /// per-workspace auto-join switch) and unshared ones are pruned. Tests
     /// leave it nil: roster fixtures never touch the delegation store.
-    typealias SpawnPoolReconciler = @Sendable (
-        _ rosterRefs: [WorkspaceAgentRef],
-        _ loadedWorkspaceIds: Set<String>
-    ) -> Void
+    typealias SpawnPoolReconciler =
+        @Sendable (
+            _ rosterRefs: [WorkspaceAgentRef],
+            _ loadedWorkspaceIds: Set<String>
+        ) -> Void
 
     static var spawnPoolReconciler: SpawnPoolReconciler?
 

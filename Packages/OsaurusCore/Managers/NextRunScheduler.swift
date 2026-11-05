@@ -60,8 +60,8 @@ public final class NextRunScheduler {
     private let notificationCenter: NotificationCenter
 
     #if DEBUG
-    private var tickerForTesting: (@MainActor @Sendable () async -> Void)?
-    private var storageNotificationHandledForTesting: (@MainActor @Sendable () -> Void)?
+        private var tickerForTesting: (@MainActor @Sendable () async -> Void)?
+        private var storageNotificationHandledForTesting: (@MainActor @Sendable () -> Void)?
     #endif
 
     /// `(agent_id, trigger_kind) -> last dispatch wall time`. Used for
@@ -74,25 +74,25 @@ public final class NextRunScheduler {
     }
 
     #if DEBUG
-    /// Isolate lifecycle tests from the shared scheduler, storage root and database.
-    static func makeForTesting(
-        notificationCenter: NotificationCenter,
-        ticker: @escaping @MainActor @Sendable () async -> Void,
-        onStorageNotificationHandled: @escaping @MainActor @Sendable () -> Void
-    ) -> NextRunScheduler {
-        let scheduler = NextRunScheduler(notificationCenter: notificationCenter)
-        scheduler.tickerForTesting = ticker
-        scheduler.storageNotificationHandledForTesting = onStorageNotificationHandled
-        return scheduler
-    }
+        /// Isolate lifecycle tests from the shared scheduler, storage root and database.
+        static func makeForTesting(
+            notificationCenter: NotificationCenter,
+            ticker: @escaping @MainActor @Sendable () async -> Void,
+            onStorageNotificationHandled: @escaping @MainActor @Sendable () -> Void
+        ) -> NextRunScheduler {
+            let scheduler = NextRunScheduler(notificationCenter: notificationCenter)
+            scheduler.tickerForTesting = ticker
+            scheduler.storageNotificationHandledForTesting = onStorageNotificationHandled
+            return scheduler
+        }
 
-    /// Join the actual ticker task after cancelling it. Callers must also await
-    /// any notification handlers they published before releasing their fixture.
-    func stopAndWaitForTesting() async {
-        let ticker = tickerTask
-        stop()
-        await ticker?.value
-    }
+        /// Join the actual ticker task after cancelling it. Callers must also await
+        /// any notification handlers they published before releasing their fixture.
+        func stopAndWaitForTesting() async {
+            let ticker = tickerTask
+            stop()
+            await ticker?.value
+        }
     #endif
 
     /// Run a synchronous `SchedulerDatabase` call off the main actor.
@@ -124,10 +124,10 @@ public final class NextRunScheduler {
         tickerTask = Task { @MainActor [weak self] in
             guard let self else { return }
             #if DEBUG
-            if let ticker = self.tickerForTesting {
-                await ticker()
-                return
-            }
+                if let ticker = self.tickerForTesting {
+                    await ticker()
+                    return
+                }
             #endif
             await self.runLoop()
         }
@@ -160,7 +160,7 @@ public final class NextRunScheduler {
 
     private func handleStorageUnlocked(observationID: UUID) {
         #if DEBUG
-        defer { storageNotificationHandledForTesting?() }
+            defer { storageNotificationHandledForTesting?() }
         #endif
         // Removing an observer cannot cancel an actor task it already queued.
         // Only the currently armed observation may consume the one-shot start.

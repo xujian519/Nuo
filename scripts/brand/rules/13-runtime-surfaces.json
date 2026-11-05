@@ -212,14 +212,12 @@
     },
     {
       "id": "ui.tool-display-name",
-      "op": "replace",
-      "files": [
-        "Packages/OsaurusCore/Views/Chat/ToolDisplayName.swift"
-      ],
-      "pattern": "humanize\\(rawName\\)",
-      "replace": "humanize(rawName.hasPrefix(\"{legacy_slug}_\") ? \"{brand_slug}_\" + rawName.dropFirst(\"{legacy_slug}_\".count) : rawName)",
+      "op": "block",
+      "path": "Packages/OsaurusCore/Views/Chat/ToolDisplayName.swift",
+      "find": "            return String(format: L(\"Failed: %@\"), humanize(rawName))\n",
+      "replace": "            // Failed calls humanise the frozen tool id (`osaurus_config`), which\n            // would otherwise render as \"Osaurus config\" in the chip.\n            let legacyPrefix = \"osaurus_\"\n            let displayName =\n                rawName.hasPrefix(legacyPrefix)\n                ? \"nuo_\" + rawName.dropFirst(legacyPrefix.count)\n                : rawName\n            return String(format: L(\"Failed: %@\"), humanize(displayName))\n",
       "enforced": true,
-      "why": "Failed/uncatalogued calls humanize the frozen tool id, so `osaurus_config` rendered as `Osaurus config` in the chip."
+      "why": "Failed/uncatalogued calls humanise the frozen tool id, so `osaurus_config` rendered as `Osaurus config` in the chip. Block form because the replacement needs its own lines to stay under the 120-column limit."
     }
   ]
 }

@@ -69,7 +69,9 @@ public final class KnowledgeFolderWatcher {
     /// main. Callbacks are still delivered on the main queue via
     /// `FSEventStreamSetDispatchQueue`.
     private nonisolated static let streamQueue = DispatchQueue(
-        label: "com.dinoki.osaurus.knowledge-fsevents", qos: .utility)
+        label: "com.dinoki.osaurus.knowledge-fsevents",
+        qos: .utility
+    )
 
     private func rebuildEventStream() {
         watchedFolders.removeAll()

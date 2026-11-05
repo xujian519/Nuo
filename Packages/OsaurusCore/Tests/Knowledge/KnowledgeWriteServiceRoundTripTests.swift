@@ -40,11 +40,14 @@ struct KnowledgeWriteServiceRoundTripTests {
 
             #expect(outcome.operation == .create)
             let onDisk = try String(
-                contentsOf: folder.appendingPathComponent("guides/deploy.md"), encoding: .utf8)
+                contentsOf: folder.appendingPathComponent("guides/deploy.md"),
+                encoding: .utf8
+            )
             #expect(onDisk == "# Deploy\n\nStep one.\n")
 
             let record = try #require(
-                try KnowledgeWriteLogDatabase.shared.record(id: outcome.recordId))
+                try KnowledgeWriteLogDatabase.shared.record(id: outcome.recordId)
+            )
             #expect(record.operation == .create)
             // Nothing existed before, so there is nothing to restore TO.
             #expect(record.priorContent.isEmpty)
@@ -57,13 +60,18 @@ struct KnowledgeWriteServiceRoundTripTests {
             try seed(folder, "a.md", "original\n")
 
             let outcome = try await KnowledgeWriteService.shared.write(
-                collection: collection, relPath: "a.md", content: "replaced\n",
-                runId: "run-1", createdBy: "agent-1", rationale: "fix"
+                collection: collection,
+                relPath: "a.md",
+                content: "replaced\n",
+                runId: "run-1",
+                createdBy: "agent-1",
+                rationale: "fix"
             )
 
             #expect(outcome.operation == .replace)
             let record = try #require(
-                try KnowledgeWriteLogDatabase.shared.record(id: outcome.recordId))
+                try KnowledgeWriteLogDatabase.shared.record(id: outcome.recordId)
+            )
             // The WHOLE prior document: a revert must not depend on the
             // current file still being what the agent left behind.
             #expect(record.priorContent == "original\n")
@@ -76,18 +84,25 @@ struct KnowledgeWriteServiceRoundTripTests {
         try await withCollection { collection, folder in
             try seed(folder, "a.md", "original\n")
             let outcome = try await KnowledgeWriteService.shared.write(
-                collection: collection, relPath: "a.md", content: "agent version\n",
-                runId: "run-1", createdBy: "agent-1", rationale: "fix"
+                collection: collection,
+                relPath: "a.md",
+                content: "agent version\n",
+                runId: "run-1",
+                createdBy: "agent-1",
+                rationale: "fix"
             )
 
             try await KnowledgeWriteService.shared.revert(recordId: outcome.recordId)
 
             let restored = try String(
-                contentsOf: folder.appendingPathComponent("a.md"), encoding: .utf8)
+                contentsOf: folder.appendingPathComponent("a.md"),
+                encoding: .utf8
+            )
             #expect(restored == "original\n")
             #expect(
                 try KnowledgeWriteLogDatabase.shared.record(id: outcome.recordId)?.isReverted
-                    == true)
+                    == true
+            )
         }
     }
 
@@ -95,13 +110,19 @@ struct KnowledgeWriteServiceRoundTripTests {
     @Test func revertingACreateRemovesTheFile() async throws {
         try await withCollection { collection, folder in
             let outcome = try await KnowledgeWriteService.shared.write(
-                collection: collection, relPath: "new.md", content: "body\n",
-                runId: "run-1", createdBy: "agent-1", rationale: "add"
+                collection: collection,
+                relPath: "new.md",
+                content: "body\n",
+                runId: "run-1",
+                createdBy: "agent-1",
+                rationale: "add"
             )
             try await KnowledgeWriteService.shared.revert(recordId: outcome.recordId)
             #expect(
                 !FileManager.default.fileExists(
-                    atPath: folder.appendingPathComponent("new.md").path))
+                    atPath: folder.appendingPathComponent("new.md").path
+                )
+            )
         }
     }
 
@@ -110,17 +131,24 @@ struct KnowledgeWriteServiceRoundTripTests {
             try seed(folder, "doomed.md", "keep me\n")
 
             let outcome = try await KnowledgeWriteService.shared.delete(
-                collection: collection, relPath: "doomed.md",
-                runId: "run-1", createdBy: "agent-1", rationale: "wrong version"
+                collection: collection,
+                relPath: "doomed.md",
+                runId: "run-1",
+                createdBy: "agent-1",
+                rationale: "wrong version"
             )
             #expect(outcome.operation == .delete)
             #expect(
                 !FileManager.default.fileExists(
-                    atPath: folder.appendingPathComponent("doomed.md").path))
+                    atPath: folder.appendingPathComponent("doomed.md").path
+                )
+            )
 
             try await KnowledgeWriteService.shared.revert(recordId: outcome.recordId)
             let restored = try String(
-                contentsOf: folder.appendingPathComponent("doomed.md"), encoding: .utf8)
+                contentsOf: folder.appendingPathComponent("doomed.md"),
+                encoding: .utf8
+            )
             #expect(restored == "keep me\n")
         }
     }
@@ -132,8 +160,12 @@ struct KnowledgeWriteServiceRoundTripTests {
         try await withCollection { collection, folder in
             try seed(folder, "a.md", "original\n")
             let outcome = try await KnowledgeWriteService.shared.write(
-                collection: collection, relPath: "a.md", content: "agent version\n",
-                runId: "run-1", createdBy: "agent-1", rationale: "fix"
+                collection: collection,
+                relPath: "a.md",
+                content: "agent version\n",
+                runId: "run-1",
+                createdBy: "agent-1",
+                rationale: "fix"
             )
             // Somebody edits it afterwards.
             try seed(folder, "a.md", "human edit\n")
@@ -142,13 +174,17 @@ struct KnowledgeWriteServiceRoundTripTests {
                 try await KnowledgeWriteService.shared.revert(recordId: outcome.recordId)
             }
             let untouched = try String(
-                contentsOf: folder.appendingPathComponent("a.md"), encoding: .utf8)
+                contentsOf: folder.appendingPathComponent("a.md"),
+                encoding: .utf8
+            )
             #expect(untouched == "human edit\n")
 
             // `force` is the deliberate override.
             try await KnowledgeWriteService.shared.revert(recordId: outcome.recordId, force: true)
             let forced = try String(
-                contentsOf: folder.appendingPathComponent("a.md"), encoding: .utf8)
+                contentsOf: folder.appendingPathComponent("a.md"),
+                encoding: .utf8
+            )
             #expect(forced == "original\n")
         }
     }
@@ -156,8 +192,12 @@ struct KnowledgeWriteServiceRoundTripTests {
     @Test func revertingTwiceIsRejected() async throws {
         try await withCollection { collection, _ in
             let outcome = try await KnowledgeWriteService.shared.write(
-                collection: collection, relPath: "a.md", content: "x\n",
-                runId: "run-1", createdBy: "agent-1", rationale: "add"
+                collection: collection,
+                relPath: "a.md",
+                content: "x\n",
+                runId: "run-1",
+                createdBy: "agent-1",
+                rationale: "add"
             )
             try await KnowledgeWriteService.shared.revert(recordId: outcome.recordId)
             await #expect(throws: KnowledgeWriteError.self) {
@@ -170,13 +210,18 @@ struct KnowledgeWriteServiceRoundTripTests {
         try await withCollection { collection, _ in
             await #expect(throws: KnowledgeWriteError.self) {
                 _ = try await KnowledgeWriteService.shared.write(
-                    collection: collection, relPath: "../escape.md", content: "x",
-                    runId: "run-1", createdBy: "agent-1", rationale: "nope"
+                    collection: collection,
+                    relPath: "../escape.md",
+                    content: "x",
+                    runId: "run-1",
+                    createdBy: "agent-1",
+                    rationale: "nope"
                 )
             }
             // A refused write must leave no record behind.
             let history = try KnowledgeWriteLogDatabase.shared.records(
-                collectionId: collection.id.uuidString)
+                collectionId: collection.id.uuidString
+            )
             #expect(history.isEmpty)
         }
     }
@@ -192,8 +237,12 @@ struct KnowledgeWriteServiceRoundTripTests {
                 ("existing.md", "after\n"), ("added-1.md", "one\n"), ("added-2.md", "two\n"),
             ] {
                 _ = try await KnowledgeWriteService.shared.write(
-                    collection: collection, relPath: path, content: content,
-                    runId: "import", createdBy: "agent-1", rationale: "bulk"
+                    collection: collection,
+                    relPath: path,
+                    content: content,
+                    runId: "import",
+                    createdBy: "agent-1",
+                    rationale: "bulk"
                 )
             }
 
@@ -201,12 +250,16 @@ struct KnowledgeWriteServiceRoundTripTests {
             #expect(failures.isEmpty)
 
             let restored = try String(
-                contentsOf: folder.appendingPathComponent("existing.md"), encoding: .utf8)
+                contentsOf: folder.appendingPathComponent("existing.md"),
+                encoding: .utf8
+            )
             #expect(restored == "before\n")
             for created in ["added-1.md", "added-2.md"] {
                 #expect(
                     !FileManager.default.fileExists(
-                        atPath: folder.appendingPathComponent(created).path))
+                        atPath: folder.appendingPathComponent(created).path
+                    )
+                )
             }
             #expect(try KnowledgeWriteLogDatabase.shared.records(runId: "import").isEmpty)
         }
@@ -219,15 +272,21 @@ struct KnowledgeWriteServiceRoundTripTests {
             try seed(folder, "a.md", "v0\n")
             for content in ["v1\n", "v2\n"] {
                 _ = try await KnowledgeWriteService.shared.write(
-                    collection: collection, relPath: "a.md", content: content,
-                    runId: "import", createdBy: "agent-1", rationale: "bulk"
+                    collection: collection,
+                    relPath: "a.md",
+                    content: content,
+                    runId: "import",
+                    createdBy: "agent-1",
+                    rationale: "bulk"
                 )
             }
 
             let failures = await KnowledgeWriteService.shared.revertRun(runId: "import")
             #expect(failures.isEmpty)
             let restored = try String(
-                contentsOf: folder.appendingPathComponent("a.md"), encoding: .utf8)
+                contentsOf: folder.appendingPathComponent("a.md"),
+                encoding: .utf8
+            )
             #expect(restored == "v0\n")
         }
     }
@@ -261,7 +320,9 @@ struct KnowledgeWriteServiceRoundTripTests {
             // `revert` resolves the collection through KnowledgeManager, so it
             // has to be REGISTERED, not just constructed.
             let created = await KnowledgeManager.shared.create(
-                name: "packaging", folderPath: folder.path)
+                name: "packaging",
+                folderPath: folder.path
+            )
 
             // Deregistered inline rather than in a `defer` + detached Task:
             // KnowledgeManager is process-global, so a fire-and-forget cleanup
@@ -280,7 +341,9 @@ struct KnowledgeWriteServiceRoundTripTests {
     private func seed(_ folder: URL, _ relPath: String, _ content: String) throws {
         let url = folder.appendingPathComponent(relPath)
         try FileManager.default.createDirectory(
-            at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
         try Data(content.utf8).write(to: url)
     }
 }

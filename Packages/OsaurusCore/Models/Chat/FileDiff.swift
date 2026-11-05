@@ -179,7 +179,8 @@ struct FileDiff: Equatable {
         // any case/separator variant the raw-text scan here can't.
         let pathKeys =
             ["path"] + (SchemaValidator.keySynonyms["path"] ?? []) + ["filePath", "fileName"]
-        var path = pathKeys.lazy.compactMap { partialStringField($0, in: scanArgs) }
+        var path =
+            pathKeys.lazy.compactMap { partialStringField($0, in: scanArgs) }
             .first(where: { !$0.isEmpty }) ?? ""
         if path.isEmpty, toolName == "file_edit", let fallback = fallbackPath, !fallback.isEmpty {
             path = fallback
@@ -322,21 +323,40 @@ struct FileDiff: Equatable {
         if let v = partialJSONStringValue(forKey: key, in: text) { return v }
         // Gemma function envelope: key:<|"|>raw value<|"|>
         if let v = partialDelimitedRawValue(
-            in: text, opener: key + ":", valueStart: gemmaStringMarker, closer: gemmaStringMarker
-        ) { return v }
+            in: text,
+            opener: key + ":",
+            valueStart: gemmaStringMarker,
+            closer: gemmaStringMarker
+        ) {
+            return v
+        }
         // XML function: <parameter=key>raw value</parameter>
         if let v = partialDelimitedRawValue(
-            in: text, opener: "<parameter=\(key)>", valueStart: "", closer: "</parameter>"
-        ) { return v }
+            in: text,
+            opener: "<parameter=\(key)>",
+            valueStart: "",
+            closer: "</parameter>"
+        ) {
+            return v
+        }
         // MiniMax: <parameter name="key">raw value</parameter>
         if let v = partialDelimitedRawValue(
-            in: text, opener: "<parameter name=\"\(key)\">", valueStart: "", closer: "</parameter>"
-        ) { return v }
+            in: text,
+            opener: "<parameter name=\"\(key)\">",
+            valueStart: "",
+            closer: "</parameter>"
+        ) {
+            return v
+        }
         // GLM4 / Hunyuan: <arg_key>key</arg_key><arg_value>raw value</arg_value>
         if let v = partialDelimitedRawValue(
-            in: text, opener: "<arg_key>\(key)</arg_key>", valueStart: "<arg_value>",
+            in: text,
+            opener: "<arg_key>\(key)</arg_key>",
+            valueStart: "<arg_value>",
             closer: "</arg_value>"
-        ) { return v }
+        ) {
+            return v
+        }
         // Pythonic kwarg: key="python string" or key='python string'
         if let v = partialPythonStringValue(forKey: key, in: text) { return v }
         return nil
@@ -349,7 +369,9 @@ struct FileDiff: Equatable {
     /// the name in `<function=NAME>`. Returns nil until the terminator has
     /// streamed or when the value isn't a plain identifier-ish token.
     private static func delimitedValue(
-        in text: String, after opener: String, terminator: String
+        in text: String,
+        after opener: String,
+        terminator: String
     ) -> String? {
         guard let r = text.range(of: opener),
             let end = text.range(of: terminator, range: r.upperBound ..< text.endIndex)
@@ -365,7 +387,10 @@ struct FileDiff: Equatable {
     /// end of the buffer with any trailing partial `closer` prefix trimmed so
     /// it never flashes in the preview. Values are raw text (real newlines).
     private static func partialDelimitedRawValue(
-        in text: String, opener: String, valueStart: String, closer: String
+        in text: String,
+        opener: String,
+        valueStart: String,
+        closer: String
     ) -> String? {
         var searchStart = text.startIndex
         while let openerRange = text.range(of: opener, range: searchStart ..< text.endIndex) {

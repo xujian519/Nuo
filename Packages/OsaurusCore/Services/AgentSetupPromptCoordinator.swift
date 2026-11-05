@@ -63,7 +63,9 @@ public final class AgentSetupPromptCoordinator {
         let request = ThemedAlertRequest(
             title: L("Finish setting up \(agent.name)"),
             message: report.hasBlockers
-                ? L("This agent was created with settings this Mac cannot honour yet. It will not work as intended until these are fixed.")
+                ? L(
+                    "This agent was created with settings this Mac cannot honour yet. It will not work as intended until these are fixed."
+                )
                 : L("A few things are worth confirming before you rely on this agent."),
             buttons: [
                 .primary(L("Set Up Now")) {

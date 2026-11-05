@@ -870,42 +870,42 @@ struct FloatingInputCard: View {
 
     private var composerContent: some View {
         inputCard
-        // Float the slash / "@" menus above the card instead of stacking
-        // them in the layout, so opening one never shifts the selector row
-        // or the transcript. The `.top` guide lifts the overlay fully above
-        // the card's top edge.
-        .overlay(alignment: .top) {
-            composerPopupOverlay
-                .alignmentGuide(.top) { dimensions in dimensions.height + 4 }
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 20)
-        .onDrop(of: dropAcceptedTypes, isTargeted: $isDragOver) { providers in
-            handleFileDrop(providers)
-        }
-        .transition(
-            .asymmetric(
-                insertion: .opacity.combined(with: .scale(scale: 0.98)),
-                removal: .opacity.combined(with: .scale(scale: 0.98))
-            )
-        )
-        .onChange(of: composerText.text) { _, newValue in
-            onDraftChange?(newValue)
-            // Reset popup selection whenever the typed query changes.
-            // Attached here (inside the text observation scope) so the
-            // change is detected on scope re-renders — the card itself
-            // no longer re-renders per keystroke.
-            slashSelectedIndex = 0
-            atSelectedIndex = 0
-            // Typing after an Escape-dismissal re-arms the slash popup
-            if dismissedSlashQuery != nil, activeSlashQuery != dismissedSlashQuery {
-                dismissedSlashQuery = nil
+            // Float the slash / "@" menus above the card instead of stacking
+            // them in the layout, so opening one never shifts the selector row
+            // or the transcript. The `.top` guide lifts the overlay fully above
+            // the card's top edge.
+            .overlay(alignment: .top) {
+                composerPopupOverlay
+                    .alignmentGuide(.top) { dimensions in dimensions.height + 4 }
             }
-            // Re-list the "@" menu off the main actor for the new query.
-            // (folds in the registry sync so it costs no extra body chain
-            // link — the whole chain is at the type-checker's limit.)
-            refreshAtMenu()
-        }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 20)
+            .onDrop(of: dropAcceptedTypes, isTargeted: $isDragOver) { providers in
+                handleFileDrop(providers)
+            }
+            .transition(
+                .asymmetric(
+                    insertion: .opacity.combined(with: .scale(scale: 0.98)),
+                    removal: .opacity.combined(with: .scale(scale: 0.98))
+                )
+            )
+            .onChange(of: composerText.text) { _, newValue in
+                onDraftChange?(newValue)
+                // Reset popup selection whenever the typed query changes.
+                // Attached here (inside the text observation scope) so the
+                // change is detected on scope re-renders — the card itself
+                // no longer re-renders per keystroke.
+                slashSelectedIndex = 0
+                atSelectedIndex = 0
+                // Typing after an Escape-dismissal re-arms the slash popup
+                if dismissedSlashQuery != nil, activeSlashQuery != dismissedSlashQuery {
+                    dismissedSlashQuery = nil
+                }
+                // Re-list the "@" menu off the main actor for the new query.
+                // (folds in the registry sync so it costs no extra body chain
+                // link — the whole chain is at the type-checker's limit.)
+                refreshAtMenu()
+            }
     }
 
     var body: some View {
@@ -2542,7 +2542,9 @@ extension FloatingInputCard {
             let mode = NativeMTPSelectionDefault.mode(for: segment)
         {
             agentManager.updateSpeculativeDecoding(
-                mode == .familyDefault ? nil : mode != .off, for: targetAgentID)
+                mode == .familyDefault ? nil : mode != .off,
+                for: targetAgentID
+            )
             return
         }
         Task { @MainActor in
@@ -2554,10 +2556,13 @@ extension FloatingInputCard {
             settings.mtp.draftTokenLimit = nil
             settings.mtp.explicitDepth = nil
             _ = await ServerController.applyRuntimeSettingsFromConfigureTool(
-                settings, mtpSelectionIsFamilyDefault: mode == .familyDefault)
+                settings,
+                mtpSelectionIsFamilyDefault: mode == .familyDefault
+            )
             // A rejected save must not leave an optimistic segment displayed.
             nativeMTPSelection = Self.nativeMTPSegment(
-                ServerController.runtimeSettingsForConfigureTool().settings.mtp)
+                ServerController.runtimeSettingsForConfigureTool().settings.mtp
+            )
         }
     }
 
@@ -2597,7 +2602,8 @@ extension FloatingInputCard {
                 }.value
                 nativeMTPCapableModels.formUnion(early.map { Self.mtpIdentity($0.name) })
                 nativeMTPFamilyDefaultOnModels.formUnion(
-                    early.filter { $0.familyDefaultOn }.map { Self.mtpIdentity($0.name) })
+                    early.filter { $0.familyDefaultOn }.map { Self.mtpIdentity($0.name) }
+                )
                 // A blocked tuning artifact must gate the EARLY window too —
                 // the resident-summary blocked set only covers loaded models,
                 // so without this the whole warmup would show depth segments
@@ -3039,7 +3045,8 @@ extension FloatingInputCard {
         }
 
         private var modelHelp: String {
-            let status = isDeprecated
+            let status =
+                isDeprecated
                 ? String(
                     localized: "This model is outdated. Click to switch to a newer version.",
                     bundle: .module
@@ -3200,8 +3207,7 @@ extension FloatingInputCard {
 
     private var interactiveModelSelectorChip: some View {
         SelectorChip(isActive: showModelPicker) {
-            if showModelPicker { dismissModelPicker() }
-            else { openModelPicker() }
+            if showModelPicker { dismissModelPicker() } else { openModelPicker() }
         } content: {
             if isHarnessAgent {
                 harnessChipLabel
@@ -3345,9 +3351,11 @@ extension FloatingInputCard {
     }
 
     private var chatPickerProviders: [ChatModelPickerProvider] {
-        let shortlist = Set(cachedPickerItems.filter {
-            chatModelFavorites.isFavorite($0.favoriteKey) || $0.id == selectedModel
-        }.map(\.id))
+        let shortlist = Set(
+            cachedPickerItems.filter {
+                chatModelFavorites.isFavorite($0.favoriteKey) || $0.id == selectedModel
+            }.map(\.id)
+        )
         let current = harnessRuntime.map {
             (runtimeId: $0.id, claudeModel: agentManager.effectiveClaudeCodeConfig(for: effectiveAgentId).resolvedModel)
         }
@@ -3401,13 +3409,15 @@ extension FloatingInputCard {
             let mode = ServerController.runtimeSettingsForConfigureTool().settings.mtp.mode
             let familyDefault = nativeMTPFamilyDefaultOnModels.contains(identity) ? "auto" : "off"
             let inherited = mode == .familyDefault ? familyDefault : nativeMTPSelection
-            let shown = agentManager.effectiveGenerationSettings(for: effectiveAgentId)?
+            let shown =
+                agentManager.effectiveGenerationSettings(for: effectiveAgentId)?
                 .speculativeDecoding.map { $0 ? "auto" : "off" } ?? inherited
             values[Self.nativeMTPOptionID] = .string(
                 nativeMTPManuallyBlockedModels.contains(identity) ? "off" : shown
             )
             // Reset removes an agent override; otherwise it restores the bundle policy.
-            let hasAgentOverride = agentManager.effectiveGenerationSettings(for: effectiveAgentId)?
+            let hasAgentOverride =
+                agentManager.effectiveGenerationSettings(for: effectiveAgentId)?
                 .speculativeDecoding != nil
             displayDefaults[Self.nativeMTPOptionID] = .string(hasAgentOverride ? inherited : familyDefault)
         }
@@ -3436,7 +3446,10 @@ extension FloatingInputCard {
                     guard selectedModel == model else { return }
                     if optionId == "reasoningEffort", hasAgentReasoningOverride {
                         agentManager.updateReasoning(
-                            enableThinking: nil, effort: newValue?.stringValue, for: effectiveAgentId)
+                            enableThinking: nil,
+                            effort: newValue?.stringValue,
+                            for: effectiveAgentId
+                        )
                         return
                     }
                     var updated = activeModelOptions
@@ -4405,12 +4418,12 @@ extension FloatingInputCard {
                 next: next,
                 pointerCenterX: 28
             )
-                .frame(width: Self.ramBannerWidth, alignment: .leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 20)
-                .padding(.top, 8)
-                .padding(.bottom, -16)
-                .transition(.opacity.combined(with: .move(edge: .bottom)))
+            .frame(width: Self.ramBannerWidth, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.leading, 20)
+            .padding(.top, 8)
+            .padding(.bottom, -16)
+            .transition(.opacity.combined(with: .move(edge: .bottom)))
         }
     }
 
@@ -5390,7 +5403,8 @@ extension FloatingInputCard {
             set: {
                 // Remote media keeps its existing digits-only input contract.
                 // Local image requests validate the complete string at admission.
-                imageComposerSettings.seed = selectedMediaPickerItem?.mediaModel != nil
+                imageComposerSettings.seed =
+                    selectedMediaPickerItem?.mediaModel != nil
                     ? $0.filter(\.isNumber) : $0
             }
         )
@@ -5407,7 +5421,8 @@ extension FloatingInputCard {
                 HStack(spacing: 6) {
                     sizeSelector
                     stepsChip
-                    if ImageModelRequestPolicy(canonical: selectedImagePickerItem?.imageCanonicalName).supportsGuidance {
+                    if ImageModelRequestPolicy(canonical: selectedImagePickerItem?.imageCanonicalName).supportsGuidance
+                    {
                         cfgChip
                     }
                     seedChip
@@ -5415,7 +5430,8 @@ extension FloatingInputCard {
                         strengthChip
                     }
                     if ImageComposerRequestBuilder.hasUnsupportedEditOverrides(
-                        controls: imageComposerControls, settings: imageComposerSettings,
+                        controls: imageComposerControls,
+                        settings: imageComposerSettings,
                         canonical: selectedImagePickerItem?.imageCanonicalName
                     ) {
                         Button {
@@ -5827,10 +5843,10 @@ extension FloatingInputCard {
                         .foregroundColor(theme.primaryText)
                         .monospacedDigit()
                 } else {
-                Text("\(imageComposerSettings.steps)")
-                    .font(theme.font(size: CGFloat(theme.captionSize), weight: .semibold))
-                    .foregroundColor(theme.primaryText)
-                    .monospacedDigit()
+                    Text("\(imageComposerSettings.steps)")
+                        .font(theme.font(size: CGFloat(theme.captionSize), weight: .semibold))
+                        .foregroundColor(theme.primaryText)
+                        .monospacedDigit()
                 }
                 Text("steps", bundle: .module)
                     .fixedSize()
@@ -5838,7 +5854,8 @@ extension FloatingInputCard {
                     .foregroundColor(theme.tertiaryText)
             }
             stepperButton("plus") {
-                imageComposerSettings.steps = selectedImagePickerItem?.imageCanonicalName == "flux3-image-klein"
+                imageComposerSettings.steps =
+                    selectedImagePickerItem?.imageCanonicalName == "flux3-image-klein"
                     ? imageComposerSettings.steps + 1 : min(50, imageComposerSettings.steps + 1)
             }
         }
@@ -9144,12 +9161,16 @@ private struct FloatingContextChip: View {
         let volume = DiskCacheVolumeSnapshot.read(directory: dir)
         guard directory != nil else {
             return DiskCacheUsage(
-                usedBytes: Int(clamping: volume.ownBytes ?? 0), maxBytes: 0,
-                evictions: 0, isDisabled: true
+                usedBytes: Int(clamping: volume.ownBytes ?? 0),
+                maxBytes: 0,
+                evictions: 0,
+                isDisabled: true
             )
         }
         if let snapshot = await ModelRuntime.shared.diskCacheQuotaSnapshots(
-            matching: settings.cache, modelName: model, session: session
+            matching: settings.cache,
+            modelName: model,
+            session: session
         ).first {
             return snapshot.usage
         }
@@ -9157,7 +9178,8 @@ private struct FloatingContextChip: View {
         guard let ownBytes = volume.ownBytes else { return nil }
         let resolution = ModelRuntime.diskCacheCap(for: settings.cache, directory: dir)
         return DiskCacheUsage(
-            usedBytes: Int(clamping: ownBytes), maxBytes: Int(clamping: resolution.capBytes),
+            usedBytes: Int(clamping: ownBytes),
+            maxBytes: Int(clamping: resolution.capBytes),
             evictions: 0
         )
     }
@@ -9324,11 +9346,13 @@ private struct FloatingContextChip: View {
             currentSessionKey: currentSessionKey,
             onHeightChange: { contextPanelHeight = $0 }
         )
-        .task(id: SSDQuotaNoticePollContext(
-            model: currentModel,
-            session: currentSessionKey.flatMap(UUID.init(uuidString:)),
-            eligible: showContextBreakdown
-        )) {
+        .task(
+            id: SSDQuotaNoticePollContext(
+                model: currentModel,
+                session: currentSessionKey.flatMap(UUID.init(uuidString:)),
+                eligible: showContextBreakdown
+            )
+        ) {
             // Poll while open. The cache index is a small SQLite read, but
             // it is still I/O, so it runs off the main actor and stops as
             // soon as the panel closes.

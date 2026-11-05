@@ -235,15 +235,25 @@ struct ContentBlockDisplayTests {
         let turn1 = UUID()
         let turn2 = UUID()
         let thinking = ContentBlock.thinking(
-            turnId: turn1, index: 0, text: "reasoning", isStreaming: false,
-            duration: 1.2, position: .middle
+            turnId: turn1,
+            index: 0,
+            text: "reasoning",
+            isStreaming: false,
+            duration: 1.2,
+            position: .middle
         )
         let tools = ContentBlock.toolCallGroup(
-            turnId: turn2, calls: [Self.toolCallItem(id: "call-1")], position: .middle
+            turnId: turn2,
+            calls: [Self.toolCallItem(id: "call-1")],
+            position: .middle
         )
         let answer = ContentBlock.paragraph(
-            turnId: turn2, index: 0, text: "answer", isStreaming: false,
-            role: .assistant, position: .last
+            turnId: turn2,
+            index: 0,
+            text: "answer",
+            isStreaming: false,
+            role: .assistant,
+            position: .last
         )
 
         let rolled = ContentBlock.rollupActivityBlocks([thinking, tools, answer])
@@ -267,12 +277,20 @@ struct ContentBlockDisplayTests {
     func rollupActivity_leavesSingleBlocksAndOtherKindsBare() {
         let turnId = UUID()
         let thinking = ContentBlock.thinking(
-            turnId: turnId, index: 0, text: "reasoning", isStreaming: true,
-            duration: nil, position: .middle
+            turnId: turnId,
+            index: 0,
+            text: "reasoning",
+            isStreaming: true,
+            duration: nil,
+            position: .middle
         )
         let answer = ContentBlock.paragraph(
-            turnId: turnId, index: 0, text: "answer", isStreaming: false,
-            role: .assistant, position: .last
+            turnId: turnId,
+            index: 0,
+            text: "answer",
+            isStreaming: false,
+            role: .assistant,
+            position: .last
         )
 
         let rolled = ContentBlock.rollupActivityBlocks([thinking, answer])
@@ -293,11 +311,17 @@ struct ContentBlockDisplayTests {
             position: .middle
         )
         let single = ContentBlock.toolCallGroup(
-            turnId: turnId, calls: [Self.toolCallItem(id: "call-3")], position: .middle
+            turnId: turnId,
+            calls: [Self.toolCallItem(id: "call-3")],
+            position: .middle
         )
         let answer = ContentBlock.paragraph(
-            turnId: turnId, index: 0, text: "answer", isStreaming: false,
-            role: .assistant, position: .last
+            turnId: turnId,
+            index: 0,
+            text: "answer",
+            isStreaming: false,
+            role: .assistant,
+            position: .last
         )
 
         let rolledMulti = ContentBlock.rollupActivityBlocks([multi, answer])
@@ -364,7 +388,8 @@ struct ContentBlockDisplayTests {
 
         #expect(
             paragraphTexts(blocks)
-                == ["Interrupted — stopped before a response was produced."])
+                == ["Interrupted — stopped before a response was produced."]
+        )
     }
 
     @Test
@@ -386,7 +411,8 @@ struct ContentBlockDisplayTests {
         #expect(hasThinking)
         #expect(
             paragraphTexts(blocks)
-                == ["Interrupted — stopped before a response was produced."])
+                == ["Interrupted — stopped before a response was produced."]
+        )
     }
 
     @Test
@@ -422,7 +448,9 @@ struct ContentBlockDisplayTests {
 
     // MARK: - Dispatch envelopes
 
-    private func userMessageBlock(_ blocks: [ContentBlock]) -> (text: String, envelope: DispatchEnvelope?, block: ContentBlock)? {
+    private func userMessageBlock(_ blocks: [ContentBlock]) -> (
+        text: String, envelope: DispatchEnvelope?, block: ContentBlock
+    )? {
         for block in blocks {
             if case let .userMessage(text, _, _, _, envelope) = block.kind {
                 return (text, envelope, block)
@@ -477,16 +505,31 @@ struct ContentBlockDisplayTests {
         let now = Date()
         let envelope = DispatchEnvelope.parse(raw, sessionSource: .delegation)
         let a = ContentBlock.userMessage(
-            turnId: turnId, text: raw, attachments: [], timestamp: now,
-            responseTurnId: nil, envelope: envelope, position: .only
+            turnId: turnId,
+            text: raw,
+            attachments: [],
+            timestamp: now,
+            responseTurnId: nil,
+            envelope: envelope,
+            position: .only
         )
         let b = ContentBlock.userMessage(
-            turnId: turnId, text: raw, attachments: [], timestamp: now,
-            responseTurnId: nil, envelope: envelope, position: .only
+            turnId: turnId,
+            text: raw,
+            attachments: [],
+            timestamp: now,
+            responseTurnId: nil,
+            envelope: envelope,
+            position: .only
         )
         let c = ContentBlock.userMessage(
-            turnId: turnId, text: raw, attachments: [], timestamp: now,
-            responseTurnId: nil, envelope: nil, position: .only
+            turnId: turnId,
+            text: raw,
+            attachments: [],
+            timestamp: now,
+            responseTurnId: nil,
+            envelope: nil,
+            position: .only
         )
         #expect(a.kind == b.kind)
         #expect(a.kind != c.kind)

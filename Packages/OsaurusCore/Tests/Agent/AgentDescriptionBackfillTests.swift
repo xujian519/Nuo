@@ -83,7 +83,10 @@ struct AgentDescriptionBackfillTests {
             let manualPrompt = "Manual prompt \(UUID())"
             let generatedPrompt = "Companion prompt \(UUID())"
             let agent = AgentManager.shared.create(
-                name: "Manual \(UUID())", description: "Mine.", systemPrompt: manualPrompt)
+                name: "Manual \(UUID())",
+                description: "Mine.",
+                systemPrompt: manualPrompt
+            )
             let companion = AgentManager.shared.create(name: "Automatic \(UUID())", systemPrompt: generatedPrompt)
             backfill.scheduleIfNeeded(agent.id)
             backfill.scheduleAll()

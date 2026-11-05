@@ -97,7 +97,9 @@ struct SearchView: View {
         }.count
         let freeOn = freeProviderRows.filter { $0.provider.enabled }.count
         if readyAPI > 0 {
-            return L("\(readyAPI) provider\(readyAPI == 1 ? "" : "s") connected • \(freeOn) built-in source\(freeOn == 1 ? "" : "s") as backup")
+            return L(
+                "\(readyAPI) provider\(readyAPI == 1 ? "" : "s") connected • \(freeOn) built-in source\(freeOn == 1 ? "" : "s") as backup"
+            )
         }
         if freeOn > 0 {
             return L("Running on built-in sources — connect a provider for better results")
@@ -151,19 +153,23 @@ struct SearchView: View {
         case .off:
             Text(
                 "Enable at least one source below to let agents search the web.",
-                bundle: .module)
+                bundle: .module
+            )
         case .unverified:
             Text(
                 "Providers are tried in order; if one fails, the next takes over. Run a test search below to confirm everything works.",
-                bundle: .module)
+                bundle: .module
+            )
         case .healthy(let last):
             Text(
                 "Last search succeeded via \(providerDisplayName(last.providerId)) \(relativeTime(last.date)) — \(last.hitCount) result\(last.hitCount == 1 ? "" : "s").",
-                bundle: .module)
+                bundle: .module
+            )
         case .failing(let last):
             Text(
                 "The last search \(relativeTime(last.date)) returned no results. Try a test search below, or connect a provider for more reliable results.",
-                bundle: .module)
+                bundle: .module
+            )
         }
     }
 
@@ -185,7 +191,8 @@ struct SearchView: View {
                 Image(systemName: "magnifyingglass.circle.fill")
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(
-                        manager.hostedSearchEnabled ? theme.accentColor : theme.tertiaryText)
+                        manager.hostedSearchEnabled ? theme.accentColor : theme.tertiaryText
+                    )
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Premium search", bundle: .module)
@@ -376,7 +383,8 @@ struct SearchView: View {
                         RoundedRectangle(cornerRadius: 10)
                             .fill(
                                 trySearching || tryQueryEmpty
-                                    ? theme.tertiaryBackground : theme.accentColor)
+                                    ? theme.tertiaryBackground : theme.accentColor
+                            )
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -846,7 +854,8 @@ struct SearchView: View {
             Capsule().fill(
                 isFirst
                     ? theme.accentColor.opacity(0.1)
-                    : (isLastResort ? theme.warningColor.opacity(0.08) : theme.tertiaryBackground))
+                    : (isLastResort ? theme.warningColor.opacity(0.08) : theme.tertiaryBackground)
+            )
         )
         .localizedHelp(
             isLastResort
@@ -1391,7 +1400,8 @@ private struct SearchProviderConnectSheet: View {
             // Prefill presence indicators for already-saved secrets (values
             // themselves are never read back into the UI).
             if let definition {
-                verified = manager.configuredProviderIds.contains(definition.id)
+                verified =
+                    manager.configuredProviderIds.contains(definition.id)
                     && manager.configuration.provider(id: definition.id) != nil
             }
         }
@@ -1911,14 +1921,16 @@ private struct SearchCustomProviderSheet: View {
             if SearchProviderCatalog.bundled.contains(where: { $0.id == definition.id }) {
                 errorMessage = String(
                     format: L("The id \"%@\" is taken by a bundled provider. Pick another id."),
-                    definition.id)
+                    definition.id
+                )
                 return
             }
             try manager.saveCustomDefinition(definition)
             _ = ToastManager.shared.success(
                 String(format: L("Added %@"), definition.name),
                 message: definition.isKeyless
-                    ? nil : L("Add its API key from the provider list to finish setup."))
+                    ? nil : L("Add its API key from the provider list to finish setup.")
+            )
             dismiss()
         } catch let decodeError as DecodingError {
             errorMessage = describeDecodingError(decodeError)

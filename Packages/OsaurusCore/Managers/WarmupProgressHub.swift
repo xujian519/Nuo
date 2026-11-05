@@ -70,7 +70,8 @@ final class WarmupProgressHub: ObservableObject, @unchecked Sendable {
     }
 
     private static func displayedValueChanged(
-        _ old: WarmupProgressPhase, _ new: WarmupProgressPhase
+        _ old: WarmupProgressPhase,
+        _ new: WarmupProgressPhase
     ) -> Bool {
         switch (old, new) {
         case (.loadingModel, .loadingModel):

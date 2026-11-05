@@ -45,7 +45,8 @@ enum GenerationEventMapper {
         var diskRestoreSample: (@Sendable () -> (bytes: Int64, ms: Double)?)? = nil
 
         init(
-            decodePath: String? = nil, configuredDepth: Int? = nil,
+            decodePath: String? = nil,
+            configuredDepth: Int? = nil,
             modelVolumeKind: String? = nil,
             diskRestoreSample: (@Sendable () -> (bytes: Int64, ms: Double)?)? = nil
         ) {
@@ -99,7 +100,12 @@ enum GenerationEventMapper {
         /// failures and obeys the existing crash-reporting consent gate.
         reportFailure: @escaping @Sendable (GenerationFailure, String, Int, Int, HandledGPUFailureContext) -> Void = {
             CrashReportingService.recordHandledGPUFailure(
-                $0, modelName: $1, promptTokens: $2, generatedTokens: $3, context: $4)
+                $0,
+                modelName: $1,
+                promptTokens: $2,
+                generatedTokens: $3,
+                context: $4
+            )
         }
     ) -> AsyncThrowingStream<ModelRuntimeEvent, Error> {
         let (stream, continuation) = AsyncThrowingStream<ModelRuntimeEvent, Error>.makeStream()
@@ -167,7 +173,8 @@ enum GenerationEventMapper {
                     diskRestoreBytes: sample?.bytes,
                     diskRestoreMs: sample.map { Int($0.ms.rounded()) },
                     modelVolumeKind: failureRequestContext.modelVolumeKind,
-                    promptTokens: promptTokenCount.flatMap { $0 >= 0 ? $0 : nil })
+                    promptTokens: promptTokenCount.flatMap { $0 >= 0 ? $0 : nil }
+                )
             }
 
             // Park the restore where a Settings poll can read it, once per
@@ -235,8 +242,12 @@ enum GenerationEventMapper {
                         if !reportedFailure {
                             reportedFailure = true
                             reportFailure(
-                                failure, modelName, info.promptTokenCount, info.generationTokenCount,
-                                failureContext())
+                                failure,
+                                modelName,
+                                info.promptTokenCount,
+                                info.generationTokenCount,
+                                failureContext()
+                            )
                         }
                         // Preserve the engine's originating diagnostic. A
                         // preparation error is not an empty user cancellation.
@@ -249,9 +260,11 @@ enum GenerationEventMapper {
                     // Prefix-cache reuse for the usage block: what `.cacheRestore`
                     // reported, never more than the prompt itself.
                     if cacheRestoredTokens > 0 {
-                        let promptTokens = info.promptTokenCount > 0
+                        let promptTokens =
+                            info.promptTokenCount > 0
                             ? info.promptTokenCount : prefillPromptTokens
-                        let cached = promptTokens > 0
+                        let cached =
+                            promptTokens > 0
                             ? min(cacheRestoredTokens, promptTokens) : cacheRestoredTokens
                         continuation.yield(.cachedInputTokenCount(cached))
                     }
@@ -628,7 +641,9 @@ enum GenerationEventMapper {
             {
                 let members = try argumentOrder.map { key -> String in
                     let data = try JSONSerialization.data(
-                        withJSONObject: [key: anyDict[key]!], options: .osaurusCanonical)
+                        withJSONObject: [key: anyDict[key]!],
+                        options: .osaurusCanonical
+                    )
                     let object = String(decoding: data, as: UTF8.self)
                     return String(object.dropFirst().dropLast())
                 }
@@ -661,7 +676,6 @@ enum GenerationEventMapper {
         "{\"_error\":\"argument_serialization_failed\",\"_tool\":\"\(toolName)\"}"
     }
 }
-
 
 /// Process-wide delta of `vm.add_wire_count_over_global_limit` between generation steps.
 enum WireRejectionTracker {

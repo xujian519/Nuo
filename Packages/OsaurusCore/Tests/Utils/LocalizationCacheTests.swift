@@ -35,7 +35,7 @@ struct LocalizationCacheTests {
     @Test("LCached is stable across repeated calls", arguments: settingsLabels)
     func stableAcrossCalls(key: String) {
         let first = LCached(key)
-        for _ in 0..<10 {
+        for _ in 0 ..< 10 {
             #expect(LCached(key) == first)
         }
     }

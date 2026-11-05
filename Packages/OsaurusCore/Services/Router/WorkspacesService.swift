@@ -102,8 +102,11 @@ final class WorkspacesService: ObservableObject {
         /// `workspace_topup` entry for `amountMicro` lands (or the balance
         /// rises past what it was when the Checkout opened).
         case topUp(
-            workspaceId: String, topupId: String, amountMicro: Int64,
-            balanceBeforeMicro: Int64?, startedAt: Date
+            workspaceId: String,
+            topupId: String,
+            amountMicro: Int64,
+            balanceBeforeMicro: Int64?,
+            startedAt: Date
         )
     }
     @Published private(set) var pendingConfirmation: PendingConfirmation?
@@ -192,7 +195,9 @@ final class WorkspacesService: ObservableObject {
         {
             endConfirmation()
             await WorkspaceAuditLog.shared.recordOwnerAction(
-                .workspaceCreated, workspaceId: created.id, details: ["name": name, "via": "checkout"]
+                .workspaceCreated,
+                workspaceId: created.id,
+                details: ["name": name, "via": "checkout"]
             )
             await selectWorkspace(id: created.id)
         }
@@ -305,7 +310,9 @@ final class WorkspacesService: ObservableObject {
             case .ready(let detail):
                 outcome = .ready(detail)
                 await WorkspaceAuditLog.shared.recordOwnerAction(
-                    .workspaceCreated, workspaceId: detail.id, details: ["name": trimmedName]
+                    .workspaceCreated,
+                    workspaceId: detail.id,
+                    details: ["name": trimmedName]
                 )
                 await self.refreshWorkspaces()
                 await self.selectWorkspace(id: detail.id)
@@ -341,7 +348,9 @@ final class WorkspacesService: ObservableObject {
             case .ready(let detail):
                 outcome = .ready(detail)
                 await WorkspaceAuditLog.shared.recordOwnerAction(
-                    .workspaceReactivated, workspaceId: detail.id, details: ["name": detail.name]
+                    .workspaceReactivated,
+                    workspaceId: detail.id,
+                    details: ["name": detail.name]
                 )
                 await self.refreshWorkspaces()
                 if self.selectedWorkspaceId == id {
@@ -381,7 +390,8 @@ final class WorkspacesService: ObservableObject {
             created = detail
             self.pendingActivation = nil
             await WorkspaceAuditLog.shared.recordOwnerAction(
-                .workspaceCreated, workspaceId: detail.id,
+                .workspaceCreated,
+                workspaceId: detail.id,
                 details: ["name": trimmedName, "via": "activation_code"]
             )
             await self.refreshWorkspaces()
@@ -411,7 +421,8 @@ final class WorkspacesService: ObservableObject {
             joined = detail
             self.pendingJoin = nil
             await WorkspaceAuditLog.shared.recordOwnerAction(
-                .joinRedeemed, workspaceId: detail.id,
+                .joinRedeemed,
+                workspaceId: detail.id,
                 details: ["role": detail.role]
             )
             await self.refreshWorkspaces()
@@ -435,7 +446,9 @@ final class WorkspacesService: ObservableObject {
         return await performMutation(key: "workspace.rename") {
             try await self.client.renameWorkspace(id: id, name: trimmed)
             await WorkspaceAuditLog.shared.recordOwnerAction(
-                .workspaceRenamed, workspaceId: id, details: ["name": trimmed]
+                .workspaceRenamed,
+                workspaceId: id,
+                details: ["name": trimmed]
             )
             await self.refreshWorkspaces()
             if self.selectedWorkspaceId == id { await self.refreshSelectedWorkspace() }
@@ -480,7 +493,9 @@ final class WorkspacesService: ObservableObject {
     /// affordance uses, so they all end on the same screen. `shareAgentId`
     /// additionally opens the Share agent sheet with that agent selected.
     func openInSettings(
-        workspaceId: String, tab: WorkspaceDetailView.Tab = .overview, shareAgentId: UUID? = nil
+        workspaceId: String,
+        tab: WorkspaceDetailView.Tab = .overview,
+        shareAgentId: UUID? = nil
     ) {
         // Set before the tab: the detail view's tab observer consumes both.
         deepLinkShareAgentId = shareAgentId
@@ -567,9 +582,11 @@ final class WorkspacesService: ObservableObject {
             workspaceInvites = fetched
         } catch {
             guard generation == selectionGeneration else { return }
-            if detail?.role == "owner" || detail?.role == "admin" { noteError(error) } else {
-            workspaceInvites = []
-        }
+            if detail?.role == "owner" || detail?.role == "admin" {
+                noteError(error)
+            } else {
+                workspaceInvites = []
+            }
         }
         do {
             let fetched = try await client.workspaceAgents(id: id)
@@ -709,7 +726,9 @@ final class WorkspacesService: ObservableObject {
         monthlyCapMicro: Int64?
     ) async -> OsaurusRouterWorkspaceAutoReload? {
         let verdict = OsaurusRouterWorkspacePoolCredits.validateAutoReload(
-            thresholdMicro: thresholdMicro, amountMicro: amountMicro, monthlyCapMicro: monthlyCapMicro,
+            thresholdMicro: thresholdMicro,
+            amountMicro: amountMicro,
+            monthlyCapMicro: monthlyCapMicro,
             bounds: autoReload?.bounds
         )
         guard verdict == .ok else {
@@ -720,14 +739,17 @@ final class WorkspacesService: ObservableObject {
         var saved: OsaurusRouterWorkspaceAutoReload?
         let ok = await performMutation(key: "pool.autoReload") {
             let update = OsaurusRouterWorkspaceAutoReloadUpdate(
-                enabled: enabled, thresholdMicro: thresholdMicro, amountMicro: amountMicro,
+                enabled: enabled,
+                thresholdMicro: thresholdMicro,
+                amountMicro: amountMicro,
                 monthlyCapMicro: monthlyCapMicro
             )
             let response = try await self.client.updateWorkspaceAutoReload(id: workspaceId, update)
             saved = response
             if self.selectedWorkspaceId == workspaceId { self.autoReload = response }
             await WorkspaceAuditLog.shared.recordOwnerAction(
-                .poolAutoReloadChanged, workspaceId: workspaceId,
+                .poolAutoReloadChanged,
+                workspaceId: workspaceId,
                 details: [
                     "enabled": enabled ? "true" : "false",
                     "threshold_micro": String(thresholdMicro),
@@ -777,13 +799,17 @@ final class WorkspacesService: ObservableObject {
                 throw OsaurusRouterAPIError.invalidResponse
             }
             topupId = response.topupId
-            let before = self.selectedWorkspaceId == workspaceId
+            let before =
+                self.selectedWorkspaceId == workspaceId
                 ? (self.poolBalance?.balanceMicro ?? self.detail?.balanceMicro).flatMap(Int64.init)
                 : nil
             self.beginConfirmation(
                 .topUp(
-                    workspaceId: workspaceId, topupId: response.topupId,
-                    amountMicro: amountMicro, balanceBeforeMicro: before, startedAt: Date()
+                    workspaceId: workspaceId,
+                    topupId: response.topupId,
+                    amountMicro: amountMicro,
+                    balanceBeforeMicro: before,
+                    startedAt: Date()
                 )
             )
             self.openURL(url)
@@ -827,12 +853,16 @@ final class WorkspacesService: ObservableObject {
         var minted: OsaurusRouterWorkspaceInvite?
         let ok = await performMutation(key: "invite.create") {
             let invite = try await self.client.createWorkspaceInvite(
-                id: workspaceId, role: role, maxUses: clampedUses
+                id: workspaceId,
+                role: role,
+                maxUses: clampedUses
             )
             minted = invite
             // Invite id + role + uses only — never the code or URL.
             await WorkspaceAuditLog.shared.recordOwnerAction(
-                .inviteCreated, workspaceId: workspaceId, target: invite.id,
+                .inviteCreated,
+                workspaceId: workspaceId,
+                target: invite.id,
                 details: ["role": role.rawValue, "max_uses": String(clampedUses)]
             )
             if self.selectedWorkspaceId == workspaceId {
@@ -848,7 +878,9 @@ final class WorkspacesService: ObservableObject {
         await performMutation(key: "invite.\(inviteId)") {
             try await self.client.revokeWorkspaceInvite(id: workspaceId, inviteId: inviteId)
             await WorkspaceAuditLog.shared.recordOwnerAction(
-                .inviteRevoked, workspaceId: workspaceId, target: inviteId
+                .inviteRevoked,
+                workspaceId: workspaceId,
+                target: inviteId
             )
             self.workspaceInvites.removeAll { $0.id == inviteId }
         }
@@ -868,7 +900,10 @@ final class WorkspacesService: ObservableObject {
             var details = ["role": role.rawValue]
             if let previousRole { details["previous_role"] = previousRole }
             await WorkspaceAuditLog.shared.recordOwnerAction(
-                .memberRoleChanged, workspaceId: workspaceId, target: accountId, details: details
+                .memberRoleChanged,
+                workspaceId: workspaceId,
+                target: accountId,
+                details: details
             )
             let generation = self.selectionGeneration
             if let fetched = try? await self.client.workspaceMembers(id: workspaceId),
@@ -941,8 +976,10 @@ final class WorkspacesService: ObservableObject {
             )
             _ = try await self.client.shareWorkspaceAgent(id: workspaceId, body: body)
             await WorkspaceAuditLog.shared.recordOwnerAction(
-                .agentShared, workspaceId: workspaceId,
-                agentAddress: agentAddress, agentName: name
+                .agentShared,
+                workspaceId: workspaceId,
+                agentAddress: agentAddress,
+                agentName: name
             )
             // Pool billing is the default for an agent you share: bind it now
             // so the very first chat after sharing draws from the pool, not
@@ -974,8 +1011,10 @@ final class WorkspacesService: ObservableObject {
                 ?? WorkspaceRosterStore.shared.agent(forAddress: agentAddress)?.displayName
             try await self.client.unshareWorkspaceAgent(id: workspaceId, agentAddress: agentAddress)
             await WorkspaceAuditLog.shared.recordOwnerAction(
-                .agentUnshared, workspaceId: workspaceId,
-                agentAddress: agentAddress, agentName: sharedName
+                .agentUnshared,
+                workspaceId: workspaceId,
+                agentAddress: agentAddress,
+                agentName: sharedName
             )
             self.workspaceAgents.removeAll {
                 $0.agentAddress.lowercased() == agentAddress.lowercased()
@@ -988,7 +1027,8 @@ final class WorkspacesService: ObservableObject {
             // Revocation contract: immediately kill workspace-minted keys for this
             // agent so a redeemed teammate session ends with the share.
             await WorkspaceAgentAccessHost.shared.invalidateKeys(
-                workspaceId: workspaceId, agentAddress: agentAddress
+                workspaceId: workspaceId,
+                agentAddress: agentAddress
             )
             self.publishRoster(workspaceId: workspaceId)
         }
@@ -1045,7 +1085,9 @@ final class WorkspacesService: ObservableObject {
             makeProof
             ?? { workspaceId in
                 try await WorkspacesAgentProofSigner.makeProof(
-                    workspaceId: workspaceId, agentAddress: newAddress, agentKeyPath: keyPath
+                    workspaceId: workspaceId,
+                    agentAddress: newAddress,
+                    agentKeyPath: keyPath
                 )
             }
 
@@ -1079,11 +1121,14 @@ final class WorkspacesService: ObservableObject {
             }
 
             await WorkspaceAgentAccessHost.shared.invalidateKeys(
-                workspaceId: workspaceId, agentAddress: previousAddress
+                workspaceId: workspaceId,
+                agentAddress: previousAddress
             )
             await WorkspaceAuditLog.shared.recordOwnerAction(
-                .agentShared, workspaceId: workspaceId,
-                agentAddress: newAddress, agentName: agent.name,
+                .agentShared,
+                workspaceId: workspaceId,
+                agentAddress: newAddress,
+                agentName: agent.name,
                 details: ["rotated_from": previousLower]
             )
             result.migrated.append(workspaceId)
@@ -1191,7 +1236,9 @@ final class WorkspacesService: ObservableObject {
     }
 
     nonisolated static func setBillingOptOut(
-        agentId: UUID, optedOut: Bool, defaults: UserDefaults = .standard
+        agentId: UUID,
+        optedOut: Bool,
+        defaults: UserDefaults = .standard
     ) {
         var ids = billingOptOutAgentIds(defaults: defaults)
         if optedOut {
@@ -1247,7 +1294,10 @@ final class WorkspacesService: ObservableObject {
                 })
             else { continue }
             setBillingWorkspace(
-                agentId: agent.id, agentAddress: lowered, workspaceId: roster.workspaceId, defaults: defaults
+                agentId: agent.id,
+                agentAddress: lowered,
+                workspaceId: roster.workspaceId,
+                defaults: defaults
             )
             bound.insert(agent.id)
         }
@@ -1289,7 +1339,10 @@ final class WorkspacesService: ObservableObject {
         defaults: UserDefaults = .standard
     ) {
         setBillingWorkspace(
-            agentId: agentId, agentAddress: agentAddress, workspaceId: workspaceId, defaults: defaults
+            agentId: agentId,
+            agentAddress: agentAddress,
+            workspaceId: workspaceId,
+            defaults: defaults
         )
         setBillingOptOut(agentId: agentId, optedOut: workspaceId == nil, defaults: defaults)
     }
@@ -1300,7 +1353,10 @@ final class WorkspacesService: ObservableObject {
         guard let agent = AgentManager.shared.agent(byAddress: agentAddress) else { return }
         let hadEntry = billingWorkspaceId(forAgentAddress: agentAddress) != nil
         Self.setBillingWorkspace(
-            agentId: agent.id, agentAddress: agentAddress, workspaceId: nil, defaults: defaults
+            agentId: agent.id,
+            agentAddress: agentAddress,
+            workspaceId: nil,
+            defaults: defaults
         )
         if hadEntry { objectWillChange.send() }
     }
@@ -1317,7 +1373,10 @@ final class WorkspacesService: ObservableObject {
         else { return }
         let previous = billingWorkspaceId(forAgentAddress: agentAddress)
         Self.recordBillingToggle(
-            agentId: agent.id, agentAddress: agentAddress, workspaceId: workspaceId, defaults: defaults
+            agentId: agent.id,
+            agentAddress: agentAddress,
+            workspaceId: workspaceId,
+            defaults: defaults
         )
         objectWillChange.send()
         // Record under whichever workspace(s) the change touches: the one
@@ -1361,13 +1420,17 @@ final class WorkspacesService: ObservableObject {
     }
 
     func fetchWorkspaceUsage(
-        workspaceId: String, limit: Int = 50, cursor: String? = nil
+        workspaceId: String,
+        limit: Int = 50,
+        cursor: String? = nil
     ) async throws -> OsaurusRouterUsageResponse {
         try await client.workspaceUsage(id: workspaceId, limit: limit, cursor: cursor)
     }
 
     func fetchWorkspaceTransactions(
-        workspaceId: String, limit: Int = 50, cursor: String? = nil
+        workspaceId: String,
+        limit: Int = 50,
+        cursor: String? = nil
     ) async throws -> OsaurusRouterTransactionsResponse {
         try await client.workspaceTransactions(id: workspaceId, limit: limit, cursor: cursor)
     }
@@ -1486,11 +1549,17 @@ final class WorkspacesService: ObservableObject {
             case .agentLimit:
                 return L("This workspace has reached its shared-agent limit.")
             case .insufficientFunds:
-                return L("This workspace's pool is out of credits. The owner can add credits or turn on auto-reload; otherwise it refills at the next monthly grant.")
+                return L(
+                    "This workspace's pool is out of credits. The owner can add credits or turn on auto-reload; otherwise it refills at the next monthly grant."
+                )
             case .subscriptionInactive:
-                return L("This workspace isn't active right now. Inviting, sharing, and pool billing are paused until the owner reactivates it.")
+                return L(
+                    "This workspace isn't active right now. Inviting, sharing, and pool billing are paused until the owner reactivates it."
+                )
             case .trialWorkspaceLimit:
-                return L("Your free trial covers one workspace. You can add more once the trial converts to a paid subscription.")
+                return L(
+                    "Your free trial covers one workspace. You can add more once the trial converts to a paid subscription."
+                )
             case .inviteInvalid:
                 return L("That invite link isn't valid. Ask your teammate for a new one.")
             case .inviteUsed:
@@ -1506,11 +1575,17 @@ final class WorkspacesService: ObservableObject {
             case .activationCodeExpired:
                 return L("This activation link has expired. Start a new subscription on osaurus.ai.")
             case .activationConflict:
-                return L("This account already has a workspace subscription. Add workspaces from the Workspaces tab, or activate the code on another account.")
+                return L(
+                    "This account already has a workspace subscription. Add workspaces from the Workspaces tab, or activate the code on another account."
+                )
             case .invalidAutoReloadConfig:
-                return L("Auto-reload amounts are out of range: threshold $1–$500, reload $5–$500, cap at least the reload amount, all in whole cents.")
+                return L(
+                    "Auto-reload amounts are out of range: threshold $1–$500, reload $5–$500, cap at least the reload amount, all in whole cents."
+                )
             case .autoReloadUnavailable:
-                return L("Auto-reload needs an active workspace subscription with a saved card. Add credits once or update the card under Manage billing, then try again.")
+                return L(
+                    "Auto-reload needs an active workspace subscription with a saved card. Add credits once or update the card under Manage billing, then try again."
+                )
             }
         }
         switch error {
@@ -1620,7 +1695,9 @@ final class WorkspacesService: ObservableObject {
             if selectedWorkspaceId == id { detail = refreshed }
             guard refreshed.isActive else { return false }
             await WorkspaceAuditLog.shared.recordOwnerAction(
-                .workspaceReactivated, workspaceId: id, details: ["name": refreshed.name, "via": "checkout"]
+                .workspaceReactivated,
+                workspaceId: id,
+                details: ["name": refreshed.name, "via": "checkout"]
             )
             await refreshWorkspaces()
             if selectedWorkspaceId == id {
@@ -1641,12 +1718,16 @@ final class WorkspacesService: ObservableObject {
             if selectedWorkspaceId == id { poolBalance = balance }
             let ledger = try? await client.workspaceTransactions(id: id, limit: 10)
             let landed = Self.topUpLanded(
-                balance: balance, before: before, amountMicro: amountMicro,
-                startedAt: startedAt, ledger: ledger
+                balance: balance,
+                before: before,
+                amountMicro: amountMicro,
+                startedAt: startedAt,
+                ledger: ledger
             )
             guard landed else { return false }
             await WorkspaceAuditLog.shared.recordOwnerAction(
-                .poolTopUp, workspaceId: id,
+                .poolTopUp,
+                workspaceId: id,
                 details: ["topup_id": topupId, "amount_micro": String(amountMicro)]
             )
             if selectedWorkspaceId == id {

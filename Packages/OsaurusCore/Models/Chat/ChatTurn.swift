@@ -18,7 +18,8 @@ enum RemoteToolStreamEnd: String, Sendable, Equatable {
     var localizedUnobservedResult: String {
         switch self {
         case .completed: return L("The remote stream ended without a tool result. Its outcome is unknown.")
-        case .failed: return L("The remote connection failed before a tool result was received. Its outcome is unknown.")
+        case .failed:
+            return L("The remote connection failed before a tool result was received. Its outcome is unknown.")
         case .cancelled: return L("Stopped waiting before a remote tool result was received. Its outcome is unknown.")
         }
     }
@@ -605,8 +606,7 @@ final class ChatTurn: ObservableObject, Identifiable {
         guard !remoteToolActivity.isEmpty else { return }
         var changed = false
         for call in remoteToolActivity
-            where remoteToolResults[call.id] == nil && remoteToolUnobservedResults[call.id] == nil
-        {
+        where remoteToolResults[call.id] == nil && remoteToolUnobservedResults[call.id] == nil {
             remoteToolUnobservedResults[call.id] = reason
             changed = true
         }

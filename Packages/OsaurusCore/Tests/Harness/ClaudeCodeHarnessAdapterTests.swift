@@ -146,7 +146,12 @@ struct ClaudeCodeHarnessAdapterTests {
     @Test func textOnlyModeDisablesEveryTool() throws {
         let directory = try HarnessFixtures.temporaryDirectory("claude-text")
         defer { try? FileManager.default.removeItem(at: directory) }
-        let config = ClaudeCodeAgentConfig(mode: .textOnly, allowWrites: true, allowShell: true, allowOsaurusTools: true)
+        let config = ClaudeCodeAgentConfig(
+            mode: .textOnly,
+            allowWrites: true,
+            allowShell: true,
+            allowOsaurusTools: true
+        )
         let (plan, context) = try plan(config, cliPath: "/tmp/osaurus", serverReachable: true, in: directory)
         defer { cleanup(plan) }
         let args = plan.spec.arguments
@@ -355,11 +360,17 @@ struct ClaudeCodeHarnessAdapterTests {
         )
         #expect(
             adapter.retryMode(
-                after: .exited(runtime: "Claude Code", code: 1, stderrTail: "No conversation found with session ID: abc"),
+                after: .exited(
+                    runtime: "Claude Code",
+                    code: 1,
+                    stderrTail: "No conversation found with session ID: abc"
+                ),
                 context: context
             ) == .forceNew
         )
-        #expect(adapter.retryMode(after: .turnFailed(runtime: "Claude Code", detail: "overloaded"), context: context) == nil)
+        #expect(
+            adapter.retryMode(after: .turnFailed(runtime: "Claude Code", detail: "overloaded"), context: context) == nil
+        )
     }
 
     // MARK: - Codec
@@ -384,13 +395,16 @@ struct ClaudeCodeHarnessAdapterTests {
 
     @Test func aResultFrameEndsTheTurn() {
         let codec = ClaudeCodeHarnessCodec(runtimeName: "Claude Code")
-        let (events, replies) = HarnessFixtures.decodeAll(codec, [
-            #"{"type":"system","subtype":"init","session_id":"s","tools":[]}"#,
-            #"{"type":"stream_event","event":{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"plan"}}}"#,
-            #"{"type":"stream_event","event":{"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"done"}}}"#,
-            #"{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"done"}]}}"#,
-            #"{"type":"result","subtype":"success","is_error":false,"duration_ms":1000,"result":"done","usage":{"output_tokens":20}}"#,
-        ])
+        let (events, replies) = HarnessFixtures.decodeAll(
+            codec,
+            [
+                #"{"type":"system","subtype":"init","session_id":"s","tools":[]}"#,
+                #"{"type":"stream_event","event":{"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":"plan"}}}"#,
+                #"{"type":"stream_event","event":{"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"done"}}}"#,
+                #"{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"done"}]}}"#,
+                #"{"type":"result","subtype":"success","is_error":false,"duration_ms":1000,"result":"done","usage":{"output_tokens":20}}"#,
+            ]
+        )
         #expect(replies.isEmpty)
         #expect(events.contains(.reasoning("plan")))
         #expect(events.visibleText == "done", "the assembled assistant frame must not double the text")
@@ -400,9 +414,12 @@ struct ClaudeCodeHarnessAdapterTests {
 
     @Test func anErrorResultFailsTheTurnTyped() {
         let codec = ClaudeCodeHarnessCodec(runtimeName: "Claude Code")
-        let (events, _) = HarnessFixtures.decodeAll(codec, [
-            #"{"type":"result","subtype":"error_during_execution","is_error":true,"result":"Not logged in · Please run /login","duration_ms":5}"#
-        ])
+        let (events, _) = HarnessFixtures.decodeAll(
+            codec,
+            [
+                #"{"type":"result","subtype":"error_during_execution","is_error":true,"result":"Not logged in · Please run /login","duration_ms":5}"#
+            ]
+        )
         guard case .turnFailed(.notAuthenticated) = events.last else {
             Issue.record("expected notAuthenticated, got \(events)")
             return

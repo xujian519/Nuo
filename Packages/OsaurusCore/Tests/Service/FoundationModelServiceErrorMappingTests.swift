@@ -58,7 +58,8 @@ struct FoundationModelServiceErrorMappingTests {
                     // On a 26+ SDK/OS the only reasons are the framework's own.
                     #expect(
                         [.deviceNotEligible, .appleIntelligenceNotEnabled, .modelNotReady, .unknown]
-                            .contains(reason))
+                            .contains(reason)
+                    )
                 } else {
                     #expect(reason == .osTooOld)
                 }
@@ -77,7 +78,8 @@ struct FoundationModelServiceErrorMappingTests {
         let descriptions = Set(reasons.map(\.userDescription))
         #expect(descriptions.count == reasons.count)
         #expect(
-            FoundationUnavailableReason.appleIntelligenceNotEnabled.userDescription.contains("System Settings"))
+            FoundationUnavailableReason.appleIntelligenceNotEnabled.userDescription.contains("System Settings")
+        )
     }
 
     @Test("typed errors pass through mapping; cancellation and unknown errors are untouched")
@@ -110,7 +112,8 @@ struct FoundationModelServiceErrorMappingTests {
                 #expect(mapped == .generation(expected, detail: "detail"))
                 // The generic entry point must reach the same result.
                 let viaGeneric = try #require(
-                    FoundationModelService.mapFrameworkError(framework) as? FoundationModelServiceError)
+                    FoundationModelService.mapFrameworkError(framework) as? FoundationModelServiceError
+                )
                 #expect(viaGeneric == mapped)
                 #expect(mapped.errorDescription?.contains("detail") == true)
             }

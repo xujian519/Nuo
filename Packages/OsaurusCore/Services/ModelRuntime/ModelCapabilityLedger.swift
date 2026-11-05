@@ -147,10 +147,12 @@ enum ModelCapabilityLedger {
         var records: [String: Record] = [:]
         if mtime != nil,
             let data = try? Data(contentsOf: url),
-            let decoded = try? JSONDecoder().decode([String: Record].self, from: data) {
+            let decoded = try? JSONDecoder().decode([String: Record].self, from: data)
+        {
             records = decoded
             ledgerLog.info(
-                "loaded \(records.count, privacy: .public) capability record(s)")
+                "loaded \(records.count, privacy: .public) capability record(s)"
+            )
         }
         cache = CacheBox(records: records, mtime: mtime, checkedURL: url)
         return records
@@ -169,15 +171,20 @@ enum ModelCapabilityLedger {
         let url = fileURL
         var records: [String: Any] = [:]
         if let data = try? Data(contentsOf: url),
-            let existing = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            let existing = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        {
             records = existing
         }
         let encoded = try JSONEncoder().encode(record)
         records[normalize(modelName)] = try JSONSerialization.jsonObject(with: encoded)
         try FileManager.default.createDirectory(
-            at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
         let data = try JSONSerialization.data(
-            withJSONObject: records, options: [.prettyPrinted, .sortedKeys])
+            withJSONObject: records,
+            options: [.prettyPrinted, .sortedKeys]
+        )
         try data.write(to: url, options: .atomic)
     }
 }

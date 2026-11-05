@@ -439,7 +439,8 @@ struct DatabaseTablesView: View {
                 systemImage: "square.and.arrow.down",
                 isBusy: isImporting,
                 disabled: isImporting || selectedTableIsSystem,
-                help: "Import a CSV, TSV, JSON, or JSONL file into this table. You can also drag a file onto this screen."
+                help:
+                    "Import a CSV, TSV, JSON, or JSONL file into this table. You can also drag a file onto this screen."
             ) {
                 presentImportPanel()
             }

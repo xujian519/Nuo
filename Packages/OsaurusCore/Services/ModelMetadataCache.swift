@@ -45,4 +45,3 @@ final class ModelMetadataCache<Value: Sendable>: @unchecked Sendable {
         lock.unlock()
     }
 }
-

@@ -124,7 +124,10 @@ func highlightCode(
     if cache, let cached = highlightCache.object(forKey: key) { return cached }
     guard
         let highlighted = sharedHighlightr?.highlight(
-            code, as: language?.lowercased(), fastRender: true)
+            code,
+            as: language?.lowercased(),
+            fastRender: true
+        )
     else { return nil }
     if cache {
         highlightCache.setObject(highlighted, forKey: key, cost: code.utf16.count)

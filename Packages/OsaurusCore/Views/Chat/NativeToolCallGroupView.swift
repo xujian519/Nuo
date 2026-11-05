@@ -57,7 +57,9 @@ enum ExpandFade {
     ///     cadence reads sluggish on runs with many of them.
     ///   - duration: per-section fade/drift length.
     static func run(
-        _ view: NSView, interval: TimeInterval = 0.12, duration: TimeInterval = 0.3
+        _ view: NSView,
+        interval: TimeInterval = 0.12,
+        duration: TimeInterval = 0.3
     ) {
         guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
             view.alphaValue = 1
@@ -1129,7 +1131,8 @@ final class NativeToolCallRowView: NSView {
             // A completed call that returned an error keeps its red node but must
             // not claim success in the title — reflect the failure verdict here.
             let failed = item.result.map { isErrorResult($0, callId: item.call.id) } ?? false
-            let past = item.unobservedResult != nil
+            let past =
+                item.unobservedResult != nil
                 ? "\(item.call.function.name) · \(L("Result not received"))"
                 : ToolDisplayName.friendly(
                     for: item.call.function.name,
@@ -1411,7 +1414,9 @@ final class NativeToolCallRowView: NSView {
         rv.isHidden = false
         let textW = max(0, width - Self.sectionMarkdownWidthDeduction)
         let resultMarkdown = Self.markdownForToolResultDisplay(
-            result, toolName: item.call.function.name)
+            result,
+            toolName: item.call.function.name
+        )
         rv.configure(
             text: resultMarkdown,
             width: textW,
@@ -1445,7 +1450,8 @@ final class NativeToolCallRowView: NSView {
             .sink { [weak self] _ in
                 MainActor.assumeIsolated {
                     guard let self, self.isExpanded, self.currentItemId == toolCallId,
-                        let theme = self.lastConfiguredTheme else { return }
+                        let theme = self.lastConfiguredTheme
+                    else { return }
                     self.applyResultOrLiveState(width: self.currentWidth, theme: theme)
                 }
             }
@@ -1539,7 +1545,8 @@ final class NativeToolCallRowView: NSView {
             .sink { [weak self] _ in
                 MainActor.assumeIsolated {
                     guard let self, self.isExpanded, self.currentItemId == toolCallId,
-                        let theme = self.lastConfiguredTheme else { return }
+                        let theme = self.lastConfiguredTheme
+                    else { return }
                     self.applyResultOrLiveState(width: self.currentWidth, theme: theme)
                 }
             }
@@ -1632,7 +1639,8 @@ final class NativeToolCallRowView: NSView {
     /// This keeps file_read / capability listings readable in the
     /// tool-call card instead of getting buried under a JSON wrapper.
     private static func markdownForToolResultDisplay(
-        _ result: String, toolName: String = ""
+        _ result: String,
+        toolName: String = ""
     ) -> String {
         if ToolEnvelope.isError(result) {
             return result
@@ -1904,7 +1912,11 @@ final class NativeToolCallRowView: NSView {
         chevron.translatesAutoresizingMaskIntoConstraints = false
         chevron.wantsLayer = true
         chevron.image = SymbolImageCache.image(
-            "chevron.right", accessibilityDescription: nil, pointSize: 10, weight: .semibold)
+            "chevron.right",
+            accessibilityDescription: nil,
+            pointSize: 10,
+            weight: .semibold
+        )
         chevron.contentTintColor = .tertiaryLabelColor
         // Down-only scaling + a fixed symbol point size keep the right and
         // down chevrons visually the same size; proportional up-scaling into
@@ -2029,14 +2041,18 @@ final class NativeToolCallRowView: NSView {
             searchSettingsButton.leadingAnchor.constraint(equalTo: nameLabel.trailingAnchor, constant: 10),
             searchSettingsButton.centerYAnchor.constraint(equalTo: categoryBg.centerYAnchor),
             searchSettingsButton.trailingAnchor.constraint(
-                lessThanOrEqualTo: chevron.leadingAnchor, constant: -8),
+                lessThanOrEqualTo: chevron.leadingAnchor,
+                constant: -8
+            ),
 
             // Search links only appear on search rows, which never change
             // files, so this can share the same slot.
             fileChangesButton.leadingAnchor.constraint(equalTo: nameLabel.trailingAnchor, constant: 10),
             fileChangesButton.centerYAnchor.constraint(equalTo: categoryBg.centerYAnchor),
             fileChangesButton.trailingAnchor.constraint(
-                lessThanOrEqualTo: chevron.leadingAnchor, constant: -8),
+                lessThanOrEqualTo: chevron.leadingAnchor,
+                constant: -8
+            ),
 
             chevron.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
             chevron.centerYAnchor.constraint(equalTo: categoryBg.centerYAnchor),
@@ -2362,7 +2378,11 @@ final class NativeToolCallRowView: NSView {
             expanded
             ? SymbolImageCache.rotatedDownChevron(pointSize: 10, weight: .semibold)
             : SymbolImageCache.image(
-                "chevron.right", accessibilityDescription: nil, pointSize: 10, weight: .semibold)
+                "chevron.right",
+                accessibilityDescription: nil,
+                pointSize: 10,
+                weight: .semibold
+            )
     }
 
     @objc private func tapped() { onToggle?() }

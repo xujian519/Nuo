@@ -231,9 +231,10 @@ public final class ExecutionContext: ObservableObject {
 
     /// Begin execution with the given prompt.
     @discardableResult
-    public func start(prompt: String, taskIntent: ChatTaskIntent? = nil, generationOverrides: ChatTurnOverrides? = nil) async -> String? {
-        do { try generationOverrides?.validate(forWorkspaceAgent: workspaceTarget != nil) }
-        catch {
+    public func start(prompt: String, taskIntent: ChatTaskIntent? = nil, generationOverrides: ChatTurnOverrides? = nil)
+        async -> String?
+    {
+        do { try generationOverrides?.validate(forWorkspaceAgent: workspaceTarget != nil) } catch {
             let message = error.localizedDescription
             chatSession.lastStreamError = message
             return message
@@ -247,7 +248,11 @@ public final class ExecutionContext: ObservableObject {
             // of files. The run still executes (the result must reach the
             // watcher log/UI), but the model is told the truth up front so it
             // reports the real problem instead of inventing one.
-            chatSession.send(folderFailure + "\n\n" + prompt, taskIntent: taskIntent, turnOverrides: generationOverrides)
+            chatSession.send(
+                folderFailure + "\n\n" + prompt,
+                taskIntent: taskIntent,
+                turnOverrides: generationOverrides
+            )
             return nil
         }
         chatSession.send(prompt, taskIntent: taskIntent, turnOverrides: generationOverrides)

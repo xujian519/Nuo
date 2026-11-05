@@ -378,10 +378,15 @@ struct AnthropicAPITests {
         #expect(clamped.input_tokens == 0 && clamped.cache_read_input_tokens == 10)
 
         let delta = MessageDeltaEvent(
-            stopReason: "end_turn", outputTokens: 2, inputTokens: 12, cacheReadInputTokens: 6000)
+            stopReason: "end_turn",
+            outputTokens: 2,
+            inputTokens: 12,
+            cacheReadInputTokens: 6000
+        )
         let usage = try #require(
             (try JSONSerialization.jsonObject(with: JSONEncoder().encode(delta)) as? [String: Any])?["usage"]
-                as? [String: Int])
+                as? [String: Int]
+        )
         #expect(usage["cache_read_input_tokens"] == 6000)
         #expect(usage["input_tokens"] == 12)
     }

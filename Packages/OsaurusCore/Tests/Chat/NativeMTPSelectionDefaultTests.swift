@@ -28,13 +28,19 @@ import Testing
                     .init(mode: .auto, draftTokenLimit: 1),
                     .init(mode: .forceOn, dflash2DrafterPath: "/explicit/drafter", explicitDepth: 3),
                 ] {
-                    let oldDefault = settings == .init(mode: .off)
+                    let oldDefault =
+                        settings == .init(mode: .off)
                         || settings == .init(mode: .auto)
                         || settings == .init(mode: .forceOn, explicitDepth: 3)
-                    let expected: VMLXServerMTPSettings = !chosen && owned && oldDefault
+                    let expected: VMLXServerMTPSettings =
+                        !chosen && owned && oldDefault
                         ? .init(mode: .familyDefault) : settings
-                    #expect(NativeMTPSelectionDefault.retiringOwnedDefault(
-                        settings, defaults: defaults) == expected)
+                    #expect(
+                        NativeMTPSelectionDefault.retiringOwnedDefault(
+                            settings,
+                            defaults: defaults
+                        ) == expected
+                    )
                 }
             }
         }
@@ -45,20 +51,33 @@ import Testing
         let defaults = try #require(UserDefaults(suiteName: name))
         defer { defaults.removePersistentDomain(forName: name) }
         NativeMTPSelectionDefault.recordSavedChoice(
-            previous: .init(mode: .off), next: .init(mode: .off),
-            isFamilyDefault: false, defaults: defaults)
+            previous: .init(mode: .off),
+            next: .init(mode: .off),
+            isFamilyDefault: false,
+            defaults: defaults
+        )
         #expect(!defaults.bool(forKey: NativeMTPSelectionDefault.userChoseKey))
         NativeMTPSelectionDefault.recordSavedChoice(
-            previous: .init(mode: .forceOn, explicitDepth: 3), next: .init(mode: .off),
-            isFamilyDefault: true, defaults: defaults)
+            previous: .init(mode: .forceOn, explicitDepth: 3),
+            next: .init(mode: .off),
+            isFamilyDefault: true,
+            defaults: defaults
+        )
         #expect(defaults.bool(forKey: NativeMTPSelectionDefault.familyDefaultKey))
         #expect(!defaults.bool(forKey: NativeMTPSelectionDefault.userChoseKey))
         NativeMTPSelectionDefault.recordSavedChoice(
-            previous: .init(mode: .off), next: .init(mode: .auto),
-            isFamilyDefault: false, defaults: defaults)
+            previous: .init(mode: .off),
+            next: .init(mode: .auto),
+            isFamilyDefault: false,
+            defaults: defaults
+        )
         #expect(defaults.bool(forKey: NativeMTPSelectionDefault.userChoseKey))
         #expect(!defaults.bool(forKey: NativeMTPSelectionDefault.familyDefaultKey))
-        #expect(NativeMTPSelectionDefault.retiringOwnedDefault(
-            .init(mode: .auto), defaults: defaults).mode == .auto)
+        #expect(
+            NativeMTPSelectionDefault.retiringOwnedDefault(
+                .init(mode: .auto),
+                defaults: defaults
+            ).mode == .auto
+        )
     }
 }

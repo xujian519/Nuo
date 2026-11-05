@@ -27,7 +27,7 @@ final class DiskCacheUsageTests: XCTestCase {
         // Mirrors the aggregation in MLXBatchAdapter: max for the gauges.
         var payload = 0
         var maxBytes = 0
-        for _ in 0..<3 {
+        for _ in 0 ..< 3 {
             payload = max(payload, rootBytes)
             maxBytes = max(maxBytes, capBytes)
         }
@@ -105,10 +105,17 @@ final class DiskCacheUsageTests: XCTestCase {
         XCTAssertEqual(merged.diskL2PressureKind, "activeChainTrimmed")
         XCTAssertEqual(merged.lastCacheRestore, restore)
         XCTAssertEqual(BatchDiagnosticsView.pressureValue(merged), "activeChainTrimmed")
-        let unloaded = ProcessLifetimeBatchCounters(snapshot: merged).mergingCounters(into:
-            BatchDiagnosticsSnapshot(
-                pendingCount: 0, activeCount: 0, activeHighWatermark: 0,
-                decodeSplitCount: 0, turboQuantCompressions: 0, isAcceptingRequests: true))
+        let unloaded = ProcessLifetimeBatchCounters(snapshot: merged).mergingCounters(
+            into:
+                BatchDiagnosticsSnapshot(
+                    pendingCount: 0,
+                    activeCount: 0,
+                    activeHighWatermark: 0,
+                    decodeSplitCount: 0,
+                    turboQuantCompressions: 0,
+                    isAcceptingRequests: true
+                )
+        )
         XCTAssertEqual(unloaded.diskL2PressureEventSeq, 5)
         XCTAssertNil(unloaded.diskL2PressureKind)
         XCTAssertEqual(BatchDiagnosticsView.pressureValue(unloaded), L("none"))
@@ -141,7 +148,8 @@ final class DiskCacheUsageTests: XCTestCase {
         for jargon in ["prompt checkpoint", "evicted", "re-prefill", "KV"] {
             XCTAssertFalse(
                 text.localizedCaseInsensitiveContains(jargon),
-                "engine jargon '\(jargon)' leaked into the warning: \(text)")
+                "engine jargon '\(jargon)' leaked into the warning: \(text)"
+            )
         }
     }
 

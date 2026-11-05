@@ -447,7 +447,9 @@ private final class HostAPIBridgeHandler: ChannelInboundHandler, RemovableChanne
         do {
             let engine = ChatEngine(source: .plugin)
             let content = try await HostBridgeInference.completeContent(
-                model: model, input: chatMessages, engine: engine
+                model: model,
+                input: chatMessages,
+                engine: engine
             )
             return .ok("{\"content\":\(jsonEscape(content))}")
         } catch {

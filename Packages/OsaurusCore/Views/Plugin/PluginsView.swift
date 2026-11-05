@@ -680,24 +680,24 @@ struct PluginsView: View {
                 GitHubTokenCard()
                 LazyVGrid(columns: responsiveGrid, spacing: 20) {
                     ForEach(Array(filteredPlugins.enumerated()), id: \.element.id) { index, plugin in
-                    PluginCard(
-                        plugin: plugin,
-                        missingPermissions: [],
-                        animationDelay: Double(index) * 0.05,
-                        hasAppeared: hasAppeared,
-                        onSelect: {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                                selectedPlugin = plugin
-                            }
-                        },
-                        onUpgrade: { try await repoService.upgrade(pluginId: plugin.pluginId) },
-                        onUninstall: {
-                            try await repoService.uninstall(pluginId: plugin.pluginId)
-                            reload()
-                        },
-                        onInstall: { try await repoService.install(pluginId: plugin.pluginId) },
-                        onChange: { reload() }
-                    )
+                        PluginCard(
+                            plugin: plugin,
+                            missingPermissions: [],
+                            animationDelay: Double(index) * 0.05,
+                            hasAppeared: hasAppeared,
+                            onSelect: {
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                    selectedPlugin = plugin
+                                }
+                            },
+                            onUpgrade: { try await repoService.upgrade(pluginId: plugin.pluginId) },
+                            onUninstall: {
+                                try await repoService.uninstall(pluginId: plugin.pluginId)
+                                reload()
+                            },
+                            onInstall: { try await repoService.install(pluginId: plugin.pluginId) },
+                            onChange: { reload() }
+                        )
                     }
                 }
             }

@@ -798,7 +798,8 @@
         private func provisionSeatbelt() throws {
             guard SeatbeltSandbox.isSupported else {
                 throw SandboxError.provisionFailed(
-                    "sandbox-exec not found at \(SeatbeltSandbox.sandboxExecPath)")
+                    "sandbox-exec not found at \(SeatbeltSandbox.sandboxExecPath)"
+                )
             }
             let fm = FileManager.default
             for dir in [
@@ -1678,7 +1679,8 @@
             }
             let root = OsaurusPaths.containerWorkspace().path
             let network = SeatbeltSandbox.NetworkPolicy.from(
-                configNetwork: SandboxConfigurationStore.load().network)
+                configNetwork: SandboxConfigurationStore.load().network
+            )
             let profile = SeatbeltSandbox.profile(
                 workspaceRoot: root,
                 tempDir: SeatbeltSandbox.scratchDir,
@@ -1704,7 +1706,8 @@
                     stdoutTee: stdoutTee,
                     stderrTee: stderrTee,
                     onProcessStarted: onProcessStarted
-                ))
+                )
+            )
         }
 
         public func execAsRoot(
@@ -1782,7 +1785,8 @@
                 // servers) are VM-only for now — the return type is the
                 // SDK's LinuxProcess, which has no host equivalent.
                 throw SandboxError.execFailed(
-                    "Interactive sandbox processes require the VM backend (macOS 26 or later)")
+                    "Interactive sandbox processes require the VM backend (macOS 26 or later)"
+                )
             }
             guard let container = linuxContainer else {
                 throw SandboxError.containerNotRunning
@@ -1922,7 +1926,9 @@
         static func bootstrapAgentOnHost(agentName: String, soulSeedBody: String?) throws {
             let root = OsaurusPaths.containerWorkspace().path
             let home = SeatbeltPathMapper.mapToHost(
-                OsaurusPaths.inContainerAgentHome(agentName), workspaceRoot: root)
+                OsaurusPaths.inContainerAgentHome(agentName),
+                workspaceRoot: root
+            )
             let fm = FileManager.default
             try fm.createDirectory(
                 atPath: home + "/plugins",
@@ -1971,7 +1977,9 @@
                 // No Linux user exists — remove the host-side agent home.
                 let root = OsaurusPaths.containerWorkspace().path
                 let home = SeatbeltPathMapper.mapToHost(
-                    OsaurusPaths.inContainerAgentHome(agentName), workspaceRoot: root)
+                    OsaurusPaths.inContainerAgentHome(agentName),
+                    workspaceRoot: root
+                )
                 let fm = FileManager.default
                 guard fm.fileExists(atPath: home) else { return false }
                 try fm.removeItem(atPath: home)
@@ -2392,7 +2400,8 @@
                 )
                 guard r.succeeded, r.stdout.contains("ok") else {
                     throw SandboxError.execFailed(
-                        "workspace write failed (exit \(r.exitCode)): \(r.stderr)")
+                        "workspace write failed (exit \(r.exitCode)): \(r.stderr)"
+                    )
                 }
                 return "workspace read/write OK"
             }
@@ -2733,7 +2742,9 @@
                     if let stepID {
                         Task {
                             await SandboxManager.shared.reportStepBytes(
-                                stepID: stepID, bytes: bytes, total: total
+                                stepID: stepID,
+                                bytes: bytes,
+                                total: total
                             )
                         }
                     } else if total > 0 {
@@ -3113,7 +3124,8 @@
             let shimDigest = SHA256.hash(data: Data(shimScript.utf8))
                 .map { String(format: "%02x", $0) }
                 .joined()
-            let existingDigest = bootstrap.stdout
+            let existingDigest =
+                bootstrap.stdout
                 .trimmingCharacters(in: .whitespacesAndNewlines)
                 .components(separatedBy: "\n")
                 .last ?? ""

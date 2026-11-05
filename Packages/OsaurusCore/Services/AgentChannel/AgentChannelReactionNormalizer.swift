@@ -152,9 +152,9 @@ enum AgentChannelReactionNormalizer {
         let name = String(parts[0])
         let id = String(parts[1])
         guard !name.isEmpty,
-              name.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "_" }),
-              !id.isEmpty,
-              id.allSatisfy(\.isNumber)
+            name.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "_" }),
+            !id.isEmpty,
+            id.allSatisfy(\.isNumber)
         else { return nil }
         return "\(name):\(id)"
     }

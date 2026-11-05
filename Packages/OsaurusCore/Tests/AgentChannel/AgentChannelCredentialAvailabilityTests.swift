@@ -49,7 +49,7 @@ struct AgentChannelCredentialAvailabilityTests {
 
         // The scheduled background refresh eventually lands the real value.
         var seeded = false
-        for _ in 0..<200 {
+        for _ in 0 ..< 200 {
             if await MainActor.run(body: { cache.hasCredential(.slack) }) {
                 seeded = true
                 break
@@ -87,7 +87,7 @@ struct AgentChannelCredentialAvailabilityTests {
         recorder.set(value: true)
         cache.invalidate(.telegram)
         var updated = false
-        for _ in 0..<200 {
+        for _ in 0 ..< 200 {
             if await MainActor.run(body: { cache.hasCredential(.telegram) }) {
                 updated = true
                 break
@@ -105,7 +105,7 @@ struct AgentChannelCredentialAvailabilityTests {
 
         cache.refreshNow(.imessage)
         let baseline = recorder.count
-        for _ in 0..<10 {
+        for _ in 0 ..< 10 {
             _ = await MainActor.run { cache.hasCredential(.imessage) }
         }
         // Give any (incorrectly) scheduled refresh a chance to run.

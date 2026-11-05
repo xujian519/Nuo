@@ -196,7 +196,8 @@ public final class TranscriptionCleanupService {
     }
 
     /// Compact chat-completion-shaped body so the Prompt tab renders it.
-    private static func requestBodyJSON(messages: [ChatMessage], model: String, params: GenerationParameters) -> String? {
+    private static func requestBodyJSON(messages: [ChatMessage], model: String, params: GenerationParameters) -> String?
+    {
         var payload: [String: Any] = [
             "model": model,
             "messages": messages.map { ["role": $0.role, "content": $0.content ?? ""] },

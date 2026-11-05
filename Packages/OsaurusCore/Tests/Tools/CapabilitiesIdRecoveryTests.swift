@@ -20,7 +20,8 @@ struct CapabilitiesIdRecoveryTests {
     func schemaArrayPassesThrough() {
         #expect(
             CapabilitiesTool.recoveredIds(from: ["ids": ["tool/a", " skill/b "]])
-                == ["tool/a", "skill/b"])
+                == ["tool/a", "skill/b"]
+        )
         #expect(CapabilitiesTool.recoveredIds(from: ["ids": [" ", ""]]) == nil)
         #expect(CapabilitiesTool.recoveredIds(from: ["ids": [String]()]) == nil)
     }
@@ -29,24 +30,29 @@ struct CapabilitiesIdRecoveryTests {
     func stringShapesRecovered() {
         #expect(
             CapabilitiesTool.recoveredIds(from: ["ids": "plugin/browser"])
-                == ["plugin/browser"])
+                == ["plugin/browser"]
+        )
         #expect(
             CapabilitiesTool.recoveredIds(from: ["ids": "[\"tool/a\",\"tool/b\"]"])
-                == ["tool/a", "tool/b"])
+                == ["tool/a", "tool/b"]
+        )
     }
 
     @Test("the singular id spelling is accepted, string or array")
     func singularSpellingAccepted() {
         #expect(
             CapabilitiesTool.recoveredIds(from: ["id": "skill/notes"])
-                == ["skill/notes"])
+                == ["skill/notes"]
+        )
         #expect(
             CapabilitiesTool.recoveredIds(from: ["id": ["tool/x"]])
-                == ["tool/x"])
+                == ["tool/x"]
+        )
         // Plural wins when both are present.
         #expect(
             CapabilitiesTool.recoveredIds(from: ["ids": ["tool/a"], "id": "tool/b"])
-                == ["tool/a"])
+                == ["tool/a"]
+        )
     }
 
     @Test("no id-shaped argument means nil - the caller lists instead of rejecting")
@@ -59,17 +65,20 @@ struct CapabilitiesIdRecoveryTests {
         // listing (the loop-breaker), not an invalid_args envelope the model
         // will re-issue verbatim.
         let here = URL(fileURLWithPath: #filePath)
-        let root = here
+        let root =
+            here
             .deletingLastPathComponent()  // Tools/
             .deletingLastPathComponent()  // Tests/
             .deletingLastPathComponent()  // OsaurusCore/
         let source = try String(
             contentsOf: root.appendingPathComponent("Tools/CapabilityTools.swift"),
-            encoding: .utf8)
+            encoding: .utf8
+        )
         #expect(!source.contains("Provide either a non-empty `query` or non-empty `ids`."))
         #expect(
             source.components(
                 separatedBy: "CapabilitiesDiscoverTool.listEnabledCapabilities"
-            ).count >= 3)
+            ).count >= 3
+        )
     }
 }

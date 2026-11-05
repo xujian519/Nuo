@@ -88,8 +88,12 @@ struct TemplateImportSheet: View {
             Button {
                 TemplateFileExport.chooseFile(onText: parse, onError: { parseError = $0 })
             } label: {
-                Label { Text("Choose File…", bundle: .module) } icon: { Image(systemName: "folder") }
-                    .font(.system(size: 12, weight: .medium))
+                Label {
+                    Text("Choose File…", bundle: .module)
+                } icon: {
+                    Image(systemName: "folder")
+                }
+                .font(.system(size: 12, weight: .medium))
             }
             .buttonStyle(SecondaryButtonStyle())
         }
@@ -98,7 +102,8 @@ struct TemplateImportSheet: View {
             RoundedRectangle(cornerRadius: 12)
                 .strokeBorder(
                     isDropTargeted ? theme.accentColor : theme.inputBorder,
-                    style: StrokeStyle(lineWidth: 1.5, dash: [6, 5]))
+                    style: StrokeStyle(lineWidth: 1.5, dash: [6, 5])
+                )
         )
         .onDrop(of: [.fileURL], isTargeted: $isDropTargeted) { providers in
             TemplateFileExport.loadDroppedFile(providers, onText: parse, onError: { parseError = $0 })
@@ -114,18 +119,23 @@ struct TemplateImportSheet: View {
             note(
                 "arrow.up.circle",
                 L("Updates \"\(template.name)\" from version \(from) to \(template.version)."),
-                tint: theme.infoColor)
+                tint: theme.infoColor
+            )
         case .older(let latest)?:
             note(
                 "clock.arrow.circlepath",
                 L("You already have version \(latest). This older version is added to its history."),
-                tint: theme.secondaryText)
+                tint: theme.secondaryText
+            )
         case .signerMismatch(let address)?:
             VStack(alignment: .leading, spacing: 8) {
                 note(
                     "exclamationmark.triangle.fill",
-                    L("Your copy of this template is signed by \(SharedAgentIdentity.shortAddress(address)) and this file is not. It can only be imported as a copy."),
-                    tint: theme.warningColor)
+                    L(
+                        "Your copy of this template is signed by \(SharedAgentIdentity.shortAddress(address)) and this file is not. It can only be imported as a copy."
+                    ),
+                    tint: theme.warningColor
+                )
                 StyledTextField(placeholder: L("Name for the copy"), text: $copyName, icon: "textformat")
             }
         case .conflict?:
@@ -133,7 +143,8 @@ struct TemplateImportSheet: View {
                 note(
                     "exclamationmark.triangle.fill",
                     L("Version \(template.version) of this template is already here with different content."),
-                    tint: theme.warningColor)
+                    tint: theme.warningColor
+                )
                 Picker("", selection: $keepBoth) {
                     Text("Keep both", bundle: .module).tag(true)
                     Text("Replace", bundle: .module).tag(false)
@@ -180,7 +191,8 @@ struct TemplateImportSheet: View {
                 label: keepBoth ? "Import Copy" : "Replace",
                 isEnabled: !keepBoth || !name.isEmpty,
                 isDestructive: !keepBoth,
-                handler: performImport)
+                handler: performImport
+            )
         case .signerMismatch:
             let name = copyName.trimmingCharacters(in: .whitespacesAndNewlines)
             return AgentSheetFooter.Action(label: "Import Copy", isEnabled: !name.isEmpty, handler: performImport)
@@ -195,7 +207,8 @@ struct TemplateImportSheet: View {
             let template = try Template.parse(text)
             if let expectedKind, template.kind != expectedKind {
                 parsed = nil
-                parseError = TemplateError.wrongKind(expected: expectedKind, got: template.kind.rawValue).localizedDescription
+                parseError =
+                    TemplateError.wrongKind(expected: expectedKind, got: template.kind.rawValue).localizedDescription
                 return
             }
             parsed = template

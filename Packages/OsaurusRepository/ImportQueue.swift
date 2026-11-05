@@ -260,7 +260,10 @@ public enum ImportQueue {
 
     private static func ensurePrivateDirectory(_ url: URL) throws {
         try FileManager.default.createDirectory(
-            at: url, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+            at: url,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: 0o700]
+        )
     }
 
     // MARK: Enqueue
@@ -364,7 +367,9 @@ public enum ImportQueue {
     public static func saveReceipts(_ receipts: [ImportReceipt]) throws {
         try ensurePrivateDirectory(root())
         let sorted = receipts.sorted {
-            ($0.bundleId, $0.kind.rawValue, $0.name.lowercased()) < ($1.bundleId, $1.kind.rawValue, $1.name.lowercased())
+            ($0.bundleId, $0.kind.rawValue, $0.name.lowercased()) < (
+                $1.bundleId, $1.kind.rawValue, $1.name.lowercased()
+            )
         }
         try encoder().encode(ReceiptFile(version: 1, receipts: sorted)).write(to: receiptsURL(), options: .atomic)
     }
@@ -405,7 +410,10 @@ extension OsaurusBundle {
             else { return nil }
             hasher.update(data: data)
         case .harnessRuntime:
-            guard let raw = try? rawHarnessRuntimeEntries()[name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()],
+            guard
+                let raw = try? rawHarnessRuntimeEntries()[
+                    name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                ],
                 let data = try? JSONSerialization.data(withJSONObject: raw, options: [.sortedKeys])
             else { return nil }
             hasher.update(data: data)

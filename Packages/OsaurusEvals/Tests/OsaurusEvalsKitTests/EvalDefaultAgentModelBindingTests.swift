@@ -27,8 +27,10 @@ extension EvalStorageIsolationTests {
         @Test func pinsWorkerInheritanceWithoutChangingGenerationSettingsAndRestoresDisk() async throws {
             try await withStore {
                 let original = DefaultAgentConfiguration(
-                    systemPrompt: "Keep existing behavior", defaultModel: "previous/model",
-                    temperature: 0.42, maxTokens: 1234
+                    systemPrompt: "Keep existing behavior",
+                    defaultModel: "previous/model",
+                    temperature: 0.42,
+                    maxTokens: 1234
                 )
                 DefaultAgentConfigurationStore.save(original)
                 let value = await EvalDefaultAgentModelBinding.run(model: "eval/provider-model") {

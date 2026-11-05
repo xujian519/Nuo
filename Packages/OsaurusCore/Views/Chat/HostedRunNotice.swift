@@ -73,9 +73,11 @@ struct HostedRunNotice: View {
             }
         } else {
             noticeRow(tint: theme.secondaryText) {
-                Image(systemName: isFromPairedPhone ? "iphone" : isWorkspace ? "rectangle.3.group.fill" : "person.2.fill")
-                    .font(.system(size: CGFloat(theme.captionSize), weight: .semibold))
-                    .foregroundColor(theme.secondaryText)
+                Image(
+                    systemName: isFromPairedPhone ? "iphone" : isWorkspace ? "rectangle.3.group.fill" : "person.2.fill"
+                )
+                .font(.system(size: CGFloat(theme.captionSize), weight: .semibold))
+                .foregroundColor(theme.secondaryText)
                 Text(readOnlyText)
                     .font(theme.font(size: CGFloat(theme.captionSize), weight: .medium))
                     .foregroundColor(theme.primaryText)

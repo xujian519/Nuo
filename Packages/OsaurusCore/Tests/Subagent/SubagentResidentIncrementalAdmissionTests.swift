@@ -32,13 +32,24 @@ struct SubagentResidentIncrementalAdmissionTests {
         )
     }
 
-    private func plan(_ facts: SubagentBatchMemoryFacts, jobs: Int = 1,
-                      ceiling: Int = 1, ramSafety: Bool = true) -> SubagentBatchAdmissionPlan {
-        SubagentBatchAdmissionPlanner.plan(.init(
-            localJobCount: jobs, remoteJobCount: 0, agentParallelLimit: ceiling,
-            engineParallelLimit: ceiling, continuousBatchingEnabled: true,
-            ramSafetyEnabled: ramSafety, failClosedWhenEstimateUnknown: true, memory: facts
-        ))
+    private func plan(
+        _ facts: SubagentBatchMemoryFacts,
+        jobs: Int = 1,
+        ceiling: Int = 1,
+        ramSafety: Bool = true
+    ) -> SubagentBatchAdmissionPlan {
+        SubagentBatchAdmissionPlanner.plan(
+            .init(
+                localJobCount: jobs,
+                remoteJobCount: 0,
+                agentParallelLimit: ceiling,
+                engineParallelLimit: ceiling,
+                continuousBatchingEnabled: true,
+                ramSafetyEnabled: ramSafety,
+                failClosedWhenEstimateUnknown: true,
+                memory: facts
+            )
+        )
     }
 
     @Test("three singles then sequential children reuse the resident model at the reporter byte count")
@@ -46,8 +57,10 @@ struct SubagentResidentIncrementalAdmissionTests {
         // The reporter supplied bytes, not a kernel pressure level. Test the
         // normal and unknown-pressure arms separately instead of inventing it.
         let admission = SubagentAdmission(pollNanoseconds: 1_000_000)
-        for available: UInt64 in [3_758_096_384, 3_758_096_384, 3_758_096_384,
-                                  reporterAvailable, reporterAvailable] {
+        for available: UInt64 in [
+            3_758_096_384, 3_758_096_384, 3_758_096_384,
+            reporterAvailable, reporterAvailable,
+        ] {
             let decision = plan(facts(available: available))
             #expect(decision.localCapacity == 1)
             #expect(decision.incrementalWeightChargeBytes == 0)
@@ -55,10 +68,14 @@ struct SubagentResidentIncrementalAdmissionTests {
             #expect(decision.memoryDiagnostics["os_reserve_bytes"] as? UInt64 == 0)
             #expect(decision.memoryDiagnostics["allocator_allowance_bytes"] as? UInt64 == allocatorAllowance)
             if decision.localCapacity > 0 {
-                #expect(await admission.reserveLocalInPlace(
-                    modelKey: "gemma-4-e2b-it-8bit", requestedSlots: 1,
-                    slotCapacity: decision.localCapacity, timeoutSeconds: 0.05
-                ) == .admitted(slots: 1))
+                #expect(
+                    await admission.reserveLocalInPlace(
+                        modelKey: "gemma-4-e2b-it-8bit",
+                        requestedSlots: 1,
+                        slotCapacity: decision.localCapacity,
+                        timeoutSeconds: 0.05
+                    ) == .admitted(slots: 1)
+                )
                 await admission.releaseLocalInPlace(modelKey: "gemma-4-e2b-it-8bit", slots: 1)
             }
             #expect(await admission.snapshot().inPlace == 0)
@@ -80,10 +97,12 @@ struct SubagentResidentIncrementalAdmissionTests {
 
     @Test("insufficient bytes, unknown samples, model budgets and cold loads still refuse")
     func unsafeRequestsStillRefuse() {
-        for sample in [facts(available: allocatorAllowance + child - 1), facts(available: nil),
-                       facts(budget: 5_899_232_198 + allocatorAllowance + child - 1), facts(resident: false),
-                       facts(bounded: false), facts(budget: nil), facts(allocator: nil),
-                       facts(allocator: UInt64.max)] {
+        for sample in [
+            facts(available: allocatorAllowance + child - 1), facts(available: nil),
+            facts(budget: 5_899_232_198 + allocatorAllowance + child - 1), facts(resident: false),
+            facts(bounded: false), facts(budget: nil), facts(allocator: nil),
+            facts(allocator: UInt64.max),
+        ] {
             #expect(plan(sample).localCapacity == 0)
         }
         #expect(plan(facts(available: allocatorAllowance + child)).localCapacity == 1)
@@ -104,8 +123,12 @@ struct SubagentResidentIncrementalAdmissionTests {
         var trims = 0
         let before = facts(budget: 5_899_232_198 + allocatorAllowance + child - 1)
         let result = await SubagentBatchAdmissionPlanner.memoryFactsAfterReclaimingIfNeeded(
-            ramSafetyEnabled: true, sample: { before },
-            reclaim: { trims += 1; return true }, waitForPostReclaimSample: {}
+            ramSafetyEnabled: true,
+            sample: { before },
+            reclaim: {
+                trims += 1; return true
+            },
+            waitForPostReclaimSample: {}
         )
         #expect(result == before)
         #expect(trims == 0)
@@ -131,7 +154,9 @@ struct SubagentResidentIncrementalAdmissionTests {
                 samples += 1
                 return facts(pressure: samples == 1 ? .warning : .normal)
             },
-            reclaim: { trims += 1; return true },
+            reclaim: {
+                trims += 1; return true
+            },
             waitForPostReclaimSample: {}
         )
         #expect(samples == 2)

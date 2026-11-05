@@ -133,11 +133,14 @@ struct AgentTemplateParseTests {
     @Test
     func wrongFormat_and_newerVersion_areRejected() {
         #expect(throws: AgentTemplateError.self) {
-            _ = try AgentTemplate.parse(#"{"format": "osaurus.knowledge-template", "name": "K", "agent": {"name": "K"}}"#)
+            _ = try AgentTemplate.parse(
+                #"{"format": "osaurus.knowledge-template", "name": "K", "agent": {"name": "K"}}"#
+            )
         }
         #expect(throws: AgentTemplateError.unsupportedVersion(7)) {
             _ = try AgentTemplate.parse(
-                #"{"format": "osaurus.template", "format_version": 7, "name": "K", "agent": {"name": "K"}}"#)
+                #"{"format": "osaurus.template", "format_version": 7, "name": "K", "agent": {"name": "K"}}"#
+            )
         }
     }
 
@@ -182,11 +185,15 @@ struct AgentTemplateParseTests {
         subagents.enabled = false
         entry.subagents = subagents
         let template = AgentTemplate(
-            name: "Sub Agent", agent: entry, summary: "Small worker",
-            author: "me", createdAt: Date(timeIntervalSince1970: 1_800_000_000),
+            name: "Sub Agent",
+            agent: entry,
+            summary: "Small worker",
+            author: "me",
+            createdAt: Date(timeIntervalSince1970: 1_800_000_000),
             availableToOrchestrator: false,
             requirements: TemplateRequirements(
-                models: [ModelRequirement(slot: "main", preferred: "qwen3-coder-30b", strictness: .always)]))
+                models: [ModelRequirement(slot: "main", preferred: "qwen3-coder-30b", strictness: .always)])
+        )
         let json = try template.jsonString()
         let decoded = try AgentTemplate.parse(json)
         #expect(decoded == template)
@@ -311,10 +318,14 @@ struct TemplateStoreTests {
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             try Data("version: 1\nagents: []\n".utf8).write(to: dir.appendingPathComponent("full.yaml"))
             try FileManager.default.createDirectory(
-                at: dir.appendingPathComponent("not-a-uuid"), withIntermediateDirectories: true)
+                at: dir.appendingPathComponent("not-a-uuid"),
+                withIntermediateDirectories: true
+            )
             let junkID = UUID()
             try FileManager.default.createDirectory(
-                at: TemplateStore.templateDirectory(junkID), withIntermediateDirectories: true)
+                at: TemplateStore.templateDirectory(junkID),
+                withIntermediateDirectories: true
+            )
             try Data(#"{"hello": "world"}"#.utf8).write(to: TemplateStore.versionURL(junkID, version: 1))
             #expect(TemplateStore.loadLatest().isEmpty)
         }
@@ -393,8 +404,10 @@ struct AgentTemplateSectionTests {
         caps.knowledgeEnabled = true
         entry.capabilities = caps
         let template = AgentTemplate(
-            name: "Invoice Bot", agent: entry,
-            requirements: TemplateRequirements(knowledge: ["Guides"]))
+            name: "Invoice Bot",
+            agent: entry,
+            requirements: TemplateRequirements(knowledge: ["Guides"])
+        )
 
         let shared = template.excluding([.systemPrompt, .tools, .workingFolder])
         #expect(shared.agent.systemPrompt == nil)

@@ -19,8 +19,10 @@ enum ResponsesToolChoiceContract {
     }
 
     private static func functionNames(_ request: ResponsesInferenceRequest) -> Set<String> {
-        Set((request.tools ?? []).map(\.function.name)
-            + (request.providerOptions?.tools ?? []).filter(\.isFunction).compactMap(\.name))
+        Set(
+            (request.tools ?? []).map(\.function.name)
+                + (request.providerOptions?.tools ?? []).filter(\.isFunction).compactMap(\.name)
+        )
     }
 
     static func preflight(_ request: ResponsesInferenceRequest) throws {
@@ -52,13 +54,19 @@ enum ResponsesToolChoiceContract {
     }
     private static func hostedCall(_ value: JSONValue) -> HostedCall? {
         guard case .object(let item) = value, let type = string(item["type"]),
-            (type.hasSuffix("_call") && type != "function_call") || type == "mcp_approval_request" else { return nil }
-        return HostedCall(type: type, identity: string(item["id"]) ?? string(item["call_id"]),
-            name: string(item["name"]), status: string(item["status"]))
+            (type.hasSuffix("_call") && type != "function_call") || type == "mcp_approval_request"
+        else { return nil }
+        return HostedCall(
+            type: type,
+            identity: string(item["id"]) ?? string(item["call_id"]),
+            name: string(item["name"]),
+            status: string(item["status"])
+        )
     }
     private static func matches(_ call: HostedCall, declaration: OpenResponsesTool) -> Bool {
         guard !declaration.isFunction, call.identity?.isEmpty == false,
-            call.status == nil || call.status == "completed" else { return false }
+            call.status == nil || call.status == "completed"
+        else { return false }
         // An actual MCP approval request is a tool decision awaiting consent,
         // not proof of execution. Preserve it for the owning API client.
         if declaration.type == "mcp" && call.type == "mcp_approval_request" { return true }
@@ -71,23 +79,31 @@ enum ResponsesToolChoiceContract {
         }
         guard call.type == kind else { return false }
         if declaration.type == "custom", case .object(let raw) = declaration.raw,
-            let expected = string(raw["name"]) { return call.name == expected }
+            let expected = string(raw["name"])
+        {
+            return call.name == expected
+        }
         return true
     }
 
     private static func validate(
-        _ completion: ResponsesGenerationCompletion, request: ResponsesInferenceRequest, hosted: [HostedCall]
+        _ completion: ResponsesGenerationCompletion,
+        request: ResponsesInferenceRequest,
+        hosted: [HostedCall]
     ) throws {
         // Length, upstream cancellation and unfinished reasoning retain their
         // real status; none becomes a missing-tool retry or fake success.
         guard completion.status == .completed, !completion.unclosedReasoning,
-            completion.stopReason != "length", let choice = choice(request) else { return }
+            completion.stopReason != "length", let choice = choice(request)
+        else { return }
         let calls = completion.functionCalls
         switch choice {
         case .auto: return
         case .none:
             guard calls.isEmpty && hosted.isEmpty else {
-                throw failure("The model returned tool calls although tool_choice was none. No local tool was executed.")
+                throw failure(
+                    "The model returned tool calls although tool_choice was none. No local tool was executed."
+                )
             }
         case .required:
             let declarations = request.providerOptions?.tools ?? []
@@ -97,23 +113,30 @@ enum ResponsesToolChoiceContract {
             }
             let declared = functionNames(request)
             guard calls.allSatisfy({ declared.contains($0.name) }) else {
-                throw failure("The model returned a tool outside the declared required tools. No local tool was executed.")
+                throw failure(
+                    "The model returned a tool outside the declared required tools. No local tool was executed."
+                )
             }
         case .function(let target):
             guard !calls.isEmpty, hosted.isEmpty,
-                calls.allSatisfy({ $0.name == target.function.name }) else {
-                throw failure("The whole response must call '\(target.function.name)' only. No local tool was executed.")
+                calls.allSatisfy({ $0.name == target.function.name })
+            else {
+                throw failure(
+                    "The whole response must call '\(target.function.name)' only. No local tool was executed."
+                )
             }
         }
         let ids = calls.map(\.callID)
         guard ids.allSatisfy({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }),
-            Set(ids).count == ids.count else {
+            Set(ids).count == ids.count
+        else {
             throw failure("The model returned empty or duplicate call IDs. No local tool was executed.")
         }
     }
 
     static func enforce(
-        _ upstream: AsyncThrowingStream<ResponsesGenerationEvent, Error>, request: ResponsesInferenceRequest
+        _ upstream: AsyncThrowingStream<ResponsesGenerationEvent, Error>,
+        request: ResponsesInferenceRequest
     ) -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
         guard let choice = choice(request) else { return upstream }
         if case .auto = choice { return upstream }
@@ -127,8 +150,11 @@ enum ResponsesToolChoiceContract {
                     if Task.isCancelled { continue }
                     if case .providerOutputItem(let item) = event, let call = hostedCall(item) { hosted.append(call) }
                     if case .providerEvent(let value) = event, case .object(let fields) = value,
-                        string(fields["type"]) == "response.completed" {
-                        guard pendingNativeSuccess == nil else { throw ResponsesGenerationResult.CollectionError.duplicateCompletion }
+                        string(fields["type"]) == "response.completed"
+                    {
+                        guard pendingNativeSuccess == nil else {
+                            throw ResponsesGenerationResult.CollectionError.duplicateCompletion
+                        }
                         pendingNativeSuccess = value
                         continue
                     }
@@ -144,7 +170,9 @@ enum ResponsesToolChoiceContract {
                         completed.withLock { $0 = true }
                         // Native success must not escape before original API
                         // intent validates. Keep its original identity/order.
-                        if let raw = pendingNativeSuccess { continuation.yield(.providerEvent(raw)); pendingNativeSuccess = nil }
+                        if let raw = pendingNativeSuccess {
+                            continuation.yield(.providerEvent(raw)); pendingNativeSuccess = nil
+                        }
                     }
                     continuation.yield(event)
                 }

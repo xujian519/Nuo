@@ -56,10 +56,18 @@ struct VisionUnavailableReasonTests {
 
     @MainActor
     @Test func imagePasteBelongsOnlyToTheFocusedComposerInItsWindow() {
-        let first = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 400, height: 200),
-            styleMask: [.borderless], backing: .buffered, defer: false)
-        let second = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 400, height: 200),
-            styleMask: [.borderless], backing: .buffered, defer: false)
+        let first = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 400, height: 200),
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+        let second = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 400, height: 200),
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
         let activeText = NSTextView(frame: NSRect(x: 0, y: 0, width: 150, height: 100))
         let otherText = NSTextView(frame: NSRect(x: 160, y: 0, width: 150, height: 100))
         let monitor = PasteMonitorView()

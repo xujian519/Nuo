@@ -55,7 +55,7 @@ enum ToolResultMediaBridge {
         // References are data hashes, never server-supplied paths. Validate
         // before any disk lookup, including the legacy file_read envelope.
         guard let hash = ref["hash"] as? String, hash.utf8.count == 64,
-            hash.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }),
+            hash.utf8.allSatisfy({ (48 ... 57).contains($0) || (97 ... 102).contains($0) }),
             AttachmentBlobStore.exists(hash)
         else { return nil }
         let byteCount = (ref["byte_count"] as? Int) ?? 0

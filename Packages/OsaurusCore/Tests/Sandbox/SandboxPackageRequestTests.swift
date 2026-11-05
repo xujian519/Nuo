@@ -13,11 +13,13 @@ struct SandboxPackageRequestTests {
             "author's-package",
         ])
 
-        #expect(request.packages == [
-            "requests[security]>=2.32",
-            "@scope/pkg@^3",
-            "author's-package",
-        ])
+        #expect(
+            request.packages == [
+                "requests[security]>=2.32",
+                "@scope/pkg@^3",
+                "author's-package",
+            ]
+        )
         #expect(request.shellArguments.contains("'requests[security]>=2.32'"))
         #expect(request.shellArguments.contains("'@scope/pkg@^3'"))
         #expect(request.shellArguments.contains("'author'\"'\"'s-package'"))

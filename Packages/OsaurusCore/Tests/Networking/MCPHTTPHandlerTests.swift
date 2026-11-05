@@ -345,7 +345,8 @@ struct MCPHTTPHandlerTests {
         let server = try await startTestServer()
         defer { Task { await server.shutdown() } }
 
-        let externallyDeniedTools = ["file_write", "file_edit", "shell_run", "git_commit"]
+        let externallyDeniedTools =
+            ["file_write", "file_edit", "shell_run", "git_commit"]
             + Self.agentChannelToolNames
         for tool in externallyDeniedTools {
             var request = URLRequest(url: URL(string: "http://\(server.host):\(server.port)/mcp/call")!)
@@ -459,9 +460,11 @@ struct MCPHTTPHandlerTests {
         // ever saw a diff of.
         #expect(ToolRegistry.unattendedAutoApprovableToolNames.isEmpty)
         #expect(
-            !ToolRegistry.unattendedAutoApprovableToolNames.contains("write_knowledge"))
+            !ToolRegistry.unattendedAutoApprovableToolNames.contains("write_knowledge")
+        )
         #expect(
-            !ToolRegistry.unattendedAutoApprovableToolNames.contains("delete_knowledge"))
+            !ToolRegistry.unattendedAutoApprovableToolNames.contains("delete_knowledge")
+        )
 
         // Defense in depth: unattended auto-approval never relaxes the external
         // deny. Every auto-approvable tool must still be blocked for external
@@ -484,8 +487,11 @@ struct MCPHTTPHandlerTests {
             #expect(!BackgroundTaskManager.resolvedExternalSurface(for: req))
         }
         // An interactive chat or an external HTTP dispatch is never unattended.
-        #expect(BackgroundTaskManager.resolvedExternalSurface(
-            for: DispatchRequest(prompt: "p", source: .http, externalSurface: true)))
+        #expect(
+            BackgroundTaskManager.resolvedExternalSurface(
+                for: DispatchRequest(prompt: "p", source: .http, externalSurface: true)
+            )
+        )
     }
 
     @Test func remote_dispatch_surface_binding_propagates_to_unstructured_tasks() async {
@@ -594,9 +600,10 @@ struct MCPHTTPHandlerTests {
                 name: toolName,
                 argumentsJSON: #"{"connection_id":"telegram","room_id":"-100111222333","content":"must not leak"}"#
             )
-            let envelope = try JSONSerialization.jsonObject(
-                with: Data(text.utf8)
-            ) as? [String: Any]
+            let envelope =
+                try JSONSerialization.jsonObject(
+                    with: Data(text.utf8)
+                ) as? [String: Any]
 
             #expect(envelope?["ok"] as? Bool == false, "\(toolName) should be denied")
             #expect(envelope?["tool"] as? String == toolName)

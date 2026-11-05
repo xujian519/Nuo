@@ -178,7 +178,9 @@ final class ChatWindowState: ObservableObject {
     /// the window's remote mode is bound to, else the window's local agent.
     /// Both follow the active tab (`adoptTabSession` / `reconcileRemoteMode`).
     var activeScope: ChatTabScope {
-        if let address = workspaceAgentAddress { return .workspace(address.lowercased(), workspaceId: session.workspaceContext?.workspaceId ?? "") }
+        if let address = workspaceAgentAddress {
+            return .workspace(address.lowercased(), workspaceId: session.workspaceContext?.workspaceId ?? "")
+        }
         return .local(agentId)
     }
 
@@ -882,7 +884,8 @@ final class ChatWindowState: ObservableObject {
         Task { @MainActor [weak self] in
             await WorkspaceRosterStore.shared.refresh(reason: .manual)
             guard let self, self.session === originalSession,
-                self.session.workspaceContext == context else { return }
+                self.session.workspaceContext == context
+            else { return }
             // A manual Retry re-runs the workspace handshake even for an
             // agent that is already paired: the usual reason a paired agent
             // fails is a stale attested key (the host refuses it), and
@@ -972,14 +975,18 @@ final class ChatWindowState: ObservableObject {
         )
         if !force, workspaceAgentAddress == address,
             selectedDiscoveredAgentProviderId == paired?.providerId
-        { return }
+        {
+            return
+        }
         workspaceAgentAddress = address
         removeEphemeralProviderIfNeeded()
         selectedDiscoveredAgent = nil
         refreshPairedRelayAgents()
-        guard let relay = pairedRelayAgents.first(where: {
-            $0.providerId == paired?.providerId
-            }) else {
+        guard
+            let relay = pairedRelayAgents.first(where: {
+                $0.providerId == paired?.providerId
+            })
+        else {
             // Not paired yet: the composer lock explains; auto-connect or
             // Retry will pair it, after which `reconcileRemoteMode` re-runs.
             selectedRelayAgent = nil
@@ -1082,7 +1089,8 @@ final class ChatWindowState: ObservableObject {
             routerEnabled: OsaurusRouter.isEnabled,
             workspaceName: roster.rosters.first(where: { $0.id == context.workspaceId })?.workspace.name,
             presence: roster.presence(forAddress: address, workspaceId: context.workspaceId),
-            isPaired: RemoteAgentManager.shared.remoteAgent(forAddress: address,
+            isPaired: RemoteAgentManager.shared.remoteAgent(
+                forAddress: address,
                 workspaceId: context.workspaceId.isEmpty ? nil : context.workspaceId
             ) != nil,
             isBoundToProvider: selectedDiscoveredAgentProviderId != nil,
@@ -1327,8 +1335,11 @@ final class ChatWindowState: ObservableObject {
         // saving/detaching the current session: choosing an already-open chat
         // must not mutate either transcript or create a competing writer.
         if ChatWindowManager.shared.revealOpenSession(
-            sessionData.id, excludingWindowId: windowId
-        ) != nil { return }
+            sessionData.id,
+            excludingWindowId: windowId
+        ) != nil {
+            return
+        }
         // Browser-style dedupe: if another tab already shows this
         // conversation, switch to it instead of loading a second copy of
         // the same transcript into this tab (two live instances of one row
@@ -1599,8 +1610,11 @@ final class ChatWindowState: ObservableObject {
             return
         }
         if ChatWindowManager.shared.revealOpenSession(
-            sessionData.id, excludingWindowId: windowId
-        ) != nil { return }
+            sessionData.id,
+            excludingWindowId: windowId
+        ) != nil {
+            return
+        }
         // Chrome-style: an untouched empty tab is reused rather than left
         // behind as a blank tab next to the one we just opened.
         let activeIsBlank = session.turns.isEmpty && !session.isStreaming
@@ -1843,8 +1857,11 @@ final class ChatWindowState: ObservableObject {
                 return
             }
             if ChatWindowManager.shared.revealOpenSession(
-                sessionId, excludingWindowId: windowId
-            ) != nil { return }
+                sessionId,
+                excludingWindowId: windowId
+            ) != nil {
+                return
+            }
             guard let data = ChatSessionStore.load(id: sessionId) else { continue }
             // Always its own tab (a blank active tab is left alone), like a
             // browser restoring a closed tab.
@@ -2209,7 +2226,8 @@ final class ChatWindowState: ObservableObject {
         // everything else lists the local agent's.
         if let context = session.workspaceContext, !context.isServedForTeammate {
             filteredSessions = ChatSessionsManager.shared.sessions(
-                forRemoteAgentAddress: context.agentAddress).filter { $0.workspace?.workspaceId == context.workspaceId }
+                forRemoteAgentAddress: context.agentAddress
+            ).filter { $0.workspace?.workspaceId == context.workspaceId }
         } else {
             filteredSessions = ChatSessionsManager.shared.sessions(for: agentId)
         }
@@ -2394,7 +2412,8 @@ final class ChatWindowState: ObservableObject {
                     else { return }
                     switch self.remoteAgentConnectionPhase {
                     case .idle, .failed: break
-                    case .connecting, .connected: return }
+                    case .connecting, .connected: return
+                    }
                     self.refreshPairedRelayAgents()
                     self.bindRemoteMode(
                         toWorkspaceAgent: address,
@@ -2615,7 +2634,7 @@ final class ChatWindowState: ObservableObject {
                 }
             }
         )
-                // File history: refresh the toolbar count when the journal
+        // File history: refresh the toolbar count when the journal
         // records/reverts changes for the session this window shows.
         notificationObservers.append(
             NotificationCenter.default.addObserver(

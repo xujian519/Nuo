@@ -11,7 +11,9 @@ enum RemoteResponsesPrivacyStream {
         }
     }
 
-    static func wrap(_ upstream: AsyncThrowingStream<ResponsesGenerationEvent, Error>, map: RedactionMap?,
+    static func wrap(
+        _ upstream: AsyncThrowingStream<ResponsesGenerationEvent, Error>,
+        map: RedactionMap?,
         pendingByteLimit: Int = maxPendingBytes
     ) -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
         guard let map else { return upstream }
@@ -45,7 +47,9 @@ enum RemoteResponsesPrivacyStream {
         let portable: StreamingUnscrubber
         var rawIndex: Int?
         var portableIndex: Int?
-        init(native: StreamingUnscrubber, portable: StreamingUnscrubber) { self.native = native; self.portable = portable }
+        init(native: StreamingUnscrubber, portable: StreamingUnscrubber) {
+            self.native = native; self.portable = portable
+        }
         var pending: Bool { native.hasPendingFragment || portable.hasPendingFragment }
     }
     /// Owned exclusively by the single stream-consumer task.
@@ -62,8 +66,10 @@ enum RemoteResponsesPrivacyStream {
         func rail(_ key: String) async -> Rail {
             if let value = rails[key] { return value }
             let escaping = key.hasPrefix("arguments:")
-            let value = Rail(native: await StreamingUnscrubber.make(for: map, jsonStringEscaping: escaping),
-                portable: await StreamingUnscrubber.make(for: map, jsonStringEscaping: escaping))
+            let value = Rail(
+                native: await StreamingUnscrubber.make(for: map, jsonStringEscaping: escaping),
+                portable: await StreamingUnscrubber.make(for: map, jsonStringEscaping: escaping)
+            )
             rails[key] = value
             return value
         }
@@ -76,14 +82,18 @@ enum RemoteResponsesPrivacyStream {
             switch input {
             case .providerEvent(let value):
                 if case .object(var object) = value, case .string(let type) = object["type"] {
-                    let index: String = object["output_index"].map(Self.identity) ?? object["item_id"].map(Self.identity) ?? "0"
-                    let part = object["content_index"].map(Self.identity) ?? object["summary_index"].map(Self.identity) ?? "0"
+                    let index: String =
+                        object["output_index"].map(Self.identity) ?? object["item_id"].map(Self.identity) ?? "0"
+                    let part =
+                        object["content_index"].map(Self.identity) ?? object["summary_index"].map(Self.identity) ?? "0"
                     let kind: String?
                     switch type {
                     case "response.output_text.delta", "response.output_text.done": kind = "text"
                     case "response.reasoning_text.delta", "response.reasoning_text.done",
-                         "response.reasoning_summary_text.delta", "response.reasoning_summary_text.done": kind = "reasoning"
-                    case "response.function_call_arguments.delta", "response.function_call_arguments.done": kind = "arguments"
+                        "response.reasoning_summary_text.delta", "response.reasoning_summary_text.done":
+                        kind = "reasoning"
+                    case "response.function_call_arguments.delta", "response.function_call_arguments.done":
+                        kind = "arguments"
                     case "response.refusal.delta", "response.refusal.done": kind = "refusal"
                     default: kind = nil
                     }
@@ -95,18 +105,25 @@ enum RemoteResponsesPrivacyStream {
                         if type.hasSuffix(".delta"), case .string(let delta) = object["delta"] {
                             object["delta"] = .string(await value.native.push(delta))
                             rawRail = value
-                        } else if type.hasSuffix(".done") { await flush(value) }
+                        } else if type.hasSuffix(".done") {
+                            await flush(value)
+                        }
                     }
                     if type == "response.output_item.done" {
-                        for (key, rail) in rails where key.split(separator: ":").dropFirst().first.map(String.init) == index {
+                        for (key, rail) in rails
+                        where key.split(separator: ":").dropFirst().first.map(String.init) == index {
                             await flush(rail)
                         }
                     }
-                    if ["response.completed", "response.incomplete", "response.cancelled", "response.failed", "error"].contains(type) {
+                    if ["response.completed", "response.incomplete", "response.cancelled", "response.failed", "error"]
+                        .contains(type)
+                    {
                         await flushAll()
                     }
                     event = .providerEvent(await PrivacyFilterPipeline.unscrubInboundJSON(.object(object), map: map))
-                } else { event = .providerEvent(await PrivacyFilterPipeline.unscrubInboundJSON(value, map: map)) }
+                } else {
+                    event = .providerEvent(await PrivacyFilterPipeline.unscrubInboundJSON(value, map: map))
+                }
             case .outputTextDelta(let delta):
                 let value = await rail(currentVisibleKey ?? "text:portable:0")
                 event = .outputTextDelta(await value.portable.push(delta)); portableRail = value
@@ -127,11 +144,21 @@ enum RemoteResponsesPrivacyStream {
                 await flushAll()
                 var calls: [ResponsesFunctionCall] = []
                 for call in completion.functionCalls { calls.append(await restored(call)) }
-                event = .responseCompleted(.init(responseID: completion.responseID, status: completion.status,
-                    functionCalls: calls, tokenCount: completion.tokenCount, tokensPerSecond: completion.tokensPerSecond,
-                    unclosedReasoning: completion.unclosedReasoning, stopReason: completion.stopReason,
-                    promptTokensPerSecond: completion.promptTokensPerSecond, mtp: completion.mtp,
-                    inputTokenCount: completion.inputTokenCount, cachedInputTokenCount: completion.cachedInputTokenCount))
+                event = .responseCompleted(
+                    .init(
+                        responseID: completion.responseID,
+                        status: completion.status,
+                        functionCalls: calls,
+                        tokenCount: completion.tokenCount,
+                        tokensPerSecond: completion.tokensPerSecond,
+                        unclosedReasoning: completion.unclosedReasoning,
+                        stopReason: completion.stopReason,
+                        promptTokensPerSecond: completion.promptTokensPerSecond,
+                        mtp: completion.mtp,
+                        inputTokenCount: completion.inputTokenCount,
+                        cachedInputTokenCount: completion.cachedInputTokenCount
+                    )
+                )
             default: break
             }
             if !hasPending {
@@ -151,20 +178,30 @@ enum RemoteResponsesPrivacyStream {
         }
 
         private func restored(_ call: ResponsesFunctionCall) async -> ResponsesFunctionCall {
-            let value = await PrivacyFilterPipeline.unscrubInboundJSON(.object([
-                "type": .string("function_call"), "id": .string(call.id), "call_id": .string(call.callID),
-                "name": .string(call.name), "arguments": .string(call.arguments),
-            ]), map: map)
+            let value = await PrivacyFilterPipeline.unscrubInboundJSON(
+                .object([
+                    "type": .string("function_call"), "id": .string(call.id), "call_id": .string(call.callID),
+                    "name": .string(call.name), "arguments": .string(call.arguments),
+                ]),
+                map: map
+            )
             var args = call.arguments
             if case .object(let body) = value, case .string(let string) = body["arguments"] { args = string }
-            return .init(id: call.id, callID: call.callID, name: call.name, arguments: args,
-                geminiThoughtSignature: call.geminiThoughtSignature)
+            return .init(
+                id: call.id,
+                callID: call.callID,
+                name: call.name,
+                arguments: args,
+                geminiThoughtSignature: call.geminiThoughtSignature
+            )
         }
         private func flush(_ rail: Rail) async {
             let native = await rail.native.flush()
             if !native.isEmpty, let index = rail.rawIndex, queued.indices.contains(index),
                 case .providerEvent(.object(var object)) = queued[index], case .string(let delta) = object["delta"]
-            { object["delta"] = .string(delta + native); queued[index] = .providerEvent(.object(object)) }
+            {
+                object["delta"] = .string(delta + native); queued[index] = .providerEvent(.object(object))
+            }
             let portable = await rail.portable.flush()
             if !portable.isEmpty, let index = rail.portableIndex, queued.indices.contains(index) {
                 switch queued[index] {
@@ -189,12 +226,20 @@ enum RemoteResponsesPrivacyStream {
             return values
         }
         private static func identity(_ value: JSONValue) -> String {
-            switch value { case .string(let value): return value; case .number(let value): return value.isFinite && value >= Double(Int.min) && value < Double(Int.max) ? String(Int(value)) : String(value); default: return "0" }
+            switch value {
+            case .string(let value): return value;
+            case .number(let value):
+                return value.isFinite && value >= Double(Int.min) && value < Double(Int.max)
+                    ? String(Int(value)) : String(value);
+            default: return "0"
+            }
         }
         private static func estimatedBytes(_ event: ResponsesGenerationEvent) -> Int {
             switch event {
-            case .providerEvent(let value), .providerOutputItem(let value): return (try? JSONEncoder().encode(value).count) ?? 0
-            case .outputTextDelta(let value), .reasoningDelta(let value), .functionArgumentsPreview(let value): return value.utf8.count
+            case .providerEvent(let value), .providerOutputItem(let value):
+                return (try? JSONEncoder().encode(value).count) ?? 0
+            case .outputTextDelta(let value), .reasoningDelta(let value), .functionArgumentsPreview(let value):
+                return value.utf8.count
             case .functionCallAdded(let call): return call.arguments.utf8.count + call.name.utf8.count
             case .anthropicThinkingBlock(let value): return (try? JSONEncoder().encode(value).count) ?? 0
             default: return 64

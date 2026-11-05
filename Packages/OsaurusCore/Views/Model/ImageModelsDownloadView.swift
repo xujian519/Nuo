@@ -133,9 +133,11 @@ struct ImageModelsDownloadView: View {
                         subtitle: availableSubtitle(entry),
                         leading: ModelListRow.Leading(icon: "photo", tint: theme.accentColor),
                         badges: badges(
-                            kind: nil, quant: quantText(bits: nil, id: entry.repoId),
+                            kind: nil,
+                            quant: quantText(bits: nil, id: entry.repoId),
                             license: ImageModelRequestPolicy.licenseLabel(
-                                canonical: ImageModelRequestPolicy.catalogCanonical(entry.id))
+                                canonical: ImageModelRequestPolicy.catalogCanonical(entry.id)
+                            )
                         ),
                         status: rowStatus(entry.id),
                         primary: ModelListRow.Action(title: "Download", icon: "arrow.down.circle") {
@@ -206,9 +208,11 @@ struct ImageModelsDownloadView: View {
         let info = model.info
         var items: [ModelListRow.Action] = []
         if info.ready, info.capabilities.textToImage, info.capabilities.imageEdit {
-            items.append(ModelListRow.Action(title: "Edit", icon: "wand.and.stars") {
-                panel = PanelRequest(id: info.id, displayName: info.displayName, isEdit: true, info: info)
-            })
+            items.append(
+                ModelListRow.Action(title: "Edit", icon: "wand.and.stars") {
+                    panel = PanelRequest(id: info.id, displayName: info.displayName, isEdit: true, info: info)
+                }
+            )
         }
         // Re-download for ready models lives in the menu (not-ready exposes it as
         // the primary action instead, so it isn't duplicated).

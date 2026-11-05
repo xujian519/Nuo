@@ -10,9 +10,14 @@ public struct ChatTurnOverrides: Codable, Equatable, Sendable {
     public var enableThinking: Bool? = nil
     public var templateKwargs: [String: JSONValue]? = nil
 
-    public init(temperature: Float? = nil, topP: Float? = nil, topK: Int? = nil,
-        reasoningEffort: String? = nil, enableThinking: Bool? = nil,
-        templateKwargs: [String: JSONValue]? = nil) {
+    public init(
+        temperature: Float? = nil,
+        topP: Float? = nil,
+        topK: Int? = nil,
+        reasoningEffort: String? = nil,
+        enableThinking: Bool? = nil,
+        templateKwargs: [String: JSONValue]? = nil
+    ) {
         self.temperature = temperature
         self.topP = topP
         self.topK = topK
@@ -29,7 +34,9 @@ public struct ChatTurnOverrides: Codable, Equatable, Sendable {
     enum ValidationError: LocalizedError {
         case invalid(String)
         var errorDescription: String? {
-            switch self { case .invalid(let message): return message }
+            switch self {
+            case .invalid(let message): return message
+            }
         }
     }
 
@@ -37,7 +44,7 @@ public struct ChatTurnOverrides: Codable, Equatable, Sendable {
         if let temperature, !temperature.isFinite || temperature < 0 {
             throw ValidationError.invalid("Temperature must be a finite, nonnegative number.")
         }
-        if let topP, !topP.isFinite || !(0...1).contains(topP) {
+        if let topP, !topP.isFinite || !(0 ... 1).contains(topP) {
             throw ValidationError.invalid("Top P must be between 0 and 1.")
         }
         if let topK, topK < 0 {
@@ -54,7 +61,9 @@ public struct ChatTurnOverrides: Codable, Equatable, Sendable {
     func validate(forWorkspaceAgent isWorkspaceAgent: Bool) throws {
         try validate()
         if isWorkspaceAgent, !isEmpty {
-            throw ValidationError.invalid("Per-turn controls are not supported for shared workspace agents. The remote agent owns its generation settings.")
+            throw ValidationError.invalid(
+                "Per-turn controls are not supported for shared workspace agents. The remote agent owns its generation settings."
+            )
         }
     }
 

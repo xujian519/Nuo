@@ -203,7 +203,11 @@ struct CodexCLIConfigurationTests {
     func snippetContents() {
         let home = URL(fileURLWithPath: "/tmp/codex-home", isDirectory: true)
         let snippet = CodexCLIConfiguration.snippet(
-            port: 1337, exposeToNetwork: false, modelId: "m", contextWindow: nil, codexHome: home
+            port: 1337,
+            exposeToNetwork: false,
+            modelId: "m",
+            contextWindow: nil,
+            codexHome: home
         )
         #expect(snippet.contains("# /tmp/codex-home/config.toml"))
         #expect(snippet.contains("# /tmp/codex-home/osaurus.config.toml"))
@@ -227,7 +231,11 @@ struct CodexCLIConfigurationTests {
         defer { try? FileManager.default.removeItem(at: home) }
 
         let result = try CodexCLIConfiguration.write(
-            port: 1337, exposeToNetwork: false, modelId: "qwen3-8b-4bit", contextWindow: 32768, codexHome: home
+            port: 1337,
+            exposeToNetwork: false,
+            modelId: "qwen3-8b-4bit",
+            contextWindow: 32768,
+            codexHome: home
         )
         #expect(!result.replacedExistingBlock)
         let config = try String(contentsOf: result.configURL, encoding: .utf8)
@@ -246,10 +254,18 @@ struct CodexCLIConfigurationTests {
         try Data(userConfig.utf8).write(to: CodexCLIConfiguration.configURL(codexHome: home))
 
         _ = try CodexCLIConfiguration.write(
-            port: 1337, exposeToNetwork: false, modelId: "a", contextWindow: nil, codexHome: home
+            port: 1337,
+            exposeToNetwork: false,
+            modelId: "a",
+            contextWindow: nil,
+            codexHome: home
         )
         let second = try CodexCLIConfiguration.write(
-            port: 2000, exposeToNetwork: true, modelId: "b", contextWindow: 4096, codexHome: home
+            port: 2000,
+            exposeToNetwork: true,
+            modelId: "b",
+            contextWindow: 4096,
+            codexHome: home
         )
         #expect(second.replacedExistingBlock)
 
@@ -277,7 +293,11 @@ struct CodexCLIConfigurationTests {
 
         #expect(throws: CodexCLIConfiguration.WriteError.conflict(configURL: configURL)) {
             try CodexCLIConfiguration.write(
-                port: 1337, exposeToNetwork: false, modelId: "m", contextWindow: nil, codexHome: home
+                port: 1337,
+                exposeToNetwork: false,
+                modelId: "m",
+                contextWindow: nil,
+                codexHome: home
             )
         }
         // Neither file may have been touched.
@@ -291,19 +311,23 @@ struct CodexCLIConfigurationTests {
         // engine rolls silently past it — Codex must compact against 65 536.
         #expect(
             CodexCLIConfiguration.effectiveContextWindow(bundleContextLength: 131_072, kvRetentionCap: 65_536)
-                == 65_536)
+                == 65_536
+        )
         // A small bundle stays its own size.
         #expect(
             CodexCLIConfiguration.effectiveContextWindow(bundleContextLength: 8_192, kvRetentionCap: 65_536)
-                == 8_192)
+                == 8_192
+        )
         // Unlimited retention: the bundle length.
         #expect(
             CodexCLIConfiguration.effectiveContextWindow(bundleContextLength: 262_144, kvRetentionCap: nil)
-                == 262_144)
+                == 262_144
+        )
         // Unknown bundle length: the cap is still a true statement about the server.
         #expect(
             CodexCLIConfiguration.effectiveContextWindow(bundleContextLength: nil, kvRetentionCap: 65_536)
-                == 65_536)
+                == 65_536
+        )
         #expect(CodexCLIConfiguration.effectiveContextWindow(bundleContextLength: nil, kvRetentionCap: nil) == nil)
         // Non-positive values are "unknown", never a 0 window.
         #expect(CodexCLIConfiguration.effectiveContextWindow(bundleContextLength: 0, kvRetentionCap: 0) == nil)

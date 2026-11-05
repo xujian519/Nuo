@@ -33,12 +33,17 @@ final class ImportCommandTests: XCTestCase {
     private func write(_ text: String, _ relative: String) throws {
         let url = bundleURL.appendingPathComponent(relative)
         try FileManager.default.createDirectory(
-            at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
         try text.write(to: url, atomically: true, encoding: .utf8)
     }
 
     private func writeBundle(
-        minVersion: String? = nil, stdio: Bool = false, runtime: Bool = false, settings: [String: Any]? = nil
+        minVersion: String? = nil,
+        stdio: Bool = false,
+        runtime: Bool = false,
+        settings: [String: Any]? = nil
     ) throws {
         var manifest: [String: Any] = [
             "format": "osaurus.bundle", "format_version": 1, "id": "com.example.cli",
@@ -69,7 +74,8 @@ final class ImportCommandTests: XCTestCase {
         try write("---\nname: notes\ndescription: Take notes.\n---\nBody\n", "skills/notes/SKILL.md")
         try write(
             #"{"name":"Helper","skills":["notes"],"mcp_servers":{"enabled":["Tickets"]}}"#,
-            "agents/helper.json")
+            "agents/helper.json"
+        )
         try write(#"{"name":"Plain","skills":["notes"]}"#, "agents/plain.json")
     }
 
@@ -98,7 +104,8 @@ final class ImportCommandTests: XCTestCase {
                 let (status, data) = respond(path, object)
                 return (status, data)
             },
-            executableOnPath: { _ in onPath })
+            executableOnPath: { _ in onPath }
+        )
     }
 
     // MARK: Parsing
@@ -200,7 +207,9 @@ final class ImportCommandTests: XCTestCase {
             failed.issues.contains {
                 $0.contains("no Keychain item keychain:com.example.cli/tickets")
                     && $0.contains("-T /Applications/Osaurus.app")
-            }, "\(failed.issues)")
+            },
+            "\(failed.issues)"
+        )
         XCTAssertTrue(ImportQueue.pending().isEmpty)
 
         let validate = try ImportCommand.parse(["validate", "--from", bundleURL.path])
@@ -218,16 +227,22 @@ final class ImportCommandTests: XCTestCase {
         let refused = await ImportCommand.run(install, environment: environment(onPath: true))
         XCTAssertEqual(refused.state, "refused")
         XCTAssertTrue(
-            refused.risks.contains { $0.contains("Harness runtime \"Spotlight\"") && $0.contains("spotlight-cli --mode rpc") },
-            "\(refused.risks)")
+            refused.risks.contains {
+                $0.contains("Harness runtime \"Spotlight\"") && $0.contains("spotlight-cli --mode rpc")
+            },
+            "\(refused.risks)"
+        )
         XCTAssertFalse(refused.warnings.contains { $0.contains("not found on PATH") })
 
         let validate = try ImportCommand.parse(["validate", "--from", bundleURL.path])
         let report = await ImportCommand.run(validate, environment: environment(onPath: false))
         XCTAssertEqual(report.state, "validated")
         XCTAssertTrue(
-            report.warnings.contains { $0.contains("harness_runtimes[Spotlight].executable: spotlight-cli was not found on PATH") },
-            "\(report.warnings)")
+            report.warnings.contains {
+                $0.contains("harness_runtimes[Spotlight].executable: spotlight-cli was not found on PATH")
+            },
+            "\(report.warnings)"
+        )
     }
 
     func testExecutableOnPathLookup() {
@@ -262,7 +277,8 @@ final class ImportCommandTests: XCTestCase {
         XCTAssertTrue(calls.posts.isEmpty)
         XCTAssertEqual(
             report.items.map { "\($0.kind.rawValue)/\($0.name)/\($0.status)" },
-            ["skill/notes/queued", "mcp/Tickets/queued", "agent/Helper/queued"])
+            ["skill/notes/queued", "mcp/Tickets/queued", "agent/Helper/queued"]
+        )
 
         let pending = try XCTUnwrap(ImportQueue.pending().first)
         XCTAssertEqual(pending.request.id, report.requestId)
@@ -277,14 +293,20 @@ final class ImportCommandTests: XCTestCase {
         let env = environment(running: true, calls: calls) { path, body in
             guard path == "/admin/import/apply", let id = body["id"] as? String else { return (404, Data()) }
             let result = ImportResult(
-                requestId: id, bundleId: "com.example.cli",
+                requestId: id,
+                bundleId: "com.example.cli",
                 items: [
                     ImportItemResult(kind: .skill, name: "notes", action: .install, status: .done),
                     ImportItemResult(
-                        kind: .mcp, name: "Tickets", action: .install, status: .needsUserAction,
+                        kind: .mcp,
+                        name: "Tickets",
+                        action: .install,
+                        status: .needsUserAction,
                         message: "Could not resolve keychain:com.example.cli/tickets",
-                        pendingSecrets: ["keychain:com.example.cli/tickets"]),
-                ])
+                        pendingSecrets: ["keychain:com.example.cli/tickets"]
+                    ),
+                ]
+            )
             return (200, try! ImportQueue.encoder().encode(result))
         }
         let report = await ImportCommand.run(inv, environment: env)
@@ -294,7 +316,8 @@ final class ImportCommandTests: XCTestCase {
         XCTAssertEqual(report.pendingSecrets, ["keychain:com.example.cli/tickets"])
 
         let json = try XCTUnwrap(
-            try JSONSerialization.jsonObject(with: Data(ImportCommand.renderJSON(report).utf8)) as? [String: Any])
+            try JSONSerialization.jsonObject(with: Data(ImportCommand.renderJSON(report).utf8)) as? [String: Any]
+        )
         for key in ["command", "state", "exit_code", "bundle_id", "request_id", "items", "pending_secrets", "risks"] {
             XCTAssertNotNil(json[key], "missing \(key)")
         }
@@ -324,7 +347,8 @@ final class ImportCommandTests: XCTestCase {
             XCTAssertTrue(report.issues.isEmpty, "\(report.issues)")
             XCTAssertTrue(
                 report.warnings.contains { $0.contains("HTTP \(status)") && $0.contains("--access-key") },
-                "\(report.warnings)")
+                "\(report.warnings)"
+            )
         }
         XCTAssertEqual(ImportQueue.pending().count, 2)
     }
@@ -366,19 +390,40 @@ final class ImportCommandTests: XCTestCase {
     func testRemoveUsesReceiptsAndCancelsQueuedRequests() async throws {
         try ImportQueue.saveReceipts([
             ImportReceipt(
-                bundleId: "com.example.cli", bundleName: "CLI Test", bundleVersion: "1.0.0", kind: .agent,
-                name: "Helper", explicit: true, contentHash: "a"),
+                bundleId: "com.example.cli",
+                bundleName: "CLI Test",
+                bundleVersion: "1.0.0",
+                kind: .agent,
+                name: "Helper",
+                explicit: true,
+                contentHash: "a"
+            ),
             ImportReceipt(
-                bundleId: "com.example.cli", bundleName: "CLI Test", bundleVersion: "1.0.0", kind: .skill,
-                name: "notes", explicit: false, contentHash: "b"),
+                bundleId: "com.example.cli",
+                bundleName: "CLI Test",
+                bundleVersion: "1.0.0",
+                kind: .skill,
+                name: "notes",
+                explicit: false,
+                contentHash: "b"
+            ),
             ImportReceipt(
-                bundleId: "com.other", bundleName: nil, bundleVersion: "1.0.0", kind: .agent,
-                name: "Theirs", explicit: true, contentHash: "c"),
+                bundleId: "com.other",
+                bundleName: nil,
+                bundleVersion: "1.0.0",
+                kind: .agent,
+                name: "Theirs",
+                explicit: true,
+                contentHash: "c"
+            ),
         ])
         let queued = ImportRequest(
-            bundleId: "com.example.cli", bundleName: nil, bundleVersion: "1.0.0",
+            bundleId: "com.example.cli",
+            bundleName: nil,
+            bundleVersion: "1.0.0",
             operations: [ImportOperation(action: .install, kind: .agent, name: "Plain", explicit: true)],
-            confirmHighRisk: false)
+            confirmHighRisk: false
+        )
         try ImportQueue.enqueue(queued, bundle: nil)
 
         let unknown = try ImportCommand.parse(["remove", "--bundle", "com.example.cli", "Theirs"])
@@ -399,9 +444,12 @@ final class ImportCommandTests: XCTestCase {
 
     func testRemoveByNameCanTargetAQueuedInstall() async throws {
         let queued = ImportRequest(
-            bundleId: "com.example.cli", bundleName: nil, bundleVersion: "1.0.0",
+            bundleId: "com.example.cli",
+            bundleName: nil,
+            bundleVersion: "1.0.0",
             operations: [ImportOperation(action: .install, kind: .agent, name: "Plain", explicit: true)],
-            confirmHighRisk: false)
+            confirmHighRisk: false
+        )
         try ImportQueue.enqueue(queued, bundle: nil)
         let inv = try ImportCommand.parse(["remove", "--bundle", "com.example.cli", "agent", "plain"])
         let report = await ImportCommand.run(inv, environment: environment())
@@ -412,9 +460,15 @@ final class ImportCommandTests: XCTestCase {
     func testListShowsReceiptsQueueAndPendingSecrets() async throws {
         try ImportQueue.saveReceipts([
             ImportReceipt(
-                bundleId: "com.example.cli", bundleName: "CLI Test", bundleVersion: "1.0.0", kind: .mcp,
-                name: "Tickets", explicit: false, contentHash: "a",
-                pendingSecrets: ["keychain:com.example.cli/tickets"])
+                bundleId: "com.example.cli",
+                bundleName: "CLI Test",
+                bundleVersion: "1.0.0",
+                kind: .mcp,
+                name: "Tickets",
+                explicit: false,
+                contentHash: "a",
+                pendingSecrets: ["keychain:com.example.cli/tickets"]
+            )
         ])
         let inv = try ImportCommand.parse(["list", "--json"])
         let report = await ImportCommand.run(inv, environment: environment(uid: 0))

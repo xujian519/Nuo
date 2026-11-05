@@ -214,7 +214,9 @@ struct WorkspaceDetailView: View {
         .themedAlert(
             L("Leave Workspace?"),
             isPresented: $showLeaveConfirm,
-            message: L("You'll lose access to the workspace's shared agents and credit pool. Your shared agents are revoked."),
+            message: L(
+                "You'll lose access to the workspace's shared agents and credit pool. Your shared agents are revoked."
+            ),
             primaryButton: .destructive(L("Leave")) {
                 Task { await performLeave() }
             },
@@ -239,7 +241,9 @@ struct WorkspaceDetailView: View {
                 pendingViewerDemotion = nil
                 Task {
                     await service.setMemberRole(
-                        workspaceId: workspace.id, accountId: member.accountId, role: .viewer
+                        workspaceId: workspace.id,
+                        accountId: member.accountId,
+                        role: .viewer
                     )
                 }
             },
@@ -336,7 +340,9 @@ struct WorkspaceDetailView: View {
                 icon: "antenna.radiowaves.left.and.right",
                 items: [
                     AgentDetailTabItem(
-                        id: .sharedAgents, label: L("Shared Agents"), icon: "antenna.radiowaves.left.and.right"
+                        id: .sharedAgents,
+                        label: L("Shared Agents"),
+                        icon: "antenna.radiowaves.left.and.right"
                     )
                 ],
                 badgeCount: agentCount == 0 ? nil : agentCount
@@ -578,10 +584,14 @@ struct WorkspaceDetailView: View {
         case .portal:
             return L("Syncing billing changes — this updates automatically after you return from the billing portal.")
         case .reactivation(let id) where id == workspace.id:
-            return L("Finish the checkout in your browser — this workspace reactivates automatically once Stripe confirms.")
+            return L(
+                "Finish the checkout in your browser — this workspace reactivates automatically once Stripe confirms."
+            )
         case .topUp(let id, _, let amountMicro, _, _) where id == workspace.id:
             return String(
-                format: L("Finish the %@ payment in your browser — the pool updates automatically once Stripe confirms."),
+                format: L(
+                    "Finish the %@ payment in your browser — the pool updates automatically once Stripe confirms."
+                ),
                 OsaurusRouter.formatMicroUSD(String(amountMicro))
             )
         default:
@@ -625,7 +635,10 @@ struct WorkspaceDetailView: View {
             return L("Adds this workspace back to your subscription right away")
         }
         if let price = service.prices?.monthly?.displayLabel {
-            return String(format: L("Start a new subscription for this workspace (%@) — finishes in your browser"), price)
+            return String(
+                format: L("Start a new subscription for this workspace (%@) — finishes in your browser"),
+                price
+            )
         }
         return L("Start a new subscription for this workspace — finishes in your browser")
     }
@@ -644,7 +657,8 @@ struct WorkspaceDetailView: View {
             if let next = entitlement?.nextGrantAt, let date = WorkspacesFormatting.date(next) {
                 return String(
                     format: L("Shared balance — resets to %@ credits on %@"),
-                    OsaurusRouter.formatMicroAsCreditsValue(monthly), date
+                    OsaurusRouter.formatMicroAsCreditsValue(monthly),
+                    date
                 )
             }
             return String(
@@ -659,17 +673,27 @@ struct WorkspaceDetailView: View {
     private var inactiveExplainer: String {
         if isSuspended {
             return isOwner
-                ? L("Suspended: your subscription for this workspace ended. Members, agents, and history are kept until you reactivate it.")
-                : L("Suspended: the owner's subscription ended. Members, agents, and history are kept; only the owner can reactivate it.")
+                ? L(
+                    "Suspended: your subscription for this workspace ended. Members, agents, and history are kept until you reactivate it."
+                )
+                : L(
+                    "Suspended: the owner's subscription ended. Members, agents, and history are kept; only the owner can reactivate it."
+                )
         }
         if entitlement?.isComp == true {
             return isOwner
-                ? L("This complimentary period has ended. Members, agents, and history are kept until you reactivate it.")
+                ? L(
+                    "This complimentary period has ended. Members, agents, and history are kept until you reactivate it."
+                )
                 : L("This workspace's complimentary period has ended. Only the owner can reactivate it.")
         }
         return isOwner
-            ? L("Invites, shared agents, and pool-billed inference are paused until your subscription is current. Past-due? Update the card under Manage billing.")
-            : L("The workspace's subscription isn't active right now, so invites, shared agents, and pool-billed inference are paused. Only the owner can renew.")
+            ? L(
+                "Invites, shared agents, and pool-billed inference are paused until your subscription is current. Past-due? Update the card under Manage billing."
+            )
+            : L(
+                "The workspace's subscription isn't active right now, so invites, shared agents, and pool-billed inference are paused. Only the owner can renew."
+            )
     }
 
     /// "Credits · trial ends/renews date · seats 2/5 · agents 1/3 · owner"
@@ -898,7 +922,8 @@ struct WorkspaceDetailView: View {
     private func autoConnectSharedAgents() async {
         guard !service.workspaceAgents.isEmpty else { return }
         await connectService.autoConnect(
-            workspaceId: workspace.id, agents: service.workspaceAgents
+            workspaceId: workspace.id,
+            agents: service.workspaceAgents
         )
     }
 
@@ -915,7 +940,9 @@ struct WorkspaceDetailView: View {
     private func destructionMessage(_ action: PendingDestruction) -> String {
         switch action {
         case .removeMember:
-            return L("They lose access to the workspace's shared agents and credit pool, and any agents they shared are revoked.")
+            return L(
+                "They lose access to the workspace's shared agents and credit pool, and any agents they shared are revoked."
+            )
         case .revokeInvite:
             return L(
                 "Anyone who still has this link won't be able to join with it. People who already joined stay on the workspace."
@@ -1052,7 +1079,9 @@ struct WorkspaceDetailView: View {
                     Button(action: {
                         Task {
                             await service.setMemberRole(
-                                workspaceId: workspace.id, accountId: member.accountId, role: .admin
+                                workspaceId: workspace.id,
+                                accountId: member.accountId,
+                                role: .admin
                             )
                         }
                     }) {
@@ -1062,7 +1091,9 @@ struct WorkspaceDetailView: View {
                     Button(action: {
                         Task {
                             await service.setMemberRole(
-                                workspaceId: workspace.id, accountId: member.accountId, role: .member
+                                workspaceId: workspace.id,
+                                accountId: member.accountId,
+                                role: .member
                             )
                         }
                     }) {
@@ -1119,7 +1150,9 @@ struct WorkspaceDetailView: View {
         } else {
             Task {
                 await service.setMemberRole(
-                    workspaceId: workspace.id, accountId: member.accountId, role: .viewer
+                    workspaceId: workspace.id,
+                    accountId: member.accountId,
+                    role: .viewer
                 )
             }
         }
@@ -1566,7 +1599,9 @@ private struct WorkspaceSharedAgentRow: View {
                     L("Yours · other device"),
                     tint: theme.accentColor,
                     style: .tag,
-                    help: L("Shared by your identity from another device. Reached through the relay like a teammate's agent.")
+                    help: L(
+                        "Shared by your identity from another device. Reached through the relay like a teammate's agent."
+                    )
                 )
             }
             if let model = identity.modelLabel {

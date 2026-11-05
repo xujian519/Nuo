@@ -695,7 +695,8 @@ public class ThemeManager: ObservableObject {
             self.chatTheme = themeInstance
         } else {
             let fallbackTheme =
-                Self.isDarkMode(for: startupSelection.appearanceMode) ? CustomTheme.darkDefault : CustomTheme.lightDefault
+                Self.isDarkMode(for: startupSelection.appearanceMode)
+                ? CustomTheme.darkDefault : CustomTheme.lightDefault
             let themeInstance = CustomizableTheme(config: fallbackTheme)
             self.currentTheme = themeInstance
             self.chatTheme = themeInstance
@@ -757,7 +758,8 @@ public class ThemeManager: ObservableObject {
             // Only swap the live theme if the user hasn't picked a custom one;
             // matching the original synchronous built-in resolution.
             if self.activeCustomTheme == nil,
-                let builtIn = Self.resolveBuiltInTheme(for: appearanceMode, from: loaded) {
+                let builtIn = Self.resolveBuiltInTheme(for: appearanceMode, from: loaded)
+            {
                 let themeInstance = CustomizableTheme(config: builtIn)
                 self.currentTheme = themeInstance
                 self.chatTheme = themeInstance

@@ -21,7 +21,11 @@ struct RemoteImagePayloadPolicyTests {
 
     private func solidImage(width: Int, height: Int, as type: UTType) -> Data {
         let context = CGContext(
-            data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+            data: nil,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
             space: CGColorSpace(name: CGColorSpace.sRGB)!,
             bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
         )!
@@ -42,7 +46,7 @@ struct RemoteImagePayloadPolicyTests {
 
     private func decodedImageInfo(_ url: String) -> (mime: String, longSide: Int, bytes: Int)? {
         guard url.hasPrefix("data:"), let comma = url.firstIndex(of: ",") else { return nil }
-        let header = url[url.index(url.startIndex, offsetBy: 5)..<comma]
+        let header = url[url.index(url.startIndex, offsetBy: 5) ..< comma]
         let mime = header.split(separator: ";").first.map(String.init) ?? ""
         guard let data = Data(base64Encoded: String(url[url.index(after: comma)...])),
             let source = CGImageSourceCreateWithData(data as CFData, nil),
@@ -90,10 +94,12 @@ struct RemoteImagePayloadPolicyTests {
     func passthroughs() {
         #expect(
             RemoteImagePayloadPolicy.preparedDataURL("https://example.com/cat.png")
-                == "https://example.com/cat.png")
+                == "https://example.com/cat.png"
+        )
         #expect(
             RemoteImagePayloadPolicy.preparedDataURL("data:image/png;base64,!!!notbase64!!!")
-                == "data:image/png;base64,!!!notbase64!!!")
+                == "data:image/png;base64,!!!notbase64!!!"
+        )
     }
 
     @Test("prepared() rewrites only image parts and keeps tool plumbing intact")
@@ -114,7 +120,9 @@ struct RemoteImagePayloadPolicyTests {
             Issue.record("content parts lost")
             return
         }
-        if case .text(let t) = parts[0] { #expect(t == "what's in this?") } else {
+        if case .text(let t) = parts[0] {
+            #expect(t == "what's in this?")
+        } else {
             Issue.record("text part lost")
         }
         if case .imageUrl(let rewritten, _) = parts[1] {

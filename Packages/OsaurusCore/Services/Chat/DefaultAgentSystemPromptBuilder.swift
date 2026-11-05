@@ -578,7 +578,7 @@ public enum DefaultAgentSystemPromptBuilder {
         while let open = rest.firstIndex(of: "`") {
             let afterOpen = rest.index(after: open)
             guard let close = rest[afterOpen...].firstIndex(of: "`") else { break }
-            let token = String(rest[afterOpen..<close])
+            let token = String(rest[afterOpen ..< close])
             if known.contains(token) { found.insert(token) }
             rest = rest[rest.index(after: close)...]
         }

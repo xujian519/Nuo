@@ -39,7 +39,8 @@ struct ChipProfileTests {
 
     @Test func rejectsNonAppleSiliconBrandStrings() {
         let intel = ChipProfile.parse(
-            brandString: "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz")
+            brandString: "Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz"
+        )
         #expect(intel.generation == nil)
         #expect(intel.tier == .unknown)
 

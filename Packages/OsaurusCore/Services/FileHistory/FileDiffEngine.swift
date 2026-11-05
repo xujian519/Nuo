@@ -86,9 +86,14 @@ enum FileDiffEngine {
 
         func content(_ body: FileDiffContent.Body, caption: String? = nil) -> FileDiffContent {
             FileDiffContent(
-                path: path, body: body, caption: caption, beforeURL: beforeURL,
-                afterURL: afterURL, beforeSize: before?.type == .file ? before?.size : nil,
-                afterSize: after?.type == .file ? after?.size : nil)
+                path: path,
+                body: body,
+                caption: caption,
+                beforeURL: beforeURL,
+                afterURL: afterURL,
+                beforeSize: before?.type == .file ? before?.size : nil,
+                afterSize: after?.type == .file ? after?.size : nil
+            )
         }
 
         if before?.type == .directory || after?.type == .directory {
@@ -120,7 +125,8 @@ enum FileDiffEngine {
             if let old, let new {
                 return content(
                     .text(textDiff(old: old, new: new, path: path, existed: before != nil)),
-                    caption: L(String.LocalizationValue(caption)))
+                    caption: L(String.LocalizationValue(caption))
+                )
             }
             return content(.binary)
         }
@@ -172,9 +178,15 @@ enum FileDiffEngine {
             }
         }
         return FileDiff(
-            path: path, language: FileDiff.language(forPath: path), lines: lines,
-            addedCount: added, removedCount: removed, isPreview: false, truncated: truncated,
-            rawDiff: raw.joined(separator: "\n"))
+            path: path,
+            language: FileDiff.language(forPath: path),
+            lines: lines,
+            addedCount: added,
+            removedCount: removed,
+            isPreview: false,
+            truncated: truncated,
+            rawDiff: raw.joined(separator: "\n")
+        )
     }
 
     static func splitLines(_ text: String) -> [String] {
@@ -208,12 +220,12 @@ enum FileDiffEngine {
         }
         var ops: [DiffOp] = []
         ops.reserveCapacity(a.count + b.count)
-        for i in 0..<prefix { ops.append(.equal(oldIndex: i, newIndex: i)) }
+        for i in 0 ..< prefix { ops.append(.equal(oldIndex: i, newIndex: i)) }
 
-        let midA = Array(a[prefix..<(a.count - suffix)])
-        let midB = Array(b[prefix..<(b.count - suffix)])
-        let midOld = Array(old[prefix..<(a.count - suffix)])
-        let midNew = Array(new[prefix..<(b.count - suffix)])
+        let midA = Array(a[prefix ..< (a.count - suffix)])
+        let midB = Array(b[prefix ..< (b.count - suffix)])
+        let midOld = Array(old[prefix ..< (a.count - suffix)])
+        let midNew = Array(new[prefix ..< (b.count - suffix)])
         if let middle = myers(midA, midB, old: midOld, new: midNew) {
             for op in middle {
                 switch op {
@@ -223,10 +235,10 @@ enum FileDiffEngine {
                 }
             }
         } else {
-            for i in 0..<midA.count { ops.append(.delete(oldIndex: i + prefix)) }
-            for j in 0..<midB.count { ops.append(.insert(newIndex: j + prefix)) }
+            for i in 0 ..< midA.count { ops.append(.delete(oldIndex: i + prefix)) }
+            for j in 0 ..< midB.count { ops.append(.insert(newIndex: j + prefix)) }
         }
-        for k in 0..<suffix {
+        for k in 0 ..< suffix {
             ops.append(.equal(oldIndex: a.count - suffix + k, newIndex: b.count - suffix + k))
         }
         return ops
@@ -236,8 +248,8 @@ enum FileDiffEngine {
     private static func myers(_ a: [Int], _ b: [Int], old: [String], new: [String]) -> [DiffOp]? {
         let n = a.count
         let m = b.count
-        if n == 0 { return (0..<m).map { .insert(newIndex: $0) } }
-        if m == 0 { return (0..<n).map { .delete(oldIndex: $0) } }
+        if n == 0 { return (0 ..< m).map { .insert(newIndex: $0) } }
+        if m == 0 { return (0 ..< n).map { .delete(oldIndex: $0) } }
         // Bound both time ((N+M)·D) and the trace memory (D·(2D+3) ints).
         let maxD = max(1, min(n + m, maxEditDistance, 40_000_000 / (n + m)))
         let offset = maxD + 1
@@ -245,7 +257,7 @@ enum FileDiffEngine {
         var trace: [[Int]] = []
         func same(_ x: Int, _ y: Int) -> Bool { a[x] == b[y] && old[x] == new[y] }
 
-        for d in 0...maxD {
+        for d in 0 ... maxD {
             trace.append(v)
             var k = -d
             while k <= d {
@@ -394,7 +406,7 @@ enum FileDiffEngine {
             let removedCount = j - i
             let addedCount = k - j
             if removedCount == addedCount {
-                for offset in 0..<removedCount {
+                for offset in 0 ..< removedCount {
                     let (r, a) = wordRanges(lines[i + offset].text, lines[j + offset].text)
                     if !r.isEmpty { result[i + offset] = r }
                     if !a.isEmpty { result[j + offset] = a }
@@ -461,7 +473,7 @@ enum FileDiffEngine {
             if c.isLetter || c.isNumber || c == "_" {
                 while j < s.endIndex, s[j].isLetter || s[j].isNumber || s[j] == "_" { j = s.index(after: j) }
             }
-            out.append(i..<j)
+            out.append(i ..< j)
             i = j
         }
         return out
@@ -471,7 +483,7 @@ enum FileDiffEngine {
         var out: [Range<String.Index>] = []
         for r in ranges {
             if let last = out.last, last.upperBound == r.lowerBound {
-                out[out.count - 1] = last.lowerBound..<r.upperBound
+                out[out.count - 1] = last.lowerBound ..< r.upperBound
             } else {
                 out.append(r)
             }
@@ -528,7 +540,10 @@ enum FileDiffEngine {
                 let cells = element.children.map { ($0.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines) }
                 if cells.contains(where: { !$0.isEmpty }) { lines.append("| " + cells.joined(separator: " | ") + " |") }
             case .heading:
-                textLines(element.text, prefix: String(repeating: "#", count: max(1, element.attributes.level ?? 1)) + " ")
+                textLines(
+                    element.text,
+                    prefix: String(repeating: "#", count: max(1, element.attributes.level ?? 1)) + " "
+                )
             case .listItem:
                 textLines(element.text, prefix: "- ")
             case .speakerNotes:

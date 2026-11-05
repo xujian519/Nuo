@@ -30,8 +30,12 @@ enum ModelSSDResidency {
     /// Sum of n-gram tensor payloads from the bundle's safetensors HEADERS (no weights read). `0` when there
     /// is no table or the headers cannot be read. Off-main callers only (one small read per shard).
     nonisolated static func localNGramBytes(at directory: URL) -> Int64 {
-        guard let entries = try? FileManager.default.contentsOfDirectory(
-            at: directory, includingPropertiesForKeys: nil, options: [.skipsHiddenFiles])
+        guard
+            let entries = try? FileManager.default.contentsOfDirectory(
+                at: directory,
+                includingPropertiesForKeys: nil,
+                options: [.skipsHiddenFiles]
+            )
         else { return 0 }
         var total: Int64 = 0
         for url in entries where url.pathExtension == "safetensors" {
@@ -43,7 +47,8 @@ enum ModelSSDResidency {
                 let fileSize = try? handle.seekToEnd(), fileSize >= 8 + length
             else { continue }
             let (sum, overflow) = total.addingReportingOverflow(
-                ngramBytes(inHeader: header, payloadLength: Int64(fileSize - 8 - length)))
+                ngramBytes(inHeader: header, payloadLength: Int64(fileSize - 8 - length))
+            )
             if !overflow { total = sum }
         }
         return total
@@ -67,22 +72,30 @@ enum ModelSSDResidency {
     /// HTTP range reads per shard; Allosaurus: 11 shards). Cached per repo revision. `nil` on network failure
     /// (callers then keep the conservative whole-download estimate), `0` when the repo has no table.
     static func remoteNGramBytes(
-        repoId: String, revision: String?, session: URLSession? = nil
+        repoId: String,
+        revision: String?,
+        session: URLSession? = nil
     ) async -> Int64? {
         let cacheKey = repoId + Self.cacheSuffix
         if let cached = ModelSizeCache.bytes(forId: cacheKey, matchingRevision: revision) {
             return cached == Self.noTableSentinel ? 0 : cached
         }
-        guard let index = await fetch(repoId: repoId, path: "model.safetensors.index.json", range: nil, session: session),
+        guard
+            let index = await fetch(repoId: repoId, path: "model.safetensors.index.json", range: nil, session: session),
             let object = try? JSONSerialization.jsonObject(with: index) as? [String: Any],
             let weightMap = object["weight_map"] as? [String: String]
         else { return nil }
         let shards = Set(weightMap.filter { $0.key.contains(ngramTensorMarker) }.values)
         var total: Int64 = 0
         for shard in shards.sorted() {
-            guard let lengthData = await fetch(repoId: repoId, path: shard, range: 0...7, session: session),
+            guard let lengthData = await fetch(repoId: repoId, path: shard, range: 0 ... 7, session: session),
                 lengthData.count == 8, let length = headerLength(lengthData),
-                let header = await fetch(repoId: repoId, path: shard, range: 8...(8 + Int(length) - 1), session: session),
+                let header = await fetch(
+                    repoId: repoId,
+                    path: shard,
+                    range: 8 ... (8 + Int(length) - 1),
+                    session: session
+                ),
                 header.count == Int(length),
                 let tensors = (try? JSONSerialization.jsonObject(with: header)) as? [String: Any]
             else { return nil }
@@ -133,7 +146,10 @@ enum ModelSSDResidency {
     }
 
     private static func fetch(
-        repoId: String, path: String, range: ClosedRange<Int>?, session: URLSession?
+        repoId: String,
+        path: String,
+        range: ClosedRange<Int>?,
+        session: URLSession?
     ) async -> Data? {
         let encoded = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? path
         guard let url = URL(string: "https://huggingface.co/\(repoId)/resolve/main/\(encoded)") else { return nil }
@@ -144,7 +160,7 @@ enum ModelSSDResidency {
         // Stream and stop at the expected size: even a server that ignores Range can never pull a whole shard.
         let limit = range?.count ?? (16 << 20)
         guard let (stream, response) = try? await (session ?? GlobalProxySettings.sharedSession()).bytes(for: request),
-            let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode)
+            let http = response as? HTTPURLResponse, (200 ..< 300).contains(http.statusCode)
         else { return nil }
         if let range {
             // A 200 response starts at byte zero even when Range was requested. Never

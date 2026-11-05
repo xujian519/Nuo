@@ -185,7 +185,9 @@ extension EvalRunner {
         let label = testCase.label ?? testCase.id
         guard let exp = testCase.expect.httpAPI else {
             return Self.errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: "missing `expect.httpAPI`"
             )
         }
@@ -193,7 +195,9 @@ extension EvalRunner {
         let startResult = await EvalHTTPServerHost.ensureStarted()
         guard let port = startResult.port else {
             return Self.errored(
-                testCase, label: label, modelId: modelId,
+                testCase,
+                label: label,
+                modelId: modelId,
                 note: startResult.error ?? "in-process server unavailable"
             )
         }
@@ -217,82 +221,133 @@ extension EvalRunner {
             switch exp.scenario {
             case "sse_contract":
                 try await runSSEContract(
-                    port: port, prompt: prompt, maxTokens: maxTokens, check: check
+                    port: port,
+                    prompt: prompt,
+                    maxTokens: maxTokens,
+                    check: check
                 )
             case "chat_completion":
                 try await runChatCompletion(
-                    port: port, prompt: prompt, maxTokens: maxTokens,
-                    responseContains: exp.responseContains, check: check
+                    port: port,
+                    prompt: prompt,
+                    maxTokens: maxTokens,
+                    responseContains: exp.responseContains,
+                    check: check
                 )
             case "responses_ordering":
                 try await runResponsesOrdering(
-                    port: port, prompt: prompt, maxTokens: maxTokens, check: check
+                    port: port,
+                    prompt: prompt,
+                    maxTokens: maxTokens,
+                    check: check
                 )
             case "cache_stats":
                 try await runCacheStats(
-                    port: port, prompt: prompt, prefixProbe: exp.prefixProbe ?? false,
-                    check: check, note: { notes.append($0) }
+                    port: port,
+                    prompt: prompt,
+                    prefixProbe: exp.prefixProbe ?? false,
+                    check: check,
+                    note: { notes.append($0) }
                 )
             case "chat_agents_parity":
                 try await runChatAgentsParity(
-                    port: port, prompt: prompt, maxTokens: maxTokens,
-                    responseContains: exp.responseContains, check: check
+                    port: port,
+                    prompt: prompt,
+                    maxTokens: maxTokens,
+                    responseContains: exp.responseContains,
+                    check: check
                 )
             case "stop_sequence":
                 try await runStopSequence(
-                    port: port, prompt: prompt, maxTokens: maxTokens,
-                    stopSequence: exp.stopSequence ?? "STOP-HERE", check: check
+                    port: port,
+                    prompt: prompt,
+                    maxTokens: maxTokens,
+                    stopSequence: exp.stopSequence ?? "STOP-HERE",
+                    check: check
                 )
             case "max_tokens_length":
                 try await runMaxTokensLength(
-                    port: port, prompt: prompt, maxTokens: maxTokens, check: check
+                    port: port,
+                    prompt: prompt,
+                    maxTokens: maxTokens,
+                    check: check
                 )
             case "typed_error":
                 try await runTypedError(
-                    port: port, prompt: prompt, maxTokens: maxTokens,
-                    bodyOverride: exp.body, expectStatus: exp.expectStatus ?? 400,
-                    errorContains: exp.errorContains ?? [], check: check
+                    port: port,
+                    prompt: prompt,
+                    maxTokens: maxTokens,
+                    bodyOverride: exp.body,
+                    expectStatus: exp.expectStatus ?? 400,
+                    errorContains: exp.errorContains ?? [],
+                    check: check
                 )
             case "structured_output":
                 try await runStructuredOutput(
-                    port: port, prompt: prompt, maxTokens: maxTokens,
-                    outputSchema: exp.outputSchema, stream: false, check: check,
+                    port: port,
+                    prompt: prompt,
+                    maxTokens: maxTokens,
+                    outputSchema: exp.outputSchema,
+                    stream: false,
+                    check: check,
                     note: { notes.append($0) }
                 )
             case "structured_output_stream":
                 try await runStructuredOutput(
-                    port: port, prompt: prompt, maxTokens: maxTokens,
-                    outputSchema: exp.outputSchema, stream: true, check: check,
+                    port: port,
+                    prompt: prompt,
+                    maxTokens: maxTokens,
+                    outputSchema: exp.outputSchema,
+                    stream: true,
+                    check: check,
                     note: { notes.append($0) }
                 )
             case "concurrent_isolation":
                 try await runConcurrentIsolation(
-                    port: port, maxTokens: maxTokens,
-                    echoTokens: exp.echoTokens ?? ["ALPHA-7391", "BRAVO-2648"], check: check
+                    port: port,
+                    maxTokens: maxTokens,
+                    echoTokens: exp.echoTokens ?? ["ALPHA-7391", "BRAVO-2648"],
+                    check: check
                 )
             case "multimodal_image":
                 if let skip = try await runMultimodalImage(
-                    port: port, maxTokens: maxTokens, requireMediaSupport: exp.requireMediaSupport ?? false,
-                    check: check, note: { notes.append($0) }
+                    port: port,
+                    maxTokens: maxTokens,
+                    requireMediaSupport: exp.requireMediaSupport ?? false,
+                    check: check,
+                    note: { notes.append($0) }
                 ) {
                     return .terminal(
-                        id: testCase.id, label: label, domain: testCase.domain,
-                        outcome: .skipped, notes: notes + ["SKIP: \(skip)"], modelId: modelId
+                        id: testCase.id,
+                        label: label,
+                        domain: testCase.domain,
+                        outcome: .skipped,
+                        notes: notes + ["SKIP: \(skip)"],
+                        modelId: modelId
                     )
                 }
             case "multimodal_video":
                 if let skip = try await runMultimodalVideo(
-                    port: port, maxTokens: maxTokens, requireMediaSupport: exp.requireMediaSupport ?? false,
-                    check: check, note: { notes.append($0) }
+                    port: port,
+                    maxTokens: maxTokens,
+                    requireMediaSupport: exp.requireMediaSupport ?? false,
+                    check: check,
+                    note: { notes.append($0) }
                 ) {
                     return .terminal(
-                        id: testCase.id, label: label, domain: testCase.domain,
-                        outcome: .skipped, notes: notes + ["SKIP: \(skip)"], modelId: modelId
+                        id: testCase.id,
+                        label: label,
+                        domain: testCase.domain,
+                        outcome: .skipped,
+                        notes: notes + ["SKIP: \(skip)"],
+                        modelId: modelId
                     )
                 }
             default:
                 return Self.errored(
-                    testCase, label: label, modelId: modelId,
+                    testCase,
+                    label: label,
+                    modelId: modelId,
                     note: "unknown http_api scenario '\(exp.scenario)'"
                 )
             }
@@ -494,7 +549,9 @@ extension EvalRunner {
         note: (String) -> Void
     ) async throws {
         let (status, json, raw) = try await httpJSON(
-            port: port, path: "/admin/cache-stats", method: "GET"
+            port: port,
+            path: "/admin/cache-stats",
+            method: "GET"
         )
         check(status == 200, "status 200", "status \(status): \(raw.prefix(200))")
         guard let json else {
@@ -534,15 +591,21 @@ extension EvalRunner {
                 path: "/v1/chat/completions",
                 body: chatBody(prompt: sharedPrefix, maxTokens: 16, stream: false)
             )
-            check(requestStatus == 200,
-                  "prefix request \(attempt) status 200",
-                  "prefix request \(attempt) status \(requestStatus): \(responseRaw.prefix(200))")
-            check(!chatContent(response).isEmpty,
-                  "prefix request \(attempt) produced content",
-                  "prefix request \(attempt) produced no content")
+            check(
+                requestStatus == 200,
+                "prefix request \(attempt) status 200",
+                "prefix request \(attempt) status \(requestStatus): \(responseRaw.prefix(200))"
+            )
+            check(
+                !chatContent(response).isEmpty,
+                "prefix request \(attempt) produced content",
+                "prefix request \(attempt) produced no content"
+            )
         }
         let (_, jsonAfter, _) = try await httpJSON(
-            port: port, path: "/admin/cache-stats", method: "GET"
+            port: port,
+            path: "/admin/cache-stats",
+            method: "GET"
         )
         let batchAfter = jsonAfter?["batch_diagnostics"] as? [String: Any]
         let after = (batchAfter?["prefix_hits"] as? Int) ?? before
@@ -616,11 +679,13 @@ extension EvalRunner {
             "agents/run status 200",
             "agents/run status \(agentStatus)"
         )
-        let agentContent = agentEvents
+        let agentContent =
+            agentEvents
             .filter { $0.data != "[DONE]" }
             .compactMap { jsonObject($0.data) }
             .compactMap { chunk -> String? in
-                let delta = ((chunk["choices"] as? [[String: Any]])?.first)?["delta"]
+                let delta =
+                    ((chunk["choices"] as? [[String: Any]])?.first)?["delta"]
                     as? [String: Any]
                 return delta?["content"] as? String
             }
@@ -652,7 +717,9 @@ extension EvalRunner {
             port: port,
             path: "/v1/chat/completions",
             body: chatBody(
-                prompt: prompt, maxTokens: maxTokens, stream: false,
+                prompt: prompt,
+                maxTokens: maxTokens,
+                stream: false,
                 extra: ["stop": [stopSequence]]
             )
         )
@@ -716,7 +783,9 @@ extension EvalRunner {
             for (key, value) in overrides { body[key] = value }
         }
         let (status, json, raw) = try await httpJSON(
-            port: port, path: "/v1/chat/completions", body: body
+            port: port,
+            path: "/v1/chat/completions",
+            body: body
         )
         check(
             status == expectStatus,
@@ -755,7 +824,9 @@ extension EvalRunner {
                 port: port,
                 path: "/v1/chat/completions",
                 body: chatBody(
-                    prompt: prompt, maxTokens: maxTokens, stream: true,
+                    prompt: prompt,
+                    maxTokens: maxTokens,
+                    stream: true,
                     extra: ["response_format": ["type": "json_object"]]
                 )
             )
@@ -765,11 +836,13 @@ extension EvalRunner {
                 "[DONE] terminator present",
                 "stream did not end with [DONE]"
             )
-            content = events
+            content =
+                events
                 .filter { $0.data != "[DONE]" }
                 .compactMap { jsonObject($0.data) }
                 .compactMap { chunk -> String? in
-                    let delta = ((chunk["choices"] as? [[String: Any]])?.first)?["delta"]
+                    let delta =
+                        ((chunk["choices"] as? [[String: Any]])?.first)?["delta"]
                         as? [String: Any]
                     return delta?["content"] as? String
                 }
@@ -779,7 +852,9 @@ extension EvalRunner {
                 port: port,
                 path: "/v1/chat/completions",
                 body: chatBody(
-                    prompt: prompt, maxTokens: maxTokens, stream: false,
+                    prompt: prompt,
+                    maxTokens: maxTokens,
+                    stream: false,
                     extra: ["response_format": ["type": "json_object"]]
                 )
             )
@@ -872,8 +947,10 @@ extension EvalRunner {
         let model = evalRequestModel()
         let installed = InstalledVisionEvaluation.inspect(modelID: model)
         if let installed {
-            note("installed model=\(installed.modelID) architecture=\(installed.modelType) "
-                 + "image=\(installed.supportsImage) tensors=\(installed.tensorCount): \(installed.reason)")
+            note(
+                "installed model=\(installed.modelID) architecture=\(installed.modelType) "
+                    + "image=\(installed.supportsImage) tensors=\(installed.tensorCount): \(installed.reason)"
+            )
         }
         let prompt = "What color is the background, excluding the small centered square? Answer with exactly one word."
         let bodyA = multimodalBody(prompt: prompt, mediaType: "image_url", dataURL: imageA, maxTokens: maxTokens)
@@ -882,16 +959,26 @@ extension EvalRunner {
             note("\(label) HTTP \(status): \(raw)")
             check(status == 200, "\(label) status 200", "\(label) HTTP \(status)")
             let problems = HTTPMediaContract.terminalProblems(json)
-            check(problems.isEmpty, "\(label) complete visible response with throughput",
-                  "\(label): \(problems.joined(separator: "; "))")
-            check(HTTPMediaContract.exactColor(chatContent(json), expected: color),
-                  "\(label) exact color \(color)", "\(label) expected only \(color), got: \(chatContent(json))")
+            check(
+                problems.isEmpty,
+                "\(label) complete visible response with throughput",
+                "\(label): \(problems.joined(separator: "; "))"
+            )
+            check(
+                HTTPMediaContract.exactColor(chatContent(json), expected: color),
+                "\(label) exact color \(color)",
+                "\(label) expected only \(color), got: \(chatContent(json))"
+            )
         }
         let (statusA, jsonA, rawA) = try await httpJSON(port: port, path: "/v1/chat/completions", body: bodyA)
         if statusA != 200 {
             let errorType = (jsonA?["error"] as? [String: Any])?["type"] as? String
-            if HTTPMediaContract.maySkipUnsupported(status: statusA, errorType: errorType,
-                installedSupportsMedia: installed?.supportsImage, required: requireMediaSupport) {
+            if HTTPMediaContract.maySkipUnsupported(
+                status: statusA,
+                errorType: errorType,
+                installedSupportsMedia: installed?.supportsImage,
+                required: requireMediaSupport
+            ) {
                 return "installed bundle does not support images: \(rawA)"
             }
             validate("image A", statusA, jsonA, rawA, "red")
@@ -906,13 +993,16 @@ extension EvalRunner {
             func hits(_ stats: [String: Any]?) -> Int? {
                 guard let aggregate = stats?["aggregate"] as? [String: Any],
                     let prefix = aggregate["prefix_hits"] as? Int,
-                    let disk = aggregate["disk_l2_hits"] as? Int else { return nil }
+                    let disk = aggregate["disk_l2_hits"] as? Int
+                else { return nil }
                 return prefix + disk
             }
             let before = hits(cacheA), after = hits(cacheA2)
-            check(before != nil && after != nil && after! > before!,
-                  "identical image replay increased cache hits",
-                  "image replay cache hit unproved: before=\(String(describing: before)) after=\(String(describing: after))")
+            check(
+                before != nil && after != nil && after! > before!,
+                "identical image replay increased cache hits",
+                "image replay cache hit unproved: before=\(String(describing: before)) after=\(String(describing: after))"
+            )
         }
         note("cache after identical replay: \(cacheRawA2)")
         let (statusB, jsonB, rawB) = try await httpJSON(port: port, path: "/v1/chat/completions", body: bodyB)
@@ -926,8 +1016,11 @@ extension EvalRunner {
             let dataEvents = events.filter { $0.data != "[DONE]" }
             let chunks = dataEvents.compactMap { jsonObject($0.data) }
             note("\(label) raw SSE: \(events.map(\.data).joined(separator: "\n"))")
-            check(chunks.count == dataEvents.count && !chunks.isEmpty,
-                  "\(label) all chunks parse", "\(label) malformed or empty stream")
+            check(
+                chunks.count == dataEvents.count && !chunks.isEmpty,
+                "\(label) all chunks parse",
+                "\(label) malformed or empty stream"
+            )
             check(events.last?.data == "[DONE]", "\(label) DONE", "\(label) missing DONE")
             let choices = chunks.flatMap { $0["choices"] as? [[String: Any]] ?? [] }
             let content = choices.compactMap { ($0["delta"] as? [String: Any])?["content"] as? String }.joined()
@@ -936,28 +1029,46 @@ extension EvalRunner {
             let usage = chunks.compactMap { $0["usage"] as? [String: Any] }.last ?? [:]
             // Project actual deltas/usage into the same assertion shape as a
             // non-streaming response. Preserve raw SSE above for inspection.
-            let projected: [String: Any] = ["choices": [["finish_reason": reasons.last ?? "",
-                "message": ["content": content]]], "usage": usage]
+            let projected: [String: Any] = [
+                "choices": [
+                    [
+                        "finish_reason": reasons.last ?? "",
+                        "message": ["content": content],
+                    ]
+                ], "usage": usage,
+            ]
             validate(label, status, projected, "content=\(content) usage=\(usage)", color)
         }
         try await streamAndValidate("streamed image", path: "/v1/chat/completions", body: bodyB, color: "blue")
-        let agent = Agent(id: UUID(), name: "Osaurus Vision Eval",
-            description: "Temporary real-media parity fixture.", defaultModel: model,
-            toolsEnabled: false, memoryEnabled: false)
+        let agent = Agent(
+            id: UUID(),
+            name: "Osaurus Vision Eval",
+            description: "Temporary real-media parity fixture.",
+            defaultModel: model,
+            toolsEnabled: false,
+            memoryEnabled: false
+        )
         AgentStore.save(agent)
         AgentManager.shared.refresh()
         defer {
             AgentStore.delete(id: agent.id)
             AgentManager.shared.refresh()
         }
-        try await streamAndValidate("agent image", path: "/agents/\(agent.id.uuidString)/run", body: bodyA, color: "red")
+        try await streamAndValidate(
+            "agent image",
+            path: "/agents/\(agent.id.uuidString)/run",
+            body: bodyA,
+            color: "red"
+        )
 
         // Real multimodal history: preserve the image payload, actual assistant
         // answer and follow-up. Then replace media in a subsequent user turn.
         var historyBody = bodyA
         var history = bodyA["messages"] as? [[String: Any]] ?? []
         history.append(["role": "assistant", "content": chatContent(jsonA)])
-        history.append(["role": "user", "content": "What was the background color in my image? Answer with exactly one word."])
+        history.append([
+            "role": "user", "content": "What was the background color in my image? Answer with exactly one word.",
+        ])
         historyBody["messages"] = history
         let (statusH, jsonH, rawH) = try await httpJSON(port: port, path: "/v1/chat/completions", body: historyBody)
         validate("image history follow-up", statusH, jsonH, rawH, "red")
@@ -970,10 +1081,16 @@ extension EvalRunner {
         // attachment, not the first image retained in the conversation.
         // Keep actual answers in history, including any earlier failure.
         history.append(["role": "assistant", "content": chatContent(jsonHB)])
-        history.append(["role": "user", "content": "What color is the background in the most recent image I attached? Answer with one word."])
+        history.append([
+            "role": "user",
+            "content": "What color is the background in the most recent image I attached? Answer with one word.",
+        ])
         historyBody["messages"] = history
         let (statusLatest, jsonLatest, rawLatest) = try await httpJSON(
-            port: port, path: "/v1/chat/completions", body: historyBody)
+            port: port,
+            path: "/v1/chat/completions",
+            body: historyBody
+        )
         validate("latest image recall after history", statusLatest, jsonLatest, rawLatest, "blue")
         let (_, _, finalCache) = try await httpJSON(port: port, path: "/admin/cache-stats", method: "GET")
         note("cache after media history: \(finalCache)")
@@ -1002,19 +1119,28 @@ extension EvalRunner {
             + "Answer in the form: first=<color> second=<color>."
 
         let (status, json, raw) = try await httpJSON(
-            port: port, path: "/v1/chat/completions",
+            port: port,
+            path: "/v1/chat/completions",
             body: multimodalBody(
-                prompt: prompt, mediaType: "video_url", dataURL: video, maxTokens: maxTokens
+                prompt: prompt,
+                mediaType: "video_url",
+                dataURL: video,
+                maxTokens: maxTokens
             )
         )
         if status != 200 {
             let installed = InstalledVisionEvaluation.inspect(modelID: evalRequestModel())
             let errorType = (json?["error"] as? [String: Any])?["type"] as? String
             let supportsVideo = installed.map {
-                ModelMediaCapabilities.from(directory: URL(fileURLWithPath: $0.directory), modelId: $0.modelID).supportsVideo
+                ModelMediaCapabilities.from(directory: URL(fileURLWithPath: $0.directory), modelId: $0.modelID)
+                    .supportsVideo
             }
-            if HTTPMediaContract.maySkipUnsupported(status: status, errorType: errorType,
-                installedSupportsMedia: supportsVideo, required: requireMediaSupport) {
+            if HTTPMediaContract.maySkipUnsupported(
+                status: status,
+                errorType: errorType,
+                installedSupportsMedia: supportsVideo,
+                required: requireMediaSupport
+            ) {
                 return "installed bundle does not support video: \(raw)"
             }
             check(false, "", "video request failed HTTP \(status): \(raw)")
@@ -1061,17 +1187,21 @@ extension EvalRunner {
         // the concurrent `async let` pair doesn't have to move `[String:
         // Any]` across the actor boundary.
         let requestA = makeRequest(
-            port: port, path: "/v1/chat/completions",
+            port: port,
+            path: "/v1/chat/completions",
             body: chatBody(
                 prompt: "Repeat this exact code and nothing else: \(tokenA)",
-                maxTokens: maxTokens, stream: false
+                maxTokens: maxTokens,
+                stream: false
             )
         )
         let requestB = makeRequest(
-            port: port, path: "/v1/chat/completions",
+            port: port,
+            path: "/v1/chat/completions",
             body: chatBody(
                 prompt: "Repeat this exact code and nothing else: \(tokenB)",
-                maxTokens: maxTokens, stream: false
+                maxTokens: maxTokens,
+                stream: false
             )
         )
         async let rawA = fetchRaw(requestA)
@@ -1080,9 +1210,10 @@ extension EvalRunner {
 
         func content(_ raw: String) -> String {
             let json = jsonObject(raw)
-            return ((((json?["choices"] as? [[String: Any]])?.first)?["message"] as? [String: Any])?[
-                "content"
-            ] as? String) ?? ""
+            return
+                ((((json?["choices"] as? [[String: Any]])?.first)?["message"] as? [String: Any])?[
+                    "content"
+                ] as? String) ?? ""
         }
         let contentA = content(resultA.body)
         let contentB = content(resultB.body)

@@ -62,18 +62,45 @@ public final class ImageTool: OsaurusTool, @unchecked Sendable {
             "height": .object(["type": .string("integer"), "description": .string("Optional height in pixels.")]),
             "steps": .object(["type": .string("integer"), "description": .string("Optional denoise step count.")]),
             "guidance": .object(["type": .string("number"), "description": .string("Optional guidance scale.")]),
-            "sampler": .object(["type": .string("string"), "description": .string("Local model sampler; omit for the bundle default.")]),
-            "scheduler": .object(["type": .string("string"), "description": .string("Local model timestep schedule; omit for the bundle default.")]),
-            "shift": .object(["type": .string("number"), "description": .string("Local model timestep shift, where supported.")]),
+            "sampler": .object([
+                "type": .string("string"), "description": .string("Local model sampler; omit for the bundle default."),
+            ]),
+            "scheduler": .object([
+                "type": .string("string"),
+                "description": .string("Local model timestep schedule; omit for the bundle default."),
+            ]),
+            "shift": .object([
+                "type": .string("number"), "description": .string("Local model timestep shift, where supported."),
+            ]),
             "adapters": .object([
-                "type": .string("array"), "description": .string("Local LoRA safetensor adapters; omit to use base weights."),
-                "items": .object(["type": .string("object"), "required": .array([.string("url")]),
+                "type": .string("array"),
+                "description": .string("Local LoRA safetensor adapters; omit to use base weights."),
+                "items": .object([
+                    "type": .string("object"), "required": .array([.string("url")]),
                     "properties": .object([
-                        "url": .object(["type": .string("string"), "description": .string("Local file:// URL of a safetensors adapter")]),
-                        "scale": .object(["type": .string("number"), "description": .string("Adapter strength, default 1; zero disables it")]),
-                        "target": .object(["type": .string("string"), "enum": .array([.string("transformer"), .string("textEncoder"), .string("both")])])])])]),
-            "preview_interval": .object(["type": .string("integer"), "description": .string("Local generation/edit: optional positive step interval for progress previews.")]),
-            "preview_max_pixel": .object(["type": .string("integer"), "description": .string("Maximum preview side in pixels, 16...1024; default 256.")]),
+                        "url": .object([
+                            "type": .string("string"),
+                            "description": .string("Local file:// URL of a safetensors adapter"),
+                        ]),
+                        "scale": .object([
+                            "type": .string("number"),
+                            "description": .string("Adapter strength, default 1; zero disables it"),
+                        ]),
+                        "target": .object([
+                            "type": .string("string"),
+                            "enum": .array([.string("transformer"), .string("textEncoder"), .string("both")]),
+                        ]),
+                    ]),
+                ]),
+            ]),
+            "preview_interval": .object([
+                "type": .string("integer"),
+                "description": .string("Local generation/edit: optional positive step interval for progress previews."),
+            ]),
+            "preview_max_pixel": .object([
+                "type": .string("integer"),
+                "description": .string("Maximum preview side in pixels, 16...1024; default 256."),
+            ]),
             "strength": .object([
                 "type": .string("number"),
                 "description": .string("Optional edit strength, 0...1 (edit mode only)."),
@@ -85,7 +112,9 @@ public final class ImageTool: OsaurusTool, @unchecked Sendable {
             ]),
             "batch_size": .object([
                 "type": .string("integer"),
-                "description": .string("Local generation only: requested parallel image count; runtime may lower it to fit."),
+                "description": .string(
+                    "Local generation only: requested parallel image count; runtime may lower it to fit."
+                ),
             ]),
             "num_images": .object([
                 "type": .string("integer"),
@@ -121,18 +150,45 @@ public final class ImageTool: OsaurusTool, @unchecked Sendable {
             "height": .object(["type": .string("integer"), "description": .string("Optional height in pixels.")]),
             "steps": .object(["type": .string("integer"), "description": .string("Optional denoise step count.")]),
             "guidance": .object(["type": .string("number"), "description": .string("Optional guidance scale.")]),
-            "sampler": .object(["type": .string("string"), "description": .string("Local model sampler; omit for the bundle default.")]),
-            "scheduler": .object(["type": .string("string"), "description": .string("Local model timestep schedule; omit for the bundle default.")]),
-            "shift": .object(["type": .string("number"), "description": .string("Local model timestep shift, where supported.")]),
+            "sampler": .object([
+                "type": .string("string"), "description": .string("Local model sampler; omit for the bundle default."),
+            ]),
+            "scheduler": .object([
+                "type": .string("string"),
+                "description": .string("Local model timestep schedule; omit for the bundle default."),
+            ]),
+            "shift": .object([
+                "type": .string("number"), "description": .string("Local model timestep shift, where supported."),
+            ]),
             "adapters": .object([
-                "type": .string("array"), "description": .string("Local LoRA safetensor adapters; omit to use base weights."),
-                "items": .object(["type": .string("object"), "required": .array([.string("url")]),
+                "type": .string("array"),
+                "description": .string("Local LoRA safetensor adapters; omit to use base weights."),
+                "items": .object([
+                    "type": .string("object"), "required": .array([.string("url")]),
                     "properties": .object([
-                        "url": .object(["type": .string("string"), "description": .string("Local file:// URL of a safetensors adapter")]),
-                        "scale": .object(["type": .string("number"), "description": .string("Adapter strength, default 1; zero disables it")]),
-                        "target": .object(["type": .string("string"), "enum": .array([.string("transformer"), .string("textEncoder"), .string("both")])])])])]),
-            "preview_interval": .object(["type": .string("integer"), "description": .string("Local generation/edit: optional positive step interval for progress previews.")]),
-            "preview_max_pixel": .object(["type": .string("integer"), "description": .string("Maximum preview side in pixels, 16...1024; default 256.")]),
+                        "url": .object([
+                            "type": .string("string"),
+                            "description": .string("Local file:// URL of a safetensors adapter"),
+                        ]),
+                        "scale": .object([
+                            "type": .string("number"),
+                            "description": .string("Adapter strength, default 1; zero disables it"),
+                        ]),
+                        "target": .object([
+                            "type": .string("string"),
+                            "enum": .array([.string("transformer"), .string("textEncoder"), .string("both")]),
+                        ]),
+                    ]),
+                ]),
+            ]),
+            "preview_interval": .object([
+                "type": .string("integer"),
+                "description": .string("Local generation/edit: optional positive step interval for progress previews."),
+            ]),
+            "preview_max_pixel": .object([
+                "type": .string("integer"),
+                "description": .string("Maximum preview side in pixels, 16...1024; default 256."),
+            ]),
             "seed": .object(["type": .string("integer"), "description": .string("Optional deterministic seed.")]),
             "seeds": .object([
                 "type": .string("array"), "items": .object(["type": .string("integer")]),
@@ -140,7 +196,9 @@ public final class ImageTool: OsaurusTool, @unchecked Sendable {
             ]),
             "batch_size": .object([
                 "type": .string("integer"),
-                "description": .string("Local generation only: requested parallel image count; runtime may lower it to fit."),
+                "description": .string(
+                    "Local generation only: requested parallel image count; runtime may lower it to fit."
+                ),
             ]),
             "num_images": .object([
                 "type": .string("integer"),
@@ -178,13 +236,19 @@ public final class ImageTool: OsaurusTool, @unchecked Sendable {
         guard case .value(let prompt) = promptReq else { return promptReq.failureEnvelope ?? "" }
 
         var params = Self.buildParams(args: args, prompt: prompt)
-        struct BatchArguments: Decodable { let seeds: [UInt64]?; let batch_size: Int?; let num_images: Int?; let sampler: String?; let scheduler: String?; let shift: Float?; let preview_interval: Int?; let preview_max_pixel: Int?; let adapters: [ImageAdapterParameters]? }
+        struct BatchArguments: Decodable {
+            let seeds: [UInt64]?; let batch_size: Int?; let num_images: Int?; let sampler: String?;
+            let scheduler: String?; let shift: Float?; let preview_interval: Int?; let preview_max_pixel: Int?;
+            let adapters: [ImageAdapterParameters]?
+        }
         let batch: BatchArguments
-        do { batch = try JSONDecoder().decode(BatchArguments.self, from: Data(argumentsJSON.utf8)) }
-        catch {
-            return ToolEnvelope.failure(kind: .invalidArgs,
-                message: "Invalid image parameters: seeds must be unsigned integers; counts must be integers; sampler/scheduler must be strings and shift a number.",
-                tool: name)
+        do { batch = try JSONDecoder().decode(BatchArguments.self, from: Data(argumentsJSON.utf8)) } catch {
+            return ToolEnvelope.failure(
+                kind: .invalidArgs,
+                message:
+                    "Invalid image parameters: seeds must be unsigned integers; counts must be integers; sampler/scheduler must be strings and shift a number.",
+                tool: name
+            )
         }
         params.seeds = batch.seeds
         params.batchSize = batch.batch_size
@@ -225,7 +289,8 @@ public final class ImageTool: OsaurusTool, @unchecked Sendable {
             numImages: ArgumentCoercion.int(args["num_images"]),
             seeds: (args["seeds"] as? [Any])?.compactMap(optionalUInt64),
             batchSize: ArgumentCoercion.int(args["batch_size"]),
-            sampler: optionalString(args["sampler"]), scheduler: optionalString(args["scheduler"]),
+            sampler: optionalString(args["sampler"]),
+            scheduler: optionalString(args["scheduler"]),
             shift: optionalFloat(args["shift"]),
             previewInterval: ArgumentCoercion.int(args["preview_interval"]),
             previewMaxPixel: ArgumentCoercion.int(args["preview_max_pixel"])
@@ -235,12 +300,16 @@ public final class ImageTool: OsaurusTool, @unchecked Sendable {
     /// Re-read the original typed fields only after a local bundle's canonical
     /// metadata resolves. This recovers Q21 values lost by the legacy clamps;
     /// no requested/display-name inference or remote-policy changes are made.
-    static func paramsForResolvedLocalModel(_ legacy: ImageJobParams, argumentsJSON: String,
-        canonical: String?, defaultGuidance: Float?) throws -> ImageJobParams
-    {
+    static func paramsForResolvedLocalModel(
+        _ legacy: ImageJobParams,
+        argumentsJSON: String,
+        canonical: String?,
+        defaultGuidance: Float?
+    ) throws -> ImageJobParams {
         let raw: Qwen21Arguments
-        do { raw = try JSONDecoder().decode(Qwen21Arguments.self, from: Data(argumentsJSON.utf8)) }
-        catch { throw ImageGenerationError.invalidRequest("invalid explicit image tool parameter: \(error)") }
+        do { raw = try JSONDecoder().decode(Qwen21Arguments.self, from: Data(argumentsJSON.utf8)) } catch {
+            throw ImageGenerationError.invalidRequest("invalid explicit image tool parameter: \(error)")
+        }
         if let format = raw.output_format, format.lowercased() != "png" {
             throw ImageGenerationError.invalidRequest("Local image models support PNG output only")
         }
@@ -254,12 +323,27 @@ public final class ImageTool: OsaurusTool, @unchecked Sendable {
         if raw.mask != nil {
             throw ImageGenerationError.invalidRequest("the image tool does not support masks")
         }
-        return ImageJobParams(prompt: legacy.prompt, sourcePaths: paths, model: legacy.model,
-            negativePrompt: raw.negative_prompt, width: raw.width, height: raw.height,
-            steps: raw.steps, guidance: raw.guidance, strength: raw.strength,
-            seed: raw.seed, numImages: raw.num_images, seeds: raw.seeds, batchSize: raw.batch_size,
-            sampler: raw.sampler, scheduler: raw.scheduler, shift: raw.shift,
-            previewInterval: raw.preview_interval, previewMaxPixel: raw.preview_max_pixel, adapters: raw.adapters ?? [])
+        return ImageJobParams(
+            prompt: legacy.prompt,
+            sourcePaths: paths,
+            model: legacy.model,
+            negativePrompt: raw.negative_prompt,
+            width: raw.width,
+            height: raw.height,
+            steps: raw.steps,
+            guidance: raw.guidance,
+            strength: raw.strength,
+            seed: raw.seed,
+            numImages: raw.num_images,
+            seeds: raw.seeds,
+            batchSize: raw.batch_size,
+            sampler: raw.sampler,
+            scheduler: raw.scheduler,
+            shift: raw.shift,
+            previewInterval: raw.preview_interval,
+            previewMaxPixel: raw.preview_max_pixel,
+            adapters: raw.adapters ?? []
+        )
     }
 
     private struct Qwen21Arguments: Decodable {
@@ -284,7 +368,9 @@ public final class ImageTool: OsaurusTool, @unchecked Sendable {
         let output_format: String?
 
         enum CodingKeys: String, CodingKey {
-            case source_paths, negative_prompt, width, height, steps, guidance, strength, seed, num_images, seeds, batch_size, sampler, scheduler, shift, preview_interval, preview_max_pixel, adapters, mask, output_format
+            case source_paths, negative_prompt, width, height, steps, guidance, strength, seed, num_images, seeds,
+                batch_size, sampler, scheduler, shift, preview_interval, preview_max_pixel, adapters, mask,
+                output_format
         }
 
         init(from decoder: Decoder) throws {

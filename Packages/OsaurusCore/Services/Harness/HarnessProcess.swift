@@ -25,10 +25,10 @@ struct HarnessLineFramer: Sendable {
         buffer.append(chunk)
         var lines: [Data] = []
         while let index = buffer.firstIndex(of: 0x0A) {
-            var line = buffer[buffer.startIndex..<index]
+            var line = buffer[buffer.startIndex ..< index]
             if line.last == 0x0D { line = line.dropLast() }
             if !line.isEmpty { lines.append(Data(line)) }
-            buffer.removeSubrange(buffer.startIndex...index)
+            buffer.removeSubrange(buffer.startIndex ... index)
         }
         return lines
     }
@@ -113,7 +113,7 @@ private final class HarnessPipeReader: @unchecked Sendable {
             while true {
                 let count = buffer.withUnsafeMutableBytes { read(fd, $0.baseAddress, $0.count) }
                 if count > 0 {
-                    onData(Data(buffer[0..<count]))
+                    onData(Data(buffer[0 ..< count]))
                     continue
                 }
                 if count < 0 {

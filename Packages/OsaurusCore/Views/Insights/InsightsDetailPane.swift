@@ -106,7 +106,9 @@ struct InsightsDetailPane: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(log.title)
-                        .font(.system(size: 16, weight: .semibold, design: usesMonospacedTitle ? .monospaced : .default))
+                        .font(
+                            .system(size: 16, weight: .semibold, design: usesMonospacedTitle ? .monospaced : .default)
+                        )
                         .foregroundColor(theme.primaryText)
                         .lineLimit(2)
                         .truncationMode(.middle)
@@ -187,7 +189,9 @@ struct InsightsDetailPane: View {
                         }
                         if let localReq {
                             Button(action: { copy(localReq) }) {
-                                wireReq == nil ? Text("Copy request", bundle: .module) : Text("insights.body.copy.local", bundle: .module)
+                                wireReq == nil
+                                    ? Text("Copy request", bundle: .module)
+                                    : Text("insights.body.copy.local", bundle: .module)
                             }
                         }
                     }
@@ -199,7 +203,9 @@ struct InsightsDetailPane: View {
                         }
                         if let localRes {
                             Button(action: { copy(localRes) }) {
-                                wireRes == nil ? Text("Copy response", bundle: .module) : Text("insights.body.copy.local", bundle: .module)
+                                wireRes == nil
+                                    ? Text("Copy response", bundle: .module)
+                                    : Text("insights.body.copy.local", bundle: .module)
                             }
                         }
                     }
@@ -1336,15 +1342,23 @@ private struct OverviewTab: View {
             if let f = details["filetype"] { DetailRow(label: Text("File type", bundle: .module), value: f) }
             if let t = details["time_range"] { DetailRow(label: Text("Time range", bundle: .module), value: t) }
             if let p = details["provider_used"] { DetailRow(label: Text("Served by", bundle: .module), value: p) }
-            if let p = details["providers_tried"] { DetailRow(label: Text("Providers tried", bundle: .module), value: p) }
+            if let p = details["providers_tried"] {
+                DetailRow(label: Text("Providers tried", bundle: .module), value: p)
+            }
             if let s = details["source"] { DetailRow(label: Text("Tier", bundle: .module), value: s) }
-            if let r = details["hosted_fallback"] { DetailRow(label: Text("Hosted fallback", bundle: .module), value: r) }
+            if let r = details["hosted_fallback"] {
+                DetailRow(label: Text("Hosted fallback", bundle: .module), value: r)
+            }
             if let n = details["hit_count"] { DetailRow(label: Text("Results", bundle: .module), value: n) }
             if details["pinned_test"] == "true" {
                 DetailRow(label: Text("Note", bundle: .module), value: L("Provider test run from Settings"))
             }
             if let f = details["failures"] {
-                DetailRow(label: Text("Failures", bundle: .module), value: f, valueColor: theme.errorColor.opacity(0.85))
+                DetailRow(
+                    label: Text("Failures", bundle: .module),
+                    value: f,
+                    valueColor: theme.errorColor.opacity(0.85)
+                )
             }
         }
         if let preview = details["result_preview"], !preview.isEmpty {
@@ -1372,7 +1386,11 @@ private struct OverviewTab: View {
             if let w = details["word_count"] { DetailRow(label: Text("Words", bundle: .module), value: w) }
             if let m = details["message"] { DetailRow(label: Text("Message", bundle: .module), value: m) }
             if let f = details["failures"] {
-                DetailRow(label: Text("Failures", bundle: .module), value: f, valueColor: theme.errorColor.opacity(0.85))
+                DetailRow(
+                    label: Text("Failures", bundle: .module),
+                    value: f,
+                    valueColor: theme.errorColor.opacity(0.85)
+                )
             }
         }
         if let urls = details["urls"], !urls.isEmpty {
@@ -1451,7 +1469,9 @@ private struct OverviewTab: View {
         FlatGroup(icon: "point.3.connected.trianglepath.dotted", title: Text("Embedding", bundle: .module)) {
             if let n = details["texts"] { DetailRow(label: Text("Texts embedded", bundle: .module), value: n) }
             if let d = details["dims"] { DetailRow(label: Text("Dimensions", bundle: .module), value: d) }
-            if let c = details["chars"] { DetailRow(label: Text("Input size", bundle: .module), value: L("\(c) characters")) }
+            if let c = details["chars"] {
+                DetailRow(label: Text("Input size", bundle: .module), value: L("\(c) characters"))
+            }
             if let p = details["purpose"] { DetailRow(label: Text("Purpose", bundle: .module), value: p) }
             DetailRow(
                 label: Text("Texts", bundle: .module),
@@ -1484,8 +1504,12 @@ private struct OverviewTab: View {
         FlatGroup(icon: "speaker.wave.2", title: Text("Speech synthesis", bundle: .module)) {
             if let model = log.model { DetailRow(label: Text("Model / voice", bundle: .module), value: model) }
             if let v = details["voice"] { DetailRow(label: Text("Voice", bundle: .module), value: v) }
-            if let c = details["chars"] { DetailRow(label: Text("Text size", bundle: .module), value: L("\(c) characters")) }
-            if let a = details["audio_seconds"] { DetailRow(label: Text("Audio produced", bundle: .module), value: L("\(a) s")) }
+            if let c = details["chars"] {
+                DetailRow(label: Text("Text size", bundle: .module), value: L("\(c) characters"))
+            }
+            if let a = details["audio_seconds"] {
+                DetailRow(label: Text("Audio produced", bundle: .module), value: L("\(a) s"))
+            }
             if let p = details["provider"] { DetailRow(label: Text("Provider", bundle: .module), value: p) }
             if let t = details["trigger"] { DetailRow(label: Text("Triggered by", bundle: .module), value: t) }
             if details["cancelled"] == "true" {
@@ -1508,9 +1532,13 @@ private struct OverviewTab: View {
             if let s = details["scale"] { DetailRow(label: Text("Upscale factor", bundle: .module), value: "\(s)×") }
             if let n = details["source_images"] { DetailRow(label: Text("Source images", bundle: .module), value: n) }
             if let q = details["quote_usd"] { DetailRow(label: Text("Quoted price", bundle: .module), value: "$\(q)") }
-            if let p = details["provider"] ?? details["backend"] { DetailRow(label: Text("Provider", bundle: .module), value: p) }
+            if let p = details["provider"] ?? details["backend"] {
+                DetailRow(label: Text("Provider", bundle: .module), value: p)
+            }
             if let j = details["job_id"] { DetailRow(label: Text("Job", bundle: .module), value: j) }
-            if let c = details["prompt_chars"] { DetailRow(label: Text("Prompt size", bundle: .module), value: L("\(c) characters")) }
+            if let c = details["prompt_chars"] {
+                DetailRow(label: Text("Prompt size", bundle: .module), value: L("\(c) characters"))
+            }
         }
     }
 
@@ -1662,7 +1690,9 @@ private struct OverviewTab: View {
                     HStack(alignment: .top, spacing: 8) {
                         Image(systemName: tool.isError ? "xmark.circle.fill" : "checkmark.circle.fill")
                             .font(.system(size: 10))
-                            .foregroundColor(tool.isError ? theme.errorColor.opacity(0.8) : theme.successColor.opacity(0.8))
+                            .foregroundColor(
+                                tool.isError ? theme.errorColor.opacity(0.8) : theme.successColor.opacity(0.8)
+                            )
                         VStack(alignment: .leading, spacing: 2) {
                             Text(tool.name)
                                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
@@ -1709,11 +1739,14 @@ private struct OverviewTab: View {
         if let prev = log.prevHash {
             IdentifierRow(label: Text("Previous", bundle: .module), value: prev)
         }
-        Text("Each record is chained to the one before it with SHA-256. Use Verify Integrity from the Insights menu to check the whole log.", bundle: .module)
-            .font(.system(size: 10))
-            .foregroundColor(theme.tertiaryText)
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(.top, 6)
+        Text(
+            "Each record is chained to the one before it with SHA-256. Use Verify Integrity from the Insights menu to check the whole log.",
+            bundle: .module
+        )
+        .font(.system(size: 10))
+        .foregroundColor(theme.tertiaryText)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.top, 6)
     }
 
     // MARK: Error
@@ -1770,7 +1803,9 @@ private struct FactsGrid: View {
     @Environment(\.theme) private var theme
     let facts: [Fact]
 
-    private let columns = [GridItem(.flexible(), alignment: .topLeading), GridItem(.flexible(), alignment: .topLeading)]
+    private let columns = [
+        GridItem(.flexible(), alignment: .topLeading), GridItem(.flexible(), alignment: .topLeading),
+    ]
 
     var body: some View {
         LazyVGrid(columns: columns, alignment: .leading, spacing: 12) {

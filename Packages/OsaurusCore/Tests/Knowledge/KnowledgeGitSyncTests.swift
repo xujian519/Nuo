@@ -96,7 +96,9 @@ struct KnowledgeGitSyncTests {
         try await git(["clone", remote.path, work.path], cwd: root)
         try await configureIdentity(work)
         try "seed\n".write(
-            to: work.appendingPathComponent("index.md"), atomically: true, encoding: .utf8
+            to: work.appendingPathComponent("index.md"),
+            atomically: true,
+            encoding: .utf8
         )
         try await git(["add", "-A"], cwd: work)
         try await git(["commit", "-m", "seed"], cwd: work)
@@ -141,10 +143,14 @@ struct KnowledgeGitSyncTests {
         let coll = collection(at: work)
 
         try "updated body\n".write(
-            to: work.appendingPathComponent("index.md"), atomically: true, encoding: .utf8
+            to: work.appendingPathComponent("index.md"),
+            atomically: true,
+            encoding: .utf8
         )
         let commit = await KnowledgeGitSyncService.shared.commitDocument(
-            in: coll, relPath: "index.md", message: "update index.md via knowledge curation"
+            in: coll,
+            relPath: "index.md",
+            message: "update index.md via knowledge curation"
         )
         #expect(commit == .updated("Committed index.md."))
 
@@ -164,10 +170,14 @@ struct KnowledgeGitSyncTests {
 
         // Rewrite identical bytes: git finds nothing to commit.
         try "seed\n".write(
-            to: work.appendingPathComponent("index.md"), atomically: true, encoding: .utf8
+            to: work.appendingPathComponent("index.md"),
+            atomically: true,
+            encoding: .utf8
         )
         let commit = await KnowledgeGitSyncService.shared.commitDocument(
-            in: coll, relPath: "index.md", message: "noop"
+            in: coll,
+            relPath: "index.md",
+            message: "noop"
         )
         #expect(commit == .upToDate)
     }
@@ -185,7 +195,9 @@ struct KnowledgeGitSyncTests {
         try await git(["clone", remote.path, other.path], cwd: root)
         try await configureIdentity(other)
         try "from other\n".write(
-            to: other.appendingPathComponent("note.md"), atomically: true, encoding: .utf8
+            to: other.appendingPathComponent("note.md"),
+            atomically: true,
+            encoding: .utf8
         )
         try await git(["add", "-A"], cwd: other)
         try await git(["commit", "-m", "add note"], cwd: other)
@@ -216,7 +228,9 @@ struct KnowledgeGitSyncTests {
         try await git(["clone", remote.path, other.path], cwd: root)
         try await configureIdentity(other)
         try "remote side\n".write(
-            to: other.appendingPathComponent("r.md"), atomically: true, encoding: .utf8
+            to: other.appendingPathComponent("r.md"),
+            atomically: true,
+            encoding: .utf8
         )
         try await git(["add", "-A"], cwd: other)
         try await git(["commit", "-m", "remote commit"], cwd: other)
@@ -224,7 +238,9 @@ struct KnowledgeGitSyncTests {
 
         // ...while the working clone makes its own conflicting local commit.
         try "local side\n".write(
-            to: work.appendingPathComponent("l.md"), atomically: true, encoding: .utf8
+            to: work.appendingPathComponent("l.md"),
+            atomically: true,
+            encoding: .utf8
         )
         try await git(["add", "-A"], cwd: work)
         try await git(["commit", "-m", "local commit"], cwd: work)

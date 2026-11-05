@@ -198,12 +198,15 @@ enum ChatResidencyHandoff {
         guard physicalBytes > 0, pageSize > 0 else { return 0 }
         let nonPurgeableInternal = max(0, internalPages - max(0, purgeablePages))
         let (first, overflow1) = max(0, wiredPages).addingReportingOverflow(
-            max(0, compressorPages))
+            max(0, compressorPages)
+        )
         guard !overflow1 else { return 0 }
         let (unreclaimablePages, overflow2) = first.addingReportingOverflow(
-            nonPurgeableInternal)
+            nonPurgeableInternal
+        )
         guard !overflow2 else { return 0 }
-        let (unreclaimableBytes, overflow3) = unreclaimablePages
+        let (unreclaimableBytes, overflow3) =
+            unreclaimablePages
             .multipliedReportingOverflow(by: pageSize)
         guard !overflow3 else { return 0 }
         return max(0, physicalBytes - unreclaimableBytes)
@@ -232,7 +235,8 @@ enum ChatResidencyHandoff {
         // Disk shard sizes are not resident/releasable bytes. The host sample
         // already includes reclaimable file-backed pages, and a handoff may
         // release only its exact parent. Never add all chat-owned shard sizes.
-        let projected = physicalCapacityOnly
+        let projected =
+            physicalCapacityOnly
             ? Int64(ProcessInfo.processInfo.physicalMemory) : availableMemoryBytes()
         if projected < needed {
             let neededGB = Double(needed) / 1_073_741_824
@@ -511,9 +515,11 @@ enum ChatResidencyHandoff {
             )
         }
         let resident = await ModelRuntime.shared.cachedModelSummaries().map(\.name)
-        guard resident.contains(where: {
-            $0.caseInsensitiveCompare(name) == .orderedSame
-        }) else {
+        guard
+            resident.contains(where: {
+                $0.caseInsensitiveCompare(name) == .orderedSame
+            })
+        else {
             throw HandoffError.restoreFailed(models: [name])
         }
     }

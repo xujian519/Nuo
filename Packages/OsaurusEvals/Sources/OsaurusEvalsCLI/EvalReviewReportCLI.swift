@@ -143,9 +143,10 @@ extension OsaurusEvalsCLI {
             usedSuiteNames.removeAll(keepingCapacity: true)
         }
 
-        let baselineReports = try opts.baseline.map {
-            try EvalReviewReportBuilder.loadReportsRecursively(from: $0)
-        } ?? []
+        let baselineReports =
+            try opts.baseline.map {
+                try EvalReviewReportBuilder.loadReportsRecursively(from: $0)
+            } ?? []
         let suiteRefs = loadedSuites.map(\.ref)
         let manifest = makeEvalReviewManifest(
             options: opts,
@@ -172,9 +173,10 @@ extension OsaurusEvalsCLI {
             loadedReports,
             outDir: opts.outDir
         )
-        let baselineReports = try opts.baseline.map {
-            try EvalReviewReportBuilder.loadReportsRecursively(from: $0)
-        } ?? []
+        let baselineReports =
+            try opts.baseline.map {
+                try EvalReviewReportBuilder.loadReportsRecursively(from: $0)
+            } ?? []
         let suiteRefs = opts.suiteRefsForExistingReports(reports)
         let command = EvalReviewCommandRecord(
             role: .local,
@@ -208,7 +210,8 @@ extension OsaurusEvalsCLI {
         var copied: [EvalReviewReportInput] = []
         var usedNamesByModel: [String: [String: Int]] = [:]
         for input in reports {
-            let modelDir = outDir
+            let modelDir =
+                outDir
                 .appendingPathComponent("reports", isDirectory: true)
                 .appendingPathComponent(input.role.rawValue, isDirectory: true)
                 .appendingPathComponent(sanitizedPathSegment(input.report.modelId), isDirectory: true)
@@ -310,7 +313,9 @@ extension OsaurusEvalsCLI {
         if bundle.comparison != nil {
             print("  compare:  \(outDir.appendingPathComponent("compare.md").path)")
         }
-        print("  verdict:  \(bundle.hasBlockingRegressions ? "REGRESSED" : (bundle.hasRunFailures ? "EVAL FAILURES PRESENT" : "PASS"))")
+        print(
+            "  verdict:  \(bundle.hasBlockingRegressions ? "REGRESSED" : (bundle.hasRunFailures ? "EVAL FAILURES PRESENT" : "PASS"))"
+        )
     }
 
     @MainActor

@@ -57,7 +57,9 @@ struct ChatModelPickerProviderTests {
 
     @Test func cloudUsesProviderIdentityEvenWhenRenamedOrImpersonatedByTitle() {
         let realCloud = remote(
-            "renamed/model", providerID: RemoteProviderManager.osaurusRouterProviderId, name: "My Cloud"
+            "renamed/model",
+            providerID: RemoteProviderManager.osaurusRouterProviderId,
+            name: "My Cloud"
         )
         let sameTitle = remote("another/model", providerID: providerA, name: "Nuo")
         let groups = ChatModelPickerProvider.groups(from: [sameTitle, realCloud])
@@ -96,13 +98,18 @@ struct ChatModelPickerProviderTests {
     @Test func localIncludesFoundationAndReadyImagesButRejectsUnusableBundles() {
         let regular = ModelPickerItem(id: "mlx/zeta", displayName: "Zeta", source: .local)
         let image = ModelPickerItem(
-            id: "image/alpha", displayName: "Alpha", source: .imageGeneration, imageReady: true
+            id: "image/alpha",
+            displayName: "Alpha",
+            source: .imageGeneration,
+            imageReady: true
         )
         let incompleteImage = ModelPickerItem(id: "image/missing", displayName: "Missing", source: .imageGeneration)
         let nonMLX = ModelPickerItem(id: "gguf", displayName: "GGUF", source: .local, isMLXFormat: false)
         let encoder = ModelPickerItem(id: "encoder", displayName: "Encoder", source: .local, isEmbedding: true)
         let script = ModelPickerItem(
-            id: "OsaurusAI/Osaurus-AppleScript-16B-A4B-JANG_4M", displayName: "Scripts", source: .local
+            id: "OsaurusAI/Osaurus-AppleScript-16B-A4B-JANG_4M",
+            displayName: "Scripts",
+            source: .local
         )
         let groups = ChatModelPickerProvider.groups(
             from: [regular, incompleteImage, nonMLX, encoder, script, image, .foundation()]
@@ -113,7 +120,9 @@ struct ChatModelPickerProviderTests {
 
     @Test func groupingPreservesRouteIDsSourcesAndMetadataAcrossProviders() {
         let first = ModelPickerItem(
-            id: "same/model", displayName: "Zeta", source: .remote(providerName: "Same Name", providerId: providerA),
+            id: "same/model",
+            displayName: "Zeta",
+            source: .remote(providerName: "Same Name", providerId: providerA),
             contextLength: 64_000,
             reasoningCapabilities: ModelReasoningCapabilities(levels: [.init(id: "high")], defaultLevelId: "high")
         )

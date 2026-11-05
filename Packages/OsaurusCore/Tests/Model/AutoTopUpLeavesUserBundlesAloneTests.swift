@@ -48,11 +48,17 @@ struct AutoTopUpLeavesUserBundlesAloneTests {
         ]
 
         let auto = ModelDownloadService.filesToFetch(
-            remote: remoteFiles, under: dir, intent: .automatic)
+            remote: remoteFiles,
+            under: dir,
+            intent: .automatic
+        )
         #expect(auto.isEmpty, "automatic top-up must not restore a deleted shard")
 
         let repair = ModelDownloadService.filesToFetch(
-            remote: remoteFiles, under: dir, intent: .explicitRepair)
+            remote: remoteFiles,
+            under: dir,
+            intent: .explicitRepair
+        )
         #expect(repair.map(\.path) == ["model-00002-of-00002.safetensors"])
     }
 
@@ -67,11 +73,17 @@ struct AutoTopUpLeavesUserBundlesAloneTests {
         let remoteFiles = [remote("config.json", 300)]
 
         let auto = ModelDownloadService.filesToFetch(
-            remote: remoteFiles, under: dir, intent: .automatic)
+            remote: remoteFiles,
+            under: dir,
+            intent: .automatic
+        )
         #expect(auto.isEmpty, "automatic top-up must not overwrite an existing config")
 
         let repair = ModelDownloadService.filesToFetch(
-            remote: remoteFiles, under: dir, intent: .explicitRepair)
+            remote: remoteFiles,
+            under: dir,
+            intent: .explicitRepair
+        )
         #expect(repair.map(\.path) == ["config.json"], "Repair still restores it")
     }
 
@@ -91,7 +103,10 @@ struct AutoTopUpLeavesUserBundlesAloneTests {
         ]
 
         let auto = ModelDownloadService.filesToFetch(
-            remote: remoteFiles, under: dir, intent: .automatic)
+            remote: remoteFiles,
+            under: dir,
+            intent: .automatic
+        )
         #expect(Set(auto.map(\.path)) == ["chat_template.jinja", "tokenizer.json"])
     }
 
@@ -109,11 +124,17 @@ struct AutoTopUpLeavesUserBundlesAloneTests {
         ]
 
         let auto = ModelDownloadService.filesToFetch(
-            remote: remoteFiles, under: dir, intent: .automatic)
+            remote: remoteFiles,
+            under: dir,
+            intent: .automatic
+        )
         #expect(auto.isEmpty, "no weight format may be auto-fetched into a user's bundle")
 
         let repair = ModelDownloadService.filesToFetch(
-            remote: remoteFiles, under: dir, intent: .explicitRepair)
+            remote: remoteFiles,
+            under: dir,
+            intent: .explicitRepair
+        )
         #expect(repair.count == remoteFiles.count)
     }
 }

@@ -52,8 +52,7 @@ public enum EvalJudgeModel {
     }
 
     private static let candidatesLock = NSLock()
-    nonisolated(unsafe) private static var _cachedCandidates:
-        [(envKey: String, modelId: String)]?
+    nonisolated(unsafe) private static var _cachedCandidates: [(envKey: String, modelId: String)]?
 
     /// Parse `judges.json` (`{"candidates": [{"envKey", "modelId"}]}`)
     /// from the first resolvable location. Returns nil (→ built-in

@@ -140,8 +140,13 @@ enum LocalReasoningCapability {
         DispatchQueue.global(qos: .utility).async {
             let detected = detect(modelId: modelId)
             let provisionalMiss = detected == .none && !ModelManager.isLocalModelsCacheWarm
-            guard cache.finish(key, generation: generation,
-                value: provisionalMiss ? nil : detected, background: true)
+            guard
+                cache.finish(
+                    key,
+                    generation: generation,
+                    value: provisionalMiss ? nil : detected,
+                    background: true
+                )
             else { return }
             if !provisionalMiss, detected != .none {
                 DispatchQueue.main.async {
@@ -181,7 +186,8 @@ enum LocalReasoningCapability {
                 templateCapability: analyze(template: template),
                 declaredCapability: declaredCapability
             )
-            let declared = generationConfigDeclaredThinkingOn(at: dir)
+            let declared =
+                generationConfigDeclaredThinkingOn(at: dir)
                 ?? jangThinkingDeclaredDefault(at: dir)
             if let metadataDefault = declared ?? readTemplateDefaultThinkingOn(at: dir) {
                 return Capability(

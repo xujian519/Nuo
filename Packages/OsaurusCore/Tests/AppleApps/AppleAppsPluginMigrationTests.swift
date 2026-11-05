@@ -40,7 +40,9 @@ struct AppleAppsPluginMigrationTests {
     private func withIsolatedStore(_ body: @MainActor @Sendable (URL) async throws -> Void) async throws {
         try await SandboxTestLock.runWithStoragePaths {
             let dir = FileManager.default.temporaryDirectory.appendingPathComponent(
-                "apple-apps-migration-\(UUID().uuidString)", isDirectory: true)
+                "apple-apps-migration-\(UUID().uuidString)",
+                isDirectory: true
+            )
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             defer {
                 AppleAppsConfigurationStore.overrideDirectory = nil
@@ -87,7 +89,10 @@ struct AppleAppsPluginMigrationTests {
     @Test("search_messages prefers the Messages plugin and falls back to Mail only when Messages is absent")
     func searchMessagesPreference() {
         let agent = customAgent(manualToolNames: ["search_messages"])
-        let both = AppleAppsPluginMigration.migrate(agent: agent, installedPluginIds: ["osaurus.mail", "osaurus.messages"])
+        let both = AppleAppsPluginMigration.migrate(
+            agent: agent,
+            installedPluginIds: ["osaurus.mail", "osaurus.messages"]
+        )
         #expect(both.enabledApps == [.messages])
         #expect(both.renamedTools["search_messages"] == "messages_search")
 
@@ -110,8 +115,11 @@ struct AppleAppsPluginMigrationTests {
         #expect(!AppleAppsPluginMigration.migrate(agent: auto, installedPluginIds: Self.allApplePlugins).changed)
 
         let def = Agent(
-            id: Agent.defaultId, name: "Default", agentAddress: "default-probe",
-            toolSelectionMode: .manual, manualToolNames: ["get_events"]
+            id: Agent.defaultId,
+            name: "Default",
+            agentAddress: "default-probe",
+            toolSelectionMode: .manual,
+            manualToolNames: ["get_events"]
         )
         let o3 = AppleAppsPluginMigration.migrate(agent: def, installedPluginIds: Self.allApplePlugins)
         #expect(!o3.changed)
@@ -137,7 +145,8 @@ struct AppleAppsPluginMigrationTests {
             let untouched = customAgent(manualToolNames: ["web_search"])
             var persisted: [Agent] = []
             let count = AppleAppsPluginMigration.migrateIfNeeded(
-                agents: [legacy, untouched], installedPluginIds: ["osaurus.reminders"]
+                agents: [legacy, untouched],
+                installedPluginIds: ["osaurus.reminders"]
             ) { persisted.append($0) }
             #expect(count == [legacy.name])
             #expect(persisted.count == 1)
@@ -149,7 +158,8 @@ struct AppleAppsPluginMigrationTests {
             // Second launch: marker set → nothing runs even with legacy agents present.
             AppleAppsConfigurationStore.resetCacheForTests()
             let again = AppleAppsPluginMigration.migrateIfNeeded(
-                agents: [legacy], installedPluginIds: ["osaurus.reminders"]
+                agents: [legacy],
+                installedPluginIds: ["osaurus.reminders"]
             ) { _ in Issue.record("must not persist on a second run") }
             #expect(again.isEmpty)
         }
@@ -161,14 +171,16 @@ struct AppleAppsPluginMigrationTests {
         try await withIsolatedStore { _ in
             let legacy = customAgent(manualToolNames: ["get_reminders"])
             let count = AppleAppsPluginMigration.migrateIfNeeded(
-                agents: [legacy], installedPluginIds: ["osaurus.reminders"]
+                agents: [legacy],
+                installedPluginIds: ["osaurus.reminders"]
             ) { _ in throw PersistFailed() }
             #expect(count.isEmpty)
             #expect(!AppleAppsConfigurationStore.load().pluginToolNamesMigrated)
 
             // A later successful run completes and sets the marker.
             let retry = AppleAppsPluginMigration.migrateIfNeeded(
-                agents: [legacy], installedPluginIds: ["osaurus.reminders"]
+                agents: [legacy],
+                installedPluginIds: ["osaurus.reminders"]
             ) { _ in }
             #expect(retry == [legacy.name])
             #expect(AppleAppsConfigurationStore.load().pluginToolNamesMigrated)
@@ -212,16 +224,27 @@ struct AppleAppsPluginMigrationTests {
 
     @Test("installedSupersededAppleAppPluginIds sees only Apple plugin folders with a version dir or current link")
     func installedScan() throws {
-        let root = FileManager.default.temporaryDirectory.appendingPathComponent("tools-\(UUID().uuidString)", isDirectory: true)
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "tools-\(UUID().uuidString)",
+            isDirectory: true
+        )
         defer { try? FileManager.default.removeItem(at: root) }
         let fm = FileManager.default
-        try fm.createDirectory(at: root.appendingPathComponent("osaurus.music/1.2.0"), withIntermediateDirectories: true)
-        try fm.createDirectory(at: root.appendingPathComponent("osaurus.mail"), withIntermediateDirectories: true)  // empty leftover
+        try fm.createDirectory(
+            at: root.appendingPathComponent("osaurus.music/1.2.0"),
+            withIntermediateDirectories: true
+        )
+        // empty leftover
+        try fm.createDirectory(at: root.appendingPathComponent("osaurus.mail"), withIntermediateDirectories: true)
         try fm.createDirectory(at: root.appendingPathComponent("osaurus.notes"), withIntermediateDirectories: true)
         try fm.createSymbolicLink(
             at: root.appendingPathComponent("osaurus.notes/current"),
-            withDestinationURL: root.appendingPathComponent("osaurus.notes/0.1.0"))
-        try fm.createDirectory(at: root.appendingPathComponent("com.example.spotify/1.0.0"), withIntermediateDirectories: true)
+            withDestinationURL: root.appendingPathComponent("osaurus.notes/0.1.0")
+        )
+        try fm.createDirectory(
+            at: root.appendingPathComponent("com.example.spotify/1.0.0"),
+            withIntermediateDirectories: true
+        )
 
         let installed = PluginManager.installedSupersededAppleAppPluginIds(toolsRoot: root)
         #expect(installed == ["osaurus.music", "osaurus.notes"])
@@ -233,9 +256,11 @@ struct AppleAppsPluginMigrationTests {
     @Test("the superseded-plugin notice shows once, names the installed apps, and is skipped when none are installed")
     func supersededNotice() async throws {
         try await withIsolatedStore { _ in
-            #expect(AppleAppsPluginMigration.showSupersededNoticeIfNeeded(installedPluginIds: []) { _, _ in
-                Issue.record("no notice without an installed plugin")
-            } == nil)
+            #expect(
+                AppleAppsPluginMigration.showSupersededNoticeIfNeeded(installedPluginIds: []) { _, _ in
+                    Issue.record("no notice without an installed plugin")
+                } == nil
+            )
             #expect(!AppleAppsConfigurationStore.load().supersededPluginNoticeShown)
 
             let shown = NoticeCapture()
@@ -255,7 +280,9 @@ struct AppleAppsPluginMigrationTests {
             #expect(!shown.message.contains("Already turned on"))
             #expect(AppleAppsConfigurationStore.load().supersededPluginNoticeShown)
 
-            let again = AppleAppsPluginMigration.showSupersededNoticeIfNeeded(installedPluginIds: ["osaurus.mail"]) { _, _ in
+            let again = AppleAppsPluginMigration.showSupersededNoticeIfNeeded(installedPluginIds: ["osaurus.mail"]) {
+                _,
+                _ in
                 Issue.record("notice must show once")
             }
             #expect(again == nil)
@@ -286,7 +313,10 @@ struct AppleAppsPluginMigrationTests {
         for app in AppleApp.allCases {
             guard let id = app.supersededPluginId else { continue }
             #expect(PluginManager.supersededPluginIds.contains(id), "\(id) is not superseded")
-            #expect(PluginManager.nativeSettingsTab(forSupersededPlugin: id) == .agents, "\(id) should point at Agents → Abilities")
+            #expect(
+                PluginManager.nativeSettingsTab(forSupersededPlugin: id) == .agents,
+                "\(id) should point at Agents → Abilities"
+            )
         }
         #expect(PluginManager.supersededAppleAppPluginIds.isSubset(of: PluginManager.supersededPluginIds))
     }

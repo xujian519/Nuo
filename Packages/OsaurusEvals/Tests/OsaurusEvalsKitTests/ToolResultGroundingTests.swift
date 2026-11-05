@@ -32,7 +32,9 @@ struct ToolResultGroundingTests {
             )
         }
         return ToolEnvelope.failure(
-            kind: .executionError, message: "worker failed", tool: "spawn_agent"
+            kind: .executionError,
+            message: "worker failed",
+            tool: "spawn_agent"
         )
     }
 

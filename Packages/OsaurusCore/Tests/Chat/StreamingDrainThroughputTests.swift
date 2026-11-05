@@ -296,8 +296,8 @@ struct StreamingDrainThroughputTests {
         let seconds = CFAbsoluteTimeGetCurrent() - t0
         #expect(turn.content == text)
         // Designed reveal window is ~1 s (pacingDrainTicks). CI runners are slow and
-            // shared (3.5 s observed on osaurus-ai CI); the bound guards against a hang,
-            // not against scheduler slack — keep it generous.
+        // shared (3.5 s observed on osaurus-ai CI); the bound guards against a hang,
+        // not against scheduler slack — keep it generous.
         #expect(seconds < 10.0, "finalize took \(seconds)s")
     }
 

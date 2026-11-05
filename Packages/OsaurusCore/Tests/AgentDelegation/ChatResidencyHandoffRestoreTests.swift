@@ -65,7 +65,6 @@ struct ChatResidencyHandoffRestoreTests {
         )
     }
 
-
     /// A name `ModelManager.findInstalledModel` can never resolve, so `preload`
     /// fast-throws before touching the GPU — driving the restore failure +
     /// single-retry path deterministically.
@@ -190,7 +189,8 @@ struct ChatResidencyHandoffRestoreTests {
     @Test("cold publication and exact unload retain ownership and ABA guards")
     func coldPublicationAndABAGuardsAreWired() throws {
         let here = URL(fileURLWithPath: #filePath)
-        let packageRoot = here
+        let packageRoot =
+            here
             .deletingLastPathComponent()  // AgentDelegation/
             .deletingLastPathComponent()  // Tests/
             .deletingLastPathComponent()  // OsaurusCore/
@@ -285,7 +285,8 @@ struct ChatResidencyHandoffRestoreTests {
     @Test("restore delegates load arbitration atomically to ModelRuntime")
     func restoreUsesAtomicHandoffIntent() throws {
         let here = URL(fileURLWithPath: #filePath)
-        let packageRoot = here
+        let packageRoot =
+            here
             .deletingLastPathComponent()  // AgentDelegation/
             .deletingLastPathComponent()  // Tests/
             .deletingLastPathComponent()  // OsaurusCore/

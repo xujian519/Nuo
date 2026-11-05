@@ -253,10 +253,18 @@ final class ModelPickerItemCache: ObservableObject {
             options.append(.fromImageModel(model))
         }
         let videoModels = (try? await ImageGenerationService.shared.availableVideoModels()) ?? []
-        options.append(contentsOf: videoModels.map { model in
-            ModelPickerItem(id: model.id, displayName: model.displayName, source: .imageGeneration,
-                imageKind: "videoGen", imageReady: true, mediaModel: model)
-        })
+        options.append(
+            contentsOf: videoModels.map { model in
+                ModelPickerItem(
+                    id: model.id,
+                    displayName: model.displayName,
+                    source: .imageGeneration,
+                    imageKind: "videoGen",
+                    imageReady: true,
+                    mediaModel: model
+                )
+            }
+        )
 
         let manager = RemoteProviderManager.shared
         let remote = Self.remoteModelItems(

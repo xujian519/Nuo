@@ -127,14 +127,24 @@ struct ThemedAlertCenterTests {
         let scope = ThemedAlertScope.chat(UUID())
 
         let container = ThemedAlertRequest(
-            title: "History", message: nil, buttons: [], hostsNestedAlerts: true, onDismiss: {}
+            title: "History",
+            message: nil,
+            buttons: [],
+            hostsNestedAlerts: true,
+            onDismiss: {}
         )
         var firstNestedDismissed = false
         let firstNested = ThemedAlertRequest(
-            title: "Export", message: nil, buttons: [], onDismiss: { firstNestedDismissed = true }
+            title: "Export",
+            message: nil,
+            buttons: [],
+            onDismiss: { firstNestedDismissed = true }
         )
         let secondNested = ThemedAlertRequest(
-            title: "Exporting…", message: nil, buttons: [], onDismiss: {}
+            title: "Exporting…",
+            message: nil,
+            buttons: [],
+            onDismiss: {}
         )
 
         center.present(container, scope: scope)

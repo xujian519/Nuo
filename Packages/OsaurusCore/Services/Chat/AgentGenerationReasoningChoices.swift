@@ -12,7 +12,8 @@ struct AgentGenerationReasoningChoices: Equatable, Sendable {
     var showsThinkingControl: Bool { supportsThinking && thinkingControlIsCanonical != false }
 
     static func resolve(modelID: String, isLocal: Bool, includeSpeculation: Bool = false) async -> Self {
-        let local = isLocal
+        let local =
+            isLocal
             ? await LocalReasoningCapability.resolveForDispatch(modelId: modelID)
             : .none
         var choices = resolved(
@@ -29,34 +30,44 @@ struct AgentGenerationReasoningChoices: Equatable, Sendable {
         return choices
     }
 
-    static func resolved(modelID: String, localCapability: LocalReasoningCapability.Capability,
-        efforts: ModelReasoningCapabilities?, options: [ModelOptionDefinition]) -> Self
-    {
-        Self(modelID: modelID, efforts: efforts,
+    static func resolved(
+        modelID: String,
+        localCapability: LocalReasoningCapability.Capability,
+        efforts: ModelReasoningCapabilities?,
+        options: [ModelOptionDefinition]
+    ) -> Self {
+        Self(
+            modelID: modelID,
+            efforts: efforts,
             supportsThinking: localCapability.isToggleableThinking,
-            thinkingControlIsCanonical: options.contains { $0.id == "disableThinking" })
+            thinkingControlIsCanonical: options.contains { $0.id == "disableThinking" }
+        )
     }
 
     func validate(settings: AgentGenerationSettings) throws {
         if settings.speculativeDecoding != nil, speculation == nil {
             throw ChatTurnOverrides.ValidationError.invalid(
-                "The selected model has no local speculation capability information. Choose Inherit.")
+                "The selected model has no local speculation capability information. Choose Inherit."
+            )
         }
         if settings.speculativeDecoding == true,
             speculation?.speculationAvailable != true || speculation?.speculationBlocked == true
         {
             throw ChatTurnOverrides.ValidationError.invalid(
-                "The selected model has no eligible adaptive speculation path. Choose Inherit or Off (AR).")
+                "The selected model has no eligible adaptive speculation path. Choose Inherit or Off (AR)."
+            )
         }
         if let effort = settings.reasoningEffort,
             efforts?.levels.contains(where: { $0.id == effort }) != true
         {
             throw ChatTurnOverrides.ValidationError.invalid(
-                "The selected model does not advertise reasoning effort '\(effort)'. Choose a supported value or Inherit.")
+                "The selected model does not advertise reasoning effort '\(effort)'. Choose a supported value or Inherit."
+            )
         }
         if settings.enableThinking != nil, !supportsThinking {
             throw ChatTurnOverrides.ValidationError.invalid(
-                "The selected model does not advertise a Thinking switch. Choose Inherit.")
+                "The selected model does not advertise a Thinking switch. Choose Inherit."
+            )
         }
     }
 }

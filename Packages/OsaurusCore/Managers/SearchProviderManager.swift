@@ -206,7 +206,8 @@ public final class SearchProviderManager: ObservableObject {
     /// applied). This is what the engine consumes.
     public func snapshots(for category: String) -> [SearchProviderSnapshot] {
         let byId = Dictionary(
-            uniqueKeysWithValues: rankedProviders.map { ($0.provider.definitionId, $0) })
+            uniqueKeysWithValues: rankedProviders.map { ($0.provider.definitionId, $0) }
+        )
         return configuration.ranking(for: category).compactMap { id -> SearchProviderSnapshot? in
             guard let entry = byId[id], entry.provider.enabled,
                 entry.definition.supports(category: category)
@@ -308,7 +309,8 @@ public final class SearchProviderManager: ObservableObject {
         // config stays lazy (the same value re-resolves deterministically on
         // every launch and lands on disk with the first user mutation).
         let configFileExists = FileManager.default.fileExists(
-            atPath: OsaurusPaths.searchProviderConfigFile().path)
+            atPath: OsaurusPaths.searchProviderConfigFile().path
+        )
         if configFileExists {
             SearchProviderConfigurationStore.save(configuration)
         }
@@ -463,7 +465,10 @@ public final class SearchProviderManager: ObservableObject {
                 // from the local cascade.
                 fallbackReason = hosted.replayed ? "replayed" : "empty"
                 hostedAttempt = SearchAttempt(
-                    provider: OsaurusRouterSearchBackend.providerId, ok: true, count: 0)
+                    provider: OsaurusRouterSearchBackend.providerId,
+                    ok: true,
+                    count: 0
+                )
             case .failure(let failure):
                 fallbackReason = failure.reason
                 hostedAttempt = SearchAttempt(
@@ -508,14 +513,22 @@ public final class SearchProviderManager: ObservableObject {
                 OsaurusRouterAccountService.shared.noteWebBilling(summary)
             }
             SearchActivityLogger.logHostedExtract(
-                urls: urls, outcome: outcome, failureReason: nil,
-                durationMs: durationMs, attribution: attribution)
+                urls: urls,
+                outcome: outcome,
+                failureReason: nil,
+                durationMs: durationMs,
+                attribution: attribution
+            )
             return outcome
         case .failure(let failure):
             noteHostedFailure(failure)
             SearchActivityLogger.logHostedExtract(
-                urls: urls, outcome: nil, failureReason: failure.reason,
-                durationMs: durationMs, attribution: attribution)
+                urls: urls,
+                outcome: nil,
+                failureReason: failure.reason,
+                durationMs: durationMs,
+                attribution: attribution
+            )
             return nil
         }
     }
@@ -650,7 +663,10 @@ public final class SearchProviderManager: ObservableObject {
         for (pluginKey, target) in Self.pluginKeyMap {
             guard
                 let value = ToolSecretsKeychain.getSecret(
-                    id: pluginKey, for: "osaurus.search", agentId: Agent.defaultId),
+                    id: pluginKey,
+                    for: "osaurus.search",
+                    agentId: Agent.defaultId
+                ),
                 !value.isEmpty
             else { continue }
             SearchProviderKeychain.saveSecret(value, field: target.field, for: target.definitionId)
@@ -677,7 +693,8 @@ public final class SearchProviderManager: ObservableObject {
         // config file already exists; otherwise stay lazy (default config is
         // reconstructed identically on every launch).
         let configFileExists = FileManager.default.fileExists(
-            atPath: OsaurusPaths.searchProviderConfigFile().path)
+            atPath: OsaurusPaths.searchProviderConfigFile().path
+        )
         if !migratedDefinitionIds.isEmpty || configFileExists {
             SearchProviderConfigurationStore.save(configuration)
         }

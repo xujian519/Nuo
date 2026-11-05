@@ -301,301 +301,313 @@ public enum CapabilityClaimsEvaluator {
         defer { withExtendedLifetime(launchingSession) {} }
         do {
             result = try await ChatExecutionContext.$currentAgentId.withValue(resolvedAgentId) {
-              try await ChatExecutionContext.$currentChatSessionBox.withValue(launchingSessionBox) {
-                // Compose ONCE; prompt + tool schema stay frozen for the
-                // whole run (deferred-schema policy, same as production).
-                let composed = await SystemPromptComposer.composeChatContext(
-                    agentId: resolvedAgentId,
-                    executionMode: .none,
-                    model: resolvedModel,
-                    query: query,
-                    messages: history
-                )
-                firstTurnPrompt = composed.prompt
-                // Frozen for the run, with ONE production-parity growth path:
-                // an `osaurus_config` apply that grows the launcher's spawn
-                // pool stages constrained `spawn_agent` specs
-                // (`ConfigApplier.stageSpawnToolsIfPoolGrew`), and the chat
-                // loop activates them for the next iteration. Without that,
-                // a Default agent that starts with an EMPTY pool (the
-                // isolated eval store) could never delegate in the same turn
-                // it created an agent — the addendum's "create, then spawn"
-                // contract would be untestable here. Capability-loaded tools
-                // keep the historical harness policy (callable by name, not
-                // patched into the schema).
-                var frozenTools = composed.tools
-
-                while iterations < maxIterations {
-                    var requestMessages: [ChatMessage] = [
-                        ChatMessage(role: "system", content: firstTurnPrompt)
-                    ]
-                    requestMessages.append(contentsOf: history)
-                    var notices: [String] = []
-                    if let notice = pendingEmptyTurnNotice {
-                        notices.append(notice)
-                        pendingEmptyTurnNotice = nil
-                    }
-                    if let notice = pendingStateNotice {
-                        notices.append(notice)
-                        pendingStateNotice = nil
-                    }
-                    if let notice = pendingBudgetNotice {
-                        notices.append(notice)
-                        pendingBudgetNotice = nil
-                    }
-                    if !notices.isEmpty {
-                        // Same transient-notice contract as the production
-                        // loop: the nudge rides once and is not persisted
-                        // into `history`, so the transcript stays clean.
-                        requestMessages = AgentLoopBudget.appendingTransientNotices(
-                            notices,
-                            to: requestMessages
-                        )
-                    }
-
-                    var request = ResponsesInferenceRequest(model: resolvedModel, input: requestMessages)
-                    request.tools = frozenTools
-                    request.toolChoice = .auto
-                    request.sessionID = runSessionId
-                    request.context.samplingParametersAreImplicit = true
-                    request.context.isAgentRequest = !frozenTools.isEmpty
-
-                    let stepInputTokens =
-                        ContextBudgetManager.estimateTokens(for: requestMessages)
-                        + composed.toolTokens
-                    promptTokensTotal += stepInputTokens
-                    peakContextTokens = max(peakContextTokens, stepInputTokens)
-                    modelStepCount += 1
-                    let response: ResponsesGenerationResult
-                    do {
-                        response = try await ResponsesEvaluationStep.collect(engine: engine, request: request)
-                    } catch {
-                        completionUsageComplete = false
-                        throw error
-                    }
-                    if let count = response.completion.tokenCount {
-                        completionTokensTotal += count
-                        if count > 0, let rate = response.completion.tokensPerSecond, rate > 0 {
-                            decodeTpsWeightedSum += rate * Double(count)
-                            decodeTpsTokenWeight += count
-                        }
-                    } else { completionUsageComplete = false }
-                    finalText = response.text
-                    let step = try ResponsesEvaluationStep.classify(response, toolsWereOffered: !frozenTools.isEmpty)
-                    switch step {
-                    case .lengthExhausted, .incompleteReasoning:
-                        throw ResponsesEvaluationStep.Failure.incomplete(response.completion.stopReason)
-                    default: break
-                    }
-                    let message = try response.completedAssistantInput()
-
-                    guard let calls = message.tool_calls, !calls.isEmpty else {
-                        let visible = (message.content ?? "")
-                            .trimmingCharacters(in: .whitespacesAndNewlines)
-                        if visible.isEmpty, emptyTurnRetries < AgentToolLoop.maxEmptyTurnRetries {
-                            // Empty turn (no text, no tool call): nudge and
-                            // retry without charging the iteration budget —
-                            // production-parity recovery, not coercion (the
-                            // model still writes its own answer).
-                            emptyTurnRetries += 1
-                            pendingEmptyTurnNotice = AgentToolLoop.emptyTurnNotice
-                            continue
-                        }
-                        // Grounded-claim check, gated exactly like chat: only
-                        // when the configure surface is in the offered schema.
-                        if !visible.isEmpty,
-                            groundedClaimRetries < AgentToolLoop.maxGroundedClaimRetries,
-                            frozenTools.contains(where: {
-                                $0.function.name == GroundedConfigClaimCheck.configToolName
-                            }),
-                            let notice = GroundedConfigClaimCheck.notice(
-                                finalText: visible,
-                                hasGroundedApply: hasGroundedApply
-                            )
-                        {
-                            // The ungrounded final never entered `history`
-                            // (only tool-call turns are appended), matching
-                            // chat's model-context exclusion of the abandoned
-                            // attempt. The retry overwrites `finalText`.
-                            groundedClaimRetries += 1
-                            pendingStateNotice = notice
-                            continue
-                        }
-                        // Tool-call-free answer → the loop is done.
-                        break
-                    }
-                    emptyTurnRetries = 0
-
-                    iterations += 1
-
-                    // Echo the assistant tool-call turn back into history
-                    // so the model sees its own request alongside results.
-                    try pendingBatch.begin(SecretArgumentScrubber.recordedAssistantMessage(message))
-
-                    for call in calls {
-                        try Task.checkCancellation()
-                        toolCalls.append(
-                            .init(name: call.function.name, arguments: call.function.arguments)
-                        )
-                        // Held-result replay for repeated identical reads,
-                        // mirroring `AgentToolLoop`: the result cannot have
-                        // changed, so replay it and tell the model.
-                        if let held = taskState.heldResult(
-                            name: call.function.name,
-                            argsJSON: call.function.arguments
-                        ) {
-                            toolCalls[toolCalls.count - 1] = .init(
-                                name: call.function.name,
-                                arguments: call.function.arguments,
-                                resultPreview: String(held.prefix(500))
-                            )
-                            pendingBatch.record(callID: call.id, result: held)
-                            if let escalation = taskState.lastReplayNotice {
-                                pendingStateNotice = "[System Notice] " + escalation
-                            } else {
-                                pendingStateNotice = AgentToolLoop.dedupeNotice
-                            }
-                            continue
-                        }
-                        // Headless harness: there is no [Allow] button, so an
-                        // `.ask` tool would otherwise suspend forever on
-                        // `ToolPermissionPromptService`. Bind BOTH approval
-                        // task-locals so the unstructured task `executeTool`
-                        // spawns inherits them (a detached task would not):
-                        // `default_agent` passes auto-approve (it measures the
-                        // configure surface EXECUTING); `capability_claims`
-                        // passes auto-deny (it measures tool SELECTION + honest
-                        // claims, and must NOT execute state-mutating configure/
-                        // agent writes mid-eval). Production surfaces keep both
-                        // `false` and present the real prompt.
-                        let toolResult = await ChatExecutionContext.$autoApproveToolPrompts
-                            .withValue(autoApproveToolPrompts) {
-                                await ChatExecutionContext.$denyUnapprovedToolPrompts
-                                    .withValue(denyUnapprovedToolPrompts) {
-                                        await executeTool(
-                                            name: call.function.name,
-                                            argumentsJSON: call.function.arguments,
-                                            timeout: toolExecutionTimeout
-                                        )
-                                    }
-                            }
-                        toolCalls[toolCalls.count - 1] = .init(
-                            name: call.function.name,
-                            arguments: call.function.arguments,
-                            resultPreview: String(toolResult.prefix(500))
-                        )
-                        if !hasGroundedApply,
-                            GroundedConfigClaimCheck.isGroundedApplyOutcome(
-                                toolName: call.function.name,
-                                argumentsJSON: call.function.arguments,
-                                result: toolResult
-                            )
-                        {
-                            hasGroundedApply = true
-                        }
-                        // Chat-surface parity: the model reads the compact
-                        // spawn result (digest, handles, deliverables, one
-                        // accounting line); `resultPreview` above keeps the
-                        // raw envelope for scoring.
-                        let modelVisible =
-                            call.function.name == SubagentCapabilityRegistry.spawnAgentToolName
-                                && SpawnResultCompaction.applies(to: toolResult)
-                            ? SpawnResultCompaction.modelVisible(
-                                toolResult,
-                                prefersCompactPrompt: ContextSizeResolver.resolve(modelId: resolvedModel)
-                                    .prefersCompactPrompt
-                            )
-                            : toolResult
-                        pendingBatch.record(callID: call.id, result: modelVisible)
-                        // Repeated-identical-call nudge, mirroring the
-                        // production driver's `state.record` + `nextStepBias`
-                        // sequence (3+ identical calls arms an advisory
-                        // "results won't change — act on what you have").
-                        taskState.record(
-                            name: call.function.name,
-                            argsJSON: call.function.arguments,
-                            result: toolResult
-                        )
-                        if let bias = taskState.nextStepBias() {
-                            pendingStateNotice = "[System Notice] " + bias
-                        }
-                    }
-
-                    if let commit = pendingBatch.complete([]) {
-                        history.append(contentsOf: commit.messages)
-                    }
-
-                    // Drain tools loaded via capabilities_load: record them
-                    // on the transcript (and keep the process-wide buffer
-                    // clean), but do NOT patch the frozen schema — they are
-                    // already callable by name through the registry.
-                    let drained = await CapabilityLoadBuffer.shared.drain()
-                    for spec in drained {
-                        let name = spec.function.name
-                        if !loadedToolNames.contains(name) {
-                            loadedToolNames.append(name)
-                        }
-                        // Same-turn spawn staging (see `frozenTools` above):
-                        // only genuinely new spawn-family names join the
-                        // offered schema, mirroring `ToolExecutionScope.activate`.
-                        if SubagentCapabilityRegistry.spawn.toolNames.contains(name),
-                            !frozenTools.contains(where: { $0.function.name == name })
-                        {
-                            frozenTools.append(spec)
-                        }
-                    }
-
-                    // Same budget bookkeeping as production: one warning per
-                    // iteration once the remaining budget reaches the
-                    // threshold, staged for the NEXT request.
-                    let remaining = maxIterations - iterations
-                    if remaining > 0, remaining <= budgetWarningThreshold {
-                        pendingBudgetNotice = AgentToolLoop.budgetWarningNotice(
-                            remaining: remaining,
-                            maxIterations: maxIterations
-                        )
-                    }
-                }
-                if iterations >= maxIterations { hitCap = true }
-                if hitCap {
-                    // Production parity (ChatView): a cap-hit run gets ONE
-                    // final tool-free request so the user still sees a
-                    // wrap-up answer. Score what production shows, not the
-                    // empty string the loop was cut off with.
-                    var wrapUpRequest = ResponsesInferenceRequest(
+                try await ChatExecutionContext.$currentChatSessionBox.withValue(launchingSessionBox) {
+                    // Compose ONCE; prompt + tool schema stay frozen for the
+                    // whole run (deferred-schema policy, same as production).
+                    let composed = await SystemPromptComposer.composeChatContext(
+                        agentId: resolvedAgentId,
+                        executionMode: .none,
                         model: resolvedModel,
-                        input: [ChatMessage(role: "system", content: firstTurnPrompt)] + history
+                        query: query,
+                        messages: history
                     )
-                    wrapUpRequest.sessionID = runSessionId
-                    wrapUpRequest.context.samplingParametersAreImplicit = true
-                    let wrapUpInputTokens = ContextBudgetManager.estimateTokens(
-                        for: wrapUpRequest.input
-                    )
-                    promptTokensTotal += wrapUpInputTokens
-                    peakContextTokens = max(peakContextTokens, wrapUpInputTokens)
-                    modelStepCount += 1
-                    // Preserve the explicit post-cap diagnostic. A partial,
-                    // cancelled or failed wrap-up stays an error with the real
-                    // visible output retained; it is not a successful answer.
-                    do {
-                        let response = try await ResponsesEvaluationStep.collect(engine: engine, request: wrapUpRequest)
+                    firstTurnPrompt = composed.prompt
+                    // Frozen for the run, with ONE production-parity growth path:
+                    // an `osaurus_config` apply that grows the launcher's spawn
+                    // pool stages constrained `spawn_agent` specs
+                    // (`ConfigApplier.stageSpawnToolsIfPoolGrew`), and the chat
+                    // loop activates them for the next iteration. Without that,
+                    // a Default agent that starts with an EMPTY pool (the
+                    // isolated eval store) could never delegate in the same turn
+                    // it created an agent — the addendum's "create, then spawn"
+                    // contract would be untestable here. Capability-loaded tools
+                    // keep the historical harness policy (callable by name, not
+                    // patched into the schema).
+                    var frozenTools = composed.tools
+
+                    while iterations < maxIterations {
+                        var requestMessages: [ChatMessage] = [
+                            ChatMessage(role: "system", content: firstTurnPrompt)
+                        ]
+                        requestMessages.append(contentsOf: history)
+                        var notices: [String] = []
+                        if let notice = pendingEmptyTurnNotice {
+                            notices.append(notice)
+                            pendingEmptyTurnNotice = nil
+                        }
+                        if let notice = pendingStateNotice {
+                            notices.append(notice)
+                            pendingStateNotice = nil
+                        }
+                        if let notice = pendingBudgetNotice {
+                            notices.append(notice)
+                            pendingBudgetNotice = nil
+                        }
+                        if !notices.isEmpty {
+                            // Same transient-notice contract as the production
+                            // loop: the nudge rides once and is not persisted
+                            // into `history`, so the transcript stays clean.
+                            requestMessages = AgentLoopBudget.appendingTransientNotices(
+                                notices,
+                                to: requestMessages
+                            )
+                        }
+
+                        var request = ResponsesInferenceRequest(model: resolvedModel, input: requestMessages)
+                        request.tools = frozenTools
+                        request.toolChoice = .auto
+                        request.sessionID = runSessionId
+                        request.context.samplingParametersAreImplicit = true
+                        request.context.isAgentRequest = !frozenTools.isEmpty
+
+                        let stepInputTokens =
+                            ContextBudgetManager.estimateTokens(for: requestMessages)
+                            + composed.toolTokens
+                        promptTokensTotal += stepInputTokens
+                        peakContextTokens = max(peakContextTokens, stepInputTokens)
+                        modelStepCount += 1
+                        let response: ResponsesGenerationResult
+                        do {
+                            response = try await ResponsesEvaluationStep.collect(engine: engine, request: request)
+                        } catch {
+                            completionUsageComplete = false
+                            throw error
+                        }
                         if let count = response.completion.tokenCount {
                             completionTokensTotal += count
                             if count > 0, let rate = response.completion.tokensPerSecond, rate > 0 {
                                 decodeTpsWeightedSum += rate * Double(count)
                                 decodeTpsTokenWeight += count
                             }
-                        } else { completionUsageComplete = false }
+                        } else {
+                            completionUsageComplete = false
+                        }
                         finalText = response.text
-                        try ResponsesEvaluationStep.requireNaturalFinal(response)
-                    } catch {
-                        completionUsageComplete = false
-                        return (finalText, toolCalls, loadedToolNames, iterations, hitCap, firstTurnPrompt,
-                            "post-cap wrap-up failed: \(error.localizedDescription)")
+                        let step = try ResponsesEvaluationStep.classify(
+                            response,
+                            toolsWereOffered: !frozenTools.isEmpty
+                        )
+                        switch step {
+                        case .lengthExhausted, .incompleteReasoning:
+                            throw ResponsesEvaluationStep.Failure.incomplete(response.completion.stopReason)
+                        default: break
+                        }
+                        let message = try response.completedAssistantInput()
+
+                        guard let calls = message.tool_calls, !calls.isEmpty else {
+                            let visible = (message.content ?? "")
+                                .trimmingCharacters(in: .whitespacesAndNewlines)
+                            if visible.isEmpty, emptyTurnRetries < AgentToolLoop.maxEmptyTurnRetries {
+                                // Empty turn (no text, no tool call): nudge and
+                                // retry without charging the iteration budget —
+                                // production-parity recovery, not coercion (the
+                                // model still writes its own answer).
+                                emptyTurnRetries += 1
+                                pendingEmptyTurnNotice = AgentToolLoop.emptyTurnNotice
+                                continue
+                            }
+                            // Grounded-claim check, gated exactly like chat: only
+                            // when the configure surface is in the offered schema.
+                            if !visible.isEmpty,
+                                groundedClaimRetries < AgentToolLoop.maxGroundedClaimRetries,
+                                frozenTools.contains(where: {
+                                    $0.function.name == GroundedConfigClaimCheck.configToolName
+                                }),
+                                let notice = GroundedConfigClaimCheck.notice(
+                                    finalText: visible,
+                                    hasGroundedApply: hasGroundedApply
+                                )
+                            {
+                                // The ungrounded final never entered `history`
+                                // (only tool-call turns are appended), matching
+                                // chat's model-context exclusion of the abandoned
+                                // attempt. The retry overwrites `finalText`.
+                                groundedClaimRetries += 1
+                                pendingStateNotice = notice
+                                continue
+                            }
+                            // Tool-call-free answer → the loop is done.
+                            break
+                        }
+                        emptyTurnRetries = 0
+
+                        iterations += 1
+
+                        // Echo the assistant tool-call turn back into history
+                        // so the model sees its own request alongside results.
+                        try pendingBatch.begin(SecretArgumentScrubber.recordedAssistantMessage(message))
+
+                        for call in calls {
+                            try Task.checkCancellation()
+                            toolCalls.append(
+                                .init(name: call.function.name, arguments: call.function.arguments)
+                            )
+                            // Held-result replay for repeated identical reads,
+                            // mirroring `AgentToolLoop`: the result cannot have
+                            // changed, so replay it and tell the model.
+                            if let held = taskState.heldResult(
+                                name: call.function.name,
+                                argsJSON: call.function.arguments
+                            ) {
+                                toolCalls[toolCalls.count - 1] = .init(
+                                    name: call.function.name,
+                                    arguments: call.function.arguments,
+                                    resultPreview: String(held.prefix(500))
+                                )
+                                pendingBatch.record(callID: call.id, result: held)
+                                if let escalation = taskState.lastReplayNotice {
+                                    pendingStateNotice = "[System Notice] " + escalation
+                                } else {
+                                    pendingStateNotice = AgentToolLoop.dedupeNotice
+                                }
+                                continue
+                            }
+                            // Headless harness: there is no [Allow] button, so an
+                            // `.ask` tool would otherwise suspend forever on
+                            // `ToolPermissionPromptService`. Bind BOTH approval
+                            // task-locals so the unstructured task `executeTool`
+                            // spawns inherits them (a detached task would not):
+                            // `default_agent` passes auto-approve (it measures the
+                            // configure surface EXECUTING); `capability_claims`
+                            // passes auto-deny (it measures tool SELECTION + honest
+                            // claims, and must NOT execute state-mutating configure/
+                            // agent writes mid-eval). Production surfaces keep both
+                            // `false` and present the real prompt.
+                            let toolResult = await ChatExecutionContext.$autoApproveToolPrompts
+                                .withValue(autoApproveToolPrompts) {
+                                    await ChatExecutionContext.$denyUnapprovedToolPrompts
+                                        .withValue(denyUnapprovedToolPrompts) {
+                                            await executeTool(
+                                                name: call.function.name,
+                                                argumentsJSON: call.function.arguments,
+                                                timeout: toolExecutionTimeout
+                                            )
+                                        }
+                                }
+                            toolCalls[toolCalls.count - 1] = .init(
+                                name: call.function.name,
+                                arguments: call.function.arguments,
+                                resultPreview: String(toolResult.prefix(500))
+                            )
+                            if !hasGroundedApply,
+                                GroundedConfigClaimCheck.isGroundedApplyOutcome(
+                                    toolName: call.function.name,
+                                    argumentsJSON: call.function.arguments,
+                                    result: toolResult
+                                )
+                            {
+                                hasGroundedApply = true
+                            }
+                            // Chat-surface parity: the model reads the compact
+                            // spawn result (digest, handles, deliverables, one
+                            // accounting line); `resultPreview` above keeps the
+                            // raw envelope for scoring.
+                            let modelVisible =
+                                call.function.name == SubagentCapabilityRegistry.spawnAgentToolName
+                                    && SpawnResultCompaction.applies(to: toolResult)
+                                ? SpawnResultCompaction.modelVisible(
+                                    toolResult,
+                                    prefersCompactPrompt: ContextSizeResolver.resolve(modelId: resolvedModel)
+                                        .prefersCompactPrompt
+                                )
+                                : toolResult
+                            pendingBatch.record(callID: call.id, result: modelVisible)
+                            // Repeated-identical-call nudge, mirroring the
+                            // production driver's `state.record` + `nextStepBias`
+                            // sequence (3+ identical calls arms an advisory
+                            // "results won't change — act on what you have").
+                            taskState.record(
+                                name: call.function.name,
+                                argsJSON: call.function.arguments,
+                                result: toolResult
+                            )
+                            if let bias = taskState.nextStepBias() {
+                                pendingStateNotice = "[System Notice] " + bias
+                            }
+                        }
+
+                        if let commit = pendingBatch.complete([]) {
+                            history.append(contentsOf: commit.messages)
+                        }
+
+                        // Drain tools loaded via capabilities_load: record them
+                        // on the transcript (and keep the process-wide buffer
+                        // clean), but do NOT patch the frozen schema — they are
+                        // already callable by name through the registry.
+                        let drained = await CapabilityLoadBuffer.shared.drain()
+                        for spec in drained {
+                            let name = spec.function.name
+                            if !loadedToolNames.contains(name) {
+                                loadedToolNames.append(name)
+                            }
+                            // Same-turn spawn staging (see `frozenTools` above):
+                            // only genuinely new spawn-family names join the
+                            // offered schema, mirroring `ToolExecutionScope.activate`.
+                            if SubagentCapabilityRegistry.spawn.toolNames.contains(name),
+                                !frozenTools.contains(where: { $0.function.name == name })
+                            {
+                                frozenTools.append(spec)
+                            }
+                        }
+
+                        // Same budget bookkeeping as production: one warning per
+                        // iteration once the remaining budget reaches the
+                        // threshold, staged for the NEXT request.
+                        let remaining = maxIterations - iterations
+                        if remaining > 0, remaining <= budgetWarningThreshold {
+                            pendingBudgetNotice = AgentToolLoop.budgetWarningNotice(
+                                remaining: remaining,
+                                maxIterations: maxIterations
+                            )
+                        }
                     }
+                    if iterations >= maxIterations { hitCap = true }
+                    if hitCap {
+                        // Production parity (ChatView): a cap-hit run gets ONE
+                        // final tool-free request so the user still sees a
+                        // wrap-up answer. Score what production shows, not the
+                        // empty string the loop was cut off with.
+                        var wrapUpRequest = ResponsesInferenceRequest(
+                            model: resolvedModel,
+                            input: [ChatMessage(role: "system", content: firstTurnPrompt)] + history
+                        )
+                        wrapUpRequest.sessionID = runSessionId
+                        wrapUpRequest.context.samplingParametersAreImplicit = true
+                        let wrapUpInputTokens = ContextBudgetManager.estimateTokens(
+                            for: wrapUpRequest.input
+                        )
+                        promptTokensTotal += wrapUpInputTokens
+                        peakContextTokens = max(peakContextTokens, wrapUpInputTokens)
+                        modelStepCount += 1
+                        // Preserve the explicit post-cap diagnostic. A partial,
+                        // cancelled or failed wrap-up stays an error with the real
+                        // visible output retained; it is not a successful answer.
+                        do {
+                            let response = try await ResponsesEvaluationStep.collect(
+                                engine: engine,
+                                request: wrapUpRequest
+                            )
+                            if let count = response.completion.tokenCount {
+                                completionTokensTotal += count
+                                if count > 0, let rate = response.completion.tokensPerSecond, rate > 0 {
+                                    decodeTpsWeightedSum += rate * Double(count)
+                                    decodeTpsTokenWeight += count
+                                }
+                            } else {
+                                completionUsageComplete = false
+                            }
+                            finalText = response.text
+                            try ResponsesEvaluationStep.requireNaturalFinal(response)
+                        } catch {
+                            completionUsageComplete = false
+                            return (
+                                finalText, toolCalls, loadedToolNames, iterations, hitCap, firstTurnPrompt,
+                                "post-cap wrap-up failed: \(error.localizedDescription)"
+                            )
+                        }
+                    }
+                    return (finalText, toolCalls, loadedToolNames, iterations, hitCap, firstTurnPrompt, nil)
                 }
-                return (finalText, toolCalls, loadedToolNames, iterations, hitCap, firstTurnPrompt, nil)
-              }
             }
         } catch {
             if let commit = pendingBatch.finish(runExit: "errored") {

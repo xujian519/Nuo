@@ -20,12 +20,17 @@ struct SwiftTransformersTokenizerLoader: TokenizerLoader, @unchecked Sendable {
             let tokenizerConfig = try? Data(contentsOf: directory.appendingPathComponent("tokenizer_config.json"))
         {
             grammarVocabulary = GrammarTokenVocabulary.fromTokenizerJSON(
-                tokenizerJSON, tokenizerConfig: tokenizerConfig)
+                tokenizerJSON,
+                tokenizerConfig: tokenizerConfig
+            )
         } else {
             grammarVocabulary = nil
         }
-        return TokenizerBridge(upstream: upstream, modelType: modelType,
-            grammarTokenVocabulary: grammarVocabulary)
+        return TokenizerBridge(
+            upstream: upstream,
+            modelType: modelType,
+            grammarTokenVocabulary: grammarVocabulary
+        )
     }
 
     static func normalizedToolsForChatTemplate(
@@ -215,8 +220,10 @@ private struct TokenizerBridge: MLXLMCommon.GenerationPromptControllableTokenize
         addGenerationPrompt: Bool
     ) throws -> [Int] {
         var additionalContext = additionalContext
-        let requiresConfiguredTemplate = additionalContext?.removeValue(
-            forKey: ChatTemplateParameters.explicitContextKey) as? Bool == true
+        let requiresConfiguredTemplate =
+            additionalContext?.removeValue(
+                forKey: ChatTemplateParameters.explicitContextKey
+            ) as? Bool == true
         let env = ProcessInfo.processInfo.environment
         let chatTemplateTools = Self.normalizedToolsForChatTemplate(tools)
         if let path = env["VMLX_CHAT_TEMPLATE_OVERRIDE"], !path.isEmpty,
@@ -277,8 +284,9 @@ private struct TokenizerBridge: MLXLMCommon.GenerationPromptControllableTokenize
         // A non-thinking tool fallback must not replace that contract.
         if !(tools?.isEmpty ?? true),
             LFM2ToolCallParser.preservesNativeReasoningTemplate(
-            upstream.configuredChatTemplate(forTools: !(tools?.isEmpty ?? true))
-        ) {
+                upstream.configuredChatTemplate(forTools: !(tools?.isEmpty ?? true))
+            )
+        {
             return try upstream.applyChatTemplate(
                 messages: messages,
                 chatTemplate: nil,
@@ -546,7 +554,8 @@ private struct TokenizerBridge: MLXLMCommon.GenerationPromptControllableTokenize
             // Explicit template variables require that bundle's template. A
             // generic fallback could silently turn extraction into plain chat.
             guard !requiresConfiguredTemplate,
-                (env["VMLX_CHAT_TEMPLATE_FALLBACK_DISABLE"] ?? "0") != "1" else {
+                (env["VMLX_CHAT_TEMPLATE_FALLBACK_DISABLE"] ?? "0") != "1"
+            else {
                 throw MLXLMCommon.TokenizerError.missingChatTemplate
             }
             if hasLagunaSentinel {
@@ -625,7 +634,8 @@ private struct TokenizerBridge: MLXLMCommon.GenerationPromptControllableTokenize
             throw MLXLMCommon.TokenizerError.missingChatTemplate
         } catch {
             guard !requiresConfiguredTemplate,
-                (env["VMLX_CHAT_TEMPLATE_FALLBACK_DISABLE"] ?? "0") != "1" else {
+                (env["VMLX_CHAT_TEMPLATE_FALLBACK_DISABLE"] ?? "0") != "1"
+            else {
                 throw error
             }
             let isGemma = upstream.bosToken == "<bos>" && !hasZayaToolChatSentinel

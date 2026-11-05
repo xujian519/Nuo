@@ -123,7 +123,8 @@ struct IsolatedPasteboardTests {
             .deletingLastPathComponent()
         let source = try String(
             contentsOf: packageRoot.appendingPathComponent("Services/Context/ClipboardService.swift"),
-            encoding: .utf8)
+            encoding: .utf8
+        )
         // Call sites only; the comments explaining the fix name the object.
         #expect(!source.contains("NSPasteboard.general."))
         #expect(!source.contains("(NSPasteboard.general)"))

@@ -73,8 +73,11 @@ final class AppleScriptMusicService: MusicServicing, @unchecked Sendable {
     /// a -600/-609 and report an unknown outcome on timeout; reads are retried
     /// once if Music vanished mid-call. `with timeout` keeps AppleScript's
     /// 60s per-event cap from lying about the Swift budget.
-    private func run(_ body: String, timeout: TimeInterval = AppleScriptBridge.defaultTimeout, isWrite: Bool = false) async throws -> String {
-        guard await AppleScriptBridge.ensureRunning(bundleIdentifier: Self.bundleIdentifier, appName: Self.appName) else {
+    private func run(_ body: String, timeout: TimeInterval = AppleScriptBridge.defaultTimeout, isWrite: Bool = false)
+        async throws -> String
+    {
+        guard await AppleScriptBridge.ensureRunning(bundleIdentifier: Self.bundleIdentifier, appName: Self.appName)
+        else {
             throw AppleToolError.unavailable("Music could not be launched on this Mac.", retryable: true)
         }
         let source = """
@@ -85,9 +88,17 @@ final class AppleScriptMusicService: MusicServicing, @unchecked Sendable {
             end timeout
             """
         return try await AppleScriptBridge.runRetryingIfAppGone(
-            bundleIdentifier: Self.bundleIdentifier, appName: Self.appName, isWrite: isWrite
+            bundleIdentifier: Self.bundleIdentifier,
+            appName: Self.appName,
+            isWrite: isWrite
         ) {
-            try await AppleScriptBridge.run(source, permission: .automationMusic, appName: Self.appName, timeout: timeout, isWrite: isWrite)
+            try await AppleScriptBridge.run(
+                source,
+                permission: .automationMusic,
+                appName: Self.appName,
+                timeout: timeout,
+                isWrite: isWrite
+            )
         }
     }
 
@@ -159,20 +170,38 @@ final class AppleScriptMusicService: MusicServicing, @unchecked Sendable {
     private static func decodeTrack(_ r: [String]) -> MusicTrackInfo? {
         guard r.count >= 9, !r[0].isEmpty else { return nil }
         return MusicTrackInfo(
-            id: r[0], name: r[1], artist: r[2], album: r[3],
-            durationSeconds: AppleScriptBridge.double(r[4]), year: (Int(r[5]) ?? 0) > 0 ? Int(r[5]) : nil,
-            genre: r[6].isEmpty ? nil : r[6], rating: Int(r[7]), playedCount: Int(r[8])
+            id: r[0],
+            name: r[1],
+            artist: r[2],
+            album: r[3],
+            durationSeconds: AppleScriptBridge.double(r[4]),
+            year: (Int(r[5]) ?? 0) > 0 ? Int(r[5]) : nil,
+            genre: r[6].isEmpty ? nil : r[6],
+            rating: Int(r[7]),
+            playedCount: Int(r[8])
         )
     }
 
     private static func decodeState(_ out: String) -> MusicNowPlaying {
-        let sections = out.split(separator: AppleScriptBridge.recordSeparator, omittingEmptySubsequences: false).map(String.init)
-        let head = (sections.first ?? "").split(separator: AppleScriptBridge.fieldSeparator, omittingEmptySubsequences: false).map(String.init)
-        let track = sections.count > 1
-            ? decodeTrack(sections[1].split(separator: AppleScriptBridge.fieldSeparator, omittingEmptySubsequences: false).map(String.init))
+        let sections = out.split(separator: AppleScriptBridge.recordSeparator, omittingEmptySubsequences: false).map(
+            String.init
+        )
+        let head = (sections.first ?? "").split(
+            separator: AppleScriptBridge.fieldSeparator,
+            omittingEmptySubsequences: false
+        ).map(String.init)
+        let track =
+            sections.count > 1
+            ? decodeTrack(
+                sections[1].split(separator: AppleScriptBridge.fieldSeparator, omittingEmptySubsequences: false).map(
+                    String.init
+                )
+            )
             : nil
         var state = head.first?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "stopped"
-        if let code = Int(state) { state = ["stopped", "playing", "paused", "fast forwarding", "rewinding"][safe: code] ?? state }
+        if let code = Int(state) {
+            state = ["stopped", "playing", "paused", "fast forwarding", "rewinding"][safe: code] ?? state
+        }
         return MusicNowPlaying(
             state: state,
             track: track,
@@ -251,7 +280,10 @@ final class AppleScriptMusicService: MusicServicing, @unchecked Sendable {
         return AppleScriptBridge.parseRecords(out).compactMap { r in
             guard r.count >= 5 else { return nil }
             return MusicPlaylistInfo(
-                id: r[0], name: r[1], trackCount: Int(r[2]) ?? 0, durationSeconds: AppleScriptBridge.double(r[3]),
+                id: r[0],
+                name: r[1],
+                trackCount: Int(r[2]) ?? 0,
+                durationSeconds: AppleScriptBridge.double(r[3]),
                 kind: r[4].isEmpty || r[4] == "none" ? nil : r[4]
             )
         }

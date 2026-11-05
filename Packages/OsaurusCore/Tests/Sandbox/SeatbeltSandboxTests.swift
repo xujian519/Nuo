@@ -200,8 +200,8 @@ struct SeatbeltSandboxTests {
     @Test("generated profile launches Apple's Python shim through selected tools")
     func profileLaunchesPythonShim() async throws {
         guard let developerDirectory = SeatbeltSandbox.activeDeveloperDirectory,
-              FileManager.default.isExecutableFile(atPath: "/usr/bin/sandbox-exec"),
-              FileManager.default.isExecutableFile(atPath: "/usr/bin/python3")
+            FileManager.default.isExecutableFile(atPath: "/usr/bin/sandbox-exec"),
+            FileManager.default.isExecutableFile(atPath: "/usr/bin/python3")
         else { return }
 
         let root = FileManager.default.temporaryDirectory
@@ -209,10 +209,14 @@ struct SeatbeltSandboxTests {
         let workspace = root.appendingPathComponent("workspace")
         defer { try? FileManager.default.removeItem(at: root) }
         try FileManager.default.createDirectory(
-            at: workspace, withIntermediateDirectories: true)
+            at: workspace,
+            withIntermediateDirectories: true
+        )
         let scratch = SeatbeltSandbox.scratchDir
         try FileManager.default.createDirectory(
-            atPath: scratch, withIntermediateDirectories: true)
+            atPath: scratch,
+            withIntermediateDirectories: true
+        )
         let cacheReadChecks = SeatbeltSandbox.xcrunCacheFiles
             .map { "/bin/cat '\($0)' >/dev/null" }
             .joined(separator: " && ")
@@ -223,30 +227,32 @@ struct SeatbeltSandboxTests {
             developerDirectory: developerDirectory
         )
 
-        guard let result = try await runOrSkip(
-            SeatbeltExecutor.Request(
-                command: "\(cacheReadChecks) && /bin/pwd >/dev/null && "
-                    + "/bin/test \"$HOME\" = '\(workspace.path)' && "
-                    + "/usr/bin/python3 -c \"print('seatbelt-python-ok')\"",
-                // Prove the executor replaces a caller-supplied TMPDIR that
-                // the deny-default profile cannot write.
-                env: [
-                    "TMPDIR": "/var/empty/osaurus-denied",
-                    // HOME changes xcrun's cache key. It must be replaced by
-                    // the mapped confined cwd before host-side preparation.
-                    "HOME": "/var/empty/osaurus-denied",
-                    // A caller cannot redirect the developer shim outside the
-                    // validated toolchain tree granted by the profile.
-                    "DEVELOPER_DIR": "/var/empty/osaurus-denied",
-                ],
-                cwd: workspace.path,
-                timeout: 10,
-                profile: profile,
-                stdoutTee: nil,
-                stderrTee: nil,
-                onProcessStarted: nil
+        guard
+            let result = try await runOrSkip(
+                SeatbeltExecutor.Request(
+                    command: "\(cacheReadChecks) && /bin/pwd >/dev/null && "
+                        + "/bin/test \"$HOME\" = '\(workspace.path)' && "
+                        + "/usr/bin/python3 -c \"print('seatbelt-python-ok')\"",
+                    // Prove the executor replaces a caller-supplied TMPDIR that
+                    // the deny-default profile cannot write.
+                    env: [
+                        "TMPDIR": "/var/empty/osaurus-denied",
+                        // HOME changes xcrun's cache key. It must be replaced by
+                        // the mapped confined cwd before host-side preparation.
+                        "HOME": "/var/empty/osaurus-denied",
+                        // A caller cannot redirect the developer shim outside the
+                        // validated toolchain tree granted by the profile.
+                        "DEVELOPER_DIR": "/var/empty/osaurus-denied",
+                    ],
+                    cwd: workspace.path,
+                    timeout: 10,
+                    profile: profile,
+                    stdoutTee: nil,
+                    stderrTee: nil,
+                    onProcessStarted: nil
+                )
             )
-        ) else { return }
+        else { return }
         #expect(
             result.exitCode == 0,
             "sandboxed Python failed: \(result.stderr)\nProfile:\n\(profile)"
@@ -269,7 +275,9 @@ struct SeatbeltSandboxTests {
         let outsideWrite = root.appendingPathComponent("outside-write")
         defer { try? FileManager.default.removeItem(at: root) }
         try FileManager.default.createDirectory(
-            at: workspace, withIntermediateDirectories: true)
+            at: workspace,
+            withIntermediateDirectories: true
+        )
         try Data("do-not-read".utf8).write(to: outsideSecret)
 
         let profile = SeatbeltSandbox.profile(
@@ -277,31 +285,37 @@ struct SeatbeltSandboxTests {
             tempDir: SeatbeltSandbox.scratchDir,
             network: .denied
         )
-        guard let read = try await runOrSkip(
-            SeatbeltExecutor.Request(
-                command: "/bin/cat '\(outsideSecret.path)'",
-                env: [:],
-                cwd: workspace.path,
-                timeout: 10,
-                profile: profile,
-                stdoutTee: nil,
-                stderrTee: nil,
-                onProcessStarted: nil
-            )) else { return }
+        guard
+            let read = try await runOrSkip(
+                SeatbeltExecutor.Request(
+                    command: "/bin/cat '\(outsideSecret.path)'",
+                    env: [:],
+                    cwd: workspace.path,
+                    timeout: 10,
+                    profile: profile,
+                    stdoutTee: nil,
+                    stderrTee: nil,
+                    onProcessStarted: nil
+                )
+            )
+        else { return }
         #expect(read.exitCode != 0)
         #expect(!read.stdout.contains("do-not-read"))
 
-        guard let write = try await runOrSkip(
-            SeatbeltExecutor.Request(
-                command: "/usr/bin/printf 'escaped' > '\(outsideWrite.path)'",
-                env: [:],
-                cwd: workspace.path,
-                timeout: 10,
-                profile: profile,
-                stdoutTee: nil,
-                stderrTee: nil,
-                onProcessStarted: nil
-            )) else { return }
+        guard
+            let write = try await runOrSkip(
+                SeatbeltExecutor.Request(
+                    command: "/usr/bin/printf 'escaped' > '\(outsideWrite.path)'",
+                    env: [:],
+                    cwd: workspace.path,
+                    timeout: 10,
+                    profile: profile,
+                    stdoutTee: nil,
+                    stderrTee: nil,
+                    onProcessStarted: nil
+                )
+            )
+        else { return }
         #expect(write.exitCode != 0)
         #expect(!FileManager.default.fileExists(atPath: outsideWrite.path))
     }
@@ -309,7 +323,10 @@ struct SeatbeltSandboxTests {
     @Test("network none denies network in the profile")
     func profileDeniesNetwork() {
         let profile = SeatbeltSandbox.profile(
-            workspaceRoot: "/w", tempDir: "/t", network: .denied)
+            workspaceRoot: "/w",
+            tempDir: "/t",
+            network: .denied
+        )
         #expect(profile.contains("(deny network*)"))
         #expect(!profile.contains("(allow network*)"))
     }
@@ -337,37 +354,45 @@ struct SeatbeltSandboxTests {
     func mapsWorkspacePaths() {
         #expect(
             SeatbeltPathMapper.mapToHost("cat /workspace/agents/a/notes.txt", workspaceRoot: root)
-                == "cat \(root)/agents/a/notes.txt")
+                == "cat \(root)/agents/a/notes.txt"
+        )
         #expect(SeatbeltPathMapper.mapToHost("ls /workspace", workspaceRoot: root) == "ls \(root)")
         #expect(
             SeatbeltPathMapper.mapToHost("cd /workspace && ls /workspace/shared", workspaceRoot: root)
-                == "cd \(root) && ls \(root)/shared")
+                == "cd \(root) && ls \(root)/shared"
+        )
     }
 
     @Test("non-workspace tokens are left untouched")
     func leavesOtherPathsAlone() {
         #expect(
             SeatbeltPathMapper.mapToHost("ls /workspaces/other", workspaceRoot: root)
-                == "ls /workspaces/other")
+                == "ls /workspaces/other"
+        )
         #expect(
             SeatbeltPathMapper.mapToHost("ls foo/workspace/bar", workspaceRoot: root)
-                == "ls foo/workspace/bar")
+                == "ls foo/workspace/bar"
+        )
         #expect(
             SeatbeltPathMapper.mapToHost("echo no paths here", workspaceRoot: root)
-                == "echo no paths here")
+                == "echo no paths here"
+        )
     }
 
     @Test("trailing slash on the host root does not double up")
     func trailingSlashRoot() {
         #expect(
             SeatbeltPathMapper.mapToHost("/workspace/x", workspaceRoot: root + "/")
-                == "\(root)/x")
+                == "\(root)/x"
+        )
     }
 
     @Test("env values are mapped")
     func mapsEnvValues() {
         let mapped = SeatbeltPathMapper.mapEnvToHost(
-            ["HOME": "/workspace/agents/a", "LANG": "C"], workspaceRoot: root)
+            ["HOME": "/workspace/agents/a", "LANG": "C"],
+            workspaceRoot: root
+        )
         #expect(mapped["HOME"] == "\(root)/agents/a")
         #expect(mapped["LANG"] == "C")
     }

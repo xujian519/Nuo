@@ -534,7 +534,10 @@ final class OsaurusRouterAccountService: ObservableObject {
             let remaining = summary.allowanceRemaining
         {
             let allowance = OsaurusRouterWebAllowance(
-                includedTotal: included, usedTotal: used, remainingTotal: remaining)
+                includedTotal: included,
+                usedTotal: used,
+                remainingTotal: remaining
+            )
             var settings =
                 webSettings
                 ?? OsaurusRouterWebSettingsResponse(autoPayEnabled: true, grants: nil)

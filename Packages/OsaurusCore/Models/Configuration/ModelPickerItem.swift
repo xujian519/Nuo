@@ -424,7 +424,8 @@ extension ModelPickerItem {
 
     static func officialOpenAIContextWindow(forModelId modelId: String) -> Int? {
         let bare = (modelId.split(separator: "/").last.map(String.init) ?? modelId).lowercased()
-        return officialOpenAIContextWindows
+        return
+            officialOpenAIContextWindows
             .filter { bare.hasPrefix($0.prefix) }
             .max { $0.prefix.count < $1.prefix.count }?
             .tokens
@@ -499,7 +500,8 @@ extension OsaurusRouterModel {
         }
 
         let inputCredits = inputCreditsDisplay?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let input = inputCredits.isEmpty
+        let input =
+            inputCredits.isEmpty
             ? inputDisplay.trimmingCharacters(in: .whitespacesAndNewlines)
             : inputCredits
         if !input.isEmpty {
@@ -507,7 +509,8 @@ extension OsaurusRouterModel {
         }
 
         let outputCredits = outputCreditsDisplay?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let output = outputCredits.isEmpty
+        let output =
+            outputCredits.isEmpty
             ? outputDisplay.trimmingCharacters(in: .whitespacesAndNewlines)
             : outputCredits
         if !output.isEmpty {

@@ -19,7 +19,10 @@ struct ContextAttributionReportTests {
     ) -> ContextAttribution {
         let sectionCosts = sections.map {
             ContextAttribution.SectionCost(
-                id: $0.0, label: $0.0, tokens: $0.1, cacheability: "static"
+                id: $0.0,
+                label: $0.0,
+                tokens: $0.1,
+                cacheability: "static"
             )
         }
         let toolCosts = tools.map { ContextAttribution.ToolCost(name: $0.0, tokens: $0.1) }
@@ -39,8 +42,14 @@ struct ContextAttributionReportTests {
         context: ContextAttribution?
     ) -> EvalCaseReport {
         EvalCaseReport(
-            id: id, label: id, domain: "agent_loop", query: nil,
-            outcome: outcome, notes: [], modelId: "m", latencyMs: 10,
+            id: id,
+            label: id,
+            domain: "agent_loop",
+            query: nil,
+            outcome: outcome,
+            notes: [],
+            modelId: "m",
+            latencyMs: 10,
             context: context
         )
     }
@@ -67,7 +76,9 @@ struct ContextAttributionReportTests {
                 caseReport(
                     id: "agent_loop.a",
                     context: attribution(
-                        sections: [("platform", 100)], tools: [("todo", 50)], firstStep: 150
+                        sections: [("platform", 100)],
+                        tools: [("todo", 50)],
+                        firstStep: 150
                     )
                 )
             ]
@@ -182,7 +193,9 @@ struct ContextAttributionReportTests {
         #expect(col.topContextContributors?.contains("tool:web_search=400") == true)
 
         let md = EvalMatrix(
-            generatedAt: "2026-07-20T00:00:00Z", domains: ["agent_loop"], models: [col]
+            generatedAt: "2026-07-20T00:00:00Z",
+            domains: ["agent_loop"],
+            models: [col]
         ).formatMarkdown()
         #expect(md.contains("first-step ctx tok (mean)"))
         #expect(md.contains("## Top Context Contributors"))

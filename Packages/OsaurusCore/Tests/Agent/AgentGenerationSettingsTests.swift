@@ -5,21 +5,31 @@ import Testing
 
 struct AgentGenerationSettingsTests {
     static let explicit = AgentGenerationSettings(
-        topP: 0, topK: 0, minP: 0, repetitionPenalty: 1,
-        frequencyPenalty: 0, presencePenalty: 0, seed: -7, stop: [],
-        enableThinking: false, reasoningEffort: "low",
+        topP: 0,
+        topK: 0,
+        minP: 0,
+        repetitionPenalty: 1,
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+        seed: -7,
+        stop: [],
+        enableThinking: false,
+        reasoningEffort: "low",
         templateKwargs: [
             "custom": .object([
                 "enabled": .bool(false), "count": .number(0),
                 "values": .array([.null, .string("value")]),
             ])
-        ], speculativeDecoding: false
+        ],
+        speculativeDecoding: false
     )
 
     @Test("agent JSON keeps explicit zero and false without duplicating temperature or token limits")
     func agentJSONRoundTripAndLegacyInheritance() throws {
         let agent = Agent(
-            name: "Generation fixture", temperature: 0, maxTokens: 1234,
+            name: "Generation fixture",
+            temperature: 0,
+            maxTokens: 1234,
             generationSettings: Self.explicit,
             autonomousExec: AutonomousExecConfig(enabled: false)
         )
@@ -75,7 +85,9 @@ struct AgentGenerationSettingsTests {
             #expect(throws: (any Error).self) { try settings.validate() }
         }
         try AgentGenerationSettings(
-            frequencyPenalty: -3, presencePenalty: 3, reasoningEffort: "model-specific-level"
+            frequencyPenalty: -3,
+            presencePenalty: 3,
+            reasoningEffort: "model-specific-level"
         ).validate()
     }
 }
@@ -87,7 +99,9 @@ struct AgentGenerationSettingsPersistenceTests {
     func storeAndDuplicate() async throws {
         try await ChatHistoryTestStorage.run {
             let agent = Agent(
-                name: "Generation fixture", temperature: 0, maxTokens: 1234,
+                name: "Generation fixture",
+                temperature: 0,
+                maxTokens: 1234,
                 generationSettings: AgentGenerationSettingsTests.explicit,
                 autonomousExec: AutonomousExecConfig(enabled: false)
             )
@@ -109,7 +123,8 @@ struct AgentGenerationSettingsPersistenceTests {
     func recoveryCopies() async throws {
         try await ChatHistoryTestStorage.run {
             let owner = Agent(
-                name: "Owner", generationSettings: AgentGenerationSettingsTests.explicit,
+                name: "Owner",
+                generationSettings: AgentGenerationSettingsTests.explicit,
                 agentAddress: "fixture-address",
                 autonomousExec: AutonomousExecConfig(enabled: false)
             )
@@ -130,7 +145,8 @@ struct AgentGenerationSettingsPersistenceTests {
 
             // A distinct UUID with a conflicting address uses clearingRecoveredIdentity.
             let identityConflict = Agent(
-                name: "Identity conflict", generationSettings: owner.generationSettings,
+                name: "Identity conflict",
+                generationSettings: owner.generationSettings,
                 agentAddress: owner.agentAddress,
                 autonomousExec: AutonomousExecConfig(enabled: false)
             )

@@ -49,7 +49,8 @@ struct WorkspaceAuditCard: View {
                 AgentSectionEmptyState(
                     icon: "list.bullet.clipboard",
                     title: "No audit events recorded on this Mac yet",
-                    hint: "Teammate access, runs on your shared agents, and your own workspace actions are recorded here."
+                    hint:
+                        "Teammate access, runs on your shared agents, and your own workspace actions are recorded here."
                 )
             } else {
                 filterRow
@@ -201,7 +202,8 @@ struct WorkspaceAuditCard: View {
         let first = verification.problems.first.map(Self.describe) ?? ""
         return String(
             format: L("Chain broken: %d problem(s). First: %@"),
-            verification.problems.count, first
+            verification.problems.count,
+            first
         )
     }
 
@@ -260,7 +262,9 @@ struct WorkspaceAuditCard: View {
             return String(format: L("record %d was modified after it was written"), seq)
         case .headMismatch(let expectedSeq, let actualSeq):
             return String(
-                format: L("head marker says %d records but the log ends at %d"), expectedSeq, actualSeq
+                format: L("head marker says %d records but the log ends at %d"),
+                expectedSeq,
+                actualSeq
             )
         }
     }
@@ -338,7 +342,8 @@ struct WorkspaceAuditRow: View {
             let ok = record.details["success"] == "true"
             return String(
                 format: ok ? L("%@ finished a run on %@") : L("%@'s run on %@ ended early"),
-                actorLabel, agentLabel
+                actorLabel,
+                agentLabel
             )
         case .runStoppedByOwner:
             return String(format: L("You stopped a teammate's run on %@"), agentLabel)
@@ -444,7 +449,8 @@ struct WorkspaceAuditRow: View {
                 parts.append(
                     String(
                         format: L("below %@, reload %@"),
-                        OsaurusRouter.formatMicroUSD(threshold), OsaurusRouter.formatMicroUSD(amount)
+                        OsaurusRouter.formatMicroUSD(threshold),
+                        OsaurusRouter.formatMicroUSD(amount)
                     )
                 )
             }

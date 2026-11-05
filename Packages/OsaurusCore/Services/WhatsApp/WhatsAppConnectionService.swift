@@ -541,7 +541,8 @@ final class WhatsAppConnectionService: @unchecked Sendable {
                 let kind = (chat["kind"] as? String) ?? "dm"
                 // DMs are identified by phone number (the allowlist-friendly
                 // form); groups keep their `...@g.us` JID.
-                let id = kind == "dm"
+                let id =
+                    kind == "dm"
                     ? WhatsAppConnectionConfiguration.normalizedId((chat["number"] as? String) ?? jid)
                     : WhatsAppConnectionConfiguration.normalizedId(jid)
                 let name = (chat["name"] as? String).flatMap { $0.isEmpty ? nil : $0 }
@@ -961,11 +962,12 @@ final class WhatsAppConnectionService: @unchecked Sendable {
     ) -> AgentChannelStoredMessage? {
         guard let messageStore else { return nil }
         guard (try? messageStore.openIfNeeded()) != nil else { return nil }
-        let rows = (try? messageStore.recentMessages(
-            connectionId: Self.nativeConnectionId,
-            roomId: chatId,
-            limit: 100
-        )) ?? []
+        let rows =
+            (try? messageStore.recentMessages(
+                connectionId: Self.nativeConnectionId,
+                roomId: chatId,
+                limit: 100
+            )) ?? []
         return rows.first { $0.providerMessageId == providerMessageId }
     }
 
@@ -1037,7 +1039,8 @@ final class WhatsAppConnectionService: @unchecked Sendable {
                 await onBatch(summary)
             case WhatsAppRPCNotification.error:
                 let object = (try? JSONSerialization.jsonObject(with: paramsJSON)) as? [String: Any]
-                let detail = (object?["detail"] as? String)
+                let detail =
+                    (object?["detail"] as? String)
                     ?? (object?["reason"] as? String)
                     ?? "unknown watch error"
                 if (object?["reason"] as? String) == "logged_out" {
@@ -1087,7 +1090,10 @@ final class WhatsAppConnectionService: @unchecked Sendable {
         // running session without an app restart.
         let config = configuration()
         let empty = AgentChannelReceiveBatchSummary(
-            received: 0, stored: 0, dispatchAttempted: 0, dispatchSuppressed: 0
+            received: 0,
+            stored: 0,
+            dispatchAttempted: 0,
+            dispatchSuppressed: 0
         )
         guard config.canStartReceive() else { return empty }
 
@@ -1369,12 +1375,14 @@ final class WhatsAppConnectionService: @unchecked Sendable {
         let selfIds = [selfJID, selfLID]
             .map(WhatsAppConnectionConfiguration.normalizedId)
             .filter { !$0.isEmpty }
-        let mentionsSelf = !selfIds.isEmpty
+        let mentionsSelf =
+            !selfIds.isEmpty
             && mentions.contains {
                 selfIds.contains(WhatsAppConnectionConfiguration.normalizedId($0))
             }
 
-        let timestamp = (payload["timestamp"] as? Int64)
+        let timestamp =
+            (payload["timestamp"] as? Int64)
             ?? (payload["timestamp"] as? Int).map(Int64.init)
         let providerTimestamp = timestamp.map {
             ISO8601DateFormatter().string(from: Date(timeIntervalSince1970: TimeInterval($0)))
@@ -1504,7 +1512,8 @@ final class WhatsAppConnectionService: @unchecked Sendable {
         guard !trimmed.isEmpty else {
             throw WhatsAppConnectionServiceError.emptyMessage
         }
-        let maxInput = AgentChannelMessageFormatter.plainTextChunkLimit
+        let maxInput =
+            AgentChannelMessageFormatter.plainTextChunkLimit
             * AgentChannelMessageFormatter.maxChunksPerSend
         guard trimmed.utf16.count <= maxInput else {
             throw WhatsAppConnectionServiceError.messageTooLong

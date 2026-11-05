@@ -14,11 +14,13 @@ struct ResponsesPluginLoopTests {
         let name: String
         let executions: Executions
         let description = "Fixture echo with no file, process or network access"
-        var parameters: JSONValue? { .object([
-            "type": .string("object"), "additionalProperties": .bool(false),
-            "properties": .object(["slot": .object(["type": .string("integer")])]),
-            "required": .array([.string("slot")]),
-        ]) }
+        var parameters: JSONValue? {
+            .object([
+                "type": .string("object"), "additionalProperties": .bool(false),
+                "properties": .object(["slot": .object(["type": .string("integer")])]),
+                "required": .array([.string("slot")]),
+            ])
+        }
         func execute(argumentsJSON: String) async throws -> String {
             let body = try JSONSerialization.jsonObject(with: Data(argumentsJSON.utf8)) as? [String: Int]
             let slot = body?["slot"] ?? -1
@@ -67,18 +69,27 @@ struct ResponsesPluginLoopTests {
         "future": .object(["retained": .bool(true)]),
     ])
     private func row(
-        _ text: String, calls: [ResponsesFunctionCall] = [],
-        status: ResponsesGenerationCompletion.Status = .completed, measured: Bool = true
+        _ text: String,
+        calls: [ResponsesFunctionCall] = [],
+        status: ResponsesGenerationCompletion.Status = .completed,
+        measured: Bool = true
     ) -> [ResponsesGenerationEvent] {
         [
             .inputTokenCount(111), .outputTextDelta(text), .reasoningDelta("fixture reasoning"),
             .providerOutputItem(raw), .reasoningItem(.init(id: "rs_plugin", encryptedContent: "opaque")),
-            .responseCompleted(.init(
-                responseID: "resp_plugin", status: status, functionCalls: calls,
-                tokenCount: measured ? 20 : nil, tokensPerSecond: measured ? 33.123456789 : nil,
-                unclosedReasoning: false, stopReason: status == .incomplete ? "length" : "stop",
-                promptTokensPerSecond: nil, mtp: nil
-            )),
+            .responseCompleted(
+                .init(
+                    responseID: "resp_plugin",
+                    status: status,
+                    functionCalls: calls,
+                    tokenCount: measured ? 20 : nil,
+                    tokensPerSecond: measured ? 33.123456789 : nil,
+                    unclosedReasoning: false,
+                    stopReason: status == .incomplete ? "length" : "stop",
+                    promptTokensPerSecond: nil,
+                    mtp: nil
+                )
+            ),
         ]
     }
     private func body(tool: ProbeTool? = nil, streamID: String = UUID().uuidString) throws -> String {
@@ -87,7 +98,10 @@ struct ResponsesPluginLoopTests {
             "session_id": UUID().uuidString, "stream_id": streamID, "max_iterations": 3,
         ]
         if let tool {
-            let spec = Tool(type: "function", function: ToolFunction(name: tool.name, description: nil, parameters: tool.parameters))
+            let spec = Tool(
+                type: "function",
+                function: ToolFunction(name: tool.name, description: nil, parameters: tool.parameters)
+            )
             value["tools"] = try JSONSerialization.jsonObject(with: JSONEncoder().encode([spec]))
         }
         return String(decoding: try JSONSerialization.data(withJSONObject: value), as: UTF8.self)
@@ -95,10 +109,14 @@ struct ResponsesPluginLoopTests {
     private func invoke(_ context: PluginHostContext, body: String, streaming: Bool, chunks: Chunks) async -> String {
         await Task.detached {
             if streaming {
-                return context.completeStream(requestJSON: body, onChunk: { text, userData in
-                    guard let text, let userData else { return }
-                    Unmanaged<Chunks>.fromOpaque(userData).takeUnretainedValue().record(String(cString: text))
-                }, userData: Unmanaged.passUnretained(chunks).toOpaque())
+                return context.completeStream(
+                    requestJSON: body,
+                    onChunk: { text, userData in
+                        guard let text, let userData else { return }
+                        Unmanaged<Chunks>.fromOpaque(userData).takeUnretainedValue().record(String(cString: text))
+                    },
+                    userData: Unmanaged.passUnretained(chunks).toOpaque()
+                )
             }
             return context.complete(requestJSON: body)
         }.value
@@ -108,17 +126,25 @@ struct ResponsesPluginLoopTests {
     @MainActor
     func bothPublicEntryPointsKeepOneWholeBatchAndExactResultIDs(_ streaming: Bool) async throws {
         let executions = Executions()
-        let tool = ProbeTool(name: "responses_fixture_" + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(), executions: executions)
+        let tool = ProbeTool(
+            name: "responses_fixture_" + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased(),
+            executions: executions
+        )
         ToolRegistry.shared.register(tool)
         ToolRegistry.shared.setEnabled(true, for: tool.name)
         defer {
             ToolRegistry.shared.setEnabled(false, for: tool.name)
             ToolRegistry.shared.unregister(names: [tool.name])
         }
-        let calls = [1, 2].map { n in ResponsesFunctionCall(
-            id: "fc_\(n)", callID: "call_\(n)", name: tool.name, arguments: "{\"slot\":\(n)}",
-            geminiThoughtSignature: "signature-\(n)"
-        ) }
+        let calls = [1, 2].map { n in
+            ResponsesFunctionCall(
+                id: "fc_\(n)",
+                callID: "call_\(n)",
+                name: tool.name,
+                arguments: "{\"slot\":\(n)}",
+                geminiThoughtSignature: "signature-\(n)"
+            )
+        }
         let engine = Engine([row("Checking both.", calls: calls), row("Both results received.")])
         let context = try PluginHostContext(pluginId: "test.responses.\(UUID())", inferenceEngineFactory: { engine })
         let chunks = Chunks(context: context, streamID: "fixture")
@@ -154,9 +180,16 @@ struct ResponsesPluginLoopTests {
         let tool = ProbeTool(name: "responses_length_fixture", executions: executions)
         let call = ResponsesFunctionCall(id: "fc_1", callID: "call_1", name: tool.name, arguments: #"{"slot":1}"#)
         let engine = Engine([row("partial", calls: [call], status: .incomplete)])
-        let context = try PluginHostContext(pluginId: "test.responses.length.\(UUID())", inferenceEngineFactory: { engine })
-        let answer = await invoke(context, body: try body(tool: tool), streaming: streaming,
-            chunks: Chunks(context: context, streamID: "fixture"))
+        let context = try PluginHostContext(
+            pluginId: "test.responses.length.\(UUID())",
+            inferenceEngineFactory: { engine }
+        )
+        let answer = await invoke(
+            context,
+            body: try body(tool: tool),
+            streaming: streaming,
+            chunks: Chunks(context: context, streamID: "fixture")
+        )
         let json = try #require(try JSONSerialization.jsonObject(with: Data(answer.utf8)) as? [String: Any])
         #expect(json["error"] as? String == "output_token_limit")
         #expect(await executions.slots.isEmpty)
@@ -165,9 +198,16 @@ struct ResponsesPluginLoopTests {
 
     @Test func missingMeteringStaysAbsentAtCompatibilityBoundary() async throws {
         let engine = Engine([row("answer", measured: false)])
-        let context = try PluginHostContext(pluginId: "test.responses.metering.\(UUID())", inferenceEngineFactory: { engine })
-        let answer = await invoke(context, body: try body(), streaming: false,
-            chunks: Chunks(context: context, streamID: "fixture"))
+        let context = try PluginHostContext(
+            pluginId: "test.responses.metering.\(UUID())",
+            inferenceEngineFactory: { engine }
+        )
+        let answer = await invoke(
+            context,
+            body: try body(),
+            streaming: false,
+            chunks: Chunks(context: context, streamID: "fixture")
+        )
         let json = try #require(try JSONSerialization.jsonObject(with: Data(answer.utf8)) as? [String: Any])
         #expect(json["error"] == nil && json["usage"] == nil)
         let metrics = try #require(json["generation_metrics"] as? [String: Any])
@@ -177,7 +217,10 @@ struct ResponsesPluginLoopTests {
     @Test(arguments: [false, true])
     func upstreamCancellationIsNotAttributedToThePluginOrReplayed(_ streaming: Bool) async throws {
         let engine = Engine([row("partial", status: .cancelled)])
-        let context = try PluginHostContext(pluginId: "test.responses.upstream.\(UUID())", inferenceEngineFactory: { engine })
+        let context = try PluginHostContext(
+            pluginId: "test.responses.upstream.\(UUID())",
+            inferenceEngineFactory: { engine }
+        )
         let chunks = Chunks(context: context, streamID: "fixture")
         let answer = await invoke(context, body: try body(), streaming: streaming, chunks: chunks)
         let json = try #require(try JSONSerialization.jsonObject(with: Data(answer.utf8)) as? [String: Any])
@@ -192,16 +235,22 @@ struct ResponsesPluginLoopTests {
     @Test func cancelFromFinalChunkCallbackCannotRelabelOrEmitAnotherTerminal() async throws {
         let streamID = UUID().uuidString
         let engine = Engine([row("answer")])
-        let context = try PluginHostContext(pluginId: "test.responses.latecancel.\(UUID())", inferenceEngineFactory: { engine })
+        let context = try PluginHostContext(
+            pluginId: "test.responses.latecancel.\(UUID())",
+            inferenceEngineFactory: { engine }
+        )
         let chunks = Chunks(context: context, streamID: streamID, cancelOnStop: true)
         let answer = await invoke(context, body: try body(streamID: streamID), streaming: true, chunks: chunks)
         let json = try #require(try JSONSerialization.jsonObject(with: Data(answer.utf8)) as? [String: Any])
         #expect(json["error"] == nil)
-        let reasons = chunks.values.withLock { values in values.compactMap { text -> String? in
-            guard let value = try? JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any],
-                let choices = value["choices"] as? [[String: Any]] else { return nil }
-            return choices.first?["finish_reason"] as? String
-        } }
+        let reasons = chunks.values.withLock { values in
+            values.compactMap { text -> String? in
+                guard let value = try? JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any],
+                    let choices = value["choices"] as? [[String: Any]]
+                else { return nil }
+                return choices.first?["finish_reason"] as? String
+            }
+        }
         #expect(reasons == ["stop"])
     }
 }

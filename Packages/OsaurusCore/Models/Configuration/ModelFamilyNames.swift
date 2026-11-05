@@ -159,7 +159,8 @@ enum ModelFamilyNames {
     static func isDSV41Family(_ modelId: String) -> Bool {
         matches(
             #"(^|/|[\-_])(dsv4[\._]?1|deepseek[\-_]?v4[\._]?1)($|[\-_/\.])"#,
-            in: modelId.lowercased())
+            in: modelId.lowercased()
+        )
     }
 
     /// Nemotron Omni bundles. Match both the long public `Nemotron-3-Nano-Omni`

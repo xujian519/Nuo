@@ -90,22 +90,26 @@ public struct DelegationSection: Codable, Equatable, Sendable {
         if imageEnabled != nil {
             hints.append(
                 "delegation.image_enabled was removed: enable Image on a custom agent "
-                    + "(agents[].capabilities.image_enabled) and delegate to it.")
+                    + "(agents[].capabilities.image_enabled) and delegate to it."
+            )
         }
         if videoEnabled != nil {
             hints.append(
                 "delegation.video_enabled was removed: enable Video on a custom agent "
-                    + "(agents[].capabilities.video_enabled) and delegate to it.")
+                    + "(agents[].capabilities.video_enabled) and delegate to it."
+            )
         }
         if applescriptEnabled != nil {
             hints.append(
                 "delegation.applescript_enabled was removed: enable AppleScript on a custom "
-                    + "agent (agents[].capabilities.applescript_enabled) and delegate to it.")
+                    + "agent (agents[].capabilities.applescript_enabled) and delegate to it."
+            )
         }
         if spawnableModels != nil {
             hints.append(
                 "spawnable_models was removed: create an agent with that model "
-                    + "(agents[].model) and add it to spawnable_agents.")
+                    + "(agents[].model) and add it to spawnable_agents."
+            )
         }
         if spawnToolAccess != nil {
             hints.append("spawn_tool_access was removed: agents use their own tools.")
@@ -152,7 +156,9 @@ public struct DelegationSection: Codable, Equatable, Sendable {
         try c.encodeIfPresent(budgetMaxSeconds, forKey: .budgetMaxSeconds)
         try c.encodeIfPresent(budgetMaxParallelSpawns, forKey: .budgetMaxParallelSpawns)
         try c.encodeIfPresent(
-            budgetMaxRemoteParallelSpawns, forKey: .budgetMaxRemoteParallelSpawns)
+            budgetMaxRemoteParallelSpawns,
+            forKey: .budgetMaxRemoteParallelSpawns
+        )
         try c.encodeIfPresent(ramSafetyPreflight, forKey: .ramSafetyPreflight)
         try c.encodeIfPresent(coexistenceEnabled, forKey: .coexistenceEnabled)
     }

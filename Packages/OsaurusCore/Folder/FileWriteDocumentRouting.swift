@@ -186,7 +186,11 @@ enum FileWriteDocumentRouting {
         switch plan.target {
         case .xlsx:
             let result = try await WorkbookWorkflowService.export(
-                plan.document, to: url, registry: registry, policy: .xlsxExportWithFormulas)
+                plan.document,
+                to: url,
+                registry: registry,
+                policy: .xlsxExportWithFormulas
+            )
             return Written(bytesWritten: result.bytesWritten)
         case .docx, .pdf, .pptx:
             guard let emitter = registry.emitter(for: plan.document) else {
@@ -269,7 +273,9 @@ enum FileWriteDocumentRouting {
                 for (index, sheet) in sheetList.enumerated() {
                     let name = (sheet["name"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? "Sheet\(index + 1)"
                     guard let rows = rowsFromJSON(sheet["rows"]) else {
-                        throw RoutingError.invalidJSON("sheet \(index + 1) has no `rows` array (of arrays, or of objects)")
+                        throw RoutingError.invalidJSON(
+                            "sheet \(index + 1) has no `rows` array (of arrays, or of objects)"
+                        )
                     }
                     sheets.append((name, rows))
                 }

@@ -455,49 +455,49 @@ public enum SystemPromptTemplates {
             ? "2. **Write files** under `plugins/{service}/` in your sandbox home with `file_write` (absolute `/workspace/...` paths) — scripts first, then `plugin.json`. `sandbox_plugin_register` packages the whole directory automatically: do NOT inline script contents or add a `files` field. Binary files are rejected — regenerate them in `setup` instead."
             : "2. **Write files** under `plugins/{service}/` with `file_write` — scripts first, then `plugin.json`. `sandbox_plugin_register` packages the whole directory automatically: do NOT inline script contents or add a `files` field. Binary files are rejected — regenerate them in `setup` instead."
         return """
-        A sandbox plugin is a JSON recipe (`plugin.json`) plus helper scripts
-        that run in your sandbox. Use one when you need to connect to a service
-        you have no tools for AND it has an API you can call from Python or
-        Node. (Confirm nothing already covers it first — see Discovering more
-        tools.)
+            A sandbox plugin is a JSON recipe (`plugin.json`) plus helper scripts
+            that run in your sandbox. Use one when you need to connect to a service
+            you have no tools for AND it has an API you can call from Python or
+            Node. (Confirm nothing already covers it first — see Discovering more
+            tools.)
 
-        ### Steps
+            ### Steps
 
-        1. **Secrets.** If the API needs a key or token, collect it via Secret handling (`sandbox_secret_check`, then `sandbox_secret_set` with `value` omitted). Declare the names in `plugin.json` `secrets`; never put a secret value in chat or in plugin files.
-        \(writeStep)
-        3. **Write `plugin.json`** (SandboxPlugin schema):
+            1. **Secrets.** If the API needs a key or token, collect it via Secret handling (`sandbox_secret_check`, then `sandbox_secret_set` with `value` omitted). Declare the names in `plugin.json` `secrets`; never put a secret value in chat or in plugin files.
+            \(writeStep)
+            3. **Write `plugin.json`** (SandboxPlugin schema):
 
-        ```json
-        {
-          "name": "Service Name",
-          "description": "What this integration does",
-          "dependencies": ["python3", "py3-pip"],
-          "setup": "pip install service-sdk",
-          "secrets": ["SERVICE_API_KEY"],
-          "permissions": { "network": "api.service.com" },
-          "tools": [
+            ```json
             {
-              "id": "get_item",
-              "description": "Get an item by ID",
-              "parameters": { "item_id": { "type": "string", "description": "Item ID" } },
-              "run": "python3 scripts/get_item.py"
+              "name": "Service Name",
+              "description": "What this integration does",
+              "dependencies": ["python3", "py3-pip"],
+              "setup": "pip install service-sdk",
+              "secrets": ["SERVICE_API_KEY"],
+              "permissions": { "network": "api.service.com" },
+              "tools": [
+                {
+                  "id": "get_item",
+                  "description": "Get an item by ID",
+                  "parameters": { "item_id": { "type": "string", "description": "Item ID" } },
+                  "run": "python3 scripts/get_item.py"
+                }
+              ]
             }
-          ]
-        }
-        ```
+            ```
 
-        \(pluginDependenciesBullet)
-        - `secrets`: names whose values come from Keychain — registration fails up front if a declared secret has no value yet.
-        - `permissions.network`: comma-separated API hostnames the scripts reach (`outbound` / `none` / malformed → `none`). `permissions.inference` is forced to `false`.
-        4. **Write the scripts.** Parameters arrive as `$PARAM_{NAME}` (uppercased) env vars, secrets as `$NAME` env vars; print JSON to stdout, errors to stderr, exit non-zero on failure.
-        5. **Register and verify.** Call `sandbox_plugin_register(plugin_id: "{service}")` — it installs deps, runs setup, and makes the tools available immediately (and persists them). Call one to confirm; on failure read stderr, fix, and re-register. Then tell the user what's now available.
+            \(pluginDependenciesBullet)
+            - `secrets`: names whose values come from Keychain — registration fails up front if a declared secret has no value yet.
+            - `permissions.network`: comma-separated API hostnames the scripts reach (`outbound` / `none` / malformed → `none`). `permissions.inference` is forced to `false`.
+            4. **Write the scripts.** Parameters arrive as `$PARAM_{NAME}` (uppercased) env vars, secrets as `$NAME` env vars; print JSON to stdout, errors to stderr, exit non-zero on failure.
+            5. **Register and verify.** Call `sandbox_plugin_register(plugin_id: "{service}")` — it installs deps, runs setup, and makes the tools available immediately (and persists them). Call one to confirm; on failure read stderr, fix, and re-register. Then tell the user what's now available.
 
-        ### Guidelines
+            ### Guidelines
 
-        - One focused action per tool, not a mega-tool. Default to read operations; add writes only if asked.
-        - Use well-maintained libraries, validate required parameters, return structured JSON, and paginate list operations.
-        - Tool names are auto-prefixed with the plugin id (e.g. `notion_list_databases`).
-        """
+            - One focused action per tool, not a mega-tool. Default to read operations; add writes only if asked.
+            - Use well-maintained libraries, validate required parameters, return structured JSON, and paginate list operations.
+            - Tool names are auto-prefixed with the plugin id (e.g. `notion_list_databases`).
+            """
     }
 
     /// Reduced authoring contract for compact local models. Keeps every field
@@ -512,12 +512,12 @@ public enum SystemPromptTemplates {
             ? "absolute `/workspace/.../plugins/{service}/...` paths"
             : "`plugins/{service}/...` paths"
         return """
-        Create `plugins/{service}/` with helper scripts plus `plugin.json`; write each file with `file_write` using \(writePath) (scripts first, manifest last).
+            Create `plugins/{service}/` with helper scripts plus `plugin.json`; write each file with `file_write` using \(writePath) (scripts first, manifest last).
 
-        `plugin.json` requires top-level `name` and `description`; add `tools`, where each tool has `id`, `description`, optional simplified `parameters` (`{"arg":{"type":"string","description":"..."}}`, not JSON Schema), and `run`. Optional fields include `setup`, `dependencies`, `secrets`, and `permissions.network`. Do not add `files`: registration packages the directory. Tool parameters arrive as `$PARAM_{NAME}` and secrets as `$NAME`; scripts print JSON to stdout.
+            `plugin.json` requires top-level `name` and `description`; add `tools`, where each tool has `id`, `description`, optional simplified `parameters` (`{"arg":{"type":"string","description":"..."}}`, not JSON Schema), and `run`. Optional fields include `setup`, `dependencies`, `secrets`, and `permissions.network`. Do not add `files`: registration packages the directory. Tool parameters arrive as `$PARAM_{NAME}` and secrets as `$NAME`; scripts print JSON to stdout.
 
-        Call `sandbox_plugin_register({"plugin_id":"{service}"})`, then immediately call the returned prefixed tool to verify it. On failure, fix the files and re-register.
-        """
+            Call `sandbox_plugin_register({"plugin_id":"{service}"})`, then immediately call the returned prefixed tool to verify it. On failure, fix the files and re-register.
+            """
     }
 
     // MARK: - Enabled Capabilities Manifest
@@ -792,16 +792,16 @@ public enum SystemPromptTemplates {
         names: CapabilityToolNames = .gateway
     ) -> String {
         """
-            ## Skills that govern tool groups
+        ## Skills that govern tool groups
 
-            Some enabled capabilities are skills that teach you how to use a group \
-            of related tools. When the manifest shows a skill alongside tools from \
-            the same plugin, load the skill first with `\(names.load)`; it \
-            explains when each tool in that group applies. Loading the skill also \
-            loads that plugin's whole tool group in the same call, so you can call \
-            the tools directly afterward without a separate `\(names.load)` call \
-            per tool.
-            """
+        Some enabled capabilities are skills that teach you how to use a group \
+        of related tools. When the manifest shows a skill alongside tools from \
+        the same plugin, load the skill first with `\(names.load)`; it \
+        explains when each tool in that group applies. Loading the skill also \
+        loads that plugin's whole tool group in the same call, so you can call \
+        the tools directly afterward without a separate `\(names.load)` call \
+        per tool.
+        """
     }
 
     /// Whether the rendered manifest needs the verbose skill-first teaching
@@ -1266,7 +1266,9 @@ public enum SystemPromptTemplates {
     /// One `spawn_agent` target line: `` `name` `` — description (meta).
     private static func agentLine(_ agent: SpawnAgentDescriptor) -> String {
         var line = AgentDescriptionPolicy.routingJSON(
-            id: agent.id.uuidString, name: agent.name, description: agent.description ?? ""
+            id: agent.id.uuidString,
+            name: agent.name,
+            description: agent.description ?? ""
         )
         var meta: [String] = []
         if let modelId = agent.modelId, !modelId.isEmpty {
@@ -1326,7 +1328,9 @@ public enum SystemPromptTemplates {
     /// absent (see `spawnGuidance`).
     private static func workspaceAgentLine(_ agent: SpawnWorkspaceAgentDescriptor) -> String {
         var line = AgentDescriptionPolicy.routingJSON(
-            id: agent.ref.agentAddress, name: agent.qualifiedName, description: agent.description ?? ""
+            id: agent.ref.agentAddress,
+            name: agent.qualifiedName,
+            description: agent.description ?? ""
         )
         var meta: [String] = ["`\(agent.ref.agentAddress)`"]
         if let owner = agent.ownerName, !owner.isEmpty { meta.append("owner: \(owner)") }
@@ -1435,7 +1439,9 @@ public enum SystemPromptTemplates {
             let dispatch =
                 hostReadCombined
                 ? sandboxToolGuideCombinedCompact(
-                    backgroundEnabled: backgroundEnabled, hostWritable: hostWritable)
+                    backgroundEnabled: backgroundEnabled,
+                    hostWritable: hostWritable
+                )
                 : sandboxToolGuideCompact(backgroundEnabled: backgroundEnabled)
             return """
 

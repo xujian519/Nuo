@@ -45,8 +45,13 @@ public struct DiskCacheUsage: Equatable, Sendable {
     public let pressureSeq: Int
 
     public init(
-        usedBytes: Int, maxBytes: Int, evictions: Int = 0, isDisabled: Bool = false,
-        pressureKind: String? = nil, pressureChainId: String? = nil, pressureSeq: Int = 0
+        usedBytes: Int,
+        maxBytes: Int,
+        evictions: Int = 0,
+        isDisabled: Bool = false,
+        pressureKind: String? = nil,
+        pressureChainId: String? = nil,
+        pressureSeq: Int = 0
     ) {
         self.usedBytes = max(0, usedBytes)
         self.maxBytes = max(0, maxBytes)
@@ -71,7 +76,9 @@ public struct DiskCacheUsage: Equatable, Sendable {
     /// What to tell the user when `pressureAffects(session:)` is true.
     public var pressureText: String {
         String(
-            format: L("This chat's latest saved progress exceeds the %@ SSD cache limit. Replies may need to process more of the conversation again. Increase Disk Cache Size to retain more progress."),
+            format: L(
+                "This chat's latest saved progress exceeds the %@ SSD cache limit. Replies may need to process more of the conversation again. Increase Disk Cache Size to retain more progress."
+            ),
             maxLabel
         )
     }

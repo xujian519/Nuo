@@ -371,7 +371,9 @@ enum ModelProfileRegistry {
         // selections when discovery replaces the native effort list with modes.
         if let effort = persisted["reasoningEffort"]?.stringValue,
             let mode = DeclaredReasoningEffort.mode(
-                forNativeEffort: effort, control: DeclaredReasoningEffort.control(forModelId: modelId)),
+                forNativeEffort: effort,
+                control: DeclaredReasoningEffort.control(forModelId: modelId)
+            ),
             allowedSegmentValues["reasoningEffort"]?.contains(mode) == true
         {
             persisted["reasoningEffort"] = .string(mode)

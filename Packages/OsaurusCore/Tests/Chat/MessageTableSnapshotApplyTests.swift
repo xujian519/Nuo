@@ -189,7 +189,8 @@ struct MessageTableSnapshotApplyTests {
 
         // Same turn (same block ids), different text → stableChangedIds.
         let edited = h.turns[1]
-        edited.content = "Answer 1: 1. Edited in place with a longer body so the height changes.\n\nSecond paragraph for turn 1."
+        edited.content =
+            "Answer 1: 1. Edited in place with a longer body so the height changes.\n\nSecond paragraph for turn 1."
         h.addExchange(4)
         let blocks = h.apply()
         h.layout()
@@ -251,7 +252,10 @@ struct MessageTableSnapshotApplyTests {
         #expect(h.tableView.numberOfRows == h.coordinator.blockIds.count)
         let clip = h.scrollView.contentView
         let maxY = max(0, h.tableView.frame.height - clip.bounds.height)
-        #expect(abs(clip.bounds.origin.y - maxY) <= 2, "expected to stay pinned: y=\(clip.bounds.origin.y) maxY=\(maxY)")
+        #expect(
+            abs(clip.bounds.origin.y - maxY) <= 2,
+            "expected to stay pinned: y=\(clip.bounds.origin.y) maxY=\(maxY)"
+        )
         #expect(h.coordinator.scrollAnchor.isPinnedToBottom)
     }
 

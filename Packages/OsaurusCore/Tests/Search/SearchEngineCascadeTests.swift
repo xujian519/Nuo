@@ -288,7 +288,7 @@ struct SearchEngineCascadeTests {
                 return hits
             }
         }
-        let decoys = (1...5).map { Self.hit("https://decoy-\($0).example", engine: "decoy") }
+        let decoys = (1 ... 5).map { Self.hit("https://decoy-\($0).example", engine: "decoy") }
         let engine = SearchEngine(
             backendFactory: { definition, _ in
                 if definition.id == "slow_trusted" {
@@ -325,7 +325,7 @@ struct SearchEngineCascadeTests {
                 return []
             }
         }
-        let trustedHits = (1...3).map { Self.hit("https://real-\($0).example", engine: "trusted") }
+        let trustedHits = (1 ... 3).map { Self.hit("https://real-\($0).example", engine: "trusted") }
         let engine = SearchEngine(
             backendFactory: { definition, _ in
                 if definition.id == "trusted" {

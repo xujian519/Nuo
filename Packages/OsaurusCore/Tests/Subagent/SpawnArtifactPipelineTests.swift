@@ -289,7 +289,9 @@ struct DelegatedArtifactPassThroughTests {
         let childId = "delegated-harvest-\(UUID().uuidString)"
         defer { removeContextDir(childId) }
         let made = try await makeChildArtifact(
-            contextId: childId, filename: "game.html", content: "<html>hi</html>"
+            contextId: childId,
+            filename: "game.html",
+            content: "<html>hi</html>"
         )
 
         var toolTurn = ChatTurnData(role: .tool, content: "")
@@ -319,7 +321,9 @@ struct DelegatedArtifactPassThroughTests {
             removeContextDir(parentId)
         }
         let made = try await makeChildArtifact(
-            contextId: childId, filename: "game.html", content: "<html>rolling ball</html>"
+            contextId: childId,
+            filename: "game.html",
+            content: "<html>rolling ball</html>"
         )
 
         let adopted = try #require(
@@ -360,7 +364,9 @@ struct DelegatedArtifactPassThroughTests {
         )
         #expect(
             SharedArtifact.adoptIntoContext(
-                escaping, contextId: parentId, sourceRootContextId: childId
+                escaping,
+                contextId: parentId,
+                sourceRootContextId: childId
             ) == nil
         )
 
@@ -377,11 +383,14 @@ struct DelegatedArtifactPassThroughTests {
         )
         let adopted = try #require(
             SharedArtifact.adoptIntoContext(
-                inline, contextId: parentId, sourceRootContextId: childId
+                inline,
+                contextId: parentId,
+                sourceRootContextId: childId
             )
         )
         let written = try String(
-            contentsOfFile: adopted.hostPath, encoding: .utf8
+            contentsOfFile: adopted.hostPath,
+            encoding: .utf8
         )
         #expect(written == "# safe")
     }
@@ -435,7 +444,8 @@ struct DelegatedArtifactPassThroughTests {
             // No parent session → nothing deposited (HTTP/eval parents).
             #expect(
                 AgentDelegationDispatcher.adoptChildArtifacts(
-                    childSessionId: childSessionId, parentSessionId: nil
+                    childSessionId: childSessionId,
+                    parentSessionId: nil
                 ) == 0
             )
         }
@@ -452,7 +462,8 @@ struct DelegatedArtifactPassThroughTests {
             .deletingLastPathComponent()  // OsaurusCore/
         let dispatcher = try String(
             contentsOf: packageRoot.appendingPathComponent(
-                "Services/AgentDelegation/AgentDelegationDispatcher.swift"),
+                "Services/AgentDelegation/AgentDelegationDispatcher.swift"
+            ),
             encoding: .utf8
         )
         let adoptRange = try #require(
@@ -470,7 +481,8 @@ struct DelegatedArtifactPassThroughTests {
         // And the spawn kind must actually forward the parent session.
         let kind = try String(
             contentsOf: packageRoot.appendingPathComponent(
-                "Subagent/Kinds/TextSubagentKind.swift"),
+                "Subagent/Kinds/TextSubagentKind.swift"
+            ),
             encoding: .utf8
         )
         #expect(kind.contains("parentSessionId: scope.sessionId"))

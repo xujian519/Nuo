@@ -308,11 +308,13 @@ extension EvalRunner {
                 latency <= maxCancelLatencyMs,
                 pass: String(
                     format: "stream terminated %.0f ms after cancel (ceiling %.0f ms)",
-                    latency, maxCancelLatencyMs
+                    latency,
+                    maxCancelLatencyMs
                 ),
                 fail: String(
                     format: "stream took %.0f ms to terminate after cancel — EXCEEDS %.0f ms",
-                    latency, maxCancelLatencyMs
+                    latency,
+                    maxCancelLatencyMs
                 )
             )
         }

@@ -26,41 +26,62 @@ struct MTPReloadScopeTests {
         drafter: String? = nil
     ) -> VMLXServerMTPSettings {
         VMLXServerMTPSettings(
-            mode: mode, draftTokenLimit: limit, dflash2DrafterPath: drafter)
+            mode: mode,
+            draftTokenLimit: limit,
+            dflash2DrafterPath: drafter
+        )
     }
 
     /// The case that cost a reload for nothing.
     @Test func depthAloneDoesNotForceAReload() {
         #expect(
             !ServerController.mtpLoadInputsChanged(
-                previous: settings(limit: nil), next: settings(limit: 1)))
+                previous: settings(limit: nil),
+                next: settings(limit: 1)
+            )
+        )
         #expect(
             !ServerController.mtpLoadInputsChanged(
-                previous: settings(limit: 1), next: settings(limit: 3)))
+                previous: settings(limit: 1),
+                next: settings(limit: 3)
+            )
+        )
     }
 
     /// Auto and Force-On select between weights that are already loaded.
     @Test func autoToForceOnDoesNotForceAReload() {
         #expect(
             !ServerController.mtpLoadInputsChanged(
-                previous: settings(mode: .auto), next: settings(mode: .forceOn)))
+                previous: settings(mode: .auto),
+                next: settings(mode: .forceOn)
+            )
+        )
     }
 
     /// Off vs on decides whether the head is in the graph at all.
     @Test func togglingOffOrOnDoesForceAReload() {
         #expect(
             ServerController.mtpLoadInputsChanged(
-                previous: settings(mode: .auto), next: settings(mode: .off)))
+                previous: settings(mode: .auto),
+                next: settings(mode: .off)
+            )
+        )
         #expect(
             ServerController.mtpLoadInputsChanged(
-                previous: settings(mode: .off), next: settings(mode: .auto)))
+                previous: settings(mode: .off),
+                next: settings(mode: .auto)
+            )
+        )
     }
 
     /// A drafter is a different set of weights.
     @Test func changingTheDrafterForcesAReload() {
         #expect(
             ServerController.mtpLoadInputsChanged(
-                previous: settings(), next: settings(drafter: "/tmp/d")))
+                previous: settings(),
+                next: settings(drafter: "/tmp/d")
+            )
+        )
     }
 
 }

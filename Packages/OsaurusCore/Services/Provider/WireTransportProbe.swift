@@ -161,11 +161,19 @@ public final class WireTransportProbe: @unchecked Sendable {
     func recordAttempt(request: URLRequest, statusCode: Int, accepted: Bool) {
         let body = request.httpBody ?? Data()
         let endpoint = Self.sanitizedEndpoint(request.url)
-        let receipt = Attempt(endpoint: endpoint, statusCode: statusCode, accepted: accepted,
-            bodyBytes: body.count, bodySHA256: SHA256.hash(data: body).map { String(format: "%02x", $0) }.joined())
+        let receipt = Attempt(
+            endpoint: endpoint,
+            statusCode: statusCode,
+            accepted: accepted,
+            bodyBytes: body.count,
+            bodySHA256: SHA256.hash(data: body).map { String(format: "%02x", $0) }.joined()
+        )
         bodies.withLock { state in
-            if state.attempts.count < Self.maxAttempts { state.attempts.append(receipt) }
-            else { state.attemptsTruncated = true }
+            if state.attempts.count < Self.maxAttempts {
+                state.attempts.append(receipt)
+            } else {
+                state.attemptsTruncated = true
+            }
             if accepted {
                 state.acceptedEndpoint = endpoint
                 state.acceptedRequest = Data(body.prefix(Self.maxResponseBytes))

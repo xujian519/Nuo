@@ -52,15 +52,19 @@ struct AgentChannelPluginToolPreloadTests {
     func overCapTruncatesDeterministically() {
         let cap = AgentChannelInboundRelay.maxPreloadedPluginTools
         // 0...cap is cap+1 names; zero-padded so lexical order is numeric.
-        let registered = Set((0...cap).map { String(format: "tool_%03d", $0) })
+        let registered = Set((0 ... cap).map { String(format: "tool_%03d", $0) })
         let names = AgentChannelInboundRelay.preloadedPluginToolNames(
-            registered: registered, granted: nil)
+            registered: registered,
+            granted: nil
+        )
         #expect(names.count == cap)
         #expect(names == registered.sorted().prefix(cap).map { $0 })
         // Same inputs → same truncation, so reattached dispatches append a
         // stable set even while over the cap.
         let again = AgentChannelInboundRelay.preloadedPluginToolNames(
-            registered: registered, granted: nil)
+            registered: registered,
+            granted: nil
+        )
         #expect(names == again)
         #expect(
             AgentChannelInboundRelay.preloadOverflowCount(registered: registered, granted: nil) == 1
@@ -69,7 +73,7 @@ struct AgentChannelPluginToolPreloadTests {
 
     @Test("preload at the cap still loads")
     func atCapPreloads() {
-        let registered = Set((1...AgentChannelInboundRelay.maxPreloadedPluginTools).map { "tool_\($0)" })
+        let registered = Set((1 ... AgentChannelInboundRelay.maxPreloadedPluginTools).map { "tool_\($0)" })
         let names = AgentChannelInboundRelay.preloadedPluginToolNames(
             registered: registered,
             granted: nil
@@ -82,7 +86,7 @@ struct AgentChannelPluginToolPreloadTests {
 
     @Test("a narrowing grant can bring an over-cap registry back under the cap")
     func grantNarrowsBelowCap() {
-        let registered = Set((0...100).map { "tool_\($0)" })
+        let registered = Set((0 ... 100).map { "tool_\($0)" })
         let names = AgentChannelInboundRelay.preloadedPluginToolNames(
             registered: registered,
             granted: ["tool_5"]
@@ -90,7 +94,9 @@ struct AgentChannelPluginToolPreloadTests {
         #expect(names == ["tool_5"])
         #expect(
             AgentChannelInboundRelay.preloadOverflowCount(
-                registered: registered, granted: ["tool_5"]) == 0
+                registered: registered,
+                granted: ["tool_5"]
+            ) == 0
         )
     }
 
@@ -101,13 +107,15 @@ struct AgentChannelPluginToolPreloadTests {
         // tool orders and defeat cross-launch prefill reuse.
         var forward = Set<String>()
         var backward = Set<String>()
-        let names = (0..<60).map { String(format: "tool_%03d", $0) }
+        let names = (0 ..< 60).map { String(format: "tool_%03d", $0) }
         for n in names { forward.insert(n) }
         for n in names.reversed() { backward.insert(n) }
         #expect(
             AgentChannelInboundRelay.preloadedPluginToolNames(registered: forward, granted: nil)
                 == AgentChannelInboundRelay.preloadedPluginToolNames(
-                    registered: backward, granted: nil)
+                    registered: backward,
+                    granted: nil
+                )
         )
     }
 
@@ -120,7 +128,9 @@ struct AgentChannelPluginToolPreloadTests {
         // re-prefill the whole session.
         let store = SessionToolStateStore()
         let preload = AgentChannelInboundRelay.preloadedPluginToolNames(
-            registered: ["get_events", "create_event", "list_calendars"], granted: nil)
+            registered: ["get_events", "create_event", "list_calendars"],
+            granted: nil
+        )
         await store.appendLoadedTools("s1", names: preload, fallbackAlwaysLoadedNames: nil)
         let afterFirst = await store.get("s1")?.loadedToolNames
         await store.appendLoadedTools("s1", names: preload, fallbackAlwaysLoadedNames: nil)
@@ -137,14 +147,21 @@ struct AgentChannelPluginToolPreloadTests {
         let registered: Set<String> = ["get_events", "create_event", "list_calendars"]
         let store = SessionToolStateStore()
         let wide = AgentChannelInboundRelay.preloadedPluginToolNames(
-            registered: registered, granted: nil)
+            registered: registered,
+            granted: nil
+        )
         await store.appendLoadedTools("s1", names: wide, fallbackAlwaysLoadedNames: nil)
 
         let narrowGrant = ["get_events"]
         let revoked = await store.retainLoadedTools(
-            "s1", allowed: Set(narrowGrant), among: registered)
+            "s1",
+            allowed: Set(narrowGrant),
+            among: registered
+        )
         let narrow = AgentChannelInboundRelay.preloadedPluginToolNames(
-            registered: registered, granted: narrowGrant)
+            registered: registered,
+            granted: narrowGrant
+        )
         await store.appendLoadedTools("s1", names: narrow, fallbackAlwaysLoadedNames: nil)
 
         #expect(revoked == ["create_event", "list_calendars"])

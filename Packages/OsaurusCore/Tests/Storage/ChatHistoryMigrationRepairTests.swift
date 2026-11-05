@@ -556,8 +556,11 @@ struct ChatHistoryMigrationRepairTests {
 
             var controls = ChatTurnGenerationControls.capture(activeModelOptions: ["disableThinking": .bool(false)])
             controls.hasResolvedReasoning = true
-            controls.overrides = ChatTurnOverrides(temperature: 0, topK: 0,
-                templateKwargs: ["template": .object(["city": .null])])
+            controls.overrides = ChatTurnOverrides(
+                temperature: 0,
+                topK: 0,
+                templateKwargs: ["template": .object(["city": .null])]
+            )
             var next = ChatTurnData(role: .user, content: "new controlled question")
             next.generationControls = controls
             loaded.turns.append(next)
@@ -774,7 +777,8 @@ struct ChatHistoryMigrationRepairTests {
             try db.saveSession(ChatSessionData(id: sid, title: "t", turns: [turn]))
             #expect(
                 db.loadSession(id: sid)?.turns.first?.injectedContextPrefix
-                    == "[Current Time]\nnow\n[/Current Time]\n\n")
+                    == "[Current Time]\nnow\n[/Current Time]\n\n"
+            )
         }
     }
 }

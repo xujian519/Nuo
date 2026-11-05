@@ -261,17 +261,23 @@ struct SubagentAdmission16GBRegressionTests {
     @Test("bounded position budget: floor, full request price, rounding")
     func boundedPositionBudgetMath() {
         let small = SubagentChildRequestEstimate(
-            seedCharacters: 800, maxOutputTokens: 2048)
+            seedCharacters: 800,
+            maxOutputTokens: 2048
+        )
         #expect(small.boundedPositionBudget() == 4096)
 
         let huge = SubagentChildRequestEstimate(
-            seedCharacters: 1_000_000, maxOutputTokens: 2048)
+            seedCharacters: 1_000_000,
+            maxOutputTokens: 2048
+        )
         #expect(huge.boundedPositionBudget() == 377_048)
 
         // Ceiling: 13,001 chars × 3 = 39,003; /8 truncating would give
         // 4,875 — the estimator must round UP to 4,876.
         let ceiling = SubagentChildRequestEstimate(
-            seedCharacters: 13_001, maxOutputTokens: 10_000)
+            seedCharacters: 13_001,
+            maxOutputTokens: 10_000
+        )
         #expect(ceiling.boundedPositionBudget() == 4876 + 10_000)
     }
 
@@ -282,16 +288,20 @@ struct SubagentAdmission16GBRegressionTests {
     func incompleteBoundsFallBack() {
         #expect(
             SubagentChildRequestEstimate(seedCharacters: nil, maxOutputTokens: 2048)
-                .boundedPositionBudget() == nil)
+                .boundedPositionBudget() == nil
+        )
         #expect(
             SubagentChildRequestEstimate(seedCharacters: 800, maxOutputTokens: nil)
-                .boundedPositionBudget() == nil)
+                .boundedPositionBudget() == nil
+        )
         #expect(
             SubagentChildRequestEstimate(seedCharacters: 800, maxOutputTokens: 0)
-                .boundedPositionBudget() == nil)
+                .boundedPositionBudget() == nil
+        )
         #expect(
             SubagentChildRequestEstimate(seedCharacters: nil, maxOutputTokens: nil)
-                .boundedPositionBudget() == nil)
+                .boundedPositionBudget() == nil
+        )
     }
 
     /// CAUSAL: a delegated agent target prices ONLY ceilings its execution
@@ -314,21 +324,27 @@ struct SubagentAdmission16GBRegressionTests {
     @Test("enforced position ceiling alone is a complete bound")
     func enforcedCeilingAloneBounds() {
         let windowOnly = SubagentChildRequestEstimate(
-            seedCharacters: nil, maxOutputTokens: nil,
-            enforcedPositionCeiling: 8192)
+            seedCharacters: nil,
+            maxOutputTokens: nil,
+            enforcedPositionCeiling: 8192
+        )
         #expect(windowOnly.boundedPositionBudget() == 8192)
 
         // A measured ceiling prices verbatim — no hidden floor (the 4096
         // floor applies only to the unmeasured seed+output form).
         let tiny = SubagentChildRequestEstimate(
-            seedCharacters: nil, maxOutputTokens: nil,
-            enforcedPositionCeiling: 2048)
+            seedCharacters: nil,
+            maxOutputTokens: nil,
+            enforcedPositionCeiling: 2048
+        )
         #expect(tiny.boundedPositionBudget() == 2048)
 
         // A soft KV default cannot shrink a hard request contract.
         let huge = SubagentChildRequestEstimate(
-            seedCharacters: nil, maxOutputTokens: nil,
-            enforcedPositionCeiling: 262_144)
+            seedCharacters: nil,
+            maxOutputTokens: nil,
+            enforcedPositionCeiling: 262_144
+        )
         #expect(huge.boundedPositionBudget() == 262_144)
     }
 
@@ -339,14 +355,18 @@ struct SubagentAdmission16GBRegressionTests {
     func tighterBoundWins() {
         // seed+output (≈ 300 + 4096 → floor 4416... under window 32K) wins.
         let budgetTighter = SubagentChildRequestEstimate(
-            seedCharacters: 800, maxOutputTokens: 4096,
-            enforcedPositionCeiling: 32_768)
+            seedCharacters: 800,
+            maxOutputTokens: 4096,
+            enforcedPositionCeiling: 32_768
+        )
         #expect(budgetTighter.boundedPositionBudget() == 4396)
 
         // window (8K) tighter than seed+output (22,500 + 10,000) wins.
         let windowTighter = SubagentChildRequestEstimate(
-            seedCharacters: 60_000, maxOutputTokens: 10_000,
-            enforcedPositionCeiling: 8192)
+            seedCharacters: 60_000,
+            maxOutputTokens: 10_000,
+            enforcedPositionCeiling: 8192
+        )
         #expect(windowTighter.boundedPositionBudget() == 8192)
     }
 
@@ -424,7 +444,8 @@ struct SubagentAdmission16GBRegressionTests {
                 budgets: small,
                 toolEnabled: true,
                 resolvedContextWindow: 65_536
-            ))
+            )
+        )
         // MEASURED reservations (no fixed overhead guess): seed 800 chars →
         // 300 tokens, system prompt 2,000 → 750, composer tool reservation 375;
         // 300 + 750 + 375 + 2×(2048 + 4096 tool allowance) = 13,713.
@@ -497,7 +518,9 @@ struct SubagentAdmission16GBRegressionTests {
                 budgets: SubagentBudgets(),
                 toolEnabled: true,
                 resolvedContextWindow: 65_536
-            ) == nil, "seed × 3 overflow must fail closed")
+            ) == nil,
+            "seed × 3 overflow must fail closed"
+        )
         #expect(
             DelegatedRunContract.derive(
                 seedCharacters: 800,
@@ -506,7 +529,9 @@ struct SubagentAdmission16GBRegressionTests {
                 budgets: SubagentBudgets(),
                 toolEnabled: true,
                 resolvedContextWindow: 65_536
-            ) == nil, "system-prompt overflow must fail closed")
+            ) == nil,
+            "system-prompt overflow must fail closed"
+        )
         #expect(
             DelegatedRunContract.derive(
                 seedCharacters: 800,
@@ -515,7 +540,9 @@ struct SubagentAdmission16GBRegressionTests {
                 budgets: SubagentBudgets(),
                 toolEnabled: true,
                 resolvedContextWindow: 65_536
-            ) == nil, "tool-schema overflow must fail closed")
+            ) == nil,
+            "tool-schema overflow must fail closed"
+        )
         #expect(
             DelegatedRunContract.derive(
                 seedCharacters: 800,
@@ -524,7 +551,9 @@ struct SubagentAdmission16GBRegressionTests {
                 budgets: SubagentBudgets(),
                 toolEnabled: true,
                 resolvedContextWindow: 0
-            ) == nil, "no usable window must fail closed")
+            ) == nil,
+            "no usable window must fail closed"
+        )
         #expect(
             DelegatedRunContract.derive(
                 seedCharacters: 800,
@@ -533,7 +562,9 @@ struct SubagentAdmission16GBRegressionTests {
                 budgets: SubagentBudgets(),
                 toolEnabled: true,
                 resolvedContextWindow: -5
-            ) == nil, "negative window must fail closed")
+            ) == nil,
+            "negative window must fail closed"
+        )
     }
 
     /// Tighten-only clamp semantics: the contract can never RAISE a limit
@@ -541,7 +572,10 @@ struct SubagentAdmission16GBRegressionTests {
     @Test("contract clamps tighten and never raise")
     func contractClampsTightenOnly() {
         let contract = DelegatedRunContract(
-            responseTokens: 2048, assistantTurns: 2, contextPositions: 16_684)
+            responseTokens: 2048,
+            assistantTurns: 2,
+            contextPositions: 16_684
+        )
 
         // Response: agent's smaller setting survives; larger is clamped;
         // unset falls to the contract value.
@@ -554,7 +588,10 @@ struct SubagentAdmission16GBRegressionTests {
         #expect(contract.clampedToolAttempts(surfaceConfigured: 15) == 2)
         #expect(contract.clampedToolAttempts(surfaceConfigured: 1) == 1)
         let degenerate = DelegatedRunContract(
-            responseTokens: 2048, assistantTurns: 0, contextPositions: 16_684)
+            responseTokens: 2048,
+            assistantTurns: 0,
+            contextPositions: 16_684
+        )
         #expect(degenerate.clampedToolAttempts(surfaceConfigured: 15) == 1)
 
         // Window: resolved 65,536 clamps to the ceiling; a smaller resolved
@@ -572,7 +609,10 @@ struct SubagentAdmission16GBRegressionTests {
         #expect(kind.admissionRequestEstimate() == nil, "no contract → cap pricing")
 
         kind.delegatedContract = DelegatedRunContract(
-            responseTokens: 2048, assistantTurns: 2, contextPositions: 16_684)
+            responseTokens: 2048,
+            assistantTurns: 2,
+            contextPositions: 16_684
+        )
         let estimate = kind.admissionRequestEstimate()
         #expect(estimate?.enforcedPositionCeiling == 16_684)
         #expect(estimate?.seedCharacters == nil)
@@ -598,7 +638,11 @@ struct SubagentAdmission16GBRegressionTests {
         #expect(
             request.delegationContract
                 == DelegatedRunContract(
-                    responseTokens: 2048, assistantTurns: 2, contextPositions: 16_684))
+                    responseTokens: 2048,
+                    assistantTurns: 2,
+                    contextPositions: 16_684
+                )
+        )
 
         // The REAL conversion, not a re-derivation.
         let context = BackgroundTaskManager.shared.makeContextForTesting(request)
@@ -628,7 +672,8 @@ struct SubagentAdmission16GBRegressionTests {
     @Test("clamped max tokens is the only generation-request feed")
     func clampedMaxTokensIsOnlyRequestFeed() throws {
         let testFile = URL(fileURLWithPath: #filePath)
-        let chatView = testFile
+        let chatView =
+            testFile
             .deletingLastPathComponent()  // (file name)
             .deletingLastPathComponent()  // Subagent
             .deletingLastPathComponent()  // Tests
@@ -636,14 +681,17 @@ struct SubagentAdmission16GBRegressionTests {
         let source = try String(contentsOf: chatView, encoding: .utf8)
 
         // Exactly one definition, immediately followed by the clamp.
-        let definitions = source.components(
-            separatedBy: "var effectiveMaxTokensForAgent"
-        ).count - 1
+        let definitions =
+            source.components(
+                separatedBy: "var effectiveMaxTokensForAgent"
+            ).count - 1
         #expect(definitions == 1, "one definition site for the request budget")
         #expect(
             source.contains(
-                ".clampedResponseTokens(agentConfigured: effectiveMaxTokensForAgent)"),
-            "the delegation clamp guards the definition")
+                ".clampedResponseTokens(agentConfigured: effectiveMaxTokensForAgent)"
+            ),
+            "the delegation clamp guards the definition"
+        )
 
         // The live loop and budget wrap-up both construct typed Responses
         // requests. Their generation ceiling must be the already-clamped value.
@@ -653,7 +701,8 @@ struct SubagentAdmission16GBRegressionTests {
             let value = feed.trimmingCharacters(in: .whitespacesAndNewlines)
             #expect(
                 value.hasPrefix("effectiveMaxTokensForAgent"),
-                "every Responses generation ceiling must be the clamped value")
+                "every Responses generation ceiling must be the clamped value"
+            )
         }
         #expect(!source.contains("max_tokens:"), "chat must not reintroduce a legacy budget feed")
     }
@@ -664,9 +713,13 @@ struct SubagentAdmission16GBRegressionTests {
     @Test("larger seed raises the priced bound")
     func largerSeedRaisesBound() {
         let short = SubagentChildRequestEstimate(
-            seedCharacters: 1_000, maxOutputTokens: 4_096)
+            seedCharacters: 1_000,
+            maxOutputTokens: 4_096
+        )
         let long = SubagentChildRequestEstimate(
-            seedCharacters: 60_000, maxOutputTokens: 4_096)
+            seedCharacters: 60_000,
+            maxOutputTokens: 4_096
+        )
         let shortBudget = short.boundedPositionBudget()!
         let longBudget = long.boundedPositionBudget()!
         #expect(longBudget > shortBudget)

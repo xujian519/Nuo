@@ -354,7 +354,11 @@ struct HTTPAuthGateTests {
     }
 
     private static func send(
-        _ method: String, _ path: String, token: String, server: AuthTestServer, body: Data? = nil
+        _ method: String,
+        _ path: String,
+        token: String,
+        server: AuthTestServer,
+        body: Data? = nil
     ) async throws -> (status: Int, body: String) {
         var request = URLRequest(url: URL(string: "http://\(server.host):\(server.port)\(path)")!)
         request.httpMethod = method
@@ -400,7 +404,11 @@ struct HTTPAuthGateTests {
         ]
         for (method, path) in scopeDenied {
             let result = try await Self.send(
-                method, path, token: fixture.token, server: server, body: Data("{}".utf8)
+                method,
+                path,
+                token: fixture.token,
+                server: server,
+                body: Data("{}".utf8)
             )
             #expect(result.status == 403, "\(method) \(path) returned \(result.status)")
             #expect(result.body.contains("agent_scope_denied"), "\(method) \(path): \(result.body)")
@@ -412,7 +420,11 @@ struct HTTPAuthGateTests {
         ]
         for (method, path) in inferenceDenied {
             let result = try await Self.send(
-                method, path, token: fixture.token, server: server, body: Data("{}".utf8)
+                method,
+                path,
+                token: fixture.token,
+                server: server,
+                body: Data("{}".utf8)
             )
             #expect(result.status == 403, "\(method) \(path) returned \(result.status)")
             #expect(result.body.contains("peer_inference_disabled"), "\(method) \(path): \(result.body)")
@@ -431,7 +443,11 @@ struct HTTPAuthGateTests {
         // `{}` is not a valid chat request; the point is that the gate no
         // longer turns it away (whatever the handler answers is not a 403).
         let chat = try await Self.send(
-            "POST", "/v1/chat/completions", token: fixture.token, server: server, body: Data("{}".utf8)
+            "POST",
+            "/v1/chat/completions",
+            token: fixture.token,
+            server: server,
+            body: Data("{}".utf8)
         )
         #expect(
             chat.status != 403,
@@ -446,7 +462,11 @@ struct HTTPAuthGateTests {
         ]
         for (method, path) in stillDenied {
             let result = try await Self.send(
-                method, path, token: fixture.token, server: server, body: Data("{}".utf8)
+                method,
+                path,
+                token: fixture.token,
+                server: server,
+                body: Data("{}".utf8)
             )
             #expect(result.status == 403, "\(method) \(path) returned \(result.status)")
             #expect(result.body.contains("agent_scope_denied"), "\(method) \(path): \(result.body)")
@@ -473,7 +493,11 @@ struct HTTPAuthGateTests {
         ]
         for (method, path) in stillOpen {
             let result = try await Self.send(
-                method, path, token: fixture.token, server: server, body: Data("{}".utf8)
+                method,
+                path,
+                token: fixture.token,
+                server: server,
+                body: Data("{}".utf8)
             )
             #expect(
                 !(result.status == 403),
@@ -490,16 +514,25 @@ struct HTTPAuthGateTests {
 
         for (method, path) in [("POST", "/v1/chat/completions"), ("POST", "/v1/embeddings")] {
             let result = try await Self.send(
-                method, path, token: fixture.token, server: server, body: Data("{}".utf8)
+                method,
+                path,
+                token: fixture.token,
+                server: server,
+                body: Data("{}".utf8)
             )
             #expect(result.status == 403, "\(method) \(path) returned \(result.status)")
             #expect(result.body.contains("peer_inference_disabled"), "\(method) \(path): \(result.body)")
         }
 
-        for (method, path) in [("GET", "/admin/runtime-settings"), ("PUT", "/admin/runtime-settings"), ("GET", "/admin/cache-stats"),
+        for (method, path) in [
+            ("GET", "/admin/runtime-settings"), ("PUT", "/admin/runtime-settings"), ("GET", "/admin/cache-stats"),
         ] {
             let result = try await Self.send(
-                method, path, token: fixture.token, server: server, body: Data("{}".utf8)
+                method,
+                path,
+                token: fixture.token,
+                server: server,
+                body: Data("{}".utf8)
             )
             #expect(result.status == 403, "\(method) \(path) returned \(result.status)")
             #expect(result.body.contains("agent_scope_denied"), "\(method) \(path): \(result.body)")
@@ -515,7 +548,11 @@ struct HTTPAuthGateTests {
 
         for (method, path) in [("POST", "/v1/chat/completions"), ("POST", "/v1/embeddings")] {
             let result = try await Self.send(
-                method, path, token: fixture.token, server: server, body: Data("{}".utf8)
+                method,
+                path,
+                token: fixture.token,
+                server: server,
+                body: Data("{}".utf8)
             )
             #expect(
                 result.status != 403,
@@ -549,7 +586,9 @@ struct HTTPAuthGateTests {
         let server = try await startAuthTestServer(validator: fixture.validator)
         defer { Task { await server.shutdown() } }
         let master = try TokenBuilder.build(
-            privateKey: TestKeys.alicePrivateKey, iss: TestKeys.aliceAddress, aud: TestKeys.aliceAddress
+            privateKey: TestKeys.alicePrivateKey,
+            iss: TestKeys.aliceAddress,
+            aud: TestKeys.aliceAddress
         )
         let owner = try await Self.send("GET", "/v1/models", token: master, server: server)
         #expect(owner.status == 200)
@@ -567,7 +606,9 @@ struct HTTPAuthGateTests {
         let server = try await startAuthTestServer(validator: .forAlice(), trustLoopback: true)
         defer { Task { await server.shutdown() } }
         let token = try TokenBuilder.build(
-            privateKey: TestKeys.alicePrivateKey, iss: TestKeys.aliceAddress, aud: TestKeys.aliceAddress
+            privateKey: TestKeys.alicePrivateKey,
+            iss: TestKeys.aliceAddress,
+            aud: TestKeys.aliceAddress
         )
         let agents = try await Self.send("GET", "/agents", token: token, server: server)
         #expect(agents.status == 200)
@@ -602,7 +643,8 @@ struct HTTPAuthGateTests {
         let theirs = UUID()
         let theirAddress = try AgentKey.deriveAddress(masterKey: TestKeys.alicePrivateKey, index: 4)
         AgentIdentityRegistry.shared.update(
-            addresses: [fixture.agent, theirAddress], indices: [3, 4],
+            addresses: [fixture.agent, theirAddress],
+            indices: [3, 4],
             addressByAgentId: [mine: fixture.agent, theirs: theirAddress]
         )
         defer { AgentIdentityRegistry.shared.update(addresses: [], indices: [], addressByAgentId: [:]) }
@@ -636,13 +678,19 @@ struct HTTPAuthGateTests {
         defer { Task { await server.shutdown() } }
 
         let foreign = UUID()
-        HTTPHandler.DispatchTaskOwnership.shared.record(taskId: foreign, audience: "0x000000000000000000000000000000000000beef",
-            keyNonce: "other")
+        HTTPHandler.DispatchTaskOwnership.shared.record(
+            taskId: foreign,
+            audience: "0x000000000000000000000000000000000000beef",
+            keyNonce: "other"
+        )
         defer { HTTPHandler.DispatchTaskOwnership.shared.removeAll() }
 
         for (method, suffix) in [("GET", ""), ("DELETE", ""), ("POST", "/clarify")] {
             let result = try await Self.send(
-                method, "/v1/tasks/\(foreign.uuidString)\(suffix)", token: fixture.token, server: server,
+                method,
+                "/v1/tasks/\(foreign.uuidString)\(suffix)",
+                token: fixture.token,
+                server: server,
                 body: Data(#"{"response":"x"}"#.utf8)
             )
             #expect(result.status == 403, "\(method) tasks\(suffix) returned \(result.status)")
@@ -692,7 +740,9 @@ struct HTTPAuthGateTests {
 
     private static func aliceMasterToken() throws -> String {
         try TokenBuilder.build(
-            privateKey: TestKeys.alicePrivateKey, iss: TestKeys.aliceAddress, aud: TestKeys.aliceAddress
+            privateKey: TestKeys.alicePrivateKey,
+            iss: TestKeys.aliceAddress,
+            aud: TestKeys.aliceAddress
         )
     }
 
@@ -725,7 +775,9 @@ struct HTTPAuthGateTests {
 
     @Test func localKeyPolicyOn_keylessLoopbackGets401OnProtectedRoutesOnly() async throws {
         let server = try await startAuthTestServer(
-            validator: .forAlice(), trustLoopback: true, localKeyRequired: true
+            validator: .forAlice(),
+            trustLoopback: true,
+            localKeyRequired: true
         )
         defer { Task { await server.shutdown() } }
 
@@ -753,7 +805,9 @@ struct HTTPAuthGateTests {
     /// `/sessions` and plaintext `/agents/{id}/run` (no 426).
     @Test func localKeyPolicyOn_ownerKeyKeepsLocalBehavior() async throws {
         let server = try await startAuthTestServer(
-            validator: .forAlice(), trustLoopback: true, localKeyRequired: true
+            validator: .forAlice(),
+            trustLoopback: true,
+            localKeyRequired: true
         )
         defer { Task { await server.shutdown() } }
         let token = try Self.aliceMasterToken()
@@ -775,7 +829,9 @@ struct HTTPAuthGateTests {
         let fixture = try Self.agentScopedFixture(workspaceMinted: true)
         defer { WorkspaceAgentAccessHost.shared.nonceIndex.remove(fixture.nonce) }
         let server = try await startAuthTestServer(
-            validator: fixture.validator, trustLoopback: true, localKeyRequired: true
+            validator: fixture.validator,
+            trustLoopback: true,
+            localKeyRequired: true
         )
         defer { Task { await server.shutdown() } }
 
@@ -792,7 +848,9 @@ struct HTTPAuthGateTests {
 
     @Test func localKeyPolicyOn_unlistedBrowserOriginIsRefusedEvenWithKey() async throws {
         let server = try await startAuthTestServer(
-            validator: .forAlice(), trustLoopback: true, localKeyRequired: true,
+            validator: .forAlice(),
+            trustLoopback: true,
+            localKeyRequired: true,
             allowedOrigins: ["https://app.example.com"]
         )
         defer { Task { await server.shutdown() } }
@@ -800,7 +858,11 @@ struct HTTPAuthGateTests {
 
         for (method, path) in Self.protectedLocalRoutes {
             let result = try await Self.sendLocal(
-                method, path, server: server, token: token, origin: "https://evil.example"
+                method,
+                path,
+                server: server,
+                token: token,
+                origin: "https://evil.example"
             )
             #expect(result.status == 403, "\(method) \(path) returned \(result.status)")
             #expect(result.body.contains("browser_origin_refused"), "\(method) \(path): \(result.body)")
@@ -815,7 +877,10 @@ struct HTTPAuthGateTests {
     @Test func localKeyPolicyOn_listedOriginStillNeedsAKey() async throws {
         let listed = "https://app.example.com"
         let server = try await startAuthTestServer(
-            validator: .forAlice(), trustLoopback: true, localKeyRequired: true, allowedOrigins: [listed]
+            validator: .forAlice(),
+            trustLoopback: true,
+            localKeyRequired: true,
+            allowedOrigins: [listed]
         )
         defer { Task { await server.shutdown() } }
 
@@ -824,7 +889,11 @@ struct HTTPAuthGateTests {
         #expect(keyless.allowOrigin == listed)
 
         let keyed = try await Self.sendLocal(
-            "GET", "/agents", server: server, token: try Self.aliceMasterToken(), origin: listed
+            "GET",
+            "/agents",
+            server: server,
+            token: try Self.aliceMasterToken(),
+            origin: listed
         )
         #expect(keyed.status == 200, "\(keyed.status): \(keyed.body)")
         #expect(keyed.allowOrigin == listed)
@@ -832,13 +901,20 @@ struct HTTPAuthGateTests {
 
     @Test func localKeyPolicyOn_wildcardAllowedOriginsExemptsNothing() async throws {
         let server = try await startAuthTestServer(
-            validator: .forAlice(), trustLoopback: true, localKeyRequired: true, allowedOrigins: ["*"]
+            validator: .forAlice(),
+            trustLoopback: true,
+            localKeyRequired: true,
+            allowedOrigins: ["*"]
         )
         defer { Task { await server.shutdown() } }
         let token = try Self.aliceMasterToken()
 
         let browser = try await Self.sendLocal(
-            "GET", "/agents", server: server, token: token, origin: "https://app.example.com"
+            "GET",
+            "/agents",
+            server: server,
+            token: token,
+            origin: "https://app.example.com"
         )
         #expect(browser.status == 403, "\(browser.status): \(browser.body)")
         #expect(browser.body.contains("browser_origin_refused"))
@@ -851,19 +927,30 @@ struct HTTPAuthGateTests {
     @Test func localKeyPolicyOn_preflightOnlyAdmitsListedOrigins() async throws {
         let listed = "https://app.example.com"
         let server = try await startAuthTestServer(
-            validator: .forAlice(), trustLoopback: true, localKeyRequired: true, allowedOrigins: [listed, "*"]
+            validator: .forAlice(),
+            trustLoopback: true,
+            localKeyRequired: true,
+            allowedOrigins: [listed, "*"]
         )
         defer { Task { await server.shutdown() } }
         let preflight = ["Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "authorization"]
 
         let unlisted = try await Self.sendLocal(
-            "OPTIONS", "/admin/config/apply", server: server, origin: "https://evil.example", headers: preflight
+            "OPTIONS",
+            "/admin/config/apply",
+            server: server,
+            origin: "https://evil.example",
+            headers: preflight
         )
         #expect(unlisted.status == 204)
         #expect(unlisted.allowOrigin == nil)
 
         let admitted = try await Self.sendLocal(
-            "OPTIONS", "/admin/config/apply", server: server, origin: listed, headers: preflight
+            "OPTIONS",
+            "/admin/config/apply",
+            server: server,
+            origin: listed,
+            headers: preflight
         )
         #expect(admitted.status == 204)
         #expect(admitted.allowOrigin == listed)
@@ -874,13 +961,18 @@ struct HTTPAuthGateTests {
     /// does not count.
     @Test func localKeyPolicyOn_appSessionTokenStandsInForAKeyOverLoopbackOnly() async throws {
         let server = try await startAuthTestServer(
-            validator: .forAlice(), trustLoopback: true, localKeyRequired: true
+            validator: .forAlice(),
+            trustLoopback: true,
+            localKeyRequired: true
         )
         defer { Task { await server.shutdown() } }
         let header = LocalAPIKeyPolicy.appTokenHeaderName
 
         let app = try await Self.sendLocal(
-            "GET", "/agents", server: server, headers: [header: LocalAPIKeyPolicy.appSessionToken]
+            "GET",
+            "/agents",
+            server: server,
+            headers: [header: LocalAPIKeyPolicy.appSessionToken]
         )
         #expect(app.status == 200, "\(app.status): \(app.body)")
 
@@ -888,7 +980,9 @@ struct HTTPAuthGateTests {
         #expect(wrong.status == 401)
 
         let relayed = try await Self.sendLocal(
-            "GET", "/agents", server: server,
+            "GET",
+            "/agents",
+            server: server,
             headers: [header: LocalAPIKeyPolicy.appSessionToken, HTTPHandler.relayOriginHeaderName: "1"]
         )
         #expect(relayed.status == 401)
@@ -896,7 +990,9 @@ struct HTTPAuthGateTests {
 
     @Test func localKeyPolicyOn_harnessTokenStillReachesMCP() async throws {
         let server = try await startAuthTestServer(
-            validator: .forAlice(), trustLoopback: true, localKeyRequired: true
+            validator: .forAlice(),
+            trustLoopback: true,
+            localKeyRequired: true
         )
         defer { Task { await server.shutdown() } }
         let token = HarnessGrantStore.shared.mint(agentId: UUID(), allowsConfigWrites: false)

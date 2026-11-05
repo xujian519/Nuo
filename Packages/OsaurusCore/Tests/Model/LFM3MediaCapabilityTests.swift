@@ -31,7 +31,8 @@ struct LFM3MediaCapabilityTests {
     func installedBundlesReportTheirLanes() throws {
         let root = URL(
             fileURLWithPath: ProcessInfo.processInfo.environment["OSAURUS_LFM3_BUNDLES_DIR"]!,
-            isDirectory: true)
+            isDirectory: true
+        )
         let bundles = try FileManager.default.contentsOfDirectory(atPath: root.path)
             .filter { $0.hasPrefix("LFM3-") }.sorted()
         #expect(!bundles.isEmpty, "no LFM3 bundles under \(root.path)")
@@ -39,8 +40,12 @@ struct LFM3MediaCapabilityTests {
             let directory = root.appendingPathComponent(name, isDirectory: true)
             let caps = ModelMediaCapabilities.from(directory: directory, modelId: name)
             let evidence = LocalVisionEvidence.inspect(directory, refresh: true)
-            let family = name.contains("-Omni-") ? "omni" : name.contains("-Audio-") ? "audio"
-                : name.contains("-VL-") ? "vl" : "text"
+            let family =
+                name.contains("-Omni-")
+                ? "omni"
+                : name.contains("-Audio-")
+                    ? "audio"
+                    : name.contains("-VL-") ? "vl" : "text"
             let expected: (image: Bool, video: Bool, audio: Bool) =
                 switch family {
                 case "omni": (true, true, true)
@@ -48,7 +53,9 @@ struct LFM3MediaCapabilityTests {
                 case "vl": (true, true, false)
                 default: (false, false, false)
                 }
-            print("[LFM3] \(name): image=\(caps.supportsImage) video=\(caps.supportsVideo) audio=\(caps.supportsAudio) (\(evidence.reason))")
+            print(
+                "[LFM3] \(name): image=\(caps.supportsImage) video=\(caps.supportsVideo) audio=\(caps.supportsAudio) (\(evidence.reason))"
+            )
             #expect(caps.supportsImage == expected.image, "\(name) image: \(evidence.reason)")
             #expect(caps.supportsVideo == expected.video, "\(name) video")
             #expect(caps.supportsAudio == expected.audio, "\(name) audio")

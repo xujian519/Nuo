@@ -76,7 +76,10 @@ struct FileReadDocumentFormatsTests {
         defer { try? FileManager.default.removeItem(at: root) }
         // Page 2 is blank: it has no text layer and must show up as a gap,
         // not as a silently renumbered page.
-        try Self.writePDF(pages: ["Executive summary", "", "Revenue table follows"], to: root.appendingPathComponent("report.pdf"))
+        try Self.writePDF(
+            pages: ["Executive summary", "", "Revenue table follows"],
+            to: root.appendingPathComponent("report.pdf")
+        )
 
         let result = try await FileReadTool(rootPath: root).execute(argumentsJSON: #"{"path":"report.pdf"}"#)
         #expect(ToolEnvelope.isSuccess(result))
@@ -95,7 +98,11 @@ struct FileReadDocumentFormatsTests {
 
         let note = try #require(payload["note"] as? String)
         #expect(note.hasPrefix("Text layer of a 3-page PDF (1 page(s) have no text layer and are absent)."))
-        #expect(note.contains("Gutter numbers are line numbers of the extracted text, not the document's own line or field numbers"))
+        #expect(
+            note.contains(
+                "Gutter numbers are line numbers of the extracted text, not the document's own line or field numbers"
+            )
+        )
         #expect(note.contains("`--- Page N of 3 ---` lines mark page boundaries"))
         #expect(note.contains("pass `pages`"))
         #expect(!note.contains("rebuilt from layout geometry"))
@@ -129,9 +136,14 @@ struct FileReadDocumentFormatsTests {
 
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
-        try Self.writePDF(pages: ["Alpha page", "Bravo page", "Charlie page"], to: root.appendingPathComponent("report.pdf"))
+        try Self.writePDF(
+            pages: ["Alpha page", "Bravo page", "Charlie page"],
+            to: root.appendingPathComponent("report.pdf")
+        )
 
-        let result = try await FileReadTool(rootPath: root).execute(argumentsJSON: #"{"path":"report.pdf","pages":"2"}"#)
+        let result = try await FileReadTool(rootPath: root).execute(
+            argumentsJSON: #"{"path":"report.pdf","pages":"2"}"#
+        )
         #expect(ToolEnvelope.isSuccess(result), Comment(rawValue: result))
         let text = EnvelopeAssertions.successText(result) ?? ""
         let payload = try #require(EnvelopeAssertions.successPayload(result))
@@ -154,7 +166,10 @@ struct FileReadDocumentFormatsTests {
 
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
-        try Self.writePDF(pages: ["Alpha page", "Bravo page", "Charlie page", "Delta page"], to: root.appendingPathComponent("report.pdf"))
+        try Self.writePDF(
+            pages: ["Alpha page", "Bravo page", "Charlie page", "Delta page"],
+            to: root.appendingPathComponent("report.pdf")
+        )
         let tool = FileReadTool(rootPath: root)
 
         let range = try await tool.execute(argumentsJSON: #"{"path":"report.pdf","pages":"2-3"}"#)
@@ -180,7 +195,10 @@ struct FileReadDocumentFormatsTests {
 
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
-        try Self.writePDF(pages: ["Alpha page", "Bravo page", "Charlie page"], to: root.appendingPathComponent("report.pdf"))
+        try Self.writePDF(
+            pages: ["Alpha page", "Bravo page", "Charlie page"],
+            to: root.appendingPathComponent("report.pdf")
+        )
 
         let result = try await FileReadTool(rootPath: root).execute(
             argumentsJSON: #"{"path":"report.pdf","pages":"3","start_line":1,"end_line":2}"#
@@ -234,7 +252,9 @@ struct FileReadDocumentFormatsTests {
         defer { try? FileManager.default.removeItem(at: root) }
         try Self.writePDF(pages: ["Alpha page", "", "Charlie page"], to: root.appendingPathComponent("report.pdf"))
 
-        let result = try await FileReadTool(rootPath: root).execute(argumentsJSON: #"{"path":"report.pdf","pages":"2"}"#)
+        let result = try await FileReadTool(rootPath: root).execute(
+            argumentsJSON: #"{"path":"report.pdf","pages":"2"}"#
+        )
         #expect(ToolEnvelope.isSuccess(result), Comment(rawValue: result))
         let payload = try #require(EnvelopeAssertions.successPayload(result))
         #expect(payload["text"] as? String == "Page(s) 2 of this 3-page PDF have no extractable text layer.")
@@ -242,7 +262,9 @@ struct FileReadDocumentFormatsTests {
         #expect(payload["pages"] as? Int == 3)
 
         // A range that straddles the blank page still returns its neighbours.
-        let straddle = try await FileReadTool(rootPath: root).execute(argumentsJSON: #"{"path":"report.pdf","pages":"1-2"}"#)
+        let straddle = try await FileReadTool(rootPath: root).execute(
+            argumentsJSON: #"{"path":"report.pdf","pages":"1-2"}"#
+        )
         let straddleText = EnvelopeAssertions.successText(straddle) ?? ""
         #expect(straddleText.contains("Alpha page"))
         #expect(!straddleText.contains("Charlie page"))
@@ -251,7 +273,8 @@ struct FileReadDocumentFormatsTests {
     @Test func parsePagesArgumentContract() throws {
         #expect(try FileReadTool.parsePagesArgument("3", pageCount: 11) == 3 ... 3)
         #expect(try FileReadTool.parsePagesArgument(" 3 - 5 ", pageCount: 11) == 3 ... 5)
-        #expect(try FileReadTool.parsePagesArgument("11", pageCount: 0) == 11 ... 11)  // unknown page count: no upper bound
+        // unknown page count: no upper bound
+        #expect(try FileReadTool.parsePagesArgument("11", pageCount: 0) == 11 ... 11)
 
         #expect(throws: FileReadTool.PagesArgumentError.outOfRange(pageCount: 11)) {
             try FileReadTool.parsePagesArgument("12", pageCount: 11)

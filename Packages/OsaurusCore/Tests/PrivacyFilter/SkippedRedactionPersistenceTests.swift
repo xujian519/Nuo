@@ -66,9 +66,10 @@ struct SkippedRedactionPersistenceTests {
         // Call 2: same turn, next agent-loop iteration with a tool result
         // appended. The skipped phone must not be re-prompted, must not be
         // substituted as a carry-over, and must not trip the leak scan.
-        let call2 = call1 + [
-            ChatMessage(role: "tool", content: "{\"ok\":true,\"contact\":\"\(phone)\"}")
-        ]
+        let call2 =
+            call1 + [
+                ChatMessage(role: "tool", content: "{\"ok\":true,\"contact\":\"\(phone)\"}")
+            ]
         let (scrubbed2, _) = try await PrivacyFilterPipeline.applyOutbound(
             messages: call2,
             sessionId: sid,

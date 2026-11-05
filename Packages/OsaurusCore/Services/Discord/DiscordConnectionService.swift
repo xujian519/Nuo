@@ -305,7 +305,9 @@ final class DiscordConnectionService: @unchecked Sendable {
     }
 
     func pollInboundMessages() async throws -> DiscordReceiveBatchResult {
-        guard let messageStore else { return DiscordReceiveBatchResult(received: 0, stored: 0, dispatchAttempted: 0, dispatchSuppressed: 0) }
+        guard let messageStore else {
+            return DiscordReceiveBatchResult(received: 0, stored: 0, dispatchAttempted: 0, dispatchSuppressed: 0)
+        }
         let token = try requireToken()
         let config = configuration()
         guard !config.readableChannelIds.isEmpty, !config.senderAllowlist.isEmpty else {
@@ -441,7 +443,8 @@ final class DiscordConnectionService: @unchecked Sendable {
         guard settings.isConfigured else {
             return .suppressed("inbound_dispatch_not_configured")
         }
-        let mentionsBot = message.content.contains("<@\(botId)>")
+        let mentionsBot =
+            message.content.contains("<@\(botId)>")
             || message.content.contains("<@!\(botId)>")
         if settings.requireMention, !mentionsBot {
             let continuing = settings.continueThreads && hasOutboundMessage(in: message.channelId)
@@ -494,7 +497,8 @@ final class DiscordConnectionService: @unchecked Sendable {
         config: DiscordConnectionConfiguration
     ) async -> [String: String] {
         if let cached = channelGuildCacheLock.withLock({ channelGuildCache }),
-           Date().timeIntervalSince(cached.updatedAt) < 300 {
+            Date().timeIntervalSince(cached.updatedAt) < 300
+        {
             return cached.values
         }
         var values: [String: String] = [:]
@@ -989,7 +993,8 @@ final class DiscordConnectionService: @unchecked Sendable {
         }
         // Long sends are split into up to `maxChunksPerSend` native messages
         // of 2,000 UTF-16 units each; cap the raw input accordingly.
-        let maxInput = AgentChannelMessageFormatter.discordChunkLimit
+        let maxInput =
+            AgentChannelMessageFormatter.discordChunkLimit
             * AgentChannelMessageFormatter.maxChunksPerSend
         guard trimmed.utf16.count <= maxInput else {
             throw DiscordConnectionServiceError.messageTooLong

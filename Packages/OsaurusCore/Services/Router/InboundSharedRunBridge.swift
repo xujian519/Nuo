@@ -150,17 +150,17 @@ final class InboundSharedRunBridge {
         // runs create independent rows; caller input never rewrites evidence.
         let candidate =
             sessions.sessions.first { row in
-            guard row.sourcePluginId == ChatHistoryWriter.workspacePseudoPluginId,
-                row.externalSessionKey == externalKey, row.agentId == agentId,
-                row.workspace?.workspaceId == context.workspaceId,
-                row.workspace?.callerWallet?.lowercased() == context.callerWallet?.lowercased(),
-                runsByTask[row.id]?.isEmpty != false
-            else { return false }
-            let observed =
-                manager.taskState(for: row.id)?.chatSession?.toSessionData()
-                ?? ChatSessionStore.load(id: row.id)
-            return observed.map { Self.isUnchangedPrefix($0.turns, of: turns) } ?? false
-        }
+                guard row.sourcePluginId == ChatHistoryWriter.workspacePseudoPluginId,
+                    row.externalSessionKey == externalKey, row.agentId == agentId,
+                    row.workspace?.workspaceId == context.workspaceId,
+                    row.workspace?.callerWallet?.lowercased() == context.callerWallet?.lowercased(),
+                    runsByTask[row.id]?.isEmpty != false
+                else { return false }
+                let observed =
+                    manager.taskState(for: row.id)?.chatSession?.toSessionData()
+                    ?? ChatSessionStore.load(id: row.id)
+                return observed.map { Self.isUnchangedPrefix($0.turns, of: turns) } ?? false
+            }
         let existingRowId = candidate?.id
         if candidate == nil {
             // Why no row was reused: same-key rows whose history isn't a
@@ -405,7 +405,9 @@ final class InboundSharedRunBridge {
         if let value = completed.reasoningItemId { streamed.reasoningItemId = value }
         if let value = completed.reasoningEncrypted { streamed.reasoningEncrypted = value }
         if !completed.responsesOutputItems.isEmpty { streamed.responsesOutputItems = completed.responsesOutputItems }
-        if !completed.anthropicThinkingBlocks.isEmpty { streamed.anthropicThinkingBlocks = completed.anthropicThinkingBlocks }
+        if !completed.anthropicThinkingBlocks.isEmpty {
+            streamed.anthropicThinkingBlocks = completed.anthropicThinkingBlocks
+        }
         if let value = completed.inputTokenCount { streamed.inputTokenCount = value }
         if let value = completed.cachedInputTokenCount { streamed.cachedInputTokenCount = value }
         if let value = completed.generationTokenCount { streamed.generationTokenCount = value }

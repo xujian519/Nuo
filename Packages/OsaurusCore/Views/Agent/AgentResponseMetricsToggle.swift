@@ -11,10 +11,14 @@ struct AgentResponseMetricsToggle: View {
                 .toggleStyle(.switch)
                 .accessibilityIdentifier("agent.showResponseMetrics")
                 .settingsLandingAnchor("agents.showResponseMetrics")
-            Text(L("Show measured token count, tokens per second and timings below responses. Metrics remain available in Inspect response."))
-                .font(.system(size: 11))
-                .foregroundColor(theme.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
+            Text(
+                L(
+                    "Show measured token count, tokens per second and timings below responses. Metrics remain available in Inspect response."
+                )
+            )
+            .font(.system(size: 11))
+            .foregroundColor(theme.secondaryText)
+            .fixedSize(horizontal: false, vertical: true)
         }
         .padding(14)
         .background(theme.cardBackground, in: RoundedRectangle(cornerRadius: 10))

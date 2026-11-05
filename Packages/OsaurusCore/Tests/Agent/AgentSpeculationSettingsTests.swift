@@ -7,7 +7,9 @@ import Testing
 struct AgentSpeculationSettingsTests {
     @Test("agent preference is nullable, lossless, and part of the frozen turn")
     func persistenceAndSnapshots() throws {
-        #expect(try JSONDecoder().decode(AgentGenerationSettings.self, from: Data("{}".utf8)).speculativeDecoding == nil)
+        #expect(
+            try JSONDecoder().decode(AgentGenerationSettings.self, from: Data("{}".utf8)).speculativeDecoding == nil
+        )
         for value: Bool? in [nil, false, true] {
             let settings = AgentGenerationSettings(speculativeDecoding: value)
             #expect(settings.isEmpty == (value == nil))
@@ -18,7 +20,7 @@ struct AgentSpeculationSettingsTests {
             controls.agentSettings = settings
             let frozen = try JSONDecoder().decode(ChatTurnGenerationControls.self, from: JSONEncoder().encode(controls))
             #expect(frozen.agentSettings?.speculativeDecoding == value)
-            for _ in 0..<3 {
+            for _ in 0 ..< 3 {
                 var request = ResponsesInferenceRequest(model: "fixture", input: [])
                 frozen.apply(to: &request)
                 #expect(request.context.speculativeDecoding == value)
@@ -51,8 +53,14 @@ struct AgentSpeculationSettingsTests {
         #expect(controls.reasoningOptions(for: model)["reasoningEffort"] == .string("high"))
         var request = ResponsesInferenceRequest(model: model, input: [])
         controls.apply(to: &request)
-        #expect(controls.reasoningOptions(for: model) == AgentReasoningPolicy.applyingExplicitReasoning(
-            request.generation, to: request.context.modelOptions ?? [:], modelID: model))
+        #expect(
+            controls.reasoningOptions(for: model)
+                == AgentReasoningPolicy.applyingExplicitReasoning(
+                    request.generation,
+                    to: request.context.modelOptions ?? [:],
+                    modelID: model
+                )
+        )
         #expect(inherited["reasoningEffort"] == .string("xhigh"))
     }
 
@@ -100,8 +108,13 @@ struct AgentSpeculationSettingsTests {
         inherited.mode = .familyDefault
         #expect(AgentSpeculationPolicy.requiresPreparation(previous: off, next: adaptive))
         #expect(AgentSpeculationPolicy.requiresPreparation(previous: inherited, next: adaptive))
-        #expect(!AgentSpeculationPolicy.requiresPreparation(
-            previous: inherited, next: adaptive, hasLoadedStrategy: true))
+        #expect(
+            !AgentSpeculationPolicy.requiresPreparation(
+                previous: inherited,
+                next: adaptive,
+                hasLoadedStrategy: true
+            )
+        )
         #expect(!AgentSpeculationPolicy.requiresPreparation(previous: adaptive, next: off))
         #expect(!AgentSpeculationPolicy.requiresPreparation(previous: adaptive, next: adaptive))
         #expect(!AgentSpeculationPolicy.requiresPreparation(previous: adaptive, next: inherited))
@@ -116,7 +129,8 @@ struct AgentSpeculationSettingsTests {
         off.mode = .off
         let strategies: [DraftStrategy] = [
             .nativeMTP(depth: 3), .dspark(drafterPath: URL(fileURLWithPath: "/fixture/d")),
-            .uno(adapterPath: URL(fileURLWithPath: "/fixture/u")), .dflash2(drafterPath: URL(fileURLWithPath: "/fixture/d")),
+            .uno(adapterPath: URL(fileURLWithPath: "/fixture/u")),
+            .dflash2(drafterPath: URL(fileURLWithPath: "/fixture/d")),
             .dflash(drafterPath: URL(fileURLWithPath: "/fixture/d"), blockSize: 8),
             .ddtree(drafterPath: URL(fileURLWithPath: "/fixture/d"), branchingBudget: 8, blockSize: 8),
         ]
@@ -131,17 +145,35 @@ struct AgentSpeculationSettingsTests {
 
     @Test("capability follows bundle/drafter evidence, not an architecture name list")
     func capabilityMatrix() throws {
-        func choices(native: Bool = false, blocked: Bool = false, dflash: Bool = false,
-            selected: Bool = false, dspark: Bool = false, uno: Bool = false) -> AgentGenerationReasoningChoices
-        {
-            .init(efforts: nil, supportsThinking: false,
-                speculation: .init(name: "fixture", bundleHasMTP: native, isTargetMTPFamily: native,
-                    isBlocked: blocked, measuredFamilyAutoDepth: nil, bundledDFlash2: dflash,
-                    selectedDFlash2: selected, bundledUno: uno, bundledDSpark: dspark, statusLine: "fixture"))
+        func choices(
+            native: Bool = false,
+            blocked: Bool = false,
+            dflash: Bool = false,
+            selected: Bool = false,
+            dspark: Bool = false,
+            uno: Bool = false
+        ) -> AgentGenerationReasoningChoices {
+            .init(
+                efforts: nil,
+                supportsThinking: false,
+                speculation: .init(
+                    name: "fixture",
+                    bundleHasMTP: native,
+                    isTargetMTPFamily: native,
+                    isBlocked: blocked,
+                    measuredFamilyAutoDepth: nil,
+                    bundledDFlash2: dflash,
+                    selectedDFlash2: selected,
+                    bundledUno: uno,
+                    bundledDSpark: dspark,
+                    statusLine: "fixture"
+                )
+            )
         }
-        for available in [choices(native: true), choices(dflash: true), choices(selected: true),
-            choices(dspark: true), choices(uno: true), choices(blocked: true, dspark: true)]
-        {
+        for available in [
+            choices(native: true), choices(dflash: true), choices(selected: true),
+            choices(dspark: true), choices(uno: true), choices(blocked: true, dspark: true),
+        ] {
             #expect(available.speculation?.speculationAvailable == true)
             try available.validate(settings: .init(speculativeDecoding: true))
         }
@@ -159,7 +191,9 @@ struct AgentSpeculationSettingsTests {
         let waiting = Task { try await ModelLease.shared.waitForZeroCancellable(name) }
         await Task.yield()
         waiting.cancel()
-        do { try await waiting.value; Issue.record("Cancelled wait must throw") } catch is CancellationError {} catch { throw error }
+        do { try await waiting.value; Issue.record("Cancelled wait must throw") } catch is CancellationError {} catch {
+            throw error
+        }
         #expect(await ModelLease.shared.count(for: name) == 1)
         await ModelLease.shared.release(name)
         try await ModelLease.shared.waitForZeroCancellable(name)
@@ -173,13 +207,23 @@ struct AgentSpeculationPersistenceTests {
     @Test("reasoning picker replaces only this agent's reasoning and preserves other fields")
     func reasoningPickerScope() async throws {
         try await ChatHistoryTestStorage.run {
-            let original = AgentGenerationSettings(topK: 17, enableThinking: false, reasoningEffort: "low",
+            let original = AgentGenerationSettings(
+                topK: 17,
+                enableThinking: false,
+                reasoningEffort: "low",
                 templateKwargs: ["thinking": .bool(false), "extraction_schema": .string("kept")],
-                speculativeDecoding: true)
-            let first = Agent(name: "Reasoning first", generationSettings: original,
-                autonomousExec: .init(enabled: false))
-            let second = Agent(name: "Reasoning second", generationSettings: original,
-                autonomousExec: .init(enabled: false))
+                speculativeDecoding: true
+            )
+            let first = Agent(
+                name: "Reasoning first",
+                generationSettings: original,
+                autonomousExec: .init(enabled: false)
+            )
+            let second = Agent(
+                name: "Reasoning second",
+                generationSettings: original,
+                autonomousExec: .init(enabled: false)
+            )
             AgentStore.save(first)
             AgentStore.save(second)
             AgentManager.shared.refresh()
@@ -204,10 +248,16 @@ struct AgentSpeculationPersistenceTests {
     @Test("chat picker updates only this agent and reset preserves unrelated overrides")
     func pickerScope() async throws {
         try await ChatHistoryTestStorage.run {
-            let first = Agent(name: "Speculation first", generationSettings: .init(topK: 17, speculativeDecoding: false),
-                autonomousExec: .init(enabled: false))
-            let second = Agent(name: "Speculation second", generationSettings: .init(speculativeDecoding: false),
-                autonomousExec: .init(enabled: false))
+            let first = Agent(
+                name: "Speculation first",
+                generationSettings: .init(topK: 17, speculativeDecoding: false),
+                autonomousExec: .init(enabled: false)
+            )
+            let second = Agent(
+                name: "Speculation second",
+                generationSettings: .init(speculativeDecoding: false),
+                autonomousExec: .init(enabled: false)
+            )
             AgentStore.save(first)
             AgentStore.save(second)
             AgentManager.shared.refresh()

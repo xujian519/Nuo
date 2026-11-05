@@ -27,7 +27,8 @@ struct AgentToolSelectionResolverTests {
             manualToolNames: [
                 "fetch", "linear_search", "linear_create_issue", "notes_create", "notes_list", "time", "fetch",
             ],
-            groups: groups)
+            groups: groups
+        )
         #expect(exported.toolNames == ["fetch", "time"])
         #expect(exported.enabledMCPServers == ["Linear"])
         #expect(exported.disabledMCPServers == ["Notion"])
@@ -40,7 +41,9 @@ struct AgentToolSelectionResolverTests {
     @Test
     func export_partialGroupSelectionListsExactTools() {
         let exported = AgentToolSelectionResolver.export(
-            manualToolNames: ["fetch", "linear_search", "notes_create"], groups: groups)
+            manualToolNames: ["fetch", "linear_search", "notes_create"],
+            groups: groups
+        )
         #expect(exported.toolNames == ["fetch", "linear_search", "notes_create"])
         #expect(exported.enabledMCPServers.isEmpty)
         #expect(exported.disabledMCPServers == ["Notion"])
@@ -58,7 +61,8 @@ struct AgentToolSelectionResolverTests {
             enabledGroups: exported.enabledMCPServers.map { .mcpServer($0) },
             disabledGroups: exported.disabledMCPServers.map { .mcpServer($0) },
             registered: ["fetch"],
-            groups: groups)
+            groups: groups
+        )
         #expect(applied.manualToolNames == original)
     }
 
@@ -71,7 +75,8 @@ struct AgentToolSelectionResolverTests {
             disabledGroups: [],
             registered: ["fetch"],
             groups: [:],
-            keepUnregistered: true)
+            keepUnregistered: true
+        )
         #expect(applied.manualToolNames == ["fetch", "acme_tickets_search"])
         #expect(applied.missingTools.isEmpty)
         #expect(applied.keptUnregistered == ["acme_tickets_search"])
@@ -85,7 +90,8 @@ struct AgentToolSelectionResolverTests {
             enabledGroups: [.mcpServer("Linear")],
             disabledGroups: [],
             registered: ["fetch", "time"],
-            groups: groups)
+            groups: groups
+        )
         #expect(applied.manualToolNames == ["fetch", "linear_create_issue", "linear_search"])
         #expect(applied.missingTools.isEmpty)
         #expect(applied.missingGroups.isEmpty)
@@ -99,7 +105,8 @@ struct AgentToolSelectionResolverTests {
             enabledGroups: [],
             disabledGroups: [.plugin("osaurus.notes")],
             registered: ["fetch"],
-            groups: groups)
+            groups: groups
+        )
         #expect(applied.manualToolNames == ["fetch"])
     }
 
@@ -111,7 +118,8 @@ struct AgentToolSelectionResolverTests {
             enabledGroups: [],
             disabledGroups: [],
             registered: ["fetch", "time", "web_search"],
-            groups: groups)
+            groups: groups
+        )
         #expect(applied.manualToolNames == ["linear_search", "web_search"])
     }
 
@@ -123,7 +131,8 @@ struct AgentToolSelectionResolverTests {
             enabledGroups: [.mcpServer("Jira")],
             disabledGroups: [.mcpServer("Ghost")],
             registered: ["fetch"],
-            groups: groups)
+            groups: groups
+        )
         #expect(applied.manualToolNames == ["fetch"])
         #expect(applied.missingTools == ["vision"])
         #expect(applied.missingGroups == ["Jira"])
@@ -139,7 +148,8 @@ struct AgentToolSelectionResolverTests {
             enabledGroups: [],
             disabledGroups: [],
             registered: ["fetch"],
-            groups: [:])
+            groups: [:]
+        )
         #expect(applied.manualToolNames == ["jira_create_issue", "fetch"])
         #expect(applied.missingTools.isEmpty)
     }
@@ -156,7 +166,8 @@ struct AgentToolSelectionResolverTests {
             disabledGroups: exported.disabledMCPServers.map { .mcpServer($0) }
                 + exported.disabledPlugins.map { .plugin($0) },
             registered: Set(original),
-            groups: groups)
+            groups: groups
+        )
         #expect(Set(applied.manualToolNames) == Set(original))
     }
 }

@@ -8,7 +8,10 @@ import Testing
 // the production host/gate, including its handoff tail, without loading MLX.
 @Suite("Subagent nested admission")
 struct SubagentNestedAdmissionTests {
-    @Test("a delegated chat can finish its nested exclusive job", arguments: [SubagentAdmissionClass.localInPlace, .localExclusive])
+    @Test(
+        "a delegated chat can finish its nested exclusive job",
+        arguments: [SubagentAdmissionClass.localInPlace, .localExclusive]
+    )
     func nestedJobMakesProgress(ownerClass: SubagentAdmissionClass) async {
         let gate = SubagentAdmission(pollNanoseconds: 1_000_000)
         let probe = NestedAdmissionProbe()
@@ -147,7 +150,11 @@ struct SubagentNestedAdmissionTests {
         let childStop = InterruptToken()
         let ownerStop = InterruptToken()
         let owner = Task {
-            let result = await Self.run(gate, id: "spawn", admission: .localInPlace, stop: ownerStop) { _, _, _, interrupt in
+            let result = await Self.run(gate, id: "spawn", admission: .localInPlace, stop: ownerStop) {
+                _,
+                _,
+                _,
+                interrupt in
                 let child = Task {
                     await Self.child(gate, stop: childStop) { _, _, _, _ in
                         await probe.record("child-ran")
@@ -361,7 +368,13 @@ struct SubagentNestedAdmissionTests {
         let ownerFeed = Self.feed("handoff-owner")
         let handoff = NestedCleanupHandoff(gate: gate, probe: probe)
         let owner = Task {
-            let result = await Self.run(gate, id: "spawn", admission: .localExclusive, feed: ownerFeed, handoff: handoff) { _, _, _, _ in
+            let result = await Self.run(
+                gate,
+                id: "spawn",
+                admission: .localExclusive,
+                feed: ownerFeed,
+                handoff: handoff
+            ) { _, _, _, _ in
                 let child = Task {
                     await Self.child(gate, stop: childStop) { _, _, _, _ in
                         await probe.record("child-ran")
@@ -459,23 +472,54 @@ struct SubagentNestedAdmissionTests {
 
     private static let model = "osaurusai/raptor-test"
     private static var success: SubagentResult { SubagentResult(payload: ["summary": "done"]) }
-    private typealias Body = @Sendable (SubagentScope, ResolvedModel, SubagentFeed, InterruptToken) async throws -> SubagentResult
+    private typealias Body =
+        @Sendable (SubagentScope, ResolvedModel, SubagentFeed, InterruptToken) async throws -> SubagentResult
 
-    private static func run(_ gate: SubagentAdmission, id: String, admission: SubagentAdmissionClass, stop: InterruptToken = InterruptToken(), feed: SubagentFeed? = nil, handoff: any SubagentHandoff = PassthroughHandoff(), body: @escaping Body) async -> String {
+    private static func run(
+        _ gate: SubagentAdmission,
+        id: String,
+        admission: SubagentAdmissionClass,
+        stop: InterruptToken = InterruptToken(),
+        feed: SubagentFeed? = nil,
+        handoff: any SubagentHandoff = PassthroughHandoff(),
+        body: @escaping Body
+    ) async -> String {
         let scope = SubagentScope(sessionId: "nested-test", toolCallId: UUID().uuidString, agentId: Agent.defaultId)
         let kind = NestedAdmissionKind(id: id, admission: admission, body: body)
-        let prepared = PreparedSubagentRun(kind: kind, tool: id, scope: scope, resolved: ResolvedModel(name: model, id: model, isLocal: true), handoff: handoff)
-        return await SubagentSession.runPrepared(prepared, presentation: SubagentRunPresentation(feed: feed ?? Self.feed(scope.toolCallId), interrupt: stop, registerWithUI: false), captureProcessCacheSnapshot: false, admissionController: gate)
+        let prepared = PreparedSubagentRun(
+            kind: kind,
+            tool: id,
+            scope: scope,
+            resolved: ResolvedModel(name: model, id: model, isLocal: true),
+            handoff: handoff
+        )
+        return await SubagentSession.runPrepared(
+            prepared,
+            presentation: SubagentRunPresentation(
+                feed: feed ?? Self.feed(scope.toolCallId),
+                interrupt: stop,
+                registerWithUI: false
+            ),
+            captureProcessCacheSnapshot: false,
+            admissionController: gate
+        )
     }
 
-    private static func child(_ gate: SubagentAdmission, stop: InterruptToken, feed: SubagentFeed? = nil, body: @escaping Body) async -> String {
+    private static func child(
+        _ gate: SubagentAdmission,
+        stop: InterruptToken,
+        feed: SubagentFeed? = nil,
+        body: @escaping Body
+    ) async -> String {
         // AgentDelegationDispatcher uses this boundary before dispatchChat.
         await SubagentSession.$activeKindId.withValue(nil) {
             await run(gate, id: "image", admission: .localExclusive, stop: stop, feed: feed, body: body)
         }
     }
 
-    private static func feed(_ id: String) -> SubagentFeed { SubagentFeed(toolCallId: id, kindId: "image", title: "nested image") }
+    private static func feed(_ id: String) -> SubagentFeed {
+        SubagentFeed(toolCallId: id, kindId: "image", title: "nested image")
+    }
     private static func waitForQueue(_ feed: SubagentFeed) async -> Bool {
         let deadline = Date().addingTimeInterval(1)
         while Date() < deadline {
@@ -484,7 +528,9 @@ struct SubagentNestedAdmissionTests {
         }
         return false
     }
-    private static func kind(_ envelope: String) -> String? { (try? JSONSerialization.jsonObject(with: Data(envelope.utf8)) as? [String: Any])?["kind"] as? String }
+    private static func kind(_ envelope: String) -> String? {
+        (try? JSONSerialization.jsonObject(with: Data(envelope.utf8)) as? [String: Any])?["kind"] as? String
+    }
     private static func expectEmpty(_ gate: SubagentAdmission) async {
         let value = await gate.snapshot()
         #expect(value.inPlace == 0)
@@ -497,15 +543,25 @@ private struct NestedAdmissionKind: SubagentKind {
     let capability: SubagentCapability
     let admission: SubagentAdmissionClass
     let body: @Sendable (SubagentScope, ResolvedModel, SubagentFeed, InterruptToken) async throws -> SubagentResult
-    init(id: String, admission: SubagentAdmissionClass, body: @escaping @Sendable (SubagentScope, ResolvedModel, SubagentFeed, InterruptToken) async throws -> SubagentResult) {
+    init(
+        id: String,
+        admission: SubagentAdmissionClass,
+        body:
+            @escaping @Sendable (SubagentScope, ResolvedModel, SubagentFeed, InterruptToken) async throws ->
+            SubagentResult
+    ) {
         capability = SubagentCapability(id: id, toolNames: [id], gate: .sandboxExec)
         self.admission = admission
         self.body = body
     }
-    func resolveModel(_ scope: SubagentScope) async throws -> ResolvedModel { ResolvedModel(name: "unused", isLocal: true) }
+    func resolveModel(_ scope: SubagentScope) async throws -> ResolvedModel {
+        ResolvedModel(name: "unused", isLocal: true)
+    }
     func permission(_ scope: SubagentScope, _ resolved: ResolvedModel) async -> SubagentDecision { .allow }
     func admissionClass(_ resolved: ResolvedModel) -> SubagentAdmissionClass { admission }
-    func run(_ scope: SubagentScope, _ resolved: ResolvedModel, feed: SubagentFeed, interrupt: InterruptToken) async throws -> SubagentResult { try await body(scope, resolved, feed, interrupt) }
+    func run(_ scope: SubagentScope, _ resolved: ResolvedModel, feed: SubagentFeed, interrupt: InterruptToken)
+        async throws -> SubagentResult
+    { try await body(scope, resolved, feed, interrupt) }
 }
 
 private actor NestedAdmissionProbe {
@@ -524,12 +580,19 @@ private actor NestedAdmissionProbe {
     private var child: Task<String, Never>?
     func record(_ event: String) { recorded.insert(event); ordered.append(event) }
     func order() -> [String] { ordered }
-    func waitForRestoreRelease() async { if !restoreReleased { await withCheckedContinuation { restoreWaiters.append($0) } } }
-    func releaseRestore() { restoreReleased = true; let waiters = restoreWaiters; restoreWaiters.removeAll(); waiters.forEach { $0.resume() } }
+    func waitForRestoreRelease() async {
+        if !restoreReleased { await withCheckedContinuation { restoreWaiters.append($0) } }
+    }
+    func releaseRestore() {
+        restoreReleased = true; let waiters = restoreWaiters; restoreWaiters.removeAll();
+        waiters.forEach { $0.resume() }
+    }
     func contains(_ event: String) -> Bool { recorded.contains(event) }
     func setResult(_ value: String) { envelope = value }
     func result() -> String { envelope }
-    func enter(_ event: String) { record(event); active += 1; totalEntries += 1; maximumActive = max(maximumActive, active) }
+    func enter(_ event: String) {
+        record(event); active += 1; totalEntries += 1; maximumActive = max(maximumActive, active)
+    }
     func leave() { active -= 1 }
     func maximum() -> Int { maximumActive }
     func entries() -> Int { totalEntries }
@@ -546,9 +609,13 @@ private actor NestedAdmissionProbe {
         return totalEntries > 0
     }
     func waitForRelease() async { if !released { await withCheckedContinuation { releaseWaiters.append($0) } } }
-    func release() { released = true; let waiters = releaseWaiters; releaseWaiters.removeAll(); waiters.forEach { $0.resume() } }
+    func release() {
+        released = true; let waiters = releaseWaiters; releaseWaiters.removeAll(); waiters.forEach { $0.resume() }
+    }
     func waitForOwnerReturn() async { if !ownerReturn { await withCheckedContinuation { ownerWaiters.append($0) } } }
-    func allowOwnerReturn() { ownerReturn = true; let waiters = ownerWaiters; ownerWaiters.removeAll(); waiters.forEach { $0.resume() } }
+    func allowOwnerReturn() {
+        ownerReturn = true; let waiters = ownerWaiters; ownerWaiters.removeAll(); waiters.forEach { $0.resume() }
+    }
 }
 
 private struct NestedCleanupHandoff: SubagentHandoff {
@@ -557,7 +624,12 @@ private struct NestedCleanupHandoff: SubagentHandoff {
     var expectsChildDrain = true
     // Additional member also compiles on the pre-contract baseline.
     var requiresAdmissionForCleanup: Bool { true }
-    func around(scope: SubagentScope, resolved: ResolvedModel, feed: SubagentFeed, run body: () async throws -> SubagentResult) async throws -> SubagentResult {
+    func around(
+        scope: SubagentScope,
+        resolved: ResolvedModel,
+        feed: SubagentFeed,
+        run body: () async throws -> SubagentResult
+    ) async throws -> SubagentResult {
         do {
             let result = try await body()
             await restore()

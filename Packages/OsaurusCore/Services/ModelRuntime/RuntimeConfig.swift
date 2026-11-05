@@ -49,8 +49,11 @@ struct RuntimeConfig: Sendable {
     }
 
     func resolvingSpeculation(_ enabled: Bool?) -> RuntimeConfig {
-        RuntimeConfig(generation: generation, concurrency: concurrency,
-            mtp: AgentSpeculationPolicy.resolve(enabled, inheriting: mtp))
+        RuntimeConfig(
+            generation: generation,
+            concurrency: concurrency,
+            mtp: AgentSpeculationPolicy.resolve(enabled, inheriting: mtp)
+        )
     }
 
     func withPreparedMTP(_ settings: VMLXServerMTPSettings) -> RuntimeConfig {

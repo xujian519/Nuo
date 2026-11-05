@@ -188,7 +188,7 @@ public final class AgentTaskState {
     /// URL batch cannot produce page evidence and previously shifted a search
     /// loop into an extraction loop.
     private static let deterministicAsIsFailureTools: Set<String> = [
-        "search_and_extract",
+        "search_and_extract"
     ]
 
     /// Error kinds eligible for held-error replay. Both depend only on the
@@ -792,9 +792,11 @@ public final class AgentTaskState {
         if Self.deterministicErrorTools.contains(name)
             || Self.deterministicAsIsFailureTools.contains(name)
         {
-            let holdsByKind = Self.errorKind(result).map(Self.deterministicErrorKinds.contains)
+            let holdsByKind =
+                Self.errorKind(result).map(Self.deterministicErrorKinds.contains)
                 ?? false
-            let holdsAsIs = Self.deterministicAsIsFailureTools.contains(name)
+            let holdsAsIs =
+                Self.deterministicAsIsFailureTools.contains(name)
                 && Self.errorRetryable(result) == false
             if ToolEnvelope.isError(result), holdsByKind || holdsAsIs {
                 heldErrors[sig] = HeldError(
@@ -1538,10 +1540,12 @@ public final class AgentTaskState {
     /// receipt's actual restored paths, not the requested scope (which may conflict).
     private func invalidateResultsUndone(by payload: [String: Any]) {
         guard let undone = payload["undone"] as? [[String: Any]] else { return }
-        let targets = Set(undone.flatMap { entry in
-            [entry["path"] as? String, entry["destination_path"] as? String]
-                .compactMap { $0 }.map(Self.canonicalPath)
-        })
+        let targets = Set(
+            undone.flatMap { entry in
+                [entry["path"] as? String, entry["destination_path"] as? String]
+                    .compactMap { $0 }.map(Self.canonicalPath)
+            }
+        )
         guard !targets.isEmpty else { return }
         freshReads = freshReads.filter {
             !Self.searchLikeTools.contains($0.key.name) && !targets.contains($0.value.canonicalPath)

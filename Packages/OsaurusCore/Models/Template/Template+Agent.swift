@@ -49,11 +49,14 @@ extension Template {
         actions: [TemplateAction]? = nil
     ) {
         self.init(
-            name: name, summary: summary,
+            name: name,
+            summary: summary,
             author: author.map { TemplateAuthor(name: $0) },
-            createdAt: createdAt, availableToOrchestrator: availableToOrchestrator,
+            createdAt: createdAt,
+            availableToOrchestrator: availableToOrchestrator,
             requirements: requirements,
-            payload: .agent(AgentTemplatePayload(agent: agent, actions: actions)))
+            payload: .agent(AgentTemplatePayload(agent: agent, actions: actions))
+        )
     }
 
     /// The name to offer on import. When the envelope name collides and a
@@ -238,9 +241,10 @@ extension Template {
             reqs.permissions.append(SystemPermission.automation.rawValue)
         }
 
-        let displayName = (name?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap {
-            $0.isEmpty ? nil : $0
-        } ?? agent.name
+        let displayName =
+            (name?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap {
+                $0.isEmpty ? nil : $0
+            } ?? agent.name
         var template = Template(
             id: id ?? agent.sourceTemplateID ?? UUID(),
             name: displayName,
@@ -250,7 +254,11 @@ extension Template {
             requirements: reqs,
             payload: .agent(
                 AgentTemplatePayload(
-                    agent: entry, actions: agent.chatQuickActions?.map(TemplateAction.init))))
+                    agent: entry,
+                    actions: agent.chatQuickActions?.map(TemplateAction.init)
+                )
+            )
+        )
         template = template.renamed(to: displayName)
         return template.sealed()
     }

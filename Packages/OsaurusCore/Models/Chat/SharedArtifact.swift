@@ -553,7 +553,9 @@ extension SharedArtifact {
             do { try fm.copyItem(at: source, to: dest) } catch {
                 NSLog(
                     "[SharedArtifact] adopt copy failed %@ → %@: %@",
-                    source.path, dest.path, error.localizedDescription
+                    source.path,
+                    dest.path,
+                    error.localizedDescription
                 )
                 return nil
             }

@@ -60,8 +60,8 @@ struct PinnedFactsPanel: View {
                         ? L("\(filteredFacts.count) of 1 fact")
                         : L("\(filteredFacts.count) of \(facts.count) facts")
                 )
-                    .font(.system(size: 10))
-                    .foregroundColor(theme.tertiaryText)
+                .font(.system(size: 10))
+                .foregroundColor(theme.tertiaryText)
                 Spacer()
             }
 

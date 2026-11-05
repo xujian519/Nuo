@@ -8,9 +8,9 @@
 import Foundation
 import CryptoKit
 #if canImport(Darwin)
-import Darwin
+    import Darwin
 #elseif canImport(Glibc)
-import Glibc
+    import Glibc
 #endif
 
 public enum PluginInstallError: Error, CustomStringConvertible, LocalizedError {

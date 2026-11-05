@@ -532,8 +532,7 @@ public enum AgentLoopRegressionLab {
 
         for named in set.reports.sorted(by: { $0.name < $1.name }) {
             for row in named.report.cases
-            where AgentLoopRegressionDefaults.trackedDomains.contains(row.domain)
-            {
+            where AgentLoopRegressionDefaults.trackedDomains.contains(row.domain) {
                 let snapshot = AgentLoopRegressionCaseSnapshot(suite: named.name, row: row)
                 cases.append(snapshot)
                 if let existing = byId[snapshot.id] {
@@ -622,7 +621,8 @@ public enum AgentLoopRegressionLabError: Error, LocalizedError, Equatable {
         case .noSelectedCases(let path):
             return "suite selection has no cases: \(path)"
         case .nonAgentLoopCases(let ids):
-            return "agent-loop lab only accepts agent_loop and subagent cases; unsupported cases: \(ids.joined(separator: ", "))"
+            return
+                "agent-loop lab only accepts agent_loop and subagent cases; unsupported cases: \(ids.joined(separator: ", "))"
         }
     }
 }

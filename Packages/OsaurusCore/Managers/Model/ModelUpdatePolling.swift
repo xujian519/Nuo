@@ -46,7 +46,9 @@ struct ModelUpdatePollingSchedule: Codable {
                     "required_osaurus_version": remote.requiredOsaurusVersion ?? "",
                     "model_version": remote.modelVersion ?? "",
                 ])
-            } else { manifest = nil }
+            } else {
+                manifest = nil
+            }
             error = check.error
             checkedAt = check.checkedAt
         }
@@ -59,9 +61,13 @@ struct ModelUpdatePollingSchedule: Codable {
                 if let manifest {
                     guard let parsed = try? ModelManifest.decode(manifest) else { return nil }
                     decoded = parsed
-                } else { decoded = nil }
+                } else {
+                    decoded = nil
+                }
                 remote = .init(revision: revision, manifest: decoded)
-            } else { remote = nil }
+            } else {
+                remote = nil
+            }
             return ModelManifestCheck(local: local, remote: remote, error: error, checkedAt: checkedAt)
         }
     }
@@ -143,8 +149,10 @@ extension ModelManager {
                 guard !Task.isCancelled else { return }
                 let repositoryKey = model.id.lowercased()
                 if self.manifestChecks[repositoryKey] == nil,
-                    let observation = schedule.attempts[repositoryKey]?.observation {
-                    let local = await Task.detached(priority: .utility) { ModelManifest.read(at: model.localDirectory) }.value
+                    let observation = schedule.attempts[repositoryKey]?.observation
+                {
+                    let local = await Task.detached(priority: .utility) { ModelManifest.read(at: model.localDirectory) }
+                        .value
                     guard !Task.isCancelled else { return }
                     // A manual check may finish while the local read is suspended.
                     // Never replace that newer observation with persisted state.
@@ -156,14 +164,17 @@ extension ModelManager {
                 let started = Date()
                 // Old schedules lacked observations. Check once to restore the
                 // missing status rather than hiding a badge for six hours.
-                guard self.manifestChecks[repositoryKey] == nil || schedule.isDue(model.id, at: started) else { continue }
+                guard self.manifestChecks[repositoryKey] == nil || schedule.isDue(model.id, at: started) else {
+                    continue
+                }
                 guard !self.manifestChecksInFlight.contains(model.id.lowercased()) else { continue }
                 // Reuse manual/list check coalescing and its short TTL too.
                 await self.checkModelManifest(model)
                 guard !Task.isCancelled, self.automaticallyChecksModelUpdates else { return }
                 guard let result = self.manifestChecks[model.id.lowercased()] else { continue }
                 schedule.record(
-                    model.id, at: result.checkedAt,
+                    model.id,
+                    at: result.checkedAt,
                     succeeded: result.error == nil && result.remote != nil,
                     observation: .init(result)
                 )

@@ -98,8 +98,10 @@ final class IsolatedPasteboard: PasteboardReading, @unchecked Sendable {
             guard PasteboardCopyItemFlavors(ref, item, &flavors) == noErr,
                 let flavors,
                 CFArrayContainsValue(
-                    flavors, CFRange(location: 0, length: CFArrayGetCount(flavors)),
-                    Unmanaged.passUnretained(flavor).toOpaque())
+                    flavors,
+                    CFRange(location: 0, length: CFArrayGetCount(flavors)),
+                    Unmanaged.passUnretained(flavor).toOpaque()
+                )
             else { continue }
             var data: CFData?
             guard PasteboardCopyItemFlavorData(ref, item, flavor, &data) == noErr, let data else { continue }

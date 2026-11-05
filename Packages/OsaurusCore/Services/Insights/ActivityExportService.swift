@@ -247,7 +247,9 @@ enum ActivityExportService {
                 byDest[key] = e
             }
             for e in byDest.values.sorted(by: { $0.count > $1.count }) {
-                md.append("| \(mdEscape(e.label)) | \(mdEscape(e.host)) | \(e.count) | \(ActivitySummary.formattedBytes(e.bytes)) | \(e.errors) |")
+                md.append(
+                    "| \(mdEscape(e.label)) | \(mdEscape(e.host)) | \(e.count) | \(ActivitySummary.formattedBytes(e.bytes)) | \(e.errors) |"
+                )
             }
             md.append("")
         }
@@ -270,7 +272,10 @@ enum ActivityExportService {
             }
             let where_ = r.locality == .remote ? "☁️ Cloud → \(r.destinationDisplay)" : "💻 Local"
             let status = r.isError ? "FAILED" : "ok"
-            md.append("- **\(timeFormatter.string(from: r.timestamp))** · \(r.category.displayName) · \(where_) · \(mdEscape(r.title)) · \(status) · \(r.formattedDuration)" + (r.seq.map { " · #\($0)" } ?? ""))
+            md.append(
+                "- **\(timeFormatter.string(from: r.timestamp))** · \(r.category.displayName) · \(where_) · \(mdEscape(r.title)) · \(status) · \(r.formattedDuration)"
+                    + (r.seq.map { " · #\($0)" } ?? "")
+            )
             var facts: [String] = []
             facts.append("source: \(r.source.rawValue)")
             if let model = r.model { facts.append("model: \(model)") }
@@ -279,7 +284,9 @@ enum ActivityExportService {
             if let e = r.egress {
                 if let b = e.bytesSent { facts.append("sent: \(ActivitySummary.formattedBytes(b))") }
                 if !e.dataClasses.isEmpty { facts.append("data: \(e.dataClasses.joined(separator: ", "))") }
-                if e.privacyFilterApplied { facts.append("privacy filter: \(e.redactedSpanCount ?? 0) span(s) redacted") }
+                if e.privacyFilterApplied {
+                    facts.append("privacy filter: \(e.redactedSpanCount ?? 0) span(s) redacted")
+                }
                 for (k, v) in e.details.sorted(by: { $0.key < $1.key }) where !v.isEmpty {
                     facts.append("\(k): \(mdEscape(String(v.prefix(300))))")
                 }
@@ -297,7 +304,9 @@ enum ActivityExportService {
                 md.append("  ```")
                 md.append("  </details>")
             }
-            if r.hasStoredContent, let body = r.responseBody, !RequestLog.isWithheldContent(body), r.category != .pluginLog {
+            if r.hasStoredContent, let body = r.responseBody, !RequestLog.isWithheldContent(body),
+                r.category != .pluginLog
+            {
                 md.append("  <details><summary>Response</summary>")
                 md.append("")
                 md.append("  ```")
@@ -326,7 +335,9 @@ enum ActivityExportService {
         if !f.text.isEmpty { parts.append("text \"\(f.text)\"") }
         if f.dateRange != .all { parts.append(f.dateRange.displayName) }
         if let l = f.locality { parts.append(l == .local ? "local only" : "cloud only") }
-        if !f.categories.isEmpty { parts.append("categories: " + f.categories.map(\.rawValue).sorted().joined(separator: ", ")) }
+        if !f.categories.isEmpty {
+            parts.append("categories: " + f.categories.map(\.rawValue).sorted().joined(separator: ", "))
+        }
         if !f.sources.isEmpty { parts.append("sources: " + f.sources.map(\.rawValue).sorted().joined(separator: ", ")) }
         if let h = f.destinationHost { parts.append("destination \(h)") }
         if let m = f.model { parts.append("model \(m)") }

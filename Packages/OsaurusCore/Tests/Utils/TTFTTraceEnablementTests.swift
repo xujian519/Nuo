@@ -14,8 +14,10 @@ struct TTFTTraceEnablementTests {
     @Test("an explicit on wins in any configuration")
     func explicitOnEnables() {
         for value in ["1", "true", "yes", "on", "YES"] {
-            #expect(TTFTTrace.isEnabled(environment: ["OSAURUS_TTFT_TRACE": value]),
-                "\(value) should enable")
+            #expect(
+                TTFTTrace.isEnabled(environment: ["OSAURUS_TTFT_TRACE": value]),
+                "\(value) should enable"
+            )
             #expect(TTFTTrace.makeIfEnabled(environment: ["OSAURUS_TTFT_TRACE": value]) != nil)
         }
     }
@@ -23,8 +25,10 @@ struct TTFTTraceEnablementTests {
     @Test("an explicit off wins in any configuration")
     func explicitOffDisables() {
         for value in ["0", "false", "no", "off", "OFF", ""] {
-            #expect(!TTFTTrace.isEnabled(environment: ["OSAURUS_TTFT_TRACE": value]),
-                "\(value.debugDescription) should disable")
+            #expect(
+                !TTFTTrace.isEnabled(environment: ["OSAURUS_TTFT_TRACE": value]),
+                "\(value.debugDescription) should disable"
+            )
             #expect(TTFTTrace.makeIfEnabled(environment: ["OSAURUS_TTFT_TRACE": value]) == nil)
         }
     }

@@ -101,7 +101,9 @@ struct MCPServerHubTests {
 
         let prioritized = snapshot.reports.first { $0.provider.id == failed.id }?.prioritizedDiagnostics
         #expect(prioritized?.rows.first?.severity == .blocked)
-        #expect(prioritized?.rows.count == snapshot.reports.first { $0.provider.id == failed.id }?.diagnostics.rows.count)
+        #expect(
+            prioritized?.rows.count == snapshot.reports.first { $0.provider.id == failed.id }?.diagnostics.rows.count
+        )
     }
 
     @Test func failedProbeMakesEnabledProviderNeedAttention() {

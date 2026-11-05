@@ -79,7 +79,8 @@ enum ModelPrefillTuningStore {
         var records: [String: Record] = [:]
         if let mtime,
             let data = try? Data(contentsOf: url),
-            let decoded = try? JSONDecoder().decode([String: Record].self, from: data) {
+            let decoded = try? JSONDecoder().decode([String: Record].self, from: data)
+        {
             records = decoded
             tuningLog.info(
                 "loaded \(records.count, privacy: .public) prefill tuning record(s) (mtime \(mtime.ISO8601Format(), privacy: .public))"
@@ -97,14 +98,17 @@ enum ModelPrefillTuningStore {
         let url = fileURL
         var records: [String: Record] = [:]
         if let data = try? Data(contentsOf: url),
-            let decoded = try? JSONDecoder().decode([String: Record].self, from: data) {
+            let decoded = try? JSONDecoder().decode([String: Record].self, from: data)
+        {
             records = decoded
         }
         records[modelName] = record
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         try FileManager.default.createDirectory(
-            at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
         try encoder.encode(records).write(to: url, options: .atomic)
     }
 

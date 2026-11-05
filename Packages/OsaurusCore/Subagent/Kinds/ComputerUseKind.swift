@@ -234,7 +234,8 @@ final class ComputerUseKind: SubagentKind, SubagentPostAdmissionResidencyPlannin
         guard evalHarness == nil else { return }
         let refusal = await MainActor.run {
             Self.authorizationRefusal(
-                agentId: scope.agentId, agent: AgentManager.shared.agent(for: scope.agentId)
+                agentId: scope.agentId,
+                agent: AgentManager.shared.agent(for: scope.agentId)
             )
         }
         if let refusal {

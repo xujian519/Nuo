@@ -166,10 +166,14 @@ struct SkillManagerResolutionTests {
             instructions: "Use the reference materials."
         )
         try? await SkillStore.addReference(
-            to: created, name: "alpha.md", content: Data(small.utf8)
+            to: created,
+            name: "alpha.md",
+            content: Data(small.utf8)
         )
         try? await SkillStore.addReference(
-            to: created, name: "big.md", content: Data(large.utf8)
+            to: created,
+            name: "big.md",
+            content: Data(large.utf8)
         )
         await SkillManager.shared.refresh()
         return SkillManager.shared.skill(for: created.id) ?? created

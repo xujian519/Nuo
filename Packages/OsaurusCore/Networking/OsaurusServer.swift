@@ -46,7 +46,9 @@ public actor OsaurusServer: Sendable {
         public var agentKeyPath: AgentKeyPath?
         public var trustLoopback: Bool
         public init(
-            host: String = "127.0.0.1", port: Int = 1337, agentKeyPath: AgentKeyPath? = nil,
+            host: String = "127.0.0.1",
+            port: Int = 1337,
+            agentKeyPath: AgentKeyPath? = nil,
             trustLoopback: Bool = true
         ) {
             self.host = host

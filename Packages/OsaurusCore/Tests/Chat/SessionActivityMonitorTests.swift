@@ -48,7 +48,8 @@ struct SessionActivityMonitorTests {
         let list = [activeNewer, pinnedNewer, rest, activeOlder, pinnedOlder]
 
         let ordered = SessionActivityOrdering.ordered(
-            list, activeIds: [activeNewer.id, activeOlder.id]
+            list,
+            activeIds: [activeNewer.id, activeOlder.id]
         )
 
         #expect(

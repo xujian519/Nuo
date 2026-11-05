@@ -113,10 +113,11 @@ struct ActivityLogSettingsTests {
         let store = ActivityLogStore()
         try store.openInMemory()
         try store.append(
-            RequestLog(source: .chatUI, method: "POST", path: "/chat/completions", statusCode: 200, durationMs: 1))
+            RequestLog(source: .chatUI, method: "POST", path: "/chat/completions", statusCode: 200, durationMs: 1)
+        )
         let service = InsightsService(store: store, openStore: false)
         service.verify()
-        for _ in 0..<40 where service.isVerifying {
+        for _ in 0 ..< 40 where service.isVerifying {
             try await Task.sleep(nanoseconds: 25_000_000)
         }
         let result = try #require(service.lastVerification)

@@ -9,8 +9,12 @@ struct ModelRuntimeDFlashLifecycleTests {
         let path = URL(fileURLWithPath: "/tmp/dflash-lifecycle/model/dflash2")
         #expect(ModelRuntime.shouldEvictDFlashDrafter(retiredPath: path, residentPaths: []))
         #expect(!ModelRuntime.shouldEvictDFlashDrafter(retiredPath: path, residentPaths: [path]))
-        #expect(ModelRuntime.shouldEvictDFlashDrafter(
-            retiredPath: path, residentPaths: [URL(fileURLWithPath: "/tmp/dflash-lifecycle/other/dflash2")]))
+        #expect(
+            ModelRuntime.shouldEvictDFlashDrafter(
+                retiredPath: path,
+                residentPaths: [URL(fileURLWithPath: "/tmp/dflash-lifecycle/other/dflash2")]
+            )
+        )
     }
 
     @Test func symlinkAliasStillOwnsTheSameDrafter() throws {
@@ -25,12 +29,15 @@ struct ModelRuntimeDFlashLifecycleTests {
     }
 
     @Test func evictionIsInsideDrainedTeardownAndOutsideQuitPath() throws {
-        let source = try String(contentsOf: URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent("Services/ModelRuntime.swift"), encoding: .utf8)
+        let source = try String(
+            contentsOf: URL(fileURLWithPath: #filePath)
+                .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+                .appendingPathComponent("Services/ModelRuntime.swift"),
+            encoding: .utf8
+        )
         let unloadStart = try #require(source.range(of: "private func unloadClaimed("))
         let unloadEnd = try #require(source.range(of: "nonisolated static func shouldEvictDFlashDrafter("))
-        let unload = String(source[unloadStart.lowerBound..<unloadEnd.lowerBound])
+        let unload = String(source[unloadStart.lowerBound ..< unloadEnd.lowerBound])
         let synchronize = try #require(unload.range(of: "Stream.gpu.synchronize()"))
         let evict = try #require(unload.range(of: "DFlash2DrafterResolver.shared.evict(path:"))
         #expect(synchronize.lowerBound < evict.lowerBound)
@@ -38,7 +45,7 @@ struct ModelRuntimeDFlashLifecycleTests {
         let clear = String(source[clearStart.lowerBound...])
         let quit = try #require(clear.range(of: "if quit {\n            if hasStuckLease"))
         let gate = try #require(clear.range(of: "// Normal (non-quit) teardown"))
-        #expect(!clear[quit.lowerBound..<gate.lowerBound].contains("DFlash2DrafterResolver"))
+        #expect(!clear[quit.lowerBound ..< gate.lowerBound].contains("DFlash2DrafterResolver"))
         let evictAll = try #require(clear.range(of: "DFlash2DrafterResolver.shared.evictAll()"))
         #expect(gate.lowerBound < evictAll.lowerBound)
     }

@@ -910,8 +910,10 @@ struct MessageDeltaEvent: Codable, Sendable {
         self.type = "message_delta"
         self.delta = MessageDelta(stop_reason: stopReason, stop_sequence: nil)
         self.usage = MessageDeltaUsage(
-            output_tokens: outputTokens, input_tokens: inputTokens,
-            cache_read_input_tokens: cacheReadInputTokens)
+            output_tokens: outputTokens,
+            input_tokens: inputTokens,
+            cache_read_input_tokens: cacheReadInputTokens
+        )
     }
 }
 
@@ -997,11 +999,19 @@ extension AnthropicMessagesRequest {
         let systemBlocks: [AnthropicContentBlock]
         if let system, case .blocks(let blocks) = system { systemBlocks = blocks } else { systemBlocks = [] }
         let misplaced = systemBlocks + messages.filter { $0.role != "assistant" }.flatMap { $0.content.blocks }
-        guard !misplaced.contains(where: {
-            switch $0 { case .thinking, .redactedThinking: return true; default: return false }
-        }) else {
-            throw NSError(domain: "OsaurusAnthropicRequest", code: 400,
-                userInfo: [NSLocalizedDescriptionKey: "Thinking blocks must belong to an assistant message."])
+        guard
+            !misplaced.contains(where: {
+                switch $0 {
+                case .thinking, .redactedThinking: return true;
+                default: return false
+                }
+            })
+        else {
+            throw NSError(
+                domain: "OsaurusAnthropicRequest",
+                code: 400,
+                userInfo: [NSLocalizedDescriptionKey: "Thinking blocks must belong to an assistant message."]
+            )
         }
         return ResponsesInferenceRequest(chatCompletion: toChatCompletionRequest())
     }
@@ -1084,10 +1094,16 @@ extension AnthropicMessagesRequest {
                     }
                 }
 
-                openAIMessages.append(ChatMessage(role: "assistant", content: textContent.isEmpty ? nil : textContent,
-                    tool_calls: toolCalls.isEmpty ? nil : toolCalls, tool_call_id: nil,
-                    reasoning_content: reasoning.isEmpty ? nil : reasoning,
-                    anthropic_thinking_blocks: thinkingBlocks.isEmpty ? nil : thinkingBlocks))
+                openAIMessages.append(
+                    ChatMessage(
+                        role: "assistant",
+                        content: textContent.isEmpty ? nil : textContent,
+                        tool_calls: toolCalls.isEmpty ? nil : toolCalls,
+                        tool_call_id: nil,
+                        reasoning_content: reasoning.isEmpty ? nil : reasoning,
+                        anthropic_thinking_blocks: thinkingBlocks.isEmpty ? nil : thinkingBlocks
+                    )
+                )
             default:
                 openAIMessages.append(ChatMessage(role: msg.role, content: msg.content.plainText))
             }

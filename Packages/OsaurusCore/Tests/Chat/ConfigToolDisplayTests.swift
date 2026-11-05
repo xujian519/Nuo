@@ -21,56 +21,90 @@ struct ConfigToolDisplayTests {
     func configLabelFollowsAction() {
         #expect(
             ToolDisplayName.friendly(
-                for: "osaurus_config", running: true, arguments: #"{"action": "apply"}"#)
-                == L("Applying configuration changes"))
+                for: "osaurus_config",
+                running: true,
+                arguments: #"{"action": "apply"}"#
+            )
+                == L("Applying configuration changes")
+        )
         #expect(
             ToolDisplayName.friendly(
-                for: "osaurus_config", running: false, arguments: #"{"action": "apply"}"#)
-                == L("Applied configuration changes"))
+                for: "osaurus_config",
+                running: false,
+                arguments: #"{"action": "apply"}"#
+            )
+                == L("Applied configuration changes")
+        )
         #expect(
             ToolDisplayName.friendly(
-                for: "osaurus_config", running: true, arguments: #"{"action": "plan"}"#)
-                == L("Planning configuration changes"))
+                for: "osaurus_config",
+                running: true,
+                arguments: #"{"action": "plan"}"#
+            )
+                == L("Planning configuration changes")
+        )
         #expect(
             ToolDisplayName.friendly(
-                for: "osaurus_config", running: false, arguments: #"{"action": "export"}"#)
-                == L("Exported Nuo configuration"))
+                for: "osaurus_config",
+                running: false,
+                arguments: #"{"action": "export"}"#
+            )
+                == L("Exported Nuo configuration")
+        )
     }
 
     @Test("osaurus_config chip label degrades cleanly without arguments")
     func configLabelWithoutAction() {
         #expect(
             ToolDisplayName.friendly(for: "osaurus_config", running: true)
-                == L("Configuring Nuo"))
+                == L("Configuring Nuo")
+        )
         #expect(
             ToolDisplayName.friendly(for: "osaurus_config", running: false, arguments: "not json")
-                == L("Configured Nuo"))
+                == L("Configured Nuo")
+        )
     }
 
     @Test("osaurus_inspect chip label follows the action argument")
     func inspectLabelFollowsAction() {
         #expect(
             ToolDisplayName.friendly(
-                for: "osaurus_inspect", running: true, arguments: #"{"action": "status"}"#)
-                == L("Checking Nuo status"))
+                for: "osaurus_inspect",
+                running: true,
+                arguments: #"{"action": "status"}"#
+            )
+                == L("Checking Nuo status")
+        )
         #expect(
             ToolDisplayName.friendly(
-                for: "osaurus_inspect", running: false, arguments: #"{"action": "list"}"#)
-                == L("Listed Nuo items"))
+                for: "osaurus_inspect",
+                running: false,
+                arguments: #"{"action": "list"}"#
+            )
+                == L("Listed Nuo items")
+        )
         #expect(
             ToolDisplayName.friendly(
-                for: "osaurus_inspect", running: false, arguments: #"{"action": "describe"}"#)
-                == L("Inspected a Nuo item"))
+                for: "osaurus_inspect",
+                running: false,
+                arguments: #"{"action": "describe"}"#
+            )
+                == L("Inspected a Nuo item")
+        )
         #expect(
             ToolDisplayName.friendly(for: "osaurus_inspect", running: true)
-                == L("Inspecting Nuo"))
+                == L("Inspecting Nuo")
+        )
     }
 
     @Test("failed completed config call still reads as a failure")
     func failedConfigCall() {
         let title = ToolDisplayName.friendly(
-            for: "osaurus_config", running: false,
-            arguments: #"{"action": "apply"}"#, failed: true)
+            for: "osaurus_config",
+            running: false,
+            arguments: #"{"action": "apply"}"#,
+            failed: true
+        )
         #expect(title == String(format: L("Failed: %@"), "Nuo config"))
     }
 
@@ -148,6 +182,7 @@ struct ConfigToolDisplayTests {
         #expect(
             NativeToolCallRowView.markdownForConfigResult([
                 "results": [["path": "/tmp/x", "type": "file"]]
-            ]) == nil)
+            ]) == nil
+        )
     }
 }

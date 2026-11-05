@@ -345,7 +345,8 @@ enum AgentSubagentRunner {
                             reasoning_encrypted: outcome.reasoningEncrypted,
                             responses_output_items: outcome.providerOutputItems.isEmpty
                                 ? nil : outcome.providerOutputItems,
-                            anthropic_thinking_blocks: outcome.anthropicThinkingBlocks.isEmpty ? nil : outcome.anthropicThinkingBlocks
+                            anthropic_thinking_blocks: outcome.anthropicThinkingBlocks.isEmpty
+                                ? nil : outcome.anthropicThinkingBlocks
                         )
                     )
                     return .toolCalls(

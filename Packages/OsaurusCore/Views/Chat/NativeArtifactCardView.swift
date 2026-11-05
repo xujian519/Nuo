@@ -813,7 +813,9 @@ final class NativeArtifactCardView: NSView {
     @objc private func openArtifactWithDefaultApp() {
         guard !hostPath.isEmpty else { return }
         NSWorkspace.shared.open(
-            URL(fileURLWithPath: hostPath), configuration: NSWorkspace.OpenConfiguration())
+            URL(fileURLWithPath: hostPath),
+            configuration: NSWorkspace.OpenConfiguration()
+        )
     }
 
     @objc private func artifactImagePreviewTapped() {

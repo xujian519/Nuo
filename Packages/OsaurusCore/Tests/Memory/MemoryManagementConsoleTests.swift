@@ -240,7 +240,9 @@ struct MemoryManagementConsoleTests {
         #expect(health.processingStats.deadLetterCount == 1)
         #expect(health.diagnostics.contains("Distillation recorded 1 error row."))
         #expect(health.diagnostics.contains("Distillation recorded 1 empty result row."))
-        #expect(health.diagnostics.contains("Some memory signals were dead-lettered after repeated distillation failures."))
+        #expect(
+            health.diagnostics.contains("Some memory signals were dead-lettered after repeated distillation failures.")
+        )
     }
 
     @Test func diagnosticsStayHealthyWithRecoveredErrorAndEmptyHistory() async throws {

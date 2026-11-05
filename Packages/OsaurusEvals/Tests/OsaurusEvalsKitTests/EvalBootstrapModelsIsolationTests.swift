@@ -37,7 +37,9 @@ struct EvalBootstrapModelsIsolationTests {
         let fm = FileManager.default
         let root = fm.temporaryDirectory
             .appendingPathComponent(
-                "models-isolation-eval-\(UUID().uuidString)", isDirectory: true)
+                "models-isolation-eval-\(UUID().uuidString)",
+                isDirectory: true
+            )
         try fm.createDirectory(at: root, withIntermediateDirectories: true)
         return root
     }
@@ -94,7 +96,8 @@ struct EvalBootstrapModelsIsolationTests {
 
         #expect(!fm.fileExists(atPath: isolatedModel.path))
         let realWeights = real.appendingPathComponent(
-            "OsaurusAI/Fixture-9B-MXFP8/model.safetensors")
+            "OsaurusAI/Fixture-9B-MXFP8/model.safetensors"
+        )
         #expect(try String(contentsOf: realWeights, encoding: .utf8) == "fake weights")
     }
 

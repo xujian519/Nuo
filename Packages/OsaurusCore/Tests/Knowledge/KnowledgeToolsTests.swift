@@ -137,9 +137,12 @@ struct KnowledgeToolsTests {
             let sibling = collection("Runbooks")
             #expect(
                 KnowledgeToolScope.match(collectionName: name.lowercased(), in: [real, sibling]) == .one(real),
-                "'\(name)' is a granted collection: exact name must beat the generic alias")
-            #expect(KnowledgeToolScope.match(collectionName: name, in: [sibling]) == .all,
-                "'\(name)' with no such collection granted is still the generic alias")
+                "'\(name)' is a granted collection: exact name must beat the generic alias"
+            )
+            #expect(
+                KnowledgeToolScope.match(collectionName: name, in: [sibling]) == .all,
+                "'\(name)' with no such collection granted is still the generic alias"
+            )
         }
     }
 
@@ -230,13 +233,16 @@ struct KnowledgeToolsTests {
     func listingHeaderStatesTotalWhenPaged() {
         #expect(
             ListKnowledgeTool.listingHeader(total: 3, returned: 3, offset: 0)
-                == "Found 3 knowledge document(s):")
+                == "Found 3 knowledge document(s):"
+        )
         #expect(
             ListKnowledgeTool.listingHeader(total: 312, returned: 100, offset: 0)
-                == "Found 312 knowledge document(s) in total; showing 1–100 (offset 0):")
+                == "Found 312 knowledge document(s) in total; showing 1–100 (offset 0):"
+        )
         #expect(
             ListKnowledgeTool.listingHeader(total: 312, returned: 12, offset: 300)
-                == "Found 312 knowledge document(s) in total; showing 301–312 (offset 300):")
+                == "Found 312 knowledge document(s) in total; showing 301–312 (offset 300):"
+        )
     }
 
     @Test

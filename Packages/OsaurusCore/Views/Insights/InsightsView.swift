@@ -146,7 +146,9 @@ struct InsightsView: View {
                 Button(action: { insightsService.verify() }) {
                     Label(L("Verify Integrity"), systemImage: "checkmark.shield")
                 }
-                .disabled(!insightsService.hasLogs || insightsService.isVerifying || insightsService.activityStore == nil)
+                .disabled(
+                    !insightsService.hasLogs || insightsService.isVerifying || insightsService.activityStore == nil
+                )
                 Divider()
                 Button(role: .destructive, action: { showClearConfirmation = true }) {
                     Label(L("Clear Activity Log…"), systemImage: "trash")
@@ -174,7 +176,10 @@ struct InsightsView: View {
                 InlineNotice(
                     icon: "exclamationmark.triangle.fill",
                     tint: .orange,
-                    text: String(format: L("Activity log storage is unavailable (%@). Showing this session only."), error)
+                    text: String(
+                        format: L("Activity log storage is unavailable (%@). Showing this session only."),
+                        error
+                    )
                 )
             }
             if showVerification, let v = insightsService.lastVerification {
@@ -215,7 +220,9 @@ struct InsightsView: View {
                 }
                 Spacer()
                 Button(action: { withAnimation { showVerification = false } }) {
-                    Image(systemName: "xmark").font(.system(size: 10, weight: .semibold)).foregroundColor(theme.tertiaryText)
+                    Image(systemName: "xmark").font(.system(size: 10, weight: .semibold)).foregroundColor(
+                        theme.tertiaryText
+                    )
                 }
                 .buttonStyle(.plain)
             }
@@ -343,15 +350,20 @@ struct InsightsView: View {
 
     private var emptyStateView: some View {
         VStack(spacing: 16) {
-            Image(systemName: insightsService.filter.isEmpty ? "list.bullet.clipboard" : "line.3.horizontal.decrease.circle")
-                .font(.system(size: 48))
-                .foregroundColor(theme.tertiaryText.opacity(0.3))
+            Image(
+                systemName: insightsService.filter.isEmpty
+                    ? "list.bullet.clipboard" : "line.3.horizontal.decrease.circle"
+            )
+            .font(.system(size: 48))
+            .foregroundColor(theme.tertiaryText.opacity(0.3))
             Text(insightsService.filter.isEmpty ? L("No Activity Yet") : L("Nothing Matches These Filters"))
                 .font(.system(size: 18, weight: .semibold, design: .rounded))
                 .foregroundColor(theme.secondaryText)
             Text(
                 insightsService.filter.isEmpty
-                    ? L("Chats, cloud requests, web searches, tool calls and API traffic will appear here as they happen.")
+                    ? L(
+                        "Chats, cloud requests, web searches, tool calls and API traffic will appear here as they happen."
+                    )
                     : L("Try widening the time range or clearing a filter.")
             )
             .font(.system(size: 13))
@@ -557,7 +569,9 @@ private struct InsightsGlanceStrip: View {
                 .background(
                     RoundedRectangle(cornerRadius: 8)
                         .fill(theme.secondaryBackground.opacity(0.5))
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(theme.primaryBorder.opacity(0.25), lineWidth: 1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8).stroke(theme.primaryBorder.opacity(0.25), lineWidth: 1)
+                        )
                 )
             }
         }
@@ -665,10 +679,16 @@ private struct GlanceTile: View {
         .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .fill(isActive ? theme.accentColor.opacity(0.10) : theme.secondaryBackground.opacity(isHovering ? 0.8 : 0.5))
+                .fill(
+                    isActive
+                        ? theme.accentColor.opacity(0.10) : theme.secondaryBackground.opacity(isHovering ? 0.8 : 0.5)
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
-                        .stroke(isActive ? theme.accentColor.opacity(0.5) : theme.primaryBorder.opacity(0.25), lineWidth: 1)
+                        .stroke(
+                            isActive ? theme.accentColor.opacity(0.5) : theme.primaryBorder.opacity(0.25),
+                            lineWidth: 1
+                        )
                 )
         )
         .contentShape(RoundedRectangle(cornerRadius: 10))
@@ -711,7 +731,9 @@ private struct InsightsToolbar: View {
                     .fixedSize()
             }
 
-            let tokens = ActivityFilterToken.tokens(for: filter.wrappedValue).filter { $0.kind != .dateRange && $0.kind != .text }
+            let tokens = ActivityFilterToken.tokens(for: filter.wrappedValue).filter {
+                $0.kind != .dateRange && $0.kind != .text
+            }
             if !tokens.isEmpty {
                 FlowLayout(spacing: 6) {
                     ForEach(tokens) { token in
@@ -746,7 +768,11 @@ private struct InsightsToolbar: View {
                         .foregroundColor(isSelected ? .white : theme.secondaryText)
                         .padding(.horizontal, 9)
                         .padding(.vertical, 5)
-                        .background(RoundedRectangle(cornerRadius: 5).fill(isSelected ? theme.accentColor.opacity(0.9) : Color.clear))
+                        .background(
+                            RoundedRectangle(cornerRadius: 5).fill(
+                                isSelected ? theme.accentColor.opacity(0.9) : Color.clear
+                            )
+                        )
                         .contentShape(RoundedRectangle(cornerRadius: 5))
                 }
                 .buttonStyle(.plain)
@@ -760,7 +786,9 @@ private struct InsightsToolbar: View {
     private var filterButton: some View {
         // Date range and search are visible in the row itself; the badge counts
         // only what is hidden behind the popover.
-        let hidden = ActivityFilterToken.tokens(for: filter.wrappedValue).filter { $0.kind != .dateRange && $0.kind != .text }.count
+        let hidden = ActivityFilterToken.tokens(for: filter.wrappedValue).filter {
+            $0.kind != .dateRange && $0.kind != .text
+        }.count
         return Button(action: { showFilterPopover.toggle() }) {
             HStack(spacing: 5) {
                 Image(systemName: "line.3.horizontal.decrease").font(.system(size: 10, weight: .semibold))
@@ -896,7 +924,11 @@ private struct InsightsFilterPopover: View {
                     ForEach(RequestSource.allCases.filter { $0 != .system }, id: \.self) { source in
                         let isOn = filter.wrappedValue.sources.contains(source)
                         toggleChip(source.displayName, isOn: isOn) {
-                            if isOn { filter.wrappedValue.sources.remove(source) } else { filter.wrappedValue.sources.insert(source) }
+                            if isOn {
+                                filter.wrappedValue.sources.remove(source)
+                            } else {
+                                filter.wrappedValue.sources.insert(source)
+                            }
                         }
                     }
                 }
@@ -978,7 +1010,11 @@ private struct InsightsFilterPopover: View {
                         .foregroundColor(isSelected ? .white : theme.secondaryText)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 5)
-                        .background(RoundedRectangle(cornerRadius: 5).fill(isSelected ? theme.accentColor.opacity(0.9) : Color.clear))
+                        .background(
+                            RoundedRectangle(cornerRadius: 5).fill(
+                                isSelected ? theme.accentColor.opacity(0.9) : Color.clear
+                            )
+                        )
                         .contentShape(RoundedRectangle(cornerRadius: 5))
                 }
                 .buttonStyle(.plain)
@@ -1104,8 +1140,13 @@ private struct ActivityRow: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(log.title)
-                            .font(.system(size: 12, weight: .medium, design: usesMonospacedTitle ? .monospaced : .default))
-                            .foregroundColor(log.isError ? theme.errorColor : (log.isPluginLog ? pluginLevelColor : theme.primaryText))
+                            .font(
+                                .system(size: 12, weight: .medium, design: usesMonospacedTitle ? .monospaced : .default)
+                            )
+                            .foregroundColor(
+                                log.isError
+                                    ? theme.errorColor : (log.isPluginLog ? pluginLevelColor : theme.primaryText)
+                            )
                             .lineLimit(1)
                             .truncationMode(.middle)
                         secondaryLine
@@ -1240,14 +1281,19 @@ private struct ActivityExportSheet: View {
                 Text("Export Activity Log", bundle: .module)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(theme.primaryText)
-                Text("Choose a format for outside review. Every export includes a manifest with the chain position so a reviewer can verify it offline.", bundle: .module)
-                    .font(.system(size: 12))
-                    .foregroundColor(theme.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text(
+                    "Choose a format for outside review. Every export includes a manifest with the chain position so a reviewer can verify it offline.",
+                    bundle: .module
+                )
+                .font(.system(size: 12))
+                .foregroundColor(theme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("Format", bundle: .module).font(.system(size: 11, weight: .semibold)).foregroundColor(theme.tertiaryText)
+                Text("Format", bundle: .module).font(.system(size: 11, weight: .semibold)).foregroundColor(
+                    theme.tertiaryText
+                )
                 ForEach(ActivityExportFormat.allCases) { format in
                     Button(action: { options.format = format }) {
                         HStack(alignment: .top, spacing: 10) {
@@ -1255,7 +1301,9 @@ private struct ActivityExportSheet: View {
                                 .font(.system(size: 13))
                                 .foregroundColor(options.format == format ? theme.accentColor : theme.tertiaryText)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(format.displayName).font(.system(size: 12, weight: .medium)).foregroundColor(theme.primaryText)
+                                Text(format.displayName).font(.system(size: 12, weight: .medium)).foregroundColor(
+                                    theme.primaryText
+                                )
                                 Text(format.summary).font(.system(size: 11)).foregroundColor(theme.secondaryText)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -1268,15 +1316,21 @@ private struct ActivityExportSheet: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("Scope", bundle: .module).font(.system(size: 11, weight: .semibold)).foregroundColor(theme.tertiaryText)
+                Text("Scope", bundle: .module).font(.system(size: 11, weight: .semibold)).foregroundColor(
+                    theme.tertiaryText
+                )
                 Toggle(isOn: $options.filteredOnly) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(filter.isEmpty
-                            ? L("Current view (all records)")
-                            : String(format: L("Current view only (%d records)"), filteredCount))
-                            .font(.system(size: 12)).foregroundColor(theme.primaryText)
+                        Text(
+                            filter.isEmpty
+                                ? L("Current view (all records)")
+                                : String(format: L("Current view only (%d records)"), filteredCount)
+                        )
+                        .font(.system(size: 12)).foregroundColor(theme.primaryText)
                         if !filter.isEmpty {
-                            Text(ActivityExportService.describe(filter)).font(.system(size: 10)).foregroundColor(theme.tertiaryText)
+                            Text(ActivityExportService.describe(filter)).font(.system(size: 10)).foregroundColor(
+                                theme.tertiaryText
+                            )
                         }
                     }
                 }
@@ -1284,10 +1338,15 @@ private struct ActivityExportSheet: View {
                 .disabled(filter.isEmpty)
                 Toggle(isOn: $options.includeContent) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Include message content", bundle: .module).font(.system(size: 12)).foregroundColor(theme.primaryText)
-                        Text("Off: prompts, responses and tool arguments are replaced with a marker. Destinations, sizes and tool names are kept.", bundle: .module)
-                            .font(.system(size: 10)).foregroundColor(theme.tertiaryText)
-                            .fixedSize(horizontal: false, vertical: true)
+                        Text("Include message content", bundle: .module).font(.system(size: 12)).foregroundColor(
+                            theme.primaryText
+                        )
+                        Text(
+                            "Off: prompts, responses and tool arguments are replaced with a marker. Destinations, sizes and tool names are kept.",
+                            bundle: .module
+                        )
+                        .font(.system(size: 10)).foregroundColor(theme.tertiaryText)
+                        .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .toggleStyle(.checkbox)

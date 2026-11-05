@@ -175,7 +175,8 @@ public final class KnowledgeManager: ObservableObject {
             // and a Revert button that can only fail.
             if KnowledgeWriteLogDatabase.shared.isOpen {
                 try? KnowledgeWriteLogDatabase.shared.deleteRecords(
-                    collectionId: id.uuidString)
+                    collectionId: id.uuidString
+                )
             }
             // A cloned collection's content lives in our managed
             // directory; remove it with the registration. User-chosen

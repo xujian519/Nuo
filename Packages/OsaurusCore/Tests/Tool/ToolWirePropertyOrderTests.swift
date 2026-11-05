@@ -27,10 +27,15 @@ struct ToolWirePropertyOrderTests {
         while index < json.endIndex {
             let ch = json[index]
             if inString {
-                if escaped { escaped = false; current.append(ch) }
-                else if ch == "\\" { escaped = true }
-                else if ch == "\"" { inString = false; if depth == 1 { pendingKey = current } }
-                else { current.append(ch) }
+                if escaped {
+                    escaped = false; current.append(ch)
+                } else if ch == "\\" {
+                    escaped = true
+                } else if ch == "\"" {
+                    inString = false; if depth == 1 { pendingKey = current }
+                } else {
+                    current.append(ch)
+                }
             } else {
                 switch ch {
                 case "{": depth += 1
@@ -91,16 +96,27 @@ struct ToolWirePropertyOrderTests {
     ]
 
     @Test func canonicalBodyAlphabetizesThenApplyRestoresAuthoredOrder() throws {
-        ToolWirePropertyOrder.register(toolName: "wire_test_edit", order: ["path", "old_string", "new_string", "replace_all", "edits", "dry_run"])
+        ToolWirePropertyOrder.register(
+            toolName: "wire_test_edit",
+            order: ["path", "old_string", "new_string", "replace_all", "edits", "dry_run"]
+        )
         defer { ToolWirePropertyOrder.register(toolName: "wire_test_edit", order: nil) }
 
         let encoded = try body(toolName: "wire_test_edit", schema: editSchema)
         let before = String(decoding: encoded, as: UTF8.self)
-        #expect(keyOrder(in: before, of: "properties") == ["dry_run", "edits", "new_string", "old_string", "path", "replace_all"])
+        #expect(
+            keyOrder(in: before, of: "properties") == [
+                "dry_run", "edits", "new_string", "old_string", "path", "replace_all",
+            ]
+        )
 
         let rewritten = ToolWirePropertyOrder.apply(to: encoded)
         let after = String(decoding: rewritten, as: UTF8.self)
-        #expect(keyOrder(in: after, of: "properties") == ["path", "old_string", "new_string", "replace_all", "edits", "dry_run"])
+        #expect(
+            keyOrder(in: after, of: "properties") == [
+                "path", "old_string", "new_string", "replace_all", "edits", "dry_run",
+            ]
+        )
 
         // Nested `edits.items.properties` follows the same order.
         let itemsRange = try #require(after.range(of: "\"items\":{"))
@@ -131,7 +147,10 @@ struct ToolWirePropertyOrderTests {
         // Already-alphabetical authored order → no rewrite needed either.
         ToolWirePropertyOrder.register(toolName: "wire_test_sorted", order: ["a", "b"])
         defer { ToolWirePropertyOrder.register(toolName: "wire_test_sorted", order: nil) }
-        let sorted = try body(toolName: "wire_test_sorted", schema: ["type": "object", "properties": ["a": ["type": "string"], "b": ["type": "string"]]])
+        let sorted = try body(
+            toolName: "wire_test_sorted",
+            schema: ["type": "object", "properties": ["a": ["type": "string"], "b": ["type": "string"]]]
+        )
         #expect(ToolWirePropertyOrder.apply(to: sorted) == sorted)
 
         let junk = Data("not json".utf8)
@@ -141,7 +160,11 @@ struct ToolWirePropertyOrderTests {
     @Test func anthropicAndGeminiShapesAreCovered() throws {
         ToolWirePropertyOrder.register(toolName: "wire_test_edit", order: ["path", "old_string", "new_string"])
         defer { ToolWirePropertyOrder.register(toolName: "wire_test_edit", order: nil) }
-        let props: [String: Any] = ["properties": ["new_string": ["type": "string"], "old_string": ["type": "string"], "path": ["type": "string"]], "type": "object"]
+        let props: [String: Any] = [
+            "properties": [
+                "new_string": ["type": "string"], "old_string": ["type": "string"], "path": ["type": "string"],
+            ], "type": "object",
+        ]
         let anthropic = try JSONSerialization.data(
             withJSONObject: ["tools": [["name": "wire_test_edit", "input_schema": props]]],
             options: .osaurusCanonical
@@ -160,7 +183,11 @@ struct ToolWirePropertyOrderTests {
     @Test @MainActor func registryPublishesFileEditOrder() {
         // Registering through ToolRegistry records the tool's authored order.
         ToolRegistry.shared.register(FileEditTool())
-        #expect(ToolWirePropertyOrder.order(for: "file_edit") == ["path", "old_string", "new_string", "replace_all", "edits", "operations", "dry_run"])
+        #expect(
+            ToolWirePropertyOrder.order(for: "file_edit") == [
+                "path", "old_string", "new_string", "replace_all", "edits", "operations", "dry_run",
+            ]
+        )
         #expect(FileWriteTool().parameterOrder?.first == "path")
     }
 }

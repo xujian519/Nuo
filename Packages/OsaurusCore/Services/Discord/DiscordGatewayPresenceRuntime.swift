@@ -238,7 +238,8 @@ actor DiscordGatewayPresenceRuntime: DiscordGatewayPresenceMaintaining {
             teardownSession()
             return 1
         } catch DiscordGatewayPresenceError.reconnectRequested,
-                DiscordGatewayPresenceError.invalidSession {
+            DiscordGatewayPresenceError.invalidSession
+        {
             // Routine server-side session recycling — reconnect promptly
             // without a failure penalty.
             teardownSession()
@@ -287,8 +288,8 @@ actor DiscordGatewayPresenceRuntime: DiscordGatewayPresenceMaintaining {
 
     static func decodePayload(_ text: String) throws -> DiscordGatewayInboundPayload {
         guard let data = text.data(using: .utf8),
-              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let opcode = object["op"] as? Int
+            let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let opcode = object["op"] as? Int
         else {
             throw DiscordGatewayPresenceError.invalidPayload
         }

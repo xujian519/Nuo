@@ -343,7 +343,7 @@ struct SearchDiagnosticsExtractionTests {
         var timedOut = false
         do {
             let (bytes, _) = try await bounded.bytes(for: URLRequest(url: url))
-            for try await _ in bytes { }
+            for try await _ in bytes {}
         } catch {
             timedOut = (error as? URLError)?.code == .timedOut
         }
@@ -354,7 +354,7 @@ struct SearchDiagnosticsExtractionTests {
         let task = Task { () -> Bool in
             do {
                 let (bytes, _) = try await bounded.bytes(for: URLRequest(url: url))
-                for try await _ in bytes { }
+                for try await _ in bytes {}
                 return false
             } catch { return true }
         }
@@ -427,10 +427,16 @@ private final class TricklingHTTPServer: @unchecked Sendable {
         addr.sin_family = sa_family_t(AF_INET)
         addr.sin_port = 0
         addr.sin_addr = in_addr(s_addr: inet_addr("127.0.0.1"))
-        let bound = withUnsafePointer(to: &addr) { $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { bind(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size)) } }
+        let bound = withUnsafePointer(to: &addr) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                bind(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
         guard bound == 0, listen(fd, 4) == 0 else { throw NSError(domain: "trickle", code: 1) }
         var bound2 = sockaddr_in(); var len = socklen_t(MemoryLayout<sockaddr_in>.size)
-        _ = withUnsafeMutablePointer(to: &bound2) { $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { getsockname(fd, $0, &len) } }
+        _ = withUnsafeMutablePointer(to: &bound2) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { getsockname(fd, $0, &len) }
+        }
         port = UInt16(bigEndian: bound2.sin_port)
         queue.async { [weak self] in
             while let self, !self.stopped {
@@ -441,9 +447,10 @@ private final class TricklingHTTPServer: @unchecked Sendable {
                 var buf = [UInt8](repeating: 0, count: 4096)
                 _ = recv(client, &buf, buf.count, 0)
                 let chunk = [UInt8](repeating: 0x61, count: 64)
-                let header = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: \(chunk.count * chunks)\r\nConnection: close\r\n\r\n"
+                let header =
+                    "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: \(chunk.count * chunks)\r\nConnection: close\r\n\r\n"
                 _ = header.withCString { send(client, $0, strlen($0), 0) }
-                for _ in 0..<chunks where !self.stopped {
+                for _ in 0 ..< chunks where !self.stopped {
                     if send(client, chunk, chunk.count, 0) < 0 { break }
                     Thread.sleep(forTimeInterval: chunkEvery)
                 }

@@ -97,7 +97,7 @@ enum OOXMLText {
         var matches: [Int] = []
         var i = 0
         while i + needle.count <= haystack.count, matches.count < limit {
-            if haystack[i] == needle[0], haystack[i..<i + needle.count].elementsEqual(needle) {
+            if haystack[i] == needle[0], haystack[i ..< i + needle.count].elementsEqual(needle) {
                 matches.append(i)
                 i += needle.count
             } else {
@@ -132,7 +132,7 @@ enum OOXMLText {
         switch mode {
         case .exact:
             let needle = Array(find.utf16)
-            return matchOffsets(of: needle, in: Array(text.utf16), limit: limit).map { $0..<($0 + needle.count) }
+            return matchOffsets(of: needle, in: Array(text.utf16), limit: limit).map { $0 ..< ($0 + needle.count) }
         case .normalized:
             let needleFolded = NormalizedUnits(find).units
             guard !needleFolded.isEmpty else { return [] }
@@ -143,7 +143,7 @@ enum OOXMLText {
             let hay = NormalizedUnits(text)
             return matchOffsets(of: trimmedNeedle, in: hay.units, limit: limit).map { start in
                 let end = start + trimmedNeedle.count - 1
-                return hay.origin[start].lowerBound..<hay.origin[end].upperBound
+                return hay.origin[start].lowerBound ..< hay.origin[end].upperBound
             }
         }
     }
@@ -171,7 +171,7 @@ enum OOXMLText {
                 }
                 if out == [0x20] {
                     // Whitespace: collapse the run to one space spanning it.
-                    pendingSpace = (pendingSpace?.lowerBound ?? index)..<(index + width)
+                    pendingSpace = (pendingSpace?.lowerBound ?? index) ..< (index + width)
                 } else if out.isEmpty {
                     // Dropped (zero-width) unit: absorbed into the neighbours.
                 } else {
@@ -184,7 +184,7 @@ enum OOXMLText {
                     // same original unit.
                     for u in out {
                         units.append(u)
-                        origin.append(index..<(index + width))
+                        origin.append(index ..< (index + width))
                     }
                 }
                 index += width
@@ -201,7 +201,8 @@ enum OOXMLText {
     /// dropped. Everything else is returned unchanged.
     static func foldUnit(_ unit: UInt16) -> [UInt16] {
         switch unit {
-        case 0x09, 0x0A, 0x0D, 0x20, 0xA0, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006, 0x2007, 0x2008, 0x2009, 0x200A, 0x202F,
+        case 0x09, 0x0A, 0x0D, 0x20, 0xA0, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006, 0x2007, 0x2008, 0x2009, 0x200A,
+            0x202F,
             0x205F, 0x3000:
             return [0x20]
         case 0x2018, 0x2019, 0x201A, 0x201B, 0x2032, 0x00B4, 0x02BC:
@@ -238,7 +239,7 @@ enum OOXMLText {
 
     static func isInvalidXML(_ scalar: Unicode.Scalar) -> Bool {
         if scalar.value < 0x20 { return scalar != "\t" && scalar != "\n" && scalar != "\r" }
-        return (0xD800...0xDFFF).contains(scalar.value) || scalar.value == 0xFFFE || scalar.value == 0xFFFF
+        return (0xD800 ... 0xDFFF).contains(scalar.value) || scalar.value == 0xFFFE || scalar.value == 0xFFFF
     }
 
     /// Replace occurrences of `find` inside one paragraph. Returns the
@@ -320,13 +321,13 @@ enum OOXMLText {
             let (s0, i0) = locate(start, preferEnd: false)
             let (s1, i1) = locate(end, preferEnd: true)
             if s0 == s1 {
-                texts[s0].replaceSubrange(i0..<i1, with: replacementUnits)
+                texts[s0].replaceSubrange(i0 ..< i1, with: replacementUnits)
             } else {
-                texts[s0].replaceSubrange(i0..<texts[s0].count, with: replacementUnits)
+                texts[s0].replaceSubrange(i0 ..< texts[s0].count, with: replacementUnits)
                 if s0 + 1 < s1 {
-                    for mid in (s0 + 1)..<s1 where !isSentinel(mid) { texts[mid] = [] }
+                    for mid in (s0 + 1) ..< s1 where !isSentinel(mid) { texts[mid] = [] }
                 }
-                texts[s1].removeSubrange(0..<i1)
+                texts[s1].removeSubrange(0 ..< i1)
             }
         }
 

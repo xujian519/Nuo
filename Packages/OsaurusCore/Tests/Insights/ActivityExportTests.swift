@@ -23,10 +23,16 @@ struct ActivityExportTests {
             try store.append(
                 RequestLog(
                     timestamp: base,
-                    source: .chatUI, method: "POST", path: "/chat/completions", statusCode: 200, durationMs: 1500,
+                    source: .chatUI,
+                    method: "POST",
+                    path: "/chat/completions",
+                    statusCode: 200,
+                    durationMs: 1500,
                     requestBody: #"{"messages":[{"role":"user","content":"secret, prompt"}]}"#,
                     responseBody: "answer \"quoted\"",
-                    model: "local/model", inputTokens: 3, outputTokens: 9,
+                    model: "local/model",
+                    inputTokens: 3,
+                    outputTokens: 9,
                     toolCalls: [ToolCallLog(name: "read_file", arguments: #"{"path":"a.md"}"#)],
                     finishReason: .stop
                 )
@@ -36,11 +42,31 @@ struct ActivityExportTests {
             try store.append(
                 RequestLog(
                     timestamp: base.addingTimeInterval(30),
-                    source: .chatUI, method: "POST", path: "/chat/completions", statusCode: 200, durationMs: 900,
-                    requestBody: "{}", responseBody: "cloud answer", model: "gpt-4.1", inputTokens: 5, outputTokens: 7,
-                    connection: RequestConnectionInfo(remoteEndpoint: "https://api.openai.com/v1/chat/completions", transport: .direct, mode: .remoteInference),
-                    egress: EgressInfo(destinationLabel: "OpenAI", destinationHost: "api.openai.com", bytesSent: 2048, dataClasses: ["prompt"], privacyFilterApplied: true, redactedSpanCount: 1),
-                    agentId: UUID(), agentName: "Researcher"
+                    source: .chatUI,
+                    method: "POST",
+                    path: "/chat/completions",
+                    statusCode: 200,
+                    durationMs: 900,
+                    requestBody: "{}",
+                    responseBody: "cloud answer",
+                    model: "gpt-4.1",
+                    inputTokens: 5,
+                    outputTokens: 7,
+                    connection: RequestConnectionInfo(
+                        remoteEndpoint: "https://api.openai.com/v1/chat/completions",
+                        transport: .direct,
+                        mode: .remoteInference
+                    ),
+                    egress: EgressInfo(
+                        destinationLabel: "OpenAI",
+                        destinationHost: "api.openai.com",
+                        bytesSent: 2048,
+                        dataClasses: ["prompt"],
+                        privacyFilterApplied: true,
+                        redactedSpanCount: 1
+                    ),
+                    agentId: UUID(),
+                    agentName: "Researcher"
                 )
             )
         )
@@ -48,10 +74,21 @@ struct ActivityExportTests {
             try store.append(
                 RequestLog(
                     timestamp: base.addingTimeInterval(60),
-                    source: .tool, method: "POST", path: "/tools/web_search", statusCode: 502, durationMs: 400,
+                    source: .tool,
+                    method: "POST",
+                    path: "/tools/web_search",
+                    statusCode: 502,
+                    durationMs: 400,
                     errorMessage: "upstream | failed",
-                    category: .webSearch, locality: .remote,
-                    egress: EgressInfo(destinationLabel: "Tavily", destinationHost: "api.tavily.com", bytesSent: 128, dataClasses: ["search_query"], details: ["query": "osaurus audit"])
+                    category: .webSearch,
+                    locality: .remote,
+                    egress: EgressInfo(
+                        destinationLabel: "Tavily",
+                        destinationHost: "api.tavily.com",
+                        bytesSent: 128,
+                        dataClasses: ["search_query"],
+                        details: ["query": "osaurus audit"]
+                    )
                 )
             )
         )
@@ -93,7 +130,9 @@ struct ActivityExportTests {
         #expect(manifest.includesContent)
         #expect(manifest.hashRecipe.contains("SHA-256"))
 
-        let decoded = try ls.dropFirst().map { try ActivityLogStore.decoder.decode(RequestLog.self, from: Data($0.utf8)) }
+        let decoded = try ls.dropFirst().map {
+            try ActivityLogStore.decoder.decode(RequestLog.self, from: Data($0.utf8))
+        }
         #expect(decoded.map { $0.seq } == [1, 2, 3])
         #expect(decoded[0].requestBody?.contains("secret, prompt") == true)
         #expect(decoded[1].agentName == "Researcher")
@@ -102,8 +141,10 @@ struct ActivityExportTests {
     @Test func jsonlChainIsRecomputableOfflineUsingPublishedRecipe() throws {
         let (store, rows) = try seeded()
         let data = try ActivityExportService.render(
-            logs: rows, options: ActivityExportOptions(format: .jsonl, includeContent: true, filteredOnly: false),
-            filterDescription: "all records", verification: try store.verify()
+            logs: rows,
+            options: ActivityExportOptions(format: .jsonl, includeContent: true, filteredOnly: false),
+            filterDescription: "all records",
+            verification: try store.verify()
         )
         let recordLines = lines(data).filter { !$0.isEmpty }.dropFirst()
         var prev = ActivityLogStore.genesisHash
@@ -122,8 +163,10 @@ struct ActivityExportTests {
     @Test func withholdingContentMasksBodiesButKeepsChainFieldsAndMetadata() throws {
         let (store, rows) = try seeded()
         let data = try ActivityExportService.render(
-            logs: rows, options: ActivityExportOptions(format: .jsonl, includeContent: false, filteredOnly: false),
-            filterDescription: "all records", verification: try store.verify()
+            logs: rows,
+            options: ActivityExportOptions(format: .jsonl, includeContent: false, filteredOnly: false),
+            filterDescription: "all records",
+            verification: try store.verify()
         )
         let text = String(decoding: data, as: UTF8.self)
         #expect(!text.contains("secret, prompt"))
@@ -144,8 +187,10 @@ struct ActivityExportTests {
     @Test func csvHasHeaderAndEscapesFields() throws {
         let (store, rows) = try seeded()
         let data = try ActivityExportService.render(
-            logs: rows, options: ActivityExportOptions(format: .csv, includeContent: true, filteredOnly: true),
-            filterDescription: "x", verification: try store.verify()
+            logs: rows,
+            options: ActivityExportOptions(format: .csv, includeContent: true, filteredOnly: true),
+            filterDescription: "x",
+            verification: try store.verify()
         )
         let ls = lines(data).filter { !$0.isEmpty }
         #expect(ls.count == 4)
@@ -201,8 +246,11 @@ struct ActivityExportTests {
     @Test func markdownReportHasSummaryDestinationsAndEntries() throws {
         let (store, rows) = try seeded()
         let data = try ActivityExportService.render(
-            logs: rows, options: ActivityExportOptions(format: .markdown, includeContent: true, filteredOnly: false),
-            filterDescription: "cloud only", verification: try store.verify(), appVersion: "9.9"
+            logs: rows,
+            options: ActivityExportOptions(format: .markdown, includeContent: true, filteredOnly: false),
+            filterDescription: "cloud only",
+            verification: try store.verify(),
+            appVersion: "9.9"
         )
         let md = String(decoding: data, as: UTF8.self)
         #expect(md.hasPrefix("# Nuo Activity Log"))
@@ -226,8 +274,10 @@ struct ActivityExportTests {
     @Test func markdownWithoutContentOmitsBodies() throws {
         let (store, rows) = try seeded()
         let data = try ActivityExportService.render(
-            logs: rows, options: ActivityExportOptions(format: .markdown, includeContent: false, filteredOnly: false),
-            filterDescription: "all records", verification: try store.verify()
+            logs: rows,
+            options: ActivityExportOptions(format: .markdown, includeContent: false, filteredOnly: false),
+            filterDescription: "all records",
+            verification: try store.verify()
         )
         let md = String(decoding: data, as: UTF8.self)
         #expect(md.contains("- Message content: withheld"))
@@ -239,8 +289,10 @@ struct ActivityExportTests {
         let (store, rows) = try seeded()
         try store.executeForTesting("UPDATE activity SET payload = X'7b7d' WHERE seq = 2")
         let data = try ActivityExportService.render(
-            logs: rows, options: ActivityExportOptions(format: .markdown, includeContent: false, filteredOnly: false),
-            filterDescription: "all records", verification: try store.verify()
+            logs: rows,
+            options: ActivityExportOptions(format: .markdown, includeContent: false, filteredOnly: false),
+            filterDescription: "all records",
+            verification: try store.verify()
         )
         let md = String(decoding: data, as: UTF8.self)
         #expect(md.contains("- Integrity: PROBLEMS FOUND"))
@@ -253,12 +305,17 @@ struct ActivityExportTests {
         let (store, _) = try seeded()
         try store.recordVerification(try store.verify())
         try store.appendSystemEvent(
-            "exported", details: ["format": "jsonl", "records": "3", "include_content": "false", "file_name": "x.jsonl"])
+            "exported",
+            details: ["format": "jsonl", "records": "3", "include_content": "false", "file_name": "x.jsonl"]
+        )
         var rows: [RequestLog] = []
         try store.forEach { rows.append($0) }
         let data = try ActivityExportService.render(
-            logs: rows, options: ActivityExportOptions(format: .csv), filterDescription: "all records",
-            verification: try store.verify())
+            logs: rows,
+            options: ActivityExportOptions(format: .csv),
+            filterDescription: "all records",
+            verification: try store.verify()
+        )
         let csv = String(decoding: data, as: UTF8.self)
         #expect(csv.contains("system,local"))
         #expect(csv.contains("/activity/verified"))
@@ -272,8 +329,11 @@ struct ActivityExportTests {
         #expect(try store.verify().isIntact)
 
         let jsonl = try ActivityExportService.render(
-            logs: rows, options: ActivityExportOptions(format: .jsonl), filterDescription: "all records",
-            verification: try store.verify())
+            logs: rows,
+            options: ActivityExportOptions(format: .jsonl),
+            filterDescription: "all records",
+            verification: try store.verify()
+        )
         let last = try #require(lines(jsonl).filter { !$0.isEmpty }.last)
         #expect(last.contains(#""category":"system""#))
         #expect(last.contains(#""event":"exported""#))

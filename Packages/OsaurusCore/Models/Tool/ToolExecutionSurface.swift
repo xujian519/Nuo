@@ -104,7 +104,9 @@ public enum ToolExecutionSurface: String, Sendable, Equatable, CaseIterable {
         case .sandboxVM:
             L("Runs inside the isolated Linux sandbox. It cannot change files, processes, or apps on this Mac.")
         case .nativeHost:
-            L("Runs directly on this Mac with your normal access. Approving can change files, processes, or apps on your host.")
+            L(
+                "Runs directly on this Mac with your normal access. Approving can change files, processes, or apps on your host."
+            )
         case .remoteServer:
             L("Runs on a remote MCP server over the network — not on this Mac and not in the sandbox.")
         }

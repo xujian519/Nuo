@@ -52,7 +52,8 @@ enum IMessageRPCError: LocalizedError, Equatable, Sendable {
         case .rpc(let code, let message):
             return "iMessage helper error \(code): \(message)"
         case .capabilityUnavailable(let capability):
-            return "The iMessage helper does not expose `\(capability)`. This capability needs the private-API bridge (SIP + Library Validation disabled)."
+            return
+                "The iMessage helper does not expose `\(capability)`. This capability needs the private-API bridge (SIP + Library Validation disabled)."
         }
     }
 }
@@ -232,7 +233,9 @@ enum IMessageRPCFraming {
             )
         }
         let result = object["result"] ?? [:]
-        let resultJSON = (try? JSONSerialization.data(withJSONObject: result, options: [.sortedKeys, .fragmentsAllowed])) ?? Data("{}".utf8)
+        let resultJSON =
+            (try? JSONSerialization.data(withJSONObject: result, options: [.sortedKeys, .fragmentsAllowed]))
+            ?? Data("{}".utf8)
         return ParsedResponse(id: id, resultJSON: resultJSON, errorCode: nil, errorMessage: nil)
     }
 
@@ -250,7 +253,9 @@ enum IMessageRPCFraming {
             let method = object["method"] as? String, !method.isEmpty
         else { return nil }
         let params = object["params"] ?? [:]
-        let paramsJSON = (try? JSONSerialization.data(withJSONObject: params, options: [.sortedKeys, .fragmentsAllowed])) ?? Data("{}".utf8)
+        let paramsJSON =
+            (try? JSONSerialization.data(withJSONObject: params, options: [.sortedKeys, .fragmentsAllowed]))
+            ?? Data("{}".utf8)
         return ParsedNotification(method: method, paramsJSON: paramsJSON)
     }
 }
@@ -369,7 +374,8 @@ enum IMessageRPCSecurity {
                         if process.isRunning { process.terminate() }
                     }
                     DispatchQueue.global(qos: .utility).asyncAfter(
-                        deadline: .now() + 10, execute: watchdog
+                        deadline: .now() + 10,
+                        execute: watchdog
                     )
                     let data = stdout.fileHandleForReading.readDataToEndOfFile()
                     process.waitUntilExit()
@@ -429,7 +435,8 @@ enum IMessageRPCSecurity {
                 switch verification {
                 case .missing:
                     throw IMessageRPCError.helperUnavailable(
-                        "no imsg helper is installed — download it from iMessage settings")
+                        "no imsg helper is installed — download it from iMessage settings"
+                    )
                 case .unpinned:
                     throw IMessageRPCError.helperUnverified("release digests are not pinned")
                 case .digestMismatch(let expected, let actual):

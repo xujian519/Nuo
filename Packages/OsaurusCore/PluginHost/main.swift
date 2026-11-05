@@ -72,7 +72,7 @@ typealias osr_complete_t = @convention(c) (UnsafePointer<CChar>?) -> UnsafePoint
 typealias osr_on_chunk_t = @convention(c) (UnsafePointer<CChar>?, UnsafeMutableRawPointer?) -> Void
 typealias osr_complete_stream_t =
     @convention(c) (UnsafePointer<CChar>?, osr_on_chunk_t?, UnsafeMutableRawPointer?) ->
-        UnsafePointer<CChar>?
+    UnsafePointer<CChar>?
 typealias osr_embed_t = @convention(c) (UnsafePointer<CChar>?) -> UnsafePointer<CChar>?
 typealias osr_list_models_t = @convention(c) () -> UnsafePointer<CChar>?
 typealias osr_http_request_t = @convention(c) (UnsafePointer<CChar>?) -> UnsafePointer<CChar>?
@@ -242,7 +242,8 @@ private func makeCString(_ s: String) -> UnsafePointer<CChar>? {
 }
 
 private func bridgedStringCall(
-    _ method: String, _ params: [String: Any]
+    _ method: String,
+    _ params: [String: Any]
 ) -> UnsafePointer<CChar>? {
     var p = params
     if let agent = CurrentInvocation.shared.agentId { p["agent_id"] = agent }
@@ -319,7 +320,8 @@ func buildHelperHostAPI() -> UnsafeMutablePointer<osr_host_api> {
             http_request: { requestPtr in
                 guard let requestPtr else { return nil }
                 return bridgedStringCall(
-                    "host.http_request", ["request": String(cString: requestPtr)]
+                    "host.http_request",
+                    ["request": String(cString: requestPtr)]
                 )
             },
             file_read: { _ in unsupportedEnvelope("file_read") },
@@ -386,9 +388,15 @@ final class PluginRuntime: @unchecked Sendable {
             if let raw = entry() {
                 let v1 = raw.assumingMemoryBound(to: osr_plugin_api_v1.self).pointee
                 self.api = osr_plugin_api(
-                    free_string: v1.free_string, init: v1.`init`, destroy: v1.destroy,
-                    get_manifest: v1.get_manifest, invoke: v1.invoke,
-                    version: 0, handle_route: nil, on_config_changed: nil, on_task_event: nil
+                    free_string: v1.free_string,
+                    init: v1.`init`,
+                    destroy: v1.destroy,
+                    get_manifest: v1.get_manifest,
+                    invoke: v1.invoke,
+                    version: 0,
+                    handle_route: nil,
+                    on_config_changed: nil,
+                    on_task_event: nil
                 )
             }
         } else {
@@ -509,7 +517,10 @@ func handleRequest(_ object: [String: Any]) {
         runtime.invokeQueue.async {
             do {
                 let result = try runtime.invoke(
-                    type: type, id: invokeId, payload: payload, agentId: agentId
+                    type: type,
+                    id: invokeId,
+                    payload: payload,
+                    agentId: agentId
                 )
                 respond(id: id, result: ["result": result])
             } catch {
@@ -556,8 +567,8 @@ while true {
     if chunk.isEmpty { break }  // EOF — parent is gone.
     buffer.append(chunk)
     while let newlineIndex = buffer.firstIndex(of: 0x0A) {
-        let lineData = buffer.subdata(in: buffer.startIndex..<newlineIndex)
-        buffer.removeSubrange(buffer.startIndex...newlineIndex)
+        let lineData = buffer.subdata(in: buffer.startIndex ..< newlineIndex)
+        buffer.removeSubrange(buffer.startIndex ... newlineIndex)
         guard !lineData.isEmpty,
             let object = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any]
         else { continue }

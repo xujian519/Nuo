@@ -32,7 +32,8 @@ private func parseEnvelope(_ envelope: String) throws -> [String: Any] {
 
 /// Run a configure tool as the Default agent and parse its envelope.
 private func runAsDefaultAgent(
-    _ tool: any OsaurusTool, _ argumentsJSON: String
+    _ tool: any OsaurusTool,
+    _ argumentsJSON: String
 ) async throws -> [String: Any] {
     let envelope = try await ChatExecutionContext.$currentAgentId.withValue(Agent.defaultId) {
         try await tool.execute(argumentsJSON: argumentsJSON)
@@ -89,7 +90,8 @@ struct ConfigurationReadScopeFunctionalTests {
     func list_knowledgeWatchersChannels_returnWellFormedPayloads() async throws {
         for scope in ["knowledge", "watchers", "channels"] {
             let dict = try await runAsDefaultAgent(
-                OsaurusInspectTool(), "{\"action\": \"list\", \"scope\": \"\(scope)\"}"
+                OsaurusInspectTool(),
+                "{\"action\": \"list\", \"scope\": \"\(scope)\"}"
             )
             #expect(dict["ok"] as? Bool == true, "scope \(scope) should list")
             let result = try #require(dict["result"] as? [String: Any])
@@ -103,7 +105,9 @@ struct ConfigurationReadScopeFunctionalTests {
     @Test
     func list_declarativeScope_embedsTheSectionYamlShape() async throws {
         let dict = try await runAsDefaultAgent(
-            OsaurusInspectTool(), #"{"action": "list", "scope": "schedules"}"#)
+            OsaurusInspectTool(),
+            #"{"action": "list", "scope": "schedules"}"#
+        )
         #expect(dict["ok"] as? Bool == true)
         let result = try #require(dict["result"] as? [String: Any])
         let shape = try #require(result["yaml_shape"] as? String)
@@ -118,7 +122,9 @@ struct ConfigurationReadScopeFunctionalTests {
     @Test
     func list_agentsScope_shapeCoversAgentsAndActiveAgent() async throws {
         let dict = try await runAsDefaultAgent(
-            OsaurusInspectTool(), #"{"action": "list", "scope": "agents"}"#)
+            OsaurusInspectTool(),
+            #"{"action": "list", "scope": "agents"}"#
+        )
         let result = try #require(dict["result"] as? [String: Any])
         let shape = try #require(result["yaml_shape"] as? String)
         // Activation ("switch to X") writes `new_chat_agent`, so the agents
@@ -139,7 +145,9 @@ struct ConfigurationReadScopeFunctionalTests {
         // would teach a write that doesn't exist.
         for scope in ["skills", "themes"] {
             let dict = try await runAsDefaultAgent(
-                OsaurusInspectTool(), "{\"action\": \"list\", \"scope\": \"\(scope)\"}")
+                OsaurusInspectTool(),
+                "{\"action\": \"list\", \"scope\": \"\(scope)\"}"
+            )
             let result = try #require(dict["result"] as? [String: Any])
             #expect(result["yaml_shape"] == nil, "scope \(scope) must not embed a shape")
             let nextStep = try #require(result["next_step"] as? String)
@@ -156,7 +164,9 @@ struct ConfigurationReadScopeFunctionalTests {
     func list_workspaceScopes_returnRowsAndPoolNote() async throws {
         for scope in ["workspaces", "shared_agents"] {
             let dict = try await runAsDefaultAgent(
-                OsaurusInspectTool(), "{\"action\": \"list\", \"scope\": \"\(scope)\"}")
+                OsaurusInspectTool(),
+                "{\"action\": \"list\", \"scope\": \"\(scope)\"}"
+            )
             let result = try #require(dict["result"] as? [String: Any], "scope \(scope)")
             #expect(result["scope"] as? String == scope)
             #expect(result["items"] is [[String: Any]], "scope \(scope) must list rows")
@@ -165,11 +175,15 @@ struct ConfigurationReadScopeFunctionalTests {
             #expect(note.contains("spawnable_workspace_agents"))
         }
         let online = try await runAsDefaultAgent(
-            OsaurusInspectTool(), #"{"action": "list", "scope": "shared_agents", "filter": "online"}"#)
+            OsaurusInspectTool(),
+            #"{"action": "list", "scope": "shared_agents", "filter": "online"}"#
+        )
         #expect((online["result"] as? [String: Any])?["filter"] as? String == "online")
 
         let missing = try await runAsDefaultAgent(
-            OsaurusInspectTool(), #"{"action": "describe", "scope": "shared_agents", "id": "Research@Acme"}"#)
+            OsaurusInspectTool(),
+            #"{"action": "describe", "scope": "shared_agents", "id": "Research@Acme"}"#
+        )
         #expect(missing["ok"] as? Bool == false)
         let message = try #require(missing["message"] as? String)
         #expect(message.contains("shared_agents"), Comment(rawValue: message))
@@ -207,7 +221,9 @@ struct ConfigurationReadScopeFunctionalTests {
     @Test
     func describe_delegationSection_embedsShapeWithReplaceSemantics() async throws {
         let dict = try await runAsDefaultAgent(
-            OsaurusInspectTool(), #"{"action": "describe", "scope": "delegation"}"#)
+            OsaurusInspectTool(),
+            #"{"action": "describe", "scope": "delegation"}"#
+        )
         let result = try #require(dict["result"] as? [String: Any])
         #expect(result["kind"] as? String == "document_section")
         let shape = try #require(result["yaml_shape"] as? String)
@@ -220,14 +236,17 @@ struct ConfigurationReadScopeFunctionalTests {
         // Describe a built-in command by name: commands are declarative, so
         // the describe payload must carry the commands section shape.
         let list = try await runAsDefaultAgent(
-            OsaurusInspectTool(), #"{"action": "list", "scope": "commands"}"#)
+            OsaurusInspectTool(),
+            #"{"action": "list", "scope": "commands"}"#
+        )
         let listResult = try #require(list["result"] as? [String: Any])
         let items = try #require(listResult["items"] as? [[String: Any]])
         let first = try #require(items.first)
         let name = try #require(first["name"] as? String)
         let dict = try await runAsDefaultAgent(
             OsaurusInspectTool(),
-            "{\"action\": \"describe\", \"scope\": \"commands\", \"id\": \"\(name)\"}")
+            "{\"action\": \"describe\", \"scope\": \"commands\", \"id\": \"\(name)\"}"
+        )
         let result = try #require(dict["result"] as? [String: Any])
         let shape = try #require(result["yaml_shape"] as? String)
         #expect(shape.contains("commands:"))
@@ -257,7 +276,9 @@ struct ConfigurationReadScopeFunctionalTests {
         // not the export redirect the model would loop on.
         for scope in ["server", "chat", "app"] {
             let dict = try await runAsDefaultAgent(
-                OsaurusInspectTool(), "{\"action\": \"list\", \"scope\": \"\(scope)\"}")
+                OsaurusInspectTool(),
+                "{\"action\": \"list\", \"scope\": \"\(scope)\"}"
+            )
             #expect(dict["ok"] as? Bool == false, "scope \(scope) must not list")
             let message = (dict["message"] as? String) ?? ""
             #expect(message.contains("Settings UI"), "no redirect for `\(scope)`: \(message)")
@@ -388,8 +409,11 @@ struct ConfigurationReadScopeFunctionalTests {
     @Test
     func describe_providerByName_matchesCaseInsensitively() async throws {
         let provider = RemoteProvider(
-            id: UUID(), name: "GapClosure Provider Probe", host: "api.example.test",
-            enabled: false, autoConnect: false
+            id: UUID(),
+            name: "GapClosure Provider Probe",
+            host: "api.example.test",
+            enabled: false,
+            autoConnect: false
         )
         await MainActor.run {
             RemoteProviderManager.shared.addProvider(provider, apiKey: nil, isEphemeral: false)
@@ -457,7 +481,8 @@ struct ConfigurationReadArgTeachTests {
         // (the reject-and-teach still left small models fabricating results
         // rather than retrying), and names the canonical shape in a note.
         let dict = try await runAsDefaultAgent(
-            OsaurusInspectTool(), #"{"action": "list", "filter": "plugins"}"#
+            OsaurusInspectTool(),
+            #"{"action": "list", "filter": "plugins"}"#
         )
         #expect(dict["ok"] as? Bool == true)
         let result = try #require(dict["result"] as? [String: Any])
@@ -472,7 +497,8 @@ struct ConfigurationReadArgTeachTests {
     func list_missingScopeWithRealFilter_staysGenericMissingArg() async throws {
         // A genuine filter value must not trigger the scope-in-filter teach.
         let dict = try await runAsDefaultAgent(
-            OsaurusInspectTool(), #"{"action": "list", "filter": "enabled"}"#
+            OsaurusInspectTool(),
+            #"{"action": "list", "filter": "enabled"}"#
         )
         #expect(dict["ok"] as? Bool == false)
         let message = try #require(dict["message"] as? String)
@@ -482,7 +508,8 @@ struct ConfigurationReadArgTeachTests {
     @Test
     func describe_missingId_routesToList() async throws {
         let dict = try await runAsDefaultAgent(
-            OsaurusInspectTool(), #"{"action": "describe", "scope": "plugins"}"#
+            OsaurusInspectTool(),
+            #"{"action": "describe", "scope": "plugins"}"#
         )
         #expect(dict["ok"] as? Bool == false)
         let message = try #require(dict["message"] as? String)

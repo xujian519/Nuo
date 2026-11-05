@@ -47,20 +47,30 @@ struct AppleAppsComposerGatingTests {
     private func names(_ snapshot: AgentConfigSnapshot, additional: Set<String> = []) -> Set<String> {
         Set(
             SystemPromptComposer.resolveTools(
-                snapshot: snapshot, executionMode: .none, additionalToolNames: additional
-            ).map(\.function.name))
+                snapshot: snapshot,
+                executionMode: .none,
+                additionalToolNames: additional
+            ).map(\.function.name)
+        )
     }
 
     @Test("no Apple tool is exposed when no app is enabled (auto and manual)")
     func offByDefault() {
         #expect(names(makeSnapshot()).isDisjoint(with: AppleApp.allToolNames))
-        #expect(names(makeSnapshot(toolMode: .manual, manualToolNames: ["web_search"])).isDisjoint(with: AppleApp.allToolNames))
+        #expect(
+            names(makeSnapshot(toolMode: .manual, manualToolNames: ["web_search"])).isDisjoint(
+                with: AppleApp.allToolNames
+            )
+        )
     }
 
     @Test("enabling one app exposes exactly that app's tools")
     func perAppGate() {
         let resolved = names(makeSnapshot(enabledAppleApps: [.calendar]))
-        #expect(AppleApp.calendar.toolNames.isSubset(of: resolved), "missing: \(AppleApp.calendar.toolNames.subtracting(resolved).sorted())")
+        #expect(
+            AppleApp.calendar.toolNames.isSubset(of: resolved),
+            "missing: \(AppleApp.calendar.toolNames.subtracting(resolved).sorted())"
+        )
         #expect(resolved.isDisjoint(with: AppleApp.disabledToolNames(enabled: [.calendar])))
 
         let two = names(makeSnapshot(enabledAppleApps: [.reminders, .music]))
@@ -94,10 +104,19 @@ struct AppleAppsComposerGatingTests {
 
         let all = Set(AppleApp.allCases)
         let flagged = names(makeSnapshot(agentId: Agent.defaultId, enabledAppleApps: all))
-        #expect(flagged.isDisjoint(with: AppleApp.allToolNames), "leaked via flag: \(flagged.intersection(AppleApp.allToolNames).sorted())")
+        #expect(
+            flagged.isDisjoint(with: AppleApp.allToolNames),
+            "leaked via flag: \(flagged.intersection(AppleApp.allToolNames).sorted())"
+        )
 
         let manual = names(
-            makeSnapshot(agentId: Agent.defaultId, toolMode: .manual, manualToolNames: ["calendar_events", "messages_send"], enabledAppleApps: all))
+            makeSnapshot(
+                agentId: Agent.defaultId,
+                toolMode: .manual,
+                manualToolNames: ["calendar_events", "messages_send"],
+                enabledAppleApps: all
+            )
+        )
         #expect(manual.isDisjoint(with: AppleApp.allToolNames), "leaked via manual pick")
 
         let loaded = names(makeSnapshot(agentId: Agent.defaultId), additional: ["reminders_create"])

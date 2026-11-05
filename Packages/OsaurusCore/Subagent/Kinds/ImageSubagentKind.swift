@@ -140,16 +140,20 @@ final class ImageSubagentKind: SubagentKind, @unchecked Sendable {
             let target =
                 selected.mediaModel?.target
                 ?? MediaModelTarget(backend: .local, modelID: selected.id)
-            if target.backend != .local, params.seeds != nil || params.batchSize != nil || (params.numImages ?? 1) != 1
-                || params.sampler != nil || params.scheduler != nil || params.shift != nil
-                || params.previewInterval != nil || params.previewMaxPixel != nil || !params.adapters.isEmpty {
+            if target.backend != .local,
+                params.seeds != nil || params.batchSize != nil || (params.numImages ?? 1) != 1
+                    || params.sampler != nil || params.scheduler != nil || params.shift != nil
+                    || params.previewInterval != nil || params.previewMaxPixel != nil || !params.adapters.isEmpty
+            {
                 throw SubagentError.unavailable("Explicit batches and sampling controls require a local image model.")
             }
             if target.backend == .local {
                 // Canonical identity is from installed ImageModelInfo, copied
                 // into the picker; it is independent of a renamed directory.
-                try prepareLocalParameters(canonical: selected.imageCanonicalName,
-                    defaultGuidance: selected.imageDefaultGuidance)
+                try prepareLocalParameters(
+                    canonical: selected.imageCanonicalName,
+                    defaultGuidance: selected.imageDefaultGuidance
+                )
             }
             resolvedTarget = target
             selectedMediaModel = selected.mediaModel
@@ -168,8 +172,10 @@ final class ImageSubagentKind: SubagentKind, @unchecked Sendable {
                 kind: modelKind
             )
             if let info = models.first(where: { $0.id == model }) {
-                try prepareLocalParameters(canonical: info.canonicalName,
-                    defaultGuidance: info.defaultGuidance)
+                try prepareLocalParameters(
+                    canonical: info.canonicalName,
+                    defaultGuidance: info.defaultGuidance
+                )
             }
             resolvedTarget = MediaModelTarget(backend: .local, modelID: model)
             return ResolvedModel(name: model, id: model, isLocal: true)
@@ -181,26 +187,49 @@ final class ImageSubagentKind: SubagentKind, @unchecked Sendable {
     // Used after exact local model selection and before permission/admission.
     // Invalid raw Q21 fields never reach coordinator coercion or eviction.
     func prepareLocalParameters(canonical: String?, defaultGuidance: Float?) throws {
-        params = try ImageTool.paramsForResolvedLocalModel(params, argumentsJSON: argumentsJSON,
-            canonical: canonical, defaultGuidance: defaultGuidance)
-        guard (1...8).contains(params.numImages ?? 1), (params.batchSize ?? 1) > 0,
-            params.seeds.map({ $0.count == (params.numImages ?? 1) }) ?? true else {
-            throw ImageGenerationError.invalidRequest("Image batch requires 1...8 images, a positive batch_size and one seed per image when seeds is supplied")
+        params = try ImageTool.paramsForResolvedLocalModel(
+            params,
+            argumentsJSON: argumentsJSON,
+            canonical: canonical,
+            defaultGuidance: defaultGuidance
+        )
+        guard (1 ... 8).contains(params.numImages ?? 1), (params.batchSize ?? 1) > 0,
+            params.seeds.map({ $0.count == (params.numImages ?? 1) }) ?? true
+        else {
+            throw ImageGenerationError.invalidRequest(
+                "Image batch requires 1...8 images, a positive batch_size and one seed per image when seeds is supplied"
+            )
         }
         if params.isEdit, params.seeds != nil || params.batchSize != nil || (params.numImages ?? 1) != 1 {
             throw ImageGenerationError.invalidRequest("Image batch parameters are generation-only")
         }
     }
 
-    func localGenerateRequest(_ resolved: ResolvedModel,
-        context: NativeImageJobContext) -> NativeImageGenerateJobRequest
-    {
-        NativeImageGenerateJobRequest(prompt: params.prompt, model: resolved.id ?? resolved.name,
-            negativePrompt: params.negativePrompt, width: params.width, height: params.height,
-            steps: params.steps, guidance: params.guidance, seed: params.seed,
-            numImages: params.numImages ?? 1, seeds: params.seeds, batchSize: params.batchSize ?? 1,
-            outputFormat: .png, sampler: params.sampler, scheduler: params.scheduler, shift: params.shift,
-            previewInterval: params.previewInterval, previewMaxPixel: params.previewMaxPixel ?? 256, adapters: params.adapters, context: context)
+    func localGenerateRequest(
+        _ resolved: ResolvedModel,
+        context: NativeImageJobContext
+    ) -> NativeImageGenerateJobRequest {
+        NativeImageGenerateJobRequest(
+            prompt: params.prompt,
+            model: resolved.id ?? resolved.name,
+            negativePrompt: params.negativePrompt,
+            width: params.width,
+            height: params.height,
+            steps: params.steps,
+            guidance: params.guidance,
+            seed: params.seed,
+            numImages: params.numImages ?? 1,
+            seeds: params.seeds,
+            batchSize: params.batchSize ?? 1,
+            outputFormat: .png,
+            sampler: params.sampler,
+            scheduler: params.scheduler,
+            shift: params.shift,
+            previewInterval: params.previewInterval,
+            previewMaxPixel: params.previewMaxPixel ?? 256,
+            adapters: params.adapters,
+            context: context
+        )
     }
 
     /// Every local image run owns one producer and may swap the parent under
@@ -423,8 +452,12 @@ final class ImageSubagentKind: SubagentKind, @unchecked Sendable {
                     strength: params.strength,
                     seed: params.seed,
                     outputFormat: .png,
-                    sampler: params.sampler, scheduler: params.scheduler, shift: params.shift,
-                    previewInterval: params.previewInterval, previewMaxPixel: params.previewMaxPixel ?? 256, adapters: params.adapters,
+                    sampler: params.sampler,
+                    scheduler: params.scheduler,
+                    shift: params.shift,
+                    previewInterval: params.previewInterval,
+                    previewMaxPixel: params.previewMaxPixel ?? 256,
+                    adapters: params.adapters,
                     context: NativeImageJobContext.current()
                 )
                 finalResult = try await Self.consumeEdit(request, interrupt: interrupt)
@@ -482,7 +515,8 @@ final class ImageSubagentKind: SubagentKind, @unchecked Sendable {
     /// job-scoped InterruptToken bridge; it cancels the gate waiter and marks
     /// soft cancellation while the detached producer continues draining.
     private static func consumeGenerate(
-        _ request: NativeImageGenerateJobRequest, interrupt: InterruptToken
+        _ request: NativeImageGenerateJobRequest,
+        interrupt: InterruptToken
     ) async throws -> NativeImageJobResult? {
         try await Task.detached(priority: .userInitiated) {
             let stream = await NativeImageJobCoordinator.shared.generate(request, interrupt: interrupt)
@@ -493,7 +527,8 @@ final class ImageSubagentKind: SubagentKind, @unchecked Sendable {
     }
 
     private static func consumeEdit(
-        _ request: NativeImageEditJobRequest, interrupt: InterruptToken
+        _ request: NativeImageEditJobRequest,
+        interrupt: InterruptToken
     ) async throws -> NativeImageJobResult? {
         try await Task.detached(priority: .userInitiated) {
             let stream = await NativeImageJobCoordinator.shared.edit(request, interrupt: interrupt)

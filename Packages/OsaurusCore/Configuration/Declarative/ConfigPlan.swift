@@ -165,7 +165,10 @@ public struct ConfigApplyResult: Equatable, Sendable {
     public var unresolvedSecretRefs: [String]
 
     public init(
-        section: String, target: String, status: Status, message: String? = nil,
+        section: String,
+        target: String,
+        status: Status,
+        message: String? = nil,
         unresolvedSecretRefs: [String] = []
     ) {
         self.section = section

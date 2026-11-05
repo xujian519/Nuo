@@ -26,11 +26,19 @@ struct ResponsesModelWarmupTests {
         _ status: ResponsesGenerationCompletion.Status = .completed,
         stopReason: String = "stop"
     ) -> ResponsesGenerationEvent {
-        .responseCompleted(.init(
-            responseID: "resp_warmup", status: status, functionCalls: [],
-            tokenCount: 8, tokensPerSecond: 42, unclosedReasoning: false,
-            stopReason: stopReason, promptTokensPerSecond: 1000, mtp: nil
-        ))
+        .responseCompleted(
+            .init(
+                responseID: "resp_warmup",
+                status: status,
+                functionCalls: [],
+                tokenCount: 8,
+                tokensPerSecond: 42,
+                unclosedReasoning: false,
+                stopReason: stopReason,
+                promptTokensPerSecond: 1000,
+                mtp: nil
+            )
+        )
     }
 
     @Test(arguments: [0, 1, 2, 3])

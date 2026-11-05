@@ -96,19 +96,31 @@ struct SharedAgentSurfacesTests {
         // must not defeat the match.
         #expect(
             !ChatSessionSidebar.isVisibleDiscovered(
-                Self.discovered(address: Self.addressA.uppercased()), pairedAddresses: paired))
+                Self.discovered(address: Self.addressA.uppercased()),
+                pairedAddresses: paired
+            )
+        )
         // Unpaired peers render.
         #expect(
             ChatSessionSidebar.isVisibleDiscovered(
-                Self.discovered(address: Self.addressB), pairedAddresses: paired))
+                Self.discovered(address: Self.addressB),
+                pairedAddresses: paired
+            )
+        )
         // Addressless peers (pre-Secure-Channel) have nothing to match a
         // pairing on, so they always render.
         #expect(
             ChatSessionSidebar.isVisibleDiscovered(
-                Self.discovered(address: nil, osc: false), pairedAddresses: paired))
+                Self.discovered(address: nil, osc: false),
+                pairedAddresses: paired
+            )
+        )
         #expect(
             ChatSessionSidebar.isVisibleDiscovered(
-                Self.discovered(address: "", osc: false), pairedAddresses: paired))
+                Self.discovered(address: "", osc: false),
+                pairedAddresses: paired
+            )
+        )
     }
 
     @Test func sidebar_orphanedPairings_groupByWorkspaceOnlyWhenRosterMissing() {
@@ -181,11 +193,20 @@ struct SharedAgentSurfacesTests {
 
         // The row status shows the failure and offers Retry.
         let row = SharedAgentStatus.derive(
-            isServedForTeammate: false, callerLabel: nil, workspaceId: "ws-1",
-            rosterLists: true, rosterHasLoaded: true, routerEnabled: true, workspaceName: "One",
-            presence: .unknown, isPaired: false, isBoundToProvider: false, isPairing: false,
+            isServedForTeammate: false,
+            callerLabel: nil,
+            workspaceId: "ws-1",
+            rosterLists: true,
+            rosterHasLoaded: true,
+            routerEnabled: true,
+            workspaceName: "One",
+            presence: .unknown,
+            isPaired: false,
+            isBoundToProvider: false,
+            isPairing: false,
             connectFailure: service.connectFailure(for: Self.addressA),
-            hasAttempted: service.hasAttempted(Self.addressA), phase: .idle
+            hasAttempted: service.hasAttempted(Self.addressA),
+            phase: .idle
         )
         #expect(row == .checking)
         #expect(row.actionLabel == nil)
@@ -231,8 +252,14 @@ struct SharedAgentSurfacesTests {
     @Test func rosterStore_agentForAddressWithinWorkspace_returnsThatWorkspacesRow() throws {
         let store = WorkspaceRosterStore(observeAppActivation: false)
         store.apply(rosters: [
-            .init(workspace: try Self.workspace(id: "ws-1", name: "One"), agents: [try Self.rosterAgent(address: Self.addressA, name: "As One")]),
-            .init(workspace: try Self.workspace(id: "ws-2", name: "Two"), agents: [try Self.rosterAgent(address: Self.addressA, name: "As Two")]),
+            .init(
+                workspace: try Self.workspace(id: "ws-1", name: "One"),
+                agents: [try Self.rosterAgent(address: Self.addressA, name: "As One")]
+            ),
+            .init(
+                workspace: try Self.workspace(id: "ws-2", name: "Two"),
+                agents: [try Self.rosterAgent(address: Self.addressA, name: "As Two")]
+            ),
         ])
         #expect(store.agent(forAddress: Self.addressA.uppercased(), workspaceId: "ws-2")?.displayName == "As Two")
         #expect(store.agent(forAddress: Self.addressA, workspaceId: "ws-1")?.displayName == "As One")
@@ -262,7 +289,10 @@ struct SharedAgentSurfacesTests {
         // Still the previous prefill → follows the new selection.
         #expect(WorkspaceShareAgentSheet.nextDisplayName(current: "A", prefilled: "A", selectedAgentName: "B") == "B")
         // User typed something → preserved.
-        #expect(WorkspaceShareAgentSheet.nextDisplayName(current: "My Name", prefilled: "A", selectedAgentName: "B") == "My Name")
+        #expect(
+            WorkspaceShareAgentSheet.nextDisplayName(current: "My Name", prefilled: "A", selectedAgentName: "B")
+                == "My Name"
+        )
     }
 
     @Test func workspaceNameValidation_isOneToEighty() {
@@ -308,7 +338,9 @@ struct SharedAgentSurfacesTests {
         #expect(AgentSharedWithSection.sharedWorkspaces(for: mine, rosterStore: store).map(\.id) == ["ws-1"])
         // Shareable = not already shared AND role can share (viewer can't).
         #expect(
-            AgentSharedWithSection.shareableWorkspaces(for: mine, workspaces: [ws1, ws2, ws3], rosterStore: store).map(\.id)
+            AgentSharedWithSection.shareableWorkspaces(for: mine, workspaces: [ws1, ws2, ws3], rosterStore: store).map(
+                \.id
+            )
                 == ["ws-2"]
         )
         // No identity address → nothing shared.

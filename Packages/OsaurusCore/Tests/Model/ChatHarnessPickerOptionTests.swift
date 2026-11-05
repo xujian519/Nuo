@@ -41,14 +41,17 @@ struct ChatHarnessPickerOptionTests {
         #expect(ChatHarnessPickerOption.selectedID(runtime: nil, claudeConfig: config) == nil)
         #expect(
             ChatHarnessPickerOption.selectedID(runtime: claude, claudeConfig: config)
-                == ChatHarnessPickerOption.id(runtimeId: claude.id, claudeModel: "sonnet"))
+                == ChatHarnessPickerOption.id(runtimeId: claude.id, claudeModel: "sonnet")
+        )
         config.model = "haiku"
         #expect(
             ChatHarnessPickerOption.selectedID(runtime: claude, claudeConfig: config)
-                == ChatHarnessPickerOption.id(runtimeId: claude.id, claudeModel: "haiku"))
+                == ChatHarnessPickerOption.id(runtimeId: claude.id, claudeModel: "haiku")
+        )
         #expect(
             ChatHarnessPickerOption.selectedID(runtime: pi, claudeConfig: config)
-                == ChatHarnessPickerOption.id(runtimeId: pi.id, claudeModel: nil))
+                == ChatHarnessPickerOption.id(runtimeId: pi.id, claudeModel: nil)
+        )
     }
 
     @Test func harnessColumnsFollowModelProvidersAheadOfInactiveEntries() {
@@ -65,7 +68,8 @@ struct ChatHarnessPickerOptionTests {
     @Test func onlyTheCurrentRuntimeGetsTheExtraModelRow() {
         let harnesses = ChatModelPickerProvider.harnessProviders(
             runtimes: [claude, HarnessRuntime(name: "Work Claude", kind: .claudeCode)],
-            current: (runtimeId: claude.id, claudeModel: "claude-sonnet-4-5"))
+            current: (runtimeId: claude.id, claudeModel: "claude-sonnet-4-5")
+        )
         #expect(harnesses[0].harnessOptions.count == 5)
         #expect(harnesses[1].harnessOptions.count == 4)
     }
@@ -75,9 +79,16 @@ struct ChatHarnessPickerOptionTests {
         let groups = ChatModelPickerProvider.groups(from: [.foundation()], harnesses: harnesses)
         let selected = ChatHarnessPickerOption.id(runtimeId: claude.id, claudeModel: "opus")
         let onHarness = ChatModelPickerCard.initialSize(
-            providers: groups, selectedModel: "foundation", optionsControl: nil, selectedHarnessID: selected)
+            providers: groups,
+            selectedModel: "foundation",
+            optionsControl: nil,
+            selectedHarnessID: selected
+        )
         let onModel = ChatModelPickerCard.initialSize(
-            providers: groups, selectedModel: "foundation", optionsControl: nil)
+            providers: groups,
+            selectedModel: "foundation",
+            optionsControl: nil
+        )
         #expect(onHarness.width > 0 && onHarness.height > 0)
         #expect(onModel.width > 0 && onModel.height > 0)
     }

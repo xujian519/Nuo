@@ -37,14 +37,16 @@ struct DeepseekV41RequestControlsTests {
             """
             {"model":"\(Self.v41Model)","messages":[{"role":"user","content":"hi"}],
              "chat_template_kwargs":{"enable_thinking":false}}
-            """)
+            """
+        )
         #expect(off.enable_thinking == false)
 
         let deepseekSpelling = try Self.decode(
             """
             {"model":"\(Self.v41Model)","messages":[{"role":"user","content":"hi"}],
              "chat_template_kwargs":{"thinking":false,"reasoning_effort":"xhigh"}}
-            """)
+            """
+        )
         #expect(deepseekSpelling.enable_thinking == false)
         #expect(deepseekSpelling.reasoning_effort == "xhigh")
 
@@ -54,7 +56,8 @@ struct DeepseekV41RequestControlsTests {
             {"model":"\(Self.v41Model)","messages":[{"role":"user","content":"hi"}],
              "enable_thinking":true,"reasoning_effort":"high",
              "chat_template_kwargs":{"enable_thinking":false,"reasoning_effort":"low"}}
-            """)
+            """
+        )
         #expect(both.enable_thinking == true)
         #expect(both.reasoning_effort == "high")
 
@@ -63,7 +66,8 @@ struct DeepseekV41RequestControlsTests {
             """
             {"model":"\(Self.v41Model)","messages":[{"role":"user","content":"hi"}],
              "chat_template_kwargs":"enable_thinking=false"}
-            """)
+            """
+        )
         #expect(malformed.enable_thinking == nil)
     }
 
@@ -72,7 +76,8 @@ struct DeepseekV41RequestControlsTests {
             """
             {"model":"\(Self.v0731Model)","messages":[{"role":"user","content":"hi"}],
              "chat_template_kwargs":{"enable_thinking":false,"reasoning_effort":"max"}}
-            """)
+            """
+        )
         #expect(request.enable_thinking == nil)
         #expect(request.reasoning_effort == nil)
     }
@@ -96,7 +101,8 @@ struct DeepseekV41RequestControlsTests {
                 """
                 {"model":"\(renamed)","messages":[{"role":"user","content":"hi"}],
                  "chat_template_kwargs":{"enable_thinking":false,"reasoning_effort":"medium"}}
-                """)
+                """
+            )
             #expect(request.enable_thinking == false)
             #expect(request.reasoning_effort == "medium")
 
@@ -128,13 +134,18 @@ struct DeepseekV41RequestControlsTests {
 
         // Thinking-off without an effort is unchanged for both families.
         let offOnly = GenerationParameters(
-            temperature: nil, maxTokens: 16, modelOptions: ["disableThinking": .bool(true)])
+            temperature: nil,
+            maxTokens: 16,
+            modelOptions: ["disableThinking": .bool(true)]
+        )
         #expect(
             MLXBatchAdapter.additionalContext(for: offOnly, modelName: Self.v41Model)["enable_thinking"]
-                as? Bool == false)
+                as? Bool == false
+        )
         #expect(
             MLXBatchAdapter.additionalContext(for: offOnly, modelName: Self.v0731Model)["enable_thinking"]
-                as? Bool == false)
+                as? Bool == false
+        )
     }
 
     /// V4.1 dSpark drafts only on the engine's exclusive solo path, so under continuous batching a
@@ -142,7 +153,9 @@ struct DeepseekV41RequestControlsTests {
     /// without speculation. Ordinary and native-MTP requests keep sharing the batched engine.
     @Test func v41DSparkTakesTheSoloLeaseUnderContinuousBatching() {
         let drafter = FileManager.default.temporaryDirectory.appendingPathComponent(
-            "dspark", isDirectory: true)
+            "dspark",
+            isDirectory: true
+        )
         #expect(MLXBatchAdapter.requiresSoloLease(maxBatchSize: 4, draftStrategy: .dspark(drafterPath: drafter)))
         #expect(MLXBatchAdapter.requiresSoloLease(maxBatchSize: 4, draftStrategy: .dflash2(drafterPath: drafter)))
         #expect(!MLXBatchAdapter.requiresSoloLease(maxBatchSize: 4, draftStrategy: nil))
@@ -174,18 +187,26 @@ struct DeepseekV41RequestControlsTests {
 
         let off = tokenizer.decode(
             tokenIds: try tokenizer.applyChatTemplate(
-                messages: messages, tools: nil, additionalContext: ["enable_thinking": false]),
-            skipSpecialTokens: false)
+                messages: messages,
+                tools: nil,
+                additionalContext: ["enable_thinking": false]
+            ),
+            skipSpecialTokens: false
+        )
         #expect(
             off.hasSuffix("<\u{FF5C}Assistant\u{FF5C}></think>"),
-            "enable_thinking=false must render the V4.1 chat rail. Tail: \(off.suffix(80))")
+            "enable_thinking=false must render the V4.1 chat rail. Tail: \(off.suffix(80))"
+        )
         #expect(!off.contains("Reasoning Effort"), "The chat rail carries no effort line. \(off)")
 
         let on = tokenizer.decode(
             tokenIds: try tokenizer.applyChatTemplate(
-                messages: messages, tools: nil,
-                additionalContext: ["enable_thinking": true, "reasoning_effort": "high"]),
-            skipSpecialTokens: false)
+                messages: messages,
+                tools: nil,
+                additionalContext: ["enable_thinking": true, "reasoning_effort": "high"]
+            ),
+            skipSpecialTokens: false
+        )
         #expect(on.hasSuffix("<\u{FF5C}Assistant\u{FF5C}><think>"), "Tail: \(on.suffix(80))")
         #expect(on.contains("Reasoning Effort: 75"), "V4.1 high is budget 75. \(on)")
     }
@@ -202,28 +223,53 @@ struct DeepseekV41RequestControlsTests {
             ModelRuntime.requiresAdmittedMLXAllocatorCeiling(
                 isPlainDeepseekV4AffineJANG: facts.isPlainDeepseekV4AffineJANG
                     || facts.isDeepseekV41AffineJANG,
-                usesNativeMTP: false))
+                usesNativeMTP: false
+            )
+        )
     }
 
     @Test func cacheRestoreBecomesCachedInputTokenCount() async throws {
         let source = AsyncStream<Generation> { continuation in
-            continuation.yield(.prefillProgress(PrefillProgress(
-                stage: .cacheRestore, completedUnitCount: 6000, totalUnitCount: 6012,
-                detail: "disk")))
-            continuation.yield(.prefillProgress(PrefillProgress(
-                stage: .prefill, completedUnitCount: 6000, totalUnitCount: 6012,
-                detail: "running")))
+            continuation.yield(
+                .prefillProgress(
+                    PrefillProgress(
+                        stage: .cacheRestore,
+                        completedUnitCount: 6000,
+                        totalUnitCount: 6012,
+                        detail: "disk"
+                    )
+                )
+            )
+            continuation.yield(
+                .prefillProgress(
+                    PrefillProgress(
+                        stage: .prefill,
+                        completedUnitCount: 6000,
+                        totalUnitCount: 6012,
+                        detail: "running"
+                    )
+                )
+            )
             continuation.yield(.chunk("ok"))
-            continuation.yield(.info(GenerateCompletionInfo(
-                promptTokenCount: 6012, generationTokenCount: 2, promptTime: 0.4,
-                generationTime: 0.1)))
+            continuation.yield(
+                .info(
+                    GenerateCompletionInfo(
+                        promptTokenCount: 6012,
+                        generationTokenCount: 2,
+                        promptTime: 0.4,
+                        generationTime: 0.1
+                    )
+                )
+            )
             continuation.finish()
         }
         var cached: [Int] = []
         var sawCompletionAfterCached = false
         for try await event in GenerationEventMapper.map(
-            events: source, promptTokenCount: 6012, suppressProgressUI: true)
-        {
+            events: source,
+            promptTokenCount: 6012,
+            suppressProgressUI: true
+        ) {
             switch event {
             case .cachedInputTokenCount(let count): cached.append(count)
             case .completionInfo: sawCompletionAfterCached = !cached.isEmpty
@@ -236,15 +282,24 @@ struct DeepseekV41RequestControlsTests {
         // A cold request reports nothing (the usage field stays omitted).
         let cold = AsyncStream<Generation> { continuation in
             continuation.yield(.chunk("ok"))
-            continuation.yield(.info(GenerateCompletionInfo(
-                promptTokenCount: 12, generationTokenCount: 2, promptTime: 0.1,
-                generationTime: 0.1)))
+            continuation.yield(
+                .info(
+                    GenerateCompletionInfo(
+                        promptTokenCount: 12,
+                        generationTokenCount: 2,
+                        promptTime: 0.1,
+                        generationTime: 0.1
+                    )
+                )
+            )
             continuation.finish()
         }
         var coldCached = 0
         for try await event in GenerationEventMapper.map(
-            events: cold, promptTokenCount: 12, suppressProgressUI: true)
-        {
+            events: cold,
+            promptTokenCount: 12,
+            suppressProgressUI: true
+        ) {
             if case .cachedInputTokenCount = event { coldCached += 1 }
         }
         #expect(coldCached == 0)
@@ -252,14 +307,22 @@ struct DeepseekV41RequestControlsTests {
 
     @Test func cachedTokensReachTheUsageBlock() throws {
         let hint = StreamingStatsHint.encode(
-            tokenCount: 2, tokensPerSecond: 20, cachedInputTokenCount: 6000)
+            tokenCount: 2,
+            tokensPerSecond: 20,
+            cachedInputTokenCount: 6000
+        )
         let decoded = try #require(StreamingStatsHint.decode(hint))
         #expect(decoded.cachedInputTokenCount == 6000)
 
         let usage = Usage(
-            prompt_tokens: 6012, completion_tokens: 2, total_tokens: 6014,
+            prompt_tokens: 6012,
+            completion_tokens: 2,
+            total_tokens: 6014,
             prompt_tokens_details: Usage.cachedPromptDetails(
-                decoded.cachedInputTokenCount, promptTokens: 6012))
+                decoded.cachedInputTokenCount,
+                promptTokens: 6012
+            )
+        )
         let json = String(decoding: try JSONEncoder().encode(usage), as: UTF8.self)
         #expect(json.contains(#""cached_tokens":6000"#), "\(json)")
 

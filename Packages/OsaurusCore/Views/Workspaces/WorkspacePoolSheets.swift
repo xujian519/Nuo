@@ -91,7 +91,9 @@ struct WorkspacePoolTopUpSheet: View {
             SheetHintRow(
                 kind: .ok,
                 message: String(
-                    format: L("Adds %@ to the pool for %@ — no fee. Unlike the monthly grant, these credits don't expire."),
+                    format: L(
+                        "Adds %@ to the pool for %@ — no fee. Unlike the monthly grant, these credits don't expire."
+                    ),
                     OsaurusRouter.formatMicroAsCredits(String(micro)),
                     OsaurusRouter.formatMicroUSD(String(micro))
                 )
@@ -103,7 +105,9 @@ struct WorkspacePoolTopUpSheet: View {
         if service.billing?.paymentMethodOnFile != true {
             SheetHintRow(
                 kind: .info,
-                message: L("The card you use is saved to your workspace subscription, so you can turn on auto-reload afterwards.")
+                message: L(
+                    "The card you use is saved to your workspace subscription, so you can turn on auto-reload afterwards."
+                )
             )
         }
 
@@ -123,13 +127,22 @@ struct WorkspacePoolTopUpSheet: View {
             ProgressView()
                 .controlSize(.small)
             VStack(alignment: .leading, spacing: 4) {
-                Text(String(format: L("Waiting for Stripe to confirm %@"), currentMicro.map { OsaurusRouter.formatMicroUSD(String($0)) } ?? ""))
-                    .font(.system(size: 12.5, weight: .semibold))
-                    .foregroundColor(theme.primaryText)
-                Text(L("Nothing is charged until you complete the checkout. Nuo checks the pool each time you come back to it."))
-                    .font(.system(size: 11.5))
-                    .foregroundColor(theme.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text(
+                    String(
+                        format: L("Waiting for Stripe to confirm %@"),
+                        currentMicro.map { OsaurusRouter.formatMicroUSD(String($0)) } ?? ""
+                    )
+                )
+                .font(.system(size: 12.5, weight: .semibold))
+                .foregroundColor(theme.primaryText)
+                Text(
+                    L(
+                        "Nothing is charged until you complete the checkout. Nuo checks the pool each time you come back to it."
+                    )
+                )
+                .font(.system(size: 11.5))
+                .foregroundColor(theme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
             }
         }
         SheetHintRow(
@@ -186,8 +199,10 @@ struct WorkspaceAutoReloadSheet: View {
         guard let thresholdMicro, let reloadMicro else { return nil }
         if capEnabled, capMicro == nil { return nil }
         return OsaurusRouterWorkspacePoolCredits.validateAutoReload(
-            thresholdMicro: thresholdMicro, amountMicro: reloadMicro,
-            monthlyCapMicro: capEnabled ? capMicro : nil, bounds: settings?.bounds
+            thresholdMicro: thresholdMicro,
+            amountMicro: reloadMicro,
+            monthlyCapMicro: capEnabled ? capMicro : nil,
+            bounds: settings?.bounds
         )
     }
     private var isValid: Bool { !enabled || verdict == .ok }
@@ -249,7 +264,9 @@ struct WorkspaceAutoReloadSheet: View {
             } else if settings.enabled, settings.isCapReached {
                 SheetHintRow(
                     kind: .warning,
-                    message: L("This month's cap is reached — reloads resume when the month rolls over or you raise the cap.")
+                    message: L(
+                        "This month's cap is reached — reloads resume when the month rolls over or you raise the cap."
+                    )
                 )
             } else if settings.enabled {
                 SheetHintRow(
@@ -262,7 +279,9 @@ struct WorkspaceAutoReloadSheet: View {
             } else if !hasCard {
                 SheetHintRow(
                     kind: .info,
-                    message: L("Needs a saved card. Add credits once (the card is saved) or update your card under Manage billing.")
+                    message: L(
+                        "Needs a saved card. Add credits once (the card is saved) or update your card under Manage billing."
+                    )
                 )
             }
         } else if !loaded {
@@ -281,8 +300,11 @@ struct WorkspaceAutoReloadSheet: View {
         }
         if let code = settings.lastError, !code.isEmpty {
             return String(
-                format: L("Paused after %d failed charges (last: %@). Fix the card under Manage billing, then save to re-arm."),
-                settings.consecutiveFailures ?? 3, code.replacingOccurrences(of: "_", with: " ")
+                format: L(
+                    "Paused after %d failed charges (last: %@). Fix the card under Manage billing, then save to re-arm."
+                ),
+                settings.consecutiveFailures ?? 3,
+                code.replacingOccurrences(of: "_", with: " ")
             )
         }
         return L("Paused after repeated failed charges. Fix the card under Manage billing, then save to re-arm.")
@@ -323,7 +345,9 @@ struct WorkspaceAutoReloadSheet: View {
         } else {
             SheetHintRow(
                 kind: .info,
-                message: L("Reloads are charged off-session to the card saved on your subscription; after 3 declines auto-reload pauses until you save again.")
+                message: L(
+                    "Reloads are charged off-session to the card saved on your subscription; after 3 declines auto-reload pauses until you save again."
+                )
             )
         }
     }
@@ -335,7 +359,10 @@ struct WorkspaceAutoReloadSheet: View {
         if capEnabled, let capMicro {
             return String(
                 format: L("Below %@, charge %@ (%@) — at most %@ per month."),
-                below, add, credits, OsaurusRouter.formatMicroUSD(String(capMicro))
+                below,
+                add,
+                credits,
+                OsaurusRouter.formatMicroUSD(String(capMicro))
             )
         }
         return String(format: L("Below %@, charge %@ (%@) — no monthly cap."), below, add, credits)
@@ -365,8 +392,11 @@ struct WorkspaceAutoReloadSheet: View {
         let capValue = capEnabled ? capMicro : nil
         Task {
             let saved = await service.saveAutoReload(
-                workspaceId: workspaceId, enabled: enabled,
-                thresholdMicro: thresholdMicro, amountMicro: reloadMicro, monthlyCapMicro: capValue
+                workspaceId: workspaceId,
+                enabled: enabled,
+                thresholdMicro: thresholdMicro,
+                amountMicro: reloadMicro,
+                monthlyCapMicro: capValue
             )
             if saved != nil {
                 dismiss()

@@ -39,22 +39,25 @@ struct PiRPCCodecTests {
 
     @Test func aFullTurnDecodesInOrder() throws {
         let (codec, id) = try startedCodec()
-        let (events, replies) = HarnessFixtures.decodeAll(codec, [
-            #"{"id":"\#(id)","type":"response","command":"prompt","success":true}"#,
-            #"{"type":"agent_start"}"#,
-            #"{"type":"turn_start"}"#,
-            #"{"type":"message_start","message":{"role":"assistant","content":[]}}"#,
-            #"{"type":"message_update","assistantMessageEvent":{"type":"thinking_delta","delta":"hmm"}}"#,
-            #"{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Hel"}}"#,
-            #"{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"lo\u2028there"}}"#,
-            #"{"type":"tool_execution_start","toolCallId":"c1","toolName":"bash","args":{"command":"ls"}}"#,
-            #"{"type":"tool_execution_update","toolCallId":"c1","toolName":"bash","partialResult":{}}"#,
-            #"{"type":"tool_execution_end","toolCallId":"c1","toolName":"bash","result":{},"isError":true}"#,
-            #"{"type":"message_end","message":{"role":"assistant","stopReason":"stop","usage":{"input":10,"output":42}}}"#,
-            #"{"type":"turn_end"}"#,
-            #"{"type":"agent_end","messages":[]}"#,
-            #"{"type":"agent_settled"}"#,
-        ])
+        let (events, replies) = HarnessFixtures.decodeAll(
+            codec,
+            [
+                #"{"id":"\#(id)","type":"response","command":"prompt","success":true}"#,
+                #"{"type":"agent_start"}"#,
+                #"{"type":"turn_start"}"#,
+                #"{"type":"message_start","message":{"role":"assistant","content":[]}}"#,
+                #"{"type":"message_update","assistantMessageEvent":{"type":"thinking_delta","delta":"hmm"}}"#,
+                #"{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"Hel"}}"#,
+                #"{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"lo\u2028there"}}"#,
+                #"{"type":"tool_execution_start","toolCallId":"c1","toolName":"bash","args":{"command":"ls"}}"#,
+                #"{"type":"tool_execution_update","toolCallId":"c1","toolName":"bash","partialResult":{}}"#,
+                #"{"type":"tool_execution_end","toolCallId":"c1","toolName":"bash","result":{},"isError":true}"#,
+                #"{"type":"message_end","message":{"role":"assistant","stopReason":"stop","usage":{"input":10,"output":42}}}"#,
+                #"{"type":"turn_end"}"#,
+                #"{"type":"agent_end","messages":[]}"#,
+                #"{"type":"agent_settled"}"#,
+            ]
+        )
 
         // The acknowledgement arrived before `agent_start`, so the codec
         // asks once whether a run actually started.
@@ -77,20 +80,26 @@ struct PiRPCCodecTests {
     /// `agent_end` is not the end of a turn: Pi may still retry or compact.
     @Test func onlyAgentSettledEndsTheTurn() throws {
         let (codec, _) = try startedCodec()
-        let (events, _) = HarnessFixtures.decodeAll(codec, [
-            #"{"type":"agent_start"}"#,
-            #"{"type":"agent_end","messages":[]}"#,
-            #"{"type":"auto_retry_start","attempt":1,"maxAttempts":3,"delayMs":1000,"errorMessage":"overloaded"}"#,
-        ])
+        let (events, _) = HarnessFixtures.decodeAll(
+            codec,
+            [
+                #"{"type":"agent_start"}"#,
+                #"{"type":"agent_end","messages":[]}"#,
+                #"{"type":"auto_retry_start","attempt":1,"maxAttempts":3,"delayMs":1000,"errorMessage":"overloaded"}"#,
+            ]
+        )
         #expect(!events.contains(.turnCompleted))
         #expect(events.contains { if case .notice = $0 { return true } else { return false } })
     }
 
     @Test func aRejectedPromptIsTypedAsSignIn() throws {
         let (codec, id) = try startedCodec()
-        let (events, _) = HarnessFixtures.decodeAll(codec, [
-            #"{"id":"\#(id)","type":"response","command":"prompt","success":false,"error":"No API key found for anthropic. Use /login."}"#
-        ])
+        let (events, _) = HarnessFixtures.decodeAll(
+            codec,
+            [
+                #"{"id":"\#(id)","type":"response","command":"prompt","success":false,"error":"No API key found for anthropic. Use /login."}"#
+            ]
+        )
         guard case .turnFailed(.notAuthenticated(let runtime, _)) = events.first else {
             Issue.record("expected notAuthenticated, got \(events)")
             return
@@ -100,9 +109,12 @@ struct PiRPCCodecTests {
 
     @Test func otherRejectionsStayRejections() throws {
         let (codec, id) = try startedCodec()
-        let (events, _) = HarnessFixtures.decodeAll(codec, [
-            #"{"id":"\#(id)","type":"response","command":"prompt","success":false,"error":"Agent is busy"}"#
-        ])
+        let (events, _) = HarnessFixtures.decodeAll(
+            codec,
+            [
+                #"{"id":"\#(id)","type":"response","command":"prompt","success":false,"error":"Agent is busy"}"#
+            ]
+        )
         #expect(events == [.turnFailed(.rejected(runtime: "Pi", detail: "Agent is busy"))])
     }
 
@@ -116,9 +128,12 @@ struct PiRPCCodecTests {
         #expect(probe["type"] as? String == "get_state")
         let probeId = try #require(probe["id"] as? String)
 
-        let (events, _) = HarnessFixtures.decodeAll(codec, [
-            #"{"id":"\#(probeId)","type":"response","command":"get_state","success":true,"data":{"model":{"id":"unknown","provider":"unknown"},"isStreaming":false,"sessionId":"s"}}"#
-        ])
+        let (events, _) = HarnessFixtures.decodeAll(
+            codec,
+            [
+                #"{"id":"\#(probeId)","type":"response","command":"get_state","success":true,"data":{"model":{"id":"unknown","provider":"unknown"},"isStreaming":false,"sessionId":"s"}}"#
+            ]
+        )
         #expect(events == [.turnCompleted])
     }
 
@@ -128,45 +143,57 @@ struct PiRPCCodecTests {
         let probe = try #require(ack.replies.first)
         let probeId = try #require(HarnessFixtures.json(probe)["id"] as? String)
 
-        let (events, _) = HarnessFixtures.decodeAll(codec, [
-            #"{"id":"\#(probeId)","type":"response","command":"get_state","success":true,"data":{"isStreaming":true}}"#,
-            #"{"type":"agent_start"}"#,
-            #"{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"ok"}}"#,
-            #"{"type":"agent_settled"}"#,
-        ])
+        let (events, _) = HarnessFixtures.decodeAll(
+            codec,
+            [
+                #"{"id":"\#(probeId)","type":"response","command":"get_state","success":true,"data":{"isStreaming":true}}"#,
+                #"{"type":"agent_start"}"#,
+                #"{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"ok"}}"#,
+                #"{"type":"agent_settled"}"#,
+            ]
+        )
         #expect(events.visibleText == "ok")
         #expect(events.last == .turnCompleted)
     }
 
     @Test func aModelErrorFailsTheTurn() throws {
         let (codec, _) = try startedCodec()
-        let (events, _) = HarnessFixtures.decodeAll(codec, [
-            #"{"type":"agent_start"}"#,
-            #"{"type":"message_end","message":{"role":"assistant","stopReason":"error","errorMessage":"429 rate limit exceeded"}}"#,
-            #"{"type":"agent_settled"}"#,
-        ])
+        let (events, _) = HarnessFixtures.decodeAll(
+            codec,
+            [
+                #"{"type":"agent_start"}"#,
+                #"{"type":"message_end","message":{"role":"assistant","stopReason":"error","errorMessage":"429 rate limit exceeded"}}"#,
+                #"{"type":"agent_settled"}"#,
+            ]
+        )
         #expect(events == [.turnFailed(.rateLimited(runtime: "Pi", detail: "429 rate limit exceeded"))])
     }
 
     @Test func anAbortedTurnCompletesQuietly() throws {
         let (codec, _) = try startedCodec()
-        let (events, _) = HarnessFixtures.decodeAll(codec, [
-            #"{"type":"agent_start"}"#,
-            #"{"type":"message_end","message":{"role":"assistant","stopReason":"aborted","errorMessage":"Request was aborted"}}"#,
-            #"{"type":"agent_settled"}"#,
-        ])
+        let (events, _) = HarnessFixtures.decodeAll(
+            codec,
+            [
+                #"{"type":"agent_start"}"#,
+                #"{"type":"message_end","message":{"role":"assistant","stopReason":"aborted","errorMessage":"Request was aborted"}}"#,
+                #"{"type":"agent_settled"}"#,
+            ]
+        )
         #expect(events.last == .turnCompleted)
         #expect(!events.contains { if case .turnFailed = $0 { return true } else { return false } })
     }
 
     @Test func deltasOutsideATurnAreIgnored() {
         let codec = PiRPCCodec(runtimeName: "Pi")
-        let (events, _) = HarnessFixtures.decodeAll(codec, [
-            #"{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"stray"}}"#,
-            #"{"type":"agent_settled"}"#,
-            "not json",
-            "",
-        ])
+        let (events, _) = HarnessFixtures.decodeAll(
+            codec,
+            [
+                #"{"type":"message_update","assistantMessageEvent":{"type":"text_delta","delta":"stray"}}"#,
+                #"{"type":"agent_settled"}"#,
+                "not json",
+                "",
+            ]
+        )
         #expect(events.isEmpty)
     }
 
@@ -179,22 +206,27 @@ struct PiRPCCodecTests {
 
     @Test func dialogRequestsAndResponses() throws {
         let (codec, _) = try startedCodec()
-        let (events, _) = HarnessFixtures.decodeAll(codec, [
-            #"{"type":"extension_ui_request","id":"s1","method":"select","title":"Pick","options":["a","b"]}"#,
-            #"{"type":"extension_ui_request","id":"c1","method":"confirm","title":"Sure?","message":"Delete it"}"#,
-            #"{"type":"extension_ui_request","id":"i1","method":"input","title":"Name","placeholder":"type"}"#,
-            #"{"type":"extension_ui_request","id":"e1","method":"editor","title":"Edit","prefill":"draft"}"#,
-            #"{"type":"extension_ui_request","id":"n1","method":"notify","message":"Saved","notifyType":"info"}"#,
-            #"{"type":"extension_ui_request","id":"w1","method":"setWidget","widgetKey":"k"}"#,
-        ])
+        let (events, _) = HarnessFixtures.decodeAll(
+            codec,
+            [
+                #"{"type":"extension_ui_request","id":"s1","method":"select","title":"Pick","options":["a","b"]}"#,
+                #"{"type":"extension_ui_request","id":"c1","method":"confirm","title":"Sure?","message":"Delete it"}"#,
+                #"{"type":"extension_ui_request","id":"i1","method":"input","title":"Name","placeholder":"type"}"#,
+                #"{"type":"extension_ui_request","id":"e1","method":"editor","title":"Edit","prefill":"draft"}"#,
+                #"{"type":"extension_ui_request","id":"n1","method":"notify","message":"Saved","notifyType":"info"}"#,
+                #"{"type":"extension_ui_request","id":"w1","method":"setWidget","widgetKey":"k"}"#,
+            ]
+        )
 
-        #expect(events == [
-            .dialog(HarnessDialogRequest(id: "s1", title: "Pick", kind: .select(options: ["a", "b"]))),
-            .dialog(HarnessDialogRequest(id: "c1", title: "Sure?", kind: .confirm(message: "Delete it"))),
-            .dialog(HarnessDialogRequest(id: "i1", title: "Name", kind: .input(placeholder: "type"))),
-            .dialog(HarnessDialogRequest(id: "e1", title: "Edit", kind: .editor(prefill: "draft"))),
-            .notice("Saved", isError: false),
-        ])
+        #expect(
+            events == [
+                .dialog(HarnessDialogRequest(id: "s1", title: "Pick", kind: .select(options: ["a", "b"]))),
+                .dialog(HarnessDialogRequest(id: "c1", title: "Sure?", kind: .confirm(message: "Delete it"))),
+                .dialog(HarnessDialogRequest(id: "i1", title: "Name", kind: .input(placeholder: "type"))),
+                .dialog(HarnessDialogRequest(id: "e1", title: "Edit", kind: .editor(prefill: "draft"))),
+                .notice("Saved", isError: false),
+            ]
+        )
         #expect(codec.pendingDialogIds == ["s1", "c1", "i1", "e1"])
 
         let select = HarnessFixtures.json(try #require(codec.dialogResponse(id: "s1", response: .value("b"))))
@@ -216,11 +248,14 @@ struct PiRPCCodecTests {
 
     @Test func compactionAndExtensionErrorsBecomeNotices() throws {
         let (codec, _) = try startedCodec()
-        let (events, _) = HarnessFixtures.decodeAll(codec, [
-            #"{"type":"compaction_start","reason":"threshold"}"#,
-            #"{"type":"compaction_end","reason":"threshold","aborted":false,"errorMessage":"too small"}"#,
-            #"{"type":"extension_error","extensionPath":"/x.ts","event":"tool_call","error":"boom"}"#,
-        ])
+        let (events, _) = HarnessFixtures.decodeAll(
+            codec,
+            [
+                #"{"type":"compaction_start","reason":"threshold"}"#,
+                #"{"type":"compaction_end","reason":"threshold","aborted":false,"errorMessage":"too small"}"#,
+                #"{"type":"extension_error","extensionPath":"/x.ts","event":"tool_call","error":"boom"}"#,
+            ]
+        )
         #expect(events.count == 3)
         #expect(events[2] == .notice("boom", isError: true))
         if case .notice(_, let isError) = events[1] { #expect(isError) }
@@ -233,7 +268,9 @@ struct PiRPCCodecTests {
             name: "Spotlight",
             kind: .piRPC,
             executable: "~/.local/bin/spotlight",
-            arguments: ["--mode", "rpc", "--session-dir", "/tmp/s/{chat_id}", "--append-system-prompt", "{system_prompt_file}"],
+            arguments: [
+                "--mode", "rpc", "--session-dir", "/tmp/s/{chat_id}", "--append-system-prompt", "{system_prompt_file}",
+            ],
             environment: ["SPOTLIGHT_MODE": "case", "OSAURUS_CHAT_ID": "spoofed"]
         )
         let chatId = UUID()

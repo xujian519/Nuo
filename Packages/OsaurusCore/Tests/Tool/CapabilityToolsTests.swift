@@ -155,7 +155,8 @@ struct CapabilitiesToolTests {
         // a bare checkout has none (empty-list text). Either is the contract.
         #expect(
             result.contains("Enabled capabilities")
-                || result.contains("No capabilities are enabled"))
+                || result.contains("No capabilities are enabled")
+        )
     }
 
     @Test func searchResultUsesSingleGatewayVocabulary() async throws {
@@ -214,7 +215,8 @@ struct CapabilitiesToolTests {
         #expect(!ToolEnvelope.isError(result))
         #expect(
             result.contains("Enabled capabilities")
-                || result.contains("No capabilities are enabled"))
+                || result.contains("No capabilities are enabled")
+        )
     }
 }
 
@@ -663,7 +665,8 @@ struct CapabilitiesLoadToolTests {
         #expect(!ToolEnvelope.isError(result))
         #expect(
             result.contains("Enabled capabilities")
-                || result.contains("No capabilities are enabled"))
+                || result.contains("No capabilities are enabled")
+        )
     }
 
     @Test func missingIdsFallsBackToTheEnabledList() async throws {
@@ -672,7 +675,8 @@ struct CapabilitiesLoadToolTests {
         #expect(!ToolEnvelope.isError(result))
         #expect(
             result.contains("Enabled capabilities")
-                || result.contains("No capabilities are enabled"))
+                || result.contains("No capabilities are enabled")
+        )
     }
 
     /// Synthetic spec with a uniquely-marked parameter description so the
@@ -1153,7 +1157,9 @@ struct CapabilitiesLoadToolTests {
             AgentManager.shared.updateEnabledToolNames([probe.name], for: agent.id)
             let sessionId = "reload-grant-\(UUID().uuidString)"
             await SessionToolStateStore.shared.appendLoadedTools(
-                sessionId, names: [probe.name], fallbackAlwaysLoadedNames: nil
+                sessionId,
+                names: [probe.name],
+                fallbackAlwaysLoadedNames: nil
             )
             if state == "globalDisabled" {
                 ToolRegistry.shared.setEnabled(false, for: probe.name)

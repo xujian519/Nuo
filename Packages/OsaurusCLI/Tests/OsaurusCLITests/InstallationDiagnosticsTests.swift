@@ -291,11 +291,15 @@ struct InstallationDiagnosticsTests {
 
     @Test
     func doctorOptionsValidatePortsAndUnknownArguments() throws {
-        #expect(try DoctorCommand.parseOptions([
-            "--port", "4242", "--json", "--redact", "--verify-signatures",
-        ]) == .init(port: 4242, json: true, redact: true, verifySignatures: true))
-        #expect(try DoctorCommand.parseOptions([])
-            == .init(port: nil, json: false, redact: false, verifySignatures: false))
+        #expect(
+            try DoctorCommand.parseOptions([
+                "--port", "4242", "--json", "--redact", "--verify-signatures",
+            ]) == .init(port: 4242, json: true, redact: true, verifySignatures: true)
+        )
+        #expect(
+            try DoctorCommand.parseOptions([])
+                == .init(port: nil, json: false, redact: false, verifySignatures: false)
+        )
         #expect(throws: DoctorCommand.ArgumentError.self) {
             _ = try DoctorCommand.parseOptions(["--port", "0"])
         }

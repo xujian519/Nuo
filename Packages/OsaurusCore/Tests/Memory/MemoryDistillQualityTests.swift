@@ -22,11 +22,18 @@ struct MemoryDistillQualityTests {
         let parsed = MemoryService.DistillResult(
             pinnedCandidates: [
                 .init(content: Self.staleInstruction, salience: 0.8, tags: []),
-                .init(content: "  use FILE_READ to read probe.json in the working folder.  return its current value without modifying any file  ", salience: 0.8, tags: []),
+                .init(
+                    content:
+                        "  use FILE_READ to read probe.json in the working folder.  return its current value without modifying any file  ",
+                    salience: 0.8,
+                    tags: []
+                ),
                 .init(content: "User prefers metric units.", salience: 0.7, tags: ["preference"]),
             ])
         let screened = MemoryDistillateScreen.screen(
-            parsed, userMessages: [Self.staleInstruction, "I prefer metric units"])
+            parsed,
+            userMessages: [Self.staleInstruction, "I prefer metric units"]
+        )
         #expect(screened.pinnedCandidates.map(\.content) == ["User prefers metric units."])
     }
 
@@ -46,15 +53,19 @@ struct MemoryDistillQualityTests {
             "I prefer metric units.",
             "Use metric units for measurements.",
         ]
-        let parsed = MemoryService.DistillResult(pinnedCandidates: facts.map {
-            .init(content: $0, salience: 0.7, tags: [])
-        })
+        let parsed = MemoryService.DistillResult(
+            pinnedCandidates: facts.map {
+                .init(content: $0, salience: 0.7, tags: [])
+            }
+        )
         let screened = MemoryDistillateScreen.screen(parsed, userMessages: facts)
         #expect(screened.pinnedCandidates.map(\.content) == facts)
-        #expect(MemoryDistillateScreen.screen(
-            .init(pinnedCandidates: [.init(content: Self.staleInstruction, salience: 0.8, tags: [])]),
-            userMessages: [Self.staleInstruction]
-        ).pinnedCandidates.isEmpty)
+        #expect(
+            MemoryDistillateScreen.screen(
+                .init(pinnedCandidates: [.init(content: Self.staleInstruction, salience: 0.8, tags: [])]),
+                userMessages: [Self.staleInstruction]
+            ).pinnedCandidates.isEmpty
+        )
     }
 
     @Test func realFactsThatMentionAbsenceSurvive() {
@@ -93,9 +104,13 @@ struct MemoryDistillQualityTests {
             let conversation = UUID().uuidString
             let agent = UUID().uuidString
             let before = await MemoryService.shared.bufferTelemetry()
-            await MemoryService.shared.bufferTurn(userMessage: "Delegating agent instructions",
-                assistantMessage: "Worker result", agentId: agent, conversationId: conversation,
-                provenance: .delegated)
+            await MemoryService.shared.bufferTurn(
+                userMessage: "Delegating agent instructions",
+                assistantMessage: "Worker result",
+                agentId: agent,
+                conversationId: conversation,
+                provenance: .delegated
+            )
             #expect(try MemoryDatabase.shared.loadPendingSignals(conversationId: conversation).isEmpty)
             #expect(try !MemoryDatabase.shared.isDelegatedConversation(conversation))
             #expect(await MemoryService.shared.activeConversationId(forAgent: agent) == nil)
@@ -104,8 +119,12 @@ struct MemoryDistillQualityTests {
             try #require(sqlite3_exec(connection, "DROP TRIGGER reject_delegated_marker", nil, nil, nil) == SQLITE_OK)
             // Positive control: the same common buffer accepts a normal user
             // turn once marker failure has prevented the delegated enqueue.
-            await MemoryService.shared.bufferTurn(userMessage: "My own statement",
-                assistantMessage: "Noted", agentId: agent, conversationId: conversation)
+            await MemoryService.shared.bufferTurn(
+                userMessage: "My own statement",
+                assistantMessage: "Noted",
+                agentId: agent,
+                conversationId: conversation
+            )
             #expect(try MemoryDatabase.shared.loadPendingSignals(conversationId: conversation).count == 1)
         }
     }
@@ -163,19 +182,28 @@ struct MemoryDistillQualityTests {
             await MemoryService.shared.bufferTurn(
                 userMessage: Self.staleInstruction,
                 assistantMessage: "probe.json holds 45.",
-                agentId: agentKey, conversationId: conversationId, projectId: projectId)
+                agentId: agentKey,
+                conversationId: conversationId,
+                projectId: projectId
+            )
             await MemoryService.shared.bufferTurn(
                 userMessage: "Also, I prefer metric units for anything you measure.",
                 assistantMessage: "Noted, metric units from now on.",
-                agentId: agentKey, conversationId: conversationId, projectId: projectId)
+                agentId: agentKey,
+                conversationId: conversationId,
+                projectId: projectId
+            )
 
             let outcome = await MemoryService.shared.flushSessionAndWait(
-                agentId: agentKey, conversationId: conversationId)
+                agentId: agentKey,
+                conversationId: conversationId
+            )
             try #require(outcome.episodeId != nil, "distill did not produce an episode: \(outcome)")
 
             let agentFacts = try MemoryDatabase.shared.loadPinnedFacts(agentId: agentKey).map(\.content)
             let projectFacts = try MemoryDatabase.shared.loadPinnedFacts(
-                agentId: MemoryNamespace.project(projectId).key).map(\.content)
+                agentId: MemoryNamespace.project(projectId).key
+            ).map(\.content)
             #expect(agentFacts == ["User prefers metric units."])
             #expect(projectFacts == ["User prefers metric units."])
             let identity = try #require(try MemoryDatabase.shared.loadIdentity())
@@ -229,15 +257,21 @@ struct MemoryDistillQualityTests {
             await MemoryService.shared.bufferDelegatedTurn(
                 userMessage: "Return exactly BG_TOKEN_9 and nothing else. This is a delegated proof task.",
                 assistantMessage: "BG_TOKEN_9",
-                agentId: agentKey, conversationId: delegatedConversation)
+                agentId: agentKey,
+                conversationId: delegatedConversation
+            )
             try #require(try MemoryDatabase.shared.isDelegatedConversation(delegatedConversation))
 
             let outcome = await MemoryService.shared.flushSessionAndWait(
-                agentId: agentKey, conversationId: delegatedConversation)
+                agentId: agentKey,
+                conversationId: delegatedConversation
+            )
             try #require(outcome.episodeId != nil, "distill did not produce an episode: \(outcome)")
             // The worker still learns from its own run.
-            #expect(try MemoryDatabase.shared.loadPinnedFacts(agentId: agentKey).map(\.content)
-                == ["Delegated runs return the literal token they are asked for."])
+            #expect(
+                try MemoryDatabase.shared.loadPinnedFacts(agentId: agentKey).map(\.content)
+                    == ["Delegated runs return the literal token they are asked for."]
+            )
             #expect((try MemoryDatabase.shared.loadIdentity())?.overrides ?? [] == [])
             let prompt = try #require(await prompts.all.last)
             #expect(prompt.contains("\nDelegating agent: Return exactly BG_TOKEN_9"))
@@ -249,10 +283,14 @@ struct MemoryDistillQualityTests {
             await MemoryService.shared.bufferTurn(
                 userMessage: "Return exactly BG_TOKEN_9 and nothing else. This is my own proof task.",
                 assistantMessage: "BG_TOKEN_9",
-                agentId: agentKey, conversationId: userConversation)
+                agentId: agentKey,
+                conversationId: userConversation
+            )
             _ = await MemoryService.shared.flushSessionAndWait(agentId: agentKey, conversationId: userConversation)
-            #expect((try MemoryDatabase.shared.loadIdentity())?.overrides
-                == ["User's token is BG_TOKEN_9 within the delegated task context"])
+            #expect(
+                (try MemoryDatabase.shared.loadIdentity())?.overrides
+                    == ["User's token is BG_TOKEN_9 within the delegated task context"]
+            )
             #expect(try !MemoryDatabase.shared.isDelegatedConversation(userConversation))
         }
     }
@@ -269,7 +307,9 @@ struct MemoryDistillQualityTests {
         try db.openInMemory()
         defer { db.close() }
         try db.insertPinnedFact(PinnedFact(agentId: "a", content: Self.staleInstruction, salience: 0.8))
-        try db.insertPinnedFact(PinnedFact(agentId: "a", content: "The user's sailboat is named Peregrine Dusk.", salience: 0.6))
+        try db.insertPinnedFact(
+            PinnedFact(agentId: "a", content: "The user's sailboat is named Peregrine Dusk.", salience: 0.6)
+        )
 
         // "the", "of" and "is" used to OR-match the instruction.
         #expect(try db.searchPinnedFactsText(query: "What is the capital of France?", agentId: "a").isEmpty)

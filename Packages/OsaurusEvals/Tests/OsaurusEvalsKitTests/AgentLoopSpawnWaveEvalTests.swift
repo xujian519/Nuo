@@ -38,7 +38,10 @@ struct AgentLoopSpawnWaveEvalTests {
     }
 
     private static func call(
-        agent: String, input: String, result: String, step: Int
+        agent: String,
+        input: String,
+        result: String,
+        step: Int
     ) -> AgentLoopTranscript.ToolInvocation {
         let args = arguments(agent: agent, input: input)
         return .init(
@@ -49,7 +52,9 @@ struct AgentLoopSpawnWaveEvalTests {
             wasError: ToolEnvelope.isError(result),
             step: step,
             spawnCall: AgentLoopTranscript.spawnCallObservation(
-                tool: "spawn_agent", arguments: args, result: result
+                tool: "spawn_agent",
+                arguments: args,
+                result: result
             ),
             spawnSummary: AgentLoopTranscript.spawnSummary(from: result, tool: "spawn_agent")
         )
@@ -71,12 +76,14 @@ struct AgentLoopSpawnWaveEvalTests {
     private static func twoCallWave(secondOK: Bool = true) -> AgentLoopTranscript {
         transcript([
             call(
-                agent: mathID, input: "Return BATCH_ALPHA_42",
+                agent: mathID,
+                input: "Return BATCH_ALPHA_42",
                 result: successEnvelope(model: "test/math-model", summary: "BATCH_ALPHA_42"),
                 step: 1
             ),
             call(
-                agent: writingID, input: "Return BATCH_BETA_BLUE",
+                agent: writingID,
+                input: "Return BATCH_BETA_BLUE",
                 result: secondOK
                     ? successEnvelope(model: "test/writing-model", summary: "BATCH_BETA_BLUE")
                     : failureEnvelope(),
@@ -125,7 +132,9 @@ struct AgentLoopSpawnWaveEvalTests {
 
         #expect(
             AgentLoopTranscript.spawnCallObservation(
-                tool: "file_read", arguments: "{}", result: Self.successEnvelope(model: "m", summary: "s")
+                tool: "file_read",
+                arguments: "{}",
+                result: Self.successEnvelope(model: "m", summary: "s")
             ) == nil
         )
     }
@@ -139,11 +148,16 @@ struct AgentLoopSpawnWaveEvalTests {
             )
         )
         let event = EvalCaseTranscript.ToolEvent(
-            name: "spawn_agent", arguments: "{}", resultPreview: "truncated before children",
-            step: 3, spawnCall: observation
+            name: "spawn_agent",
+            arguments: "{}",
+            resultPreview: "truncated before children",
+            step: 3,
+            spawnCall: observation
         )
         let decoded = try JSONDecoder().decode(
-            EvalCaseTranscript.ToolEvent.self, from: JSONEncoder().encode(event))
+            EvalCaseTranscript.ToolEvent.self,
+            from: JSONEncoder().encode(event)
+        )
         #expect(decoded.spawnCall == observation)
         #expect(decoded.step == 3)
         #expect(decoded.spawnCall?.summary == "BATCH_ALPHA_42")
@@ -190,7 +204,8 @@ struct AgentLoopSpawnWaveEvalTests {
         }
         let byName = Self.transcript([
             Self.call(
-                agent: "Agent B", input: "17 + 25",
+                agent: "Agent B",
+                input: "17 + 25",
                 result: resolvedEnvelope(agentName: "Agent B", agentId: Self.writingID),
                 step: 1
             )
@@ -206,7 +221,8 @@ struct AgentLoopSpawnWaveEvalTests {
 
         let wrongWorker = Self.transcript([
             Self.call(
-                agent: "Agent A", input: "17 + 25",
+                agent: "Agent A",
+                input: "17 + 25",
                 result: resolvedEnvelope(agentName: "Agent A", agentId: Self.mathID),
                 step: 1
             )
@@ -220,11 +236,17 @@ struct AgentLoopSpawnWaveEvalTests {
     @Test func sequentialCallsAreTwoWavesNotOne() {
         let sequential = Self.transcript([
             Self.call(
-                agent: Self.mathID, input: "a",
-                result: Self.successEnvelope(model: "m", summary: "BATCH_ALPHA_42"), step: 1),
+                agent: Self.mathID,
+                input: "a",
+                result: Self.successEnvelope(model: "m", summary: "BATCH_ALPHA_42"),
+                step: 1
+            ),
             Self.call(
-                agent: Self.writingID, input: "b",
-                result: Self.successEnvelope(model: "m", summary: "BATCH_BETA_BLUE"), step: 2),
+                agent: Self.writingID,
+                input: "b",
+                result: Self.successEnvelope(model: "m", summary: "BATCH_BETA_BLUE"),
+                step: 2
+            ),
         ])
         let oneWave = EvalCase.AgentLoopExpectations.SpawnWaveAssertion(expectedWaveSizes: [2])
         let twoWaves = EvalCase.AgentLoopExpectations.SpawnWaveAssertion(expectedWaveSizes: [1, 1])
@@ -245,13 +267,20 @@ struct AgentLoopSpawnWaveEvalTests {
         #expect(EvalRunner.scoreSpawnWave(assertion, transcript: Self.twoCallWave()).passed)
         let bad = Self.transcript([
             Self.call(
-                agent: Self.mathID, input: "a",
+                agent: Self.mathID,
+                input: "a",
                 result: Self.successEnvelope(
-                    model: "m", summary: "I cannot calculate BATCH_ALPHA_42 without more context"),
-                step: 1),
+                    model: "m",
+                    summary: "I cannot calculate BATCH_ALPHA_42 without more context"
+                ),
+                step: 1
+            ),
             Self.call(
-                agent: Self.writingID, input: "b",
-                result: Self.successEnvelope(model: "m", summary: "BATCH_BETA_BLUE"), step: 1),
+                agent: Self.writingID,
+                input: "b",
+                result: Self.successEnvelope(model: "m", summary: "BATCH_BETA_BLUE"),
+                step: 1
+            ),
         ])
         let scored = EvalRunner.scoreSpawnWave(assertion, transcript: bad)
         #expect(!scored.passed)
@@ -288,29 +317,44 @@ struct AgentLoopSpawnWaveEvalTests {
             result: [
                 "kind": "spawn_result", "model": "m", "summary": "NEEDS INPUT: which color?",
                 "session_id": sessionId, "needs_input": true,
-            ])
+            ]
+        )
         let resolved = ToolEnvelope.success(
             tool: "spawn_agent",
             result: [
                 "kind": "spawn_result", "model": "m", "summary": "COLOR_BLUE",
                 "session_id": sessionId, "needs_input": false,
-            ])
+            ]
+        )
         func continuing(_ id: String, result: String, step: Int) -> AgentLoopTranscript.ToolInvocation {
             let args = "{\"continue\":\"\(id)\",\"input\":\"blue\"}"
             return .init(
-                name: "spawn_agent", arguments: args, resultPreview: String(result.prefix(300)),
-                wasDeduped: false, wasError: false, step: step,
+                name: "spawn_agent",
+                arguments: args,
+                resultPreview: String(result.prefix(300)),
+                wasDeduped: false,
+                wasError: false,
+                step: step,
                 spawnCall: AgentLoopTranscript.spawnCallObservation(
-                    tool: "spawn_agent", arguments: args, result: result),
-                spawnSummary: AgentLoopTranscript.spawnSummary(from: result, tool: "spawn_agent"))
+                    tool: "spawn_agent",
+                    arguments: args,
+                    result: result
+                ),
+                spawnSummary: AgentLoopTranscript.spawnSummary(from: result, tool: "spawn_agent")
+            )
         }
         let assertion = EvalCase.AgentLoopExpectations.SpawnWaveAssertion(
             exactCallCount: 2,
             expectedWaveSizes: [1, 1],
             expectedRows: [
                 .init(ok: true, hasSessionId: true, needsInput: true),
-                .init(ok: true, summaryEquals: "COLOR_BLUE", hasSessionId: true,
-                      continuesEarlierRow: true, needsInput: false),
+                .init(
+                    ok: true,
+                    summaryEquals: "COLOR_BLUE",
+                    hasSessionId: true,
+                    continuesEarlierRow: true,
+                    needsInput: false
+                ),
             ]
         )
         let good = Self.transcript([
@@ -348,7 +392,9 @@ struct AgentLoopSpawnWaveEvalTests {
         // Background ack row: ok + session_id present, no summary.
         let ack = SubagentSession.backgroundAck(tool: "spawn_agent", helper: "Worker", sessionId: UUID())
         let ackAssertion = EvalCase.AgentLoopExpectations.SpawnWaveAssertion(
-            exactCallCount: 1, expectedRows: [.init(ok: true, hasSessionId: true)])
+            exactCallCount: 1,
+            expectedRows: [.init(ok: true, hasSessionId: true)]
+        )
         let ackTranscript = Self.transcript([
             Self.call(agent: Self.mathID, input: "bg", result: ack, step: 1)
         ])
@@ -379,13 +425,17 @@ struct AgentLoopSpawnWaveEvalTests {
         let runtimeConcurrency = try #require(testCase.fixtures.runtimeConcurrency)
         let expectation = try #require(testCase.expect.agentLoop)
 
-        #expect(capabilities.spawnAgents?.map(\.name) == [
-            "Osaurus Eval Wave Math",
-            "Osaurus Eval Wave Writing",
-        ])
-        #expect(capabilities.spawnAgents?.compactMap { $0.id?.uuidString } == [
-            Self.mathID, Self.writingID,
-        ])
+        #expect(
+            capabilities.spawnAgents?.map(\.name) == [
+                "Osaurus Eval Wave Math",
+                "Osaurus Eval Wave Writing",
+            ]
+        )
+        #expect(
+            capabilities.spawnAgents?.compactMap { $0.id?.uuidString } == [
+                Self.mathID, Self.writingID,
+            ]
+        )
         #expect(capabilities.maxParallelSpawns == 2)
         #expect(capabilities.requestsAnyCapability)
         #expect(runtimeConcurrency.continuousBatching == true)
@@ -397,9 +447,11 @@ struct AgentLoopSpawnWaveEvalTests {
         #expect(expectation.spawnWave?.exactCallCount == 2)
         #expect(expectation.spawnWave?.expectedTargets == [Self.mathID, Self.writingID])
         #expect(expectation.spawnWave?.expectedWaveSizes == [2])
-        #expect(expectation.spawnWave?.expectedRows?.map(\.summaryEquals) == [
-            "BATCH_ALPHA_42", "BATCH_BETA_BLUE",
-        ])
+        #expect(
+            expectation.spawnWave?.expectedRows?.map(\.summaryEquals) == [
+                "BATCH_ALPHA_42", "BATCH_BETA_BLUE",
+            ]
+        )
         #expect(!testCase.query.contains("spawn_batch"))
         #expect(!testCase.query.contains("spawn_model"))
     }
@@ -415,22 +467,30 @@ struct AgentLoopSpawnWaveEvalTests {
         let workers = try #require(capabilities.spawnAgents)
         let expectation = try #require(testCase.expect.agentLoop)
 
-        #expect(workers.map(\.name) == [
-            "Osaurus Eval Nanbeige Worker",
-            "Osaurus Eval Ornith Worker",
-        ])
-        #expect(workers.map(\.modelId) == [
-            "JANGQ-AI/Nanbeige4.2-3B-JANG_4M",
-            "JANGQ-AI/Ornith-1.0-9B-JANG_4M",
-        ])
-        #expect(expectation.spawnWave?.expectedRows?.map(\.model) == [
-            "JANGQ-AI/Nanbeige4.2-3B-JANG_4M",
-            "JANGQ-AI/Ornith-1.0-9B-JANG_4M",
-        ])
-        #expect(expectation.spawnWave?.expectedRows?.map(\.target) == [
-            "A11CE001-0000-4000-8000-000000000101",
-            "A11CE001-0000-4000-8000-000000000102",
-        ])
+        #expect(
+            workers.map(\.name) == [
+                "Osaurus Eval Nanbeige Worker",
+                "Osaurus Eval Ornith Worker",
+            ]
+        )
+        #expect(
+            workers.map(\.modelId) == [
+                "JANGQ-AI/Nanbeige4.2-3B-JANG_4M",
+                "JANGQ-AI/Ornith-1.0-9B-JANG_4M",
+            ]
+        )
+        #expect(
+            expectation.spawnWave?.expectedRows?.map(\.model) == [
+                "JANGQ-AI/Nanbeige4.2-3B-JANG_4M",
+                "JANGQ-AI/Ornith-1.0-9B-JANG_4M",
+            ]
+        )
+        #expect(
+            expectation.spawnWave?.expectedRows?.map(\.target) == [
+                "A11CE001-0000-4000-8000-000000000101",
+                "A11CE001-0000-4000-8000-000000000102",
+            ]
+        )
         #expect(expectation.spawnWave?.expectedWaveSizes == [2])
     }
 
@@ -487,10 +547,14 @@ struct AgentLoopSpawnWaveEvalTests {
         #expect(ids.count == 2)
         let agents = AgentStore.loadAll().filter { ids.contains($0.id) }
         #expect(agents.count == 2)
-        #expect(agents.first { $0.name == fallbackName }?.defaultModel
-            == "JANGQ-AI/case-test-model")
-        #expect(agents.first { $0.name == explicitName }?.defaultModel
-            == "JANGQ-AI/explicit-test-model")
+        #expect(
+            agents.first { $0.name == fallbackName }?.defaultModel
+                == "JANGQ-AI/case-test-model"
+        )
+        #expect(
+            agents.first { $0.name == explicitName }?.defaultModel
+                == "JANGQ-AI/explicit-test-model"
+        )
         #expect(agents.allSatisfy { $0.temperature == nil && $0.maxTokens == nil })
 
         for id in ids {

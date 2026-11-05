@@ -419,8 +419,16 @@ struct WorkspacesView: View {
                 kind: .info,
                 title: L("Free trial"),
                 caption: subscription.price?.displayLabel.map {
-                    String(format: L("Converts to %@ per workspace on %@. Cancel anytime in the billing portal."), $0, date)
-                } ?? String(format: L("Converts to a paid subscription on %@. Cancel anytime in the billing portal."), date),
+                    String(
+                        format: L("Converts to %@ per workspace on %@. Cancel anytime in the billing portal."),
+                        $0,
+                        date
+                    )
+                }
+                    ?? String(
+                        format: L("Converts to a paid subscription on %@. Cancel anytime in the billing portal."),
+                        date
+                    ),
                 icon: "sparkles",
                 action: portalAction
             )
@@ -524,7 +532,7 @@ struct WorkspacesView: View {
 
     private var loadingGrid: some View {
         LazyVGrid(columns: Self.gridColumns, spacing: 20) {
-            ForEach(0..<2, id: \.self) { _ in
+            ForEach(0 ..< 2, id: \.self) { _ in
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 12) {
                         Circle()
@@ -919,7 +927,9 @@ struct WorkspaceStatusBadge: View {
 
     private var kind: Kind? {
         Self.kind(
-            source: source, active: active, trialing: trialing,
+            source: source,
+            active: active,
+            trialing: trialing,
             ownerSubscriptionStatus: ownerSubscriptionStatus
         )
     }

@@ -20,31 +20,51 @@ fileprivate extension URLRequest {
 struct HTTPHandlerChatStreamingTests {
 
     @MainActor
-    @Test(arguments: [true, false], [
-        (reason: "stop", inputTokens: 7),
-        (reason: "stop", inputTokens: nil),
-        (reason: "length", inputTokens: 7),
-    ] as [(reason: String, inputTokens: Int?)])
+    @Test(
+        arguments: [true, false],
+        [
+            (reason: "stop", inputTokens: 7),
+            (reason: "stop", inputTokens: nil),
+            (reason: "length", inputTokens: 7),
+        ] as [(reason: String, inputTokens: Int?)]
+    )
     func agentRunRelaysFinalRuntimeUsageOnlyWhenRequested(
-        includeUsage: Bool, terminal: (reason: String, inputTokens: Int?)
+        includeUsage: Bool,
+        terminal: (reason: String, inputTokens: Int?)
     ) async throws {
         let stopReason = terminal.reason
         try await SandboxTestLock.runWithStoragePaths {
-            let agent = Agent(name: "Runtime usage fixture", defaultModel: "fake",
-                              toolsEnabled: false, memoryEnabled: false)
+            let agent = Agent(
+                name: "Runtime usage fixture",
+                defaultModel: "fake",
+                toolsEnabled: false,
+                memoryEnabled: false
+            )
             AgentManager.shared.add(agent)
             defer { AgentStore.delete(id: agent.id); AgentManager.shared.refresh() }
-            let engine = MockChatEngine(deltas: [
-                StreamingInputTokenHint.encode(257),
-                "red",
-                StreamingStatsHint.encode(tokenCount: 20, tokensPerSecond: 10),
-                StreamingStatsHint.encode(tokenCount: 40, tokensPerSecond: 20,
-                                          stopReason: stopReason, inputTokenCount: terminal.inputTokens),
-            ], completeText: "", model: "fake")
+            let engine = MockChatEngine(
+                deltas: [
+                    StreamingInputTokenHint.encode(257),
+                    "red",
+                    StreamingStatsHint.encode(tokenCount: 20, tokensPerSecond: 10),
+                    StreamingStatsHint.encode(
+                        tokenCount: 40,
+                        tokensPerSecond: 20,
+                        stopReason: stopReason,
+                        inputTokenCount: terminal.inputTokens
+                    ),
+                ],
+                completeText: "",
+                model: "fake"
+            )
             let server = try await startChatStreamingTestServer(with: engine, trustLoopback: true)
             defer { Task { await server.shutdown() } }
-            var request = URLRequest(url: URL(string:
-                "http://\(server.host):\(server.port)/agents/\(agent.id.uuidString)/run")!)
+            var request = URLRequest(
+                url: URL(
+                    string:
+                        "http://\(server.host):\(server.port)/agents/\(agent.id.uuidString)/run"
+                )!
+            )
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.authenticate()
@@ -90,12 +110,14 @@ struct HTTPHandlerChatStreamingTests {
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
         request.authenticate()
         request.disablePersistenceForTests()
-        request.httpBody = Data(#"""
+        request.httpBody = Data(
+            #"""
             {"model":"tool-contract-fixture","stream":true,"stream_options":{"include_usage":true},
              "messages":[{"role":"user","content":"Read both zones."}],
              "tools":[{"type":"function","function":{"name":"lookup_zone","parameters":{
                "type":"object","properties":{"zone":{"type":"string"}},"required":["zone"]}}}]}
-            """#.utf8)
+            """#.utf8
+        )
         let (data, response) = try await URLSession.shared.data(for: request)
         #expect((response as? HTTPURLResponse)?.statusCode == 200)
         let body = String(decoding: data, as: UTF8.self)
@@ -168,8 +190,12 @@ struct HTTPHandlerChatStreamingTests {
                 fatalError("not used")
             }
 
-            func streamResponses(request: ResponsesInferenceRequest) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
-                httpFixtureResponseEvents(try await completeChat(request: request.chatCompletionsCompatibilityRequest()))
+            func streamResponses(request: ResponsesInferenceRequest) async throws -> AsyncThrowingStream<
+                ResponsesGenerationEvent, Error
+            > {
+                httpFixtureResponseEvents(
+                    try await completeChat(request: request.chatCompletionsCompatibilityRequest())
+                )
             }
 
             func completeChat(request: ChatCompletionRequest) async throws -> ChatCompletionResponse {
@@ -275,8 +301,12 @@ struct HTTPHandlerChatStreamingTests {
                 fatalError("not used")
             }
 
-            func streamResponses(request: ResponsesInferenceRequest) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
-                httpFixtureResponseEvents(try await completeChat(request: request.chatCompletionsCompatibilityRequest()))
+            func streamResponses(request: ResponsesInferenceRequest) async throws -> AsyncThrowingStream<
+                ResponsesGenerationEvent, Error
+            > {
+                httpFixtureResponseEvents(
+                    try await completeChat(request: request.chatCompletionsCompatibilityRequest())
+                )
             }
 
             func completeChat(request: ChatCompletionRequest) async throws -> ChatCompletionResponse {
@@ -1640,8 +1670,12 @@ struct HTTPHandlerChatStreamingTests {
                 fatalError("not used")
             }
 
-            func streamResponses(request: ResponsesInferenceRequest) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
-                httpFixtureResponseEvents(try await completeChat(request: request.chatCompletionsCompatibilityRequest()))
+            func streamResponses(request: ResponsesInferenceRequest) async throws -> AsyncThrowingStream<
+                ResponsesGenerationEvent, Error
+            > {
+                httpFixtureResponseEvents(
+                    try await completeChat(request: request.chatCompletionsCompatibilityRequest())
+                )
             }
 
             func completeChat(request: ChatCompletionRequest) async throws -> ChatCompletionResponse {
@@ -1990,23 +2024,40 @@ func startChatStreamingTestServer(
     }
 }
 
-
 /// Explicit compatibility only for complete-only test doubles. Production HTTP
 /// inference calls the typed engine entry and never uses this helper.
-private func httpFixtureResponseEvents(_ response: ChatCompletionResponse) -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
+private func httpFixtureResponseEvents(_ response: ChatCompletionResponse) -> AsyncThrowingStream<
+    ResponsesGenerationEvent, Error
+> {
     AsyncThrowingStream { continuation in
         let message = response.choices.first?.message
         if let reasoning = message?.reasoning_content { continuation.yield(.reasoningDelta(reasoning)) }
         if let text = message?.content { continuation.yield(.outputTextDelta(text)) }
         let calls = (message?.tool_calls ?? []).map {
-            ResponsesFunctionCall(id: "fc_" + $0.id, callID: $0.id, name: $0.function.name,
-                arguments: $0.function.arguments, geminiThoughtSignature: $0.geminiThoughtSignature)
+            ResponsesFunctionCall(
+                id: "fc_" + $0.id,
+                callID: $0.id,
+                name: $0.function.name,
+                arguments: $0.function.arguments,
+                geminiThoughtSignature: $0.geminiThoughtSignature
+            )
         }
-        continuation.yield(.responseCompleted(.init(responseID: response.id, status: .completed,
-            functionCalls: calls, tokenCount: response.usage.completion_tokens,
-            tokensPerSecond: response.usage.tokens_per_second, unclosedReasoning: false,
-            stopReason: response.choices.first?.finish_reason, promptTokensPerSecond: nil, mtp: nil,
-            inputTokenCount: response.usage.prompt_tokens)))
+        continuation.yield(
+            .responseCompleted(
+                .init(
+                    responseID: response.id,
+                    status: .completed,
+                    functionCalls: calls,
+                    tokenCount: response.usage.completion_tokens,
+                    tokensPerSecond: response.usage.tokens_per_second,
+                    unclosedReasoning: false,
+                    stopReason: response.choices.first?.finish_reason,
+                    promptTokensPerSecond: nil,
+                    mtp: nil,
+                    inputTokenCount: response.usage.prompt_tokens
+                )
+            )
+        )
         continuation.finish()
     }
 }

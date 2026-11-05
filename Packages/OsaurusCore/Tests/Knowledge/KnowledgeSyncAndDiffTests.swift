@@ -82,14 +82,26 @@ struct KnowledgeCurationPurgeTests {
     func deleteCollectionPurgesTicketsAndProposals() throws {
         guard let db = makeDBOrSkip() else { return }
         _ = try db.createTicket(
-            collectionId: "c1", relPath: "a.md", reason: "stale", evidence: "", createdBy: ""
+            collectionId: "c1",
+            relPath: "a.md",
+            reason: "stale",
+            evidence: "",
+            createdBy: ""
         )
         _ = try db.createProposal(
-            ticketId: nil, collectionId: "c1", relPath: "a.md",
-            newContent: "x", rationale: "r", createdBy: ""
+            ticketId: nil,
+            collectionId: "c1",
+            relPath: "a.md",
+            newContent: "x",
+            rationale: "r",
+            createdBy: ""
         )
         let keepTicket = try db.createTicket(
-            collectionId: "keep", relPath: "b.md", reason: "stale", evidence: "", createdBy: ""
+            collectionId: "keep",
+            relPath: "b.md",
+            reason: "stale",
+            evidence: "",
+            createdBy: ""
         )
 
         try db.deleteCollection(collectionId: "c1")
@@ -105,12 +117,20 @@ struct KnowledgeCurationPurgeTests {
         guard let db = makeDBOrSkip() else { return }
         #expect(try db.pendingProposalCount() == 0)
         let first = try db.createProposal(
-            ticketId: nil, collectionId: "c1", relPath: "a.md",
-            newContent: "x", rationale: "r", createdBy: ""
+            ticketId: nil,
+            collectionId: "c1",
+            relPath: "a.md",
+            newContent: "x",
+            rationale: "r",
+            createdBy: ""
         )
         _ = try db.createProposal(
-            ticketId: nil, collectionId: "c1", relPath: "b.md",
-            newContent: "y", rationale: "r", createdBy: ""
+            ticketId: nil,
+            collectionId: "c1",
+            relPath: "b.md",
+            newContent: "y",
+            rationale: "r",
+            createdBy: ""
         )
         #expect(try db.pendingProposalCount() == 2)
         try db.updateProposalStatus(id: first, status: .dismissed)

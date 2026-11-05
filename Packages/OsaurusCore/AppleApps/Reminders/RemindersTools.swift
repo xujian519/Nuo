@@ -77,7 +77,10 @@ final class RemindersFetchTool: AppleToolBase, @unchecked Sendable {
                 "Fetch or search reminders. Defaults to incomplete reminders across all lists, due soonest first (undated last). Filter by list, status, due-date range, or text. Returns each reminder's id for reminders_update / reminders_complete / reminders_delete.",
             parameters: AppleSchema.object([
                 "lists": AppleSchema.stringArray("Restrict to these list ids or titles (from reminders_lists)."),
-                "status": AppleSchema.string("Which reminders to include (default incomplete).", enum: ["incomplete", "completed", "all"]),
+                "status": AppleSchema.string(
+                    "Which reminders to include (default incomplete).",
+                    enum: ["incomplete", "completed", "all"]
+                ),
                 "due_after": AppleSchema.date("Only reminders due on/after this date."),
                 "due_before": AppleSchema.date("Only reminders due before this date (a bare date is inclusive)."),
                 "query": AppleSchema.string("Case-insensitive text to match in the title or notes."),
@@ -88,7 +91,12 @@ final class RemindersFetchTool: AppleToolBase, @unchecked Sendable {
     }
 
     override func run(args: [String: Any]) async throws -> AppleToolPayload {
-        let statusRaw = try AppleArgs.enumeration(args, "status", allowed: ["incomplete", "completed", "all"], default: "incomplete")
+        let statusRaw = try AppleArgs.enumeration(
+            args,
+            "status",
+            allowed: ["incomplete", "completed", "all"],
+            default: "incomplete"
+        )
         let limit = try AppleArgs.limit(args, default: Self.defaultLimit)
         let query = ReminderQuery(
             listIds: try AppleArgs.stringArray(args, "lists"),
@@ -124,12 +132,19 @@ final class RemindersCreateTool: AppleToolBase, @unchecked Sendable {
             parameters: AppleSchema.object(
                 [
                     "title": AppleSchema.string("Reminder title."),
-                    "list": AppleSchema.string("List id or title (from reminders_lists). Default: the user's default list."),
+                    "list": AppleSchema.string(
+                        "List id or title (from reminders_lists). Default: the user's default list."
+                    ),
                     "notes": AppleSchema.string("Notes."),
                     "url": AppleSchema.string("Related URL."),
                     "due": AppleSchema.date("Due date/time."),
-                    "priority": AppleSchema.string(RemindersToolFactory.priorityDescription, enum: RemindersToolFactory.priorityValues),
-                    "alarms_minutes_before": AppleSchema.integerArray("Alerts in minutes before the due time (needs `due`)."),
+                    "priority": AppleSchema.string(
+                        RemindersToolFactory.priorityDescription,
+                        enum: RemindersToolFactory.priorityValues
+                    ),
+                    "alarms_minutes_before": AppleSchema.integerArray(
+                        "Alerts in minutes before the due time (needs `due`)."
+                    ),
                     "alarm_at": AppleSchema.date("An absolute alert time."),
                     "recurrence": AppleSchema.recurrence,
                 ],
@@ -153,7 +168,8 @@ final class RemindersCreateTool: AppleToolBase, @unchecked Sendable {
         )
         if draft.alarmsMinutesBefore != nil, draft.due == nil {
             throw AppleToolError.invalidArgs(
-                "`alarms_minutes_before` needs a `due` date to count back from.", field: "alarms_minutes_before"
+                "`alarms_minutes_before` needs a `due` date to count back from.",
+                field: "alarms_minutes_before"
             )
         }
         if draft.recurrence != nil, draft.due == nil {
@@ -162,7 +178,8 @@ final class RemindersCreateTool: AppleToolBase, @unchecked Sendable {
         let created = try await service.create(draft)
         return AppleToolPayload(
             ["reminder": created, "created": true],
-            warnings: [CalendarArgs.alarmWarning(draft.alarmsMinutesBefore)].compactMap { $0 })
+            warnings: [CalendarArgs.alarmWarning(draft.alarmsMinutesBefore)].compactMap { $0 }
+        )
     }
 }
 
@@ -186,8 +203,13 @@ final class RemindersUpdateTool: AppleToolBase, @unchecked Sendable {
                     "notes": AppleSchema.nullableString("New notes (null clears)."),
                     "url": AppleSchema.nullableString("New URL (null clears)."),
                     "due": AppleSchema.nullableDate("New due date/time (null clears)."),
-                    "priority": AppleSchema.string(RemindersToolFactory.priorityDescription, enum: RemindersToolFactory.priorityValues),
-                    "alarms_minutes_before": AppleSchema.integerArray("Replace alerts with these minutes-before values ([] removes all; needs a due date)."),
+                    "priority": AppleSchema.string(
+                        RemindersToolFactory.priorityDescription,
+                        enum: RemindersToolFactory.priorityValues
+                    ),
+                    "alarms_minutes_before": AppleSchema.integerArray(
+                        "Replace alerts with these minutes-before values ([] removes all; needs a due date)."
+                    ),
                     "recurrence": AppleSchema.recurrence,
                     "clear_recurrence": AppleSchema.boolean("Remove the repeat rule."),
                     "completed": AppleSchema.boolean("Mark completed (true) or incomplete (false)."),
@@ -209,7 +231,9 @@ final class RemindersUpdateTool: AppleToolBase, @unchecked Sendable {
             if let raw = try AppleArgs.string(args, "due") {
                 guard let parsed = AppleDateParsing.parse(raw) else {
                     throw AppleToolError.invalidArgs(
-                        "`due` could not be parsed as a date.", field: "due", expected: AppleDateParsing.contractDescription
+                        "`due` could not be parsed as a date.",
+                        field: "due",
+                        expected: AppleDateParsing.contractDescription
                     )
                 }
                 patch.due = .some(parsed)
@@ -218,7 +242,9 @@ final class RemindersUpdateTool: AppleToolBase, @unchecked Sendable {
             }
         }
         patch.priority = try RemindersToolFactory.priority(args)
-        if args["alarms_minutes_before"] != nil { patch.alarmsMinutesBefore = .some(try CalendarArgs.alarms(args) ?? []) }
+        if args["alarms_minutes_before"] != nil {
+            patch.alarmsMinutesBefore = .some(try CalendarArgs.alarms(args) ?? [])
+        }
         if try AppleArgs.bool(args, "clear_recurrence") == true {
             patch.recurrence = .some(nil)
         } else if let recurrence = try CalendarArgs.recurrence(args) {
@@ -231,7 +257,8 @@ final class RemindersUpdateTool: AppleToolBase, @unchecked Sendable {
         let updated = try await service.update(id: id, patch: patch)
         return AppleToolPayload(
             ["reminder": updated, "updated": true],
-            warnings: [CalendarArgs.alarmWarning(patch.alarmsMinutesBefore ?? nil)].compactMap { $0 })
+            warnings: [CalendarArgs.alarmWarning(patch.alarmsMinutesBefore ?? nil)].compactMap { $0 }
+        )
     }
 }
 
@@ -277,7 +304,8 @@ final class RemindersDeleteTool: AppleToolBase, PerCallApprovalTool, @unchecked 
         super.init(
             app: .reminders,
             name: "reminders_delete",
-            description: "Delete a reminder by `id`. Irreversible; the user approves every call. Prefer reminders_complete unless the user asked to delete.",
+            description:
+                "Delete a reminder by `id`. Irreversible; the user approves every call. Prefer reminders_complete unless the user asked to delete.",
             parameters: AppleSchema.object(
                 ["id": AppleSchema.string("Reminder id from reminders_fetch.")],
                 required: ["id"]

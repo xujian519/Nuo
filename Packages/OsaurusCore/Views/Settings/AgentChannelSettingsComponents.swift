@@ -1003,7 +1003,9 @@ struct AgentChannelSelectorSearchField: View {
 /// receive the shaped item so selection state travels with the ForEach data
 /// and lazy cells refresh when a toggle changes only the selection.
 struct AgentChannelSelectorListCard<
-    Entry: Identifiable & Equatable, State: Equatable, RowContent: View
+    Entry: Identifiable & Equatable,
+    State: Equatable,
+    RowContent: View
 >: View {
     @ObservedObject private var themeManager = ThemeManager.shared
 

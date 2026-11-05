@@ -74,13 +74,15 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
             "yaml": .object([
                 "type": .string("string"),
                 "description": .string(
-                    "The YAML document for plan / apply. Mutually exclusive with `template`."),
+                    "The YAML document for plan / apply. Mutually exclusive with `template`."
+                ),
             ]),
             "template": .object([
                 "type": .string("string"),
                 "description": .string(
                     "Saved template name (in ~/.osaurus/templates) for plan / apply. Accepts a "
-                        + "whole-config YAML template or an agent template's name (see `templates`)."),
+                        + "whole-config YAML template or an agent template's name (see `templates`)."
+                ),
             ]),
             "kind": .object([
                 "type": .string("string"),
@@ -104,32 +106,37 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
                 ]),
                 "description": .string(
                     "For plan / apply with an AGENT `template`: fields merged on top of the template's "
-                        + "agent, e.g. a task-specific name and system prompt."),
+                        + "agent, e.g. a task-specific name and system prompt."
+                ),
             ]),
             "sections": .object([
                 "type": .string("array"),
                 "items": .object(["type": .string("string")]),
                 "description": .string(
                     "For export / schema: only include these sections "
-                        + "(e.g. [\"agents\", \"schedules\"])."),
+                        + "(e.g. [\"agents\", \"schedules\"])."
+                ),
             ]),
             "save_as": .object([
                 "type": .string("string"),
                 "description": .string(
-                    "For export: also save the YAML as a named template in ~/.osaurus/templates."),
+                    "For export: also save the YAML as a named template in ~/.osaurus/templates."
+                ),
             ]),
             "prune": .object([
                 "type": .string("boolean"),
                 "description": .string(
                     "For plan / apply: delete entries NOT listed in the document's declared "
-                        + "sections. Destructive — defaults to false."),
+                        + "sections. Destructive — defaults to false."
+                ),
             ]),
             "format": .object([
                 "type": .string("string"),
                 "enum": .array([.string("yaml"), .string("json")]),
                 "description": .string(
                     "For export / schema: output format. Default yaml. plan / apply "
-                        + "auto-accept both (JSON is a YAML subset)."),
+                        + "auto-accept both (JSON is a YAML subset)."
+                ),
             ]),
         ]),
         "required": .array([.string("action")]),
@@ -158,7 +165,9 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
         let argsReq = requireArgumentsDictionary(argumentsJSON, tool: name)
         guard case .value(let args) = argsReq else { return argsReq.failureEnvelope ?? "" }
         let actionReq = requireAction(
-            args, allowed: ["schema", "export", "plan", "apply", "templates"])
+            args,
+            allowed: ["schema", "export", "plan", "apply", "templates"]
+        )
         guard case .value(let action) = actionReq else { return actionReq.failureEnvelope ?? "" }
 
         switch action {
@@ -205,7 +214,12 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
                 }
                 return .failure(
                     ToolEnvelope.failure(
-                        kind: .invalidArgs, message: message, field: "sections", tool: name))
+                        kind: .invalidArgs,
+                        message: message,
+                        field: "sections",
+                        tool: name
+                    )
+                )
             }
             resolved.insert(id)
         }
@@ -240,8 +254,11 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
     private func handleSchema(_ args: [String: Any]) -> String {
         guard let format = ConfigDocumentFormat.parse(args["format"] as? String) else {
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`format` must be yaml or json.",
-                field: "format", tool: name)
+                kind: .invalidArgs,
+                message: "`format` must be yaml or json.",
+                field: "format",
+                tool: name
+            )
         }
         // Models routinely scope the ask ("sections": ["models"]); honoring
         // the filter keeps the reply inside a small model's budget instead
@@ -284,8 +301,11 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
 
         guard let format = ConfigDocumentFormat.parse(args["format"] as? String) else {
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`format` must be yaml or json.",
-                field: "format", tool: name)
+                kind: .invalidArgs,
+                message: "`format` must be yaml or json.",
+                field: "format",
+                tool: name
+            )
         }
 
         let document = await MainActor.run { ConfigExporter.export(sections: filter) }
@@ -314,7 +334,11 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
                 result["saved_to"] = url.path
             case .failure(let message):
                 return ToolEnvelope.failure(
-                    kind: .invalidArgs, message: message, field: "save_as", tool: name)
+                    kind: .invalidArgs,
+                    message: message,
+                    field: "save_as",
+                    tool: name
+                )
             }
         }
         // The settings-section read path (inspect's unknown-scope redirect)
@@ -387,7 +411,10 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
             return invalidDocumentEnvelope(issues)
         } catch {
             return ToolEnvelope.failure(
-                kind: .executionError, message: error.localizedDescription, tool: name)
+                kind: .executionError,
+                message: error.localizedDescription,
+                tool: name
+            )
         }
     }
 
@@ -415,7 +442,10 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
             return invalidDocumentEnvelope(issues)
         } catch {
             return ToolEnvelope.failure(
-                kind: .executionError, message: error.localizedDescription, tool: name)
+                kind: .executionError,
+                message: error.localizedDescription,
+                tool: name
+            )
         }
 
         if plan.isEmpty {
@@ -548,7 +578,8 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
                 notes.append(
                     "prune: true deleted NOTHING — no entry outside your keep-list existed. "
                         + "If you meant to remove an entry, it was not configured; tell the "
-                        + "user that instead of reporting a removal.")
+                        + "user that instead of reporting a removal."
+                )
             }
             let creates = plan.actions.filter { $0.kind == .create }
             if !creates.isEmpty {
@@ -556,7 +587,8 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
                     "This apply CREATED \(creates.count) new entr\(creates.count == 1 ? "y" : "ies") "
                         + "(\(creates.map { $0.target }.joined(separator: ", "))) that were in "
                         + "your document but not previously configured — do not describe these "
-                        + "as pre-existing or as survivors of a removal.")
+                        + "as pre-existing or as survivors of a removal."
+                )
             }
         }
         if !failed.isEmpty {
@@ -564,16 +596,19 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
         }
         if !cancelled.isEmpty {
             notes.append(
-                "\(cancelled.count) change(s) were cancelled by the user and did not land.")
+                "\(cancelled.count) change(s) were cancelled by the user and did not land."
+            )
         }
         if !needsAction.isEmpty {
             notes.append(
                 "\(needsAction.count) change(s) need the user to finish a step in Settings "
-                    + "(credentials never travel through this tool).")
+                    + "(credentials never travel through this tool)."
+            )
         }
         if !started.isEmpty {
             notes.append(
-                "\(started.count) download(s) started — poll osaurus_inspect({action: 'status'}).")
+                "\(started.count) download(s) started — poll osaurus_inspect({action: 'status'})."
+            )
         }
         if !notes.isEmpty { result["notes"] = notes }
         // A clean success must SAY it is terminal. Every other action ends
@@ -617,7 +652,11 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
         case "all": kind = nil
         default:
             return ToolEnvelope.failure(
-                kind: .invalidArgs, message: "`kind` must be agent or all.", field: "kind", tool: name)
+                kind: .invalidArgs,
+                message: "`kind` must be agent or all.",
+                field: "kind",
+                tool: name
+            )
         }
         let templates = kind == nil ? ConfigTemplateStore.list() : []
         // Only templates the user flagged for the orchestrator. Hidden ones
@@ -667,13 +706,15 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
         if case .fallbackToDefault(let requested) = template.modelResolution() {
             plan.notes.append(
                 "Template prefers model `\(requested)`, which is not installed here; "
-                    + "the agent uses the default model instead.")
+                    + "the agent uses the default model instead."
+            )
         }
         let unresolved = template.requires.filter { $0.kind != .model }
         if !unresolved.isEmpty {
             plan.notes.append(
                 "Template setup to confirm after apply: "
-                    + unresolved.map { "\($0.kind.rawValue) \($0.value)" }.joined(separator: ", ") + ".")
+                    + unresolved.map { "\($0.kind.rawValue) \($0.value)" }.joined(separator: ", ") + "."
+            )
         }
     }
 
@@ -698,7 +739,8 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
     /// Builds the one-agent document for an agent template plus `overrides`.
     @MainActor
     private func agentTemplateDocument(
-        named templateName: String, overrides: AgentEntry?
+        named templateName: String,
+        overrides: AgentEntry?
     ) -> DocumentLoad? {
         TemplateStore.shared.reload()
         guard let template = TemplateStore.shared.template(named: templateName, kind: .agent) else { return nil }
@@ -708,7 +750,10 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
                     kind: .invalidArgs,
                     message: "Template `\(template.name)` is not available to the orchestrator. "
                         + "The user can enable it from the Templates tab (Show to Orchestrator).",
-                    field: "template", tool: name))
+                    field: "template",
+                    tool: name
+                )
+            )
         }
         // A template that insists on its model cannot be applied without it.
         // The orchestrator can still pass `overrides.model` to substitute.
@@ -722,7 +767,10 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
                         + "installed on this Mac. Ask the user to install it (list it under `models:` "
                         + "for a local model, or connect the provider), or pass `overrides.model` "
                         + "to substitute a model the user chose.",
-                    field: "template", tool: name))
+                    field: "template",
+                    tool: name
+                )
+            )
         }
         var document = OsaurusConfigDocument()
         document.version = 1
@@ -753,7 +801,9 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
                     ToolEnvelope.failure(
                         kind: .invalidArgs,
                         message: "Pass `yaml` OR `template`, not both.",
-                        tool: name))
+                        tool: name
+                    )
+                )
             }
             yaml = inlineYAML
         } else if let templateName, !templateName.isEmpty {
@@ -769,7 +819,8 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
                 let agentNames = await MainActor.run {
                     TemplateStore.shared.orchestratorVisible(kind: .agent).map(\.name)
                 }
-                let hint = agentNames.isEmpty
+                let hint =
+                    agentNames.isEmpty
                     ? ""
                     : " Agent templates: \(agentNames.joined(separator: ", "))."
                 // `overrides` only applies to agent templates, so the caller is
@@ -789,7 +840,12 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
                 }
                 return .failure(
                     ToolEnvelope.failure(
-                        kind: .invalidArgs, message: fullMessage, field: "template", tool: name))
+                        kind: .invalidArgs,
+                        message: fullMessage,
+                        field: "template",
+                        tool: name
+                    )
+                )
             }
         } else {
             return .failure(
@@ -797,7 +853,9 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
                     kind: .invalidArgs,
                     message: "Provide the document as `yaml` (inline) or `template` (saved name). "
                         + "Call {action: 'schema'} for the YAML reference.",
-                    tool: name))
+                    tool: name
+                )
+            )
         }
 
         if yaml.utf8.count > Self.maxDocumentBytes {
@@ -806,7 +864,9 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
                     kind: .invalidArgs,
                     message: "Document too large (max \(Self.maxDocumentBytes / 1024) KB).",
                     field: "yaml",
-                    tool: name))
+                    tool: name
+                )
+            )
         }
 
         do {
@@ -818,14 +878,18 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
                     message: "Document is invalid — nothing was changed:\n"
                         + error.messages.map { "• \($0)" }.joined(separator: "\n"),
                     field: "yaml",
-                    tool: name))
+                    tool: name
+                )
+            )
         } catch {
             return .failure(
                 ToolEnvelope.failure(
                     kind: .invalidArgs,
                     message: "Could not parse YAML: \(error.localizedDescription)",
                     field: "yaml",
-                    tool: name))
+                    tool: name
+                )
+            )
         }
     }
 
@@ -848,7 +912,8 @@ public final class OsaurusConfigTool: OsaurusTool, PermissionedTool, @unchecked 
 /// neither the model nor a poisoned document can escape it.
 enum ConfigTemplateStore {
     private static let allowedCharacters = CharacterSet(
-        charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-")
+        charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-"
+    )
 
     enum Outcome<T> {
         case success(T)
@@ -867,7 +932,8 @@ enum ConfigTemplateStore {
         guard name.unicodeScalars.allSatisfy({ allowedCharacters.contains($0) }) else {
             return .failure(
                 "Template name may only contain letters, digits, `.`, `_`, and `-` "
-                    + "(no path separators).")
+                    + "(no path separators)."
+            )
         }
         guard !name.hasPrefix(".") else {
             return .failure("Template name may not start with a dot.")
@@ -914,7 +980,8 @@ enum ConfigTemplateStore {
             }
             guard FileManager.default.fileExists(atPath: url.path) else {
                 let available = list()
-                let hint = available.isEmpty
+                let hint =
+                    available.isEmpty
                     ? "No templates saved yet — export with `save_as` to create one."
                     : "Available: \(available.joined(separator: ", "))."
                 return .failure("No template named `\(raw)`. \(hint)")
@@ -938,9 +1005,12 @@ enum ConfigTemplateStore {
         let dir = OsaurusPaths.configTemplates()
         guard
             let entries = try? FileManager.default.contentsOfDirectory(
-                at: dir, includingPropertiesForKeys: nil)
+                at: dir,
+                includingPropertiesForKeys: nil
+            )
         else { return [] }
-        return entries
+        return
+            entries
             .filter { ["yaml", "yml"].contains($0.pathExtension.lowercased()) }
             .map { $0.deletingPathExtension().lastPathComponent }
             .sorted()

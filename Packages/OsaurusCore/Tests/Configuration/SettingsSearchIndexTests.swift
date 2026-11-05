@@ -245,7 +245,8 @@ struct SettingsSearchIndexTests {
         for term in ["top k", "min p", "temperature"] {
             #expect(
                 SettingsSearchIndex.search(term).contains { $0.id == "server.generation" },
-                "\"\(term)\" should reach Sampling Defaults")
+                "\"\(term)\" should reach Sampling Defaults"
+            )
         }
     }
 
@@ -271,20 +272,24 @@ struct SettingsSearchIndexTests {
         #expect(
             SettingsSearchIndex.search("context window").contains {
                 $0.id == "settings.chat.contextLength"
-            })
+            }
+        )
         #expect(
             SettingsSearchIndex.search("context length").contains {
                 $0.id == "settings.chat.contextLength"
-            })
+            }
+        )
         #expect(
-            SettingsSearchIndex.search("max tokens").contains { $0.id == "server.generation" })
+            SettingsSearchIndex.search("max tokens").contains { $0.id == "server.generation" }
+        )
     }
 
     @Test func permissionsTitleIsNotToolCatalog() {
         let entry = SettingsSearchIndex.entries.first { $0.id == "permissions.tools" }
         #expect(entry?.title == "macOS Permissions")
         #expect(
-            SettingsSearchIndex.search("tool catalog").contains { $0.id == "tools.overview" })
+            SettingsSearchIndex.search("tool catalog").contains { $0.id == "tools.overview" }
+        )
     }
 
     @Test func landingAnchorsInViewsAreIndexed() throws {
@@ -298,10 +303,12 @@ struct SettingsSearchIndexTests {
         let indexed = Set(SettingsSearchIndex.entries.map(\.id))
         var missing: [String] = []
         for root in [viewsRoot, privacyRoot] {
-            guard let enumerator = FileManager.default.enumerator(
-                at: root,
-                includingPropertiesForKeys: nil
-            ) else { continue }
+            guard
+                let enumerator = FileManager.default.enumerator(
+                    at: root,
+                    includingPropertiesForKeys: nil
+                )
+            else { continue }
             let pattern = /settingsLandingAnchor\("([^"]+)"\)|anchorId:\s*"([^"]+)"/
             for case let url as URL in enumerator where url.pathExtension == "swift" {
                 let text = try String(contentsOf: url, encoding: .utf8)

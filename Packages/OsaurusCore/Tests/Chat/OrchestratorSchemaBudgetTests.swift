@@ -85,9 +85,16 @@ struct OrchestratorSchemaBudgetTests {
                         base,
                         allowedAgentIDs: [workerID],
                         allowedAgentNames: ["Coder"],
-                        agents: [.init(id: workerID, name: "Coder",
-                            description: "Implements and reviews focused code changes in the assigned project.",
-                            modelId: nil, isLocal: nil, providerName: nil)]
+                        agents: [
+                            .init(
+                                id: workerID,
+                                name: "Coder",
+                                description: "Implements and reviews focused code changes in the assigned project.",
+                                modelId: nil,
+                                isLocal: nil,
+                                providerName: nil
+                            )
+                        ]
                     )
                 )
             }
@@ -147,8 +154,8 @@ struct OrchestratorSchemaBudgetTests {
             Issue.record("spawn_agent is not registered")
             return
         }
-        let ids = (1...10).map { _ in UUID() }
-        let names = (1...10).map { "Worker \($0)" }
+        let ids = (1 ... 10).map { _ in UUID() }
+        let names = (1 ... 10).map { "Worker \($0)" }
         let spec = SpawnAgentTool.constrainedSpec(base, allowedAgentIDs: ids, allowedAgentNames: names)
         let cost = tokens(spec)
         print("[Orchestrator schema] spawn_agent with 10 workers ≈ \(cost) tokens")
@@ -157,19 +164,28 @@ struct OrchestratorSchemaBudgetTests {
 
     @Test("ten-agent routing metadata survives repeated composition without duplication")
     func largePoolRetainsEveryDescription() throws {
-        let agents = (1...10).map { index in
+        let agents = (1 ... 10).map { index in
             SpawnAgentDescriptor(
-                id: UUID(), name: "Worker \(index)",
+                id: UUID(),
+                name: "Worker \(index)",
                 description: "Reviews task \(index): " + String(repeating: "x", count: 143),
-                modelId: nil, isLocal: nil, providerName: nil
+                modelId: nil,
+                isLocal: nil,
+                providerName: nil
             )
         }
         let base = SpawnAgentTool().asOpenAITool()
         let first = SpawnAgentTool.constrainedSpec(
-            base, allowedAgentIDs: agents.map(\.id), allowedAgentNames: agents.map(\.name), agents: agents
+            base,
+            allowedAgentIDs: agents.map(\.id),
+            allowedAgentNames: agents.map(\.name),
+            agents: agents
         )
         let repeated = SpawnAgentTool.constrainedSpec(
-            first, allowedAgentIDs: agents.map(\.id), allowedAgentNames: agents.map(\.name), agents: agents
+            first,
+            allowedAgentIDs: agents.map(\.id),
+            allowedAgentNames: agents.map(\.name),
+            agents: agents
         )
         #expect(tokens(first) == tokens(repeated))
         let text = try #require(repeated.function.description)
@@ -184,6 +200,8 @@ struct OrchestratorSchemaBudgetTests {
             #expect(!(try #require(agent.description)).isEmpty)
             #expect(rows.contains { $0["id"] == agent.id.uuidString && $0["description"] == agent.description })
         }
-        print("[Orchestrator schema] ten described workers ≈ \(tokens(first)) tokens; routing payload \(payload.utf8.count) bytes")
+        print(
+            "[Orchestrator schema] ten described workers ≈ \(tokens(first)) tokens; routing payload \(payload.utf8.count) bytes"
+        )
     }
 }

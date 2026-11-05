@@ -23,7 +23,8 @@ enum MemoryDistillateScreen {
         var screened = result
         let typed = Set(userMessages.map(normalized).filter { !$0.isEmpty })
         screened.pinnedCandidates = result.pinnedCandidates.filter { candidate in
-            let echo = typed.contains(normalized(candidate.content))
+            let echo =
+                typed.contains(normalized(candidate.content))
                 && isRequestEcho(candidate.content)
             if echo {
                 MemoryLogger.service.debug("pinned: skip verbatim user turn '\(candidate.content.prefix(60))'")
@@ -46,7 +47,8 @@ enum MemoryDistillateScreen {
     /// for arbitrary paraphrased requests or transient tool results.
     static func isRequestEcho(_ text: String) -> Bool {
         normalized(text).range(
-            of: #"^(?:please\s+)?(?:use\s+[\p{L}\p{N}_-]+\s+to\s+(?:read|write|run|execute|open|return)\b|(?:read|write|run|execute|open)\s+|return\s+(?:exactly|only)\s+)"#,
+            of:
+                #"^(?:please\s+)?(?:use\s+[\p{L}\p{N}_-]+\s+to\s+(?:read|write|run|execute|open|return)\b|(?:read|write|run|execute|open)\s+|return\s+(?:exactly|only)\s+)"#,
             options: .regularExpression
         ) != nil
     }
@@ -70,16 +72,19 @@ enum MemoryDistillateScreen {
     static func isAbsenceStatement(_ fact: String) -> Bool {
         let text = normalized(fact)
         guard !text.isEmpty else { return true }
-        if ["none", "n/a", "na", "null", "nil", "unknown", "not specified", "unspecified",
-            "not mentioned", "not provided", "not stated", "not disclosed", "no", "nothing"].contains(text)
-        {
+        if [
+            "none", "n/a", "na", "null", "nil", "unknown", "not specified", "unspecified",
+            "not mentioned", "not provided", "not stated", "not disclosed", "no", "nothing",
+        ].contains(text) {
             return true
         }
         // Match a complete absence report, never a substring inside an
         // actual preference (e.g. salary not disclosed to coworkers).
         let absence = #"(?:not specified|unspecified|not mentioned|not provided|not stated|not disclosed|unknown)"#
-        let slot = #"(?:(?:the )?user(?:'s)? (?:name|location|age|job|occupation|employer|workplace|identity) (?:is|are)|(?:the )?user works at)"#
-        let emptyReport = #"(?:no (?:(?:identity(?:-relevant)?|identifying) )?(?:facts|information)(?: (?:were )?(?:found|identified|mentioned|provided))?|none (?:found|identified|mentioned)|nothing identity(?:-relevant)?)"#
+        let slot =
+            #"(?:(?:the )?user(?:'s)? (?:name|location|age|job|occupation|employer|workplace|identity) (?:is|are)|(?:the )?user works at)"#
+        let emptyReport =
+            #"(?:no (?:(?:identity(?:-relevant)?|identifying) )?(?:facts|information)(?: (?:were )?(?:found|identified|mentioned|provided))?|none (?:found|identified|mentioned)|nothing identity(?:-relevant)?)"#
         return text.range(
             of: "^(?:\(slot) \(absence)|\(emptyReport))$",
             options: .regularExpression

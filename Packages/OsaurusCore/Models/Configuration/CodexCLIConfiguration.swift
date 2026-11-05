@@ -207,7 +207,7 @@ public enum CodexCLIConfiguration {
 
         var managedRange: Range<Int>?
         if let beginIndex, let endIndex, endIndex >= beginIndex {
-            managedRange = beginIndex..<(endIndex + 1)
+            managedRange = beginIndex ..< (endIndex + 1)
         }
 
         for (index, line) in lines.enumerated() {

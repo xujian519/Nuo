@@ -220,7 +220,6 @@ struct AnchoredCardPlacementTests {
     }
 }
 
-
 struct HoverPreviewPresenceTests {
     @Test func panelEntryBeforeTriggerExitDoesNotDismiss() {
         var hover = HoverPreviewPresence(isOverTrigger: true)

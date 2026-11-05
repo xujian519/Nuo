@@ -59,8 +59,12 @@ struct ModelCompatibilityDiagnosticsTests {
         let link = root.appendingPathComponent("bundle-link", isDirectory: true)
         try FileManager.default.createSymbolicLink(at: link, withDestinationURL: actual)
         let report = ModelCompatibilityDiagnostics.report(
-            modelId: "org/repo", modelName: "Repo", modelTypeHint: nil,
-            bundleURL: link, externalSource: ExternalModelLocator.Source.huggingFaceCache.rawValue)
+            modelId: "org/repo",
+            modelName: "Repo",
+            modelTypeHint: nil,
+            bundleURL: link,
+            externalSource: ExternalModelLocator.Source.huggingFaceCache.rawValue
+        )
         #expect(report.localBundle.kind == .available)
         #expect(report.localBundle.path == link.path)
         #expect(report.runtime.reason != .incompleteBundle)

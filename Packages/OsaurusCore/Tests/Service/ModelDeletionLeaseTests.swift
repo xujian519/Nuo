@@ -46,7 +46,7 @@ struct ModelDeletionLeaseTests {
     private func eventually(
         _ condition: @Sendable () async -> Bool
     ) async -> Bool {
-        for _ in 0..<20_000 {
+        for _ in 0 ..< 20_000 {
             if await condition() { return true }
             await Task.yield()
         }
@@ -327,7 +327,7 @@ struct ModelDeletionLeaseTests {
     func cancellationReleaseRaceDoesNotLeakWaiters() async throws {
         let runtime = ModelRuntime.shared
 
-        for iteration in 0..<32 {
+        for iteration in 0 ..< 32 {
             let suffix = UUID().uuidString
             let modelID = "lease-tests/\(suffix)"
             let modelName = suffix
@@ -406,13 +406,14 @@ struct ModelDeletionLeaseTests {
                     await runtime.modelDeletionProtectionSnapshot(
                         modelID: modelID,
                         modelName: modelName
-                    ) == ModelRuntime.ModelDeletionProtectionSnapshot(
-                        isDeleting: false,
-                        activeModelUses: 0,
-                        blockedModelUses: 0,
-                        blockedDeletionRequests: 0,
-                        drainingDeletionRequests: 0
                     )
+                        == ModelRuntime.ModelDeletionProtectionSnapshot(
+                            isDeleting: false,
+                            activeModelUses: 0,
+                            blockedModelUses: 0,
+                            blockedDeletionRequests: 0,
+                            drainingDeletionRequests: 0
+                        )
                 }
             )
         }

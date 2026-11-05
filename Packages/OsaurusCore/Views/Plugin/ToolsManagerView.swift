@@ -830,7 +830,8 @@ private struct ToolPluginCard: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .accessibilityLabel(
-                    Text("Plugin \(plugin.displayName), \(tools.count) tools", bundle: .module))
+                    Text("Plugin \(plugin.displayName), \(tools.count) tools", bundle: .module)
+                )
             }
 
             if isExpanded, let loadError = plugin.loadError {
@@ -984,7 +985,8 @@ private struct RemoteProviderToolsCard: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .accessibilityLabel(
-                    Text("Service \(provider.name), \(tools.count) tools", bundle: .module))
+                    Text("Service \(provider.name), \(tools.count) tools", bundle: .module)
+                )
 
                 Menu {
                     Button(action: onDisconnect) {

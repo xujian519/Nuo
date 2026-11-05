@@ -381,7 +381,9 @@ struct FolderToolsResilienceTests {
         let result = try await env.run(
             FileWriteTool(rootPath: root),
             #"{"path": "note.txt", "content": "alpha\ngamma\n", "dry_run": true}"#,
-            sessionId: sessionId, folder: root)
+            sessionId: sessionId,
+            folder: root
+        )
 
         #expect(ToolEnvelope.isSuccess(result))
         let payload = try #require(EnvelopeAssertions.successPayload(result))
@@ -406,7 +408,9 @@ struct FolderToolsResilienceTests {
         let writeResult = try await env.run(
             FileWriteTool(rootPath: root),
             "{\"path\": \"nested/report.md\", \"content\": \"# Report\\n\"}",
-            sessionId: sessionId, folder: root)
+            sessionId: sessionId,
+            folder: root
+        )
         #expect(ToolEnvelope.isSuccess(writeResult))
         let writePayload = try #require(EnvelopeAssertions.successPayload(writeResult))
         #expect(writePayload["kind"] as? String == "workspace_write_result")
@@ -576,11 +580,13 @@ struct FolderToolsResilienceTests {
             "content": large,
         ])
         let argumentsJSON = String(decoding: data, as: UTF8.self)
-        guard case .ready = ToolRegistry.shared.preflightForTest(
-            argumentsJSON: argumentsJSON,
-            schema: tool.parameters,
-            toolName: tool.name
-        ) else {
+        guard
+            case .ready = ToolRegistry.shared.preflightForTest(
+                argumentsJSON: argumentsJSON,
+                schema: tool.parameters,
+                toolName: tool.name
+            )
+        else {
             Issue.record("preflight must not reject a 34,172-character write")
             return
         }
@@ -688,7 +694,9 @@ struct FolderToolsResilienceTests {
         let result = try await env.run(
             FileEditTool(rootPath: root),
             #"{"path": "f.txt", "old_string": "world", "new_string": "mars", "dry_run": true}"#,
-            sessionId: sessionId, folder: root)
+            sessionId: sessionId,
+            folder: root
+        )
 
         #expect(ToolEnvelope.isSuccess(result))
         let payload = try #require(EnvelopeAssertions.successPayload(result))
@@ -736,7 +744,10 @@ struct FolderToolsResilienceTests {
         let tool = FileEditTool(rootPath: tmpRoot())
         let outcome = await ToolRegistry.shared.preflightForTest(
             argumentsJSON: #"{"path":"deck.pptx","old_string":"Lisbon","new_string":"Lyon","slide":3}"#,
-            schema: tool.parameters, toolName: tool.name, hint: tool.argumentHint)
+            schema: tool.parameters,
+            toolName: tool.name,
+            hint: tool.argumentHint
+        )
         guard case .rejected(let envelope) = outcome else {
             Issue.record("expected a rejection, got \(outcome)")
             return
@@ -751,7 +762,10 @@ struct FolderToolsResilienceTests {
         // Keys without a hint keep the plain validator message.
         let plain = await ToolRegistry.shared.preflightForTest(
             argumentsJSON: #"{"path":"a.txt","old_string":"x","new_string":"y","bogus":1}"#,
-            schema: tool.parameters, toolName: tool.name, hint: tool.argumentHint)
+            schema: tool.parameters,
+            toolName: tool.name,
+            hint: tool.argumentHint
+        )
         guard case .rejected(let plainEnvelope) = plain else {
             Issue.record("expected a rejection, got \(plain)")
             return
@@ -766,7 +780,10 @@ struct FolderToolsResilienceTests {
         let tool = FileEditTool(rootPath: tmpRoot())
         let valid = await ToolRegistry.shared.preflightForTest(
             argumentsJSON: #"{"path":"a.md","edits":"[{\"old_string\":\"x\",\"new_string\":\"y\"}]"}"#,
-            schema: tool.parameters, toolName: tool.name, hint: tool.argumentHint)
+            schema: tool.parameters,
+            toolName: tool.name,
+            hint: tool.argumentHint
+        )
         guard case .ready(let args) = valid else {
             Issue.record("expected coercion to unwrap the stringified array, got \(valid)")
             return
@@ -775,7 +792,10 @@ struct FolderToolsResilienceTests {
 
         let broken = await ToolRegistry.shared.preflightForTest(
             argumentsJSON: #"{"path":"a.md","edits":"[{\"old_string\":\"x\",\"new_string\":\"y\"}"}"#,
-            schema: tool.parameters, toolName: tool.name, hint: tool.argumentHint)
+            schema: tool.parameters,
+            toolName: tool.name,
+            hint: tool.argumentHint
+        )
         guard case .rejected(let envelope) = broken else {
             Issue.record("expected a rejection, got \(broken)")
             return
@@ -799,15 +819,21 @@ struct FolderToolsResilienceTests {
         let sessionId = "resilience-\(UUID().uuidString)"
 
         let writeResult = try await env.run(
-            FileWriteTool(rootPath: root), #"{"path": "CHANGELOG.md", "content": "clobbered\n"}"#,
-            sessionId: sessionId, folder: root)
+            FileWriteTool(rootPath: root),
+            #"{"path": "CHANGELOG.md", "content": "clobbered\n"}"#,
+            sessionId: sessionId,
+            folder: root
+        )
         let opId = try #require(
             EnvelopeAssertions.successPayload(writeResult)?["operation_id"] as? String
         )
 
         let undo = FileUndoTool(rootPath: root, journal: env.journal)
         let result = try await env.call(
-            undo, #"{"operation_id": "\#(opId)", "path": "CHANGELOG.md"}"#, sessionId: sessionId)
+            undo,
+            #"{"operation_id": "\#(opId)", "path": "CHANGELOG.md"}"#,
+            sessionId: sessionId
+        )
         #expect(ToolEnvelope.isSuccess(result), "got: \(result)")
         let payload = try #require(EnvelopeAssertions.successPayload(result))
         #expect(payload["undone_count"] as? Int == 1)
@@ -837,15 +863,21 @@ struct FolderToolsResilienceTests {
         let sessionId = "resilience-\(UUID().uuidString)"
 
         let writeResult = try await env.run(
-            FileWriteTool(rootPath: root), #"{"path": "a.txt", "content": "changed\n"}"#,
-            sessionId: sessionId, folder: root)
+            FileWriteTool(rootPath: root),
+            #"{"path": "a.txt", "content": "changed\n"}"#,
+            sessionId: sessionId,
+            folder: root
+        )
         let opId = try #require(
             EnvelopeAssertions.successPayload(writeResult)?["operation_id"] as? String
         )
 
         let undo = FileUndoTool(rootPath: root, journal: env.journal)
         let result = try await env.call(
-            undo, #"{"operation_id": "\#(opId)", "path": "other.txt"}"#, sessionId: sessionId)
+            undo,
+            #"{"operation_id": "\#(opId)", "path": "other.txt"}"#,
+            sessionId: sessionId
+        )
         #expect(ToolEnvelope.isError(result))
         #expect(failureKind(result) == "invalid_args")
         let message = EnvelopeAssertions.failureMessage(result) ?? ""
@@ -870,8 +902,11 @@ struct FolderToolsResilienceTests {
         let sessionId = "resilience-\(UUID().uuidString)"
 
         _ = try await env.run(
-            FileWriteTool(rootPath: root), #"{"path": "notes.txt", "content": "v2\n"}"#,
-            sessionId: sessionId, folder: root)
+            FileWriteTool(rootPath: root),
+            #"{"path": "notes.txt", "content": "v2\n"}"#,
+            sessionId: sessionId,
+            folder: root
+        )
         try "user edit\n".write(to: file, atomically: true, encoding: .utf8)
 
         let undo = FileUndoTool(rootPath: root, journal: env.journal)

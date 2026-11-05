@@ -59,7 +59,8 @@ import Foundation
         /// subdomain, NOT the apex).
         public static func normalizedAllowlist(_ raw: [String]?) -> [String] {
             guard let raw else { return [] }
-            return raw
+            return
+                raw
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
                 .filter { isValidPattern($0) }
         }
@@ -153,11 +154,11 @@ import Foundation
             if inet_pton(AF_INET6, trimmed, &v6) == 1 {
                 let bytes = withUnsafeBytes(of: v6) { Array($0) }
                 // ::/128 unspecified and ::1/128 loopback
-                if bytes[0..<15].allSatisfy({ $0 == 0 }) && (bytes[15] == 0 || bytes[15] == 1) {
+                if bytes[0 ..< 15].allSatisfy({ $0 == 0 }) && (bytes[15] == 0 || bytes[15] == 1) {
                     return true
                 }
                 // ::ffff:a.b.c.d — recheck the embedded IPv4.
-                if bytes[0..<10].allSatisfy({ $0 == 0 }), bytes[10] == 0xFF, bytes[11] == 0xFF {
+                if bytes[0 ..< 10].allSatisfy({ $0 == 0 }), bytes[10] == 0xFF, bytes[11] == 0xFF {
                     let mapped = "\(bytes[12]).\(bytes[13]).\(bytes[14]).\(bytes[15])"
                     return isBlockedAddress(mapped)
                 }

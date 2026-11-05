@@ -302,7 +302,8 @@ struct ServerSettingsTabContent: View {
                 ServerSettingsActionBar(
                     hasUnsavedChanges: hasUnsavedChanges,
                     hasBlockingIssues: decimalEdits.blocksSaveAttempt(
-                        hasBlockingIssues: hasBlockingIssues),
+                        hasBlockingIssues: hasBlockingIssues
+                    ),
                     requiresRestart: requiresRestart,
                     requiresModelReload: requiresModelReload,
                     saving: saving,

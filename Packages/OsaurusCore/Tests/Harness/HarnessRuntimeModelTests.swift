@@ -51,7 +51,9 @@ struct HarnessRuntimeModelTests {
         let runtime = HarnessRuntime(
             name: "Pi",
             kind: .piRPC,
-            arguments: ["--mode", "rpc", "--session", "/s/{chat_id}.jsonl", "--who", "{agent_id}@{cwd}", "{system_prompt_file}"]
+            arguments: [
+                "--mode", "rpc", "--session", "/s/{chat_id}.jsonl", "--who", "{agent_id}@{cwd}", "{system_prompt_file}",
+            ]
         )
         let chatId = UUID()
         let agentId = UUID()
@@ -61,19 +63,24 @@ struct HarnessRuntimeModelTests {
             workingDirectory: URL(fileURLWithPath: "/work"),
             systemPromptFile: URL(fileURLWithPath: "/private/prompt.md")
         )
-        #expect(args == [
-            "--mode", "rpc",
-            "--session", "/s/\(chatId.uuidString.lowercased()).jsonl",
-            "--who", "\(agentId.uuidString.lowercased())@/work",
-            "/private/prompt.md",
-        ])
+        #expect(
+            args == [
+                "--mode", "rpc",
+                "--session", "/s/\(chatId.uuidString.lowercased()).jsonl",
+                "--who", "\(agentId.uuidString.lowercased())@/work",
+                "/private/prompt.md",
+            ]
+        )
         #expect(runtime.wantsSystemPromptFile)
     }
 
     @Test func onlyChatKeyedPiRuntimesResume() {
         #expect(HarnessRuntime(name: "C", kind: .claudeCode).resumesSessions)
         #expect(!HarnessRuntime(name: "P", kind: .piRPC).resumesSessions)
-        #expect(HarnessRuntime(name: "P", kind: .piRPC, arguments: ["--mode", "rpc", "--session-dir", "/x/{chat_id}"]).resumesSessions)
+        #expect(
+            HarnessRuntime(name: "P", kind: .piRPC, arguments: ["--mode", "rpc", "--session-dir", "/x/{chat_id}"])
+                .resumesSessions
+        )
     }
 
     @Test func agentRuntimeEncodingIsTaggedAndForgiving() throws {

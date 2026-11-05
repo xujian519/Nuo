@@ -128,7 +128,9 @@ struct CoreModelServiceDegradeTests {
     }
 
     private static let localeFailure = FoundationModelServiceError.generation(
-        .unsupportedLanguageOrLocale, detail: "test")
+        .unsupportedLanguageOrLocale,
+        detail: "test"
+    )
 
     private static func elapsed(_ since: Date) -> TimeInterval {
         Date().timeIntervalSince(since)
@@ -144,7 +146,11 @@ struct CoreModelServiceDegradeTests {
 
         let started = Date()
         let result = try await service.generate(
-            prompt: "ping", timeout: 10, fallbackModel: fallback.id, modelOverride: primary.id)
+            prompt: "ping",
+            timeout: 10,
+            fallbackModel: fallback.id,
+            modelOverride: primary.id
+        )
 
         #expect(result == "FB")
         #expect(await primary.oneShotCalls == 1, "no retry loop on the primary when a fallback exists")
@@ -174,7 +180,11 @@ struct CoreModelServiceDegradeTests {
 
         let started = Date()
         let result = try await service.generate(
-            prompt: "ping", timeout: 20, fallbackModel: fallback.id, modelOverride: primary.id)
+            prompt: "ping",
+            timeout: 20,
+            fallbackModel: fallback.id,
+            modelOverride: primary.id
+        )
 
         #expect(result == "FB")
         let took = Self.elapsed(started)
@@ -186,13 +196,19 @@ struct CoreModelServiceDegradeTests {
     @Test("a primary that streams its first token in time is never cut off while it keeps producing")
     func slowProgressingPrimary_isNotCutOff() async throws {
         let primary = ScriptedService(
-            id: "p", firstTokenDeadline: 0.5,
-            behavior: .slow(first: 0.2, total: 1.5, text: "HELLO"))
+            id: "p",
+            firstTokenDeadline: 0.5,
+            behavior: .slow(first: 0.2, total: 1.5, text: "HELLO")
+        )
         let fallback = ScriptedService(id: "f", behavior: .succeed("FB"))
         let service = CoreModelService(localServices: [primary, fallback])
 
         let result = try await service.generate(
-            prompt: "ping", timeout: 10, fallbackModel: fallback.id, modelOverride: primary.id)
+            prompt: "ping",
+            timeout: 10,
+            fallbackModel: fallback.id,
+            modelOverride: primary.id
+        )
 
         #expect(result == "HELLO")
         #expect(await fallback.oneShotCalls == 0)
@@ -201,13 +217,19 @@ struct CoreModelServiceDegradeTests {
     @Test("a service without a first-token deadline keeps the whole timeout for its first output")
     func loadPhasePrimary_hasNoFirstTokenDeadline() async throws {
         let primary = ScriptedService(
-            id: "p", firstTokenDeadline: nil,
-            behavior: .slow(first: 1.0, total: 1.0, text: "LOADED"))
+            id: "p",
+            firstTokenDeadline: nil,
+            behavior: .slow(first: 1.0, total: 1.0, text: "LOADED")
+        )
         let fallback = ScriptedService(id: "f", behavior: .succeed("FB"))
         let service = CoreModelService(localServices: [primary, fallback])
 
         let result = try await service.generate(
-            prompt: "ping", timeout: 10, fallbackModel: fallback.id, modelOverride: primary.id)
+            prompt: "ping",
+            timeout: 10,
+            fallbackModel: fallback.id,
+            modelOverride: primary.id
+        )
 
         #expect(result == "LOADED")
         #expect(await primary.oneShotCalls == 1, "no deadline → plain generateOneShot path")
@@ -241,7 +263,11 @@ struct CoreModelServiceDegradeTests {
 
         for _ in 0 ..< CoreModelService.hangBreakerThreshold {
             let result = try await service.generate(
-                prompt: "ping", timeout: 10, fallbackModel: fallback.id, modelOverride: primary.id)
+                prompt: "ping",
+                timeout: 10,
+                fallbackModel: fallback.id,
+                modelOverride: primary.id
+            )
             #expect(result == "FB")
         }
         #expect(await service.breakerOpenUntil() != nil, "hang threshold reached")
@@ -249,7 +275,11 @@ struct CoreModelServiceDegradeTests {
 
         let started = Date()
         let result = try await service.generate(
-            prompt: "ping", timeout: 10, fallbackModel: fallback.id, modelOverride: primary.id)
+            prompt: "ping",
+            timeout: 10,
+            fallbackModel: fallback.id,
+            modelOverride: primary.id
+        )
         #expect(result == "FB")
         #expect(Self.elapsed(started) < 0.15, "breaker-open path must not touch the primary at all")
         #expect(await primary.streamCalls == CoreModelService.hangBreakerThreshold, "primary skipped")
@@ -272,7 +302,11 @@ struct CoreModelServiceDegradeTests {
         for _ in 0 ..< CoreModelService.circuitBreakerThreshold {
             #expect(await service.breakerOpenUntil() == nil)
             let result = try await service.generate(
-                prompt: "ping", timeout: 10, fallbackModel: fallback.id, modelOverride: primary.id)
+                prompt: "ping",
+                timeout: 10,
+                fallbackModel: fallback.id,
+                modelOverride: primary.id
+            )
             #expect(result == "FB", "fallback success must not reset the primary's count")
         }
         #expect(await service.breakerOpenUntil() != nil)
@@ -286,19 +320,31 @@ struct CoreModelServiceDegradeTests {
 
         // One hang (rescued) → count 1 of 2.
         _ = try await service.generate(
-            prompt: "ping", timeout: 10, fallbackModel: fallback.id, modelOverride: primary.id)
+            prompt: "ping",
+            timeout: 10,
+            fallbackModel: fallback.id,
+            modelOverride: primary.id
+        )
         #expect(await service.breakerOpenUntil() == nil)
 
         // Primary recovers → counters reset.
         await primary.set(.succeed("PRIMARY"))
         let recovered = try await service.generate(
-            prompt: "ping", timeout: 10, fallbackModel: fallback.id, modelOverride: primary.id)
+            prompt: "ping",
+            timeout: 10,
+            fallbackModel: fallback.id,
+            modelOverride: primary.id
+        )
         #expect(recovered == "PRIMARY")
 
         // A single fresh hang must not open the breaker (would need 2 again).
         await primary.set(.hang)
         _ = try await service.generate(
-            prompt: "ping", timeout: 10, fallbackModel: fallback.id, modelOverride: primary.id)
+            prompt: "ping",
+            timeout: 10,
+            fallbackModel: fallback.id,
+            modelOverride: primary.id
+        )
         #expect(await service.breakerOpenUntil() == nil)
     }
 
@@ -309,7 +355,11 @@ struct CoreModelServiceDegradeTests {
 
         for _ in 0 ..< (CoreModelService.circuitBreakerThreshold + 1) {
             let result = try await service.generate(
-                prompt: "ping", timeout: 10, fallbackModel: fallback.id, modelOverride: "nobody/has-this")
+                prompt: "ping",
+                timeout: 10,
+                fallbackModel: fallback.id,
+                modelOverride: "nobody/has-this"
+            )
             #expect(result == "FB")
         }
         #expect(await service.breakerOpenUntil() == nil)
@@ -322,10 +372,16 @@ struct CoreModelServiceDegradeTests {
         #expect(CoreModelService.shouldFallBackToChatModel(for: .timedOut, allowResidencyRefusal: false))
         #expect(
             CoreModelService.shouldFallBackToChatModel(
-                for: .unresponsive("foundation"), allowResidencyRefusal: false))
+                for: .unresponsive("foundation"),
+                allowResidencyRefusal: false
+            )
+        )
         #expect(
             !CoreModelService.shouldFallBackToChatModel(
-                for: .circuitBreakerOpen, allowResidencyRefusal: true))
+                for: .circuitBreakerOpen,
+                allowResidencyRefusal: true
+            )
+        )
     }
 
     @Test
@@ -333,15 +389,22 @@ struct CoreModelServiceDegradeTests {
         #expect(CoreModelService.isRetryable(FoundationModelServiceError.generation(.rateLimited, detail: "")))
         #expect(
             CoreModelService.isRetryable(
-                FoundationModelServiceError.generation(.concurrentRequests, detail: "")))
+                FoundationModelServiceError.generation(.concurrentRequests, detail: "")
+            )
+        )
         #expect(
             !CoreModelService.isRetryable(
-                FoundationModelServiceError.generation(.assetsUnavailable, detail: "")))
+                FoundationModelServiceError.generation(.assetsUnavailable, detail: "")
+            )
+        )
         #expect(
             !CoreModelService.isRetryable(
-                FoundationModelServiceError.generation(.guardrailViolation, detail: "")))
+                FoundationModelServiceError.generation(.guardrailViolation, detail: "")
+            )
+        )
         #expect(
-            !CoreModelService.isRetryable(FoundationModelServiceError.notAvailable(.appleIntelligenceNotEnabled)))
+            !CoreModelService.isRetryable(FoundationModelServiceError.notAvailable(.appleIntelligenceNotEnabled))
+        )
         #expect(!CoreModelService.isRetryable(FoundationModelServiceError.notAvailable(.modelNotReady)))
         #expect(!CoreModelService.isRetryable(CoreModelError.unresponsive("foundation")))
         #expect(CoreModelService.isRetryable(CoreModelError.timedOut))

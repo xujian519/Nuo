@@ -102,7 +102,7 @@ struct ImportHistoryPromptGateTests {
         let (gate, defaults, cleanup) = makeGate()
         defer { cleanup() }
 
-        for _ in 0..<5 {
+        for _ in 0 ..< 5 {
             #expect(gate.isEligible)
         }
         #expect(defaults.object(forKey: ImportHistoryPromptGate.seenDefaultsKey) == nil)

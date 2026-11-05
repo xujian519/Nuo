@@ -124,7 +124,8 @@ struct MCPProviderTemplateTests {
         let hiddenByDefault = MCPProviderDirectoryView.templates(matching: "MyCase")
         #expect(hiddenByDefault.isEmpty)
         let shownWhenPublished = MCPProviderDirectoryView.templates(
-            matching: "MyCase", metadataDocumentPublished: true
+            matching: "MyCase",
+            metadataDocumentPublished: true
         )
         #expect(shownWhenPublished.map(\.id) == ["mycase"])
     }

@@ -44,7 +44,9 @@ enum RemoteImagePayloadPolicy {
     static func prepared(_ messages: [ChatMessage]) -> [ChatMessage] {
         messages.map { message in
             guard let parts = message.contentParts,
-                parts.contains(where: { if case .imageUrl = $0 { return true }; return false })
+                parts.contains(where: {
+                    if case .imageUrl = $0 { return true }; return false
+                })
             else { return message }
 
             var changed = false
@@ -83,7 +85,7 @@ enum RemoteImagePayloadPolicy {
 
         // Small enough to ship untouched — but fix a mislabeled container so
         // strict providers don't 400 on a JPEG marked image/png.
-        let header = url[url.index(url.startIndex, offsetBy: "data:".count)..<commaIndex]
+        let header = url[url.index(url.startIndex, offsetBy: "data:".count) ..< commaIndex]
         let labeled = header.split(separator: ";").first.map(String.init) ?? "image/png"
         if labeled != actualMime {
             return "data:\(actualMime);base64," + base64
@@ -129,11 +131,17 @@ enum RemoteImagePayloadPolicy {
         let out = NSMutableData()
         guard
             let destination = CGImageDestinationCreateWithData(
-                out, UTType.jpeg.identifier as CFString, 1, nil)
+                out,
+                UTType.jpeg.identifier as CFString,
+                1,
+                nil
+            )
         else { return nil }
         CGImageDestinationAddImage(
-            destination, image,
-            [kCGImageDestinationLossyCompressionQuality: jpegQuality] as CFDictionary)
+            destination,
+            image,
+            [kCGImageDestinationLossyCompressionQuality: jpegQuality] as CFDictionary
+        )
         guard CGImageDestinationFinalize(destination) else { return nil }
         return out as Data
     }
@@ -160,4 +168,3 @@ extension ChatMessage {
         return prepared
     }
 }
-

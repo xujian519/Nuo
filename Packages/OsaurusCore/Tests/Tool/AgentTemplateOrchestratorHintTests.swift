@@ -54,7 +54,9 @@ struct AgentTemplateOrchestratorHintTests {
     @Test
     func agentsScopeHeader_saysNothingWhenNoTemplatesAreVisible() {
         let header = ConfigurationReadNextStep.semanticsHeader(
-            forScope: "agents", agentTemplateNames: [])
+            forScope: "agents",
+            agentTemplateNames: []
+        )
         #expect(!header.contains("AGENT TEMPLATES"))
         // The shared semantics still ride along.
         #expect(header.contains("Entities match by name"))
@@ -66,7 +68,9 @@ struct AgentTemplateOrchestratorHintTests {
         // templates; the line would just be noise on every other result.
         for scope in ["providers", "models", "plugins", "knowledge"] {
             let header = ConfigurationReadNextStep.semanticsHeader(
-                forScope: scope, agentTemplateNames: ["Local Agent"])
+                forScope: scope,
+                agentTemplateNames: ["Local Agent"]
+            )
             #expect(!header.contains("AGENT TEMPLATES"), "scope \(scope) must not carry the line")
         }
     }

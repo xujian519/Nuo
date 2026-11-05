@@ -17,7 +17,8 @@ struct PreparedImageContractTests {
     @Test func refusesEmptyPixelPayload() {
         let emptyImage = LMInput(
             text: .init(tokens: MLXArray([Int32(1), 2])),
-            image: .init(pixels: MLXArray([Float]())))
+            image: .init(pixels: MLXArray([Float]()))
+        )
         #expect(throws: NSError.self) {
             try MLXBatchAdapter.validatePreparedImages(requestedImageCount: 2, input: emptyImage)
         }
@@ -26,12 +27,15 @@ struct PreparedImageContractTests {
     @Test func acceptsPackedImagesWithoutAssumingAPixelLayout() throws {
         let packedImages = LMInput(
             text: .init(tokens: MLXArray([Int32(1), 2])),
-            image: .init(pixels: MLXArray([Float(1), 0, 0, 0, 0, 1])))
+            image: .init(pixels: MLXArray([Float(1), 0, 0, 0, 0, 1]))
+        )
         try MLXBatchAdapter.validatePreparedImages(requestedImageCount: 2, input: packedImages)
     }
 
     @Test func leavesTextOnlyRequestsUnchanged() throws {
         try MLXBatchAdapter.validatePreparedImages(
-            requestedImageCount: 0, input: LMInput(tokens: MLXArray([Int32(1), 2])))
+            requestedImageCount: 0,
+            input: LMInput(tokens: MLXArray([Int32(1), 2]))
+        )
     }
 }

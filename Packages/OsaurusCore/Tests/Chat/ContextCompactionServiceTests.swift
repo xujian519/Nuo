@@ -52,7 +52,8 @@ struct CompactionModelConfigurationTests {
     func effectiveModelPrefersConfigured() {
         #expect(
             ContextCompactionService.effectiveModelIdentifier(
-                configured: "openai/gpt-4o-mini", fallback: "qwen3-4b"
+                configured: "openai/gpt-4o-mini",
+                fallback: "qwen3-4b"
             ) == "openai/gpt-4o-mini"
         )
     }
@@ -122,22 +123,33 @@ struct CompactionCutIndexTests {
         assistant.toolCalls = ids.map {
             ToolCall(id: $0, type: "function", function: .init(name: "read", arguments: "{}"))
         }
-        return [assistant] + ids.map {
-            let result = ChatTurn(role: .tool, content: content)
-            result.toolCallId = $0
-            return result
-        }
+        return [assistant]
+            + ids.map {
+                let result = ChatTurn(role: .tool, content: content)
+                result.toolCallId = $0
+                return result
+            }
     }
 
     @Test("a long single tool loop can compact without splitting the newest parallel batch")
     func longToolLoopCutPreservesNewestBatch() {
-        let turns = [ChatTurn(role: .user, content: "finish the task")]
+        let turns =
+            [ChatTurn(role: .user, content: "finish the task")]
             + toolBatch(ids: ["old"], content: String(repeating: "data ", count: 5_000))
             + toolBatch(ids: ["a", "b"])
-        #expect(ContextCompactionService.compactionCutIndex(
-            turns: turns, existingSummary: nil) == nil)
-        #expect(ContextCompactionService.compactionCutIndex(
-            turns: turns, existingSummary: nil, afterToolBatch: true) == 3)
+        #expect(
+            ContextCompactionService.compactionCutIndex(
+                turns: turns,
+                existingSummary: nil
+            ) == nil
+        )
+        #expect(
+            ContextCompactionService.compactionCutIndex(
+                turns: turns,
+                existingSummary: nil,
+                afterToolBatch: true
+            ) == 3
+        )
         #expect(ContextCompactionService.completedToolBatchStart(in: turns) == 3)
         #expect(turns[3].toolCalls?.map(\.id) == ["a", "b"])
     }
@@ -153,59 +165,105 @@ struct CompactionCutIndexTests {
         let missing = prefix + toolBatch(ids: ["a", "b"])
         missing.last?.toolCallId = nil
         for turns in [partial, duplicate, foreign, missing] {
-            #expect(ContextCompactionService.compactionCutIndex(
-                turns: turns, existingSummary: nil, afterToolBatch: true) == nil)
+            #expect(
+                ContextCompactionService.compactionCutIndex(
+                    turns: turns,
+                    existingSummary: nil,
+                    afterToolBatch: true
+                ) == nil
+            )
         }
     }
 
     @Test("a first heavy completed batch can be covered whole before the next request")
     func firstHeavyToolBatchCanBeCompacted() {
-        let turns = [ChatTurn(role: .user, content: "follow the next file link")]
+        let turns =
+            [ChatTurn(role: .user, content: "follow the next file link")]
             + toolBatch(ids: ["a", "b"], content: String(repeating: "data ", count: 5_000))
-        #expect(ContextCompactionService.compactionCutIndex(
-            turns: turns, existingSummary: nil, afterToolBatch: true) == turns.count)
+        #expect(
+            ContextCompactionService.compactionCutIndex(
+                turns: turns,
+                existingSummary: nil,
+                afterToolBatch: true
+            ) == turns.count
+        )
         // Ordinary pre-send/manual selection never assumes a running batch
         // has drained. The caller must opt in at the checked loop boundary.
-        #expect(ContextCompactionService.compactionCutIndex(
-            turns: turns, existingSummary: nil) == nil)
+        #expect(
+            ContextCompactionService.compactionCutIndex(
+                turns: turns,
+                existingSummary: nil
+            ) == nil
+        )
     }
 
     @Test("whole-batch compaction can grow an earlier summary only after new bulk results")
     func wholeToolBatchSummaryCanGrow() {
-        let first = [ChatTurn(role: .user, content: "task")]
+        let first =
+            [ChatTurn(role: .user, content: "task")]
             + toolBatch(ids: ["old"], content: String(repeating: "data ", count: 5_000))
         let existing = ConversationSummary(
-            summaryText: "goal and saved progress", coveredTurnIds: first.map(\.id),
-            modelIdentifier: "m", savedTokensEstimate: 100)
+            summaryText: "goal and saved progress",
+            coveredTurnIds: first.map(\.id),
+            modelIdentifier: "m",
+            savedTokensEstimate: 100
+        )
         let grown = first + toolBatch(ids: ["new"], content: String(repeating: "data ", count: 5_000))
-        #expect(ContextCompactionService.compactionCutIndex(
-            turns: grown, existingSummary: existing, afterToolBatch: true) == grown.count)
-        #expect(ContextCompactionService.compactionCutIndex(
-            turns: first, existingSummary: existing, afterToolBatch: true) == nil)
+        #expect(
+            ContextCompactionService.compactionCutIndex(
+                turns: grown,
+                existingSummary: existing,
+                afterToolBatch: true
+            ) == grown.count
+        )
+        #expect(
+            ContextCompactionService.compactionCutIndex(
+                turns: first,
+                existingSummary: existing,
+                afterToolBatch: true
+            ) == nil
+        )
     }
 
     @Test("a tool-loop summary must grow by a token-heavy span")
     func toolLoopSummaryDoesNotRepeatOrCoverOutputPlaceholder() {
-        let turns = [ChatTurn(role: .user, content: "task")]
+        let turns =
+            [ChatTurn(role: .user, content: "task")]
             + toolBatch(ids: ["old"], content: String(repeating: "data ", count: 5_000))
             + toolBatch(ids: ["new"])
         let existing = ConversationSummary(
-            summaryText: "saved progress", coveredTurnIds: turns.prefix(3).map(\.id),
-            modelIdentifier: "m", savedTokensEstimate: 100)
-        #expect(ContextCompactionService.compactionCutIndex(
-            turns: turns, existingSummary: existing, afterToolBatch: true) == nil)
-        #expect(ContextCompactionService.compactionCutIndex(
-            turns: turns + [ChatTurn(role: .assistant, content: "")],
-            existingSummary: nil, afterToolBatch: true) == nil)
-        #expect(ContextCompactionService.compactionCutIndex(
-            turns: [ChatTurn(role: .user, content: "task")] + toolBatch(ids: ["short"]),
-            existingSummary: nil, afterToolBatch: true) == nil)
+            summaryText: "saved progress",
+            coveredTurnIds: turns.prefix(3).map(\.id),
+            modelIdentifier: "m",
+            savedTokensEstimate: 100
+        )
+        #expect(
+            ContextCompactionService.compactionCutIndex(
+                turns: turns,
+                existingSummary: existing,
+                afterToolBatch: true
+            ) == nil
+        )
+        #expect(
+            ContextCompactionService.compactionCutIndex(
+                turns: turns + [ChatTurn(role: .assistant, content: "")],
+                existingSummary: nil,
+                afterToolBatch: true
+            ) == nil
+        )
+        #expect(
+            ContextCompactionService.compactionCutIndex(
+                turns: [ChatTurn(role: .user, content: "task")] + toolBatch(ids: ["short"]),
+                existingSummary: nil,
+                afterToolBatch: true
+            ) == nil
+        )
     }
 
     /// Alternating user/assistant conversation with `pairs` exchanges.
     private func conversation(pairs: Int) -> [ChatTurn] {
         var turns: [ChatTurn] = []
-        for i in 0..<pairs {
+        for i in 0 ..< pairs {
             turns.append(ChatTurn(role: .user, content: "question \(i)"))
             turns.append(ChatTurn(role: .assistant, content: "answer \(i)"))
         }
@@ -216,7 +274,9 @@ struct CompactionCutIndexTests {
     func cutOnSecondFromLastUserTurn() {
         let turns = conversation(pairs: 5)  // user indices 0,2,4,6,8
         let cut = ContextCompactionService.compactionCutIndex(
-            turns: turns, existingSummary: nil)
+            turns: turns,
+            existingSummary: nil
+        )
         #expect(cut == 6)
         // Everything before the cut is a completed exchange; the cut itself
         // is a user turn, so no assistant/tool pair is ever split.
@@ -227,14 +287,23 @@ struct CompactionCutIndexTests {
     func shortConversationReturnsNil() {
         #expect(
             ContextCompactionService.compactionCutIndex(
-                turns: conversation(pairs: 2), existingSummary: nil) == nil)
+                turns: conversation(pairs: 2),
+                existingSummary: nil
+            ) == nil
+        )
         #expect(
             ContextCompactionService.compactionCutIndex(
-                turns: [], existingSummary: nil) == nil)
+                turns: [],
+                existingSummary: nil
+            ) == nil
+        )
         // One user turn only — fewer than recentUserTurnsToKeep.
         #expect(
             ContextCompactionService.compactionCutIndex(
-                turns: [ChatTurn(role: .user, content: "hi")], existingSummary: nil) == nil)
+                turns: [ChatTurn(role: .user, content: "hi")],
+                existingSummary: nil
+            ) == nil
+        )
     }
 
     @Test("an existing summary must grow, or there is nothing to compact")
@@ -250,13 +319,18 @@ struct CompactionCutIndexTests {
         )
         #expect(
             ContextCompactionService.compactionCutIndex(
-                turns: turns, existingSummary: existing) == nil)
+                turns: turns,
+                existingSummary: existing
+            ) == nil
+        )
 
         // Two more exchanges later, the cut moves past the covered span and
         // compaction becomes possible again.
         let grown = turns + conversation(pairs: 2)
         let cut = ContextCompactionService.compactionCutIndex(
-            turns: grown, existingSummary: existing)
+            turns: grown,
+            existingSummary: existing
+        )
         #expect(cut == 10)
     }
 
@@ -277,7 +351,9 @@ struct CompactionCutIndexTests {
             ChatTurn(role: .assistant, content: "short answer"),
         ]
         let cut = ContextCompactionService.compactionCutIndex(
-            turns: turns, existingSummary: nil)
+            turns: turns,
+            existingSummary: nil
+        )
         #expect(cut == 2)
         #expect(turns[2].role == .user)
     }
@@ -295,7 +371,9 @@ struct CompactionCutIndexTests {
             ChatTurn(role: .assistant, content: "a2"),
         ]
         let cut = ContextCompactionService.compactionCutIndex(
-            turns: turns, existingSummary: nil)
+            turns: turns,
+            existingSummary: nil
+        )
         #expect(cut == 2)
     }
 
@@ -310,7 +388,10 @@ struct CompactionCutIndexTests {
         ]
         #expect(
             ContextCompactionService.compactionCutIndex(
-                turns: turns, existingSummary: nil) == turns.count)
+                turns: turns,
+                existingSummary: nil
+            ) == turns.count
+        )
     }
 
     @Test("token weight riding a document attachment counts toward the gate")
@@ -327,7 +408,10 @@ struct CompactionCutIndexTests {
         ]
         #expect(
             ContextCompactionService.compactionCutIndex(
-                turns: turns, existingSummary: nil) == turns.count)
+                turns: turns,
+                existingSummary: nil
+            ) == turns.count
+        )
     }
 
     @Test("the last-resort cut requires a completed assistant reply")
@@ -336,7 +420,10 @@ struct CompactionCutIndexTests {
         let turns = [ChatTurn(role: .user, content: hugeText)]
         #expect(
             ContextCompactionService.compactionCutIndex(
-                turns: turns, existingSummary: nil) == nil)
+                turns: turns,
+                existingSummary: nil
+            ) == nil
+        )
     }
 
     @Test("a fully-covered transcript regrows into another whole cut only when heavy")
@@ -359,7 +446,10 @@ struct CompactionCutIndexTests {
             ]
         #expect(
             ContextCompactionService.compactionCutIndex(
-                turns: smallGrowth, existingSummary: existing) == nil)
+                turns: smallGrowth,
+                existingSummary: existing
+            ) == nil
+        )
         // …but a token-heavy one is, and the cut covers everything again.
         let heavyGrowth =
             first + [
@@ -368,7 +458,10 @@ struct CompactionCutIndexTests {
             ]
         #expect(
             ContextCompactionService.compactionCutIndex(
-                turns: heavyGrowth, existingSummary: existing) == heavyGrowth.count)
+                turns: heavyGrowth,
+                existingSummary: existing
+            ) == heavyGrowth.count
+        )
     }
 
     @Test("the fallback cut never erodes an existing summary's contract")
@@ -390,7 +483,10 @@ struct CompactionCutIndexTests {
         )
         #expect(
             ContextCompactionService.compactionCutIndex(
-                turns: turns, existingSummary: existing) == nil)
+                turns: turns,
+                existingSummary: existing
+            ) == nil
+        )
     }
 }
 
@@ -401,7 +497,7 @@ struct CompactionCutIndexTests {
 struct SummaryValidationTests {
 
     private func turns(_ count: Int) -> [ChatTurn] {
-        (0..<count).map { i in
+        (0 ..< count).map { i in
             ChatTurn(role: i % 2 == 0 ? .user : .assistant, content: "t\(i)")
         }
     }
@@ -450,7 +546,11 @@ struct SummaryValidationTests {
         #expect(!ContextCompactionService.summaryIsValid(coveringAll, for: Array(t.prefix(3))))
 
         let empty = ConversationSummary(
-            summaryText: "s", coveredTurnIds: [], modelIdentifier: "m", savedTokensEstimate: 0)
+            summaryText: "s",
+            coveredTurnIds: [],
+            modelIdentifier: "m",
+            savedTokensEstimate: 0
+        )
         #expect(!ContextCompactionService.summaryIsValid(empty, for: t))
     }
 }
@@ -474,7 +574,10 @@ struct CompactionTranscriptTests {
             savedTokensEstimate: 0
         )
         let transcript = ContextCompactionService.renderTranscript(
-            covered: covered, existingSummary: existing, charBudget: 100_000)
+            covered: covered,
+            existingSummary: existing,
+            charBudget: 100_000
+        )
         #expect(transcript.contains("[Summary of even earlier conversation]"))
         #expect(transcript.contains("earlier things happened"))
         #expect(transcript.contains("[User]: please do X"))
@@ -492,7 +595,10 @@ struct CompactionTranscriptTests {
             savedTokensEstimate: 0
         )
         let transcript = ContextCompactionService.renderTranscript(
-            covered: [old, newer], existingSummary: existing, charBudget: 100_000)
+            covered: [old, newer],
+            existingSummary: existing,
+            charBudget: 100_000
+        )
         #expect(!transcript.contains("ancient request"))
         #expect(transcript.contains("newer request"))
     }
@@ -515,7 +621,10 @@ struct CompactionTranscriptTests {
             ChatTurn(role: .assistant, content: "a novel about Lucy"),
         ]
         let transcript = ContextCompactionService.renderTranscript(
-            covered: covered, existingSummary: nil, charBudget: 100_000)
+            covered: covered,
+            existingSummary: nil,
+            charBudget: 100_000
+        )
         #expect(transcript.contains("[User attached document \"novel.txt\"]"))
         #expect(transcript.contains("Lucy visits Florence and meets George."))
         #expect(transcript.contains("[User]: what is this about"))
@@ -523,14 +632,18 @@ struct CompactionTranscriptTests {
 
     @Test("over-budget transcripts keep head and tail with an omission marker")
     func clipsToCharBudget() {
-        let covered = (0..<200).map { i in
+        let covered = (0 ..< 200).map { i in
             ChatTurn(
                 role: i % 2 == 0 ? .user : .assistant,
-                content: String(repeating: "word\(i) ", count: 40))
+                content: String(repeating: "word\(i) ", count: 40)
+            )
         }
         let budget = 2_000
         let transcript = ContextCompactionService.renderTranscript(
-            covered: covered, existingSummary: nil, charBudget: budget)
+            covered: covered,
+            existingSummary: nil,
+            charBudget: budget
+        )
         #expect(transcript.contains("[… middle of excerpt omitted for length …]"))
         // Head (the original task) and tail (most recent context) survive.
         #expect(transcript.contains("word0"))
@@ -592,7 +705,7 @@ struct CompactionWarmupCompositionTests {
     private func makeSession(pairs: Int) -> (ChatSession, [ChatTurn]) {
         let session = ChatSession()
         var turns: [ChatTurn] = []
-        for i in 0..<pairs {
+        for i in 0 ..< pairs {
             turns.append(ChatTurn(role: .user, content: "question \(i)"))
             turns.append(ChatTurn(role: .assistant, content: "answer \(i)"))
         }
@@ -605,7 +718,7 @@ struct CompactionWarmupCompositionTests {
         let (session, turns) = makeSession(pairs: 4)
         let summary = ConversationSummary(
             summaryText: "the early exchanges",
-            coveredTurnIds: turns[0..<4].map(\.id),
+            coveredTurnIds: turns[0 ..< 4].map(\.id),
             modelIdentifier: "m",
             savedTokensEstimate: 100
         )

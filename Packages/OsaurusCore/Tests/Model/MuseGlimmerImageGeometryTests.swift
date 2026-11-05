@@ -20,7 +20,8 @@ import Testing
 struct MuseGlimmerImageGeometryTests {
 
     static let bundle: URL = {
-        let name = ProcessInfo.processInfo.environment["MUSE_VL_BUNDLE"]
+        let name =
+            ProcessInfo.processInfo.environment["MUSE_VL_BUNDLE"]
             ?? "Muse-Glimmer-30B-JANG_4M"
         return URL(fileURLWithPath: NSHomeDirectory())
             .appendingPathComponent("models/JANGQ-AI/\(name)")
@@ -29,7 +30,8 @@ struct MuseGlimmerImageGeometryTests {
     static var enabled: Bool {
         ProcessInfo.processInfo.environment["MUSE_VL_LIVE"] == "1"
             && FileManager.default.fileExists(
-                atPath: bundle.appendingPathComponent("config.json").path)
+                atPath: bundle.appendingPathComponent("config.json").path
+            )
     }
 
     /// A still image has to be duplicated across the 2-slot temporal axis, the
@@ -40,12 +42,20 @@ struct MuseGlimmerImageGeometryTests {
     @Test("both temporal slots carry the frame", .enabled(if: enabled))
     func temporalSlotsAreFilled() async throws {
         let context = try await MLXVLM.VLMModelFactory.shared.load(
-            from: Self.bundle, using: SwiftTransformersTokenizerLoader())
+            from: Self.bundle,
+            using: SwiftTransformersTokenizerLoader()
+        )
         let userInput = UserInput(
             prompt: "hi",
-            images: [.ciImage(CIImage(
-                contentsOf: URL(fileURLWithPath: "/tmp/raptorproof/solid-red.png"))!)],
-            additionalContext: ["reasoning_strength": "low"])
+            images: [
+                .ciImage(
+                    CIImage(
+                        contentsOf: URL(fileURLWithPath: "/tmp/raptorproof/solid-red.png")
+                    )!
+                )
+            ],
+            additionalContext: ["reasoning_strength": "low"]
+        )
         let input = try await context.processor.prepare(input: userInput)
         let pixels = try #require(input.image?.pixels)
         print("[temporal] patch tensor \(pixels.shape)")
@@ -63,23 +73,30 @@ struct MuseGlimmerImageGeometryTests {
         print("[temporal] slot0 mean|v|=\(mag0.item(Float.self)) slot1 mean|v|=\(mag1.item(Float.self))")
         print("[temporal] mean|slot0 - slot1| = \(diff.item(Float.self))")
 
-        #expect(mag1.item(Float.self) > 0.01,
-            "the second temporal slot is empty — a still image is not being duplicated across the temporal axis")
-        #expect(diff.item(Float.self) < 0.01,
-            "the two temporal slots differ for a still image; they should hold the same frame")
+        #expect(
+            mag1.item(Float.self) > 0.01,
+            "the second temporal slot is empty — a still image is not being duplicated across the temporal axis"
+        )
+        #expect(
+            diff.item(Float.self) < 0.01,
+            "the two temporal slots differ for a still image; they should hold the same frame"
+        )
     }
 
     @Test("placeholder count matches the vision token count", .enabled(if: enabled))
     func geometryIsConsistent() async throws {
         let context = try await MLXVLM.VLMModelFactory.shared.load(
-            from: Self.bundle, using: SwiftTransformersTokenizerLoader())
+            from: Self.bundle,
+            using: SwiftTransformersTokenizerLoader()
+        )
 
         for path in ["/tmp/raptorproof/solid-red.png", "/tmp/raptorproof/vl-bands.png"] {
             guard FileManager.default.fileExists(atPath: path) else { continue }
             let userInput = UserInput(
                 prompt: "What colour is this?",
                 images: [.ciImage(CIImage(contentsOf: URL(fileURLWithPath: path))!)],
-                additionalContext: ["reasoning_strength": "low"])
+                additionalContext: ["reasoning_strength": "low"]
+            )
             let input = try await context.processor.prepare(input: userInput)
 
             let name = (path as NSString).lastPathComponent
@@ -104,12 +121,16 @@ struct MuseGlimmerImageGeometryTests {
             print("[geom]   <|patch|> placeholders in prompt=\(patchTokens)")
             print("[geom]   total prompt tokens=\(tokens.count)")
 
-            #expect(patchTokens == visionTokens,
-                "\(name): \(patchTokens) placeholders but \(visionTokens) vision tokens — the scatter is misaligned")
+            #expect(
+                patchTokens == visionTokens,
+                "\(name): \(patchTokens) placeholders but \(visionTokens) vision tokens — the scatter is misaligned"
+            )
             // A handful of patches means the model is effectively blind even
             // though every tensor is well-formed.
-            #expect(visionTokens >= 16,
-                "\(name): only \(visionTokens) vision tokens — the resize collapsed the image")
+            #expect(
+                visionTokens >= 16,
+                "\(name): only \(visionTokens) vision tokens — the resize collapsed the image"
+            )
         }
     }
 }

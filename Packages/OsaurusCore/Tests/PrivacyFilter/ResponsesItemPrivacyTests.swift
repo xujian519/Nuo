@@ -9,8 +9,13 @@ struct ResponsesItemPrivacyTests {
         let original = "alice@example.com"
         let map = RedactionMap(conversationID: UUID())
         let placeholder = await map.intern(original, as: .email)
-        return DetectedEntity(category: .email, original: original,
-            range: original.startIndex..<original.endIndex, placeholder: placeholder, approved: true)
+        return DetectedEntity(
+            category: .email,
+            original: original,
+            range: original.startIndex ..< original.endIndex,
+            placeholder: placeholder,
+            approved: true
+        )
     }
 
     @Test func scansAndScrubsRawOnlyPayloadWithoutDroppingIdentityOrFutureFields() async throws {
@@ -19,8 +24,15 @@ struct ResponsesItemPrivacyTests {
             "status": .string("completed"), "phase": .string("commentary"),
             "future": .object(["contact": .string("alice@example.com"), "count": .number(3), "enabled": .bool(true)]),
         ])
-        let before = [ChatMessage(role: "assistant", content: nil, tool_calls: nil, tool_call_id: nil,
-            responses_output_items: [item])]
+        let before = [
+            ChatMessage(
+                role: "assistant",
+                content: nil,
+                tool_calls: nil,
+                tool_call_id: nil,
+                responses_output_items: [item]
+            )
+        ]
         #expect(before.scrubbableTexts() == ["alice@example.com"])
         let after = before.applyingScrub(approved: [await detection()])
         let raw = try #require(after.first?.responses_output_items?.first)
@@ -38,15 +50,30 @@ struct ResponsesItemPrivacyTests {
 
     @Test func escapedArgumentsAndReasoningAreScannedInTheSameViewAsSubstitution() async throws {
         let items: [JSONValue] = [
-            .object(["type": .string("reasoning"), "id": .string("rs_original"),
+            .object([
+                "type": .string("reasoning"), "id": .string("rs_original"),
                 "encrypted_content": .string("opaque-ciphertext"),
-                "summary": .array([.object(["type": .string("summary_text"), "text": .string("contact alice@example.com")])])]),
-            .object(["type": .string("function_call"), "id": .string("fc_original"),
+                "summary": .array([
+                    .object(["type": .string("summary_text"), "text": .string("contact alice@example.com")])
+                ]),
+            ]),
+            .object([
+                "type": .string("function_call"), "id": .string("fc_original"),
                 "call_id": .string("call_original"), "name": .string("fixture"),
-                "arguments": .string(#"{"recipient":"alice\u0040example.com","count":3,"ok":true}"#)]),
+                "arguments": .string(#"{"recipient":"alice\u0040example.com","count":3,"ok":true}"#),
+            ]),
         ]
-        let before = [ChatMessage(role: "assistant", content: nil, tool_calls: nil, tool_call_id: nil,
-            reasoning_item_id: "rs_original", reasoning_encrypted: "opaque-ciphertext", responses_output_items: items)]
+        let before = [
+            ChatMessage(
+                role: "assistant",
+                content: nil,
+                tool_calls: nil,
+                tool_call_id: nil,
+                reasoning_item_id: "rs_original",
+                reasoning_encrypted: "opaque-ciphertext",
+                responses_output_items: items
+            )
+        ]
         #expect(before.scrubbableTexts().contains("alice@example.com"))
         #expect(!before.scrubbableTexts().contains("opaque-ciphertext"))
         let after = before.applyingScrub(approved: [await detection()])
@@ -65,8 +92,11 @@ struct ResponsesItemPrivacyTests {
     @Test func scrubbingPreservesRealMediaPartsAndLocalAudioOwnership() async throws {
         let samples = LocalAudioSamples(samples: [0.1, 0.2, -0.3], sampleRate: 16000)
         var before = ChatMessage(
-            role: "user", text: "contact alice@example.com", imageData: [Data([1, 2, 3])],
-            audios: [(Data([4, 5]), "wav")], localAudioSamples: [samples],
+            role: "user",
+            text: "contact alice@example.com",
+            imageData: [Data([1, 2, 3])],
+            audios: [(Data([4, 5]), "wav")],
+            localAudioSamples: [samples],
             videos: [(Data([6, 7]), "mp4")]
         )
         let media: JSONValue = .object([
@@ -110,7 +140,6 @@ struct ResponsesItemPrivacyTests {
         #expect(await PrivacyFilterPipeline.unscrubInboundJSON(event, map: nil) == event)
     }
 
-
     @Test func signedReasoningCannotBeRedactedOrResignedSilently() async throws {
         let signed: JSONValue = .object([
             "type": .string("thinking"), "thinking": .string("Contact alice@example.com"),
@@ -136,13 +165,19 @@ struct ResponsesItemPrivacyTests {
     @Test func unsignedThinkingRedactsAndAbsentProviderStateStaysAbsent() async throws {
         let approved = await detection()
         var message = ChatMessage(role: "assistant", content: "Contact alice@example.com")
-        message.anthropic_thinking_blocks = [.object([
-            "type": .string("thinking"), "thinking": .string("Contact alice@example.com"),
-        ])]
+        message.anthropic_thinking_blocks = [
+            .object([
+                "type": .string("thinking"), "thinking": .string("Contact alice@example.com"),
+            ])
+        ]
         let scrubbed = try PrivacyFilterPipeline.scrubOutboundMessages([message], approved: [approved])
-        #expect(scrubbed.first?.anthropic_thinking_blocks == [.object([
-            "type": .string("thinking"), "thinking": .string("Contact [EMAIL_1]"),
-        ])])
+        #expect(
+            scrubbed.first?.anthropic_thinking_blocks == [
+                .object([
+                    "type": .string("thinking"), "thinking": .string("Contact [EMAIL_1]"),
+                ])
+            ]
+        )
         let ordinary = [ChatMessage(role: "user", content: "Contact alice@example.com")]
         #expect(ordinary.applyingScrub(approved: [approved]).first?.anthropic_thinking_blocks == nil)
     }
@@ -166,7 +201,6 @@ struct ResponsesItemPrivacyTests {
         #expect(text == original)
     }
 
-
     @Test func rawAndNestedSignedStateAlsoRefusesCarryOverRedaction() async throws {
         let signed: JSONValue = .object([
             "type": .string("thinking"), "thinking": .string("Contact alice@example.com"),
@@ -178,8 +212,13 @@ struct ResponsesItemPrivacyTests {
         ])
         let approved = await detection()
         for item in [signed, nested] {
-            let message = ChatMessage(role: "assistant", content: nil, tool_calls: nil, tool_call_id: nil,
-                responses_output_items: [item])
+            let message = ChatMessage(
+                role: "assistant",
+                content: nil,
+                tool_calls: nil,
+                tool_call_id: nil,
+                responses_output_items: [item]
+            )
             #expect(throws: PrivacyFilterPipelineError.signedReasoningRedactionUnsupported) {
                 try PrivacyFilterPipeline.scrubOutboundMessages([message], approved: [approved])
             }
@@ -192,9 +231,17 @@ struct ResponsesItemPrivacyTests {
             "type": .string("function_call"), "id": .string("fc_stable"), "call_id": .string("call_stable"),
             "name": .string("fixture"), "arguments": .string(arguments),
         ])
-        let before = [ChatMessage(role: "assistant", content: "Contact alice@example.com",
-            tool_calls: [.init(id: "call_stable", type: "function", function: .init(name: "fixture", arguments: arguments))],
-            tool_call_id: nil, responses_output_items: [raw])]
+        let before = [
+            ChatMessage(
+                role: "assistant",
+                content: "Contact alice@example.com",
+                tool_calls: [
+                    .init(id: "call_stable", type: "function", function: .init(name: "fixture", arguments: arguments))
+                ],
+                tool_call_id: nil,
+                responses_output_items: [raw]
+            )
+        ]
         let after = before.applyingScrub(approved: [await detection()])
         #expect(after.first?.tool_calls?.first?.function.arguments == arguments)
         #expect(after.first?.responses_output_items == [raw])

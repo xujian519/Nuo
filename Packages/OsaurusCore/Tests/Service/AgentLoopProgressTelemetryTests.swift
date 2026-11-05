@@ -55,7 +55,7 @@ struct AgentLoopProgressTelemetryTests {
                 at: startedAt.addingTimeInterval(1)
             )
                 == "[evals][agent-loop] step=3 phase=decode elapsed=1.0s "
-                    + "channel=reasoning deltas=1 contentChars=0 reasoningChars=12 toolChars=0"
+                + "channel=reasoning deltas=1 contentChars=0 reasoningChars=12 toolChars=0"
         )
         #expect(
             tracker.observe(
@@ -71,7 +71,7 @@ struct AgentLoopProgressTelemetryTests {
                 at: startedAt.addingTimeInterval(31)
             )
                 == "[evals][agent-loop] step=3 phase=decode elapsed=31.0s "
-                    + "channel=tool_envelope deltas=3 contentChars=4 reasoningChars=12 toolChars=9"
+                + "channel=tool_envelope deltas=3 contentChars=4 reasoningChars=12 toolChars=9"
         )
     }
 
@@ -107,7 +107,8 @@ struct AgentLoopProgressTelemetryTests {
     @Test("legacy step diagnostics decode with explicit unavailable attribution")
     func legacyStepDiagnosticDecode() throws {
         let legacy = Data(
-            #"{"step":1,"stopReason":"tool_calls","contentCharacterCount":0,"reasoningCharacterCount":32,"contentPreview":null,"reasoningPreview":"thinking","sawToolCallProgress":true,"pendingToolName":"file_read","toolArgumentCharacters":48,"completionTokens":null,"requestedEnableThinking":true,"thinkingState":"explicitEnabled"}"#.utf8
+            #"{"step":1,"stopReason":"tool_calls","contentCharacterCount":0,"reasoningCharacterCount":32,"contentPreview":null,"reasoningPreview":"thinking","sawToolCallProgress":true,"pendingToolName":"file_read","toolArgumentCharacters":48,"completionTokens":null,"requestedEnableThinking":true,"thinkingState":"explicitEnabled"}"#
+                .utf8
         )
 
         let decoded = try JSONDecoder().decode(

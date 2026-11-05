@@ -109,7 +109,10 @@ struct PluginMainThreadResponsivenessTests {
 
         let invokeTask = Task {
             try await plugin.invoke(
-                type: "tool", id: "t", payload: "{}", isolation: .accessibilityQueue
+                type: "tool",
+                id: "t",
+                payload: "{}",
+                isolation: .accessibilityQueue
             )
         }
         #expect(await signaled(recorder.callbackStarted))

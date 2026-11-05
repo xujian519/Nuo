@@ -264,10 +264,17 @@ public actor CoreModelService {
             // the primary.
             if let primary = configured, let fb = distinctFallback {
                 logger.info(
-                    "Core model '\(primary)' breaker open; serving from chat model '\(fb)' during cooldown")
+                    "Core model '\(primary)' breaker open; serving from chat model '\(fb)' during cooldown"
+                )
                 return try await runWithRetries(
-                    model: fb, messages: messages, params: params, timeout: timeout, intent: intent,
-                    role: .fallback, activity: activity)
+                    model: fb,
+                    messages: messages,
+                    params: params,
+                    timeout: timeout,
+                    intent: intent,
+                    role: .fallback,
+                    activity: activity
+                )
             }
             throw CoreModelError.circuitBreakerOpen
         }
@@ -318,8 +325,14 @@ public actor CoreModelService {
             logger.info("Core model unset; using chat model '\(fb)' as fallback")
             do {
                 return try await runWithRetries(
-                    model: fb, messages: messages, params: params, timeout: timeout, intent: intent,
-                    role: .solo, activity: activity)
+                    model: fb,
+                    messages: messages,
+                    params: params,
+                    timeout: timeout,
+                    intent: intent,
+                    role: .solo,
+                    activity: activity
+                )
             } catch {
                 recordPrimaryFailure(error)
                 throw error
@@ -329,8 +342,14 @@ public actor CoreModelService {
         guard let fb = fallback else {
             do {
                 return try await runWithRetries(
-                    model: primary, messages: messages, params: params, timeout: timeout, intent: intent,
-                    role: .solo, activity: activity)
+                    model: primary,
+                    messages: messages,
+                    params: params,
+                    timeout: timeout,
+                    intent: intent,
+                    role: .solo,
+                    activity: activity
+                )
             } catch {
                 recordPrimaryFailure(error)
                 throw error
@@ -341,8 +360,14 @@ public actor CoreModelService {
         let primaryError: Error
         do {
             return try await runWithRetries(
-                model: primary, messages: messages, params: params, timeout: timeout, intent: intent,
-                role: .primaryWithFallback, activity: activity)
+                model: primary,
+                messages: messages,
+                params: params,
+                timeout: timeout,
+                intent: intent,
+                role: .primaryWithFallback,
+                activity: activity
+            )
         } catch {
             primaryError = error
         }
@@ -378,8 +403,14 @@ public actor CoreModelService {
             "Core model '\(primary)' failed after \(elapsedMs)ms (\(primaryError.localizedDescription)); falling back to chat model '\(fb)'"
         )
         return try await runWithRetries(
-            model: fb, messages: messages, params: params, timeout: timeout, intent: intent,
-            role: .fallback, activity: activity)
+            model: fb,
+            messages: messages,
+            params: params,
+            timeout: timeout,
+            intent: intent,
+            role: .fallback,
+            activity: activity
+        )
     }
 
     /// Whether a failed primary attempt should retry on the chat model.
@@ -617,8 +648,13 @@ public actor CoreModelService {
             do {
                 let result = try await withTimeout(seconds: timeout) {
                     try await self.executeModelCall(
-                        model: model, messages: messages, params: params, intent: intent,
-                        applyFirstTokenDeadline: applyFirstTokenDeadline, activity: activity)
+                        model: model,
+                        messages: messages,
+                        params: params,
+                        intent: intent,
+                        applyFirstTokenDeadline: applyFirstTokenDeadline,
+                        activity: activity
+                    )
                 }
                 if role != .fallback { clearBreakerState() }
                 return result
@@ -713,7 +749,10 @@ public actor CoreModelService {
                             stopSequences: []
                         )
                         return try await Self.collect(
-                            stream, firstTokenDeadline: deadline, model: effectiveModel)
+                            stream,
+                            firstTokenDeadline: deadline,
+                            model: effectiveModel
+                        )
                     }
                     return try await service.generateOneShot(
                         messages: messages,
@@ -722,9 +761,16 @@ public actor CoreModelService {
                     )
                 }
                 Self.logToInsights(
-                    model: effectiveModel, messages: messages, params: params, response: text,
-                    startedAt: startedAt, error: nil, connection: connection, probe: probe,
-                    activity: activity)
+                    model: effectiveModel,
+                    messages: messages,
+                    params: params,
+                    response: text,
+                    startedAt: startedAt,
+                    error: nil,
+                    connection: connection,
+                    probe: probe,
+                    activity: activity
+                )
                 return text
             } catch let refusal as ModelRuntime.ResidencyRefusedError {
                 // `params.loadIntent == .background` and the load would have
@@ -736,9 +782,16 @@ public actor CoreModelService {
             } catch {
                 if !(error is CancellationError) {
                     Self.logToInsights(
-                        model: effectiveModel, messages: messages, params: params, response: nil,
-                        startedAt: startedAt, error: error.localizedDescription, connection: connection,
-                        probe: probe, activity: activity)
+                        model: effectiveModel,
+                        messages: messages,
+                        params: params,
+                        response: nil,
+                        startedAt: startedAt,
+                        error: error.localizedDescription,
+                        connection: connection,
+                        probe: probe,
+                        activity: activity
+                    )
                 }
                 throw error
             }
@@ -769,7 +822,9 @@ public actor CoreModelService {
             ]
             guard
                 let data = try? JSONSerialization.data(
-                    withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
+                    withJSONObject: payload,
+                    options: [.prettyPrinted, .sortedKeys]
+                )
             else { return nil }
             return String(decoding: data, as: UTF8.self)
         }()
@@ -836,7 +891,8 @@ public actor CoreModelService {
         } catch is DeadlineExceededError {
             consumer.cancel()
             logger.warning(
-                "Core model '\(model)' produced no output within \(Int(firstTokenDeadline))s; abandoning")
+                "Core model '\(model)' produced no output within \(Int(firstTokenDeadline))s; abandoning"
+            )
             throw CoreModelError.unresponsive(model)
         } catch is CancellationError {
             consumer.cancel()
@@ -861,7 +917,10 @@ public actor CoreModelService {
     ) async throws -> T {
         do {
             return try await valueWithDeadline(
-                seconds: seconds, operationName: "core model request", operation: operation)
+                seconds: seconds,
+                operationName: "core model request",
+                operation: operation
+            )
         } catch is DeadlineExceededError {
             throw CoreModelError.timedOut
         }

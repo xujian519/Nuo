@@ -138,7 +138,9 @@ enum SearchActivityLogger {
     // MARK: - URL extraction
 
     /// Hosted (Router) contents batch: all URLs in one request to the Router.
-    static func hostedExtractEgress(urls: [String], outcome: HostedContentsOutcome?, failureReason: String?) -> EgressInfo {
+    static func hostedExtractEgress(urls: [String], outcome: HostedContentsOutcome?, failureReason: String?)
+        -> EgressInfo
+    {
         var details: [String: String] = [
             "mode": "hosted",
             "urls": urls.joined(separator: "\n"),
@@ -184,7 +186,9 @@ enum SearchActivityLogger {
 
     /// Direct page fetch from this Mac (Readability path). The destination
     /// is the page's own host — that site sees our request.
-    static func directExtractEgress(url: String, extraction: SearchReadability.Extraction, bytesReceived: Int?) -> EgressInfo {
+    static func directExtractEgress(url: String, extraction: SearchReadability.Extraction, bytesReceived: Int?)
+        -> EgressInfo
+    {
         var details: [String: String] = [
             "mode": "direct",
             "urls": url,

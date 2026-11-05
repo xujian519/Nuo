@@ -118,7 +118,8 @@ final class WorkspaceAgentConnectService: ObservableObject {
     /// the roster no longer lists them.
     func pruneFailures(keeping activeAddresses: Set<String>) {
         let stale = connectFailures.keys.filter { key in
-            !activeAddresses.contains(where: { key == $0 || key.hasSuffix(":" + $0) }) }
+            !activeAddresses.contains(where: { key == $0 || key.hasSuffix(":" + $0) })
+        }
         guard !stale.isEmpty else { return }
         for key in stale { connectFailures[key] = nil }
     }
@@ -180,7 +181,8 @@ final class WorkspaceAgentConnectService: ObservableObject {
     func autoConnect(workspaceId: String, agents: [OsaurusRouterWorkspaceAgent]) async {
         let paired = Set(
             agents.map { $0.agentAddress.lowercased() }
-                .filter { RemoteAgentManager.shared.remoteAgent(forAddress: $0, workspaceId: workspaceId) != nil
+                .filter {
+                    RemoteAgentManager.shared.remoteAgent(forAddress: $0, workspaceId: workspaceId) != nil
                         && refreshTasks[scope($0, workspaceId)] != nil
                         && WorkspaceRosterStore.shared.forcedOffline[$0] == nil
                         && connectFailure(for: $0, workspaceId: workspaceId) == nil
@@ -282,7 +284,8 @@ final class WorkspaceAgentConnectService: ObservableObject {
 
         do {
             let outcome = try await performHandshake(
-                workspaceId: workspaceId, agentAddress: agentAddress
+                workspaceId: workspaceId,
+                agentAddress: agentAddress
             )
             try Task.checkCancellation()
             guard pairingGeneration[addressLower] == generation,
@@ -354,17 +357,20 @@ final class WorkspaceAgentConnectService: ObservableObject {
         let addressLower = scope(agentAddress, workspaceId)
         // Pairing gone (user removed it) → nothing to keep alive.
         guard authorizedScopes?.contains(addressLower) != false,
-            RemoteAgentManager.shared.remoteAgent(forAddress: agentAddress, workspaceId: workspaceId) != nil else {
+            RemoteAgentManager.shared.remoteAgent(forAddress: agentAddress, workspaceId: workspaceId) != nil
+        else {
             refreshTasks[addressLower] = nil
             return
         }
         do {
             let outcome = try await performHandshake(
-                workspaceId: workspaceId, agentAddress: agentAddress
+                workspaceId: workspaceId,
+                agentAddress: agentAddress
             )
             try Task.checkCancellation()
             if !RemoteAgentManager.shared.updateAPIKey(
-                outcome.apiKey, forAddress: outcome.agentAddress,
+                outcome.apiKey,
+                forAddress: outcome.agentAddress,
                 workspaceId: workspaceId
             ) {
                 refreshTasks[addressLower] = nil
@@ -380,7 +386,8 @@ final class WorkspaceAgentConnectService: ObservableObject {
             // without requiring a disconnect. Keep workspace display names and
             // avatars intact, and scope metadata to this exact provider.
             if let remote = RemoteAgentManager.shared.remoteAgent(
-                forAddress: outcome.agentAddress, workspaceId: workspaceId
+                forAddress: outcome.agentAddress,
+                workspaceId: workspaceId
             ) {
                 RemoteAgentManager.shared.updateLiveMetadata(
                     forAddress: outcome.agentAddress,
@@ -401,7 +408,8 @@ final class WorkspaceAgentConnectService: ObservableObject {
             // host already refuses the key; keeping a dead pairing around
             // just yields opaque chat failures).
             if Self.isMembershipRevoked(error) {
-                if let remote = RemoteAgentManager.shared.remoteAgent(forAddress: agentAddress,
+                if let remote = RemoteAgentManager.shared.remoteAgent(
+                    forAddress: agentAddress,
                     workspaceId: workspaceId
                 ) {
                     _ = RemoteAgentManager.shared.remove(id: remote.id)
@@ -465,7 +473,8 @@ final class WorkspaceAgentConnectService: ObservableObject {
         }
         // 1. Router mints the membership attestation (wallet-signed request).
         let minted = try await client.workspaceAttestation(id: workspaceId)
-        let attestationExpiresAt = WorkspaceMembershipAttestation
+        let attestationExpiresAt =
+            WorkspaceMembershipAttestation
             .unverifiedPayload(token: minted.attestation)
             .map { Date(timeIntervalSince1970: TimeInterval($0.exp)) }
 
@@ -489,7 +498,8 @@ final class WorkspaceAgentConnectService: ObservableObject {
         let challengeData = try await post(endpoint, body: stepOne)
         guard
             let challenge = try? JSONDecoder().decode(
-                WorkspacePairChallengeResponse.self, from: challengeData
+                WorkspacePairChallengeResponse.self,
+                from: challengeData
             )
         else {
             throw ConnectFailure(
@@ -538,7 +548,8 @@ final class WorkspaceAgentConnectService: ObservableObject {
                     sealed,
                     privateKey: encPrivateKey,
                     info: PairingKeyEnvelope.info(
-                        agentAddress: grant.agentAddress, nonce: nonce
+                        agentAddress: grant.agentAddress,
+                        nonce: nonce
                     )
                 )
             else {

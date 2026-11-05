@@ -116,7 +116,12 @@ struct HarnessStabilityFixesTests {
         #expect(diagnosis.contains("line 1"))
         #expect(diagnosis.contains("step one"))
 
-        switch FileEditMatcher.apply(oldString: "step one\n\nstep two", newString: "step 1\n\nstep 2", to: content, replaceAll: false) {
+        switch FileEditMatcher.apply(
+            oldString: "step one\n\nstep two",
+            newString: "step 1\n\nstep 2",
+            to: content,
+            replaceAll: false
+        ) {
         case .applied(let applied):
             #expect(applied.strategy == .blankLinesCollapsed)
             // The file's own two blank lines are kept.
@@ -160,8 +165,14 @@ struct HarnessStabilityFixesTests {
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
         let payload = try #require(EnvelopeAssertions.successPayload(result))
         #expect(payload["match_strategy"] as? String == "whitespace_normalized")
-        #expect(warnings(result).contains { $0.contains("did not match the file byte-for-byte") && $0.contains("item 042 value=42") })
-        #expect(try String(contentsOf: root.appendingPathComponent("data.txt"), encoding: .utf8) == "item 042 value=43\n")
+        #expect(
+            warnings(result).contains {
+                $0.contains("did not match the file byte-for-byte") && $0.contains("item 042 value=42")
+            }
+        )
+        #expect(
+            try String(contentsOf: root.appendingPathComponent("data.txt"), encoding: .utf8) == "item 042 value=43\n"
+        )
     }
 
     @Test func fileEdit_endToEnd_noMatchEnvelopeCarriesDiagnosis() async throws {
@@ -653,7 +664,8 @@ struct HarnessStabilityFixesTests {
         for (text, count, terminated) in fixtures {
             try text.write(to: root.appendingPathComponent("lines.txt"), atomically: true, encoding: .utf8)
             let result = try await FileReadTool(rootPath: root).execute(
-                argumentsJSON: #"{"path":"lines.txt"}"#)
+                argumentsJSON: #"{"path":"lines.txt"}"#
+            )
             let payload = EnvelopeAssertions.successPayload(result)
             #expect(payload?["total_lines"] as? Int == count)
             #expect(payload?["end_line"] as? Int == count)
@@ -665,9 +677,13 @@ struct HarnessStabilityFixesTests {
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         try "alpha\r\nbeta\r\n".write(
-            to: root.appendingPathComponent("lines.txt"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("lines.txt"),
+            atomically: true,
+            encoding: .utf8
+        )
         let result = try await FileReadTool(rootPath: root).execute(
-            argumentsJSON: #"{"path":"lines.txt","tail_lines":1}"#)
+            argumentsJSON: #"{"path":"lines.txt","tail_lines":1}"#
+        )
         let payload = EnvelopeAssertions.successPayload(result)
         #expect(payload?["start_line"] as? Int == 2)
         #expect(payload?["end_line"] as? Int == 2)
@@ -684,9 +700,13 @@ struct HarnessStabilityFixesTests {
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         try "alpha\r\nbeta\r\n".write(
-            to: root.appendingPathComponent("lines.txt"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("lines.txt"),
+            atomically: true,
+            encoding: .utf8
+        )
         let result = try await FileSearchTool(rootPath: root).execute(
-            argumentsJSON: #"{"pattern":"beta","target":"content"}"#)
+            argumentsJSON: #"{"pattern":"beta","target":"content"}"#
+        )
         #expect(ToolEnvelope.isSuccess(result))
         let text = EnvelopeAssertions.successText(result) ?? ""
         #expect(text.contains("lines.txt:2:"))

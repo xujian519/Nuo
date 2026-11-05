@@ -258,7 +258,8 @@ struct IdentityHealthCheckTests {
     func droppedScope_underMintingDevice_isRecoverableNotMismatched() throws {
         let scope = "a1b2c3d4"
         let v2Address = try AgentKey.deriveAddress(
-            masterKey: TestKeys.alicePrivateKey, path: .deviceScoped(index: 0, deviceScope: scope)
+            masterKey: TestKeys.alicePrivateKey,
+            path: .deviceScoped(index: 0, deviceScope: scope)
         )
         var agent = makeAgent(name: "Downgraded")
         agent.agentIndex = 0
@@ -284,7 +285,8 @@ struct IdentityHealthCheckTests {
     @Test
     func droppedScope_underOtherDevice_staysMismatched() throws {
         let v2Address = try AgentKey.deriveAddress(
-            masterKey: TestKeys.alicePrivateKey, path: .deviceScoped(index: 0, deviceScope: "a1b2c3d4")
+            masterKey: TestKeys.alicePrivateKey,
+            path: .deviceScoped(index: 0, deviceScope: "a1b2c3d4")
         )
         var agent = makeAgent(name: "Downgraded elsewhere")
         agent.agentIndex = 0
@@ -305,7 +307,8 @@ struct IdentityHealthCheckTests {
     @Test
     func droppedScope_withoutCurrentScope_isPlainMismatch() throws {
         let v2Address = try AgentKey.deriveAddress(
-            masterKey: TestKeys.alicePrivateKey, path: .deviceScoped(index: 0, deviceScope: "a1b2c3d4")
+            masterKey: TestKeys.alicePrivateKey,
+            path: .deviceScoped(index: 0, deviceScope: "a1b2c3d4")
         )
         var agent = makeAgent(name: "No scope hint")
         agent.agentIndex = 0
@@ -345,7 +348,8 @@ struct IdentityHealthCheckTests {
     func droppedScope_underWrongMaster_isMismatched() throws {
         let scope = "a1b2c3d4"
         let bobV2 = try AgentKey.deriveAddress(
-            masterKey: TestKeys.bobPrivateKey, path: .deviceScoped(index: 0, deviceScope: scope)
+            masterKey: TestKeys.bobPrivateKey,
+            path: .deviceScoped(index: 0, deviceScope: scope)
         )
         var agent = makeAgent(name: "Bob's, scope dropped")
         agent.agentIndex = 0
@@ -370,7 +374,8 @@ struct IdentityHealthCheckTests {
     func repairDeviceScope_writesScopeBackWithoutTouchingAddress() throws {
         let scope = "a1b2c3d4"
         let v2Address = try AgentKey.deriveAddress(
-            masterKey: TestKeys.alicePrivateKey, path: .deviceScoped(index: 7, deviceScope: scope)
+            masterKey: TestKeys.alicePrivateKey,
+            path: .deviceScoped(index: 7, deviceScope: scope)
         )
         var downgraded = makeAgent(name: "Downgraded")
         downgraded.agentIndex = 7
@@ -397,7 +402,8 @@ struct IdentityHealthCheckTests {
         }
 
         let repaired = AgentManager.shared.repairDeviceScope(
-            for: [downgraded, alreadyScoped, noIdentity], scope: scope
+            for: [downgraded, alreadyScoped, noIdentity],
+            scope: scope
         )
         #expect(repaired == 1)
 
@@ -431,8 +437,13 @@ struct IdentityHealthCheckTests {
     func rotateAddress_returnsNilForBuiltIn_andThrowsWithoutMaster() throws {
         var builtIn = makeAgent(name: "Default")
         builtIn = Agent(
-            id: builtIn.id, name: builtIn.name, description: "", systemPrompt: "",
-            isBuiltIn: true, createdAt: Date(), updatedAt: Date(),
+            id: builtIn.id,
+            name: builtIn.name,
+            description: "",
+            systemPrompt: "",
+            isBuiltIn: true,
+            createdAt: Date(),
+            updatedAt: Date(),
             autonomousExec: AutonomousExecConfig(enabled: false)
         )
         #expect(try AgentManager.shared.rotateAddress(of: builtIn) == nil)

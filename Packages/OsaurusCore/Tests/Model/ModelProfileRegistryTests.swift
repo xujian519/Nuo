@@ -574,14 +574,17 @@ struct ModelProfileRegistryTests {
             #expect(segments.map(\.id) == ["instruct", "low", "medium", "high", "xhigh", "max"])
             for effort in ["medium", "xhigh"] {
                 let kept = ModelProfileRegistry.normalizedOptions(
-                    for: id, persisted: ["reasoningEffort": .string(effort)])
+                    for: id,
+                    persisted: ["reasoningEffort": .string(effort)]
+                )
                 #expect(kept["reasoningEffort"]?.stringValue == effort)
             }
         }
         // 0731 keeps its own options.
         #expect(
             ModelProfileRegistry.profile(for: "DeepSeek-V4-Flash-0731-JANG")?.displayName
-                == DSV4ReasoningProfile.displayName)
+                == DSV4ReasoningProfile.displayName
+        )
 
         #expect(DSV41ReasoningProfile.normalizedEffort(" XHigh ") == "xhigh")
         #expect(DSV41ReasoningProfile.normalizedEffort("none") == "instruct")
@@ -596,16 +599,23 @@ struct ModelProfileRegistryTests {
         for effort in ["low", "medium", "high", "xhigh", "max"] {
             let context = MLXBatchAdapter.additionalContext(
                 for: GenerationParameters(
-                    temperature: nil, maxTokens: 16,
-                    modelOptions: ["reasoningEffort": .string(effort)]),
-                modelName: model)
+                    temperature: nil,
+                    maxTokens: 16,
+                    modelOptions: ["reasoningEffort": .string(effort)]
+                ),
+                modelName: model
+            )
             #expect(context["enable_thinking"] as? Bool == true)
             #expect(context["reasoning_effort"] as? String == effort)
         }
         let off = MLXBatchAdapter.additionalContext(
             for: GenerationParameters(
-                temperature: nil, maxTokens: 16, modelOptions: ["reasoningEffort": .string("none")]),
-            modelName: model)
+                temperature: nil,
+                maxTokens: 16,
+                modelOptions: ["reasoningEffort": .string("none")]
+            ),
+            modelName: model
+        )
         #expect(off["enable_thinking"] as? Bool == false)
         #expect(off["reasoning_effort"] == nil)
     }

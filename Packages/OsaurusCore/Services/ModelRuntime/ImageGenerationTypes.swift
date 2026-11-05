@@ -36,8 +36,11 @@ public struct ImageAdapterParameters: Sendable, Codable, Hashable {
         scale = try c.decodeIfPresent(Float.self, forKey: .scale) ?? 1
         target = try c.decodeIfPresent(Target.self, forKey: .target) ?? .transformer
         guard url.isFileURL, scale.isFinite else {
-            throw DecodingError.dataCorruptedError(forKey: .url, in: c,
-                debugDescription: "Adapters require a local file URL and finite scale")
+            throw DecodingError.dataCorruptedError(
+                forKey: .url,
+                in: c,
+                debugDescription: "Adapters require a local file URL and finite scale"
+            )
         }
     }
 }
@@ -188,8 +191,12 @@ public struct ImageGenerationParameters: Sendable {
         seeds: [UInt64]? = nil,
         batchSize: Int = 1,
         outputFormat: ImageOutputFormat = .png,
-        sampler: String? = nil, scheduler: String? = nil, shift: Float? = nil,
-        previewInterval: Int? = nil, previewMaxPixel: Int = 256, adapters: [ImageAdapterParameters] = []
+        sampler: String? = nil,
+        scheduler: String? = nil,
+        shift: Float? = nil,
+        previewInterval: Int? = nil,
+        previewMaxPixel: Int = 256,
+        adapters: [ImageAdapterParameters] = []
     ) {
         self.model = model
         self.prompt = prompt
@@ -249,8 +256,12 @@ public struct ImageEditParameters: Sendable {
         guidance: Float? = nil,
         seed: UInt64? = nil,
         outputFormat: ImageOutputFormat = .png,
-        sampler: String? = nil, scheduler: String? = nil, shift: Float? = nil,
-        previewInterval: Int? = nil, previewMaxPixel: Int = 256, adapters: [ImageAdapterParameters] = []
+        sampler: String? = nil,
+        scheduler: String? = nil,
+        shift: Float? = nil,
+        previewInterval: Int? = nil,
+        previewMaxPixel: Int = 256,
+        adapters: [ImageAdapterParameters] = []
     ) {
         self.model = model
         self.prompt = prompt

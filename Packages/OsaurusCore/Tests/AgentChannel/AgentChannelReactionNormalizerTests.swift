@@ -48,12 +48,18 @@ struct AgentChannelReactionNormalizerTests {
     }
 
     @Test func discordNormalizesCustomEmojiForms() {
-        #expect(AgentChannelReactionNormalizer.discordReaction("party_blob:123456789012345678")
-            == "party_blob:123456789012345678")
-        #expect(AgentChannelReactionNormalizer.discordReaction("<:party_blob:123456789012345678>")
-            == "party_blob:123456789012345678")
-        #expect(AgentChannelReactionNormalizer.discordReaction("<a:spinning:123456789012345678>")
-            == "spinning:123456789012345678")
+        #expect(
+            AgentChannelReactionNormalizer.discordReaction("party_blob:123456789012345678")
+                == "party_blob:123456789012345678"
+        )
+        #expect(
+            AgentChannelReactionNormalizer.discordReaction("<:party_blob:123456789012345678>")
+                == "party_blob:123456789012345678"
+        )
+        #expect(
+            AgentChannelReactionNormalizer.discordReaction("<a:spinning:123456789012345678>")
+                == "spinning:123456789012345678"
+        )
     }
 
     @Test func discordRejectsMalformedCustomEmoji() {
@@ -75,10 +81,14 @@ struct AgentChannelReactionNormalizerTests {
     }
 
     @Test func telegramDetectsCustomEmojiIds() {
-        #expect(AgentChannelReactionNormalizer.telegramReaction("custom_emoji:5368324170671202286")
-            == .customEmoji("5368324170671202286"))
-        #expect(AgentChannelReactionNormalizer.telegramReaction("5368324170671202286")
-            == .customEmoji("5368324170671202286"))
+        #expect(
+            AgentChannelReactionNormalizer.telegramReaction("custom_emoji:5368324170671202286")
+                == .customEmoji("5368324170671202286")
+        )
+        #expect(
+            AgentChannelReactionNormalizer.telegramReaction("5368324170671202286")
+                == .customEmoji("5368324170671202286")
+        )
     }
 
     @Test func telegramRejectsPlainASCIIWords() {
@@ -89,7 +99,9 @@ struct AgentChannelReactionNormalizerTests {
 
     @Test func telegramPayloadDictionariesMatchBotAPIShape() {
         #expect(TelegramReactionPayload.emoji("👍").dictionary == ["type": "emoji", "emoji": "👍"])
-        #expect(TelegramReactionPayload.customEmoji("42").dictionary
-            == ["type": "custom_emoji", "custom_emoji_id": "42"])
+        #expect(
+            TelegramReactionPayload.customEmoji("42").dictionary
+                == ["type": "custom_emoji", "custom_emoji_id": "42"]
+        )
     }
 }

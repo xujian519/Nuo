@@ -51,11 +51,14 @@ public enum InstalledVisionEvaluation {
     /// not disappear from an audit merely because runtime routing rejects them.
     public static func discoverySources() -> [DiscoverySource] {
         (ExternalModelLocator.lastScanReport()?.sources ?? []).map { source in
-            DiscoverySource(root: source.rootPath, source: source.source.rawValue,
+            DiscoverySource(
+                root: source.rootPath,
+                source: source.source.rawValue,
                 discoveredCount: source.discovered.count,
                 skipped: source.skipped.map {
                     RejectedBundle(directory: $0.path, reason: $0.reason.rawValue, detail: $0.detail)
-                })
+                }
+            )
         }
     }
 
@@ -69,9 +72,14 @@ public enum InstalledVisionEvaluation {
                 (object[key] as? [String: Any]).map { !$0.isEmpty } ?? false
             }
         }
-        return Bundle(modelID: modelID, directory: directory.path,
-                      modelType: evidence.modelType, declaresVision: declaresVision,
-                      supportsImage: evidence.hasVision, reason: evidence.reason,
-                      tensorCount: evidence.tensorNames.count)
+        return Bundle(
+            modelID: modelID,
+            directory: directory.path,
+            modelType: evidence.modelType,
+            declaresVision: declaresVision,
+            supportsImage: evidence.hasVision,
+            reason: evidence.reason,
+            tensorCount: evidence.tensorNames.count
+        )
     }
 }

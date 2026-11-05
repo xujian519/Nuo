@@ -141,8 +141,14 @@ import Testing
 
             let result = SafeDiskCachePurge.clear(directory: root)
             #expect(result.error == nil && result.removedFiles == 3)
-            #expect(!FileManager.default.fileExists(atPath: sub.appendingPathComponent("ssm-\(removedKey).safetensors").path))
-            #expect(FileManager.default.fileExists(atPath: sub.appendingPathComponent("ssm-\(keptKey).safetensors").path))
+            #expect(
+                !FileManager.default.fileExists(
+                    atPath: sub.appendingPathComponent("ssm-\(removedKey).safetensors").path
+                )
+            )
+            #expect(
+                FileManager.default.fileExists(atPath: sub.appendingPathComponent("ssm-\(keptKey).safetensors").path)
+            )
 
             var remaining: [String] = []
             var statement: OpaquePointer?

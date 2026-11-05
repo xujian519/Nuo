@@ -159,8 +159,7 @@ public final class SubagentFeed: @unchecked Sendable {
     private var lastPublishedEventRevision: UInt64 = 0
     /// Deterministic seam for the publication-order regression. Production
     /// construction always leaves it nil.
-    private let beforeEventPublicationForTesting:
-        (@Sendable (_ revision: UInt64) -> Void)?
+    private let beforeEventPublicationForTesting: (@Sendable (_ revision: UInt64) -> Void)?
 
     /// Upper bound on retained events. Long computer-use / spawn runs emit
     /// continuously (act/verify/tool rows), and every emission republishes the

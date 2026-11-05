@@ -46,11 +46,21 @@ struct ActivityLogStoreTests {
             errorMessage: error,
             connection: remote
                 ? RequestConnectionInfo(
-                    providerId: UUID(), remoteEndpoint: "https://api.openai.com/v1/chat/completions",
-                    transport: .direct, mode: .remoteInference)
+                    providerId: UUID(),
+                    remoteEndpoint: "https://api.openai.com/v1/chat/completions",
+                    transport: .direct,
+                    mode: .remoteInference
+                )
                 : nil,
             egress: remote
-                ? EgressInfo(destinationLabel: "OpenAI", destinationHost: "api.openai.com", bytesSent: 512, dataClasses: ["prompt", "tools"], privacyFilterApplied: true, redactedSpanCount: 2)
+                ? EgressInfo(
+                    destinationLabel: "OpenAI",
+                    destinationHost: "api.openai.com",
+                    bytesSent: 512,
+                    dataClasses: ["prompt", "tools"],
+                    privacyFilterApplied: true,
+                    redactedSpanCount: 2
+                )
                 : nil
         )
     }
@@ -66,8 +76,12 @@ struct ActivityLogStoreTests {
             category: .webSearch,
             locality: .remote,
             egress: EgressInfo(
-                destinationLabel: "Tavily", destinationHost: "api.tavily.com", bytesSent: 100, bytesReceived: 4000,
-                dataClasses: ["search_query"], details: ["query": query, "provider_used": "tavily", "hit_count": "5"]
+                destinationLabel: "Tavily",
+                destinationHost: "api.tavily.com",
+                bytesSent: 100,
+                bytesReceived: 4000,
+                dataClasses: ["search_query"],
+                details: ["query": query, "provider_used": "tavily", "hit_count": "5"]
             )
         )
     }
@@ -116,11 +130,24 @@ struct ActivityLogStoreTests {
     }
 
     @Test func categoryAndLocalityAreInferredForLegacyCallers() {
-        let local = RequestLog(source: .chatUI, method: "POST", path: "/chat/completions", statusCode: 200, durationMs: 1)
+        let local = RequestLog(
+            source: .chatUI,
+            method: "POST",
+            path: "/chat/completions",
+            statusCode: 200,
+            durationMs: 1
+        )
         #expect(local.category == .inference)
         #expect(local.locality == .local)
 
-        let plugin = RequestLog(source: .plugin, method: "LOG", path: "console", statusCode: 200, durationMs: 0, pluginId: "p")
+        let plugin = RequestLog(
+            source: .plugin,
+            method: "LOG",
+            path: "console",
+            statusCode: 200,
+            durationMs: 0,
+            pluginId: "p"
+        )
         #expect(plugin.category == .pluginLog)
 
         let api = RequestLog(source: .httpAPI, method: "GET", path: "/v1/models", statusCode: 200, durationMs: 1)
@@ -128,13 +155,25 @@ struct ActivityLogStoreTests {
         #expect(api.locality == .local)
 
         let remote = RequestLog(
-            source: .chatUI, method: "POST", path: "/chat/completions", statusCode: 200, durationMs: 1,
-            connection: RequestConnectionInfo(remoteEndpoint: "https://x.example/v1", transport: .direct, mode: .remoteInference)
+            source: .chatUI,
+            method: "POST",
+            path: "/chat/completions",
+            statusCode: 200,
+            durationMs: 1,
+            connection: RequestConnectionInfo(
+                remoteEndpoint: "https://x.example/v1",
+                transport: .direct,
+                mode: .remoteInference
+            )
         )
         #expect(remote.locality == .remote)
 
         let p2pInbound = RequestLog(
-            source: .p2p, method: "POST", path: "/agents/0xabc/run", statusCode: 200, durationMs: 1,
+            source: .p2p,
+            method: "POST",
+            path: "/agents/0xabc/run",
+            statusCode: 200,
+            durationMs: 1,
             connection: RequestConnectionInfo(transport: .secureChannel, accessKeyId: "k")
         )
         #expect(p2pInbound.locality == .remote)
@@ -155,7 +194,7 @@ struct ActivityLogStoreTests {
 
     @Test func deletedMiddleRowIsDetected() throws {
         let store = try makeStore()
-        for _ in 0..<3 { try store.append(inference()) }
+        for _ in 0 ..< 3 { try store.append(inference()) }
         try store.executeForTesting("DELETE FROM activity WHERE seq = 2")
         let v = try store.verify()
         #expect(!v.isIntact)
@@ -165,7 +204,7 @@ struct ActivityLogStoreTests {
 
     @Test func truncatedTailIsDetectedViaHead() throws {
         let store = try makeStore()
-        for _ in 0..<3 { try store.append(inference()) }
+        for _ in 0 ..< 3 { try store.append(inference()) }
         try store.executeForTesting("DELETE FROM activity WHERE seq = 3")
         let v = try store.verify()
         #expect(!v.isIntact)
@@ -372,7 +411,7 @@ struct ActivityLogStoreTests {
     @Test func fetchIsNewestFirstAndPaged() throws {
         let store = try makeStore()
         let base = Date().addingTimeInterval(-1000)
-        for i in 0..<7 { try store.append(inference(at: base.addingTimeInterval(Double(i)))) }
+        for i in 0 ..< 7 { try store.append(inference(at: base.addingTimeInterval(Double(i)))) }
         let page1 = try store.fetch(limit: 3)
         let page2 = try store.fetch(limit: 3, offset: 3)
         #expect(page1.map { $0.seq } == [7, 6, 5])
@@ -417,15 +456,31 @@ struct ActivityLogStoreTests {
         let providerId = UUID()
         try store.append(
             RequestLog(
-                source: .chatUI, method: "POST", path: "/chat/completions", statusCode: 200, durationMs: 1000,
-                model: "m", inputTokens: 5, outputTokens: 50,
-                connection: RequestConnectionInfo(providerId: providerId, remoteEndpoint: "https://peer/x", transport: .secureChannel, mode: .remoteAgentRun)
+                source: .chatUI,
+                method: "POST",
+                path: "/chat/completions",
+                statusCode: 200,
+                durationMs: 1000,
+                model: "m",
+                inputTokens: 5,
+                outputTokens: 50,
+                connection: RequestConnectionInfo(
+                    providerId: providerId,
+                    remoteEndpoint: "https://peer/x",
+                    transport: .secureChannel,
+                    mode: .remoteAgentRun
+                )
             )
         )
         try store.append(
             RequestLog(
-                source: .p2p, method: "POST", path: "/agents/0xabc/run", statusCode: 200, durationMs: 500,
-                model: "m", outputTokens: 7,
+                source: .p2p,
+                method: "POST",
+                path: "/agents/0xabc/run",
+                statusCode: 200,
+                durationMs: 500,
+                model: "m",
+                outputTokens: 7,
                 connection: RequestConnectionInfo(transport: .secureChannel, accessKeyId: "key-1", audience: "0xabc")
             )
         )
@@ -456,10 +511,15 @@ struct ActivityLogStoreTests {
         var row = search()
         var details = row.egress!.details
         details["huge"] = String(repeating: "x", count: 10_000)
-        for i in 0..<40 { details["k\(i)"] = "v" }
+        for i in 0 ..< 40 { details["k\(i)"] = "v" }
         row = RequestLog(
-            source: .tool, method: "POST", path: "/tools/web_search", statusCode: 200, durationMs: 1,
-            category: .webSearch, locality: .remote,
+            source: .tool,
+            method: "POST",
+            path: "/tools/web_search",
+            statusCode: 200,
+            durationMs: 1,
+            category: .webSearch,
+            locality: .remote,
             egress: EgressInfo(destinationHost: "h", details: details)
         )
         let stored = try store.append(row)
@@ -490,9 +550,16 @@ struct ActivityLogStoreTests {
     @Test func legacyWithheldMarkerStillCountsAsWithheld() {
         for legacy in RequestLog.legacyContentWithheldMarkers {
             let row = RequestLog(
-                source: .chatUI, method: "POST", path: "/chat/completions", statusCode: 200, durationMs: 1,
-                requestBody: legacy, responseBody: legacy, model: "mlx-community/test",
-                category: .inference, locality: .local
+                source: .chatUI,
+                method: "POST",
+                path: "/chat/completions",
+                statusCode: 200,
+                durationMs: 1,
+                requestBody: legacy,
+                responseBody: legacy,
+                model: "mlx-community/test",
+                category: .inference,
+                locality: .local
             )
             #expect(RequestLog.isWithheldContent(legacy))
             #expect(!row.hasStoredContent, "legacy marker \(legacy) must not read as stored content")
@@ -506,7 +573,12 @@ struct ActivityLogStoreTests {
         #expect(inference().title == "test")
         #expect(search(query: "q").title.contains("“q”"))
         let mcp = RequestLog(
-            source: .tool, method: "POST", path: "/mcp/x", statusCode: 200, durationMs: 1, category: .mcpToolCall,
+            source: .tool,
+            method: "POST",
+            path: "/mcp/x",
+            statusCode: 200,
+            durationMs: 1,
+            category: .mcpToolCall,
             egress: EgressInfo(destinationHost: "mcp.example", details: ["tool": "list_files", "server": "fs"])
         )
         #expect(mcp.title == "list_files @ fs")

@@ -75,15 +75,19 @@ struct AppleSupportContractTests {
         #expect(JSONSerialization.isValidJSONObject(out))
     }
 
-    @Test("the registry's missing-permission (code 7) error renders a typed permission_denied envelope with the settings pane")
+    @Test(
+        "the registry's missing-permission (code 7) error renders a typed permission_denied envelope with the settings pane"
+    )
     @MainActor
     func codeSevenEnvelope() throws {
         let error = NSError(
-            domain: "ToolRegistry", code: 7,
+            domain: "ToolRegistry",
+            code: 7,
             userInfo: [
                 NSLocalizedDescriptionKey: "Missing system permissions for tool: calendar_events. Required: Calendar.",
                 ToolRegistry.missingPermissionUserInfoKey: SystemPermission.calendar.rawValue,
-                ToolRegistry.missingPermissionSettingsURLUserInfoKey: SystemPermission.calendar.systemSettingsURL?.absoluteString ?? "",
+                ToolRegistry.missingPermissionSettingsURLUserInfoKey: SystemPermission.calendar.systemSettingsURL?
+                    .absoluteString ?? "",
             ]
         )
         let json = ToolEnvelope.fromError(error, tool: "calendar_events")
@@ -108,7 +112,9 @@ struct AppleSupportContractTests {
         // The executor's skipIf seam is what the bridge feeds with the
         // cancellation flag; prove the seam abandons the run unexecuted.
         let result = await AppleScriptExecutor.run(
-            source: "return \"ran\"", timeout: 5, skipIf: { true }
+            source: "return \"ran\"",
+            timeout: 5,
+            skipIf: { true }
         )
         #expect(result.status == .timedOut)
         #expect(result.output == nil)

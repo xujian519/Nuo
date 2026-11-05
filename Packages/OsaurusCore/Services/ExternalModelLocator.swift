@@ -267,7 +267,12 @@ enum ExternalModelLocator {
         let built = entries.compactMap { entry -> MLXModel? in
             let bundleDirectory = URL(fileURLWithPath: entry.bundlePath, isDirectory: true)
             let candidate = MLXModel(
-                id: entry.id, name: "", description: "", downloadURL: "", bundleDirectory: bundleDirectory)
+                id: entry.id,
+                name: "",
+                description: "",
+                downloadURL: "",
+                bundleDirectory: bundleDirectory
+            )
             // Recheck only when materializing a new catalog, never in a view
             // getter. A retained registration is not evidence of readiness.
             let ready = bundlePresence(at: bundleDirectory) == .present && candidate.computeIsDownloadedFromDisk()
@@ -430,7 +435,11 @@ enum ExternalModelLocator {
         lock.unlock()
         let report = scanEnabledSources()
         var discovered = reconciledRegistry(
-            previous: previous, report: report, configuredRoots: configuredSourceRoots(), probe: probe)
+            previous: previous,
+            report: report,
+            configuredRoots: configuredSourceRoots(),
+            probe: probe
+        )
 
         lock.lock()
         let current = loadedLocked()
@@ -462,11 +471,11 @@ enum ExternalModelLocator {
         for entry in report.discovered { result[entry.id.lowercased()] = entry }
         for (key, entry) in previous where result[key] == nil {
             let enabled = configuredRoots.filter { $0.source.rawValue == entry.source }
-            guard !enabled.isEmpty else { continue } // Explicitly disabled sources stay removed without probing.
+            guard !enabled.isEmpty else { continue }  // Explicitly disabled sources stay removed without probing.
             if let recorded = entry.scanRootPath,
                 !enabled.contains(where: { $0.root.standardizedFileURL.path == recorded })
             {
-                continue // An explicit root replacement must not retain or probe the old root.
+                continue  // An explicit root replacement must not retain or probe the old root.
             }
             let directory = URL(fileURLWithPath: entry.bundlePath, isDirectory: true)
             let presence = probe(directory)
@@ -490,13 +499,15 @@ enum ExternalModelLocator {
                 scan.source.rawValue == entry.source
                     && owners.contains { $0.root.standardizedFileURL.path == scan.rootPath }
             }
-            let incomplete = scans.isEmpty || scans.contains { scan in
-                scan.skipped.contains { skipped in
-                    skipped.reason == .unreadableRoot
-                        && (skipped.path == scan.rootPath
-                            || isContained(directory, in: URL(fileURLWithPath: skipped.path, isDirectory: true)))
+            let incomplete =
+                scans.isEmpty
+                || scans.contains { scan in
+                    scan.skipped.contains { skipped in
+                        skipped.reason == .unreadableRoot
+                            && (skipped.path == scan.rootPath
+                                || isContained(directory, in: URL(fileURLWithPath: skipped.path, isDirectory: true)))
+                    }
                 }
-            }
             if presence == .unavailable || incomplete { result[key] = entry }
         }
         return result
@@ -845,8 +856,14 @@ enum ExternalModelLocator {
                     options: [.skipsHiddenFiles]
                 )
             } catch {
-                skipped.append(Skipped(repoId: nil, path: prefix.isEmpty ? root.path : dir.path,
-                    reason: .unreadableRoot, detail: "Could not enumerate model folder: \(error.localizedDescription)"))
+                skipped.append(
+                    Skipped(
+                        repoId: nil,
+                        path: prefix.isEmpty ? root.path : dir.path,
+                        reason: .unreadableRoot,
+                        detail: "Could not enumerate model folder: \(error.localizedDescription)"
+                    )
+                )
                 return
             }
             for entry in entries {

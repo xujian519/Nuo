@@ -183,7 +183,8 @@ public enum KnowledgeDocumentParser {
         var seen: Set<String> = []
         var tags: [String] = []
         for part in parts {
-            let tag = part
+            let tag =
+                part
                 .trimmingCharacters(in: .whitespacesAndNewlines)
                 .trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
                 .lowercased()
@@ -216,7 +217,8 @@ public enum KnowledgeDocumentParser {
                 insideFence.toggle()
             }
             if !insideFence, let level = headingLevel(of: trimmed) {
-                let text = trimmed
+                let text =
+                    trimmed
                     .drop(while: { $0 == "#" })
                     .trimmingCharacters(in: .whitespaces)
                 headingStack[level - 1] = text

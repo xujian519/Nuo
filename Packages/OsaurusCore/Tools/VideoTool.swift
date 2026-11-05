@@ -58,7 +58,9 @@ public final class VideoTool: OsaurusTool, @unchecked Sendable {
             ]),
             "duration": .object([
                 "type": .string("string"),
-                "description": .string("Cloud: a catalog-supported duration. Local: exact frame_count/fps in seconds, e.g. `3.0625s` for 49 frames at 16 fps."),
+                "description": .string(
+                    "Cloud: a catalog-supported duration. Local: exact frame_count/fps in seconds, e.g. `3.0625s` for 49 frames at 16 fps."
+                ),
             ]),
             "resolution": .object([
                 "type": .string("string"),
@@ -72,13 +74,24 @@ public final class VideoTool: OsaurusTool, @unchecked Sendable {
                 "type": .string("boolean"),
                 "description": .string("Optional audio generation setting when the model supports it."),
             ]),
-            "width": .object(["type": .string("integer"), "description": .string("Local video width, a multiple of 16.")]),
-            "height": .object(["type": .string("integer"), "description": .string("Local video height, a multiple of 16.")]),
-            "frame_count": .object(["type": .string("integer"), "description": .string("Local video frames, 4n+1; duration must equal frame_count/fps.")]),
+            "width": .object([
+                "type": .string("integer"), "description": .string("Local video width, a multiple of 16."),
+            ]),
+            "height": .object([
+                "type": .string("integer"), "description": .string("Local video height, a multiple of 16."),
+            ]),
+            "frame_count": .object([
+                "type": .string("integer"),
+                "description": .string("Local video frames, 4n+1; duration must equal frame_count/fps."),
+            ]),
             "fps": .object(["type": .string("integer"), "description": .string("Local video frame rate. Default 16.")]),
             "steps": .object(["type": .string("integer"), "description": .string("Local denoise steps. Default 50.")]),
-            "guidance": .object(["type": .string("number"), "description": .string("Local classifier-free guidance. Default 5.")]),
-            "seed": .object(["type": .string("integer"), "minimum": .number(0), "description": .string("Optional local video seed.")]),
+            "guidance": .object([
+                "type": .string("number"), "description": .string("Local classifier-free guidance. Default 5."),
+            ]),
+            "seed": .object([
+                "type": .string("integer"), "minimum": .number(0), "description": .string("Optional local video seed."),
+            ]),
         ]),
         "required": .array([.string("prompt"), .string("duration")]),
     ])
@@ -100,8 +113,9 @@ public final class VideoTool: OsaurusTool, @unchecked Sendable {
             return durationReq.failureEnvelope ?? ""
         }
         let local: LocalOptions
-        do { local = try JSONDecoder().decode(LocalOptions.self, from: Data(argumentsJSON.utf8)) }
-        catch { throw MediaGenerationError.invalidRequest("Local video controls must use their declared numeric types.") }
+        do { local = try JSONDecoder().decode(LocalOptions.self, from: Data(argumentsJSON.utf8)) } catch {
+            throw MediaGenerationError.invalidRequest("Local video controls must use their declared numeric types.")
+        }
         let params = VideoJobParams(
             prompt: prompt,
             sourcePath: Self.optionalString(args["source_path"]),
@@ -111,8 +125,13 @@ public final class VideoTool: OsaurusTool, @unchecked Sendable {
             resolution: Self.optionalString(args["resolution"]),
             aspectRatio: Self.optionalString(args["aspect_ratio"]),
             audio: args["audio"] as? Bool,
-            width: local.width, height: local.height, frameCount: local.frame_count,
-            fps: local.fps, steps: local.steps, guidance: local.guidance, seed: local.seed
+            width: local.width,
+            height: local.height,
+            frameCount: local.frame_count,
+            fps: local.fps,
+            steps: local.steps,
+            guidance: local.guidance,
+            seed: local.seed
         )
         return await SubagentSession.run(
             VideoSubagentKind(params: params, argumentsJSON: argumentsJSON),

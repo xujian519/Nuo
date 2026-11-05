@@ -99,14 +99,20 @@ struct AgentTemplatesView: View {
                 subtitle: L("Save an agent as a template, or import a template file someone shared with you."),
                 examples: [
                     .init(
-                        icon: "doc", title: L("Import a File"),
-                        description: L("Choose a template file or drop it here")),
+                        icon: "doc",
+                        title: L("Import a File"),
+                        description: L("Choose a template file or drop it here")
+                    ),
                     .init(
-                        icon: "sparkles", title: L("Tell the Orchestrator"),
-                        description: L("\"Make me an agent from the Cloud Agent template\"")),
+                        icon: "sparkles",
+                        title: L("Tell the Orchestrator"),
+                        description: L("\"Make me an agent from the Cloud Agent template\"")
+                    ),
                     .init(
-                        icon: "square.and.arrow.up", title: L("Send to a Friend"),
-                        description: L("Export a file from any template card")),
+                        icon: "square.and.arrow.up",
+                        title: L("Send to a Friend"),
+                        description: L("Export a file from any template card")
+                    ),
                 ],
                 primaryAction: .init(title: L("Import Template"), icon: "square.and.arrow.down", handler: onImport),
                 secondaryAction: nil,
@@ -159,7 +165,8 @@ struct AgentTemplatesView: View {
         store.setAvailableToOrchestrator(!template.availableToOrchestrator, id: template.id)
         showSuccess(
             template.availableToOrchestrator
-                ? L("Hidden from the Orchestrator") : L("Visible to the Orchestrator"))
+                ? L("Hidden from the Orchestrator") : L("Visible to the Orchestrator")
+        )
     }
 
     /// A built-in copied into the library keeps its id, so it shadows the

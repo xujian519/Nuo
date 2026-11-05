@@ -6,8 +6,10 @@ import Testing
 @Suite(.serialized)
 @MainActor
 struct ChatQueuedGenerationParityTests {
-    @Test(arguments: ["temperature", "topP", "topK", "minP", "repetition", "frequency", "presence",
-        "seed", "stop", "outputCap", "thinking", "effort", "template", "speculation", "modelThinking", "modelEffort"])
+    @Test(arguments: [
+        "temperature", "topP", "topK", "minP", "repetition", "frequency", "presence",
+        "seed", "stop", "outputCap", "thinking", "effort", "template", "speculation", "modelThinking", "modelEffort",
+    ])
     func changedGenerationDefaultsStayQueued(field: String) async throws {
         try await ChatHistoryTestStorage.run {
             let session = ChatSession()
@@ -97,8 +99,11 @@ struct ChatQueuedGenerationParityTests {
             let session = ChatSession()
             var pending = ChatTurnGenerationControls.capture(activeModelOptions: [:])
             pending.overrides = overrides
-            session.queuedSend = QueuedSend(text: "clear inherited template parameters", attachments: [],
-                generationControls: pending)
+            session.queuedSend = QueuedSend(
+                text: "clear inherited template parameters",
+                attachments: [],
+                generationControls: pending
+            )
             #expect(!session.injectQueuedSteerIfEligible())
             #expect(session.queuedSend?.generationControls?.overrides.templateKwargs == [:])
             #expect(session.turns.isEmpty)

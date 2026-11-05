@@ -19,8 +19,10 @@ struct SessionToolStateRetainTests {
     func revocationDropsOnlyRevoked() async {
         let store = SessionToolStateStore()
         await store.appendLoadedTools(
-            "s1", names: ["get_events", "create_event", "web_search"],
-            fallbackAlwaysLoadedNames: nil)
+            "s1",
+            names: ["get_events", "create_event", "web_search"],
+            fallbackAlwaysLoadedNames: nil
+        )
         let revoked = await store.retainLoadedTools(
             "s1",
             allowed: ["get_events"],
@@ -36,9 +38,15 @@ struct SessionToolStateRetainTests {
     func noOpWhenNothingRevoked() async {
         let store = SessionToolStateStore()
         await store.appendLoadedTools(
-            "s1", names: ["get_events"], fallbackAlwaysLoadedNames: nil)
+            "s1",
+            names: ["get_events"],
+            fallbackAlwaysLoadedNames: nil
+        )
         let revoked = await store.retainLoadedTools(
-            "s1", allowed: ["get_events"], among: ["get_events"])
+            "s1",
+            allowed: ["get_events"],
+            among: ["get_events"]
+        )
         #expect(revoked.isEmpty)
         #expect(await store.get("s1")?.loadedToolNames == ["get_events"])
     }
@@ -58,9 +66,15 @@ struct SessionToolStateRetainTests {
         // this dispatch always survives, and a stale revoked one does not.
         let store = SessionToolStateStore()
         await store.appendLoadedTools(
-            "s1", names: ["get_events", "create_event"], fallbackAlwaysLoadedNames: nil)
+            "s1",
+            names: ["get_events", "create_event"],
+            fallbackAlwaysLoadedNames: nil
+        )
         _ = await store.retainLoadedTools(
-            "s1", allowed: ["get_events"], among: ["get_events", "create_event"])
+            "s1",
+            allowed: ["get_events"],
+            among: ["get_events", "create_event"]
+        )
         await store.appendLoadedTools("s1", names: ["get_events"], fallbackAlwaysLoadedNames: nil)
         #expect(await store.get("s1")?.loadedToolNames == ["get_events"])
     }

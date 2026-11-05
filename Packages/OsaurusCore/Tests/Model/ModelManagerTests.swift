@@ -475,7 +475,6 @@ struct ModelManagerTests {
         #expect(detected.map(\.id) == ["Nex-N2-Pro-JANGTQ2"])
     }
 
-
     @Test func discoverLocalModels_invalidationKeepsDispatchWaitingForCurrentScan() async throws {
         try await StoragePathsTestLock.shared.run {
             let previousOverride = ModelManager.scanLocalModelsOverrideForTests
@@ -550,8 +549,14 @@ struct ModelManagerTests {
                 newStarted.signal()
                 releaseNew.wait()
                 releaseNew.signal()
-                return [MLXModel(id: "current-scan", name: "Current", description: "fixture",
-                                 downloadURL: "https://example.invalid/current")]
+                return [
+                    MLXModel(
+                        id: "current-scan",
+                        name: "Current",
+                        description: "fixture",
+                        downloadURL: "https://example.invalid/current"
+                    )
+                ]
             }
             ModelManager.invalidateLocalModelsCache()
             let beganNew = await waitForSignal(newStarted)
@@ -586,7 +591,7 @@ struct ModelManagerTests {
             ModelManager.localModelsScanWaitLimitOverrideForTests = 0.02
             ModelManager.scanLocalModelsOverrideForTests = { _ in
                 releaseScan.wait()
-                releaseScan.signal() // Keep the latch open for any later scan.
+                releaseScan.signal()  // Keep the latch open for any later scan.
                 return [
                     MLXModel(
                         id: "gemma-4-E2B-it-qat-MXFP4",

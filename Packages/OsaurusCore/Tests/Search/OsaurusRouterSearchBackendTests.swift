@@ -20,7 +20,10 @@ struct OsaurusRouterSearchBackendTests {
             region: "us-en"
         )
         let body = OsaurusRouterSearchBackend.searchBody(
-            for: request, extractTextMaxCharacters: nil, idempotencyKey: "key-1")
+            for: request,
+            extractTextMaxCharacters: nil,
+            idempotencyKey: "key-1"
+        )
 
         #expect(body.query == "capybara habitats")
         #expect(body.category == "news")
@@ -36,14 +39,20 @@ struct OsaurusRouterSearchBackendTests {
     @Test func searchBody_clampsResultCountToServerCap() {
         let request = SearchRequest(query: "q", maxResults: 50)
         let body = OsaurusRouterSearchBackend.searchBody(
-            for: request, extractTextMaxCharacters: nil, idempotencyKey: "k")
+            for: request,
+            extractTextMaxCharacters: nil,
+            idempotencyKey: "k"
+        )
         #expect(body.num_results == 25)
     }
 
     @Test func searchBody_requestsTextExtractionWhenAsked() {
         let request = SearchRequest(query: "q")
         let body = OsaurusRouterSearchBackend.searchBody(
-            for: request, extractTextMaxCharacters: 9000, idempotencyKey: "k")
+            for: request,
+            extractTextMaxCharacters: 9000,
+            idempotencyKey: "k"
+        )
         #expect(body.contents?.text?.max_characters == 9000)
         #expect(body.contents?.highlights == true)
     }
@@ -60,7 +69,10 @@ struct OsaurusRouterSearchBackendTests {
     @Test func canonicalEncoding_producesStableSortedBytes() throws {
         let request = SearchRequest(query: "q", maxResults: 5, timeRange: "d")
         let body = OsaurusRouterSearchBackend.searchBody(
-            for: request, extractTextMaxCharacters: nil, idempotencyKey: "stable-key")
+            for: request,
+            extractTextMaxCharacters: nil,
+            idempotencyKey: "stable-key"
+        )
         let first = try JSONEncoder.osaurusCanonical(prettyPrinted: false).encode(body)
         let second = try JSONEncoder.osaurusCanonical(prettyPrinted: false).encode(body)
         // Signed bytes must equal sent bytes; the canonical encoder guarantees
@@ -80,8 +92,11 @@ struct OsaurusRouterSearchBackendTests {
         let backend = try makeBackend { request in
             #expect(request.url?.path == "/v1/search")
             #expect(request.httpMethod == "POST")
-            let body = String(
-                data: request.httpBodyStreamData ?? request.httpBody ?? Data(), encoding: .utf8) ?? ""
+            let body =
+                String(
+                    data: request.httpBodyStreamData ?? request.httpBody ?? Data(),
+                    encoding: .utf8
+                ) ?? ""
             #expect(body.contains(#""query":"capybara""#))
             #expect(body.contains(#""idempotency_key":"key-42""#))
             return json(
@@ -102,7 +117,9 @@ struct OsaurusRouterSearchBackendTests {
         }
 
         let result = await backend.search(
-            SearchRequest(query: "capybara"), idempotencyKey: "key-42")
+            SearchRequest(query: "capybara"),
+            idempotencyKey: "key-42"
+        )
         let outcome = try result.get()
 
         #expect(outcome.hits.count == 1)
@@ -132,7 +149,8 @@ struct OsaurusRouterSearchBackendTests {
         }
 
         let outcome = try await backend.search(
-            SearchRequest(query: "q"), idempotencyKey: "key-1"
+            SearchRequest(query: "q"),
+            idempotencyKey: "key-1"
         ).get()
         #expect(outcome.replayed)
         #expect(outcome.hits.isEmpty)
@@ -152,7 +170,8 @@ struct OsaurusRouterSearchBackendTests {
             )
         }
         let outcome = try await backend.search(
-            SearchRequest(query: "q"), idempotencyKey: "k"
+            SearchRequest(query: "q"),
+            idempotencyKey: "k"
         ).get()
         #expect(outcome.hits[0].snippet == "the summary")
         #expect(outcome.hits[1].snippet == "the text body")
@@ -216,8 +235,10 @@ struct OsaurusRouterSearchBackendTests {
     @Test func search_rateLimitHonorsRetryAfterForFutureCalls() async throws {
         let availability = RouterWebSearchAvailability()
         let backend = try makeBackend(availability: availability) { _ in
-            (429, Data(#"{"error":{"code":"RATE_LIMITED","message":"slow down"}}"#.utf8),
-             ["content-type": "application/json", "retry-after": "120"])
+            (
+                429, Data(#"{"error":{"code":"RATE_LIMITED","message":"slow down"}}"#.utf8),
+                ["content-type": "application/json", "retry-after": "120"]
+            )
         }
 
         let result = await backend.search(SearchRequest(query: "q"), idempotencyKey: "k")
@@ -249,8 +270,11 @@ struct OsaurusRouterSearchBackendTests {
     @Test func contents_marksFailedURLsForLocalFallback() async throws {
         let backend = try makeBackend { request in
             #expect(request.url?.path == "/v1/contents")
-            let body = String(
-                data: request.httpBodyStreamData ?? request.httpBody ?? Data(), encoding: .utf8) ?? ""
+            let body =
+                String(
+                    data: request.httpBodyStreamData ?? request.httpBody ?? Data(),
+                    encoding: .utf8
+                ) ?? ""
             #expect(body.contains(#""urls":["https://a.example/x","https://b.example/y"]"#))
             return json(
                 """
@@ -289,7 +313,8 @@ struct OsaurusRouterSearchBackendTests {
             )
         }
         let outcome = try await backend.contents(
-            urls: ["https://a.example"], idempotencyKey: "k"
+            urls: ["https://a.example"],
+            idempotencyKey: "k"
         ).get()
         #expect(outcome.replayed)
         #expect(outcome.pages.allSatisfy { !$0.succeeded })
@@ -474,8 +499,7 @@ struct OsaurusRouterSearchBackendTests {
 }
 
 private final class SearchRouterURLProtocol: URLProtocol, @unchecked Sendable {
-    nonisolated(unsafe) static var handler:
-        (@Sendable (URLRequest) throws -> (Int, Data, [String: String]))?
+    nonisolated(unsafe) static var handler: (@Sendable (URLRequest) throws -> (Int, Data, [String: String]))?
 
     override class func canInit(with request: URLRequest) -> Bool { true }
 

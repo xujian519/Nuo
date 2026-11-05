@@ -60,7 +60,8 @@ enum AppleServiceSupport {
             let rgb = cgColor.converted(to: space, intent: .defaultIntent, options: nil),
             let comps = rgb.components, comps.count >= 3
         else { return nil }
-        let r = Int((comps[0] * 255).rounded()), g = Int((comps[1] * 255).rounded()), b = Int((comps[2] * 255).rounded())
+        let r = Int((comps[0] * 255).rounded()), g = Int((comps[1] * 255).rounded()),
+            b = Int((comps[2] * 255).rounded())
         return String(format: "#%02X%02X%02X", max(0, min(255, r)), max(0, min(255, g)), max(0, min(255, b)))
     }
 

@@ -216,7 +216,10 @@ struct DeclarativeSearchBackend: SearchBackend {
             // Any unresolved secret placeholder becomes empty rather than a literal.
             if let regex = try? NSRegularExpression(pattern: "\\{\\{secret\\.[^}]+\\}\\}") {
                 out = regex.stringByReplacingMatches(
-                    in: out, range: NSRange(out.startIndex..., in: out), withTemplate: "")
+                    in: out,
+                    range: NSRange(out.startIndex..., in: out),
+                    withTemplate: ""
+                )
             }
         }
         return out

@@ -181,9 +181,11 @@ struct ToolResultBudgetTests {
         let earlier = assistant(["a": payload])
         let later = assistant(["a": payload])
         let explicit = result("a", payload)
-        #expect(ContextBudgetManager.estimateTokens(for: [earlier, later, explicit])
-            == ContextBudgetManager.estimateTokens(for: [earlier])
-                + ContextBudgetManager.estimateTokens(for: [later, explicit]))
+        #expect(
+            ContextBudgetManager.estimateTokens(for: [earlier, later, explicit])
+                == ContextBudgetManager.estimateTokens(for: [earlier])
+                + ContextBudgetManager.estimateTokens(for: [later, explicit])
+        )
     }
 
     @Test func missingOrEmptyResultIDCannotHideALegacyResult() {
@@ -200,15 +202,22 @@ struct ToolResultBudgetTests {
         let turn = assistant(["a": payload])
         let explicit = result("a", payload)
         let user = ChatTurn(role: .user, content: "next")
-        #expect(ContextBudgetManager.estimateTokens(for: [turn, user, explicit])
-            == ContextBudgetManager.estimateTokens(for: [turn])
-                + ContextBudgetManager.estimateTokens(for: [user, explicit]))
+        #expect(
+            ContextBudgetManager.estimateTokens(for: [turn, user, explicit])
+                == ContextBudgetManager.estimateTokens(for: [turn])
+                + ContextBudgetManager.estimateTokens(for: [user, explicit])
+        )
     }
 
     @Test func displayMirrorCannotMakeASmallBatchEligibleForCompaction() {
         let text = String(repeating: "r", count: 12000)
         let turns = [ChatTurn(role: .user, content: "read"), assistant(["a": text]), result("a", text)]
-        #expect(ContextCompactionService.compactionCutIndex(
-            turns: turns, existingSummary: nil, afterToolBatch: true) == nil)
+        #expect(
+            ContextCompactionService.compactionCutIndex(
+                turns: turns,
+                existingSummary: nil,
+                afterToolBatch: true
+            ) == nil
+        )
     }
 }

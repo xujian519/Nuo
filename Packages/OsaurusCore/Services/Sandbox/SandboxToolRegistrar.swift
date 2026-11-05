@@ -114,8 +114,7 @@ public final class SandboxToolRegistrar {
     /// Coalesces explicit first-use provisioning kicks (`provisionOnDemand`)
     /// so the model hammering the `sandbox_init_pending` placeholder while the
     /// cold download runs doesn't queue a fresh `registerTools` per call.
-    private var onDemandProvisionTask:
-        (agentId: UUID, token: UUID, task: Task<Void, Error>)?
+    private var onDemandProvisionTask: (agentId: UUID, token: UUID, task: Task<Void, Error>)?
 
     public struct OnDemandProvisionError: LocalizedError, Sendable {
         public let reason: UnavailabilityReason

@@ -35,7 +35,10 @@ struct ChatTurnGenerationControls: Sendable, Equatable, Codable {
         var request = ResponsesInferenceRequest(model: modelID, input: [])
         apply(to: &request)
         return AgentReasoningPolicy.applyingExplicitReasoning(
-            request.generation, to: modelOptions ?? [:], modelID: modelID)
+            request.generation,
+            to: modelOptions ?? [:],
+            modelID: modelID
+        )
     }
 
     /// A steer shares the active logical run's requests. Never consume a
@@ -124,7 +127,10 @@ struct ChatTurnGenerationControls: Sendable, Equatable, Codable {
         if let value = agentSettings?.stop { request.stop = value }
         if let enabled = overrides.enableThinking { request.enable_thinking = enabled }
         request.chat_template_kwargs = overrides.templateKwargs ?? agentSettings?.templateKwargs
-        request.inferenceContext.agentReasoningDefaults = AgentReasoningDefaults(settings: agentSettings, overrides: overrides)
+        request.inferenceContext.agentReasoningDefaults = AgentReasoningDefaults(
+            settings: agentSettings,
+            overrides: overrides
+        )
         request.inferenceContext.speculativeDecoding = agentSettings?.speculativeDecoding
     }
 

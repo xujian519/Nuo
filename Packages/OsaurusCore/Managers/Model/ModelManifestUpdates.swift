@@ -45,7 +45,9 @@ extension ModelManager {
             if force { pendingManifestChecks[model.id.lowercased()] = model }
             return
         }
-        if !force, let previous = manifestChecks[model.id.lowercased()], Date().timeIntervalSince(previous.checkedAt) < 300 {
+        if !force, let previous = manifestChecks[model.id.lowercased()],
+            Date().timeIntervalSince(previous.checkedAt) < 300
+        {
             return
         }
         manifestChecksInFlight.insert(model.id.lowercased())
@@ -60,7 +62,8 @@ extension ModelManager {
         let errorMessage: String?
         do {
             remote = try await HuggingFaceService.shared.fetchModelManifest(
-                repoId: model.id, previous: manifestChecks[model.id.lowercased()]?.remote
+                repoId: model.id,
+                previous: manifestChecks[model.id.lowercased()]?.remote
             )
             errorMessage = nil
         } catch is CancellationError { return } catch {

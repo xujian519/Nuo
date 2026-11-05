@@ -144,7 +144,7 @@ struct SkillImportPolicyTests {
             let references = source.appendingPathComponent("references", isDirectory: true)
             try FileManager.default.createDirectory(at: references, withIntermediateDirectories: true)
 
-            for index in 0..<2_000 {
+            for index in 0 ..< 2_000 {
                 _ = FileManager.default.createFile(
                     atPath: references.appendingPathComponent("entry-\(index).txt").path,
                     contents: Data(),
@@ -174,7 +174,7 @@ struct SkillImportPolicyTests {
                 skillName: "Long Listing Skill"
             )
             var longDirectory = source.appendingPathComponent("references", isDirectory: true)
-            for segment in 0..<4 {
+            for segment in 0 ..< 4 {
                 longDirectory = longDirectory.appendingPathComponent(
                     "segment-\(segment)-" + String(repeating: "x", count: 120),
                     isDirectory: true
@@ -182,7 +182,7 @@ struct SkillImportPolicyTests {
             }
             try FileManager.default.createDirectory(at: longDirectory, withIntermediateDirectories: true)
 
-            for index in 0..<700 {
+            for index in 0 ..< 700 {
                 _ = FileManager.default.createFile(
                     atPath: longDirectory.appendingPathComponent("entry-\(index).txt").path,
                     contents: Data(),
@@ -491,7 +491,7 @@ struct SkillImportPolicyTests {
     }
 
     private static func waitForFIFOReader(at url: URL) async -> Int32? {
-        for _ in 0..<200 {
+        for _ in 0 ..< 200 {
             let descriptor = Darwin.open(url.path, O_WRONLY | O_NONBLOCK)
             if descriptor >= 0 { return descriptor }
             guard errno == ENXIO else { return nil }

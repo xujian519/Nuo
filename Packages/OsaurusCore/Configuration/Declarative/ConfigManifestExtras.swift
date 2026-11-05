@@ -24,60 +24,85 @@ enum ConfigManifestChannelExtras {
     ) -> [ConfigKeySpec] {
         var keys: [ConfigKeySpec] = [
             ConfigKeySpec(
-                "write_enabled", .scalar(.boolean, example: "false"),
-                comment: "agents may SEND here (enabling is HIGH RISK)"),
+                "write_enabled",
+                .scalar(.boolean, example: "false"),
+                comment: "agents may SEND here (enabling is HIGH RISK)"
+            ),
             ConfigKeySpec(
-                "default_read_limit", .scalar(.integer, example: "50"),
-                comment: "1..100 messages per read"),
+                "default_read_limit",
+                .scalar(.integer, example: "50"),
+                comment: "1..100 messages per read"
+            ),
         ]
         if let spaceComment {
             keys.append(
                 ConfigKeySpec(
-                    "space_allowlist", .scalarList(.string, example: []),
+                    "space_allowlist",
+                    .scalarList(.string, example: []),
                     comment: spaceComment,
-                    moreComments: ["replaces the list"]))
+                    moreComments: ["replaces the list"]
+                )
+            )
         }
         keys.append(contentsOf: [
             ConfigKeySpec(
-                "read_allowlist", .scalarList(.string, example: []),
-                comment: "readable room/chat ids; replaces the list"),
+                "read_allowlist",
+                .scalarList(.string, example: []),
+                comment: "readable room/chat ids; replaces the list"
+            ),
             ConfigKeySpec(
-                "write_allowlist", .scalarList(.string, example: []),
-                comment: "writable room/chat ids; replaces the list"),
+                "write_allowlist",
+                .scalarList(.string, example: []),
+                comment: "writable room/chat ids; replaces the list"
+            ),
             ConfigKeySpec(
-                "sender_allowlist", .scalarList(.string, example: []),
-                comment: "authorized sender ids; replaces the list"),
+                "sender_allowlist",
+                .scalarList(.string, example: []),
+                comment: "authorized sender ids; replaces the list"
+            ),
             ConfigKeySpec(
-                "inbound_enabled", .scalar(.boolean, example: "false"),
-                comment: "dispatch incoming messages to an agent"),
+                "inbound_enabled",
+                .scalar(.boolean, example: "false"),
+                comment: "dispatch incoming messages to an agent"
+            ),
             ConfigKeySpec(
-                "inbound_agent", .scalar(.string, example: "null", nullable: true),
+                "inbound_agent",
+                .scalar(.string, example: "null", nullable: true),
                 comment: "CUSTOM agent name for unrouted messages (never",
                 moreComments: [
                     "\"default\") or a shared workspace agent key",
                     "`<workspace_id>:<0x-address>`; null clears; routes stay in Settings",
-                ]),
+                ]
+            ),
             ConfigKeySpec("require_mention", .scalar(.boolean, example: "true")),
             ConfigKeySpec("continue_threads", .scalar(.boolean, example: "true")),
             ConfigKeySpec(
-                "auto_reply_enabled", .scalar(.boolean, example: "false"),
-                comment: "reply without confirmation (HIGH RISK)"),
+                "auto_reply_enabled",
+                .scalar(.boolean, example: "false"),
+                comment: "reply without confirmation (HIGH RISK)"
+            ),
         ])
         if includeBotTokenRef {
             keys.append(
                 ConfigKeySpec(
-                    "bot_token_ref", .scalar(.string, example: "env:BOT_TOKEN"),
+                    "bot_token_ref",
+                    .scalar(.string, example: "env:BOT_TOKEN"),
                     comment: "write-only: env:VAR or keychain:service/account;",
                     moreComments: [
                         "the token is read from there at apply and stored",
                         "in the Keychain — never exported",
-                    ]))
+                    ]
+                )
+            )
         }
         if includeAppTokenRef {
             keys.append(
                 ConfigKeySpec(
-                    "app_token_ref", .scalar(.string, example: "env:SLACK_APP_TOKEN"),
-                    comment: "write-only: Slack app-level (Socket Mode) token"))
+                    "app_token_ref",
+                    .scalar(.string, example: "env:SLACK_APP_TOKEN"),
+                    comment: "write-only: Slack app-level (Socket Mode) token"
+                )
+            )
         }
         return keys
     }

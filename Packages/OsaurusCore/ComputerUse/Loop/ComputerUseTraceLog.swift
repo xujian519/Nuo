@@ -49,7 +49,9 @@ enum ComputerUseTraceLog {
                 + (response.completion.tokensPerSecond.map { " tok/s=\(String(reflecting: $0))" } ?? " tok/s=unreported")
         )
         lines.append("content: \(String(reflecting: response.text))")
-        lines.append("reasoning_chars: \(response.reasoning.count) provider_items=\(response.providerOutputItems.count)")
+        lines.append(
+            "reasoning_chars: \(response.reasoning.count) provider_items=\(response.providerOutputItems.count)"
+        )
         for (index, call) in response.completion.functionCalls.enumerated() {
             lines.append(
                 "tool_call[\(index)]: id=\(call.id) call_id=\(call.callID) name=\(call.name) "

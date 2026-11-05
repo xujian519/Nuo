@@ -77,8 +77,8 @@ struct ExternalModelsSettingsView: View {
                     Text(
                         count == 1 ? L("1 external model found") : L("\(count) external models found")
                     )
-                        .font(.system(size: 11))
-                        .foregroundColor(theme.tertiaryText)
+                    .font(.system(size: 11))
+                    .foregroundColor(theme.tertiaryText)
                 }
 
                 Spacer()
@@ -110,8 +110,8 @@ struct ExternalModelsSettingsView: View {
                                 ? L("1 external candidate skipped")
                                 : L("\(count) external candidates skipped")
                         )
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(theme.secondaryText)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(theme.secondaryText)
                     }
 
                     ForEach(Array(scanReport.skipped.prefix(3).enumerated()), id: \.offset) { _, item in

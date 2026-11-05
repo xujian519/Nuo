@@ -123,10 +123,12 @@ struct AgentChannelInboundActivityTests {
         )
         #expect(guidance == "The channel task timed out before producing a reply.")
 
-        #expect(AgentChannelInboundActivityPresentation.guidance(
-            stage: .received,
-            reason: nil
-        ) == nil)
+        #expect(
+            AgentChannelInboundActivityPresentation.guidance(
+                stage: .received,
+                reason: nil
+            ) == nil
+        )
     }
 
     @Test func activityEventsNeverStoreUntrimmedReasonsOrEmptyStrings() {
@@ -158,46 +160,58 @@ struct AgentChannelInboundActivityTests {
             )
         }
 
-        #expect(AgentChannelConnectionCenterView.nativeBadge(
-            configured: false,
-            receiveExpected: false,
-            health: nil
-        ) == .diagnostics(status: "not_configured"))
+        #expect(
+            AgentChannelConnectionCenterView.nativeBadge(
+                configured: false,
+                receiveExpected: false,
+                health: nil
+            ) == .diagnostics(status: "not_configured")
+        )
 
         // Saved tokens without a running receive transport must not read as
         // a green "Configured".
-        #expect(AgentChannelConnectionCenterView.nativeBadge(
-            configured: true,
-            receiveExpected: true,
-            health: nil
-        ) == .transportNotRunning)
+        #expect(
+            AgentChannelConnectionCenterView.nativeBadge(
+                configured: true,
+                receiveExpected: true,
+                health: nil
+            ) == .transportNotRunning
+        )
 
         // A blocked/disabled transport shows its real state.
-        #expect(AgentChannelConnectionCenterView.nativeBadge(
-            configured: true,
-            receiveExpected: true,
-            health: health(.disabled)
-        ) == .transport(status: .disabled))
+        #expect(
+            AgentChannelConnectionCenterView.nativeBadge(
+                configured: true,
+                receiveExpected: true,
+                health: health(.disabled)
+            ) == .transport(status: .disabled)
+        )
 
-        #expect(AgentChannelConnectionCenterView.nativeBadge(
-            configured: true,
-            receiveExpected: true,
-            health: health(.failed)
-        ) == .transport(status: .failed))
+        #expect(
+            AgentChannelConnectionCenterView.nativeBadge(
+                configured: true,
+                receiveExpected: true,
+                health: health(.failed)
+            ) == .transport(status: .failed)
+        )
 
-        #expect(AgentChannelConnectionCenterView.nativeBadge(
-            configured: true,
-            receiveExpected: true,
-            health: health(.healthy)
-        ) == .transport(status: .healthy))
+        #expect(
+            AgentChannelConnectionCenterView.nativeBadge(
+                configured: true,
+                receiveExpected: true,
+                health: health(.healthy)
+            ) == .transport(status: .healthy)
+        )
 
         // Send-only setups without receive credentials keep the plain
         // configured badge.
-        #expect(AgentChannelConnectionCenterView.nativeBadge(
-            configured: true,
-            receiveExpected: false,
-            health: nil
-        ) == .diagnostics(status: "configured"))
+        #expect(
+            AgentChannelConnectionCenterView.nativeBadge(
+                configured: true,
+                receiveExpected: false,
+                health: nil
+            ) == .diagnostics(status: "configured")
+        )
     }
 
     // MARK: - Card routing summary
@@ -218,13 +232,15 @@ struct AgentChannelInboundActivityTests {
         // Enabled but nothing selected → honest call to action.
         #expect(
             summary(AgentChannelInboundDispatchConfiguration(enabled: true))
-                == "Replies on — choose an agent")
+                == "Replies on — choose an agent"
+        )
 
         // Single default agent.
         #expect(
             summary(
                 AgentChannelInboundDispatchConfiguration(enabled: true, targetAgentId: agentA)
-            ) == "Replies: Sales")
+            ) == "Replies: Sales"
+        )
 
         // Default + a route to a second agent → multi-agent summary.
         let multi = AgentChannelInboundDispatchConfiguration(
@@ -266,21 +282,25 @@ struct AgentChannelInboundActivityTests {
         let action = AgentChannelCustomHTTPAction(path: "/messages")
 
         let disabled = AgentChannelConnectionCenterView.customBadge(
-            for: connection(enabled: false, actions: ["read_messages": action]))
+            for: connection(enabled: false, actions: ["read_messages": action])
+        )
         #expect(disabled.tone == .neutral)
 
         // Enabled with no actions is not usable and must warn, not show green.
         let empty = AgentChannelConnectionCenterView.customBadge(
-            for: connection(enabled: true, actions: [:]))
+            for: connection(enabled: true, actions: [:])
+        )
         #expect(empty.tone == .warning)
 
         let readOnly = AgentChannelConnectionCenterView.customBadge(
-            for: connection(enabled: true, actions: ["read_messages": action]))
+            for: connection(enabled: true, actions: ["read_messages": action])
+        )
         #expect(readOnly.tone == .success)
         #expect(readOnly.label.contains("read-only"))
 
         let writable = AgentChannelConnectionCenterView.customBadge(
-            for: connection(enabled: true, actions: ["send_message": action], writeEnabled: true))
+            for: connection(enabled: true, actions: ["send_message": action], writeEnabled: true)
+        )
         #expect(writable.tone == .success)
         #expect(!writable.label.contains("read-only"))
     }

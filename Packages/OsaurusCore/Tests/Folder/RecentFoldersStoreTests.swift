@@ -33,7 +33,7 @@ struct RecentFoldersStoreTests {
 
     @Test func recordCapsAtLimit() {
         let store = RecentFoldersStore(defaults: makeDefaults())
-        for i in 0..<(RecentFoldersStore.limit + 3) {
+        for i in 0 ..< (RecentFoldersStore.limit + 3) {
             store.record(path: "/tmp/\(i)", bookmark: nil)
         }
         #expect(store.entries.count == RecentFoldersStore.limit)

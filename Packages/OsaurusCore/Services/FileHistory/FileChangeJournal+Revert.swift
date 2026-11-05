@@ -98,16 +98,25 @@ extension FileChangeJournal {
                 } else {
                     order.append(key)
                     acc[key] = Acc(
-                        original: entry.before, latest: entry.after, setIds: [set.id],
-                        lastAt: set.createdAt, lastTool: set.toolName)
+                        original: entry.before,
+                        latest: entry.after,
+                        setIds: [set.id],
+                        lastAt: set.createdAt,
+                        lastTool: set.toolName
+                    )
                 }
             }
         }
         return order.compactMap { key in
             guard let a = acc[key], !Self.sameContent(a.original, a.latest) else { return nil }
             return FileNetChange(
-                key: key, original: a.original, latest: a.latest, setIds: a.setIds,
-                lastChangedAt: a.lastAt, lastTool: a.lastTool)
+                key: key,
+                original: a.original,
+                latest: a.latest,
+                setIds: a.setIds,
+                lastChangedAt: a.lastAt,
+                lastTool: a.lastTool
+            )
         }
         .sorted { $0.key.displayPath < $1.key.displayPath }
     }
@@ -167,8 +176,12 @@ extension FileChangeJournal {
         guard !paths.isEmpty else { return nil }
         let allReverted = sets.allSatisfy { $0.status == .reverted }
         return FileChangeTurnSummary(
-            sessionId: first.sessionId, firstSetId: first.id, fileCount: paths.count,
-            setCount: sets.count, allReverted: allReverted)
+            sessionId: first.sessionId,
+            firstSetId: first.id,
+            fileCount: paths.count,
+            setCount: sets.count,
+            allReverted: allReverted
+        )
     }
 
     /// The live revert that undid `setId` (so a card can offer Undo).
@@ -284,7 +297,8 @@ extension FileChangeJournal {
                 summary.failures.append(
                     "\(item.key.filename): "
                         + (target.isRestorable
-                            ? L("its saved copy is missing from history") : L("too large to keep in history")))
+                            ? L("its saved copy is missing from history") : L("too large to keep in history"))
+                )
                 continue
             }
             if !force, !Self.sameContent(live, item.expected) {
@@ -331,8 +345,12 @@ extension FileChangeJournal {
 
         summary.restoredPaths = items.map(\.key).filter(restoredKeys.contains)
         markEntries(
-            sessionId: sessionId, restored: restoredIds, conflicted: conflictedIds,
-            redoScope: scope, restoredKeys: restoredKeys)
+            sessionId: sessionId,
+            restored: restoredIds,
+            conflicted: conflictedIds,
+            redoScope: scope,
+            restoredKeys: restoredKeys
+        )
         notify(sessionId)
         return summary
     }
@@ -354,7 +372,7 @@ extension FileChangeJournal {
             let revertSet = sets.first(where: { $0.id == id }), revertSet.origin == .userRevert
         {
             let anchor = revertSet.revertsSetId.flatMap { anchorId in sets.first { $0.id == anchorId } }
-            redoRange = (anchor?.createdAt ?? .distantPast)...revertSet.createdAt
+            redoRange = (anchor?.createdAt ?? .distantPast) ... revertSet.createdAt
         }
         for i in sets.indices {
             var changed = false
@@ -460,12 +478,15 @@ extension FileChangeJournal {
         case .symlink:
             try removeLive()
             try fm.createSymbolicLink(
-                atPath: url.path, withDestinationPath: String(target.signature.dropFirst("link:".count)))
+                atPath: url.path,
+                withDestinationPath: String(target.signature.dropFirst("link:".count))
+            )
         case .file:
             guard let hash = target.objectHash else {
                 throw RevertError(
                     message: target.signature.hasPrefix("big:")
-                        ? L("too large to keep in history") : L("no saved copy of the earlier version"))
+                        ? L("too large to keep in history") : L("no saved copy of the earlier version")
+                )
             }
             if liveType == .typeDirectory || liveType == .typeSymbolicLink { try removeLive() }
             let temp = try objects.materializeTemp(hash: hash, besides: url, mode: target.mode)
@@ -514,7 +535,9 @@ extension FileChangeJournal {
     private func loadTruncation() -> [String: Set<FilePathKey>] {
         if let cached = truncatedPathsCache { return cached }
         let loaded =
-            (try? Data(contentsOf: truncationURL)).flatMap { try? JSONDecoder().decode([String: Set<FilePathKey>].self, from: $0) }
+            (try? Data(contentsOf: truncationURL)).flatMap {
+                try? JSONDecoder().decode([String: Set<FilePathKey>].self, from: $0)
+            }
             ?? [:]
         truncatedPathsCache = loaded
         return loaded
@@ -664,7 +687,9 @@ extension FileChangeJournal {
         }
         for (sessionId, keys) in bySession { recordTruncation(sessionId: sessionId, keys: keys) }
         // Sessions that lost every set: forget any older marker too.
-        let gone = Set(ids.compactMap { id in cache.first { $0.value.contains { $0.id == id } }?.key }).subtracting(survivors)
+        let gone = Set(ids.compactMap { id in cache.first { $0.value.contains { $0.id == id } }?.key }).subtracting(
+            survivors
+        )
         for sessionId in gone { clearTruncation(sessionId: sessionId) }
     }
 }

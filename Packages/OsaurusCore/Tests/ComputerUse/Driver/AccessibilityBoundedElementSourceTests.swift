@@ -45,7 +45,8 @@ final class AccessibilityBoundedElementSourceTests: XCTestCase {
             .deletingLastPathComponent()  // ComputerUse
             .deletingLastPathComponent()  // Tests
             .deletingLastPathComponent()  // OsaurusCore (source lives outside Tests/)
-        let source = packageRoot
+        let source =
+            packageRoot
             .appendingPathComponent("ComputerUse/Driver/Mac/Accessibility.swift")
         return try String(contentsOf: source, encoding: .utf8)
     }
@@ -66,7 +67,8 @@ final class AccessibilityBoundedElementSourceTests: XCTestCase {
             per-app messaging timeout on. Any other site produces an AX element with NO \
             timeout, and a single call against a launching or wedged app can then block \
             the driver forever. Route it through `AccessibilityManager.axApp(pid)`.
-            """)
+            """
+        )
     }
 
     /// …and that single use must be the one immediately bounded by a timeout.
@@ -81,7 +83,8 @@ final class AccessibilityBoundedElementSourceTests: XCTestCase {
         }
         XCTAssertTrue(
             creationRange.lowerBound > axAppRange.lowerBound,
-            "the only AXUIElementCreateApplication must be the one inside axApp(_:)")
+            "the only AXUIElementCreateApplication must be the one inside axApp(_:)"
+        )
 
         // The timeout must be applied to that element, not merely to the
         // system-wide one (which does not propagate).
@@ -93,6 +96,7 @@ final class AccessibilityBoundedElementSourceTests: XCTestCase {
             axApp(_:) built an application element without immediately calling \
             AXUIElementSetMessagingTimeout on it. Without that, the element is unbounded: \
             the system-wide timeout does not propagate to per-application elements.
-            """)
+            """
+        )
     }
 }

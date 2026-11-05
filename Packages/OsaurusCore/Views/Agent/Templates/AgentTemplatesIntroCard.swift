@@ -375,7 +375,7 @@ private struct AgentTemplatesIntroCanvas: View {
             laptop
             originalCard
             stayPill
-            ForEach(0..<3, id: \.self) { index in
+            ForEach(0 ..< 3, id: \.self) { index in
                 fanCopy(index)
             }
             newCard

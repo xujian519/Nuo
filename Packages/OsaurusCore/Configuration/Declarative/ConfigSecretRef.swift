@@ -50,7 +50,8 @@ public struct ConfigSecretRef: Equatable, Sendable {
             guard isValidEnvName(name) else {
                 return .failure(
                     "`\(raw)` is not a valid env reference — expected env:VAR_NAME "
-                        + "(letters, digits, underscore).")
+                        + "(letters, digits, underscore)."
+                )
             }
             return .success(ConfigSecretRef(source: .env(name)))
         }
@@ -58,20 +59,23 @@ public struct ConfigSecretRef: Equatable, Sendable {
             guard let slash = rest.firstIndex(of: "/") else {
                 return .failure(
                     "`\(raw)` is not a valid keychain reference — expected "
-                        + "keychain:SERVICE/ACCOUNT.")
+                        + "keychain:SERVICE/ACCOUNT."
+                )
             }
             let service = String(rest[..<slash])
             let account = String(rest[rest.index(after: slash)...])
             guard !service.isEmpty, !account.isEmpty else {
                 return .failure(
                     "`\(raw)` is not a valid keychain reference — SERVICE and ACCOUNT "
-                        + "must both be non-empty.")
+                        + "must both be non-empty."
+                )
             }
             return .success(ConfigSecretRef(source: .keychain(service: service, account: account)))
         }
         return .failure(
             "`\(raw)` is not a secret reference — expected env:VAR_NAME or "
-                + "keychain:SERVICE/ACCOUNT (secrets themselves never go in the document).")
+                + "keychain:SERVICE/ACCOUNT (secrets themselves never go in the document)."
+        )
     }
 
     /// Read the referenced secret. `nil` means missing or empty — callers

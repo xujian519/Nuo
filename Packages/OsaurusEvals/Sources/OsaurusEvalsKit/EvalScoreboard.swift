@@ -28,19 +28,21 @@ public struct EvalScoreboardBundle: Sendable, Codable, Equatable {
 
     public var hasRunFailures: Bool {
         guard let releaseCandidate else {
-            return models.isEmpty || models.contains {
-                ($0.counts.passed + $0.counts.failed + $0.counts.errored == 0)
-                    || $0.counts.failed > 0 || $0.counts.errored > 0
-            }
+            return models.isEmpty
+                || models.contains {
+                    ($0.counts.passed + $0.counts.failed + $0.counts.errored == 0)
+                        || $0.counts.failed > 0 || $0.counts.errored > 0
+                }
         }
         if let suiteDerivedFailure = releaseCandidate.hasRunFailures {
             return suiteDerivedFailure
         }
         let candidates = releaseCandidate.local + releaseCandidate.frontier
-        return candidates.isEmpty || candidates.contains {
-            ($0.counts.passed + $0.counts.failed + $0.counts.errored == 0)
-                || $0.counts.failed > 0 || $0.counts.errored > 0
-        }
+        return candidates.isEmpty
+            || candidates.contains {
+                ($0.counts.passed + $0.counts.failed + $0.counts.errored == 0)
+                    || $0.counts.failed > 0 || $0.counts.errored > 0
+            }
     }
 
     public func toJSON(prettyPrinted: Bool = true) throws -> Data {
@@ -101,7 +103,7 @@ public struct EvalScoreboardBundle: Sendable, Codable, Equatable {
                     scoreboardPath: scoreboardPath,
                     registeredAt: registeredAt,
                     fileManager: fileManager
-                ),
+                )
             ]
         )
     }
@@ -160,7 +162,9 @@ public struct EvalScoreboardBundle: Sendable, Codable, Equatable {
         lines.append("")
         lines.append("## Model Scoreboard")
         lines.append("")
-        lines.append("| Role | Model | Runs | Total | Passed | Failed | Errored | Skipped | Pass Rate | Blocking Regressions | New Failures |")
+        lines.append(
+            "| Role | Model | Runs | Total | Passed | Failed | Errored | Skipped | Pass Rate | Blocking Regressions | New Failures |"
+        )
         lines.append("| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
         for model in models {
             lines.append(
@@ -173,7 +177,9 @@ public struct EvalScoreboardBundle: Sendable, Codable, Equatable {
         lines.append("")
         lines.append("## Suite Scoreboard")
         lines.append("")
-        lines.append("| Role | Model | Suite | Runs | Total | Passed | Failed | Errored | Skipped | Pass Rate | Blocking Regressions |")
+        lines.append(
+            "| Role | Model | Suite | Runs | Total | Passed | Failed | Errored | Skipped | Pass Rate | Blocking Regressions |"
+        )
         lines.append("| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
         for suite in suites {
             lines.append(
@@ -282,7 +288,8 @@ public struct EvalScoreboardRunSummary: Sendable, Codable, Equatable {
         channel = EvalScoreboardRunSummary.channel(fromArtifactPath: bundle.manifest.artifactPath)
         branch = bundle.manifest.branch
         commit = bundle.manifest.commit
-        artifactId = bundle.manifest.artifactId
+        artifactId =
+            bundle.manifest.artifactId
             ?? EvalScoreboardRunSummary.derivedArtifactId(
                 generatedAt: bundle.manifest.generatedAt,
                 commit: bundle.manifest.commit,
@@ -291,7 +298,8 @@ public struct EvalScoreboardRunSummary: Sendable, Codable, Equatable {
         artifactPath = bundle.manifest.artifactPath
         self.summaryPath = summaryPath
         baselinePath = bundle.manifest.baselinePath
-        let observedRegressions = (bundle.comparison?.regressions.count ?? 0)
+        let observedRegressions =
+            (bundle.comparison?.regressions.count ?? 0)
             + (bundle.comparison?.newFailures.count ?? 0)
         if bundle.hasRunFailures {
             verdict = "EVAL FAILURES PRESENT"
@@ -316,7 +324,7 @@ public struct EvalScoreboardRunSummary: Sendable, Codable, Equatable {
     private static func channel(fromArtifactPath path: String) -> String? {
         let components = URL(fileURLWithPath: path).pathComponents
         guard let watcherIndex = components.firstIndex(of: "watcher"),
-              components.indices.contains(watcherIndex + 1)
+            components.indices.contains(watcherIndex + 1)
         else {
             return nil
         }
@@ -328,7 +336,8 @@ public struct EvalScoreboardRunSummary: Sendable, Codable, Equatable {
         commit: String,
         channel: String?
     ) -> String {
-        let stamp = generatedAt
+        let stamp =
+            generatedAt
             .replacingOccurrences(of: "-", with: "")
             .replacingOccurrences(of: ":", with: "")
             .replacingOccurrences(of: ".", with: "")
@@ -488,7 +497,7 @@ public enum EvalScoreboardBuilder {
         for summary in summaries.sorted(by: evidenceSummarySort) {
             let url = URL(fileURLWithPath: summary.artifact.path)
             guard summary.artifact.availability == .available,
-                  fm.fileExists(atPath: url.path)
+                fm.fileExists(atPath: url.path)
             else {
                 throw EvalScoreboardError.unavailableArtifact(
                     url.path,
@@ -534,16 +543,18 @@ public enum EvalScoreboardBuilder {
             }
             let urls: [URL]
             if isDirectory.boolValue {
-                guard let enumerator = fm.enumerator(
-                    at: root,
-                    includingPropertiesForKeys: [.isRegularFileKey],
-                    options: [.skipsHiddenFiles]
-                ) else {
+                guard
+                    let enumerator = fm.enumerator(
+                        at: root,
+                        includingPropertiesForKeys: [.isRegularFileKey],
+                        options: [.skipsHiddenFiles]
+                    )
+                else {
                     throw EvalScoreboardError.noEvidenceRegistries(root.path)
                 }
                 urls = enumerator.compactMap { item in
                     guard let url = item as? URL,
-                          url.lastPathComponent == EvalReviewReportBundle.evidenceRegistryFileName
+                        url.lastPathComponent == EvalReviewReportBundle.evidenceRegistryFileName
                     else {
                         return nil
                     }
@@ -631,20 +642,32 @@ public enum EvalScoreboardBuilder {
             }
             guard let comparison = input.bundle.comparison else { continue }
             for delta in comparison.regressions {
-                rows[ModelKey(role: role(for: delta.modelId, in: input.bundle), modelId: delta.modelId), default: Accumulator()]
-                    .blockingRegressions += 1
+                rows[
+                    ModelKey(role: role(for: delta.modelId, in: input.bundle), modelId: delta.modelId),
+                    default: Accumulator()
+                ]
+                .blockingRegressions += 1
             }
             for delta in comparison.newFailures {
-                rows[ModelKey(role: role(for: delta.modelId, in: input.bundle), modelId: delta.modelId), default: Accumulator()]
-                    .newFailures += 1
+                rows[
+                    ModelKey(role: role(for: delta.modelId, in: input.bundle), modelId: delta.modelId),
+                    default: Accumulator()
+                ]
+                .newFailures += 1
             }
             for delta in comparison.fixed {
-                rows[ModelKey(role: role(for: delta.modelId, in: input.bundle), modelId: delta.modelId), default: Accumulator()]
-                    .fixed += 1
+                rows[
+                    ModelKey(role: role(for: delta.modelId, in: input.bundle), modelId: delta.modelId),
+                    default: Accumulator()
+                ]
+                .fixed += 1
             }
             for delta in comparison.persistentFailures {
-                rows[ModelKey(role: role(for: delta.modelId, in: input.bundle), modelId: delta.modelId), default: Accumulator()]
-                    .persistentFailures += 1
+                rows[
+                    ModelKey(role: role(for: delta.modelId, in: input.bundle), modelId: delta.modelId),
+                    default: Accumulator()
+                ]
+                .persistentFailures += 1
             }
         }
         return rows.map { key, row in
@@ -771,7 +794,8 @@ public enum EvalScoreboardBuilder {
     ) -> EvalReleaseCandidateScoreSummary? {
         guard let input, let run else { return nil }
         let comparison = input.bundle.comparison
-        let observedRegressions = (comparison?.regressions.count ?? 0)
+        let observedRegressions =
+            (comparison?.regressions.count ?? 0)
             + (comparison?.newFailures.count ?? 0)
         let scores = input.bundle.models.map { model in
             EvalScoreboardReleaseModelScore(

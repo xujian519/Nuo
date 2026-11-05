@@ -33,10 +33,10 @@ private final class ScriptedKind: SubagentKind, @unchecked Sendable {
         isLocal: Bool = false,
         body:
             @escaping @Sendable (SubagentScope, ResolvedModel, SubagentFeed, InterruptToken)
-                async throws -> SubagentResult = { _, _, feed, _ in
-                    feed.emitPhase("running")
-                    return SubagentResult(payload: ["summary": "done"], summary: "done")
-                }
+            async throws -> SubagentResult = { _, _, feed, _ in
+                feed.emitPhase("running")
+                return SubagentResult(payload: ["summary": "done"], summary: "done")
+            }
     ) {
         self.capability = SubagentCapability(id: id, toolNames: [id], gate: .sandboxExec)
         self.resolve = { _ in
@@ -151,7 +151,9 @@ struct SubagentBackgroundDispatchTests {
         // A settled result is not an ack, so the chat loop's Stop bookkeeping
         // and the compaction never confuse the two.
         let settled = ToolEnvelope.success(
-            tool: "spawn_agent", result: ["kind": "spawn_result", "summary": "done"])
+            tool: "spawn_agent",
+            result: ["kind": "spawn_result", "summary": "done"]
+        )
         #expect(!SubagentSession.isBackgroundAck(settled))
         #expect(ScriptedKind().plannedSessionId == nil)
     }
@@ -165,12 +167,20 @@ struct SubagentBackgroundDispatchTests {
 
         let resume = UUID()
         let continued = TextSubagentKind(
-            agentID: UUID(), agentName: "Writer", input: "more", continueSessionId: resume)
+            agentID: UUID(),
+            agentName: "Writer",
+            input: "more",
+            continueSessionId: resume
+        )
         #expect(continued.plannedSessionId == resume)
 
         // The in-memory eval path (model override) has no persisted session.
         let ephemeral = TextSubagentKind(
-            agentID: UUID(), agentName: "Writer", input: "go", modelOverride: "local/x")
+            agentID: UUID(),
+            agentName: "Writer",
+            input: "go",
+            modelOverride: "local/x"
+        )
         #expect(ephemeral.plannedSessionId == nil)
     }
 
@@ -294,7 +304,9 @@ struct SubagentBackgroundDispatchTests {
 
             // Stream ends but a clarify pause takes over — still deferred.
             session.awaitingClarify = ClarifyPayload(
-                question: "Which one?", options: [], allowMultiple: false
+                question: "Which one?",
+                options: [],
+                allowMultiple: false
             )
             session.isStreaming = false
             try await Task.sleep(for: .milliseconds(400))
@@ -320,7 +332,10 @@ struct SubagentBackgroundDispatchTests {
 
         // Returns instead of spinning; nothing to assert beyond completion.
         await SubagentReportBack.deliver(
-            title: "spawn → Helper", success: false, summary: "gone", to: box
+            title: "spawn → Helper",
+            success: false,
+            summary: "gone",
+            to: box
         )
     }
 
@@ -329,10 +344,13 @@ struct SubagentBackgroundDispatchTests {
         let toolCallId = "bg-dispatch-\(UUID().uuidString)"
         let gateOpen = Flag()
         let bodyEntered = Flag()
-        let kind = ScriptedKind(isLocal: true, body: { _, _, _, _ in
-            bodyEntered.set()
-            return SubagentResult(payload: ["summary": "local-done"], summary: "local-done")
-        })
+        let kind = ScriptedKind(
+            isLocal: true,
+            body: { _, _, _, _ in
+                bodyEntered.set()
+                return SubagentResult(payload: ["summary": "local-done"], summary: "local-done")
+            }
+        )
 
         let envelope = await ChatExecutionContext.$currentToolCallId.withValue(toolCallId) {
             await SubagentSession.dispatchInBackground(
@@ -370,14 +388,20 @@ struct SubagentBackgroundDispatchTests {
 
         let toolCallId = "bg-dispatch-\(UUID().uuidString)"
         // kind id "spawn" so the bridge adopts the feed into a mirror row.
-        let kind = ScriptedKind(id: SubagentCapabilityRegistry.spawn.id, body: {
-            _, _, feed, interrupt in
-            feed.emitPhase("running")
-            while !interrupt.isInterrupted {
-                try await Task.sleep(for: .milliseconds(10))
+        let kind = ScriptedKind(
+            id: SubagentCapabilityRegistry.spawn.id,
+            body: {
+                _,
+                _,
+                feed,
+                interrupt in
+                feed.emitPhase("running")
+                while !interrupt.isInterrupted {
+                    try await Task.sleep(for: .milliseconds(10))
+                }
+                throw CancellationError()
             }
-            throw CancellationError()
-        })
+        )
 
         let envelope = await ChatExecutionContext.$currentToolCallId.withValue(toolCallId) {
             await SubagentSession.dispatchInBackground(kind, tool: "bg_test")

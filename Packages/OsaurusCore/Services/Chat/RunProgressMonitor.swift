@@ -136,7 +136,8 @@ final class RunProgressMonitor: ObservableObject {
         let ticks = publisher.dropFirst().map { _ in () }
         let onMain: AnyPublisher<Void, Never>
         if let throttleSeconds {
-            onMain = ticks
+            onMain =
+                ticks
                 .throttle(
                     for: .seconds(throttleSeconds),
                     scheduler: RunLoop.main,

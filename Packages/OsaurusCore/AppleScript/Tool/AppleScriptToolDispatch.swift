@@ -33,10 +33,11 @@ enum AppleScriptToolDispatch {
             object[siblingField] != nil
         else { return argumentsJSON }
         object.removeValue(forKey: siblingField)
-        guard let cleaned = try? JSONSerialization.data(
-            withJSONObject: object,
-            options: [.sortedKeys]
-        ), let text = String(data: cleaned, encoding: .utf8)
+        guard
+            let cleaned = try? JSONSerialization.data(
+                withJSONObject: object,
+                options: [.sortedKeys]
+            ), let text = String(data: cleaned, encoding: .utf8)
         else { return argumentsJSON }
         debugLog(
             "[AppleScript] removed sibling field `\(siblingField)` before schema validation"
@@ -67,10 +68,11 @@ enum AppleScriptToolDispatch {
             encoded == "oldText:\(oldText),newText:\(newText)"
         else { return withoutSibling }
         object["contents"] = ["oldText": oldText, "newText": newText]
-        guard let cleaned = try? JSONSerialization.data(
-            withJSONObject: object,
-            options: [.sortedKeys]
-        ), let text = String(data: cleaned, encoding: .utf8)
+        guard
+            let cleaned = try? JSONSerialization.data(
+                withJSONObject: object,
+                options: [.sortedKeys]
+            ), let text = String(data: cleaned, encoding: .utf8)
         else { return withoutSibling }
         debugLog("[AppleScript] recovered exact replacement contents object")
         return text
@@ -101,7 +103,8 @@ enum AppleScriptToolDispatch {
     ///   (`question` for a read). When that field is absent, a lone string is
     ///   read as the request itself rather than as a verbatim literal.
     static func promotingStringContents(
-        _ argumentsJSON: String, requiredField: String? = nil
+        _ argumentsJSON: String,
+        requiredField: String? = nil
     ) -> String {
         guard let data = argumentsJSON.data(using: .utf8),
             var object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -127,10 +130,11 @@ enum AppleScriptToolDispatch {
 
         object.removeValue(forKey: "contents")
         object[destination] = encoded
-        guard let cleaned = try? JSONSerialization.data(
-            withJSONObject: object,
-            options: [.sortedKeys]
-        ), let text = String(data: cleaned, encoding: .utf8)
+        guard
+            let cleaned = try? JSONSerialization.data(
+                withJSONObject: object,
+                options: [.sortedKeys]
+            ), let text = String(data: cleaned, encoding: .utf8)
         else { return argumentsJSON }
         debugLog("[AppleScript] promoted string `contents` to `\(destination)`")
         return text
@@ -265,29 +269,36 @@ enum AppleScriptToolDispatch {
             // explicitly asks for a mutation. A compare/read task, a partial
             // value match, or different replacement remains untouched.
             let values = userValues.names.compactMap { userValues.value(for: $0) }
-            let containsEveryValue = !values.isEmpty && values.allSatisfy {
-                parentTask.range(of: $0, options: .literal) != nil
-            }
-            let requestsMutation = parentTask.range(
-                of: #"\b(?:replace|change|edit|set|update)\b"#,
-                options: [.regularExpression, .caseInsensitive]
-            ) != nil
-            let userNamesTextEdit = userTask.range(
-                of: #"\bTextEdit\b"#,
-                options: [.regularExpression, .caseInsensitive]
-            ) != nil
-            let parentNamesTextEdit = parentTask.range(
-                of: #"\bTextEdit\b"#,
-                options: [.regularExpression, .caseInsensitive]
-            ) != nil
+            let containsEveryValue =
+                !values.isEmpty
+                && values.allSatisfy {
+                    parentTask.range(of: $0, options: .literal) != nil
+                }
+            let requestsMutation =
+                parentTask.range(
+                    of: #"\b(?:replace|change|edit|set|update)\b"#,
+                    options: [.regularExpression, .caseInsensitive]
+                ) != nil
+            let userNamesTextEdit =
+                userTask.range(
+                    of: #"\bTextEdit\b"#,
+                    options: [.regularExpression, .caseInsensitive]
+                ) != nil
+            let parentNamesTextEdit =
+                parentTask.range(
+                    of: #"\bTextEdit\b"#,
+                    options: [.regularExpression, .caseInsensitive]
+                ) != nil
             let newText = userValues.value(for: "newText")
-            let parentKeepsExactNewText = newText.map {
-                parentTask.range(of: $0, options: .literal) != nil
-            } ?? false
+            let parentKeepsExactNewText =
+                newText.map {
+                    parentTask.range(of: $0, options: .literal) != nil
+                } ?? false
             let parentQuotedValues = quotedValues(in: parentTask)
-            let parentAddsNoQuotedValue = parentQuotedValues.map { quoted in
-                quoted.allSatisfy { values.contains($0) }
-            } ?? false
+            let parentAddsNoQuotedValue =
+                parentQuotedValues.map { quoted in
+                    quoted.allSatisfy { values.contains($0) }
+                } ?? false
 
             // A second live Ornith rewrite retained TextEdit, the exact new
             // text, and `set` intent, but dropped the old text completely:
@@ -392,7 +403,7 @@ enum AppleScriptToolDispatch {
 
             let valueStart = text.index(after: cursor)
             guard let close = text[valueStart...].firstIndex(of: closingQuote) else { return nil }
-            values.append(String(text[valueStart..<close]))
+            values.append(String(text[valueStart ..< close]))
             cursor = text.index(after: close)
         }
         return values
@@ -431,10 +442,12 @@ enum AppleScriptToolDispatch {
             // supplied value is generated source; mixed/user-data maps remain
             // strict below.
             let names = literals.names
-            let allGeneratedSource = !names.isEmpty && names.allSatisfy { name in
-                guard let value = literals.value(for: name) else { return false }
-                return looksLikeAppleScriptSource(value)
-            }
+            let allGeneratedSource =
+                !names.isEmpty
+                && names.allSatisfy { name in
+                    guard let value = literals.value(for: name) else { return false }
+                    return looksLikeAppleScriptSource(value)
+                }
             if allGeneratedSource {
                 debugLog(
                     "[AppleScript] discarded generated-script literals and preserved exact "
@@ -544,7 +557,7 @@ enum AppleScriptToolDispatch {
             guard let close = task[valueStart...].firstIndex(of: closingQuote) else { return nil }
             quoted.append(
                 QuotedValue(
-                    value: String(task[valueStart..<close]),
+                    value: String(task[valueStart ..< close]),
                     opening: cursor,
                     closing: close
                 )
@@ -561,7 +574,7 @@ enum AppleScriptToolDispatch {
 
         let beforeOld = task[..<quoted[0].opening].lowercased()
         let separatorStart = task.index(after: quoted[0].closing)
-        let separator = task[separatorStart..<quoted[1].opening].lowercased()
+        let separator = task[separatorStart ..< quoted[1].opening].lowercased()
         let trimmedBeforeOld = beforeOld.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedSeparator = separator.trimmingCharacters(in: .whitespacesAndNewlines)
         let replaceForm =
@@ -591,8 +604,9 @@ enum AppleScriptToolDispatch {
                 of: #"^(?:and\s+)?replace\s+(?:that|the|this)\s+(?:text|content|string|value)\s+with$"#,
                 options: .regularExpression
             ) != nil
-        guard replaceForm || replaceFromToForm || changeForm || changeOccurrenceForm
-            || containingThenReplaceForm
+        guard
+            replaceForm || replaceFromToForm || changeForm || changeOccurrenceForm
+                || containingThenReplaceForm
         else {
             return nil
         }

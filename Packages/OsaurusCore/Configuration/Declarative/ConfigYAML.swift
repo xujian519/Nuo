@@ -159,7 +159,8 @@ public enum ConfigYAML {
                 if let text = value as? String, !allowedValues.contains(text.lowercased()) {
                     issues.append(
                         "\(displayPath) values must be one of: "
-                            + allowedValues.joined(separator: ", ") + ". Got `\(text)`.")
+                            + allowedValues.joined(separator: ", ") + ". Got `\(text)`."
+                    )
                 }
             }
 
@@ -180,8 +181,12 @@ public enum ConfigYAML {
             for key in keys {
                 guard let child = mapping[key.key] else { continue }
                 walk(
-                    child, spec: key.value, path: "\(path).\(key.key)",
-                    displayPath: "\(displayPath).\(key.key)", issues: &issues)
+                    child,
+                    spec: key.value,
+                    path: "\(path).\(key.key)",
+                    displayPath: "\(displayPath).\(key.key)",
+                    issues: &issues
+                )
             }
 
         case .entityList(let keys, let requiredKey):
@@ -205,8 +210,12 @@ public enum ConfigYAML {
                 for key in keys {
                     guard let child = item[key.key] else { continue }
                     walk(
-                        child, spec: key.value, path: "\(itemSpecPath).\(key.key)",
-                        displayPath: "\(itemPath).\(key.key)", issues: &issues)
+                        child,
+                        spec: key.value,
+                        path: "\(itemSpecPath).\(key.key)",
+                        displayPath: "\(itemPath).\(key.key)",
+                        issues: &issues
+                    )
                 }
             }
         }

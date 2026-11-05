@@ -205,14 +205,16 @@ public struct AgentLoopTranscript: Sendable, Codable {
             self.toolArgumentCharacters = toolArgumentCharacters
             self.completionTokens = completionTokens
             self.decodeTokensPerSecond = decodeTokensPerSecond
-            self.decodeThroughputAttribution = decodeThroughputAttribution
+            self.decodeThroughputAttribution =
+                decodeThroughputAttribution
                 ?? (decodeTokensPerSecond != nil
                     ? "measured_vmlx_info"
                     : "unavailable_no_vmlx_info")
             self.requestedEnableThinking = requestedEnableThinking
-            self.thinkingState = requestedEnableThinking.map {
-                $0 ? "explicitEnabled" : "explicitDisabled"
-            } ?? "runtimeDefault"
+            self.thinkingState =
+                requestedEnableThinking.map {
+                    $0 ? "explicitEnabled" : "explicitDisabled"
+                } ?? "runtimeDefault"
             self.mtpDepth = mtpDepth
             self.mtpActiveDepth = mtpActiveDepth
             self.mtpVerifyCalls = mtpVerifyCalls
@@ -269,17 +271,20 @@ public struct AgentLoopTranscript: Sendable, Codable {
                 Double.self,
                 forKey: .decodeTokensPerSecond
             )
-            decodeThroughputAttribution = try container.decodeIfPresent(
-                String.self,
-                forKey: .decodeThroughputAttribution
-            ) ?? (decodeTokensPerSecond != nil
-                ? "measured_vmlx_info"
-                : "unavailable_legacy_transcript")
+            decodeThroughputAttribution =
+                try container.decodeIfPresent(
+                    String.self,
+                    forKey: .decodeThroughputAttribution
+                )
+                ?? (decodeTokensPerSecond != nil
+                    ? "measured_vmlx_info"
+                    : "unavailable_legacy_transcript")
             requestedEnableThinking = try container.decodeIfPresent(
                 Bool.self,
                 forKey: .requestedEnableThinking
             )
-            thinkingState = try container.decodeIfPresent(String.self, forKey: .thinkingState)
+            thinkingState =
+                try container.decodeIfPresent(String.self, forKey: .thinkingState)
                 ?? requestedEnableThinking.map {
                     $0 ? "explicitEnabled" : "explicitDisabled"
                 } ?? "runtimeDefault"
@@ -287,15 +292,23 @@ public struct AgentLoopTranscript: Sendable, Codable {
             mtpActiveDepth = try container.decodeIfPresent(Int.self, forKey: .mtpActiveDepth)
             mtpVerifyCalls = try container.decodeIfPresent(Int.self, forKey: .mtpVerifyCalls)
             mtpAcceptedDraftTokens = try container.decodeIfPresent(
-                Int.self, forKey: .mtpAcceptedDraftTokens)
+                Int.self,
+                forKey: .mtpAcceptedDraftTokens
+            )
             mtpBonusTokens = try container.decodeIfPresent(Int.self, forKey: .mtpBonusTokens)
             mtpRejectedTokens = try container.decodeIfPresent(Int.self, forKey: .mtpRejectedTokens)
             mtpARFallbackTokens = try container.decodeIfPresent(
-                Int.self, forKey: .mtpARFallbackTokens)
+                Int.self,
+                forKey: .mtpARFallbackTokens
+            )
             mtpAdaptiveDownshifts = try container.decodeIfPresent(
-                Int.self, forKey: .mtpAdaptiveDownshifts)
+                Int.self,
+                forKey: .mtpAdaptiveDownshifts
+            )
             mtpAdaptiveFallbackReason = try container.decodeIfPresent(
-                String.self, forKey: .mtpAdaptiveFallbackReason)
+                String.self,
+                forKey: .mtpAdaptiveFallbackReason
+            )
         }
     }
 
@@ -531,7 +544,8 @@ struct AgentLoopStepProgressTracker: Sendable {
     /// reasoning, or generated tool-envelope bytes establish first output.
     static func isGeneratedOutput(_ delta: String) -> Bool {
         guard StreamingToolHint.isSentinel(delta) else { return !delta.isEmpty }
-        let payload = StreamingReasoningHint.decode(delta)
+        let payload =
+            StreamingReasoningHint.decode(delta)
             ?? StreamingToolHint.decode(delta)
             ?? StreamingToolHint.decodeArgs(delta)
             ?? StreamingToolCallProgressHint.decode(delta)
@@ -553,9 +567,10 @@ struct AgentLoopStepProgressTracker: Sendable {
             toolEnvelopeCharacters += max(0, characterCount)
         }
 
-        let shouldReport = lastReportAt.map {
-            now.timeIntervalSince($0) >= reportInterval
-        } ?? true
+        let shouldReport =
+            lastReportAt.map {
+                now.timeIntervalSince($0) >= reportInterval
+            } ?? true
         guard shouldReport else { return nil }
         lastReportAt = now
         let elapsed = max(0, now.timeIntervalSince(startedAt))
@@ -582,14 +597,15 @@ struct AgentLoopStepProgressTracker: Sendable {
         decodeTokensPerSecond: Double?,
         throughputAttribution: String
     ) -> String {
-        let throughput = decodeTokensPerSecond.map {
-            String(
-                format: "%.4f_tok_s(%@)",
-                locale: Locale(identifier: "en_US_POSIX"),
-                $0,
-                throughputAttribution
-            )
-        } ?? "unavailable(\(throughputAttribution))"
+        let throughput =
+            decodeTokensPerSecond.map {
+                String(
+                    format: "%.4f_tok_s(%@)",
+                    locale: Locale(identifier: "en_US_POSIX"),
+                    $0,
+                    throughputAttribution
+                )
+            } ?? "unavailable(\(throughputAttribution))"
         return "[evals][agent-loop] step=\(step) phase=terminal "
             + "stop=\(stopReason ?? "unknown") contentChars=\(contentCharacters) "
             + "reasoningChars=\(reasoningCharacters) toolChars=\(toolEnvelopeCharacters) "
@@ -969,7 +985,8 @@ public enum AgentLoopEvaluator {
             decodeThroughputAttribution: String? = nil,
             mtp: MTPStatsSummary? = nil
         ) {
-            let attribution = decodeThroughputAttribution
+            let attribution =
+                decodeThroughputAttribution
                 ?? (decodeTokensPerSecond != nil
                     ? "measured_vmlx_info"
                     : "unavailable_no_vmlx_info")
@@ -1017,12 +1034,17 @@ public enum AgentLoopEvaluator {
             history.append(contentsOf: commit.messages)
             let calls = commit.assistant.tool_calls ?? []
             for (call, result) in zip(calls, commit.results) {
-                transcriptCalls.append(pendingTranscript[call.id] ?? .init(
-                    name: call.function.name, arguments: call.function.arguments,
-                    resultPreview: String((result.content ?? "").prefix(300)),
-                    wasDeduped: false, wasError: ToolEnvelope.isError(result.content ?? ""),
-                    step: modelStepCount
-                ))
+                transcriptCalls.append(
+                    pendingTranscript[call.id]
+                        ?? .init(
+                            name: call.function.name,
+                            arguments: call.function.arguments,
+                            resultPreview: String((result.content ?? "").prefix(300)),
+                            wasDeduped: false,
+                            wasError: ToolEnvelope.isError(result.content ?? ""),
+                            step: modelStepCount
+                        )
+                )
             }
             pendingTranscript.removeAll(keepingCapacity: true)
         }
@@ -1084,16 +1106,19 @@ public enum AgentLoopEvaluator {
             pendingBatch.record(callID: callId, result: modelVisible)
             processedCallCount += 1
             pendingTranscript[callId] = .init(
-                    name: inv.toolName,
+                name: inv.toolName,
+                arguments: inv.jsonArguments,
+                resultPreview: String(result.prefix(300)),
+                wasDeduped: false,
+                wasError: isError,
+                step: modelStepCount,
+                spawnCall: AgentLoopTranscript.spawnCallObservation(
+                    tool: inv.toolName,
                     arguments: inv.jsonArguments,
-                    resultPreview: String(result.prefix(300)),
-                    wasDeduped: false,
-                    wasError: isError,
-                    step: modelStepCount,
-                    spawnCall: AgentLoopTranscript.spawnCallObservation(
-                        tool: inv.toolName, arguments: inv.jsonArguments, result: result),
-                    spawnSummary: AgentLoopTranscript.spawnSummary(from: result, tool: inv.toolName)
-                )
+                    result: result
+                ),
+                spawnSummary: AgentLoopTranscript.spawnSummary(from: result, tool: inv.toolName)
+            )
             // Agent-loop intercepts, mirroring the chat surface: a
             // successful `complete` ends the run and a successful `clarify`
             // ends the run awaiting user input (headless: no answer ever
@@ -1175,7 +1200,8 @@ public enum AgentLoopEvaluator {
                 let response: ResponsesGenerationResult
                 do {
                     response = try await ResponsesEvaluationStep.collect(
-                        engine: engine, request: makeRequest(effective)
+                        engine: engine,
+                        request: makeRequest(effective)
                     ) { event in
                         if isFirstStep, firstStepTtftMs == nil, event.isGeneratedOutput {
                             firstStepTtftMs = Date().timeIntervalSince(stepStarted) * 1000
@@ -1208,7 +1234,9 @@ public enum AgentLoopEvaluator {
                 let terminal = response.completion
                 if let count = terminal.tokenCount {
                     completionTokensTotal += count
-                } else { completionUsageComplete = false }
+                } else {
+                    completionUsageComplete = false
+                }
                 if let count = terminal.tokenCount, count > 0,
                     let rate = terminal.tokensPerSecond, rate > 0
                 {
@@ -1220,11 +1248,14 @@ public enum AgentLoopEvaluator {
                 if isFirstStep { firstStepPrefillTps = terminal.promptTokensPerSecond }
                 let calls = terminal.functionCalls
                 recordStepDiagnostic(
-                    step: modelStepCount, stopReason: terminal.stopReason,
-                    content: response.text, reasoning: response.reasoning,
+                    step: modelStepCount,
+                    stopReason: terminal.stopReason,
+                    content: response.text,
+                    reasoning: response.reasoning,
                     sawToolCallProgress: sawToolProgress || !calls.isEmpty,
                     pendingToolName: calls.first?.name ?? pendingToolName,
-                    toolArgumentCharacters: calls.isEmpty ? argumentCharacters : calls.reduce(0) { $0 + $1.arguments.utf8.count },
+                    toolArgumentCharacters: calls.isEmpty
+                        ? argumentCharacters : calls.reduce(0) { $0 + $1.arguments.utf8.count },
                     completionTokens: terminal.tokenCount,
                     decodeTokensPerSecond: terminal.tokensPerSecond,
                     decodeThroughputAttribution: terminal.tokensPerSecond == nil
@@ -1232,9 +1263,14 @@ public enum AgentLoopEvaluator {
                     mtp: terminal.mtp
                 )
                 finalText = response.text
-                let step = try ResponsesEvaluationStep.classify(response, toolsWereOffered: !toolScope.modelVisibleSpecs.isEmpty)
+                let step = try ResponsesEvaluationStep.classify(
+                    response,
+                    toolsWereOffered: !toolScope.modelVisibleSpecs.isEmpty
+                )
                 if case .toolCalls = step {
-                    try pendingBatch.begin(SecretArgumentScrubber.recordedAssistantMessage(try response.completedAssistantInput()))
+                    try pendingBatch.begin(
+                        SecretArgumentScrubber.recordedAssistantMessage(try response.completedAssistantInput())
+                    )
                     pendingTranscript.removeAll(keepingCapacity: true)
                     currentAssistantContent = response.text
                     finalText = ""
@@ -1250,15 +1286,18 @@ public enum AgentLoopEvaluator {
                 pendingBatch.record(callID: callId, result: held)
                 processedCallCount += 1
                 pendingTranscript[callId] = .init(
-                        name: inv.toolName,
+                    name: inv.toolName,
+                    arguments: inv.jsonArguments,
+                    resultPreview: String(held.prefix(300)),
+                    wasDeduped: true,
+                    step: modelStepCount,
+                    spawnCall: AgentLoopTranscript.spawnCallObservation(
+                        tool: inv.toolName,
                         arguments: inv.jsonArguments,
-                        resultPreview: String(held.prefix(300)),
-                        wasDeduped: true,
-                        step: modelStepCount,
-                        spawnCall: AgentLoopTranscript.spawnCallObservation(
-                            tool: inv.toolName, arguments: inv.jsonArguments, result: held),
-                        spawnSummary: AgentLoopTranscript.spawnSummary(from: held, tool: inv.toolName)
-                    )
+                        result: held
+                    ),
+                    spawnSummary: AgentLoopTranscript.spawnSummary(from: held, tool: inv.toolName)
+                )
             },
             executeTool: { inv, callId in
                 if firstActionMs == nil {
@@ -1320,13 +1359,22 @@ public enum AgentLoopEvaluator {
                 // Preserve the production spawn-result compaction while the
                 // shared batch owner incorporates guarded results in order.
                 let modelOutcomes = outcomes.map { outcome in
-                    let visible = outcome.invocation.toolName == SubagentCapabilityRegistry.spawnAgentToolName
-                        && SpawnResultCompaction.applies(to: outcome.result)
-                        ? SpawnResultCompaction.modelVisible(outcome.result,
-                            prefersCompactPrompt: ContextSizeResolver.resolve(modelId: resolvedModel).prefersCompactPrompt)
+                    let visible =
+                        outcome.invocation.toolName == SubagentCapabilityRegistry.spawnAgentToolName
+                            && SpawnResultCompaction.applies(to: outcome.result)
+                        ? SpawnResultCompaction.modelVisible(
+                            outcome.result,
+                            prefersCompactPrompt: ContextSizeResolver.resolve(modelId: resolvedModel)
+                                .prefersCompactPrompt
+                        )
                         : outcome.result
-                    return AgentLoopToolOutcome(invocation: outcome.invocation, callId: outcome.callId,
-                        result: visible, wasDeduped: outcome.wasDeduped, wasError: outcome.wasError)
+                    return AgentLoopToolOutcome(
+                        invocation: outcome.invocation,
+                        callId: outcome.callId,
+                        result: visible,
+                        wasDeduped: outcome.wasDeduped,
+                        wasError: outcome.wasError
+                    )
                 }
                 commitBatch(pendingBatch.complete(modelOutcomes))
             },
@@ -1411,7 +1459,8 @@ public enum AgentLoopEvaluator {
                 // the transcript notices — not silently swallowed.
                 do {
                     let response = try await ResponsesEvaluationStep.collect(
-                        engine: engine, request: makeRequest(trimmed, includeTools: false)
+                        engine: engine,
+                        request: makeRequest(trimmed, includeTools: false)
                     )
                     if let count = response.completion.tokenCount {
                         completionTokensTotal += count
@@ -1419,7 +1468,9 @@ public enum AgentLoopEvaluator {
                             decodeTpsWeightedSum += rate * Double(count)
                             decodeTpsTokenWeight += count
                         }
-                    } else { completionUsageComplete = false }
+                    } else {
+                        completionUsageComplete = false
+                    }
                     finalText = response.text
                     try ResponsesEvaluationStep.requireNaturalFinal(response)
                 } catch {

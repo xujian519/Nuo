@@ -98,7 +98,7 @@ public enum EvalRemoteProviderBootstrap {
             url.user == nil, url.password == nil, url.query == nil, url.fragment == nil,
             let scheme = url.scheme?.lowercased(),
             scheme == "https" || (scheme == "http" && ["localhost", "127.0.0.1", "[::1]", "::1"].contains(host)),
-            url.port.map({ (1...65535).contains($0) }) ?? true
+            url.port.map({ (1 ... 65535).contains($0) }) ?? true
         else { return nil }
         let makeHeaders = known?.headers ?? { ["Authorization": "Bearer \($0)"] }
         return Preset(

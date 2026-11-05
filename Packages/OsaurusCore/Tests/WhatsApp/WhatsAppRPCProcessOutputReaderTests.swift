@@ -7,7 +7,9 @@
     struct WhatsAppRPCProcessOutputReaderTests {
         /// The write end intentionally stays open. A blocking EOF drain would
         /// deadlock; termination must still deliver the final frame first.
-        @Test(.timeLimit(.minutes(1))) func terminationDrainsBufferedResponseBeforeExitWithoutWaitingForEOF() async throws {
+        @Test(.timeLimit(.minutes(1))) func terminationDrainsBufferedResponseBeforeExitWithoutWaitingForEOF()
+            async throws
+        {
             let pipe = Pipe()
             defer { try? pipe.fileHandleForWriting.close() }
             let reader = try WhatsAppRPCProcessOutputReader(handle: pipe.fileHandleForReading)

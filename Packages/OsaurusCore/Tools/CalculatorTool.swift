@@ -110,7 +110,9 @@ public final class CalculatorTool: OsaurusTool, @unchecked Sendable {
             }
         } else if let last = outcome.steps.last {
             result["result"] = CalculatorEngine.format(last)
-            if last.exact == nil, last.value.isFinite, abs(last.value) >= 9.007_199_254_740_992e15, last.value == last.value.rounded() {
+            if last.exact == nil, last.value.isFinite, abs(last.value) >= 9.007_199_254_740_992e15,
+                last.value == last.value.rounded()
+            {
                 result["note"] = "Beyond 2^53, so the low digits are approximate."
             }
         }

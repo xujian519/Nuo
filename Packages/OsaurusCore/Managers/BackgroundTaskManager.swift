@@ -287,8 +287,8 @@ public final class BackgroundTaskManager: ObservableObject {
     ) -> UUID? {
         backgroundTasks.values.first { state in
             guard state.source == source,
-                  state.externalSessionKey == externalSessionKey,
-                  state.target == target
+                state.externalSessionKey == externalSessionKey,
+                state.target == target
             else { return false }
             switch state.status {
             case .waitingForInput, .completed:
@@ -999,8 +999,7 @@ public final class BackgroundTaskManager: ObservableObject {
 
     /// Dispatch a chat task for background execution.
     public func dispatchChat(_ request: DispatchRequest) async -> DispatchHandle? {
-        do { try request.generationOverrides?.validate(forWorkspaceAgent: request.workspaceTarget != nil) }
-        catch {
+        do { try request.generationOverrides?.validate(forWorkspaceAgent: request.workspaceTarget != nil) } catch {
             print("[BackgroundTaskManager] Invalid generation controls: \(error.localizedDescription)")
             return nil
         }
@@ -1024,7 +1023,10 @@ public final class BackgroundTaskManager: ObservableObject {
                 let reason = (error as? WorkspaceAgentRunError)?.auditReason ?? "error"
                 Task {
                     await WorkspaceAuditLog.shared.recordOutboundRunRefused(
-                        ref: ref, agentName: name, source: request.source, reason: reason
+                        ref: ref,
+                        agentName: name,
+                        source: request.source,
+                        reason: reason
                     )
                 }
                 print("[BackgroundTaskManager] Refusing workspace dispatch to \(ref.key): \(message)")
@@ -1257,8 +1259,14 @@ public final class BackgroundTaskManager: ObservableObject {
                             await ChatExecutionContext.$currentRunActor.withValue(boundActor) {
                                 await ChatExecutionContext.$currentBackgroundId.withValue(context.id) {
                                     await residencyContext.run {
-                                        await ChatExecutionContext.$inferenceSourceOverride.withValue(request.inferenceSourceOverride) {
-                                            if let startFailure = await context.start(prompt: request.prompt, taskIntent: request.taskIntent, generationOverrides: request.generationOverrides) {
+                                        await ChatExecutionContext.$inferenceSourceOverride.withValue(
+                                            request.inferenceSourceOverride
+                                        ) {
+                                            if let startFailure = await context.start(
+                                                prompt: request.prompt,
+                                                taskIntent: request.taskIntent,
+                                                generationOverrides: request.generationOverrides
+                                            ) {
                                                 // A rejected start never flips isStreaming. Complete this
                                                 // registered task explicitly rather than waiting forever
                                                 // for the ordinary streaming-observed terminal path.
@@ -1349,7 +1357,8 @@ public final class BackgroundTaskManager: ObservableObject {
         // Window ownership remains after a terminal task is dehydrated. Never
         // create a second mutable copy merely because that task is no longer
         // active. Also consult director/shared owners and retained headless runs.
-        let live = ChatWindowManager.shared.session(forSessionId: metadata.id)
+        let live =
+            ChatWindowManager.shared.session(forSessionId: metadata.id)
             ?? LiveChatSessionRegistry.shared.liveSession(for: metadata.id)
             ?? backgroundTasks[metadata.id]?.chatSession
         if let live {
@@ -1382,8 +1391,10 @@ public final class BackgroundTaskManager: ObservableObject {
         let timeoutTask = Task { @MainActor in
             try? await Task.sleep(nanoseconds: timeoutSeconds * 1_000_000_000)
             guard !Task.isCancelled else { return }
-            completionContinuations.removeValue(forKey: id)?.resume(returning:
-                CompletionWithToolFailure(result: .failed("Background task timed out"), terminalToolFailure: nil))
+            completionContinuations.removeValue(forKey: id)?.resume(
+                returning:
+                    CompletionWithToolFailure(result: .failed("Background task timed out"), terminalToolFailure: nil)
+            )
         }
 
         let result = await withCheckedContinuation { continuation in
@@ -1764,8 +1775,12 @@ public final class BackgroundTaskManager: ObservableObject {
             }
             Task {
                 await WorkspaceAuditLog.shared.recordOutboundRunFinished(
-                    ref: ref, agentName: name, runKey: runKey, source: source,
-                    success: success, summary: summary
+                    ref: ref,
+                    agentName: name,
+                    runKey: runKey,
+                    source: source,
+                    success: success,
+                    summary: summary
                 )
             }
         }

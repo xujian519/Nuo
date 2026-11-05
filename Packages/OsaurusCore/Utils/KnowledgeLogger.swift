@@ -42,7 +42,8 @@ public enum KnowledgeDebugLog {
         // Derive `<repo>/tmp/knowledge-debug.log` from this file's path:
         // .../osaurus/Packages/OsaurusCore/Utils/KnowledgeLogger.swift
         let thisFile = URL(fileURLWithPath: #filePath)
-        let repoRoot = thisFile
+        let repoRoot =
+            thisFile
             .deletingLastPathComponent()  // Utils
             .deletingLastPathComponent()  // OsaurusCore
             .deletingLastPathComponent()  // Packages

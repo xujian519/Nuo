@@ -93,8 +93,15 @@ struct ThinkingSamplingDefaultsTests {
         )
         #expect(enabled(typedOn) == true)
         #expect(enabled(typedOn, template: false) == nil)
-        #expect(enabled(GenerationParameters(
-            temperature: nil, maxTokens: 32, templateKwargs: ["enable_thinking": .null])) == nil)
+        #expect(
+            enabled(
+                GenerationParameters(
+                    temperature: nil,
+                    maxTokens: 32,
+                    templateKwargs: ["enable_thinking": .null]
+                )
+            ) == nil
+        )
     }
 
     @Test

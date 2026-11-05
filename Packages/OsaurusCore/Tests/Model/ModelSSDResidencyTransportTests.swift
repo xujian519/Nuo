@@ -10,8 +10,10 @@ private final class SSDHeaderURLProtocol: URLProtocol, @unchecked Sendable {
         let url = request.url!
         let mode = url.pathComponents[1].split(separator: "-").first.map(String.init)!
         let tensor = "model.layers.0.ple.ngram_embedding.weight"
-        let header = mode == "malformed" ? Data("not JSON".utf8) :
-            Data((mode == "missing" ? "{}" : "{\"\(tensor)\":{\"data_offsets\":[0,16]}}").utf8)
+        let header =
+            mode == "malformed"
+            ? Data("not JSON".utf8)
+            : Data((mode == "missing" ? "{}" : "{\"\(tensor)\":{\"data_offsets\":[0,16]}}").utf8)
         var size = UInt64(header.count).littleEndian
         var shard = withUnsafeBytes(of: &size) { Data($0) }
         shard.append(header)
@@ -20,8 +22,9 @@ private final class SSDHeaderURLProtocol: URLProtocol, @unchecked Sendable {
         var fields: [String: String] = [:]
         let body: Data
         if url.lastPathComponent == "model.safetensors.index.json" {
-            body = Data((mode == "zero" ? "{\"weight_map\":{}}" :
-                "{\"weight_map\":{\"\(tensor)\":\"model.safetensors\"}}").utf8)
+            body = Data(
+                (mode == "zero" ? "{\"weight_map\":{}}" : "{\"weight_map\":{\"\(tensor)\":\"model.safetensors\"}}").utf8
+            )
         } else if mode == "ignored" {
             body = shard
         } else {
@@ -30,10 +33,18 @@ private final class SSDHeaderURLProtocol: URLProtocol, @unchecked Sendable {
             status = 206
             let total = mode == "unknown" ? "*" : String(shard.count)
             fields["Content-Range"] = "bytes \(mode == "mismatch" ? lower + 1 : lower)-\(upper)/\(total)"
-            body = shard.subdata(in: lower..<(upper + 1))
+            body = shard.subdata(in: lower ..< (upper + 1))
         }
-        client?.urlProtocol(self, didReceive: HTTPURLResponse(url: url, statusCode: status,
-            httpVersion: "HTTP/1.1", headerFields: fields)!, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(
+            self,
+            didReceive: HTTPURLResponse(
+                url: url,
+                statusCode: status,
+                httpVersion: "HTTP/1.1",
+                headerFields: fields
+            )!,
+            cacheStoragePolicy: .notAllowed
+        )
         client?.urlProtocol(self, didLoad: body)
         client?.urlProtocolDidFinishLoading(self)
     }
@@ -66,6 +77,8 @@ struct ModelSSDResidencyTransportTests {
         #expect(result == expected)
         #expect(ModelSizeCache.entry(forId: repo + "#ssd-resident-ngram") != nil)
         // A successful measurement is still reusable without another transport request.
-        #expect(await ModelSSDResidency.remoteNGramBytes(repoId: repo, revision: "fixture", session: session) == expected)
+        #expect(
+            await ModelSSDResidency.remoteNGramBytes(repoId: repo, revision: "fixture", session: session) == expected
+        )
     }
 }

@@ -563,7 +563,8 @@ struct SpawnConfigurationEditor: View {
             }
             budgetStepper(
                 title: "Max output tokens per subagent",
-                help: "Total generated tokens per model turn, including reasoning and the final answer. Reasoning can use the entire limit; this does not reserve answer tokens or set a separate thinking budget.",
+                help:
+                    "Total generated tokens per model turn, including reasoning and the final answer. Reasoning can use the entire limit; this does not reserve answer tokens or set a separate thinking budget.",
                 keyPath: \.maxDelegateTokens,
                 range: SubagentBudgets.tokenBounds,
                 step: 256,
@@ -587,7 +588,8 @@ struct SpawnConfigurationEditor: View {
             )
             budgetStepper(
                 title: "Max local subagents at once",
-                help: "Local (on-device) subagents that may run in parallel in one wave. Shares the Server Concurrent Sessions ceiling.",
+                help:
+                    "Local (on-device) subagents that may run in parallel in one wave. Shares the Server Concurrent Sessions ceiling.",
                 keyPath: \.maxParallelSpawns,
                 range: SubagentBudgets.parallelSpawnBounds,
                 step: 1,

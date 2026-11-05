@@ -113,7 +113,8 @@ struct KnowledgeGuidanceTests {
     @Test func staleFlagRoutingSurvivesFirstSentenceTruncation() {
         let description = FlagKnowledgeStaleTool().description
         let firstSentence = String(
-            description[..<(description.range(of: ". ")?.lowerBound ?? description.endIndex)])
+            description[..<(description.range(of: ". ")?.lowerBound ?? description.endIndex)]
+        )
         #expect(firstSentence.count <= 180)
         #expect(firstSentence.contains("NOT the current task"))
         #expect(!firstSentence.contains("cannot be edited"))
@@ -128,7 +129,10 @@ struct KnowledgeGuidanceTests {
 
     @Test func grantDescriptorSlicesCollection() {
         let collection = KnowledgeCollection(
-            name: "Docs", summary: "Product docs.", folderPath: "/tmp/docs")
+            name: "Docs",
+            summary: "Product docs.",
+            folderPath: "/tmp/docs"
+        )
         let descriptor = collection.grantDescriptor
         #expect(descriptor.name == "Docs")
         #expect(descriptor.summary == "Product docs.")

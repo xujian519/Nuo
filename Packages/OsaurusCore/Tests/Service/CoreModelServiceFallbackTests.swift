@@ -73,10 +73,17 @@ struct CoreModelServiceFallbackTests {
         let service = CoreModelService(localServices: [probe])
         if explicitOverride {
             _ = try await service.generate(
-                prompt: "Describe an agent", temperature: 0.2, timeout: 5, modelOverride: probe.id)
+                prompt: "Describe an agent",
+                temperature: 0.2,
+                timeout: 5,
+                modelOverride: probe.id
+            )
         } else {
             _ = try await service.generate(
-                prompt: "Describe an agent", timeout: 5, modelOverride: probe.id)
+                prompt: "Describe an agent",
+                timeout: 5,
+                modelOverride: probe.id
+            )
         }
         let parameters = try #require(await probe.parameters)
         #expect(parameters.temperature == (explicitOverride ? Float(0.2) : nil))
@@ -399,12 +406,14 @@ struct CoreModelServiceFallbackTests {
         )
         #expect(
             CoreModelService.shouldFallBackToChatModel(
-                for: .unresponsive("foundation"), allowResidencyRefusal: false
+                for: .unresponsive("foundation"),
+                allowResidencyRefusal: false
             )
         )
         #expect(
             !CoreModelService.shouldFallBackToChatModel(
-                for: .circuitBreakerOpen, allowResidencyRefusal: true
+                for: .circuitBreakerOpen,
+                allowResidencyRefusal: true
             )
         )
     }

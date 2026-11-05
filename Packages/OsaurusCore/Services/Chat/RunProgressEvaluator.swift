@@ -54,7 +54,9 @@ enum RunProgressLoadingPhase: Equatable, Sendable {
         if progress.isLoadingModel { return .modelLoad }
         let warmup = WarmupProgressHub.shared.phases.values
         if warmup.contains(.loadingModel) { return .modelLoad }
-        if warmup.contains(where: { if case .prefilling = $0 { return true }; return false }) {
+        if warmup.contains(where: {
+            if case .prefilling = $0 { return true }; return false
+        }) {
             return .prefill
         }
         return .none

@@ -28,7 +28,9 @@ enum WorkspacesAgentProofSigner {
         var childKey = AgentKey.derive(masterKey: masterKey, path: agentKeyPath)
         defer { childKey.zeroOut() }
         let message = proofMessage(
-            workspaceId: workspaceId, agentAddress: agentAddress, timestamp: timestamp
+            workspaceId: workspaceId,
+            agentAddress: agentAddress,
+            timestamp: timestamp
         )
         let signature = try signEIP191Message(message, privateKey: childKey)
         return OsaurusRouterWorkspaceShareAgentBody.Proof(

@@ -835,7 +835,8 @@ extension ContentBlock {
                         index: 0,
                         text: String(
                             localized: "Interrupted — stopped before a response was produced.",
-                            bundle: .module),
+                            bundle: .module
+                        ),
                         isStreaming: false,
                         role: turn.role,
                         position: .middle
@@ -918,9 +919,11 @@ extension ContentBlock {
                         // flicker; the card alone also lost the duration badge.
                         regularItems.append(
                             ToolCallItem(
-                                call: call, result: result,
+                                call: call,
+                                result: result,
                                 duration: turn.toolCallDurations[call.id],
-                                repeatCount: repeatCounts?[call.id] ?? 1)
+                                repeatCount: repeatCounts?[call.id] ?? 1
+                            )
                         )
                         flushRegularItems()
                         turnBlocks.append(
@@ -946,9 +949,11 @@ extension ContentBlock {
                         // with the content as a "preview"-badged card below.
                         regularItems.append(
                             ToolCallItem(
-                                call: call, result: result,
+                                call: call,
+                                result: result,
                                 duration: turn.toolCallDurations[call.id],
-                                repeatCount: repeatCounts?[call.id] ?? 1)
+                                repeatCount: repeatCounts?[call.id] ?? 1
+                            )
                         )
                         flushRegularItems()
                         turnBlocks.append(
@@ -975,8 +980,11 @@ extension ContentBlock {
                         // when the result lands.
                         regularItems.append(
                             ToolCallItem(
-                                call: call, result: nil, duration: nil,
-                                repeatCount: repeatCounts?[call.id] ?? 1)
+                                call: call,
+                                result: nil,
+                                duration: nil,
+                                repeatCount: repeatCounts?[call.id] ?? 1
+                            )
                         )
                         flushRegularItems()
                         turnBlocks.append(
@@ -985,9 +993,11 @@ extension ContentBlock {
                     } else {
                         regularItems.append(
                             ToolCallItem(
-                                call: call, result: result,
+                                call: call,
+                                result: result,
                                 duration: turn.toolCallDurations[call.id],
-                                repeatCount: repeatCounts?[call.id] ?? 1)
+                                repeatCount: repeatCounts?[call.id] ?? 1
+                            )
                         )
                     }
                 }
@@ -1259,7 +1269,8 @@ extension ContentBlock {
                         let content = obj["content"] as? String
                     else { continue }
                     // Appends only add bytes; overwrites replace them.
-                    latest[path] = (obj["mode"] as? String) == "append"
+                    latest[path] =
+                        (obj["mode"] as? String) == "append"
                         ? (latest[path] ?? "") + content
                         : content
                 default:
@@ -1540,7 +1551,9 @@ extension ContentBlock {
                 UserDefaults.didChangeNotification,
             ] {
                 center.addObserver(
-                    forName: name, object: nil, queue: nil
+                    forName: name,
+                    object: nil,
+                    queue: nil
                 ) { _ in
                     invalidate()
                 }

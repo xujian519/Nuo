@@ -829,9 +829,10 @@ public struct ContextBudgetManager: Sendable {
             // so a capped page is not recalled as the complete match set.
             let lines = content.components(separatedBy: .newlines)
             let firstLine = lines.first ?? ""
-            let trailer = lines.last(where: {
-                $0.contains("truncated") || $0.contains("next_offset")
-            }).map { " \($0.trimmingCharacters(in: .whitespaces))" } ?? ""
+            let trailer =
+                lines.last(where: {
+                    $0.contains("truncated") || $0.contains("next_offset")
+                }).map { " \($0.trimmingCharacters(in: .whitespaces))" } ?? ""
             return "[Compressed: \(firstLine)\(trailer); \(refetchSteer)]"
         } else if content.hasPrefix("Exit code:") {
             // shell_run result

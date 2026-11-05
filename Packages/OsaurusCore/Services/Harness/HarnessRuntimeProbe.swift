@@ -191,7 +191,9 @@ enum HarnessRuntimeProbe {
         case .timedOut:
             return HarnessProbeResult(
                 status: .failed,
-                message: L("It started but didn't answer an RPC get_state request. Check that the arguments include --mode rpc."),
+                message: L(
+                    "It started but didn't answer an RPC get_state request. Check that the arguments include --mode rpc."
+                ),
                 resolvedExecutable: executable
             )
         case .exited:

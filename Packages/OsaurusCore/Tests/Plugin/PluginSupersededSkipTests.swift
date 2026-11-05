@@ -76,7 +76,10 @@ struct PluginSupersededSkipTests {
             #expect(PluginManager.supersededPluginIds.contains(pluginId), Comment(rawValue: pluginId))
             #expect(PluginManager.supersededAppleAppPluginIds.contains(pluginId), Comment(rawValue: pluginId))
             // Banner deep link lands on the Agents tab (Abilities → Apple Apps).
-            #expect(PluginManager.nativeSettingsTab(forSupersededPlugin: pluginId) == .agents, Comment(rawValue: pluginId))
+            #expect(
+                PluginManager.nativeSettingsTab(forSupersededPlugin: pluginId) == .agents,
+                Comment(rawValue: pluginId)
+            )
         }
         // Every AppleApp with a plugin ancestor is in the skip list; the two
         // net-new families (shortcuts) have no plugin to supersede.

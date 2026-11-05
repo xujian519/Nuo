@@ -32,8 +32,13 @@ struct ActivityEmitterTests {
             elapsed: 0.8
         )
         let egress = SearchActivityLogger.searchEgress(
-            request: request, outcome: outcome, hostedSource: .custom, hostedFallbackReason: "unavailable",
-            pinned: false, hostFor: { $0 == "tavily" ? "api.tavily.com" : nil })
+            request: request,
+            outcome: outcome,
+            hostedSource: .custom,
+            hostedFallbackReason: "unavailable",
+            pinned: false,
+            hostFor: { $0 == "tavily" ? "api.tavily.com" : nil }
+        )
         #expect(egress.destinationHost == "api.tavily.com")
         #expect(egress.destinationLabel == "Tavily")
         #expect(egress.dataClasses == ["search_query"])
@@ -53,11 +58,18 @@ struct ActivityEmitterTests {
 
     @Test func searchEgressWithNoHitsStillNamesFirstDestination() {
         let outcome = SearchEngineOutcome(
-            hits: [], provider: nil,
-            attempts: [SearchAttempt(provider: "ddg", ok: false, kind: .challenge, error: "captcha")])
+            hits: [],
+            provider: nil,
+            attempts: [SearchAttempt(provider: "ddg", ok: false, kind: .challenge, error: "captcha")]
+        )
         let egress = SearchActivityLogger.searchEgress(
-            request: SearchRequest(query: "x"), outcome: outcome, hostedSource: nil, hostedFallbackReason: nil,
-            pinned: true, hostFor: { _ in "html.duckduckgo.com" })
+            request: SearchRequest(query: "x"),
+            outcome: outcome,
+            hostedSource: nil,
+            hostedFallbackReason: nil,
+            pinned: true,
+            hostFor: { _ in "html.duckduckgo.com" }
+        )
         #expect(egress.destinationHost == "html.duckduckgo.com")
         #expect(egress.destinationLabel == "DuckDuckGo")
         #expect(egress.details["pinned_test"] == "true")
@@ -71,8 +83,10 @@ struct ActivityEmitterTests {
         var decl = SearchProviderDefinition(id: "exa", name: "Exa", runtime: .declarative)
         decl.endpoints = [
             "web": SearchEndpoint(
-                url: "https://api.exa.ai/search", method: "POST",
-                response: SearchResponseMapping(resultsPath: "results", item: SearchHitFieldPaths()))
+                url: "https://api.exa.ai/search",
+                method: "POST",
+                response: SearchResponseMapping(resultsPath: "results", item: SearchHitFieldPaths())
+            )
         ]
         #expect(SearchActivityLogger.host(for: decl, category: "web") == "api.exa.ai")
         #expect(SearchActivityLogger.host(for: decl, category: "news") == "api.exa.ai")
@@ -86,9 +100,14 @@ struct ActivityEmitterTests {
                 .init(url: "https://a.example", title: "A", text: "hello world", succeeded: true, error: nil),
                 .init(url: "https://b.example", title: nil, text: nil, succeeded: false, error: "403"),
             ],
-            billing: nil, replayed: false)
+            billing: nil,
+            replayed: false
+        )
         let egress = SearchActivityLogger.hostedExtractEgress(
-            urls: ["https://a.example", "https://b.example"], outcome: outcome, failureReason: nil)
+            urls: ["https://a.example", "https://b.example"],
+            outcome: outcome,
+            failureReason: nil
+        )
         #expect(egress.destinationHost == SearchActivityLogger.hostedHost)
         #expect(egress.dataClasses == ["urls"])
         #expect(egress.details["mode"] == "hosted")
@@ -100,11 +119,24 @@ struct ActivityEmitterTests {
 
     @Test func directExtractEgressUsesPageHost() {
         let extraction = SearchReadability.Extraction(
-            markdown: "x", wordCount: 120, title: "Doc", byline: nil, lang: nil,
-            canonicalURL: "https://docs.example/page/", status: .ok, truncated: false, message: nil,
-            totalWordCount: nil, structuredData: nil, structuredFormat: nil)
+            markdown: "x",
+            wordCount: 120,
+            title: "Doc",
+            byline: nil,
+            lang: nil,
+            canonicalURL: "https://docs.example/page/",
+            status: .ok,
+            truncated: false,
+            message: nil,
+            totalWordCount: nil,
+            structuredData: nil,
+            structuredFormat: nil
+        )
         let egress = SearchActivityLogger.directExtractEgress(
-            url: "https://docs.example/page", extraction: extraction, bytesReceived: 4096)
+            url: "https://docs.example/page",
+            extraction: extraction,
+            bytesReceived: 4096
+        )
         #expect(egress.destinationHost == "docs.example")
         #expect(egress.destinationLabel == "docs.example")
         #expect(egress.details["mode"] == "direct")
@@ -121,8 +153,13 @@ struct ActivityEmitterTests {
         provider.transport = .http
         #expect(MCPActivityLogger.locality(for: provider) == .remote)
         let egress = MCPActivityLogger.egress(
-            provider: provider, toolName: "list_issues", exposedToolName: "linear_list_issues",
-            recordedArguments: #"{"team":"ENG"}"#, resultPreview: "[...]", bytesReceived: 5)
+            provider: provider,
+            toolName: "list_issues",
+            exposedToolName: "linear_list_issues",
+            recordedArguments: #"{"team":"ENG"}"#,
+            resultPreview: "[...]",
+            bytesReceived: 5
+        )
         #expect(egress.destinationHost == "mcp.linear.app")
         #expect(egress.destinationLabel == "Linear")
         #expect(egress.dataClasses == ["tool_arguments"])
@@ -140,8 +177,13 @@ struct ActivityEmitterTests {
         provider.command = "npx"
         #expect(MCPActivityLogger.locality(for: provider) == .local)
         let egress = MCPActivityLogger.egress(
-            provider: provider, toolName: "read", exposedToolName: nil,
-            recordedArguments: "{}", resultPreview: nil, bytesReceived: nil)
+            provider: provider,
+            toolName: "read",
+            exposedToolName: nil,
+            recordedArguments: "{}",
+            resultPreview: nil,
+            bytesReceived: nil
+        )
         #expect(egress.destinationHost == nil)
         #expect(egress.details["command"] == "npx")
         #expect(egress.details["execution_host"] == provider.executionHost.rawValue)
@@ -153,10 +195,23 @@ struct ActivityEmitterTests {
     @Test func channelDeliveryIsMetadataOnly() {
         let connection = AgentChannelConnection(id: "slack", name: "Team Slack", kind: .slack)
         let binding = AgentChannelBinding(
-            id: "ops", agentId: UUID(), connectionId: "slack", roomId: "C123", threadId: "171.1", label: "Ops")
+            id: "ops",
+            agentId: UUID(),
+            connectionId: "slack",
+            roomId: "C123",
+            threadId: "171.1",
+            label: "Ops"
+        )
         let egress = AgentChannelPublishService.channelDeliveryEgress(
-            connection: connection, binding: binding, contentLength: 42, intentId: "intent-1",
-            runSource: "schedule", outcome: "sent", providerMessageId: "msg-9", error: nil)
+            connection: connection,
+            binding: binding,
+            contentLength: 42,
+            intentId: "intent-1",
+            runSource: "schedule",
+            outcome: "sent",
+            providerMessageId: "msg-9",
+            error: nil
+        )
         #expect(egress.destinationHost == "slack.com")
         #expect(egress.destinationLabel == "Slack")
         #expect(egress.bytesSent == 42)
@@ -173,10 +228,22 @@ struct ActivityEmitterTests {
 
     @Test func channelDeliveryUnknownConnectionFallsBackToBindingId() {
         let binding = AgentChannelBinding(
-            id: "b", agentId: UUID(), connectionId: "gone", roomId: "r", label: "L")
+            id: "b",
+            agentId: UUID(),
+            connectionId: "gone",
+            roomId: "r",
+            label: "L"
+        )
         let egress = AgentChannelPublishService.channelDeliveryEgress(
-            connection: nil, binding: binding, contentLength: 1, intentId: "i",
-            runSource: nil, outcome: "failed", providerMessageId: nil, error: "boom")
+            connection: nil,
+            binding: binding,
+            contentLength: 1,
+            intentId: "i",
+            runSource: nil,
+            outcome: "failed",
+            providerMessageId: nil,
+            error: "boom"
+        )
         #expect(egress.destinationHost == nil)
         #expect(egress.destinationLabel == "gone")
         #expect(egress.details["channel"] == "unknown")
@@ -207,9 +274,14 @@ struct ActivityEmitterTests {
         let local = RequestConnectionInfo(transport: .local, mode: .local)
         #expect(InsightsService.inferenceEgress(connection: local, requestBody: "{}") == nil)
         let remote = RequestConnectionInfo(
-            remoteEndpoint: "https://api.anthropic.com/v1/messages", transport: .direct, mode: .remoteInference)
+            remoteEndpoint: "https://api.anthropic.com/v1/messages",
+            transport: .direct,
+            mode: .remoteInference
+        )
         let egress = InsightsService.inferenceEgress(
-            connection: remote, requestBody: #"{"messages":[],"tools":[{"x":1}],"image_url":"..."}"#)
+            connection: remote,
+            requestBody: #"{"messages":[],"tools":[{"x":1}],"image_url":"..."}"#
+        )
         #expect(egress?.destinationHost == "api.anthropic.com")
         #expect(egress?.destinationLabel == "Anthropic")
         #expect(egress?.dataClasses == ["prompt", "tools", "attachments"])
@@ -218,10 +290,19 @@ struct ActivityEmitterTests {
     @Test func privacyOutcomeFlowsThroughLogInference() async throws {
         let model = "privacy-probe-\(UUID().uuidString)"
         let remote = RequestConnectionInfo(
-            remoteEndpoint: "https://api.openai.com/v1/chat/completions", transport: .direct, mode: .remoteInference)
+            remoteEndpoint: "https://api.openai.com/v1/chat/completions",
+            transport: .direct,
+            mode: .remoteInference
+        )
         InsightsService.logInference(
-            source: .agent, model: model, inputTokens: 1, outputTokens: 1, durationMs: 1,
-            temperature: nil, maxTokens: 1, requestBody: "{}",
+            source: .agent,
+            model: model,
+            inputTokens: 1,
+            outputTokens: 1,
+            durationMs: 1,
+            temperature: nil,
+            maxTokens: 1,
+            requestBody: "{}",
             wireRequestBody: Data(repeating: 0x41, count: 321),
             connection: remote,
             privacy: WireTransportProbe.PrivacyOutcome(applied: true, redactedCount: 3),
@@ -290,7 +371,9 @@ struct ActivityEmitterTests {
         #expect(row.source == .system)
         #expect(row.internalPurposeLabel == "Chat title")
         #expect(row.title.hasPrefix("Chat title"))
-        #expect(RequestLog.inferCategory(method: "POST", path: "/internal/memory_distillation", pluginId: nil) == .inference)
+        #expect(
+            RequestLog.inferCategory(method: "POST", path: "/internal/memory_distillation", pluginId: nil) == .inference
+        )
         #expect(RequestLog.inferCategory(method: "GET", path: "/health", pluginId: nil) == .inboundAPI)
     }
 
@@ -316,7 +399,9 @@ struct ActivityEmitterTests {
         #expect(!HTTPHandler.handlerWritesOwnActivityRow(path: "/chat/completions"))
         // inferCategory prefers media over inbound API / plugin.
         #expect(RequestLog.inferCategory(method: "POST", path: "/v1/embeddings", pluginId: "p") == .embedding)
-        #expect(RequestLog.inferCategory(method: "POST", path: "/images/generations", pluginId: nil) == .mediaGeneration)
+        #expect(
+            RequestLog.inferCategory(method: "POST", path: "/images/generations", pluginId: nil) == .mediaGeneration
+        )
     }
 
     @Test func newCategoriesAreModelWorkWithDisplayNames() {
@@ -331,8 +416,15 @@ struct ActivityEmitterTests {
 
     @Test func httpMediaDetailsMirrorInProcessKeys() {
         let image = HTTPHandler.mediaActivityDetails(
-            kind: "image", operation: "generate", backend: .local,
-            count: 2, width: 1024, height: 768, aspect: nil, resolution: nil)
+            kind: "image",
+            operation: "generate",
+            backend: .local,
+            count: 2,
+            width: 1024,
+            height: 768,
+            aspect: nil,
+            resolution: nil
+        )
         #expect(image["media_kind"] == "image")
         #expect(image["operation"] == "generate")
         #expect(image["backend"] == "local")
@@ -340,9 +432,16 @@ struct ActivityEmitterTests {
         #expect(image["size"] == "1024x768")
 
         let video = HTTPHandler.mediaActivityDetails(
-            kind: "video", operation: "quote", backend: .remoteProvider(UUID()),
-            count: nil, width: nil, height: nil, aspect: "16:9", resolution: "1080p",
-            extra: ["duration": "5", "quote_usd": "0.1200"])
+            kind: "video",
+            operation: "quote",
+            backend: .remoteProvider(UUID()),
+            count: nil,
+            width: nil,
+            height: nil,
+            aspect: "16:9",
+            resolution: "1080p",
+            extra: ["duration": "5", "quote_usd": "0.1200"]
+        )
         #expect(video["size"] == "1080p 16:9")
         #expect(video["count"] == nil)
         #expect(video["duration"] == "5")
@@ -356,8 +455,13 @@ struct ActivityEmitterTests {
     @Test func speechJobLogsRemoteSynthesisWithTextAndVoice() async throws {
         let model = "tts-probe-\(UUID().uuidString)"
         let job = MediaActivityLogger.beginSpeech(
-            text: "Hello there, this is spoken.", model: model, voice: "alloy",
-            provider: "api.openai.com", endpoint: "https://api.openai.com/v1/audio/speech", trigger: .readAloud)
+            text: "Hello there, this is spoken.",
+            model: model,
+            voice: "alloy",
+            provider: "api.openai.com",
+            endpoint: "https://api.openai.com/v1/audio/speech",
+            trigger: .readAloud
+        )
         job.finish(audioSeconds: 2.5, error: nil)
         try await Task.sleep(nanoseconds: 50_000_000)
         let row = try #require(await MainActor.run { InsightsService.shared.logs.first { $0.model == model } })
@@ -378,7 +482,13 @@ struct ActivityEmitterTests {
     @Test func speechJobLocalSpeakToolIsLocalToolRow() async throws {
         let model = "pocket-probe-\(UUID().uuidString)"
         let job = MediaActivityLogger.beginSpeech(
-            text: "local", model: model, voice: "alba", provider: "PocketTTS", endpoint: nil, trigger: .speakTool)
+            text: "local",
+            model: model,
+            voice: "alba",
+            provider: "PocketTTS",
+            endpoint: nil,
+            trigger: .speakTool
+        )
         job.finish(audioSeconds: nil, error: nil, cancelled: true)
         try await Task.sleep(nanoseconds: 50_000_000)
         let row = try #require(await MainActor.run { InsightsService.shared.logs.first { $0.model == model } })
@@ -391,13 +501,26 @@ struct ActivityEmitterTests {
 
     @Test func transcriptionJobIsSkippedUnderHTTPGuardAndLoggedOtherwise() async throws {
         let guarded = ChatExecutionContext.$currentRequestSource.withValue(.httpAPI) {
-            MediaActivityLogger.beginTranscription(model: "m", audioSeconds: 1, audioBytes: 1, audioFormat: "wav", mode: "file")
+            MediaActivityLogger.beginTranscription(
+                model: "m",
+                audioSeconds: 1,
+                audioBytes: 1,
+                audioFormat: "wav",
+                mode: "file"
+            )
         }
         #expect(guarded == nil)
 
         let model = "stt-probe-\(UUID().uuidString)"
         let job = try #require(
-            MediaActivityLogger.beginTranscription(model: model, audioSeconds: nil, audioBytes: 32_000, audioFormat: "microphone", mode: "live"))
+            MediaActivityLogger.beginTranscription(
+                model: model,
+                audioSeconds: nil,
+                audioBytes: 32_000,
+                audioFormat: "microphone",
+                mode: "live"
+            )
+        )
         job.finish(transcript: "hello world", language: "en", error: nil, audioSeconds: 4.2)
         try await Task.sleep(nanoseconds: 50_000_000)
         let row = try #require(await MainActor.run { InsightsService.shared.logs.first { $0.model == model } })
@@ -418,14 +541,26 @@ struct ActivityEmitterTests {
         ChatExecutionContext.$currentRequestSource.withValue(.httpAPI) {
             MediaActivityLogger.$embeddingPurpose.withValue("guarded-\(marker)") {
                 MediaActivityLogger.logEmbedding(
-                    model: "potion", textCount: 1, totalChars: 5, dimensions: 128, purpose: MediaActivityLogger.embeddingPurpose,
-                    durationMs: 1, error: nil)
+                    model: "potion",
+                    textCount: 1,
+                    totalChars: 5,
+                    dimensions: 128,
+                    purpose: MediaActivityLogger.embeddingPurpose,
+                    durationMs: 1,
+                    error: nil
+                )
             }
         }
         MediaActivityLogger.$embeddingPurpose.withValue("memory_search") {
             MediaActivityLogger.logEmbedding(
-                model: "probe-\(marker)", textCount: 3, totalChars: 42, dimensions: 128,
-                purpose: MediaActivityLogger.embeddingPurpose, durationMs: 7, error: nil)
+                model: "probe-\(marker)",
+                textCount: 3,
+                totalChars: 42,
+                dimensions: 128,
+                purpose: MediaActivityLogger.embeddingPurpose,
+                durationMs: 7,
+                error: nil
+            )
         }
         try await Task.sleep(nanoseconds: 50_000_000)
         let rows = await MainActor.run { InsightsService.shared.logs.filter { $0.category == .embedding } }
@@ -443,24 +578,51 @@ struct ActivityEmitterTests {
         let model = "media-probe-\(UUID().uuidString)"
         let local = try #require(
             MediaActivityLogger.beginMedia(
-                kind: .image, operation: .generate, model: "pending", prompt: "a red fox", provider: "Local (MLX)",
-                endpoint: nil, requestedCount: 2, size: "1024x1024", steps: 20, trigger: .chatTool))
+                kind: .image,
+                operation: .generate,
+                model: "pending",
+                prompt: "a red fox",
+                provider: "Local (MLX)",
+                endpoint: nil,
+                requestedCount: 2,
+                size: "1024x1024",
+                steps: 20,
+                trigger: .chatTool
+            )
+        )
         local.withModel(model).finish(producedCount: 2, jobId: "img_1", error: nil)
 
         let remoteModel = "venice-probe-\(UUID().uuidString)"
         let remote = try #require(
             MediaActivityLogger.beginMedia(
-                kind: .video, operation: .quote, model: remoteModel, prompt: "waves", provider: "Venice",
-                endpoint: "https://api.venice.ai/api/v1", requestedCount: 1, size: "1080p", durationSeconds: 5,
-                trigger: .imagePanel))
+                kind: .video,
+                operation: .quote,
+                model: remoteModel,
+                prompt: "waves",
+                provider: "Venice",
+                endpoint: "https://api.venice.ai/api/v1",
+                requestedCount: 1,
+                size: "1080p",
+                durationSeconds: 5,
+                trigger: .imagePanel
+            )
+        )
         remote.finish(producedCount: nil, jobId: nil, error: "quota")
 
         #expect(
             ChatExecutionContext.$currentRequestSource.withValue(.httpAPI) {
                 MediaActivityLogger.beginMedia(
-                    kind: .image, operation: .generate, model: "m", prompt: nil, provider: "p", endpoint: nil,
-                    requestedCount: 1, trigger: .httpAPI)
-            } == nil)
+                    kind: .image,
+                    operation: .generate,
+                    model: "m",
+                    prompt: nil,
+                    provider: "p",
+                    endpoint: nil,
+                    requestedCount: 1,
+                    trigger: .httpAPI
+                )
+            } == nil
+        )
 
         try await Task.sleep(nanoseconds: 50_000_000)
         let localRow = try #require(await MainActor.run { InsightsService.shared.logs.first { $0.model == model } })
@@ -474,7 +636,9 @@ struct ActivityEmitterTests {
         #expect(localRow.egress?.details["steps"] == "20")
         #expect(localRow.egress?.details["job_id"] == "img_1")
 
-        let remoteRow = try #require(await MainActor.run { InsightsService.shared.logs.first { $0.model == remoteModel } })
+        let remoteRow = try #require(
+            await MainActor.run { InsightsService.shared.logs.first { $0.model == remoteModel } }
+        )
         #expect(remoteRow.locality == .remote)
         #expect(remoteRow.source == .chatUI)
         #expect(remoteRow.path == "/v1/videos/quote")
@@ -490,8 +654,15 @@ struct ActivityEmitterTests {
     @Test func channelAutoReplyIsReplyMethodWithAttachmentsClass() async throws {
         let connection = AgentChannelConnection(id: "tg", name: "Family Telegram", kind: .telegram)
         let egress = ChannelActivityLogger.egress(
-            connection: connection, connectionId: "tg", roomId: "-100", threadId: nil, contentLength: 12,
-            outcome: "replied", trigger: .autoReply, extraDetails: ["artifacts_sent": "2"])
+            connection: connection,
+            connectionId: "tg",
+            roomId: "-100",
+            threadId: nil,
+            contentLength: 12,
+            outcome: "replied",
+            trigger: .autoReply,
+            extraDetails: ["artifacts_sent": "2"]
+        )
         #expect(egress.dataClasses == ["channel_message", "attachments"])
         #expect(egress.details["trigger"] == "auto_reply")
         #expect(egress.details["channel"] == "telegram")
@@ -499,11 +670,22 @@ struct ActivityEmitterTests {
 
         let room = "room-\(UUID().uuidString.prefix(8))"
         ChannelActivityLogger.logDelivery(
-            connection: connection, connectionId: "tg", roomId: room, threadId: nil, contentLength: 12,
-            outcome: "replied", trigger: .autoReply, error: nil, durationMs: 3,
-            attribution: InsightsService.ActivityAttribution(agentId: nil, sessionId: nil), source: .channel)
+            connection: connection,
+            connectionId: "tg",
+            roomId: room,
+            threadId: nil,
+            contentLength: 12,
+            outcome: "replied",
+            trigger: .autoReply,
+            error: nil,
+            durationMs: 3,
+            attribution: InsightsService.ActivityAttribution(agentId: nil, sessionId: nil),
+            source: .channel
+        )
         try await Task.sleep(nanoseconds: 50_000_000)
-        let row = try #require(await MainActor.run { InsightsService.shared.logs.first { $0.path == "/channels/tg/\(room)" } })
+        let row = try #require(
+            await MainActor.run { InsightsService.shared.logs.first { $0.path == "/channels/tg/\(room)" } }
+        )
         #expect(row.category == .channelDelivery)
         #expect(row.method == "REPLY")
         #expect(row.source == .channel)

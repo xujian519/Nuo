@@ -310,7 +310,10 @@ final class BrowserWindowController: NSObject, NSWindowDelegate {
             // the agent never navigates again this run.
             if let finalURL = result.finalURL, finalURL.hasPrefix("http") {
                 BrowserSessionManager.shared.recordNavigation(
-                    agentId: agentId, url: finalURL, title: nil)
+                    agentId: agentId,
+                    url: finalURL,
+                    title: nil
+                )
             }
         }
         if timedOut {

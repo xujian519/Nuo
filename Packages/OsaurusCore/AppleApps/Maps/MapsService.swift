@@ -73,7 +73,13 @@ struct ETAInfo: Codable, Sendable, Equatable {
     let expectedDeparture: String?
     let expectedArrival: String?
 
-    init(expectedTravelSeconds: Double, distanceMeters: Double, transportType: String, expectedDeparture: String?, expectedArrival: String?) {
+    init(
+        expectedTravelSeconds: Double,
+        distanceMeters: Double,
+        transportType: String,
+        expectedDeparture: String?,
+        expectedArrival: String?
+    ) {
         self.expectedTravelSeconds = expectedTravelSeconds
         self.distanceMeters = distanceMeters
         self.expectedTravelText = MapsFormatting.duration(expectedTravelSeconds)
@@ -235,7 +241,8 @@ final class MapKitMapsService: MapsServicing, @unchecked Sendable {
         if status == .notDetermined {
             throw AppleToolError.permissionDenied(
                 .location,
-                detail: "The Location permission dialog was not answered within \(Int(SystemPermissionService.locationDialogTimeout))s. Ask the user to click Allow, then try again."
+                detail:
+                    "The Location permission dialog was not answered within \(Int(SystemPermissionService.locationDialogTimeout))s. Ask the user to click Allow, then try again."
             )
         }
         throw AppleToolError.permissionDenied(.location)
@@ -246,7 +253,8 @@ final class MapKitMapsService: MapsServicing, @unchecked Sendable {
         // actor (this method is not main-actor bound).
         guard CLLocationManager.locationServicesEnabled() else {
             throw AppleToolError.unavailable(
-                "Location Services are turned off in System Settings → Privacy & Security → Location Services.", retryable: false
+                "Location Services are turned off in System Settings → Privacy & Security → Location Services.",
+                retryable: false
             )
         }
         try await ensureLocationAuthorized()
@@ -295,7 +303,8 @@ final class MapKitMapsService: MapsServicing, @unchecked Sendable {
             switch CLError.Code(rawValue: ns.code) {
             case .geocodeFoundNoResult?: return .notFound("\(context) found no results.")
             case .geocodeCanceled?: return .execution("\(context) was cancelled.")
-            case .network?: return .unavailable("\(context) failed: no network connection to Apple's geocoder.", retryable: true)
+            case .network?:
+                return .unavailable("\(context) failed: no network connection to Apple's geocoder.", retryable: true)
             default: break
             }
         }
@@ -308,7 +317,8 @@ final class MapKitMapsService: MapsServicing, @unchecked Sendable {
         guard let near else { return nil }
         return MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: near.center.latitude, longitude: near.center.longitude),
-            latitudinalMeters: near.radiusMeters * 2, longitudinalMeters: near.radiusMeters * 2
+            latitudinalMeters: near.radiusMeters * 2,
+            longitudinalMeters: near.radiusMeters * 2
         )
     }
 
@@ -333,8 +343,12 @@ final class MapKitMapsService: MapsServicing, @unchecked Sendable {
                 // back by distance so "closest first" holds.
                 let center = CLLocation(latitude: near.center.latitude, longitude: near.center.longitude)
                 places.sort {
-                    CLLocation(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude).distance(from: center)
-                        < CLLocation(latitude: $1.coordinate.latitude, longitude: $1.coordinate.longitude).distance(from: center)
+                    CLLocation(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude).distance(
+                        from: center
+                    )
+                        < CLLocation(latitude: $1.coordinate.latitude, longitude: $1.coordinate.longitude).distance(
+                            from: center
+                        )
                 }
             }
             return Array(places.prefix(limit))
@@ -346,7 +360,8 @@ final class MapKitMapsService: MapsServicing, @unchecked Sendable {
     static let poiCategories: [String: MKPointOfInterestCategory] = [
         "airport": .airport, "amusement_park": .amusementPark, "aquarium": .aquarium, "atm": .atm, "bakery": .bakery,
         "bank": .bank, "beach": .beach, "brewery": .brewery, "cafe": .cafe, "campground": .campground,
-        "car_rental": .carRental, "ev_charger": .evCharger, "fire_station": .fireStation, "fitness_center": .fitnessCenter,
+        "car_rental": .carRental, "ev_charger": .evCharger, "fire_station": .fireStation,
+        "fitness_center": .fitnessCenter,
         "food_market": .foodMarket, "gas_station": .gasStation, "hospital": .hospital, "hotel": .hotel,
         "laundry": .laundry, "library": .library, "marina": .marina, "movie_theater": .movieTheater, "museum": .museum,
         "national_park": .nationalPark, "nightlife": .nightlife, "park": .park, "parking": .parking,
@@ -358,7 +373,8 @@ final class MapKitMapsService: MapsServicing, @unchecked Sendable {
     func explore(category: String, near: MapsSearchRegion, limit: Int) async throws -> [PlaceInfo] {
         guard let poi = Self.poiCategories[category.lowercased()] else {
             throw AppleToolError.invalidArgs(
-                "Unknown `category` `\(category)`.", field: "category",
+                "Unknown `category` `\(category)`.",
+                field: "category",
                 expected: "one of: " + Self.poiCategories.keys.sorted().joined(separator: ", ")
             )
         }
@@ -372,7 +388,10 @@ final class MapKitMapsService: MapsServicing, @unchecked Sendable {
             let response = try await search.start()
             return Array(response.mapItems.compactMap(Self.place(from:)).prefix(limit))
         } catch {
-            throw Self.mapSearchError(error, context: "Exploring `\(category)` near \(near.center.latitude), \(near.center.longitude)")
+            throw Self.mapSearchError(
+                error,
+                context: "Exploring `\(category)` near \(near.center.latitude), \(near.center.longitude)"
+            )
         }
     }
 
@@ -382,7 +401,11 @@ final class MapKitMapsService: MapsServicing, @unchecked Sendable {
             switch MKError.Code(rawValue: UInt(ns.code)) {
             case .placemarkNotFound?: return .notFound("\(context) found no results.")
             case .directionsNotFound?: return .notFound("\(context): no route could be found.")
-            case .serverFailure?, .loadingThrottled?: return .unavailable("\(context) failed: Apple Maps is unavailable or throttled. Try again shortly.", retryable: true)
+            case .serverFailure?, .loadingThrottled?:
+                return .unavailable(
+                    "\(context) failed: Apple Maps is unavailable or throttled. Try again shortly.",
+                    retryable: true
+                )
             default: break
             }
         }
@@ -395,26 +418,41 @@ final class MapKitMapsService: MapsServicing, @unchecked Sendable {
     /// lookups toward the other endpoint of the trip: MapKit otherwise ranks
     /// by the Mac's own (IP-approximated) location, which in live proof turned
     /// "Apple Park E7 Espresso Bar" into a 600 km route.
-    private func mapItem(for reference: MapsPlaceReference, field: String, near: CLLocationCoordinate2D?) async throws -> MKMapItem {
+    private func mapItem(for reference: MapsPlaceReference, field: String, near: CLLocationCoordinate2D?) async throws
+        -> MKMapItem
+    {
         switch reference {
         case .currentLocation:
             let loc = try await resolvedCurrentLocation()
             return MKMapItem(placemark: MKPlacemark(coordinate: loc.coordinate))
         case .coordinate(let c):
-            return MKMapItem(placemark: MKPlacemark(coordinate: CLLocationCoordinate2D(latitude: c.latitude, longitude: c.longitude)))
+            return MKMapItem(
+                placemark: MKPlacemark(coordinate: CLLocationCoordinate2D(latitude: c.latitude, longitude: c.longitude))
+            )
         case .query(let text):
             // Prefer Maps search (handles business names); fall back to the geocoder.
             let request = MKLocalSearch.Request()
             request.naturalLanguageQuery = text
             if let near {
-                request.region = MKCoordinateRegion(center: near, latitudinalMeters: 200_000, longitudinalMeters: 200_000)
+                request.region = MKCoordinateRegion(
+                    center: near,
+                    latitudinalMeters: 200_000,
+                    longitudinalMeters: 200_000
+                )
             }
             if let item = try? await MKLocalSearch(request: request).start().mapItems.first { return item }
             let marks = try await geocode(text, limit: 1)
             guard let first = marks.first else {
                 throw AppleToolError.notFound("`\(field)` (`\(text)`) could not be found on the map.")
             }
-            return MKMapItem(placemark: MKPlacemark(coordinate: CLLocationCoordinate2D(latitude: first.coordinate.latitude, longitude: first.coordinate.longitude)))
+            return MKMapItem(
+                placemark: MKPlacemark(
+                    coordinate: CLLocationCoordinate2D(
+                        latitude: first.coordinate.latitude,
+                        longitude: first.coordinate.longitude
+                    )
+                )
+            )
         }
     }
 
@@ -437,7 +475,8 @@ final class MapKitMapsService: MapsServicing, @unchecked Sendable {
         if transport == .transit {
             throw AppleToolError.invalidArgs(
                 "Turn-by-turn `transit` directions are not available through MapKit; use `maps_eta` with `mode: transit` or `maps_open`.",
-                field: "mode", expected: "automobile | walking | cycling"
+                field: "mode",
+                expected: "automobile | walking | cycling"
             )
         }
         let request = MKDirections.Request()
@@ -526,10 +565,19 @@ final class MapKitMapsService: MapsServicing, @unchecked Sendable {
     static func place(from item: MKMapItem) -> PlaceInfo? {
         guard var place = place(from: item.placemark) else { return nil }
         place = PlaceInfo(
-            name: item.name ?? place.name, coordinate: place.coordinate, address: place.address, street: place.street,
-            city: place.city, state: place.state, postalCode: place.postalCode, country: place.country,
-            countryCode: place.countryCode, phone: item.phoneNumber, url: item.url?.absoluteString,
-            category: item.pointOfInterestCategory.map { categoryName($0) }, timeZone: item.timeZone?.identifier,
+            name: item.name ?? place.name,
+            coordinate: place.coordinate,
+            address: place.address,
+            street: place.street,
+            city: place.city,
+            state: place.state,
+            postalCode: place.postalCode,
+            country: place.country,
+            countryCode: place.countryCode,
+            phone: item.phoneNumber,
+            url: item.url?.absoluteString,
+            category: item.pointOfInterestCategory.map { categoryName($0) },
+            timeZone: item.timeZone?.identifier,
             mapsURL: mapsURL(coordinate: item.placemark.coordinate, name: item.name)
         )
         return place
@@ -538,18 +586,28 @@ final class MapKitMapsService: MapsServicing, @unchecked Sendable {
     static func place(from mark: CLPlacemark) -> PlaceInfo? {
         guard let loc = mark.location else { return nil }
         let street = [mark.subThoroughfare, mark.thoroughfare].compactMap { $0 }.joined(separator: " ")
-        let parts = [street, mark.locality, mark.administrativeArea, mark.postalCode, mark.country].compactMap { $0 }.filter { !$0.isEmpty }
+        let parts = [street, mark.locality, mark.administrativeArea, mark.postalCode, mark.country].compactMap { $0 }
+            .filter { !$0.isEmpty }
         return PlaceInfo(
-            name: mark.name, coordinate: GeoCoordinate(latitude: loc.coordinate.latitude, longitude: loc.coordinate.longitude),
+            name: mark.name,
+            coordinate: GeoCoordinate(latitude: loc.coordinate.latitude, longitude: loc.coordinate.longitude),
             address: parts.isEmpty ? nil : parts.joined(separator: ", "),
-            street: street.isEmpty ? nil : street, city: mark.locality, state: mark.administrativeArea,
-            postalCode: mark.postalCode, country: mark.country, countryCode: mark.isoCountryCode,
-            phone: nil, url: nil, category: nil, timeZone: mark.timeZone?.identifier,
+            street: street.isEmpty ? nil : street,
+            city: mark.locality,
+            state: mark.administrativeArea,
+            postalCode: mark.postalCode,
+            country: mark.country,
+            countryCode: mark.isoCountryCode,
+            phone: nil,
+            url: nil,
+            category: nil,
+            timeZone: mark.timeZone?.identifier,
             mapsURL: mapsURL(coordinate: loc.coordinate, name: mark.name)
         )
     }
 
     static func categoryName(_ category: MKPointOfInterestCategory) -> String {
-        poiCategories.first { $0.value == category }?.key ?? category.rawValue.replacingOccurrences(of: "MKPOICategory", with: "").lowercased()
+        poiCategories.first { $0.value == category }?.key
+            ?? category.rawValue.replacingOccurrences(of: "MKPOICategory", with: "").lowercased()
     }
 }

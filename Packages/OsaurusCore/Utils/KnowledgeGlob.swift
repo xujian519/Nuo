@@ -35,7 +35,7 @@ public enum KnowledgeGlob {
         let pattern = normalize(rawPattern)
         guard !pattern.isEmpty else { return false }
         guard let regex = compiledCache.regex(for: pattern) else { return false }
-        let range = NSRange(path.startIndex..<path.endIndex, in: path)
+        let range = NSRange(path.startIndex ..< path.endIndex, in: path)
         return regex.firstMatch(in: path, options: [], range: range) != nil
     }
 

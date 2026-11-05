@@ -117,7 +117,13 @@ struct StringCleaningTests {
         while i < chars.count {
             let c = chars[i]
             if inString {
-                if escaped { escaped = false } else if c == "\\" { escaped = true } else if c == "\"" { inString = false }
+                if escaped {
+                    escaped = false
+                } else if c == "\\" {
+                    escaped = true
+                } else if c == "\"" {
+                    inString = false
+                }
             } else if c == "\"" {
                 inString = true
             } else if c == "{" {

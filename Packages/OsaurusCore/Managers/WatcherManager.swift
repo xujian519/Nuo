@@ -607,7 +607,7 @@ public final class WatcherManager {
                     // narrate a spurious missing-file problem.
                     changedPaths =
                         (Array(diff.added.union(diff.modified))
-                            + diff.removed.map { "\($0) (removed)" })
+                        + diff.removed.map { "\($0) (removed)" })
                         .sorted()
                 } else {
                     changeCount = fingerprint.entries.count
@@ -772,9 +772,11 @@ public final class WatcherManager {
     /// format and read as injected instructions. Control characters are
     /// stripped and the name is backtick-quoted as data.
     static func promptLine(forChangedPath path: String) -> String {
-        let cleaned = String(path.unicodeScalars.map { scalar in
-            CharacterSet.controlCharacters.contains(scalar) ? " " : Character(scalar)
-        })
+        let cleaned = String(
+            path.unicodeScalars.map { scalar in
+                CharacterSet.controlCharacters.contains(scalar) ? " " : Character(scalar)
+            }
+        )
         return "- `\(cleaned)`\n"
     }
 

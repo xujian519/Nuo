@@ -425,7 +425,10 @@ struct RenderChartToolTests {
         #expect(first.hasPrefix("webdata:"))
         #expect(first.count < 24)
         #expect(first.dropFirst("webdata:".count).allSatisfy { $0.isASCII && $0.isLetter || $0.isNumber })
-        #expect(await SearchStructuredDataStore.shared.load(reference: first, sessionId: sessionId)?.raw.contains("128.10") == true)
+        #expect(
+            await SearchStructuredDataStore.shared.load(reference: first, sessionId: sessionId)?.raw.contains("128.10")
+                == true
+        )
         #expect(await SearchStructuredDataStore.shared.load(reference: first, sessionId: "other-session") == nil)
     }
 

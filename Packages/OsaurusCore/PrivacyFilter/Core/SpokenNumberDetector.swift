@@ -80,7 +80,8 @@ enum SpokenDigitRuns {
 
     static func find(in text: String) -> [Run] {
         let nsText = text as NSString
-        let words: [(range: NSRange, text: String)] = word
+        let words: [(range: NSRange, text: String)] =
+            word
             .matches(in: text, range: NSRange(location: 0, length: nsText.length))
             .map { ($0.range, nsText.substring(with: $0.range).lowercased()) }
 

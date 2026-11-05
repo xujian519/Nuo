@@ -116,9 +116,11 @@ struct AgentChannelLiveProofReadinessTests {
         )
 
         #expect(report.status == .blocked)
-        #expect(report.blockers == [
-            "Verify Telegram webhook state before long polling proof: network unavailable",
-        ])
+        #expect(
+            report.blockers == [
+                "Verify Telegram webhook state before long polling proof: network unavailable"
+            ]
+        )
     }
 
     @Test func telegramBlankAllowlistEntriesDoNotCountAsSecurityProof() {
@@ -157,7 +159,7 @@ struct AgentChannelLiveProofReadinessTests {
                 appTokenSaved: false,
                 identity: .fixture,
                 configuredTeams: [
-                    SlackConfiguredTeamDiagnostic(id: "T12345", name: "Example", status: "accessible", reason: nil),
+                    SlackConfiguredTeamDiagnostic(id: "T12345", name: "Example", status: "accessible", reason: nil)
                 ],
                 readableChannelIds: ["C12345"],
                 writableChannelIds: [],
@@ -182,7 +184,7 @@ struct AgentChannelLiveProofReadinessTests {
                 appTokenSaved: true,
                 identity: .fixture,
                 configuredTeams: [
-                    SlackConfiguredTeamDiagnostic(id: "T12345", name: "Example", status: "accessible", reason: nil),
+                    SlackConfiguredTeamDiagnostic(id: "T12345", name: "Example", status: "accessible", reason: nil)
                 ],
                 readableChannelIds: ["C12345"],
                 writableChannelIds: ["C12345"],
@@ -210,7 +212,7 @@ struct AgentChannelLiveProofReadinessTests {
                 appTokenSaved: true,
                 identity: .fixture,
                 configuredTeams: [
-                    SlackConfiguredTeamDiagnostic(id: "T12345", name: "Example", status: "accessible", reason: nil),
+                    SlackConfiguredTeamDiagnostic(id: "T12345", name: "Example", status: "accessible", reason: nil)
                 ],
                 readableChannelIds: ["C12345"],
                 writableChannelIds: [],

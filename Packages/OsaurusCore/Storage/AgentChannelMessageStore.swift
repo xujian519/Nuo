@@ -203,7 +203,8 @@ public struct AgentChannelAuditRecord: Codable, Sendable, Equatable, Identifiabl
             providerEventId ?? providerMessageId ?? action,
             String(createdAt.timeIntervalSince1970),
         ]
-        return "synthetic:" + components
+        return "synthetic:"
+            + components
             .map { Data($0.utf8).base64EncodedString() }
             .joined(separator: ".")
     }
@@ -272,7 +273,10 @@ public enum AgentChannelAuditRedactor {
             (#"://[^/\s:@]+:[^/\s@]+@"#, "://[redacted-credentials]@"),
             (#"(?i)\b(bearer\s+)[A-Za-z0-9._~+/=-]{8,}"#, "$1[redacted-token]"),
             (#"(?i)\b(api[_-]?key|password|token|secret)\s*[:=]\s*["']?[^"'\s,;]{6,}"#, "$1=[redacted-secret]"),
-            (#"(?i)\b(sk-[A-Za-z0-9_-]{8,}|xox[baprs]-[A-Za-z0-9-]{8,}|gh[pousr]_[A-Za-z0-9_]{8,})\b"#, "[redacted-token]"),
+            (
+                #"(?i)\b(sk-[A-Za-z0-9_-]{8,}|xox[baprs]-[A-Za-z0-9-]{8,}|gh[pousr]_[A-Za-z0-9_]{8,})\b"#,
+                "[redacted-token]"
+            ),
             (#"\b[A-Za-z0-9_-]{24}\.[A-Za-z0-9_-]{6}\.[A-Za-z0-9_-]{27,}\b"#, "[redacted-discord-token]"),
             (#"\bAKIA[0-9A-Z]{16}\b"#, "[redacted-aws-key]"),
             (#"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b"#, "[redacted-jwt]"),
@@ -281,10 +285,12 @@ public enum AgentChannelAuditRedactor {
         ]
 
         for replacement in replacements {
-            guard let expression = try? NSRegularExpression(
-                pattern: replacement.pattern,
-                options: [.caseInsensitive]
-            ) else {
+            guard
+                let expression = try? NSRegularExpression(
+                    pattern: replacement.pattern,
+                    options: [.caseInsensitive]
+                )
+            else {
                 continue
             }
             let range = NSRange(redacted.startIndex ..< redacted.endIndex, in: redacted)
@@ -296,7 +302,8 @@ public enum AgentChannelAuditRedactor {
             )
         }
 
-        let collapsed = redacted
+        let collapsed =
+            redacted
             .components(separatedBy: .whitespacesAndNewlines)
             .filter { !$0.isEmpty }
             .joined(separator: " ")
@@ -1032,7 +1039,8 @@ public final class AgentChannelMessageStore: @unchecked Sendable {
             },
             process: { stmt in
                 while sqlite3_step(stmt) == SQLITE_ROW {
-                    let latest = sqlite3_column_type(stmt, 3) == SQLITE_NULL
+                    let latest =
+                        sqlite3_column_type(stmt, 3) == SQLITE_NULL
                         ? nil
                         : Date(timeIntervalSince1970: sqlite3_column_double(stmt, 3))
                     rows.append(
@@ -1061,47 +1069,50 @@ public final class AgentChannelMessageStore: @unchecked Sendable {
     ) throws -> (intent: AgentChannelOutboundIntent, inserted: Bool) {
         try queue.sync {
             guard db != nil else { throw AgentChannelMessageStoreError.notOpen }
-            let inserted = try executeUpdateOnQueue(
-                """
-                INSERT OR IGNORE INTO channel_outbound_intents (
-                    id, agent_id, binding_id, connection_id, room_id, thread_id,
-                    intent_key, content, status, provider_message_id,
-                    failure_code, failure_message, run_source, session_id,
-                    created_at, updated_at
-                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
-                """
-            ) { stmt in
-                Self.bindText(stmt, index: 1, value: intent.id)
-                Self.bindText(stmt, index: 2, value: intent.agentId.uuidString)
-                Self.bindText(stmt, index: 3, value: Self.normalizedId(intent.bindingId))
-                Self.bindText(stmt, index: 4, value: Self.normalizedId(intent.connectionId))
-                Self.bindText(stmt, index: 5, value: Self.normalizedId(intent.roomId))
-                Self.bindText(stmt, index: 6, value: Self.normalizedOptionalId(intent.threadId))
-                Self.bindText(stmt, index: 7, value: Self.normalizedId(intent.intentKey))
-                Self.bindText(stmt, index: 8, value: intent.content)
-                Self.bindText(stmt, index: 9, value: intent.status.rawValue)
-                Self.bindText(stmt, index: 10, value: Self.normalizedOptionalId(intent.providerMessageId))
-                Self.bindText(stmt, index: 11, value: Self.normalizedOptionalId(intent.failureCode))
-                Self.bindText(
-                    stmt,
-                    index: 12,
-                    value: intent.failureMessage.flatMap {
-                        AgentChannelAuditRedactor.redactedPreview($0, maxLength: 160)
-                    }
-                )
-                Self.bindText(stmt, index: 13, value: Self.normalizedOptionalId(intent.runSource))
-                Self.bindText(stmt, index: 14, value: Self.normalizedOptionalId(intent.sessionId))
-                sqlite3_bind_double(stmt, 15, intent.createdAt.timeIntervalSince1970)
-                sqlite3_bind_double(stmt, 16, intent.updatedAt.timeIntervalSince1970)
-            } > 0
+            let inserted =
+                try executeUpdateOnQueue(
+                    """
+                    INSERT OR IGNORE INTO channel_outbound_intents (
+                        id, agent_id, binding_id, connection_id, room_id, thread_id,
+                        intent_key, content, status, provider_message_id,
+                        failure_code, failure_message, run_source, session_id,
+                        created_at, updated_at
+                    ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
+                    """
+                ) { stmt in
+                    Self.bindText(stmt, index: 1, value: intent.id)
+                    Self.bindText(stmt, index: 2, value: intent.agentId.uuidString)
+                    Self.bindText(stmt, index: 3, value: Self.normalizedId(intent.bindingId))
+                    Self.bindText(stmt, index: 4, value: Self.normalizedId(intent.connectionId))
+                    Self.bindText(stmt, index: 5, value: Self.normalizedId(intent.roomId))
+                    Self.bindText(stmt, index: 6, value: Self.normalizedOptionalId(intent.threadId))
+                    Self.bindText(stmt, index: 7, value: Self.normalizedId(intent.intentKey))
+                    Self.bindText(stmt, index: 8, value: intent.content)
+                    Self.bindText(stmt, index: 9, value: intent.status.rawValue)
+                    Self.bindText(stmt, index: 10, value: Self.normalizedOptionalId(intent.providerMessageId))
+                    Self.bindText(stmt, index: 11, value: Self.normalizedOptionalId(intent.failureCode))
+                    Self.bindText(
+                        stmt,
+                        index: 12,
+                        value: intent.failureMessage.flatMap {
+                            AgentChannelAuditRedactor.redactedPreview($0, maxLength: 160)
+                        }
+                    )
+                    Self.bindText(stmt, index: 13, value: Self.normalizedOptionalId(intent.runSource))
+                    Self.bindText(stmt, index: 14, value: Self.normalizedOptionalId(intent.sessionId))
+                    sqlite3_bind_double(stmt, 15, intent.createdAt.timeIntervalSince1970)
+                    sqlite3_bind_double(stmt, 16, intent.updatedAt.timeIntervalSince1970)
+                } > 0
             if inserted {
                 return (intent, true)
             }
-            guard let existing = try outboundIntentOnQueue(
-                agentId: intent.agentId,
-                bindingId: intent.bindingId,
-                intentKey: intent.intentKey
-            ) else {
+            guard
+                let existing = try outboundIntentOnQueue(
+                    agentId: intent.agentId,
+                    bindingId: intent.bindingId,
+                    intentKey: intent.intentKey
+                )
+            else {
                 throw AgentChannelMessageStoreError.failedToExecute(
                     "outbound intent insert conflicted but existing row not found"
                 )
@@ -1275,7 +1286,8 @@ public final class AgentChannelMessageStore: @unchecked Sendable {
             },
             process: { stmt in
                 if sqlite3_step(stmt) == SQLITE_ROW,
-                    sqlite3_column_type(stmt, 0) != SQLITE_NULL {
+                    sqlite3_column_type(stmt, 0) != SQLITE_NULL
+                {
                     last = Date(timeIntervalSince1970: sqlite3_column_double(stmt, 0))
                 }
             }
@@ -1977,8 +1989,8 @@ public final class AgentChannelMessageStore: @unchecked Sendable {
 
     private static func attachmentsJSON(_ attachments: [AgentChannelStoredAttachment]) -> String {
         guard !attachments.isEmpty,
-              let data = try? JSONEncoder().encode(attachments),
-              let string = String(data: data, encoding: .utf8)
+            let data = try? JSONEncoder().encode(attachments),
+            let string = String(data: data, encoding: .utf8)
         else {
             return "[]"
         }
@@ -1987,10 +1999,10 @@ public final class AgentChannelMessageStore: @unchecked Sendable {
 
     private static func attachments(from json: String?) -> [AgentChannelStoredAttachment] {
         guard let data = json?.data(using: .utf8),
-              let attachments = try? JSONDecoder().decode(
-                  [AgentChannelStoredAttachment].self,
-                  from: data
-              )
+            let attachments = try? JSONDecoder().decode(
+                [AgentChannelStoredAttachment].self,
+                from: data
+            )
         else {
             return []
         }

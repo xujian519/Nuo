@@ -741,7 +741,8 @@ struct MemoryView: View {
         MemorySectionCard(title: L("Projects"), icon: "folder") {
             VStack(spacing: 0) {
                 ForEach(Array(projectMemoryCounts.enumerated()), id: \.element.namespaceKey) {
-                    index, entry in
+                    index,
+                    entry in
                     if index > 0 {
                         Divider().opacity(0.5)
                     }
@@ -815,7 +816,8 @@ struct MemoryView: View {
         var blocks: [String] = []
         if !facts.isEmpty {
             blocks.append(
-                "## Things I remember\n" + facts.map { "- \($0.content)" }.joined(separator: "\n"))
+                "## Things I remember\n" + facts.map { "- \($0.content)" }.joined(separator: "\n")
+            )
         }
         if !episodes.isEmpty {
             let lines = episodes.map { ep in

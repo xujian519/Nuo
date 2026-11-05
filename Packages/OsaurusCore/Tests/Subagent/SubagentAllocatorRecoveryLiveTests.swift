@@ -6,7 +6,11 @@ import Testing
 
 /// Opt-in, model-free Metal proof. Run alone with a matching metallib beside
 /// the test executable; ordinary CI must not allocate GPU buffers here.
-@Suite("Live allocator recovery", .serialized, .enabled(if: ProcessInfo.processInfo.environment["OSAURUS_ADMISSION_ALLOCATOR_PROOF"] == "1"))
+@Suite(
+    "Live allocator recovery",
+    .serialized,
+    .enabled(if: ProcessInfo.processInfo.environment["OSAURUS_ADMISSION_ALLOCATOR_PROOF"] == "1")
+)
 struct SubagentAllocatorRecoveryLiveTests {
     @Test("real freed buffers return to MLX while a live array survives")
     func freedBuffersAreReclaimed() async {
@@ -34,7 +38,9 @@ struct SubagentAllocatorRecoveryLiveTests {
         #expect(after < before)
         #expect(Memory.activeMemory == active)
         #expect(retained.asArray(Int32.self) == [11, 22, 33])
-        print("ALLOCATOR_PROOF cached_before=\(before) cached_after=\(after) active_bytes=\(active) reclaimable_before=\(availableBefore) reclaimable_after=\(availableAfter)")
+        print(
+            "ALLOCATOR_PROOF cached_before=\(before) cached_after=\(after) active_bytes=\(active) reclaimable_before=\(availableBefore) reclaimable_after=\(availableAfter)"
+        )
         // Another admission may have sampled its refusal BEFORE the trim
         // above. Completing a second drain must request fresh facts even
         // though this attempt has no remaining pool bytes to free itself.

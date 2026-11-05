@@ -108,7 +108,10 @@ struct AgentWorkingFolderTests {
             AgentManager.shared.add(agent)
             defer { Task { _ = await AgentManager.shared.delete(id: agent.id) } }
             AgentManager.shared.updateWorkingFolder(
-                for: agent.id, bookmark: Data([1]), path: "/tmp/somewhere")
+                for: agent.id,
+                bookmark: Data([1]),
+                path: "/tmp/somewhere"
+            )
             #expect(AgentManager.shared.workingFolder(for: agent.id) != nil)
 
             AgentManager.shared.clearWorkingFolder(for: agent.id)
@@ -146,7 +149,10 @@ struct AgentWorkingFolderTests {
             defer { DefaultAgentConfigurationStore.save(before) }
 
             AgentManager.shared.updateWorkingFolder(
-                for: Agent.defaultId, bookmark: Data([7]), path: "/tmp/default")
+                for: Agent.defaultId,
+                bookmark: Data([7]),
+                path: "/tmp/default"
+            )
             let folder = AgentManager.shared.workingFolder(for: Agent.defaultId)
             #expect(folder?.bookmark == Data([7]))
             #expect(folder?.path == "/tmp/default")
@@ -178,7 +184,10 @@ struct AgentWorkingFolderTests {
             defer { Task { _ = await AgentManager.shared.delete(id: agent.id) } }
             let bookmark = Data([0xA, 0xB])
             AgentManager.shared.updateWorkingFolder(
-                for: agent.id, bookmark: bookmark, path: "/Users/tester/agent-folder")
+                for: agent.id,
+                bookmark: bookmark,
+                path: "/Users/tester/agent-folder"
+            )
 
             for source in [
                 SessionSource.schedule, .watcher, .selfSchedule, .delegation, .http, .channel,
@@ -205,12 +214,17 @@ struct AgentWorkingFolderTests {
             AgentManager.shared.add(agent)
             defer { Task { _ = await AgentManager.shared.delete(id: agent.id) } }
             AgentManager.shared.updateWorkingFolder(
-                for: agent.id, bookmark: Data([1, 1]), path: "/Users/tester/agent-folder")
+                for: agent.id,
+                bookmark: Data([1, 1]),
+                path: "/Users/tester/agent-folder"
+            )
 
             // Bookmark + path (GUI Watcher / Schedule).
             let full = DispatchRequest(
-                prompt: "go", agentId: agent.id,
-                folderPath: "/Users/tester/watched", folderBookmark: Data([2, 2]),
+                prompt: "go",
+                agentId: agent.id,
+                folderPath: "/Users/tester/watched",
+                folderBookmark: Data([2, 2]),
                 source: .watcher
             )
             let resolvedFull = BackgroundTaskManager.resolveDispatchFolder(for: full)
@@ -219,7 +233,10 @@ struct AgentWorkingFolderTests {
 
             // Path only (orchestrator-created Watcher).
             let pathOnly = DispatchRequest(
-                prompt: "go", agentId: agent.id, folderPath: "/Users/tester/inbox", source: .watcher
+                prompt: "go",
+                agentId: agent.id,
+                folderPath: "/Users/tester/inbox",
+                source: .watcher
             )
             let resolvedPath = BackgroundTaskManager.resolveDispatchFolder(for: pathOnly)
             #expect(resolvedPath?.bookmark == nil)
@@ -227,7 +244,10 @@ struct AgentWorkingFolderTests {
 
             // Bookmark only (plugin `folder_bookmark`).
             let bookmarkOnly = DispatchRequest(
-                prompt: "go", agentId: agent.id, folderBookmark: Data([3, 3]), source: .plugin
+                prompt: "go",
+                agentId: agent.id,
+                folderBookmark: Data([3, 3]),
+                source: .plugin
             )
             let resolvedBookmark = BackgroundTaskManager.resolveDispatchFolder(for: bookmarkOnly)
             #expect(resolvedBookmark?.bookmark == Data([3, 3]))
@@ -271,7 +291,9 @@ struct AgentWorkingFolderTests {
     func dispatch_inheritedFolderActivatesOnTheRun() async throws {
         try await ChatHistoryTestStorage.run {
             let dir = FileManager.default.temporaryDirectory.appendingPathComponent(
-                "osaurus-agent-folder-\(UUID().uuidString.prefix(8))", isDirectory: true)
+                "osaurus-agent-folder-\(UUID().uuidString.prefix(8))",
+                isDirectory: true
+            )
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             defer { try? FileManager.default.removeItem(at: dir) }
             let agent = makeAgent()
@@ -287,7 +309,8 @@ struct AgentWorkingFolderTests {
             defer { session.folderState.clearFolder() }
             #expect(
                 session.folderState.rootPath?.standardizedFileURL.resolvingSymlinksInPath().path
-                    == dir.standardizedFileURL.resolvingSymlinksInPath().path)
+                    == dir.standardizedFileURL.resolvingSymlinksInPath().path
+            )
             // Same contract as an explicit Watcher/Schedule folder: the run
             // must see this folder even for a sandbox-default agent.
             #expect(session.folderContextFromDispatchBookmark)
@@ -298,7 +321,9 @@ struct AgentWorkingFolderTests {
     func reattach_noResolvedFolder_clearsSessionFolder() async throws {
         try await ChatHistoryTestStorage.run {
             let stale = FileManager.default.temporaryDirectory.appendingPathComponent(
-                "osaurus-stale-folder-\(UUID().uuidString.prefix(8))", isDirectory: true)
+                "osaurus-stale-folder-\(UUID().uuidString.prefix(8))",
+                isDirectory: true
+            )
             try FileManager.default.createDirectory(at: stale, withIntermediateDirectories: true)
             defer { try? FileManager.default.removeItem(at: stale) }
 
@@ -331,9 +356,13 @@ struct AgentWorkingFolderTests {
     func reattach_resolvedFolder_overridesSessionFolder() async throws {
         try await ChatHistoryTestStorage.run {
             let stale = FileManager.default.temporaryDirectory.appendingPathComponent(
-                "osaurus-stale-folder-\(UUID().uuidString.prefix(8))", isDirectory: true)
+                "osaurus-stale-folder-\(UUID().uuidString.prefix(8))",
+                isDirectory: true
+            )
             let current = FileManager.default.temporaryDirectory.appendingPathComponent(
-                "osaurus-current-folder-\(UUID().uuidString.prefix(8))", isDirectory: true)
+                "osaurus-current-folder-\(UUID().uuidString.prefix(8))",
+                isDirectory: true
+            )
             try FileManager.default.createDirectory(at: stale, withIntermediateDirectories: true)
             try FileManager.default.createDirectory(at: current, withIntermediateDirectories: true)
             defer {
@@ -366,7 +395,8 @@ struct AgentWorkingFolderTests {
             #expect(
                 context.chatSession.folderState.rootPath?.standardizedFileURL
                     .resolvingSymlinksInPath().path
-                    == current.standardizedFileURL.resolvingSymlinksInPath().path)
+                    == current.standardizedFileURL.resolvingSymlinksInPath().path
+            )
             #expect(context.chatSession.folderContextFromDispatchBookmark)
         }
     }

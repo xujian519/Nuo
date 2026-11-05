@@ -32,7 +32,11 @@ private func residencySnapshot(
     idleDecisionID: UInt64? = nil
 ) -> ModelRuntimeResidencySnapshot {
     ModelRuntimeResidencySnapshot(
-        names: names, revision: revision, reason: reason, idleDecisionID: idleDecisionID)
+        names: names,
+        revision: revision,
+        reason: reason,
+        idleDecisionID: idleDecisionID
+    )
 }
 
 private func activationSnapshot(
@@ -43,7 +47,8 @@ private func activationSnapshot(
 ) -> ModelRuntimeChatActivationResidencySnapshot {
     ModelRuntimeChatActivationResidencySnapshot(
         residency: residencySnapshot(names: names, revision: revision, reason: reason),
-        recoverableIdleDecisionID: recoverableIdleDecisionID)
+        recoverableIdleDecisionID: recoverableIdleDecisionID
+    )
 }
 
 @Suite("ChatConfiguration warmModelsOnLoad is retired")
@@ -51,11 +56,17 @@ struct ChatConfigurationWarmModelsOnLoadTests {
     @Test("legacy values absent, true and false all decode")
     func legacyValuesDecode() throws {
         let absent = try JSONDecoder().decode(
-            ChatConfiguration.self, from: Data(#"{"systemPrompt":""}"#.utf8))
+            ChatConfiguration.self,
+            from: Data(#"{"systemPrompt":""}"#.utf8)
+        )
         let on = try JSONDecoder().decode(
-            ChatConfiguration.self, from: Data(#"{"systemPrompt":"","warmModelsOnLoad":true}"#.utf8))
+            ChatConfiguration.self,
+            from: Data(#"{"systemPrompt":"","warmModelsOnLoad":true}"#.utf8)
+        )
         let off = try JSONDecoder().decode(
-            ChatConfiguration.self, from: Data(#"{"systemPrompt":"","warmModelsOnLoad":false}"#.utf8))
+            ChatConfiguration.self,
+            from: Data(#"{"systemPrompt":"","warmModelsOnLoad":false}"#.utf8)
+        )
         #expect(absent.warmModelsOnLoad == true)
         #expect(on.warmModelsOnLoad == true)
         #expect(off.warmModelsOnLoad == false)
@@ -145,7 +156,11 @@ struct ChatWarmupControllerLazyLoadTests {
         let controller = ChatWarmupController()
         controller.chatActivationResidencySnapshot = { model in
             activationSnapshot(
-                names: ["org/test-model"], revision: 5, reason: .idlePolicy, recoverableIdleDecisionID: 42)
+                names: ["org/test-model"],
+                revision: 5,
+                reason: .idlePolicy,
+                recoverableIdleDecisionID: 42
+            )
         }
         controller.handleSessionBecameActive(session: session)
         await controller.awaitSessionActivation()
@@ -191,15 +206,24 @@ struct ChatWarmupControllerLazyLoadTests {
         session.selectedModel = "org/test-model"
         let controller = ChatWarmupController()
         controller.handleRuntimeResidencyChanged(
-            session: session, snapshot: residencySnapshot(names: ["test-model"], revision: 5), isSessionActive: true)
+            session: session,
+            snapshot: residencySnapshot(names: ["test-model"], revision: 5),
+            isSessionActive: true
+        )
         #expect(controller.selectedModelResident, "tail name matches the canonical selection")
         // Older revision: ignored.
         controller.handleRuntimeResidencyChanged(
-            session: session, snapshot: residencySnapshot(names: [], revision: 4), isSessionActive: true)
+            session: session,
+            snapshot: residencySnapshot(names: [], revision: 4),
+            isSessionActive: true
+        )
         #expect(controller.selectedModelResident)
         // Newer revision without the model: dot goes gray.
         controller.handleRuntimeResidencyChanged(
-            session: session, snapshot: residencySnapshot(names: ["org/another"], revision: 6), isSessionActive: true)
+            session: session,
+            snapshot: residencySnapshot(names: ["org/another"], revision: 6),
+            isSessionActive: true
+        )
         #expect(!controller.selectedModelResident)
         #expect(ChatWarmupController.isSelectedModelResident("org/test-model", in: ["TEST-MODEL"]))
         #expect(!ChatWarmupController.isSelectedModelResident("org/test-model", in: ["org/test-model-2"]))

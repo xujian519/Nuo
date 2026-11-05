@@ -42,7 +42,8 @@ struct SpawnToolTests {
         // spawned knowledge agent would be silently tool-less.
         let knowledge = Set(
             TextSubagentKind.childToolNames(
-                manual: [], capabilities: capabilities(knowledge: true)
+                manual: [],
+                capabilities: capabilities(knowledge: true)
             )
         )
         #expect(knowledge.contains("list_knowledge"))
@@ -60,7 +61,8 @@ struct SpawnToolTests {
         // The curator flag is inert; it can no longer widen a child's tools.
         let curator = Set(
             TextSubagentKind.childToolNames(
-                manual: [], capabilities: capabilities(knowledge: true, curator: true)
+                manual: [],
+                capabilities: capabilities(knowledge: true, curator: true)
             )
         )
         #expect(curator == knowledge)
@@ -72,7 +74,8 @@ struct SpawnToolTests {
         // left the spawned helper unable to search despite the toggle.)
         let webSearch = Set(
             TextSubagentKind.childToolNames(
-                manual: ["read_file"], capabilities: capabilities(webSearch: true)
+                manual: ["read_file"],
+                capabilities: capabilities(webSearch: true)
             )
         )
         #expect(webSearch.contains("web_search"))
@@ -84,7 +87,8 @@ struct SpawnToolTests {
         // worker's only artifact-delivery path).
         let plain = Set(
             TextSubagentKind.childToolNames(
-                manual: ["read_file"], capabilities: capabilities()
+                manual: ["read_file"],
+                capabilities: capabilities()
             )
         )
         #expect(plain == ["calculate", "get_current_time", "read_file", "share_artifact"])
@@ -403,7 +407,7 @@ struct SpawnToolTests {
             modelName: "scripted-reasoning-tool-model",
             seedMessages: [
                 ChatMessage(role: "system", content: "Use tools when needed."),
-                ChatMessage(role: "user", content: "Look up the value, then answer.")
+                ChatMessage(role: "user", content: "Look up the value, then answer."),
             ],
             maxTokens: 64,
             maxIterations: 3,

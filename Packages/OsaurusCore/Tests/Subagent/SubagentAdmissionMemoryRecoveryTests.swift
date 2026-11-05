@@ -25,12 +25,16 @@ struct SubagentAdmissionMemoryRecoveryTests {
     func reporterRepeatedChildrenThenLowHostMemory() async {
         let admission = SubagentAdmission(pollNanoseconds: 1_000_000)
         let oneChildThreshold: UInt64 = 3_758_096_384
-        for _ in 0..<3 {
+        for _ in 0 ..< 3 {
             let capacity = plan(reporterFacts(reclaimable: oneChildThreshold)).localCapacity
             #expect(capacity == 1)
-            #expect(await admission.reserveLocalInPlace(
-                modelKey: "gemma-4-e2b-it-8bit", requestedSlots: 1, slotCapacity: capacity
-            ) == .admitted(slots: 1))
+            #expect(
+                await admission.reserveLocalInPlace(
+                    modelKey: "gemma-4-e2b-it-8bit",
+                    requestedSlots: 1,
+                    slotCapacity: capacity
+                ) == .admitted(slots: 1)
+            )
             await admission.releaseLocalInPlace(modelKey: "gemma-4-e2b-it-8bit", slots: 1)
             #expect(await admission.snapshot().inPlace == 0)
         }
@@ -55,8 +59,10 @@ struct SubagentAdmissionMemoryRecoveryTests {
                     samples += 1
                     return samples == 1 ? reporterFacts() : reporterFacts(reclaimable: freshBytes)
                 },
-                reclaim: { trims += 1; return true },
-                waitForPostReclaimSample: {} // The real delayed-sample contract is tested below.
+                reclaim: {
+                    trims += 1; return true
+                },
+                waitForPostReclaimSample: {}  // The real delayed-sample contract is tested below.
             )
             #expect(samples == 2)
             #expect(trims == 1)
@@ -82,7 +88,9 @@ struct SubagentAdmissionMemoryRecoveryTests {
                 else { return before }
                 return after
             },
-            reclaim: { releasedAt = .now; return true }
+            reclaim: {
+                releasedAt = .now; return true
+            }
         )
         #expect(samples == 2)
         #expect(recovered == after)
@@ -96,7 +104,9 @@ struct SubagentAdmissionMemoryRecoveryTests {
             let before = facts(availableMiB: 3_328)
             let result = await SubagentBatchAdmissionPlanner.memoryFactsAfterReclaimingIfNeeded(
                 ramSafetyEnabled: true,
-                sample: { samples += 1; return before },
+                sample: {
+                    samples += 1; return before
+                },
                 reclaim: { true },
                 waitForPostReclaimSample: {
                     withUnsafeCurrentTask { $0?.cancel() }
@@ -125,17 +135,24 @@ struct SubagentAdmissionMemoryRecoveryTests {
     }
 
     private func plan(_ facts: SubagentBatchMemoryFacts?) -> SubagentBatchAdmissionPlan {
-        SubagentBatchAdmissionPlanner.plan(.init(
-            localJobCount: 1, remoteJobCount: 0, agentParallelLimit: 1,
-            engineParallelLimit: 1, continuousBatchingEnabled: false,
-            ramSafetyEnabled: true, failClosedWhenEstimateUnknown: true, memory: facts
-        ))
+        SubagentBatchAdmissionPlanner.plan(
+            .init(
+                localJobCount: 1,
+                remoteJobCount: 0,
+                agentParallelLimit: 1,
+                engineParallelLimit: 1,
+                continuousBatchingEnabled: false,
+                ramSafetyEnabled: true,
+                failClosedWhenEstimateUnknown: true,
+                memory: facts
+            )
+        )
     }
 
     @Test("first and sequential child remeasure actual memory after freed-buffer release")
     func sequentialRecovery() async throws {
         let admission = SubagentAdmission(pollNanoseconds: 1_000_000)
-        for _ in 0..<2 {
+        for _ in 0 ..< 2 {
             let before = facts(availableMiB: 3_328)
             let after = facts(availableMiB: 4_352)
             #expect(plan(before).localCapacity == 0)
@@ -143,8 +160,12 @@ struct SubagentAdmissionMemoryRecoveryTests {
             var trims = 0
             let recovered = await SubagentBatchAdmissionPlanner.memoryFactsAfterReclaimingIfNeeded(
                 ramSafetyEnabled: true,
-                sample: { samples += 1; return samples == 1 ? before : after },
-                reclaim: { trims += 1; return true }
+                sample: {
+                    samples += 1; return samples == 1 ? before : after
+                },
+                reclaim: {
+                    trims += 1; return true
+                }
             )
             #expect(samples == 2)
             #expect(trims == 1)
@@ -172,8 +193,12 @@ struct SubagentAdmissionMemoryRecoveryTests {
         var trims = 0
         let result = await SubagentBatchAdmissionPlanner.memoryFactsAfterReclaimingIfNeeded(
             ramSafetyEnabled: true,
-            sample: { samples += 1; return unsafe },
-            reclaim: { trims += 1; return trimmed }
+            sample: {
+                samples += 1; return unsafe
+            },
+            reclaim: {
+                trims += 1; return trimmed
+            }
         )
         #expect(plan(result).verdict == .rejected(.insufficientMemory))
         #expect(trims == 1)
@@ -192,8 +217,12 @@ struct SubagentAdmissionMemoryRecoveryTests {
             var trims = 0
             let result = await SubagentBatchAdmissionPlanner.memoryFactsAfterReclaimingIfNeeded(
                 ramSafetyEnabled: enabled,
-                sample: { samples += 1; return memory },
-                reclaim: { trims += 1; return true }
+                sample: {
+                    samples += 1; return memory
+                },
+                reclaim: {
+                    trims += 1; return true
+                }
             )
             #expect(result == memory)
             #expect(samples == 1)
@@ -206,7 +235,9 @@ struct SubagentAdmissionMemoryRecoveryTests {
         var samples = 0
         let result = await SubagentBatchAdmissionPlanner.memoryFactsAfterReclaimingIfNeeded(
             ramSafetyEnabled: true,
-            sample: { samples += 1; return samples == 1 ? facts(availableMiB: 3_328) : nil },
+            sample: {
+                samples += 1; return samples == 1 ? facts(availableMiB: 3_328) : nil
+            },
             reclaim: { true }
         )
         #expect(samples == 2)
@@ -237,8 +268,12 @@ struct SubagentAdmissionMemoryRecoveryTests {
             var trims = 0
             _ = await SubagentBatchAdmissionPlanner.memoryFactsAfterReclaimingIfNeeded(
                 ramSafetyEnabled: true,
-                sample: { samples += 1; return facts(availableMiB: 3_328) },
-                reclaim: { trims += 1; return true }
+                sample: {
+                    samples += 1; return facts(availableMiB: 3_328)
+                },
+                reclaim: {
+                    trims += 1; return true
+                }
             )
             #expect(samples == 1)
             #expect(trims == 0)

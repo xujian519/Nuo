@@ -65,7 +65,7 @@ struct WalletActivityProjectorTests {
     }
 
     @Test func capsRowCountAtLimit() {
-        let items = (0..<10).map { i in
+        let items = (0 ..< 10).map { i in
             usage(id: "u\(i)", createdAt: Self.timestamp(offset: TimeInterval(i)))
         }
         let rows = WalletActivityProjector().rows(usageItems: items, transactions: [], limit: 4)

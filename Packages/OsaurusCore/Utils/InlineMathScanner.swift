@@ -124,8 +124,10 @@ enum InlineMathScanner {
                 var runLength = 0
                 while i + runLength < scalars.count, scalars[i + runLength] == "`" { runLength += 1 }
                 if let closeStart = findClosingBacktickRun(
-                    scalars, from: i + runLength, runLength: runLength)
-                {
+                    scalars,
+                    from: i + runLength,
+                    runLength: runLength
+                ) {
                     current += slice(i, closeStart + runLength)
                     i = closeStart + runLength
                 } else {
@@ -186,7 +188,9 @@ enum InlineMathScanner {
     /// Find the start of a backtick run of exactly `runLength`, closing a code span
     /// opened by a run of the same length.
     private static func findClosingBacktickRun(
-        _ scalars: [Unicode.Scalar], from start: Int, runLength: Int
+        _ scalars: [Unicode.Scalar],
+        from start: Int,
+        runLength: Int
     ) -> Int? {
         var j = start
         while j < scalars.count {

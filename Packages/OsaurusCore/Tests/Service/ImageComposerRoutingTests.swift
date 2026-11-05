@@ -3,12 +3,24 @@ import Testing
 @testable import OsaurusCore
 
 struct ImageComposerRoutingTests {
-    private func item(canonical: String = "qwen-image-2.1", kind: String = "imageGen", id: String = "custom-name") -> ModelPickerItem {
-        ModelPickerItem.fromImageModel(ImageModelInfo(id: id, canonicalName: canonical,
-            displayName: "Fixture", kind: kind, ready: true, quantizationBits: 8,
-            defaultSteps: 40, defaultGuidance: 1,
-            capabilities: ImageModelRequestPolicy.capabilities(kind: kind, canonical: canonical),
-            blockedReasons: [], totalBytes: 0))
+    private func item(canonical: String = "qwen-image-2.1", kind: String = "imageGen", id: String = "custom-name")
+        -> ModelPickerItem
+    {
+        ModelPickerItem.fromImageModel(
+            ImageModelInfo(
+                id: id,
+                canonicalName: canonical,
+                displayName: "Fixture",
+                kind: kind,
+                ready: true,
+                quantizationBits: 8,
+                defaultSteps: 40,
+                defaultGuidance: 1,
+                capabilities: ImageModelRequestPolicy.capabilities(kind: kind, canonical: canonical),
+                blockedReasons: [],
+                totalBytes: 0
+            )
+        )
     }
 
     @Test func dualModelRoutesTextToGenerateAndReferencesToEdit() throws {
@@ -20,7 +32,12 @@ struct ImageComposerRoutingTests {
         case .edit: Issue.record("dual model routed text-only request to edit")
         }
         let references = [Data([1]), Data([2]), Data([3])]
-        switch try ImageComposerRequestBuilder.build(item: model, prompt: "edit", sourceImages: references, settings: .init()) {
+        switch try ImageComposerRequestBuilder.build(
+            item: model,
+            prompt: "edit",
+            sourceImages: references,
+            settings: .init()
+        ) {
         case .edit(let p):
             #expect(p.sourceImages == references && p.strength == nil)
             #expect(p.width == nil && p.height == nil && p.steps == nil && p.guidance == nil)
@@ -31,12 +48,27 @@ struct ImageComposerRoutingTests {
     @Test func singleOperationFamiliesKeepTheirSourceRequirements() throws {
         let gen = item(canonical: "qwen-image"), edit = item(canonical: "qwen-image-edit", kind: "imageEdit")
         #expect(throws: ImageComposerRequestBuilder.RequestError.self) {
-            try ImageComposerRequestBuilder.build(item: gen, prompt: "wrong source", sourceImages: [Data()], settings: .init())
+            try ImageComposerRequestBuilder.build(
+                item: gen,
+                prompt: "wrong source",
+                sourceImages: [Data()],
+                settings: .init()
+            )
         }
         #expect(throws: ImageComposerRequestBuilder.RequestError.self) {
-            try ImageComposerRequestBuilder.build(item: edit, prompt: "missing source", sourceImages: [], settings: .init())
+            try ImageComposerRequestBuilder.build(
+                item: edit,
+                prompt: "missing source",
+                sourceImages: [],
+                settings: .init()
+            )
         }
-        switch try ImageComposerRequestBuilder.build(item: edit, prompt: "old edit", sourceImages: [Data()], settings: .init()) {
+        switch try ImageComposerRequestBuilder.build(
+            item: edit,
+            prompt: "old edit",
+            sourceImages: [Data()],
+            settings: .init()
+        ) {
         case .edit(let p):
             #expect(p.strength == 0.75 && p.width == 512 && p.height == 512)
             #expect(p.steps == 20 && p.guidance == 3.5)
@@ -45,16 +77,34 @@ struct ImageComposerRoutingTests {
     }
 
     @Test func explicitQwenValuesAreUncoercedAndUnsupportedFieldsAreRetained() throws {
-        let settings = ImageComposerSettings(negativePrompt: "blur", steps: 61, guidance: 25.5,
-            width: 1248, height: 832, seed: "18446744073709551615", strength: 0.75)
-        switch try ImageComposerRequestBuilder.build(item: item(), prompt: "explicit", sourceImages: [Data()], settings: settings) {
+        let settings = ImageComposerSettings(
+            negativePrompt: "blur",
+            steps: 61,
+            guidance: 25.5,
+            width: 1248,
+            height: 832,
+            seed: "18446744073709551615",
+            strength: 0.75
+        )
+        switch try ImageComposerRequestBuilder.build(
+            item: item(),
+            prompt: "explicit",
+            sourceImages: [Data()],
+            settings: settings
+        ) {
         case .edit(let p):
             #expect(p.steps == 61 && p.guidance == 25.5 && p.width == 1248 && p.height == 832)
             #expect(p.seed == UInt64.max && p.strength == 0.75 && p.negativePrompt == "blur")
             #expect(throws: ImageGenerationError.self) {
-                try ImageModelRequestPolicy(canonical: "qwen-image-2.1").validate(width: p.width,
-                    height: p.height, isEdit: true, guidance: p.guidance ?? 1,
-                    negativePrompt: p.negativePrompt, strength: p.strength, sourceCount: p.sourceImages.count)
+                try ImageModelRequestPolicy(canonical: "qwen-image-2.1").validate(
+                    width: p.width,
+                    height: p.height,
+                    isEdit: true,
+                    guidance: p.guidance ?? 1,
+                    negativePrompt: p.negativePrompt,
+                    strength: p.strength,
+                    sourceCount: p.sourceImages.count
+                )
             }
         case .generate: Issue.record("explicit edit routed to generate")
         }
@@ -78,7 +128,10 @@ struct ImageComposerRoutingTests {
     }
 
     @Test func legacyJSONKeepsStoredOverridesAcrossSwitchAndRoundtrip() throws {
-        let data = Data(#"{"negativePrompt":"blur","steps":11,"guidance":2.5,"width":1008,"height":832,"seed":"7","strength":0.42}"#.utf8)
+        let data = Data(
+            #"{"negativePrompt":"blur","steps":11,"guidance":2.5,"width":1008,"height":832,"seed":"7","strength":0.42}"#
+                .utf8
+        )
         var settings = try JSONDecoder().decode(ImageComposerSettings.self, from: data)
         #expect(settings.hasExplicitSteps && settings.hasExplicitGuidance)
         #expect(settings.hasExplicitImageSize && settings.hasExplicitStrength)
@@ -86,7 +139,12 @@ struct ImageComposerRoutingTests {
         #expect(settings.steps == 11 && settings.guidance == 2.5)
         let restored = try JSONDecoder().decode(ImageComposerSettings.self, from: JSONEncoder().encode(settings))
         #expect(restored == settings)
-        switch try ImageComposerRequestBuilder.build(item: item(), prompt: "legacy", sourceImages: [Data()], settings: restored) {
+        switch try ImageComposerRequestBuilder.build(
+            item: item(),
+            prompt: "legacy",
+            sourceImages: [Data()],
+            settings: restored
+        ) {
         case .edit(let p):
             #expect(p.width == 1008 && p.height == 832 && p.strength == 0.42)
             #expect(p.steps == 11 && p.guidance == 2.5 && p.negativePrompt == "blur")
@@ -102,7 +160,12 @@ struct ImageComposerRoutingTests {
         let restored = try JSONDecoder().decode(ImageComposerSettings.self, from: JSONEncoder().encode(defaults))
         #expect(!restored.hasExplicitSteps && !restored.hasExplicitGuidance)
         #expect(!restored.hasExplicitImageSize && !restored.hasExplicitStrength)
-        switch try ImageComposerRequestBuilder.build(item: item(), prompt: "explicit numbers", sourceImages: [Data()], settings: explicit) {
+        switch try ImageComposerRequestBuilder.build(
+            item: item(),
+            prompt: "explicit numbers",
+            sourceImages: [Data()],
+            settings: explicit
+        ) {
         case .edit(let p): #expect(p.width == 512 && p.height == 512 && p.strength == 0.75)
         case .generate: Issue.record("edit lost operation")
         }
@@ -110,8 +173,16 @@ struct ImageComposerRoutingTests {
 
     @Test func controlsFollowOperationAndOnlyUserActionClearsUnsupportedOverrides() {
         let caps = item().imageCapabilities
-        let gen = ImageComposerRequestBuilder.controls(capabilities: caps, fallbackKind: "imageGen", hasReferences: false)
-        let edit = ImageComposerRequestBuilder.controls(capabilities: caps, fallbackKind: "imageGen", hasReferences: true)
+        let gen = ImageComposerRequestBuilder.controls(
+            capabilities: caps,
+            fallbackKind: "imageGen",
+            hasReferences: false
+        )
+        let edit = ImageComposerRequestBuilder.controls(
+            capabilities: caps,
+            fallbackKind: "imageGen",
+            hasReferences: true
+        )
         #expect(gen.operation == .generate && gen.negativePrompt && !gen.strength)
         #expect(edit.operation == .edit && !edit.negativePrompt && !edit.strength)
         var settings = ImageComposerSettings(negativePrompt: "blur", strength: 0.75)
@@ -122,11 +193,21 @@ struct ImageComposerRoutingTests {
 
     @Test func invalidSeedAndMissingReferenceAreNotReinterpreted() {
         #expect(throws: ImageComposerRequestBuilder.RequestError.self) {
-            try ImageComposerRequestBuilder.build(item: item(), prompt: "invalid seed", sourceImages: [], settings: .init(seed: "-1"))
+            try ImageComposerRequestBuilder.build(
+                item: item(),
+                prompt: "invalid seed",
+                sourceImages: [],
+                settings: .init(seed: "-1")
+            )
         }
         #expect(throws: ImageComposerRequestBuilder.RequestError.self) {
-            try ImageComposerRequestBuilder.build(item: item(), prompt: "missing reference", sourceImages: [],
-                expectedSourceCount: 1, settings: .init())
+            try ImageComposerRequestBuilder.build(
+                item: item(),
+                prompt: "missing reference",
+                sourceImages: [],
+                expectedSourceCount: 1,
+                settings: .init()
+            )
         }
     }
 
@@ -134,12 +215,22 @@ struct ImageComposerRoutingTests {
         let caps = ImageModelRequestPolicy.capabilities(kind: "imageGen", canonical: "qwen-image-2.1")
         let f = ImageProducerFixture(held: [], canonical: "qwen-image-2.1", capabilities: caps)
         let model = item(id: f.first)
-        let gen = try ImageComposerRequestBuilder.build(item: model, prompt: "native gen", sourceImages: [], settings: .init())
+        let gen = try ImageComposerRequestBuilder.build(
+            item: model,
+            prompt: "native gen",
+            sourceImages: [],
+            settings: .init()
+        )
         guard case .generate(let gp) = gen else { Issue.record("expected generate"); return }
         _ = try await collectImageEvents(await f.service.generate(gp, jobID: "chat-gen"))
         await f.service.waitForJobDrain(jobID: "chat-gen")
-        let edit = try ImageComposerRequestBuilder.build(item: model, prompt: "native edit",
-            sourceImages: [Data([1]), Data([2])], expectedSourceCount: 2, settings: .init())
+        let edit = try ImageComposerRequestBuilder.build(
+            item: model,
+            prompt: "native edit",
+            sourceImages: [Data([1]), Data([2])],
+            expectedSourceCount: 2,
+            settings: .init()
+        )
         guard case .edit(let ep) = edit else { Issue.record("expected edit"); return }
         _ = try await collectImageEvents(await f.service.edit(ep, jobID: "chat-edit"))
         await f.service.waitForJobDrain(jobID: "chat-edit")

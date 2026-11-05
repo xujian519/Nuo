@@ -247,7 +247,7 @@ public struct ProviderConnectivitySnapshot: Sendable {
                 (
                     normalizedIssueKind,
                     attentionReports.filter { bucketedIssueKinds(for: $0).contains(normalizedIssueKind) }
-                ),
+                )
             ]
         } else {
             groupedReports = sortedIssueKinds.map { kind in

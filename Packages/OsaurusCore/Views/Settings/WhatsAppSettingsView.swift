@@ -1491,7 +1491,8 @@ struct WhatsAppSettingsView: View {
         _ diagnostics: WhatsAppConnectionDiagnostics,
         presentation suppliedPresentation: AgentChannelStatusPresentation? = nil
     ) {
-        let presentation = suppliedPresentation
+        let presentation =
+            suppliedPresentation
             ?? AgentChannelStatusPresentation.diagnostics(status: diagnostics.status)
         showStatus(
             presentation.label,

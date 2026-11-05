@@ -54,11 +54,17 @@ struct SetupStepRail<Step: Hashable>: View {
                                 .foregroundColor(isCurrent ? theme.primaryText : theme.secondaryText)
                             switch status {
                             case .done:
-                                Text("Done", bundle: .module).font(.system(size: 10)).foregroundColor(theme.successColor)
+                                Text("Done", bundle: .module).font(.system(size: 10)).foregroundColor(
+                                    theme.successColor
+                                )
                             case .required:
-                                Text("Required", bundle: .module).font(.system(size: 10)).foregroundColor(theme.warningColor)
+                                Text("Required", bundle: .module).font(.system(size: 10)).foregroundColor(
+                                    theme.warningColor
+                                )
                             case .optional:
-                                Text("Optional", bundle: .module).font(.system(size: 10)).foregroundColor(theme.tertiaryText)
+                                Text("Optional", bundle: .module).font(.system(size: 10)).foregroundColor(
+                                    theme.tertiaryText
+                                )
                             case .none:
                                 EmptyView()
                             }
@@ -215,4 +221,3 @@ struct PermissionsStep: View {
         }
     }
 }
-

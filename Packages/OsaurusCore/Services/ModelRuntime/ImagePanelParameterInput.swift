@@ -23,18 +23,21 @@ struct ImagePanelParameterInput {
         let steps = steps.trimmingCharacters(in: .whitespacesAndNewlines)
         let guidance = guidance.trimmingCharacters(in: .whitespacesAndNewlines)
         let seed = seed.trimmingCharacters(in: .whitespacesAndNewlines)
-        if steps.isEmpty { self.steps = nil }
-        else {
+        if steps.isEmpty {
+            self.steps = nil
+        } else {
             guard let value = Int(steps), value > 0 else { throw InputError.steps }
             self.steps = value
         }
-        if guidance.isEmpty { self.guidance = nil }
-        else {
+        if guidance.isEmpty {
+            self.guidance = nil
+        } else {
             guard let value = Float(guidance), value.isFinite else { throw InputError.guidance }
             self.guidance = value
         }
-        if seed.isEmpty { self.seed = nil }
-        else {
+        if seed.isEmpty {
+            self.seed = nil
+        } else {
             guard let value = UInt64(seed) else { throw InputError.seed }
             self.seed = value
         }

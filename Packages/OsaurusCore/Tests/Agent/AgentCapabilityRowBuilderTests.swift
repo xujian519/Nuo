@@ -151,7 +151,8 @@ struct AgentCapabilityRowBuilderTests {
         )
         let rows = CapabilityRowBuilder.build(input)
 
-        let headers = rows.compactMap { row -> (id: String, enabled: Int, total: Int, status: CapabilityGroupStatus?)? in
+        let headers = rows.compactMap {
+            row -> (id: String, enabled: Int, total: Int, status: CapabilityGroupStatus?)? in
             guard case .groupHeader(let id, _, _, let enabled, let total, _, let status) = row else { return nil }
             return (id, enabled, total, status)
         }

@@ -32,7 +32,8 @@ struct ManagementWindowFloorTests {
                 minWidth: manager.minimumContentSize.width,
                 maxWidth: .infinity,
                 minHeight: manager.minimumContentSize.height,
-                maxHeight: .infinity)
+                maxHeight: .infinity
+            )
         }
         defer {
             windowManager.unregister(.management)

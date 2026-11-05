@@ -213,11 +213,11 @@ struct AgentToolLoopTests {
         }
 
         #expect(
-                AgentToolLoop.chatTodoPreconditionThreshold(
-                    hasTodoTool: true,
-                    isLocalModel: false,
-                    modelType: "gemma4_moe"
-                ) == 0
+            AgentToolLoop.chatTodoPreconditionThreshold(
+                hasTodoTool: true,
+                isLocalModel: false,
+                modelType: "gemma4_moe"
+            ) == 0
         )
         #expect(
             AgentToolLoop.chatTodoPreconditionThreshold(
@@ -265,13 +265,17 @@ struct AgentToolLoopTests {
         )
 
         #expect(result == AgentToolLoop.RunResult(exit: .finalResponse, iterations: 4))
-        #expect(executedBatches == [
-            ["web_search"], ["web_search"], ["web_search"],
-        ])
+        #expect(
+            executedBatches == [
+                ["web_search"], ["web_search"], ["web_search"],
+            ]
+        )
         #expect(surface.batchOutcomes.count == 3)
-        #expect(!surface.batchOutcomes.flatMap { $0 }.contains(where: {
-            AgentToolLoop.isTaskTrackingRequiredResult($0.result)
-        }))
+        #expect(
+            !surface.batchOutcomes.flatMap { $0 }.contains(where: {
+                AgentToolLoop.isTaskTrackingRequiredResult($0.result)
+            })
+        )
     }
 
     @Test func parseableTodoInThirdBatchUnlocksSiblingAction() async throws {
@@ -302,12 +306,16 @@ struct AgentToolLoopTests {
         )
 
         #expect(result == AgentToolLoop.RunResult(exit: .finalResponse, iterations: 4))
-        #expect(executedBatches == [
-            ["tool_one"], ["tool_two"], ["todo", "tool_three"],
-        ])
-        #expect(!surface.batchOutcomes.flatMap { $0 }.contains(where: {
-            AgentToolLoop.isTaskTrackingRequiredResult($0.result)
-        }))
+        #expect(
+            executedBatches == [
+                ["tool_one"], ["tool_two"], ["todo", "tool_three"],
+            ]
+        )
+        #expect(
+            !surface.batchOutcomes.flatMap { $0 }.contains(where: {
+                AgentToolLoop.isTaskTrackingRequiredResult($0.result)
+            })
+        )
     }
 
     @Test func explicitCompleteRemainsAuthoritativeWithStaleTodo() async throws {
@@ -341,9 +349,11 @@ struct AgentToolLoopTests {
 
         #expect(result == AgentToolLoop.RunResult(exit: .endedBySurface, iterations: 3))
         #expect(executedBatches == [["todo"], ["file_read"], ["complete"]])
-        #expect(!surface.batchOutcomes.flatMap { $0 }.contains(where: {
-            AgentToolLoop.isTodoProgressUpdateRequiredResult($0.result)
-        }))
+        #expect(
+            !surface.batchOutcomes.flatMap { $0 }.contains(where: {
+                AgentToolLoop.isTodoProgressUpdateRequiredResult($0.result)
+            })
+        )
         #expect(surface.todoProgress == AgentTodoProgressSnapshot(done: 0, total: 2))
     }
 
@@ -379,9 +389,11 @@ struct AgentToolLoopTests {
 
         #expect(result == AgentToolLoop.RunResult(exit: .endedBySurface, iterations: 3))
         #expect(executedBatches == [["todo"], ["file_read"], ["todo", "complete"]])
-        #expect(!surface.batchOutcomes.flatMap { $0 }.contains(where: {
-            AgentToolLoop.isTodoProgressUpdateRequiredResult($0.result)
-        }))
+        #expect(
+            !surface.batchOutcomes.flatMap { $0 }.contains(where: {
+                AgentToolLoop.isTodoProgressUpdateRequiredResult($0.result)
+            })
+        )
         #expect(surface.todoProgress == AgentTodoProgressSnapshot(done: 1, total: 2))
     }
 
@@ -404,9 +416,11 @@ struct AgentToolLoopTests {
 
         #expect(result == AgentToolLoop.RunResult(exit: .finalResponse, iterations: 5))
         #expect(surface.executedCalls.map(\.name) == ["todo", "todo", "todo", "todo"])
-        #expect(!surface.batchOutcomes.flatMap { $0 }.contains(where: {
-            AgentToolLoop.isTodoNoProgressResult($0.result)
-        }))
+        #expect(
+            !surface.batchOutcomes.flatMap { $0 }.contains(where: {
+                AgentToolLoop.isTodoNoProgressResult($0.result)
+            })
+        )
         #expect(surface.todoProgress == AgentTodoProgressSnapshot(done: 2, total: 2))
     }
 
@@ -436,9 +450,11 @@ struct AgentToolLoopTests {
 
         #expect(result == AgentToolLoop.RunResult(exit: .finalResponse, iterations: 4))
         #expect(executedBatches == [["todo"], ["todo"], ["todo"]])
-        #expect(!surface.batchOutcomes.flatMap { $0 }.contains(where: {
-            AgentToolLoop.isTodoNoProgressResult($0.result)
-        }))
+        #expect(
+            !surface.batchOutcomes.flatMap { $0 }.contains(where: {
+                AgentToolLoop.isTodoNoProgressResult($0.result)
+            })
+        )
         #expect(surface.todoProgress == AgentTodoProgressSnapshot(done: 2, total: 2))
     }
 
@@ -473,12 +489,16 @@ struct AgentToolLoopTests {
 
         #expect(result == AgentToolLoop.RunResult(exit: .endedBySurface, iterations: 4))
         #expect(surface.executedCalls.map(\.name) == ["todo", "web_fetch", "todo", "complete"])
-        #expect(!surface.batchOutcomes.flatMap { $0 }.contains(where: {
-            AgentToolLoop.isTodoNoProgressResult($0.result)
-        }))
-        #expect(!surface.batchOutcomes.flatMap { $0 }.contains(where: {
-            AgentToolLoop.isTodoProgressUpdateRequiredResult($0.result)
-        }))
+        #expect(
+            !surface.batchOutcomes.flatMap { $0 }.contains(where: {
+                AgentToolLoop.isTodoNoProgressResult($0.result)
+            })
+        )
+        #expect(
+            !surface.batchOutcomes.flatMap { $0 }.contains(where: {
+                AgentToolLoop.isTodoProgressUpdateRequiredResult($0.result)
+            })
+        )
         #expect(surface.todoProgress == AgentTodoProgressSnapshot(done: 0, total: 2))
     }
 
@@ -512,9 +532,11 @@ struct AgentToolLoopTests {
 
         #expect(result == AgentToolLoop.RunResult(exit: .finalResponse, iterations: 4))
         #expect(executedBatches == [["tool_one"], ["tool_two"], ["tool_three"]])
-        #expect(!surface.batchOutcomes.flatMap { $0 }.contains(where: {
-            AgentToolLoop.isTaskTrackingRequiredResult($0.result)
-        }))
+        #expect(
+            !surface.batchOutcomes.flatMap { $0 }.contains(where: {
+                AgentToolLoop.isTaskTrackingRequiredResult($0.result)
+            })
+        )
     }
 
     @Test func headlessPolicyDoesNotImposeChatTodoPrecondition() async throws {
@@ -533,9 +555,11 @@ struct AgentToolLoopTests {
 
         #expect(result == AgentToolLoop.RunResult(exit: .finalResponse, iterations: 4))
         #expect(surface.executedCalls.map(\.name) == ["tool_one", "tool_two", "tool_three"])
-        #expect(!surface.batchOutcomes.flatMap { $0 }.contains(where: {
-            AgentToolLoop.isTaskTrackingRequiredResult($0.result)
-        }))
+        #expect(
+            !surface.batchOutcomes.flatMap { $0 }.contains(where: {
+                AgentToolLoop.isTaskTrackingRequiredResult($0.result)
+            })
+        )
     }
 
     @Test func finalResponseOnFirstStepEndsRun() async throws {
@@ -789,12 +813,16 @@ struct AgentToolLoopTests {
     /// notice names the completed/undone/blocked split; headless surfaces
     /// keep their previous exits.
     @Test func exhaustedAnnouncementsEndInATruthfulStatusStepNotAPromise() async throws {
-        let promise = "I'll continue by fetching the next source to extract more detailed information about chocolate and iron absorption."
+        let promise =
+            "I'll continue by fetching the next source to extract more detailed information about chocolate and iron absorption."
         let surface = ScriptedLoopSurface(steps: [
             .announcedToolCall, .announcedToolCall, .announcedToolCall, .finalResponse,
         ])
         let result = try await AgentToolLoop.run(
-            policy: chatWrapUpPolicy(), state: AgentTaskState(), hooks: surface.makeHooks())
+            policy: chatWrapUpPolicy(),
+            state: AgentTaskState(),
+            hooks: surface.makeHooks()
+        )
         #expect(result.exit == .finalResponse)
         // Two nudges were delivered, the third announcement is not retried,
         // and no fourth model step runs inside the loop.
@@ -806,7 +834,11 @@ struct AgentToolLoopTests {
         // Run 123927 R1: the status step listed the completed sources truthfully
         // and then closed with "Writing it now." — a promise no tool can keep
         // in a tool-free response.
-        #expect(notice.contains("This response ends the turn: do not promise any further action (fetching, writing, verifying)"))
+        #expect(
+            notice.contains(
+                "This response ends the turn: do not promise any further action (fetching, writing, verifying)"
+            )
+        )
         _ = promise
 
         // Headless: the narration is still accepted as final, no wrap-up.
@@ -814,7 +846,10 @@ struct AgentToolLoopTests {
             .announcedToolCall, .announcedToolCall, .announcedToolCall, .finalResponse,
         ])
         let headlessResult = try await AgentToolLoop.run(
-            policy: chatPolicy(), state: AgentTaskState(), hooks: headless.makeHooks())
+            policy: chatPolicy(),
+            state: AgentTaskState(),
+            hooks: headless.makeHooks()
+        )
         #expect(headlessResult.exit == .finalResponse)
         #expect(headlessResult.wrapUpNotice == nil)
     }
@@ -840,21 +875,32 @@ struct AgentToolLoopTests {
             calls.map { _ in AgentLoopToolExecution(result: failure, isError: true) }
         }
         let result = try await AgentToolLoop.run(
-            policy: chatWrapUpPolicy(), state: AgentTaskState(), hooks: hooks)
+            policy: chatWrapUpPolicy(),
+            state: AgentTaskState(),
+            hooks: hooks
+        )
         #expect(result.exit == .finalResponse)
         #expect(rejectionTexts.isEmpty, "no 'The requested action was not completed.' sentence")
         let notice = try #require(result.wrapUpNotice)
         #expect(notice.contains("has failed 3 times"))
         #expect(notice.contains("cached replay of the earlier failure, not a new network request"))
         #expect(notice.contains("keep every successful result"))
-        #expect(notice.contains("This response ends the turn: do not promise any further action (fetching, writing, verifying)"))
+        #expect(
+            notice.contains(
+                "This response ends the turn: do not promise any further action (fetching, writing, verifying)"
+            )
+        )
         // The replayed envelopes in the transcript say they are cached, so
         // "I retried" cannot be an honest reading of them.
         let replays = surface.batchOutcomes.flatMap { $0 }.filter { $0.wasDeduped }
         #expect(replays.count == 2)
         for replay in replays {
             #expect(replay.result.contains("\"cached_replay\":true"))
-            #expect(replay.result.contains("Cached replay of the identical earlier attempt (no new network request was made)."))
+            #expect(
+                replay.result.contains(
+                    "Cached replay of the identical earlier attempt (no new network request was made)."
+                )
+            )
         }
         // The successful and failed rows were all recorded before the wrap-up.
         #expect(surface.batchOutcomes.count == 3)
@@ -1092,7 +1138,9 @@ struct AgentToolLoopTests {
             for policy in [chatPolicy(), headlessPolicy()] {
                 let surface = ScriptedLoopSurface(steps: [completed, .emptyResponse])
                 let result = try await AgentToolLoop.run(
-                    policy: policy, state: AgentTaskState(), hooks: surface.makeHooks()
+                    policy: policy,
+                    state: AgentTaskState(),
+                    hooks: surface.makeHooks()
                 )
                 #expect(result.exit == .finalResponse)
                 #expect(result.iterations == 1)
@@ -1116,7 +1164,9 @@ struct AgentToolLoopTests {
             }
             let surface = ScriptedLoopSurface(steps: [capped, .finalResponse])
             let result = try await AgentToolLoop.run(
-                policy: chatPolicy(), state: AgentTaskState(), hooks: surface.makeHooks()
+                policy: chatPolicy(),
+                state: AgentTaskState(),
+                hooks: surface.makeHooks()
             )
             #expect(result.exit == .lengthExhausted)
             #expect(surface.steps.count == 1, "a capped turn must not silently retry")
@@ -2006,7 +2056,8 @@ struct AgentToolLoopTests {
     }
 
     @Test func malformedAppleScriptRepeatAfterSuccessFinishesFromRealSummary() async throws {
-        let malformed = #"{"_error":"invalid_tool_arguments","_tool":"applescript","_field":"task","_message":"missing required argument: task","_expected":"required parameter"}"#
+        let malformed =
+            #"{"_error":"invalid_tool_arguments","_tool":"applescript","_field":"task","_message":"missing required argument: task","_expected":"required parameter"}"#
         let surface = ScriptedLoopSurface(steps: [
             .toolCalls([inv("applescript", #"{"task":"Open TextEdit"}"#)]),
             .toolCalls([inv("applescript", malformed)]),
@@ -2038,7 +2089,8 @@ struct AgentToolLoopTests {
     }
 
     @Test func malformedDesktopCallWithoutMatchingSuccessStillExecutes() async throws {
-        let malformed = #"{"_error":"invalid_tool_arguments","_tool":"applescript","_field":"task","_message":"missing required argument: task"}"#
+        let malformed =
+            #"{"_error":"invalid_tool_arguments","_tool":"applescript","_field":"task","_message":"missing required argument: task"}"#
         let surface = ScriptedLoopSurface(steps: [
             .toolCalls([inv("file_read", #"{"path":"notes.txt"}"#)]),
             .toolCalls([inv("applescript", malformed)]),
@@ -2193,16 +2245,21 @@ struct AgentToolLoopTests {
     }
 
     @Test func serialInterceptCommitsEarlierOutcomesWithoutExecutingLaterCalls() async throws {
-        let surface = ScriptedLoopSurface(steps: [.toolCalls([
-            inv("first", callId: "call_first"),
-            inv("complete", #"{"summary":"done"}"#, callId: "call_complete"),
-            inv("never_runs", callId: "call_never"),
-        ])])
+        let surface = ScriptedLoopSurface(steps: [
+            .toolCalls([
+                inv("first", callId: "call_first"),
+                inv("complete", #"{"summary":"done"}"#, callId: "call_complete"),
+                inv("never_runs", callId: "call_never"),
+            ])
+        ])
         surface.toolResults["complete"] = AgentLoopToolExecution(
-            result: ToolEnvelope.success(tool: "complete", text: "done"), endRun: true
+            result: ToolEnvelope.success(tool: "complete", text: "done"),
+            endRun: true
         )
         let result = try await AgentToolLoop.run(
-            policy: chatPolicy(), state: AgentTaskState(), hooks: surface.makeHooks()
+            policy: chatPolicy(),
+            state: AgentTaskState(),
+            hooks: surface.makeHooks()
         )
         #expect(result.exit == .endedBySurface)
         #expect(surface.executedCalls.map(\.name) == ["first", "complete"])
@@ -2287,12 +2344,19 @@ struct AgentToolLoopTests {
         var crossings: [(builds: Int, batches: Int, results: Int)] = []
         let build = hooks.buildMessages
         hooks.buildMessages = { notices in
-            crossings.append((surface.builtNotices.count, surface.batchOutcomes.count,
-                              surface.batchOutcomes.last?.count ?? 0))
+            crossings.append(
+                (
+                    surface.builtNotices.count, surface.batchOutcomes.count,
+                    surface.batchOutcomes.last?.count ?? 0
+                )
+            )
             return try await build(notices)
         }
         let result = try await AgentToolLoop.run(
-            policy: chatPolicy(), state: AgentTaskState(), hooks: hooks)
+            policy: chatPolicy(),
+            state: AgentTaskState(),
+            hooks: hooks
+        )
         #expect(result.exit == .finalResponse)
         try #require(crossings.count == 2)
         #expect(crossings[0].builds == 0 && crossings[0].batches == 0)
@@ -2308,7 +2372,10 @@ struct AgentToolLoopTests {
             return AgentLoopIterationInput(messages: [])
         }
         let result = try await AgentToolLoop.run(
-            policy: chatPolicy(), state: AgentTaskState(), hooks: hooks)
+            policy: chatPolicy(),
+            state: AgentTaskState(),
+            hooks: hooks
+        )
         #expect(result.exit == .cancelled)
         #expect(surface.builtNotices.isEmpty)
         #expect(surface.steps.count == 1)
@@ -2624,7 +2691,7 @@ struct AgentToolLoopTests {
                         "url": "https://example.com/slow",
                         "extracted": false,
                         "extract_status": "timeout",
-                    ],
+                    ]
                 ],
             ]
         )
@@ -3220,29 +3287,39 @@ struct AgentLoopOverBudgetTests {
         // A small fallback/provider window permits question 1, then the first
         // answer pushes question 2 over the heuristic history allowance.
         let manager = AgentLoopBudget.makeBudgetManager(
-            contextWindow: 4_096, systemPromptChars: 800,
-            toolTokens: 0, maxResponseTokens: nil)
+            contextWindow: 4_096,
+            systemPromptChars: 800,
+            toolTokens: 0,
+            maxResponseTokens: nil
+        )
         let first = [
             ChatMessage(role: "system", content: String(repeating: "s", count: 800)),
             ChatMessage(role: "user", content: "Hello"),
         ]
-        let second = first + [
-            ChatMessage(role: "assistant", content: String(repeating: "answer ", count: 1_500)),
-            ChatMessage(role: "user", content: "Explain that further"),
-        ]
+        let second =
+            first + [
+                ChatMessage(role: "assistant", content: String(repeating: "answer ", count: 1_500)),
+                ChatMessage(role: "user", content: "Explain that further"),
+            ]
         for (index, messages) in [first, second].enumerated() {
             let surface = ScriptedLoopSurface(steps: [.finalResponse])
             var hooks = surface.makeHooks()
             hooks.buildMessages = { notices in
                 let input = AgentLoopBudget.composeIterationMessages(
-                    messages, notices: notices, manager: manager,
-                    watermark: CompactionWatermark())
+                    messages,
+                    notices: notices,
+                    manager: manager,
+                    watermark: CompactionWatermark()
+                )
                 #expect(input.overBudget == (index == 1))
                 #expect(input.messages.count == messages.count)
                 return input
             }
             let result = try await AgentToolLoop.run(
-                policy: chatPolicy(), state: AgentTaskState(), hooks: hooks)
+                policy: chatPolicy(),
+                state: AgentTaskState(),
+                hooks: hooks
+            )
             #expect(result.exit == .finalResponse)
             #expect(surface.steps.isEmpty, "turn \(index + 1) must reach the runtime")
         }
@@ -3254,7 +3331,10 @@ struct AgentLoopOverBudgetTests {
         ])
         surface.overBudget = true
         let result = try await AgentToolLoop.run(
-            policy: chatPolicy(), state: AgentTaskState(), hooks: surface.makeHooks())
+            policy: chatPolicy(),
+            state: AgentTaskState(),
+            hooks: surface.makeHooks()
+        )
         #expect(result.exit == .finalResponse)
         #expect(result.iterations == 2)
         #expect(surface.executedCalls.count == 1)
@@ -3269,7 +3349,10 @@ struct AgentLoopOverBudgetTests {
         hooks.modelStep = { _, _ in throw RuntimeError.contextLimit }
         do {
             _ = try await AgentToolLoop.run(
-                policy: chatPolicy(), state: AgentTaskState(), hooks: hooks)
+                policy: chatPolicy(),
+                state: AgentTaskState(),
+                hooks: hooks
+            )
             Issue.record("runtime context error must propagate")
         } catch RuntimeError.contextLimit {
             // Real backend errors remain authoritative.
@@ -3399,7 +3482,6 @@ struct AgentLoopTodoStalenessTests {
 
 // MARK: - Current-run todo terminal completion
 
-
 @MainActor
 struct AgentLoopAdvisoryTodoCompletionTests {
     @Test func staleSessionTodoCompleteClosesAsOrdinaryCompletion() async throws {
@@ -3410,7 +3492,7 @@ struct AgentLoopAdvisoryTodoCompletionTests {
                     "complete",
                     #"{"summary":"STALE_TODO_FOLLOWUP_OK - verified as the requested exact follow-up."}"#
                 )
-            ]),
+            ])
         ])
 
         let result = try await ChatExecutionContext.$currentSessionId.withValue(sessionId) {
@@ -3482,7 +3564,7 @@ struct AgentLoopAdvisoryTodoCompletionTests {
                 inv(
                     "create_reminder",
                     #"{"title":"Send email to Jace","dueDate":"2026-07-27T08:10:00-07:00"}"#
-                ),
+                )
             ]),
             .finalResponse,
             .toolCalls([inv("todo", #"{"markdown":"- [x] Create reminder\n- [ ] Verify"}"#)]),
@@ -3517,9 +3599,11 @@ struct AgentLoopAdvisoryTodoCompletionTests {
 
         #expect(result == AgentToolLoop.RunResult(exit: .finalResponse, iterations: 3))
         #expect(surface.executedCalls.map(\.name) == ["todo", "todo"])
-        #expect(!surface.batchOutcomes.flatMap { $0 }.contains(where: {
-            AgentToolLoop.isTodoNoProgressResult($0.result)
-        }))
+        #expect(
+            !surface.batchOutcomes.flatMap { $0 }.contains(where: {
+                AgentToolLoop.isTodoNoProgressResult($0.result)
+            })
+        )
     }
 }
 
@@ -3567,10 +3651,16 @@ struct CompactionWatermarkIdentityTests {
             )
         }
         _ = try await AgentToolLoop.run(policy: chatPolicy(), state: AgentTaskState(), hooks: hooks)
-        let notice = surface.builtNotices.flatMap { $0 }.first { $0.contains("described a tool call but did not actually emit one") }
+        let notice = surface.builtNotices.flatMap { $0 }.first {
+            $0.contains("described a tool call but did not actually emit one")
+        }
         let text = try #require(notice)
         #expect(text.contains("call right now in this chat are: search_and_extract, share_artifact, web_search."))
-        #expect(text.contains("not loaded yet; call capabilities with ids [\"tool/<name>\"] first, then emit the call: get_current_time."))
+        #expect(
+            text.contains(
+                "not loaded yet; call capabilities with ids [\"tool/<name>\"] first, then emit the call: get_current_time."
+            )
+        )
         #expect(text.contains("file_read, file_write need a workspace attached to THIS chat and there is none"))
         #expect(text.contains("attach a folder via the Folder chip"))
         #expect(text.contains("(share_artifact can carry it)."))
@@ -3586,7 +3676,8 @@ struct CompactionWatermarkIdentityTests {
 
         // Nothing blocked, nothing loadable: only the exposed list and the generic tail.
         let onlyExposed = AgentToolLoop.announcedToolCallNotice(
-            recovery: .init(exposed: ["web_search"]))
+            recovery: .init(exposed: ["web_search"])
+        )
         #expect(onlyExposed.contains("call right now in this chat are: web_search."))
         #expect(!onlyExposed.contains("not loaded yet"))
         #expect(!onlyExposed.contains("need a workspace attached"))

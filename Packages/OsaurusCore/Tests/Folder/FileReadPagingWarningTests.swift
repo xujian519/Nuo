@@ -26,7 +26,10 @@ struct FileReadPagingWarningTests {
         let line = "item 0123456789 abcdefghijklmnopqrstuvwxyz\n"
         let content = String(repeating: line, count: chars / line.count + 1)
         try content.write(
-            to: root.appendingPathComponent("big.txt"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("big.txt"),
+            atomically: true,
+            encoding: .utf8
+        )
     }
 
     @Test func continuationRead_ofHugeFile_warnsAgainstPaging() async throws {

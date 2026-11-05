@@ -116,7 +116,8 @@ actor WhatsAppWatchTransportRuntime: AgentChannelReceiveTransportRuntime {
                 status: .degraded,
                 severity: .warning,
                 summary: "WhatsApp receive is waiting for a linked account.",
-                detail: "Open WhatsApp settings and scan the QR code with your phone (WhatsApp > Settings > Linked Devices).",
+                detail:
+                    "Open WhatsApp settings and scan the QR code with your phone (WhatsApp > Settings > Linked Devices).",
                 isRunning: worker != nil,
                 receiveEnabled: false,
                 lastFailureAt: now,
@@ -169,7 +170,8 @@ actor WhatsAppWatchTransportRuntime: AgentChannelReceiveTransportRuntime {
                 summary: reason.isEmpty
                     ? "The WhatsApp receive stream was interrupted; reconnecting."
                     : reason,
-                detail: "Nuo restarts the helper and resubscribes automatically (attempt \(consecutiveFailures)). If the account was unlinked, re-scan the QR code in WhatsApp settings.",
+                detail:
+                    "Nuo restarts the helper and resubscribes automatically (attempt \(consecutiveFailures)). If the account was unlinked, re-scan the QR code in WhatsApp settings.",
                 isRunning: worker != nil,
                 receiveEnabled: true,
                 lastFailureAt: failedAt,

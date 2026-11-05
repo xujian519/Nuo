@@ -266,7 +266,8 @@ struct SubagentConfigurationTests {
              "spawnableModelNotes":{"qwen3-4b-4bit":"Quick local edits"},
              "spawnToolAccess":"readOnly",
              "budgets":{"maxDelegateTokens":4096,"maxToolCalls":6}}
-            """#.utf8)
+            """#.utf8
+        )
         let decoded = try JSONDecoder().decode(SubagentConfiguration.self, from: data)
         #expect(decoded.localTextDelegationEnabled == true)
         #expect(decoded.budgets.maxDelegateTokens == 4096)
@@ -335,18 +336,24 @@ struct SubagentConfigurationTests {
         let carol = Self.ref("ws-2", "0xccc3")
         var config = SubagentConfiguration()
         config = config.reconcilingWorkspaceAgents(
-            rosterRefs: [alice, carol], loadedWorkspaceIds: ["ws-1", "ws-2"])
+            rosterRefs: [alice, carol],
+            loadedWorkspaceIds: ["ws-1", "ws-2"]
+        )
         #expect(Set(config.spawnableWorkspaceAgents) == [alice, carol])
 
         config.setWorkspaceAutoJoin(false, workspaceId: "WS-2")
         #expect(!config.workspaceAutoJoinEnabled("ws-2"))
         config = config.reconcilingWorkspaceAgents(
-            rosterRefs: [alice, carol], loadedWorkspaceIds: ["ws-1", "ws-2"])
+            rosterRefs: [alice, carol],
+            loadedWorkspaceIds: ["ws-1", "ws-2"]
+        )
         #expect(config.spawnableWorkspaceAgents == [alice])
 
         config.setWorkspaceAutoJoin(true, workspaceId: "ws-2")
         config = config.reconcilingWorkspaceAgents(
-            rosterRefs: [alice, carol], loadedWorkspaceIds: ["ws-1", "ws-2"])
+            rosterRefs: [alice, carol],
+            loadedWorkspaceIds: ["ws-1", "ws-2"]
+        )
         #expect(Set(config.spawnableWorkspaceAgents) == [alice, carol])
     }
 }

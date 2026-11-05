@@ -21,17 +21,22 @@ struct NativeMTPIdentityTests {
     @Test func pickerIdAndRuntimeNameNormaliseToTheSameThing() {
         #expect(
             FloatingInputCard.mtpIdentity("JANGQ-AI/Qwen3.8-27B-JANG_4D")
-                == FloatingInputCard.mtpIdentity("qwen3.8-27b-jang_4d"))
+                == FloatingInputCard.mtpIdentity("qwen3.8-27b-jang_4d")
+        )
     }
 
     @Test func namespaceIsStripped() {
-        #expect(FloatingInputCard.mtpIdentity("JANGQ-AI/Qwen3.8-27B-JANG_4D")
-            == "qwen3.8-27b-jang_4d")
+        #expect(
+            FloatingInputCard.mtpIdentity("JANGQ-AI/Qwen3.8-27B-JANG_4D")
+                == "qwen3.8-27b-jang_4d"
+        )
     }
 
     @Test func aBareNameSurvivesUnchanged() {
-        #expect(FloatingInputCard.mtpIdentity("qwen3.8-27b-jang_4d")
-            == "qwen3.8-27b-jang_4d")
+        #expect(
+            FloatingInputCard.mtpIdentity("qwen3.8-27b-jang_4d")
+                == "qwen3.8-27b-jang_4d"
+        )
     }
 
     /// Different quantizations of the same family must NOT collapse together,

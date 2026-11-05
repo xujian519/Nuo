@@ -58,9 +58,10 @@ struct AgentDispatchTargetTests {
             let decoded = try JSONDecoder().decode(AgentDispatchTarget.self, from: data)
             #expect(decoded == target)
         }
-        let json = try JSONSerialization.jsonObject(
-            with: JSONEncoder().encode(AgentDispatchTarget.workspace(Self.ref))
-        ) as? [String: Any]
+        let json =
+            try JSONSerialization.jsonObject(
+                with: JSONEncoder().encode(AgentDispatchTarget.workspace(Self.ref))
+            ) as? [String: Any]
         #expect(json?["kind"] as? String == "workspace")
         #expect((json?["workspace"] as? [String: Any])?["agent_address"] as? String == Self.ref.agentAddress)
     }
@@ -133,10 +134,13 @@ struct AgentDispatchTargetTests {
         #expect(decoded.agentId == nil)
 
         let config = AgentChannelInboundDispatchConfiguration(
-            enabled: true, target: .workspace(Self.ref), routes: [shared]
+            enabled: true,
+            target: .workspace(Self.ref),
+            routes: [shared]
         )
         let decodedConfig = try JSONDecoder().decode(
-            AgentChannelInboundDispatchConfiguration.self, from: JSONEncoder().encode(config)
+            AgentChannelInboundDispatchConfiguration.self,
+            from: JSONEncoder().encode(config)
         )
         #expect(decodedConfig.target == .workspace(Self.ref))
         #expect(decodedConfig.targetAgentId == nil)
@@ -156,12 +160,20 @@ struct AgentDispatchTargetTests {
         let shared = [(ref: Self.ref, name: Optional("Research"))]
         for scope in [AgentTargetResolver.Scope.localOnly, .localAndWorkspace] {
             #expect(
-                AgentTargetResolver.resolve(local.id.uuidString, scope: scope, localAgents: [local], sharedAgents: shared)
+                AgentTargetResolver.resolve(
+                    local.id.uuidString,
+                    scope: scope,
+                    localAgents: [local],
+                    sharedAgents: shared
+                )
                     == .success(.local(local.id))
             )
             #expect(
                 AgentTargetResolver.resolve(
-                    Self.otherSharedAddress.uppercased(), scope: scope, localAgents: [local], sharedAgents: shared
+                    Self.otherSharedAddress.uppercased(),
+                    scope: scope,
+                    localAgents: [local],
+                    sharedAgents: shared
                 ) == .success(.local(local.id))
             )
             #expect(
@@ -188,7 +200,10 @@ struct AgentDispatchTargetTests {
             )
             #expect(
                 AgentTargetResolver.resolve(
-                    identifier, scope: .localAndWorkspace, localAgents: [local], sharedAgents: shared
+                    identifier,
+                    scope: .localAndWorkspace,
+                    localAgents: [local],
+                    sharedAgents: shared
                 ) == .success(.workspace(Self.ref)),
                 "\(identifier)"
             )
@@ -203,16 +218,27 @@ struct AgentDispatchTargetTests {
         ]
         // Same address shared into two workspaces: the caller must pick a key.
         let byAddress = AgentTargetResolver.resolve(
-            Self.sharedAddress, scope: .localAndWorkspace, localAgents: [], sharedAgents: twice
+            Self.sharedAddress,
+            scope: .localAndWorkspace,
+            localAgents: [],
+            sharedAgents: twice
         )
         #expect(byAddress == .failure(.ambiguous(twice.map(\.ref.key))))
         #expect(
-            AgentTargetResolver.resolve(twice[1].ref.key, scope: .localAndWorkspace, localAgents: [], sharedAgents: twice)
+            AgentTargetResolver.resolve(
+                twice[1].ref.key,
+                scope: .localAndWorkspace,
+                localAgents: [],
+                sharedAgents: twice
+            )
                 == .success(.workspace(twice[1].ref))
         )
         // A local agent and a shared agent with the same display name.
         let byName = AgentTargetResolver.resolve(
-            "research", scope: .localAndWorkspace, localAgents: [local], sharedAgents: [twice[0]]
+            "research",
+            scope: .localAndWorkspace,
+            localAgents: [local],
+            sharedAgents: [twice[0]]
         )
         guard case .failure(.ambiguous(let candidates)) = byName else {
             Issue.record("expected ambiguous, got \(byName)")
@@ -239,33 +265,48 @@ struct AgentDispatchTargetTests {
 
         #expect(
             AgentTargetResolver.resolve(
-                "Research@Acme", scope: .localAndWorkspace, localAgents: [local], sharedAgents: shared,
+                "Research@Acme",
+                scope: .localAndWorkspace,
+                localAgents: [local],
+                sharedAgents: shared,
                 workspaceNames: names
             ) == .success(.workspace(acme))
         )
         // Workspace id and case-insensitive name both qualify.
         #expect(
             AgentTargetResolver.resolve(
-                "research @ beta team", scope: .localAndWorkspace, localAgents: [local], sharedAgents: shared,
+                "research @ beta team",
+                scope: .localAndWorkspace,
+                localAgents: [local],
+                sharedAgents: shared,
                 workspaceNames: names
             ) == .success(.workspace(beta))
         )
         #expect(
             AgentTargetResolver.resolve(
-                "Research@ws-2", scope: .localAndWorkspace, localAgents: [local], sharedAgents: shared,
+                "Research@ws-2",
+                scope: .localAndWorkspace,
+                localAgents: [local],
+                sharedAgents: shared,
                 workspaceNames: names
             ) == .success(.workspace(beta))
         )
         // Unknown workspace → not found (never a silent fallback to a twin).
         #expect(
             AgentTargetResolver.resolve(
-                "Research@Nowhere", scope: .localAndWorkspace, localAgents: [local], sharedAgents: shared,
+                "Research@Nowhere",
+                scope: .localAndWorkspace,
+                localAgents: [local],
+                sharedAgents: shared,
                 workspaceNames: names
             ) == .failure(.notFound)
         )
         // The bare name collides three ways; the hint lists the exact forms.
         let bare = AgentTargetResolver.resolve(
-            "Research", scope: .localAndWorkspace, localAgents: [local], sharedAgents: shared,
+            "Research",
+            scope: .localAndWorkspace,
+            localAgents: [local],
+            sharedAgents: shared,
             workspaceNames: names
         )
         #expect(
@@ -274,7 +315,10 @@ struct AgentDispatchTargetTests {
         // localOnly never sees the `@` form.
         #expect(
             AgentTargetResolver.resolve(
-                "Research@Acme", scope: .localOnly, localAgents: [local], sharedAgents: shared,
+                "Research@Acme",
+                scope: .localOnly,
+                localAgents: [local],
+                sharedAgents: shared,
                 workspaceNames: names
             ) == .failure(.notFound)
         )

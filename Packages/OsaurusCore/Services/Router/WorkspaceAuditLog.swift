@@ -157,8 +157,15 @@ struct WorkspaceAuditRecord: Codable, Sendable, Equatable, Identifiable {
 
     fileprivate var body: Body {
         Body(
-            seq: seq, tsMs: tsMs, event: event, workspaceId: workspaceId, actor: actor,
-            agentAddress: agentAddress, agentName: agentName, target: target, details: details,
+            seq: seq,
+            tsMs: tsMs,
+            event: event,
+            workspaceId: workspaceId,
+            actor: actor,
+            agentAddress: agentAddress,
+            agentName: agentName,
+            target: target,
+            details: details,
             prevHash: prevHash
         )
     }
@@ -264,9 +271,17 @@ actor WorkspaceAuditLog {
         )
         guard let hash = Self.hash(of: body) else { return nil }
         let record = WorkspaceAuditRecord(
-            seq: body.seq, tsMs: body.tsMs, event: body.event, workspaceId: body.workspaceId,
-            actor: body.actor, agentAddress: body.agentAddress, agentName: body.agentName,
-            target: body.target, details: body.details, prevHash: body.prevHash, hash: hash
+            seq: body.seq,
+            tsMs: body.tsMs,
+            event: body.event,
+            workspaceId: body.workspaceId,
+            actor: body.actor,
+            agentAddress: body.agentAddress,
+            agentName: body.agentName,
+            target: body.target,
+            details: body.details,
+            prevHash: body.prevHash,
+            hash: hash
         )
         do {
             try write(record, workspaceId: sanitizedId)
@@ -375,7 +390,9 @@ actor WorkspaceAuditLog {
         sealed: Bool
     ) {
         let actor = WorkspaceAuditActor(
-            wallet: record.wallet, accountId: record.accountId, role: record.role
+            wallet: record.wallet,
+            accountId: record.accountId,
+            role: record.role
         )
         append(
             .attestationGranted,
@@ -384,7 +401,7 @@ actor WorkspaceAuditLog {
             agentAddress: record.agentAddressLower,
             agentName: agentName,
             details: [
-                "attestation_expires_at": Self.iso(record.attestationExpiresAt),
+                "attestation_expires_at": Self.iso(record.attestationExpiresAt)
             ]
         )
         append(
@@ -430,7 +447,9 @@ actor WorkspaceAuditLog {
             .keyRevoked,
             workspaceId: record.workspaceId,
             actor: WorkspaceAuditActor(
-                wallet: record.wallet, accountId: record.accountId, role: record.role
+                wallet: record.wallet,
+                accountId: record.accountId,
+                role: record.role
             ),
             agentAddress: record.agentAddressLower,
             target: record.keyId.uuidString,
@@ -449,7 +468,10 @@ actor WorkspaceAuditLog {
             .runStarted,
             workspaceId: record.workspaceId,
             actor: WorkspaceAuditActor(
-                wallet: record.wallet, accountId: record.accountId, name: callerName, role: record.role
+                wallet: record.wallet,
+                accountId: record.accountId,
+                name: callerName,
+                role: record.role
             ),
             agentAddress: record.agentAddressLower,
             agentName: await agentName(for: agentId),
@@ -484,7 +506,9 @@ actor WorkspaceAuditLog {
             .runFinished,
             workspaceId: record.workspaceId,
             actor: WorkspaceAuditActor(
-                wallet: record.wallet, accountId: record.accountId, role: record.role
+                wallet: record.wallet,
+                accountId: record.accountId,
+                role: record.role
             ),
             agentAddress: record.agentAddressLower,
             agentName: await agentName(for: agentId),
@@ -521,7 +545,9 @@ actor WorkspaceAuditLog {
             .runRejected,
             workspaceId: record.workspaceId,
             actor: WorkspaceAuditActor(
-                wallet: record.wallet, accountId: record.accountId, role: record.role
+                wallet: record.wallet,
+                accountId: record.accountId,
+                role: record.role
             ),
             agentAddress: record.agentAddressLower,
             agentName: await agentName(for: agentId),
@@ -603,7 +629,9 @@ actor WorkspaceAuditLog {
             .scopeDenied,
             workspaceId: record.workspaceId,
             actor: WorkspaceAuditActor(
-                wallet: record.wallet, accountId: record.accountId, role: record.role
+                wallet: record.wallet,
+                accountId: record.accountId,
+                role: record.role
             ),
             agentAddress: record.agentAddressLower,
             target: "\(method) \(path)",
@@ -619,7 +647,9 @@ actor WorkspaceAuditLog {
             .taskCancelled,
             workspaceId: record.workspaceId,
             actor: WorkspaceAuditActor(
-                wallet: record.wallet, accountId: record.accountId, role: record.role
+                wallet: record.wallet,
+                accountId: record.accountId,
+                role: record.role
             ),
             agentAddress: record.agentAddressLower,
             target: taskId.uuidString,

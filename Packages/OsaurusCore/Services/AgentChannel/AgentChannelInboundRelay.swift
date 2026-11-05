@@ -136,11 +136,13 @@ final class AgentChannelInboundRelay {
         guard request.settings.enabled else {
             return .suppressed("inbound_dispatch_disabled")
         }
-        guard let resolution = AgentChannelDispatchRouter.resolve(
-            settings: request.settings,
-            roomId: request.providerRoute.conversationId,
-            content: request.content
-        ) else {
+        guard
+            let resolution = AgentChannelDispatchRouter.resolve(
+                settings: request.settings,
+                roomId: request.providerRoute.conversationId,
+                content: request.content
+            )
+        else {
             return .suppressed("no_route_matched")
         }
         let target = resolution.target
@@ -165,9 +167,9 @@ final class AgentChannelInboundRelay {
         let agentId = target.localId
         let content = resolution.content
         guard (!content.isEmpty || !request.attachments.isEmpty),
-              !request.connectionId.isEmpty,
-              !request.providerEventId.isEmpty,
-              !request.providerRoute.conversationId.isEmpty
+            !request.connectionId.isEmpty,
+            !request.providerEventId.isEmpty,
+            !request.providerRoute.conversationId.isEmpty
         else {
             return .suppressed("invalid_dispatch_payload")
         }
@@ -369,12 +371,18 @@ final class AgentChannelInboundRelay {
         do {
             try await responder(notice)
             activity.finish(
-                contentLength: notice.utf8.count, outcome: "refusal_sent", error: nil,
-                extraDetails: ["reason": safety.reason.rawValue])
+                contentLength: notice.utf8.count,
+                outcome: "refusal_sent",
+                error: nil,
+                extraDetails: ["reason": safety.reason.rawValue]
+            )
         } catch {
             activity.finish(
-                contentLength: notice.utf8.count, outcome: "failed",
-                error: error.localizedDescription, extraDetails: ["reason": safety.reason.rawValue])
+                contentLength: notice.utf8.count,
+                outcome: "failed",
+                error: error.localizedDescription,
+                extraDetails: ["reason": safety.reason.rawValue]
+            )
         }
     }
 
@@ -544,12 +552,18 @@ final class AgentChannelInboundRelay {
                     do {
                         try await responder(refusal)
                         activity.finish(
-                            contentLength: refusal.utf8.count, outcome: "refusal_sent", error: nil,
-                            extraDetails: ["reason": "dispatch_unavailable"])
+                            contentLength: refusal.utf8.count,
+                            outcome: "refusal_sent",
+                            error: nil,
+                            extraDetails: ["reason": "dispatch_unavailable"]
+                        )
                     } catch {
                         activity.finish(
-                            contentLength: refusal.utf8.count, outcome: "failed",
-                            error: error.localizedDescription, extraDetails: ["reason": "dispatch_unavailable"])
+                            contentLength: refusal.utf8.count,
+                            outcome: "failed",
+                            error: error.localizedDescription,
+                            extraDetails: ["reason": "dispatch_unavailable"]
+                        )
                     }
                 }
                 return
@@ -573,7 +587,8 @@ final class AgentChannelInboundRelay {
                     agentId: agentId,
                     sessionId: taskId,
                     code: .dispatchUnavailable,
-                    message: "\(leftover.count) message(s) arrived while the agent was working but the turn ended before they could be answered."
+                    message:
+                        "\(leftover.count) message(s) arrived while the agent was working but the turn ended before they could be answered."
                 )
                 break
             }
@@ -774,7 +789,8 @@ final class AgentChannelInboundRelay {
             }
             guard let state = taskManager.taskState(for: taskId) else {
                 if let stored = ChatSessionStore.load(id: taskId),
-                   let text = Self.latestAssistantReply(in: stored.turns) {
+                    let text = Self.latestAssistantReply(in: stored.turns)
+                {
                     return .reply(
                         text,
                         awaitingClarification: false,
@@ -891,7 +907,8 @@ final class AgentChannelInboundRelay {
         sessionId: UUID,
         connection: AgentChannelConnection? = nil
     ) -> ReplyActivity {
-        let resolved = connection
+        let resolved =
+            connection
             ?? (try? AgentChannelConnectionService.shared.resolvedConnectionView(id: request.connectionId))
         return ReplyActivity(
             connection: resolved,

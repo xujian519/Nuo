@@ -674,7 +674,7 @@ final class BoundedArchiveExtractorTests: XCTestCase {
         var crc = UInt32.max
         for byte in data {
             crc ^= UInt32(byte)
-            for _ in 0..<8 {
+            for _ in 0 ..< 8 {
                 crc = (crc >> 1) ^ (0xedb8_8320 & (0 &- (crc & 1)))
             }
         }
@@ -761,6 +761,6 @@ private extension Data {
     mutating func replaceLittleEndian<T: FixedWidthInteger>(_ value: T, at offset: Int) {
         var replacement = Data()
         replacement.appendLittleEndian(value)
-        replaceSubrange(offset..<(offset + replacement.count), with: replacement)
+        replaceSubrange(offset ..< (offset + replacement.count), with: replacement)
     }
 }

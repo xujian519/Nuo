@@ -89,7 +89,9 @@ enum SystemPermission: String, CaseIterable, Codable, Sendable {
         case .automationMessages:
             return L("Allows Nuo to send messages through Messages.app via Apple Events.")
         case .automationMusic:
-            return L("Allows the Music tools to control playback and browse your library in Music.app via Apple Events.")
+            return L(
+                "Allows the Music tools to control playback and browse your library in Music.app via Apple Events."
+            )
         case .calendar:
             return L("Allows the Calendar tools to read, create, and update events directly.")
         case .reminders:

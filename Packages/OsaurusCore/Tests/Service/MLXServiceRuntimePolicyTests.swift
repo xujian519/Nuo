@@ -22,7 +22,10 @@ struct MLXServiceRuntimePolicyTests {
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         try #"{"model_type":"mimo_v2"}"#.write(
-            to: root.appendingPathComponent("config.json"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("config.json"),
+            atomically: true,
+            encoding: .utf8
+        )
         let metadata = [
             #"{"capabilities":{"tool_parser":"xml_function","supports_tools":true},"tool_calling":{"dialect":"xml_function","format":"<tool_call><function=NAME><parameter=ARG>VALUE</parameter></function></tool_call>"}}"#,
             #"{"tool_calling":{"dialect":"xml_function","format":"<tool_call><function=NAME>...</function></tool_call>"}}"#,
@@ -31,18 +34,35 @@ struct MLXServiceRuntimePolicyTests {
         ]
         for json in metadata {
             try json.write(to: root.appendingPathComponent("jang_config.json"), atomically: true, encoding: .utf8)
-            #expect(MLXService.supportsLocalToolCalling(
-                modelName: "mimo-v2.6-flash-rl-jang_2l", modelId: "local/bundle", modelDirectory: root))
+            #expect(
+                MLXService.supportsLocalToolCalling(
+                    modelName: "mimo-v2.6-flash-rl-jang_2l",
+                    modelId: "local/bundle",
+                    modelDirectory: root
+                )
+            )
             try MLXService.validateRuntimePolicy(
-                modelName: "mimo-v2.6-flash-rl-jang_2l", modelId: "local/bundle",
+                modelName: "mimo-v2.6-flash-rl-jang_2l",
+                modelId: "local/bundle",
                 messages: [ChatMessage(role: "user", content: "Count the lines with line_count.")],
                 parameters: GenerationParameters(temperature: nil, maxTokens: 16),
-                tools: [Self.lineCountTool()], runtime: VMLXServerRuntimeSettings(), modelDirectory: root)
+                tools: [Self.lineCountTool()],
+                runtime: VMLXServerRuntimeSettings(),
+                modelDirectory: root
+            )
         }
         try #"{"capabilities":{"supports_tools":false,"tool_parser":"xml_function"}}"#.write(
-            to: root.appendingPathComponent("jang_config.json"), atomically: true, encoding: .utf8)
-        #expect(!MLXService.supportsLocalToolCalling(
-            modelName: "local-model", modelId: "local/bundle", modelDirectory: root))
+            to: root.appendingPathComponent("jang_config.json"),
+            atomically: true,
+            encoding: .utf8
+        )
+        #expect(
+            !MLXService.supportsLocalToolCalling(
+                modelName: "local-model",
+                modelId: "local/bundle",
+                modelDirectory: root
+            )
+        )
     }
 
     @Test func serverSettingRejectsVideoWhenDisabled() throws {
@@ -123,9 +143,13 @@ struct MLXServiceRuntimePolicyTests {
         try FileManager.default.removeItem(at: bundle.appendingPathComponent("model.safetensors"))
         #expect(throws: MLXService.RuntimePolicyError.self) {
             try MLXService.validateRuntimePolicy(
-                modelName: "qwen3-vl-30b", modelId: "Qwen/Qwen3-VL-30B-MLX",
-                messages: [message], parameters: GenerationParameters(temperature: nil, maxTokens: 16),
-                tools: [], runtime: VMLXServerRuntimeSettings(), modelDirectory: bundle
+                modelName: "qwen3-vl-30b",
+                modelId: "Qwen/Qwen3-VL-30B-MLX",
+                messages: [message],
+                parameters: GenerationParameters(temperature: nil, maxTokens: 16),
+                tools: [],
+                runtime: VMLXServerRuntimeSettings(),
+                modelDirectory: bundle
             )
         }
     }

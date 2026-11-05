@@ -46,27 +46,45 @@ struct ResidentDelegationContextAdmissionTests {
         return overflow || addOverflow ? nil : bytes
     }
 
-    private func ceiling(_ memory: SubagentBatchMemoryFacts, requested: Int? = nil,
-                         minimum: Int? = nil) -> Int? {
+    private func ceiling(
+        _ memory: SubagentBatchMemoryFacts,
+        requested: Int? = nil,
+        minimum: Int? = nil
+    ) -> Int? {
         SubagentBatchAdmissionPlanner.affordablePositionCeiling(
-            requested: requested ?? self.requested, minimum: minimum ?? self.minimum,
-            memory: memory, headroomForPositions: price
+            requested: requested ?? self.requested,
+            minimum: minimum ?? self.minimum,
+            memory: memory,
+            headroomForPositions: price
         )
     }
 
-    private func plan(_ memory: SubagentBatchMemoryFacts, jobs: Int = 1,
-                      limit: Int = 1) -> SubagentBatchAdmissionPlan {
-        SubagentBatchAdmissionPlanner.plan(.init(
-            localJobCount: jobs, remoteJobCount: 0, agentParallelLimit: limit,
-            engineParallelLimit: limit, continuousBatchingEnabled: true,
-            ramSafetyEnabled: true, failClosedWhenEstimateUnknown: true, memory: memory
-        ))
+    private func plan(
+        _ memory: SubagentBatchMemoryFacts,
+        jobs: Int = 1,
+        limit: Int = 1
+    ) -> SubagentBatchAdmissionPlan {
+        SubagentBatchAdmissionPlanner.plan(
+            .init(
+                localJobCount: jobs,
+                remoteJobCount: 0,
+                agentParallelLimit: limit,
+                engineParallelLimit: limit,
+                continuousBatchingEnabled: true,
+                ramSafetyEnabled: true,
+                failClosedWhenEstimateUnknown: true,
+                memory: memory
+            )
+        )
     }
 
     private func kind() -> TextSubagentKind {
         let kind = TextSubagentKind(agentID: UUID(), input: "source-only admission regression")
         kind.delegatedContract = DelegatedRunContract(
-            responseTokens: 8_192, assistantTurns: 24, contextPositions: requested)
+            responseTokens: 8_192,
+            assistantTurns: 24,
+            contextPositions: requested
+        )
         kind.minimumAdmissionContextPositions = minimum
         return kind
     }
@@ -86,7 +104,7 @@ struct ResidentDelegationContextAdmissionTests {
             "sliding_window": 512,
             "max_position_embeddings": 1_048_576,
             "kv_cache_dtype": "bfloat16",
-            "layer_types": (0..<36).map { ($0 + 1) % 4 == 0 ? "full_attention" : "sliding_attention" },
+            "layer_types": (0 ..< 36).map { ($0 + 1) % 4 == 0 ? "full_attention" : "sliding_attention" },
         ]
         try JSONSerialization.data(withJSONObject: config).write(to: directory.appendingPathComponent("config.json"))
         try body(directory)
@@ -119,26 +137,48 @@ struct ResidentDelegationContextAdmissionTests {
     @Test("actual ModelRuntime topology estimator reproduces cap, original, floor and fitted prices")
     func architectureEstimatorPricesExactGeometry() throws {
         try withRaptorGeometry { directory in
-            let mix = ModelRuntime.attentionLayerMix(in: try #require(
-                JSONSerialization.jsonObject(with: Data(contentsOf: directory.appendingPathComponent("config.json")))
-                    as? [String: Any]))
+            let mix = ModelRuntime.attentionLayerMix(
+                in: try #require(
+                    JSONSerialization.jsonObject(
+                        with: Data(contentsOf: directory.appendingPathComponent("config.json"))
+                    )
+                        as? [String: Any]
+                )
+            )
             #expect(mix.fullAttention == 9)
             #expect(mix.slidingAttention == 27)
             #expect(mix.slidingWindow == 512)
-            #expect(ModelRuntime.estimatedKVHeadroomBytes(
-                forWeights: Int64(footprint), modelDirectory: directory, kvRetentionCap: nil) == 48_389_160_960)
+            #expect(
+                ModelRuntime.estimatedKVHeadroomBytes(
+                    forWeights: Int64(footprint),
+                    modelDirectory: directory,
+                    kvRetentionCap: nil
+                ) == 48_389_160_960
+            )
             for positions in [minimum, fitted, fitted + 1, requested] {
-                #expect(ModelRuntime.estimatedKVHeadroomBytes(
-                    forWeights: Int64(footprint), modelDirectory: directory,
-                    kvRetentionCap: nil, requestPositionLimit: positions) == Int64(try #require(price(positions))))
+                #expect(
+                    ModelRuntime.estimatedKVHeadroomBytes(
+                        forWeights: Int64(footprint),
+                        modelDirectory: directory,
+                        kvRetentionCap: nil,
+                        requestPositionLimit: positions
+                    ) == Int64(try #require(price(positions)))
+                )
             }
             let actual = SubagentBatchAdmissionPlanner.affordablePositionCeiling(
-                requested: requested, minimum: minimum, memory: facts(), headroomForPositions: { positions in
+                requested: requested,
+                minimum: minimum,
+                memory: facts(),
+                headroomForPositions: { positions in
                     let bytes = ModelRuntime.estimatedKVHeadroomBytes(
-                        forWeights: Int64(footprint), modelDirectory: directory,
-                        kvRetentionCap: nil, requestPositionLimit: positions)
+                        forWeights: Int64(footprint),
+                        modelDirectory: directory,
+                        kvRetentionCap: nil,
+                        requestPositionLimit: positions
+                    )
                     return bytes > 0 ? UInt64(bytes) : nil
-                })
+                }
+            )
             #expect(actual == fitted)
         }
     }
@@ -159,14 +199,26 @@ struct ResidentDelegationContextAdmissionTests {
     func minimumRoundCannotFit() throws {
         // These synthetic composer sizes give the receipt's 4,858-position
         // prefix reserve. Lifetime work remains 24 turns, not one turn.
-        let full = try #require(DelegatedRunContract.derive(
-            seedCharacters: 800, systemPromptCharacters: 8_000, toolSchemaTokens: 1_558,
-            budgets: SubagentBudgets(maxDelegateTokens: 8_192, maxDelegateTurns: 24),
-            toolEnabled: true, resolvedContextWindow: 1_048_576))
-        let first = try #require(DelegatedRunContract.derive(
-            seedCharacters: 800, systemPromptCharacters: 8_000, toolSchemaTokens: 1_558,
-            budgets: SubagentBudgets(maxDelegateTokens: 8_192, maxDelegateTurns: 1),
-            toolEnabled: true, resolvedContextWindow: 1_048_576))
+        let full = try #require(
+            DelegatedRunContract.derive(
+                seedCharacters: 800,
+                systemPromptCharacters: 8_000,
+                toolSchemaTokens: 1_558,
+                budgets: SubagentBudgets(maxDelegateTokens: 8_192, maxDelegateTurns: 24),
+                toolEnabled: true,
+                resolvedContextWindow: 1_048_576
+            )
+        )
+        let first = try #require(
+            DelegatedRunContract.derive(
+                seedCharacters: 800,
+                systemPromptCharacters: 8_000,
+                toolSchemaTokens: 1_558,
+                budgets: SubagentBudgets(maxDelegateTokens: 8_192, maxDelegateTurns: 1),
+                toolEnabled: true,
+                resolvedContextWindow: 1_048_576
+            )
+        )
         #expect(full.contextPositions == requested)
         #expect(first.contextPositions == minimum)
         let floorCost = try #require(price(minimum))
@@ -177,9 +229,11 @@ struct ResidentDelegationContextAdmissionTests {
 
     @Test("unknown pressure, critical, warning, cold and missing authoritative facts fail closed")
     func untrustedFactsDoNotAdapt() {
-        for memory in [facts(pressure: .unknown), facts(pressure: .critical), facts(pressure: .warning),
-                       facts(resident: false), facts(allocator: nil), facts(budget: nil),
-                       facts(available: nil), facts(bounded: nil), facts(load: nil)] {
+        for memory in [
+            facts(pressure: .unknown), facts(pressure: .critical), facts(pressure: .warning),
+            facts(resident: false), facts(allocator: nil), facts(budget: nil),
+            facts(available: nil), facts(bounded: nil), facts(load: nil),
+        ] {
             #expect(ceiling(memory) == nil)
         }
         #expect(ceiling(facts(allocator: UInt64.max)) == nil)
@@ -191,8 +245,14 @@ struct ResidentDelegationContextAdmissionTests {
             #expect(ceiling(facts(), requested: request, minimum: floor) == nil)
         }
         for unknown: (Int) -> UInt64? in [{ _ in nil }, { _ in 0 }] {
-            #expect(SubagentBatchAdmissionPlanner.affordablePositionCeiling(
-                requested: requested, minimum: minimum, memory: facts(), headroomForPositions: unknown) == nil)
+            #expect(
+                SubagentBatchAdmissionPlanner.affordablePositionCeiling(
+                    requested: requested,
+                    minimum: minimum,
+                    memory: facts(),
+                    headroomForPositions: unknown
+                ) == nil
+            )
         }
     }
 
@@ -285,10 +345,13 @@ struct ResidentDelegationContextAdmissionTests {
         #expect(estimate.seedCharacters == nil)
         #expect(estimate.maxOutputTokens == nil)
         let request = DispatchRequest(
-            prompt: "source-only contract propagation", agentId: UUID(), source: .delegation,
+            prompt: "source-only contract propagation",
+            agentId: UUID(),
+            source: .delegation,
             delegationResponseTokenCap: contract.responseTokens,
             delegationContextPositionCap: contract.contextPositions,
-            delegationAssistantTurnCap: contract.assistantTurns)
+            delegationAssistantTurnCap: contract.assistantTurns
+        )
         #expect(request.delegationContract == contract)
         let context = BackgroundTaskManager.shared.makeContextForTesting(request)
         let enforced = try #require(context.chatSession.delegationBudget)

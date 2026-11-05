@@ -48,7 +48,8 @@ private struct AttestationFactory {
             "exp": now + Int(expiresIn),
         ]
         let payloadData = try JSONSerialization.data(
-            withJSONObject: payload, options: [.sortedKeys]
+            withJSONObject: payload,
+            options: [.sortedKeys]
         )
         let signature = try (key ?? signingKey).signature(for: payloadData)
         return payloadData.base64urlEncoded + "." + signature.base64urlEncoded
@@ -65,7 +66,8 @@ struct WorkspaceMembershipAttestationTests {
     @Test func verify_acceptsValidToken() throws {
         let token = try factory.token(wallet: wallet, role: "viewer")
         let attestation = try WorkspaceMembershipAttestation.verify(
-            token: token, publicKeyBase64URL: factory.publicKeyBase64URL
+            token: token,
+            publicKeyBase64URL: factory.publicKeyBase64URL
         )
         #expect(attestation.payload.workspaceId == "team-1")
         #expect(attestation.payload.wallet == wallet.lowercased())
@@ -79,7 +81,8 @@ struct WorkspaceMembershipAttestationTests {
         let token = try factory.token(wallet: wallet, expiresIn: -30)
         #expect(throws: WorkspaceAttestationError.expired) {
             try WorkspaceMembershipAttestation.verify(
-                token: token, publicKeyBase64URL: factory.publicKeyBase64URL
+                token: token,
+                publicKeyBase64URL: factory.publicKeyBase64URL
             )
         }
     }
@@ -90,7 +93,8 @@ struct WorkspaceMembershipAttestationTests {
         let token = try factory.token(wallet: wallet, signWith: rogue)
         #expect(throws: WorkspaceAttestationError.badSignature) {
             try WorkspaceMembershipAttestation.verify(
-                token: token, publicKeyBase64URL: factory.publicKeyBase64URL
+                token: token,
+                publicKeyBase64URL: factory.publicKeyBase64URL
             )
         }
     }
@@ -104,12 +108,14 @@ struct WorkspaceMembershipAttestationTests {
             try JSONSerialization.jsonObject(with: payloadData) as! [String: Any]
         object["role"] = "owner"
         payloadData = try JSONSerialization.data(
-            withJSONObject: object, options: [.sortedKeys]
+            withJSONObject: object,
+            options: [.sortedKeys]
         )
         let tampered = payloadData.base64urlEncoded + "." + String(segments[1])
         #expect(throws: WorkspaceAttestationError.badSignature) {
             try WorkspaceMembershipAttestation.verify(
-                token: tampered, publicKeyBase64URL: factory.publicKeyBase64URL
+                token: tampered,
+                publicKeyBase64URL: factory.publicKeyBase64URL
             )
         }
     }
@@ -118,7 +124,8 @@ struct WorkspaceMembershipAttestationTests {
         let token = try factory.token(v: 2, wallet: wallet)
         #expect(throws: WorkspaceAttestationError.unsupportedVersion) {
             try WorkspaceMembershipAttestation.verify(
-                token: token, publicKeyBase64URL: factory.publicKeyBase64URL
+                token: token,
+                publicKeyBase64URL: factory.publicKeyBase64URL
             )
         }
     }
@@ -126,13 +133,15 @@ struct WorkspaceMembershipAttestationTests {
     @Test func verify_rejectsMalformedTokenAndKey() throws {
         #expect(throws: WorkspaceAttestationError.malformedToken) {
             try WorkspaceMembershipAttestation.verify(
-                token: "not-a-token", publicKeyBase64URL: factory.publicKeyBase64URL
+                token: "not-a-token",
+                publicKeyBase64URL: factory.publicKeyBase64URL
             )
         }
         let token = try factory.token(wallet: wallet)
         #expect(throws: WorkspaceAttestationError.malformedPublicKey) {
             try WorkspaceMembershipAttestation.verify(
-                token: token, publicKeyBase64URL: "AAAA"
+                token: token,
+                publicKeyBase64URL: "AAAA"
             )
         }
     }
@@ -150,7 +159,8 @@ struct WorkspaceMembershipAttestationTests {
         // expire within 10 minutes but must not fail a handshake in flight.
         let token = try factory.token(wallet: wallet, workspaceIdClaim: "team_id")
         let attestation = try WorkspaceMembershipAttestation.verify(
-            token: token, publicKeyBase64URL: factory.publicKeyBase64URL
+            token: token,
+            publicKeyBase64URL: factory.publicKeyBase64URL
         )
         #expect(attestation.payload.workspaceId == "team-1")
     }
@@ -158,7 +168,8 @@ struct WorkspaceMembershipAttestationTests {
     @Test func payloadRole_unknownFallsBackToViewer() throws {
         let token = try factory.token(wallet: wallet, role: "superuser-9000")
         let attestation = try WorkspaceMembershipAttestation.verify(
-            token: token, publicKeyBase64URL: factory.publicKeyBase64URL
+            token: token,
+            publicKeyBase64URL: factory.publicKeyBase64URL
         )
         // Least privilege: a role this client doesn't know must never unlock
         // member/admin affordances.
@@ -172,7 +183,8 @@ struct WorkspaceMembershipAttestationTests {
 struct WorkspaceRedeemWireTests {
     @Test func redeemMessage_lowercasesAddress() {
         let message = WorkspaceAgentAccess.redeemMessage(
-            agentAddress: "0xABCdef012345", nonce: "n0nce"
+            agentAddress: "0xABCdef012345",
+            nonce: "n0nce"
         )
         #expect(message == "osaurus-workspaces:redeem:0xabcdef012345:n0nce")
     }
@@ -202,7 +214,8 @@ struct WorkspaceRedeemWireTests {
     @Test func challengeResponse_decodesExpiresIn() throws {
         let body = #"{"team_challenge":{"nonce":"abc","expires_in":120}}"#
         let challenge = try JSONDecoder().decode(
-            WorkspacePairChallengeResponse.self, from: Data(body.utf8)
+            WorkspacePairChallengeResponse.self,
+            from: Data(body.utf8)
         )
         #expect(challenge.workspaceChallenge.nonce == "abc")
         #expect(challenge.workspaceChallenge.expiresIn == 120)
@@ -314,8 +327,12 @@ struct WorkspaceAgentAccessHostTests {
         let attestation = try factory.token(wallet: wallet)
         let stepOne = await host.handle(
             .init(
-                v: 1, agentAddress: agentAddress, attestation: attestation,
-                nonce: nil, walletSignature: nil, encPub: nil
+                v: 1,
+                agentAddress: agentAddress,
+                attestation: attestation,
+                nonce: nil,
+                walletSignature: nil,
+                encPub: nil
             )
         )
         let nonce = try #require(challengeNonce(stepOne))
@@ -327,8 +344,12 @@ struct WorkspaceAgentAccessHostTests {
         func redeem() async -> WorkspaceAgentAccessHost.Outcome {
             await host.handle(
                 .init(
-                    v: 1, agentAddress: agentAddress, attestation: attestation,
-                    nonce: nonce, walletSignature: "0x\(signature)", encPub: nil
+                    v: 1,
+                    agentAddress: agentAddress,
+                    attestation: attestation,
+                    nonce: nonce,
+                    walletSignature: "0x\(signature)",
+                    encPub: nil
                 )
             )
         }
@@ -348,8 +369,12 @@ struct WorkspaceAgentAccessHostTests {
         let attestation = try factory.token(wallet: wallet)
         let stepOne = await host.handle(
             .init(
-                v: 1, agentAddress: agentAddress, attestation: attestation,
-                nonce: nil, walletSignature: nil, encPub: nil
+                v: 1,
+                agentAddress: agentAddress,
+                attestation: attestation,
+                nonce: nil,
+                walletSignature: nil,
+                encPub: nil
             )
         )
         let nonce = try #require(challengeNonce(stepOne))
@@ -360,8 +385,12 @@ struct WorkspaceAgentAccessHostTests {
         ).hexEncodedString
         let outcome = await host.handle(
             .init(
-                v: 1, agentAddress: agentAddress, attestation: attestation,
-                nonce: nonce, walletSignature: "0x\(signature)", encPub: nil
+                v: 1,
+                agentAddress: agentAddress,
+                attestation: attestation,
+                nonce: nonce,
+                walletSignature: "0x\(signature)",
+                encPub: nil
             )
         )
         guard case .rejected(.badWalletSignature) = outcome else {
@@ -378,8 +407,12 @@ struct WorkspaceAgentAccessHostTests {
         let attestation = try factory.token(wallet: wallet)
         let stepOne = await host.handle(
             .init(
-                v: 1, agentAddress: agentAddress, attestation: attestation,
-                nonce: nil, walletSignature: nil, encPub: nil
+                v: 1,
+                agentAddress: agentAddress,
+                attestation: attestation,
+                nonce: nil,
+                walletSignature: nil,
+                encPub: nil
             )
         )
         let nonce = try #require(challengeNonce(stepOne))
@@ -389,8 +422,12 @@ struct WorkspaceAgentAccessHostTests {
         ).hexEncodedString
         let outcome = await host.handle(
             .init(
-                v: 1, agentAddress: agentAddress, attestation: attestation,
-                nonce: nonce, walletSignature: "0x\(signature)", encPub: nil
+                v: 1,
+                agentAddress: agentAddress,
+                attestation: attestation,
+                nonce: nonce,
+                walletSignature: "0x\(signature)",
+                encPub: nil
             )
         )
         guard case .rejected(.agentNotFound) = outcome else {
@@ -430,8 +467,12 @@ struct WorkspaceAgentAccessHostTests {
         let attestation = try factory.token(wallet: TestKeys.aliceAddress)
         let stepOne = await host.handle(
             .init(
-                v: 1, agentAddress: ownAddress, attestation: attestation,
-                nonce: nil, walletSignature: nil, encPub: nil
+                v: 1,
+                agentAddress: ownAddress,
+                attestation: attestation,
+                nonce: nil,
+                walletSignature: nil,
+                encPub: nil
             )
         )
         let nonce = try #require(challengeNonce(stepOne))
@@ -441,8 +482,12 @@ struct WorkspaceAgentAccessHostTests {
         ).hexEncodedString
         let outcome = await host.handle(
             .init(
-                v: 1, agentAddress: ownAddress, attestation: attestation,
-                nonce: nonce, walletSignature: "0x\(signature)", encPub: nil
+                v: 1,
+                agentAddress: ownAddress,
+                attestation: attestation,
+                nonce: nonce,
+                walletSignature: "0x\(signature)",
+                encPub: nil
             )
         )
         switch outcome {
@@ -468,8 +513,12 @@ struct WorkspaceAgentAccessHostTests {
         let attestation = try factory.token(wallet: wallet)
         let stepOne = await host.handle(
             .init(
-                v: 1, agentAddress: agentAddress, attestation: attestation,
-                nonce: nil, walletSignature: nil, encPub: nil
+                v: 1,
+                agentAddress: agentAddress,
+                attestation: attestation,
+                nonce: nil,
+                walletSignature: nil,
+                encPub: nil
             )
         )
         let nonce = try #require(challengeNonce(stepOne))
@@ -479,8 +528,12 @@ struct WorkspaceAgentAccessHostTests {
         ).hexEncodedString
         let outcome = await host.handle(
             .init(
-                v: 1, agentAddress: agentAddress, attestation: attestation,
-                nonce: nonce, walletSignature: "0x\(signature)", encPub: nil
+                v: 1,
+                agentAddress: agentAddress,
+                attestation: attestation,
+                nonce: nonce,
+                walletSignature: "0x\(signature)",
+                encPub: nil
             )
         )
         guard case .rejected(.agentNotFound) = outcome else {
@@ -557,7 +610,9 @@ struct CallerAttributionTests {
         #expect(withoutPayload?.keys.contains("caller_attestation") == false)
 
         let with = OsaurusRouterWorkspaceContext(
-            workspaceId: "team-1", agentAddress: "0xabc", callerAttestation: "tok.sig"
+            workspaceId: "team-1",
+            agentAddress: "0xabc",
+            callerAttestation: "tok.sig"
         )
         let payload =
             try JSONSerialization.jsonObject(with: JSONEncoder().encode(with))
@@ -575,7 +630,8 @@ struct CallerAttributionTests {
              "caller":{"account_id":"acct-9","wallet_address":"0xDeF1","dino_id":null,"display_name":"Blue"}}
             """
         let item = try JSONDecoder().decode(
-            OsaurusRouterUsageItem.self, from: Data(row.utf8)
+            OsaurusRouterUsageItem.self,
+            from: Data(row.utf8)
         )
         // actor = whose instance billed; caller = who asked.
         #expect(item.actor?.accountId == "acct-1")
@@ -592,7 +648,8 @@ struct CallerAttributionTests {
              "actor":{"account_id":"acct-1","wallet_address":"0xAbC1","display_name":"Rexy"}}
             """
         let withoutCaller = try JSONDecoder().decode(
-            OsaurusRouterUsageItem.self, from: Data(ownTurn.utf8)
+            OsaurusRouterUsageItem.self,
+            from: Data(ownTurn.utf8)
         )
         #expect(withoutCaller.caller == nil)
     }
@@ -620,7 +677,9 @@ struct CallerAttributionTests {
         )
         let params = GenerationParameters(temperature: 0.7, maxTokens: 128)
         let bound = OsaurusRouterWorkspaceContext(
-            workspaceId: "team-session", agentAddress: "0xaaa111", callerAttestation: "tok.sig"
+            workspaceId: "team-session",
+            agentAddress: "0xaaa111",
+            callerAttestation: "tok.sig"
         )
 
         let request = await ChatExecutionContext.$workspaceBillingContext.withValue(bound) {
@@ -651,7 +710,8 @@ struct SharedAgentModelBadgeTests {
              "apiKey":"","sealedApiKey":{"enc":"ZW5j","ct":"Y3Q="}}
             """
         let grant = try JSONDecoder().decode(
-            WorkspaceAgentConnectService.GrantResponse.self, from: Data(body.utf8)
+            WorkspaceAgentConnectService.GrantResponse.self,
+            from: Data(body.utf8)
         )
         #expect(grant.agentModel == "anthropic/claude-sonnet-4-5")
         #expect(grant.sealedApiKey == PairingKeyEnvelope.Sealed(enc: "ZW5j", ct: "Y3Q="))
@@ -662,7 +722,8 @@ struct SharedAgentModelBadgeTests {
         // handshake must still succeed.
         let body = #"{"agentAddress":"0xabc","agentName":"HR","apiKey":"osk-v1.x"}"#
         let grant = try JSONDecoder().decode(
-            WorkspaceAgentConnectService.GrantResponse.self, from: Data(body.utf8)
+            WorkspaceAgentConnectService.GrantResponse.self,
+            from: Data(body.utf8)
         )
         #expect(grant.agentModel == nil)
         #expect(grant.apiKey == "osk-v1.x")

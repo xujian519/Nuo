@@ -162,7 +162,7 @@ struct WebSearchToolTests {
                         "url": "https://example.com/slow",
                         "extracted": false,
                         "extract_status": "timeout",
-                    ],
+                    ]
                 ],
             ],
             warnings: ["test warning"]
@@ -193,7 +193,7 @@ struct WebSearchToolTests {
                         "url": "https://example.com/offline",
                         "extracted": false,
                         "extract_status": "fetch_failed",
-                    ],
+                    ]
                 ],
             ]
         )
@@ -216,7 +216,7 @@ struct WebSearchToolTests {
                         "url": "https://example.com/cancelled",
                         "extracted": false,
                         "extract_status": "cancelled",
-                    ],
+                    ]
                 ],
             ]
         )

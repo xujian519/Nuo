@@ -27,7 +27,8 @@ struct SetupCheckerTests {
             modelCatalog: ConfigModelReference.Catalog(localModelIds: locals, providers: []),
             isPermissionGranted: { granted.contains($0) },
             bookmarkResolves: { _ in bookmarkOK },
-            knowledgeCollectionExists: { collections.contains($0) })
+            knowledgeCollectionExists: { collections.contains($0) }
+        )
     }
 
     private func agent() -> Agent {
@@ -124,8 +125,10 @@ struct SetupStateStoreTests {
         store.markNeedsSetup(b)
         store.markNeedsSetup(a)  // idempotent
         #expect(store.pending == [a, b])
-        let onDisk = try JSONSerialization.jsonObject(
-            with: Data(contentsOf: SetupStateStore.fileURL)) as? [String: Any]
+        let onDisk =
+            try JSONSerialization.jsonObject(
+                with: Data(contentsOf: SetupStateStore.fileURL)
+            ) as? [String: Any]
         #expect((onDisk?["pending"] as? [String])?.count == 2)
         store.clear(a)
         #expect(store.pending == [b])
@@ -175,7 +178,8 @@ struct AgentSetupTemplateGroupTests {
         let updated = SetupChecker.addingTemplateGroupTools(
             to: agent,
             groups: [.mcpServer("Underwriting"), .plugin("osaurus.vision")],
-            available: [.mcpServer("Underwriting"): ["uw_case_get", "uw_apps_list"]])
+            available: [.mcpServer("Underwriting"): ["uw_case_get", "uw_apps_list"]]
+        )
         #expect(updated.manualToolNames == ["web_search", "uw_case_get", "uw_apps_list"])
     }
 
@@ -185,8 +189,10 @@ struct AgentSetupTemplateGroupTests {
         agent.toolSelectionMode = .manual
         agent.manualToolNames = ["uw_case_get"]
         let updated = SetupChecker.addingTemplateGroupTools(
-            to: agent, groups: [.mcpServer("Underwriting")],
-            available: [.mcpServer("Underwriting"): ["uw_case_get", "uw_apps_list"]])
+            to: agent,
+            groups: [.mcpServer("Underwriting")],
+            available: [.mcpServer("Underwriting"): ["uw_case_get", "uw_apps_list"]]
+        )
         #expect(updated.manualToolNames == ["uw_case_get"])
     }
 }

@@ -27,31 +27,36 @@ struct GenerationParameterPlumbingTests {
     @Test("stop decodes from a plain string (OpenAI-legal shape)")
     func stopDecodesFromString() throws {
         let req = try decodeRequest(
-            #"{"model":"m","messages":[{"role":"user","content":"hi"}],"stop":"five"}"#)
+            #"{"model":"m","messages":[{"role":"user","content":"hi"}],"stop":"five"}"#
+        )
         #expect(req.stop == ["five"])
     }
 
     @Test("stop decodes from an array of strings")
     func stopDecodesFromArray() throws {
         let req = try decodeRequest(
-            #"{"model":"m","messages":[{"role":"user","content":"hi"}],"stop":["a","b"]}"#)
+            #"{"model":"m","messages":[{"role":"user","content":"hi"}],"stop":["a","b"]}"#
+        )
         #expect(req.stop == ["a", "b"])
     }
 
     @Test("stop absent and stop null both decode to nil")
     func stopAbsentAndNull() throws {
         let absent = try decodeRequest(
-            #"{"model":"m","messages":[{"role":"user","content":"hi"}]}"#)
+            #"{"model":"m","messages":[{"role":"user","content":"hi"}]}"#
+        )
         #expect(absent.stop == nil)
         let null = try decodeRequest(
-            #"{"model":"m","messages":[{"role":"user","content":"hi"}],"stop":null}"#)
+            #"{"model":"m","messages":[{"role":"user","content":"hi"}],"stop":null}"#
+        )
         #expect(null.stop == nil)
     }
 
     @Test("min_p decodes and survives withModel/withContext copies")
     func minPDecodesAndCopies() throws {
         let req = try decodeRequest(
-            #"{"model":"m","messages":[{"role":"user","content":"hi"}],"min_p":0.05}"#)
+            #"{"model":"m","messages":[{"role":"user","content":"hi"}],"min_p":0.05}"#
+        )
         #expect(req.min_p == 0.05)
         #expect(req.withModel("other").min_p == 0.05)
         #expect(req.withContext(messages: req.messages, tools: nil, toolChoice: nil).min_p == 0.05)
@@ -65,7 +70,8 @@ struct GenerationParameterPlumbingTests {
              "temperature":0.7,"top_p":0.9,"top_k":40,"min_p":0.02,
              "frequency_penalty":0.5,"presence_penalty":-0.25,
              "seed":42,"max_tokens":128,"stop":"END","stream":false}
-            """#)
+            """#
+        )
         #expect(req.temperature == 0.7)
         #expect(req.top_k == 40)
         #expect(req.min_p == 0.02)

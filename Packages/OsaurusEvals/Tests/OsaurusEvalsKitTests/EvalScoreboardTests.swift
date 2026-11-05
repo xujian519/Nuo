@@ -7,8 +7,16 @@ struct EvalScoreboardTests {
     @Test func scoreboardAggregatesFixtureDrivenReviewBundles() throws {
         let baselineReport = try fixtureReport("baseline")
         let currentReport = try fixtureReport("current")
-        let baselineInput = input(suite: "AgentLoop", reportPath: "watcher/main/baseline/report/AgentLoop.json", report: baselineReport)
-        let currentInput = input(suite: "AgentLoop", reportPath: "watcher/main/current/report/AgentLoop.json", report: currentReport)
+        let baselineInput = input(
+            suite: "AgentLoop",
+            reportPath: "watcher/main/baseline/report/AgentLoop.json",
+            report: baselineReport
+        )
+        let currentInput = input(
+            suite: "AgentLoop",
+            reportPath: "watcher/main/current/report/AgentLoop.json",
+            report: currentReport
+        )
         let baselineBundle = EvalReviewReportBuilder.build(
             manifest: manifest(
                 generatedAt: "2026-06-17T00:00:00Z",
@@ -227,7 +235,7 @@ struct EvalScoreboardTests {
                     suite: "AgentLoop",
                     reportPath: "watcher/main/baseline/report/AgentLoop.json",
                     report: baselineReport
-                ),
+                )
             ]
         )
         let root = try temporaryDirectory()
@@ -265,7 +273,7 @@ struct EvalScoreboardTests {
                     suite: "AgentLoop",
                     reportPath: "watcher/main/invalid/report/AgentLoop.json",
                     report: baselineReport
-                ),
+                )
             ]
         )
         let root = try temporaryDirectory()
@@ -299,7 +307,7 @@ struct EvalScoreboardTests {
                     suite: "AgentLoop",
                     reportPath: olderDir.appendingPathComponent("AgentLoop.json").path,
                     report: passingFixtureReport()
-                ),
+                )
             ]
         )
         let newerBundle = EvalReviewReportBuilder.build(
@@ -314,7 +322,7 @@ struct EvalScoreboardTests {
                     suite: "AgentLoop",
                     reportPath: newerDir.appendingPathComponent("AgentLoop.json").path,
                     report: try fixtureReport("current")
-                ),
+                )
             ]
         )
         try writeBundle(
@@ -356,7 +364,7 @@ struct EvalScoreboardTests {
                     suite: "AgentLoop",
                     reportPath: "build/evals/watcher/main/zero/report/AgentLoop.json",
                     report: emptyReport
-                ),
+                )
             ]
         )
 
@@ -457,7 +465,7 @@ struct EvalScoreboardTests {
                     notes: [],
                     modelId: "foundation",
                     latencyMs: 25
-                ),
+                )
             ]
         )
     }
@@ -491,10 +499,10 @@ struct EvalScoreboardTests {
             artifactPath: artifactPath,
             artifactId: artifactId,
             suites: [
-                EvalReviewSuiteRef(name: "AgentLoop", path: "Packages/OsaurusEvals/Suites/AgentLoop"),
+                EvalReviewSuiteRef(name: "AgentLoop", path: "Packages/OsaurusEvals/Suites/AgentLoop")
             ],
             models: [
-                EvalReviewModelRef(role: .local, modelId: "foundation"),
+                EvalReviewModelRef(role: .local, modelId: "foundation")
             ],
             commands: [],
             environment: EvalReviewEnvironmentSummary(

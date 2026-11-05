@@ -19,8 +19,11 @@ import Testing
 struct EvalMTPControlTests {
 
     @Test func offRejectsDFlashEvenWithoutNativeDepthTelemetry() {
-        let verdict = EvalMTPControlState.verdict(requested: .off,
-            resolution: resolution(strategy: "dflash2:fixture"), tokenStepConfiguredDepths: [nil])
+        let verdict = EvalMTPControlState.verdict(
+            requested: .off,
+            resolution: resolution(strategy: "dflash2:fixture"),
+            tokenStepConfiguredDepths: [nil]
+        )
         guard case .violation = verdict else {
             Issue.record("Off must reject DFlash as well as native MTP")
             return
@@ -28,19 +31,26 @@ struct EvalMTPControlTests {
     }
 
     private func resolution(
-        strategy: String, depth: Int? = nil,
-        loadStatus: String? = nil, loadReason: String? = nil
+        strategy: String,
+        depth: Int? = nil,
+        loadStatus: String? = nil,
+        loadReason: String? = nil
     ) -> EvalMTPResolution {
         EvalMTPResolution(
-            loadStatus: loadStatus, loadReason: loadReason,
-            requestStrategy: strategy, requestConfiguredDepth: depth)
+            loadStatus: loadStatus,
+            loadReason: loadReason,
+            requestStrategy: strategy,
+            requestConfiguredDepth: depth
+        )
     }
 
     private var plainAR: EvalMTPResolution { resolution(strategy: "none") }
     private func nativeMTP(_ d: Int) -> EvalMTPResolution {
         resolution(
-            strategy: "native_mtp:d\(d)·greedy-when-active", depth: d,
-            loadStatus: "native_mtp:d\(d)")
+            strategy: "native_mtp:d\(d)·greedy-when-active",
+            depth: d,
+            loadStatus: "native_mtp:d\(d)"
+        )
     }
 
     @Test func parseAcceptsCanonicalValues() {
@@ -60,16 +70,21 @@ struct EvalMTPControlTests {
     @Test func offHonoredByExplicitNoneStrategy() {
         #expect(
             EvalMTPControlState.verdict(
-                requested: .off, resolution: plainAR,
-                tokenStepConfiguredDepths: [nil, nil]) == .honored)
+                requested: .off,
+                resolution: plainAR,
+                tokenStepConfiguredDepths: [nil, nil]
+            ) == .honored
+        )
     }
 
     /// Off with MISSING stats but a resolution that wrongly configured
     /// native MTP is a violation — the resolution evidence alone convicts.
     @Test func offViolatedByResolvedNativeMTPEvenWithoutStats() {
         let verdict = EvalMTPControlState.verdict(
-            requested: .off, resolution: nativeMTP(2),
-            tokenStepConfiguredDepths: [nil])
+            requested: .off,
+            resolution: nativeMTP(2),
+            tokenStepConfiguredDepths: [nil]
+        )
         guard case .violation(let message) = verdict else {
             Issue.record("expected violation, got \(verdict)")
             return
@@ -80,8 +95,10 @@ struct EvalMTPControlTests {
 
     @Test func offViolatedByMTPStepStats() {
         let verdict = EvalMTPControlState.verdict(
-            requested: .off, resolution: plainAR,
-            tokenStepConfiguredDepths: [2])
+            requested: .off,
+            resolution: plainAR,
+            tokenStepConfiguredDepths: [2]
+        )
         guard case .violation = verdict else {
             Issue.record("expected violation, got \(verdict)")
             return
@@ -92,7 +109,10 @@ struct EvalMTPControlTests {
     /// a silent pass ("absent stats ≠ off").
     @Test func offWithoutResolutionIsUnverified() {
         let verdict = EvalMTPControlState.verdict(
-            requested: .off, resolution: nil, tokenStepConfiguredDepths: [nil])
+            requested: .off,
+            resolution: nil,
+            tokenStepConfiguredDepths: [nil]
+        )
         guard case .unverified = verdict else {
             Issue.record("expected unverified, got \(verdict)")
             return
@@ -106,24 +126,33 @@ struct EvalMTPControlTests {
     @Test func autoResolvedOffIsHonored() {
         #expect(
             EvalMTPControlState.verdict(
-                requested: .auto, resolution: plainAR,
-                tokenStepConfiguredDepths: [nil]) == .honored)
+                requested: .auto,
+                resolution: plainAR,
+                tokenStepConfiguredDepths: [nil]
+            ) == .honored
+        )
     }
 
     /// Auto resolved to native MTP at any depth: honored.
     @Test func autoResolvedDepthIsHonored() {
-        for d in 1...3 {
+        for d in 1 ... 3 {
             #expect(
                 EvalMTPControlState.verdict(
-                    requested: .auto, resolution: nativeMTP(d),
-                    tokenStepConfiguredDepths: [d]) == .honored)
+                    requested: .auto,
+                    resolution: nativeMTP(d),
+                    tokenStepConfiguredDepths: [d]
+                ) == .honored
+            )
         }
     }
 
     /// Auto without captured resolution cannot say what it resolved to.
     @Test func autoWithoutResolutionIsUnverified() {
         let verdict = EvalMTPControlState.verdict(
-            requested: .auto, resolution: nil, tokenStepConfiguredDepths: [nil])
+            requested: .auto,
+            resolution: nil,
+            tokenStepConfiguredDepths: [nil]
+        )
         guard case .unverified = verdict else {
             Issue.record("expected unverified, got \(verdict)")
             return
@@ -135,19 +164,26 @@ struct EvalMTPControlTests {
     @Test func forcedDepthHonoredEndToEnd() {
         #expect(
             EvalMTPControlState.verdict(
-                requested: .forcedDepth(2), resolution: nativeMTP(2),
-                tokenStepConfiguredDepths: [2, 2]) == .honored)
+                requested: .forcedDepth(2),
+                resolution: nativeMTP(2),
+                tokenStepConfiguredDepths: [2, 2]
+            ) == .honored
+        )
     }
 
     /// Blocked before load (no MTP tensors / gate): the resolution never
     /// reaches native_mtp → explicit violation naming the load reason.
     @Test func forcedDepthBlockedAtLoadIsExplicitError() {
         let blocked = resolution(
-            strategy: "none", loadStatus: nil,
-            loadReason: "bundle has no MTP tensors")
+            strategy: "none",
+            loadStatus: nil,
+            loadReason: "bundle has no MTP tensors"
+        )
         let verdict = EvalMTPControlState.verdict(
-            requested: .forcedDepth(2), resolution: blocked,
-            tokenStepConfiguredDepths: [nil])
+            requested: .forcedDepth(2),
+            resolution: blocked,
+            tokenStepConfiguredDepths: [nil]
+        )
         guard case .violation(let message) = verdict else {
             Issue.record("expected violation, got \(verdict)")
             return
@@ -160,8 +196,10 @@ struct EvalMTPControlTests {
     /// and the message speaks of CONFIGURED depth, not adaptive behavior.
     @Test func forcedConfiguredDepthMismatchIsViolation() {
         let verdict = EvalMTPControlState.verdict(
-            requested: .forcedDepth(3), resolution: nativeMTP(3),
-            tokenStepConfiguredDepths: [2])
+            requested: .forcedDepth(3),
+            resolution: nativeMTP(3),
+            tokenStepConfiguredDepths: [2]
+        )
         guard case .violation(let message) = verdict else {
             Issue.record("expected violation, got \(verdict)")
             return
@@ -176,16 +214,21 @@ struct EvalMTPControlTests {
     @Test func forcedDepthAdaptiveDownshiftDoesNotFail() {
         #expect(
             EvalMTPControlState.verdict(
-                requested: .forcedDepth(3), resolution: nativeMTP(3),
-                tokenStepConfiguredDepths: [3, 3]) == .honored)
+                requested: .forcedDepth(3),
+                resolution: nativeMTP(3),
+                tokenStepConfiguredDepths: [3, 3]
+            ) == .honored
+        )
     }
 
     /// A passing row with correct resolution but NO token-producing
     /// evidence is unverified — configured-depth execution is unproven.
     @Test func forcedDepthWithoutDecodeEvidenceIsUnverified() {
         let verdict = EvalMTPControlState.verdict(
-            requested: .forcedDepth(2), resolution: nativeMTP(2),
-            tokenStepConfiguredDepths: [])
+            requested: .forcedDepth(2),
+            resolution: nativeMTP(2),
+            tokenStepConfiguredDepths: []
+        )
         guard case .unverified(let message) = verdict else {
             Issue.record("expected unverified, got \(verdict)")
             return
@@ -197,8 +240,10 @@ struct EvalMTPControlTests {
     /// depth (request-level gate exclusion) is a violation.
     @Test func forcedDepthStepGateExclusionIsViolation() {
         let verdict = EvalMTPControlState.verdict(
-            requested: .forcedDepth(2), resolution: nativeMTP(2),
-            tokenStepConfiguredDepths: [2, nil])
+            requested: .forcedDepth(2),
+            resolution: nativeMTP(2),
+            tokenStepConfiguredDepths: [2, nil]
+        )
         guard case .violation(let message) = verdict else {
             Issue.record("expected violation, got \(verdict)")
             return
@@ -208,8 +253,10 @@ struct EvalMTPControlTests {
 
     @Test func forcedDepthWithoutResolutionIsUnverified() {
         let verdict = EvalMTPControlState.verdict(
-            requested: .forcedDepth(1), resolution: nil,
-            tokenStepConfiguredDepths: [1])
+            requested: .forcedDepth(1),
+            resolution: nil,
+            tokenStepConfiguredDepths: [1]
+        )
         guard case .unverified = verdict else {
             Issue.record("expected unverified, got \(verdict)")
             return

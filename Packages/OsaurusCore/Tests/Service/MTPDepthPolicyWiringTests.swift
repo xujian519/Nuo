@@ -60,7 +60,10 @@ import Testing
                 for legacyLimit in 1 ... 3 {
                     let loaded = DraftStrategy.nativeMTP(depth: residentDepth, verifierMode: nil)
                     let settings = VMLXServerMTPSettings(
-                        mode: .forceOn, draftTokenLimit: legacyLimit, explicitDepth: selectedDepth)
+                        mode: .forceOn,
+                        draftTokenLimit: legacyLimit,
+                        explicitDepth: selectedDepth
+                    )
                     let strategy = ModelRuntime.requestDraftStrategy(loaded, mtp: settings)
                     guard case .some(.nativeMTP(let resolvedDepth, _)) = strategy else {
                         Issue.record("explicit depth lost the resident native head")

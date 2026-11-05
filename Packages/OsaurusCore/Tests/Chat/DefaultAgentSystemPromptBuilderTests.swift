@@ -74,7 +74,9 @@ struct DefaultAgentSystemPromptBuilderTests {
                 dbEnabled: false
             )
             let rendered = SystemPromptComposer.forChat(
-                snapshot: snapshot, agentId: Agent.defaultId, executionMode: mode
+                snapshot: snapshot,
+                agentId: Agent.defaultId,
+                executionMode: mode
             ).render()
             #expect(rendered.contains("Tools are unavailable"))
             #expect(rendered.contains("User persona survives."))
@@ -370,7 +372,8 @@ struct DefaultAgentSystemPromptBuilderTests {
         )
         #expect(
             compact.contains("never produce that work in chat"),
-            "compact prompt must forbid doing the work in chat")
+            "compact prompt must forbid doing the work in chat"
+        )
     }
 
     @Test
@@ -399,7 +402,8 @@ struct DefaultAgentSystemPromptBuilderTests {
             #expect(rendered.contains("find"))
             #expect(
                 rendered.contains("Computer Use") || rendered.localizedCaseInsensitiveContains("spawn"),
-                "both variants must forbid hunting Settings via spawn/Computer Use")
+                "both variants must forbid hunting Settings via spawn/Computer Use"
+            )
         }
     }
 
@@ -545,9 +549,14 @@ struct DefaultAgentSystemPromptBuilderTests {
     func render_defaultExposureIsFull() {
         for compact in [false, true] {
             let implicit = DefaultAgentSystemPromptBuilder._renderForTests(
-                domains: Self.configDomain, compact: compact)
+                domains: Self.configDomain,
+                compact: compact
+            )
             let explicit = DefaultAgentSystemPromptBuilder._renderForTests(
-                domains: Self.configDomain, compact: compact, exposure: .full)
+                domains: Self.configDomain,
+                compact: compact,
+                exposure: .full
+            )
             #expect(implicit == explicit, "compact=\(compact)")
         }
     }
@@ -560,13 +569,16 @@ struct DefaultAgentSystemPromptBuilderTests {
     func render_emptyPoolTeachesCreateBeforeSpawn() {
         for compact in [false, true] {
             let rendered = DefaultAgentSystemPromptBuilder._renderForTests(
-                domains: Self.configDomain, compact: compact,
-                exposure: .init(spawnAvailable: false, folderReadable: true))
+                domains: Self.configDomain,
+                compact: compact,
+                exposure: .init(spawnAvailable: false, folderReadable: true)
+            )
             #expect(rendered.contains("no agents yet"), "compact=\(compact)")
             #expect(
                 rendered.contains("`spawn_agent` is NOT in your tools")
                     || rendered.contains("`spawn_agent` is not in your tools"),
-                "compact=\(compact)")
+                "compact=\(compact)"
+            )
             #expect(rendered.contains("adds `spawn_agent` to your tools in the same turn"), "compact=\(compact)")
             #expect(rendered.contains("Never call `spawn_agent` before that apply"), "compact=\(compact)")
             // The with-pool wording must be gone.
@@ -585,8 +597,10 @@ struct DefaultAgentSystemPromptBuilderTests {
     func render_noFolderNeverNamesTheFileTools() {
         for compact in [false, true] {
             let rendered = DefaultAgentSystemPromptBuilder._renderForTests(
-                domains: Self.configDomain, compact: compact,
-                exposure: .init(spawnAvailable: true, folderReadable: false))
+                domains: Self.configDomain,
+                compact: compact,
+                exposure: .init(spawnAvailable: true, folderReadable: false)
+            )
             #expect(!rendered.contains("`file_read`"), "compact=\(compact)")
             #expect(!rendered.contains("`file_search`"), "compact=\(compact)")
             #expect(rendered.contains("No working folder is set on this chat"), "compact=\(compact)")
@@ -599,11 +613,15 @@ struct DefaultAgentSystemPromptBuilderTests {
             // must not invite delegation for a file ask.
             #expect(
                 rendered.contains("neither you nor a worker you create can read"),
-                "compact=\(compact)")
+                "compact=\(compact)"
+            )
             #expect(!rendered.contains("have workers put the result"), "compact=\(compact)")
             // With a folder the reads are taught.
             let withFolder = DefaultAgentSystemPromptBuilder._renderForTests(
-                domains: Self.configDomain, compact: compact, exposure: .full)
+                domains: Self.configDomain,
+                compact: compact,
+                exposure: .full
+            )
             #expect(withFolder.contains("`file_read`"), "compact=\(compact)")
         }
     }
@@ -638,7 +656,9 @@ struct DefaultAgentSystemPromptBuilderTests {
                 if exposure.folderReadable { schema.formUnion(["file_read", "file_search"]) }
                 let rendered = DefaultAgentSystemPromptBuilder.render(compact: compact, exposure: exposure)
                 let advertised = DefaultAgentSystemPromptBuilder.advertisedToolNames(
-                    in: rendered, known: known)
+                    in: rendered,
+                    known: known
+                )
                 // The only tolerated absent name is one the variant declares
                 // as staged, and then the text must carry the disclaimer.
                 let missing = advertised.subtracting(schema).subtracting(exposure.stagedToolNames)
@@ -649,7 +669,8 @@ struct DefaultAgentSystemPromptBuilderTests {
                 if !exposure.stagedToolNames.isEmpty {
                     #expect(
                         rendered.localizedCaseInsensitiveContains("`spawn_agent` is not in your tools"),
-                        "compact=\(compact): staged tool named without the not-yet disclaimer")
+                        "compact=\(compact): staged tool named without the not-yet disclaimer"
+                    )
                 }
                 // Sanity: the extractor sees the always-required trio.
                 #expect(advertised.isSuperset(of: DefaultAgentSystemPromptBuilder.orchestratorRequiredToolNames))
@@ -658,18 +679,27 @@ struct DefaultAgentSystemPromptBuilderTests {
         // And the resolver's actual Default-agent schema (no pool, no folder)
         // agrees with the minimal variant end to end.
         let snapshot = AgentConfigSnapshot(
-            agentId: Agent.defaultId, toolsDisabled: false, memoryDisabled: true,
-            autonomousConfig: nil, toolMode: .auto, model: nil, manualToolNames: nil,
-            systemPrompt: "", dbEnabled: false)
+            agentId: Agent.defaultId,
+            toolsDisabled: false,
+            memoryDisabled: true,
+            autonomousConfig: nil,
+            toolMode: .auto,
+            model: nil,
+            manualToolNames: nil,
+            systemPrompt: "",
+            dbEnabled: false
+        )
         let resolved = Set(
             SystemPromptComposer.resolveTools(snapshot: snapshot, executionMode: .none)
-                .map(\.function.name))
+                .map(\.function.name)
+        )
         let minimalExposure = DefaultAgentSystemPromptBuilder.Exposure.from(toolNames: resolved)
         let minimal = DefaultAgentSystemPromptBuilder.render(compact: true, exposure: minimalExposure)
         let advertised = DefaultAgentSystemPromptBuilder.advertisedToolNames(in: minimal, known: known)
         #expect(
             advertised.isSubset(of: resolved.union(minimalExposure.stagedToolNames)),
-            "\(advertised.subtracting(resolved).sorted())")
+            "\(advertised.subtracting(resolved).sorted())"
+        )
     }
 
     /// The composer's persona slot follows the resolved schema: with an
@@ -681,11 +711,20 @@ struct DefaultAgentSystemPromptBuilderTests {
         let lease = await acquireSubagentStoreSandbox("addendum-forChat")
         defer { lease.release() }
         let snapshot = AgentConfigSnapshot(
-            agentId: Agent.defaultId, toolsDisabled: false, memoryDisabled: true,
-            autonomousConfig: nil, toolMode: .auto, model: nil, manualToolNames: nil,
-            systemPrompt: "", dbEnabled: false)
+            agentId: Agent.defaultId,
+            toolsDisabled: false,
+            memoryDisabled: true,
+            autonomousConfig: nil,
+            toolMode: .auto,
+            model: nil,
+            manualToolNames: nil,
+            systemPrompt: "",
+            dbEnabled: false
+        )
         let rendered = SystemPromptComposer.forChat(
-            snapshot: snapshot, agentId: Agent.defaultId, executionMode: .none
+            snapshot: snapshot,
+            agentId: Agent.defaultId,
+            executionMode: .none
         ).render()
         #expect(rendered.contains("no agents yet"))
         #expect(rendered.contains("No working folder is set on this chat"))

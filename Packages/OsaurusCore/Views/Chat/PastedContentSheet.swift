@@ -140,8 +140,8 @@ struct PastedContentSheet: View {
                         ? L("\(sizeFormatted) · 1 line")
                         : L("\(sizeFormatted) · \(lineCount) lines")
                 )
-                    .font(theme.font(size: 11, weight: .regular))
-                    .foregroundColor(theme.secondaryText)
+                .font(theme.font(size: 11, weight: .regular))
+                .foregroundColor(theme.secondaryText)
             }
             Spacer(minLength: 8)
             if !isEditable {

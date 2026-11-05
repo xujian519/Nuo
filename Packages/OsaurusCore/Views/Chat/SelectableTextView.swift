@@ -688,7 +688,8 @@ struct SelectableTextView: NSViewRepresentable {
                         weight: weight,
                         isItalic: isItalic,
                         baseAttributes: baseAttributes
-                    ))
+                    )
+                )
             }
         }
 
@@ -726,7 +727,9 @@ struct SelectableTextView: NSViewRepresentable {
             attrString.addAttribute(.link, value: match.url, range: match.range)
             attrString.addAttribute(.foregroundColor, value: accentColor, range: match.range)
             attrString.addAttribute(
-                .underlineStyle, value: NSUnderlineStyle.single.rawValue, range: match.range
+                .underlineStyle,
+                value: NSUnderlineStyle.single.rawValue,
+                range: match.range
             )
         }
         return attrString
@@ -869,7 +872,9 @@ struct SelectableTextView: NSViewRepresentable {
                         let linkRange = NSRange(location: range.location, length: match.matchedLength)
                         attrString.addAttribute(.link, value: match.url, range: linkRange)
                         attrString.addAttribute(
-                            .underlineStyle, value: NSUnderlineStyle.single.rawValue, range: linkRange
+                            .underlineStyle,
+                            value: NSUnderlineStyle.single.rawValue,
+                            range: linkRange
                         )
                     }
                 }
@@ -1207,9 +1212,11 @@ final class SelectableNSTextView: NSTextView, CrossSelectableTextView {
                 .localizedCaseInsensitiveCompare($1.deletingPathExtension().lastPathComponent)
                 == .orderedAscending
         }
-        if let defaultApp, let i = appURLs.firstIndex(where: {
-            $0.standardizedFileURL.path == defaultApp.standardizedFileURL.path
-        }) {
+        if let defaultApp,
+            let i = appURLs.firstIndex(where: {
+                $0.standardizedFileURL.path == defaultApp.standardizedFileURL.path
+            })
+        {
             appURLs.remove(at: i)
             appURLs.insert(defaultApp, at: 0)
         }

@@ -28,7 +28,9 @@ enum AgentChannelConnectionServiceError: LocalizedError, Equatable, Sendable {
         case .unsupportedAction(let action, let connectionId):
             return L("Agent channel connection `\(connectionId)` does not support `\(action.rawValue)`.")
         case .customExecutionNotImplemented(let connectionId):
-            return L("Custom JSON channel `\(connectionId)` is configured, but custom HTTP execution is not enabled yet.")
+            return L(
+                "Custom JSON channel `\(connectionId)` is configured, but custom HTTP execution is not enabled yet."
+            )
         }
     }
 }
@@ -116,7 +118,8 @@ final class AgentChannelConnectionService: @unchecked Sendable {
                 payload["receive_transport"] = [
                     "status": diagnostics.receiveReady ? "configured" : "not_configured",
                     "transport_id": DiscordPollingTransportRuntime.transportId,
-                    "summary": "Discord receive polling starts when a bot token, readable channels, and authorized sender IDs are configured.",
+                    "summary":
+                        "Discord receive polling starts when a bot token, readable channels, and authorized sender IDs are configured.",
                 ]
                 return payload
             case .slack:
@@ -133,7 +136,8 @@ final class AgentChannelConnectionService: @unchecked Sendable {
                 payload["receive_transport"] = [
                     "status": slackService.hasAppToken() ? "configured" : "not_configured",
                     "transport_id": SlackSocketModeTransportRuntime.transportId,
-                    "summary": "Slack Socket Mode receive starts when an app token, readable channels, and authorized sender IDs are configured.",
+                    "summary":
+                        "Slack Socket Mode receive starts when an app token, readable channels, and authorized sender IDs are configured.",
                     "app_token_saved": slackService.hasAppToken(),
                 ]
                 return payload
@@ -164,7 +168,8 @@ final class AgentChannelConnectionService: @unchecked Sendable {
                 payload["receive_transport"] = [
                     "status": diagnostics.receiveReady ? "configured" : "not_configured",
                     "transport_id": IMessageWatchTransportRuntime.transportId,
-                    "summary": "The iMessage receive stream starts when the imsg helper is verified, Full Disk Access is granted, and readable chats plus authorized senders are configured.",
+                    "summary":
+                        "The iMessage receive stream starts when the imsg helper is verified, Full Disk Access is granted, and readable chats plus authorized senders are configured.",
                 ]
                 return payload
             case .whatsapp:
@@ -182,7 +187,8 @@ final class AgentChannelConnectionService: @unchecked Sendable {
                 payload["receive_transport"] = [
                     "status": diagnostics.receiveReady ? "configured" : "not_configured",
                     "transport_id": WhatsAppWatchTransportRuntime.transportId,
-                    "summary": "The WhatsApp receive stream starts when the osaurus-wa helper is verified, an account is linked via QR, and readable chats plus authorized senders are configured.",
+                    "summary":
+                        "The WhatsApp receive stream starts when the osaurus-wa helper is verified, an account is linked via QR, and readable chats plus authorized senders are configured.",
                 ]
                 return payload
             case .customHTTP:
@@ -1125,7 +1131,8 @@ final class AgentChannelConnectionService: @unchecked Sendable {
             }
             do {
                 if let providerEventId,
-                    try messageStore.isEventSeen(connectionId: connection.id, providerEventId: providerEventId) {
+                    try messageStore.isEventSeen(connectionId: connection.id, providerEventId: providerEventId)
+                {
                     return deny("duplicate_event_\(policy.duplicateBehavior)", decision: .duplicate)
                 }
             } catch {
@@ -1328,7 +1335,8 @@ final class AgentChannelConnectionService: @unchecked Sendable {
         row["sender_allowlist"] = slackService.configuration().senderAllowlist
         let readRooms = row["read_room_allowlist"] as? [String] ?? []
         let writeRooms = row["write_room_allowlist"] as? [String] ?? []
-        row["configured"] = slackService.hasBotToken()
+        row["configured"] =
+            slackService.hasBotToken()
             && (!readRooms.isEmpty || !writeRooms.isEmpty)
         return row
     }

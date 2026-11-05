@@ -108,20 +108,34 @@ struct PPTXEditor {
             guard strippedFind.stripped else { throw error }
             let strippedReplacement = DOCXEditor.strippingMarkdownSyntax(replacement)
             do {
-                try replaceText(op, find: strippedFind.text, replacement: strippedReplacement.text, all: all, targets: targets)
+                try replaceText(
+                    op,
+                    find: strippedFind.text,
+                    replacement: strippedReplacement.text,
+                    all: all,
+                    targets: targets
+                )
             } catch is DocumentEditError {
                 throw error
             }
-            summaries.append("Markdown syntax in `old_string` (list markers, heading hashes, emphasis) was treated as formatting — slides store it as paragraph and run styling, not text")
+            summaries.append(
+                "Markdown syntax in `old_string` (list markers, heading hashes, emphasis) was treated as formatting — slides store it as paragraph and run styling, not text"
+            )
         }
     }
 
     private mutating func replaceText(
-        _ op: DocumentOperation, find: String, replacement: String, all: Bool, targets: [(Int, SlideInfo)]
+        _ op: DocumentOperation,
+        find: String,
+        replacement: String,
+        all: Bool,
+        targets: [(Int, SlideInfo)]
     ) throws {
         var paragraphs: [(slide: Int, part: String, paras: [XMLElement])] = []
         for (number, info) in targets {
-            let paras = try package.root(info.part).descendants("p").filter { $0.uri == a || $0.name?.hasPrefix("a:") == true }
+            let paras = try package.root(info.part).descendants("p").filter {
+                $0.uri == a || $0.name?.hasPrefix("a:") == true
+            }
             paragraphs.append((number, info.part, paras))
         }
         // Match cascade: byte-for-byte first, then punctuation/whitespace
@@ -139,17 +153,24 @@ struct PPTXEditor {
         }
         guard total > 0 else {
             let allParas = paragraphs.flatMap(\.paras)
-            var message = "\"\(OOXMLText.preview(find, max: 80))\" wasn't found on \(op.has("slide") ? "that slide" : "any slide")."
+            var message =
+                "\"\(OOXMLText.preview(find, max: 80))\" wasn't found on \(op.has("slide") ? "that slide" : "any slide")."
             let hint = DOCXEditor.closestParagraphHint(for: find, in: allParas)
             if !hint.isEmpty {
-                message += hint.replacingOccurrences(of: "paragraph text is (paragraph", with: "slide text is (text line")
+                message += hint.replacingOccurrences(
+                    of: "paragraph text is (paragraph",
+                    with: "slide text is (text line"
+                )
             }
             throw op.fail(message, isMatchMiss: true)
         }
         guard all || total == 1 else {
-            let where_ = perSlide.filter { $0.hits > 0 }.map { "\($0.hits) on slide \($0.slide)" }.joined(separator: ", ")
+            let where_ = perSlide.filter { $0.hits > 0 }.map { "\($0.hits) on slide \($0.slide)" }.joined(
+                separator: ", "
+            )
             throw op.fail(
-                "\"\(OOXMLText.preview(find, max: 80))\" appears \(total) times (\(where_)); add surrounding words, pass `slide`, or pass `replace_all: true`.")
+                "\"\(OOXMLText.preview(find, max: 80))\" appears \(total) times (\(where_)); add surrounding words, pass `slide`, or pass `replace_all: true`."
+            )
         }
         var replaced = 0
         for (_, part, paras) in paragraphs {
@@ -161,17 +182,22 @@ struct PPTXEditor {
                 } catch OOXMLText.ReplaceError.spansBreak {
                     throw op.fail(
                         "\"\(OOXMLText.preview(find, max: 80))\" runs across a line break on the slide; replace the text on each side of it separately.",
-                        isMatchMiss: true)
+                        isMatchMiss: true
+                    )
                 } catch OOXMLText.ReplaceError.newlineUnsupported {
-                    throw op.fail("`new_string` can't contain line breaks on a slide; use set_slide_text to rewrite the shape's lines.")
+                    throw op.fail(
+                        "`new_string` can't contain line breaks on a slide; use set_slide_text to rewrite the shape's lines."
+                    )
                 }
                 if n > 0 { replaced += n; changed = true }
             }
             if changed { package.markDirty(part) }
         }
-        var summary = "Replaced \(replaced) occurrence\(replaced == 1 ? "" : "s") of \"\(OOXMLText.preview(find, max: 60))\""
+        var summary =
+            "Replaced \(replaced) occurrence\(replaced == 1 ? "" : "s") of \"\(OOXMLText.preview(find, max: 60))\""
         if mode == .normalized {
-            summary += " (matched with punctuation and whitespace normalized: the slide's own quotes/dashes differed from `old_string`)"
+            summary +=
+                " (matched with punctuation and whitespace normalized: the slide's own quotes/dashes differed from `old_string`)"
         }
         summaries.append(summary)
     }
@@ -197,9 +223,12 @@ struct PPTXEditor {
             }
             guard let match = shapes.first(where: { Self.placeholderType($0).map(types.contains) ?? false }) else {
                 let available = shapes.enumerated().map { i, s in
-                    "\(i + 1)" + (Self.placeholderType(s).map { " (\($0))" } ?? "") + ": \"\(OOXMLText.preview(Self.shapeText(s), max: 40))\""
+                    "\(i + 1)" + (Self.placeholderType(s).map { " (\($0))" } ?? "")
+                        + ": \"\(OOXMLText.preview(Self.shapeText(s), max: 40))\""
                 }
-                throw op.fail("slide \(number) has no \(wanted) placeholder. Pass `shape` as a number instead; text shapes: \(available.isEmpty ? "none" : available.joined(separator: "; ")).")
+                throw op.fail(
+                    "slide \(number) has no \(wanted) placeholder. Pass `shape` as a number instead; text shapes: \(available.isEmpty ? "none" : available.joined(separator: "; "))."
+                )
             }
             shape = match
             label = wanted
@@ -232,11 +261,13 @@ struct PPTXEditor {
             if let pPr = template?.firstChild("pPr")?.deepCopy() { p.addChild(pPr) }
             if bulletLevels {
                 if level > 0 {
-                    let pPr = p.firstChild("pPr") ?? {
-                        let created = p.makeChild("pPr", uri: a)
-                        p.insertChild(created, at: 0)
-                        return created
-                    }()
+                    let pPr =
+                        p.firstChild("pPr")
+                        ?? {
+                            let created = p.makeChild("pPr", uri: a)
+                            p.insertChild(created, at: 0)
+                            return created
+                        }()
                     pPr.setAttr("lvl", String(level))
                 } else {
                     p.firstChild("pPr")?.removeAttr("lvl")
@@ -267,7 +298,8 @@ struct PPTXEditor {
         if package.has(sourceRels) {
             let rels = try OOXMLPackage.newXML(String(decoding: try package.data(sourceRels), as: UTF8.self))
             for rel in rels.rootElement()?.childElements("Relationship") ?? [] {
-                guard let type = rel.attr("Type"), rel.attr("TargetMode") != "External", let target = rel.attr("Target") else { continue }
+                guard let type = rel.attr("Type"), rel.attr("TargetMode") != "External", let target = rel.attr("Target")
+                else { continue }
                 // Speaker notes belong to exactly one slide; the copy starts without.
                 if type == OOXMLRelationshipType.notesSlide {
                     rel.detach()
@@ -297,14 +329,19 @@ struct PPTXEditor {
         package.markDirty(presentationPart)
         summaries.append(
             "Duplicated slide \(number) as slide \(number + 1)"
-                + (clonedParts > 0 ? " (with its own copy of \(clonedParts) chart/diagram part\(clonedParts == 1 ? "" : "s"))" : ""))
+                + (clonedParts > 0
+                    ? " (with its own copy of \(clonedParts) chart/diagram part\(clonedParts == 1 ? "" : "s"))" : "")
+        )
     }
 
     /// Relationship types whose targets are owned by a single slide.
     private static func isPerSlidePartType(_ type: String) -> Bool {
         let last = type.split(separator: "/").last.map(String.init) ?? ""
-        return ["chart", "diagramData", "diagramLayout", "diagramQuickStyle", "diagramColors", "diagramDrawing", "oleObject", "package"]
-            .contains(last)
+        return [
+            "chart", "diagramData", "diagramLayout", "diagramQuickStyle", "diagramColors", "diagramDrawing",
+            "oleObject", "package",
+        ]
+        .contains(last)
             || last.hasPrefix("chart")  // chartUserShapes, chartStyle, chartColorStyle
     }
 
@@ -362,7 +399,8 @@ struct PPTXEditor {
         var deletedIds: Set<String> = []
         var deletedRids: Set<String> = []
         for info in doomed {
-            for rel in try package.relationships(of: info.part) where rel.type == OOXMLRelationshipType.notesSlide && !rel.external {
+            for rel in try package.relationships(of: info.part)
+            where rel.type == OOXMLRelationshipType.notesSlide && !rel.external {
                 let notes = OOXMLPackage.resolve(rel.target, from: info.part)
                 if package.has(notes) { try package.removePart(notes) }
             }
@@ -385,9 +423,13 @@ struct PPTXEditor {
             }
             if show.descendants("sld").isEmpty { show.detach() }
         }
-        if let shows = presentation.firstChild("custShowLst"), shows.childElements("custShow").isEmpty { shows.detach() }
+        if let shows = presentation.firstChild("custShowLst"), shows.childElements("custShow").isEmpty {
+            shows.detach()
+        }
         package.markDirty(presentationPart)
-        summaries.append("Deleted slide\(unique.count == 1 ? "" : "s") \(unique.map(String.init).joined(separator: ", "))")
+        summaries.append(
+            "Deleted slide\(unique.count == 1 ? "" : "s") \(unique.map(String.init).joined(separator: ", "))"
+        )
     }
 
     private mutating func reorderSlides(_ op: DocumentOperation) throws {

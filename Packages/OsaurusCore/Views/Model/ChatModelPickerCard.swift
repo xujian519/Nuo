@@ -193,7 +193,8 @@ private struct ChatPickerOptionsSnapshot: Equatable {
         for (index, section) in sections.enumerated() {
             if index > 0 { total += ChatPickerLayout.sectionSpacing }
             if section.title != nil { total += ChatPickerLayout.sectionTitleHeight }
-            total += CGFloat(section.rows.count) * ChatPickerLayout.rowHeight
+            total +=
+                CGFloat(section.rows.count) * ChatPickerLayout.rowHeight
                 + CGFloat(max(0, section.rows.count - 1)) * ChatPickerLayout.rowSpacing
             if section.footnote != nil { total += ChatPickerLayout.sectionFootnoteHeight }
             if section.reset != nil { total += ChatPickerLayout.resetLinkHeight }
@@ -309,19 +310,29 @@ struct ChatModelPickerCard: View {
         optionsControl: ModelPickerOptionsControl?,
         selectedHarnessID: String? = nil
     ) -> CGSize {
-        let provider = selectedProvider(in: providers, selectedModel: selectedModel, selectedHarnessID: selectedHarnessID)
+        let provider =
+            selectedProvider(in: providers, selectedModel: selectedModel, selectedHarnessID: selectedHarnessID)
             ?? providers.first { $0.isActive }
-        let control = selectedHarnessID == nil && provider?.models.contains { $0.id == selectedModel } == true
+        let control =
+            selectedHarnessID == nil && provider?.models.contains { $0.id == selectedModel } == true
             ? optionsControl : nil
-        return cardSize(provider: provider, providerCount: providers.count,
-                        options: ChatPickerOptionsSnapshot.make(modelID: selectedModel, control: control),
-                        columnWidth: ChatPickerLayout.columnWidth,
-                        optionsColumnWidth: ChatPickerLayout.optionsColumnWidth)
+        return cardSize(
+            provider: provider,
+            providerCount: providers.count,
+            options: ChatPickerOptionsSnapshot.make(modelID: selectedModel, control: control),
+            columnWidth: ChatPickerLayout.columnWidth,
+            optionsColumnWidth: ChatPickerLayout.optionsColumnWidth
+        )
     }
 
     private var preferredSize: CGSize {
-        Self.cardSize(provider: provider, providerCount: providers.count, options: currentOptions,
-                      columnWidth: columnWidth, optionsColumnWidth: optionsColumnWidth)
+        Self.cardSize(
+            provider: provider,
+            providerCount: providers.count,
+            options: currentOptions,
+            columnWidth: columnWidth,
+            optionsColumnWidth: optionsColumnWidth
+        )
     }
 
     private static func cardSize(
@@ -335,12 +346,15 @@ struct ChatModelPickerCard: View {
         let count = min(8, max(providerCount, provider?.rowCount ?? 0))
         let modelFooter = provider?.isLocal == true || provider?.isOsaurusCloud == true ? 44 : 0
         let searchHeight = (provider?.models.count ?? 0) > 10 ? 38 : 0
-        let rowsHeight = CGFloat(count) * ChatPickerLayout.rowHeight
+        let rowsHeight =
+            CGFloat(count) * ChatPickerLayout.rowHeight
             + CGFloat(max(0, count - 1)) * ChatPickerLayout.rowSpacing
         let listHeight = rowsHeight + CGFloat(modelFooter + searchHeight)
         let optionsHeight = options?.estimatedHeight ?? 0
-        return CGSize(width: twoColumnWidth + (options == nil ? 0 : optionsColumnWidth + ChatPickerLayout.columnSpacing),
-                      height: min(480, max(236, 68 + max(listHeight, optionsHeight))))
+        return CGSize(
+            width: twoColumnWidth + (options == nil ? 0 : optionsColumnWidth + ChatPickerLayout.columnSpacing),
+            height: min(480, max(236, 68 + max(listHeight, optionsHeight)))
+        )
     }
 
     var body: some View {
@@ -383,8 +397,10 @@ struct ChatModelPickerCard: View {
 
     private var columns: some View {
         GeometryReader { geometry in
-            let slotWidth = min(optionsColumnWidth + ChatPickerLayout.columnSpacing,
-                                max(0, geometry.size.width - twoColumnWidth))
+            let slotWidth = min(
+                optionsColumnWidth + ChatPickerLayout.columnSpacing,
+                max(0, geometry.size.width - twoColumnWidth)
+            )
             HStack(alignment: .top, spacing: 0) {
                 providerColumn.frame(width: columnWidth)
                 Color.clear.frame(width: ChatPickerLayout.columnSpacing).accessibilityHidden(true)
@@ -496,23 +512,36 @@ struct ChatModelPickerCard: View {
                         ForEach(harnessOptions) { option in
                             let selected = option.id == selectedHarnessID
                             let locked = runtimeSwitchLocked && !selected
-                            ChatPickerRow(title: option.title, selected: selected, muted: locked,
-                                          focused: keyboardNavigation && focus == option.id, icon: { EmptyView() }) {
+                            ChatPickerRow(
+                                title: option.title,
+                                selected: selected,
+                                muted: locked,
+                                focused: keyboardNavigation && focus == option.id,
+                                icon: { EmptyView() }
+                            ) {
                                 guard !locked, !selected else { return }
                                 onSelectHarness(option)
                             }
                             .disabled(locked)
                             .focused($focus, equals: option.id)
                             .id(option.id)
-                            .help(locked ? L("Wait for the current reply to finish before switching runtimes.") : option.title)
+                            .help(
+                                locked
+                                    ? L("Wait for the current reply to finish before switching runtimes.")
+                                    : option.title
+                            )
                         }
                         ForEach(models) { model in
                             let key = "model:\(model.id)"
                             let locked = runtimeSwitchLocked && selectedHarnessID != nil
                             HStack(spacing: 0) {
-                                ChatPickerRow(title: model.displayName, selected: model.id == builtInSelectedModel,
-                                              muted: locked,
-                                              focused: keyboardNavigation && focus == key, icon: { EmptyView() }) {
+                                ChatPickerRow(
+                                    title: model.displayName,
+                                    selected: model.id == builtInSelectedModel,
+                                    muted: locked,
+                                    focused: keyboardNavigation && focus == key,
+                                    icon: { EmptyView() }
+                                ) {
                                     guard !locked else { return }
                                     if selectedHarnessID != nil { onSelectHarness(nil) }
                                     selectedModel = model.id
@@ -537,12 +566,19 @@ struct ChatModelPickerCard: View {
                                         if keyboardNavigation && focus == "favorite:\(model.id)" {
                                             VStack {
                                                 Spacer()
-                                                Rectangle().fill(theme.secondaryText).frame(height: 1).padding(.horizontal, 6)
+                                                Rectangle().fill(theme.secondaryText).frame(height: 1).padding(
+                                                    .horizontal,
+                                                    6
+                                                )
                                             }
                                         }
                                     }
-                                    .onKeyPress(.return) { favorites.toggle(model.favoriteKey); return .handled }
-                                    .accessibilityLabel("\(saved ? L("Remove from favorites") : L("Add to favorites")): \(model.displayName)")
+                                    .onKeyPress(.return) {
+                                        favorites.toggle(model.favoriteKey); return .handled
+                                    }
+                                    .accessibilityLabel(
+                                        "\(saved ? L("Remove from favorites") : L("Add to favorites")): \(model.displayName)"
+                                    )
                                     .help(saved ? L("Remove from favorites") : L("Add to favorites"))
                                 }
                             }
@@ -550,17 +586,23 @@ struct ChatModelPickerCard: View {
                             .help(model.displayName)
                         }
                         if models.isEmpty && harnessOptions.isEmpty {
-                            Text(search.isEmpty ? L("Choose a provider to browse models.") : L("No matching models. Try another name."))
-                                .foregroundStyle(theme.secondaryText)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(.vertical, 12)
+                            Text(
+                                search.isEmpty
+                                    ? L("Choose a provider to browse models.")
+                                    : L("No matching models. Try another name.")
+                            )
+                            .foregroundStyle(theme.secondaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.vertical, 12)
                         }
                         if let provider, provider.isLocal || provider.isOsaurusCloud {
                             footerButton(L("More models"), key: "more", icon: "arrow.forward") {
                                 provider.isLocal ? onExploreLocal() : onExploreCloud()
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .accessibilityLabel(provider.isLocal ? L("More local models") : L("More Osaurus Cloud models"))
+                            .accessibilityLabel(
+                                provider.isLocal ? L("More local models") : L("More Osaurus Cloud models")
+                            )
                             .id("more")
                         }
                     }
@@ -571,7 +613,8 @@ struct ChatModelPickerCard: View {
                 .id(ModelListIdentity(providerID: provider?.id, search: search))
                 .onAppear {
                     if search.isEmpty, let selectedModel,
-                        models.contains(where: { $0.id == selectedModel }) {
+                        models.contains(where: { $0.id == selectedModel })
+                    {
                         proxy.scrollTo("model:\(selectedModel)", anchor: .center)
                     }
                 }
@@ -619,9 +662,12 @@ struct ChatModelPickerCard: View {
             }
             VStack(spacing: ChatPickerLayout.rowSpacing) {
                 ForEach(section.rows) { row in
-                    ChatPickerRow(title: row.label,
-                                  selected: row.selected,
-                                  focused: keyboardNavigation && focus == row.id, icon: { EmptyView() }) {
+                    ChatPickerRow(
+                        title: row.label,
+                        selected: row.selected,
+                        focused: keyboardNavigation && focus == row.id,
+                        icon: { EmptyView() }
+                    ) {
                         perform(row.action, displayedFor: snapshot)
                     }
                     .focused($focus, equals: row.id)
@@ -695,7 +741,10 @@ struct ChatModelPickerCard: View {
         } else if provider.isLocal {
             Image(systemName: "desktopcomputer").frame(width: 16)
         } else if provider.isOsaurusCloud {
-            Image("osaurus-logo", bundle: .module).resizable().renderingMode(.template).scaledToFit().frame(width: 16, height: 16)
+            Image("osaurus-logo", bundle: .module).resizable().renderingMode(.template).scaledToFit().frame(
+                width: 16,
+                height: 16
+            )
         } else {
             let name = provider.title.lowercased()
             if name.contains("openai") || name.contains("chatgpt") {
@@ -709,10 +758,12 @@ struct ChatModelPickerCard: View {
     }
 
     private var focusColumns: [[String]] {
-        var modelKeys = harnessOptions.map(\.id) + models.flatMap { model in
-            provider?.isOsaurusCloud == true
-                ? ["model:\(model.id)", "favorite:\(model.id)"] : ["model:\(model.id)"]
-        }
+        var modelKeys =
+            harnessOptions.map(\.id)
+            + models.flatMap { model in
+                provider?.isOsaurusCloud == true
+                    ? ["model:\(model.id)", "favorite:\(model.id)"] : ["model:\(model.id)"]
+            }
         if provider?.isLocal == true || provider?.isOsaurusCloud == true { modelKeys.append("more") }
         var columns = [providers.map { "provider:\($0.id)" }, modelKeys]
         if optionsAreRevealed, let currentOptions {
@@ -727,9 +778,13 @@ struct ChatModelPickerCard: View {
         let column = columns.firstIndex { $0.contains(focus ?? "") } ?? 0
         let row = columns[column].firstIndex(of: focus ?? "") ?? 0
         let logicalDirection: MoveCommandDirection
-        if layoutDirection == .rightToLeft && direction == .left { logicalDirection = .right }
-        else if layoutDirection == .rightToLeft && direction == .right { logicalDirection = .left }
-        else { logicalDirection = direction }
+        if layoutDirection == .rightToLeft && direction == .left {
+            logicalDirection = .right
+        } else if layoutDirection == .rightToLeft && direction == .right {
+            logicalDirection = .left
+        } else {
+            logicalDirection = direction
+        }
         switch logicalDirection {
         case .up: if !columns[column].isEmpty { focus = columns[column][max(0, row - 1)] }
         case .down: if !columns[column].isEmpty { focus = columns[column][min(columns[column].count - 1, row + 1)] }
@@ -793,7 +848,9 @@ private struct ChatPickerRow<Icon: View>: View {
         .focusable()
         .focusEffectDisabled()
         .onHover { hovered = $0 }
-        .onKeyPress(.return) { action(); return .handled }
+        .onKeyPress(.return) {
+            action(); return .handled
+        }
         .accessibilityValue(selected ? L("Selected") : "")
         .help(title)
     }

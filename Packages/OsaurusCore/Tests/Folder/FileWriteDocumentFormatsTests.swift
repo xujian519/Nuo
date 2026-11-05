@@ -164,7 +164,10 @@ struct FileWriteDocumentFormatsTests {
         let workbook = try packagePart(url, "xl/workbook.xml")
         #expect(workbook.contains("fullCalcOnLoad=\"1\""), Comment(rawValue: workbook))
         let strings = try packagePart(url, "xl/sharedStrings.xml")
-        #expect(strings.contains("<t>=not a formula</t>") || strings.contains(">=not a formula<"), Comment(rawValue: strings))
+        #expect(
+            strings.contains("<t>=not a formula</t>") || strings.contains(">=not a formula<"),
+            Comment(rawValue: strings)
+        )
         #expect(!strings.contains("SUM(B2:B3)"), "the formula must not also be stored as text")
 
         let readBack = try await read(root, "budget.xlsx")
@@ -202,7 +205,9 @@ struct FileWriteDocumentFormatsTests {
         let sheet = String(decoding: try package.data("xl/worksheets/sheet1.xml"), as: UTF8.self)
         let styled = sheet.replacingOccurrences(
             of: "<sheetData",
-            with: #"<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="1" width="22" customWidth="1"/></cols><sheetData"#)
+            with:
+                #"<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="1" width="22" customWidth="1"/></cols><sheetData"#
+        )
         #expect(styled != sheet)
         package.setData("xl/worksheets/sheet1.xml", Data(styled.utf8))
         let formatted = try package.serialize()
@@ -219,14 +224,23 @@ struct FileWriteDocumentFormatsTests {
         #expect(EnvelopeAssertions.failureKind(refused) == "invalid_args")
         let outcome = AgentLoopToolOutcome(
             invocation: ServiceToolInvocation(toolName: "file_write", jsonArguments: "{}", toolCallId: "w1"),
-            callId: "w1", result: refused, wasDeduped: false, wasError: true)
+            callId: "w1",
+            result: refused,
+            wasDeduped: false,
+            wasError: true
+        )
         #expect(!AgentToolLoop.shouldStopAfterToolOutcome(outcome), "refusal must not end the turn")
 
-        let edited = try await FileEditTool(rootPath: root).execute(argumentsJSON:
-            #"{"path":"ops.xlsx","operations":[{"op":"set_cells","cells":{"B2":1500,"C2":"=B2*2"}}]}"#)
+        let edited = try await FileEditTool(rootPath: root).execute(
+            argumentsJSON:
+                #"{"path":"ops.xlsx","operations":[{"op":"set_cells","cells":{"B2":1500,"C2":"=B2*2"}}]}"#
+        )
         #expect(ToolEnvelope.isSuccess(edited), "file_edit failed: \(edited)")
         let after = try Data(contentsOf: root.appendingPathComponent("ops.xlsx"))
-        #expect(XLSXPreservation.featuresLostByRegeneration(after) == ["column widths", "freeze panes"], "file_edit kept the layout")
+        #expect(
+            XLSXPreservation.featuresLostByRegeneration(after) == ["column widths", "freeze panes"],
+            "file_edit kept the layout"
+        )
         let afterSheet = try packagePart(root.appendingPathComponent("ops.xlsx"), "xl/worksheets/sheet1.xml")
         #expect(afterSheet.contains("<f>B2*2</f>"), Comment(rawValue: afterSheet))
     }
@@ -236,23 +250,46 @@ struct FileWriteDocumentFormatsTests {
     @Test func pluginSaveOverAFormattedWorkbookIsRefused() async throws {
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
-        #expect(ToolEnvelope.isSuccess(try await write(root, ["path": "plain.xlsx", "content": "Item,Amount\nRent,1200\n"])))
+        #expect(
+            ToolEnvelope.isSuccess(
+                try await write(root, ["path": "plain.xlsx", "content": "Item,Amount\nRent,1200\n"])
+            )
+        )
         let plain = try Data(contentsOf: root.appendingPathComponent("plain.xlsx"))
         let package = try OOXMLPackage(data: plain)
         let sheet = String(decoding: try package.data("xl/worksheets/sheet1.xml"), as: UTF8.self)
-        package.setData("xl/worksheets/sheet1.xml", Data(sheet.replacingOccurrences(
-            of: "<sheetData", with: #"<cols><col min="1" max="1" width="22" customWidth="1"/></cols><sheetData"#).utf8))
+        package.setData(
+            "xl/worksheets/sheet1.xml",
+            Data(
+                sheet.replacingOccurrences(
+                    of: "<sheetData",
+                    with: #"<cols><col min="1" max="1" width="22" customWidth="1"/></cols><sheetData"#
+                ).utf8
+            )
+        )
         try package.serialize().write(to: root.appendingPathComponent("ops.xlsx"))
 
-        func refusal(_ args: String, plugin: String = "osaurus.xlsx", tool: String = "save_xlsx", folder: URL? = nil) -> String? {
-            XLSXPreservation.pluginOverwriteRefusal(pluginId: plugin, toolName: tool, argumentsJSON: args, folderRoot: folder ?? root)
+        func refusal(_ args: String, plugin: String = "osaurus.xlsx", tool: String = "save_xlsx", folder: URL? = nil)
+            -> String?
+        {
+            XLSXPreservation.pluginOverwriteRefusal(
+                pluginId: plugin,
+                toolName: tool,
+                argumentsJSON: args,
+                folderRoot: folder ?? root
+            )
         }
         let refused = try #require(refusal(#"{"workbook_id":"w1","path":"ops.xlsx","overwrite":true}"#))
         #expect(EnvelopeAssertions.failureKind(refused) == "invalid_args")
         #expect((EnvelopeAssertions.failureMessage(refused) ?? "").contains("file_edit"))
         // The extension is optional (save_xlsx adds it) and absolute paths resolve as-is.
         #expect(refusal(#"{"workbook_id":"w1","path":"ops","overwrite":true}"#) != nil)
-        #expect(refusal(#"{"workbook_id":"w1","path":"\#(root.appendingPathComponent("ops.xlsx").path)","overwrite":true}"#, folder: URL(fileURLWithPath: "/nonexistent")) != nil)
+        #expect(
+            refusal(
+                #"{"workbook_id":"w1","path":"\#(root.appendingPathComponent("ops.xlsx").path)","overwrite":true}"#,
+                folder: URL(fileURLWithPath: "/nonexistent")
+            ) != nil
+        )
         // Passes through: no overwrite, dry run, a plain workbook, a new path, another tool or plugin.
         #expect(refusal(#"{"workbook_id":"w1","path":"ops.xlsx"}"#) == nil)
         #expect(refusal(#"{"workbook_id":"w1","path":"ops.xlsx","overwrite":true,"dry_run":true}"#) == nil)
@@ -261,22 +298,35 @@ struct FileWriteDocumentFormatsTests {
         #expect(refusal(#"{"path":"ops.xlsx","overwrite":true}"#, tool: "read_xlsx") == nil)
         #expect(refusal(#"{"workbook_id":"w1","path":"ops.xlsx","overwrite":true}"#, plugin: "someone.else") == nil)
         // A relative path with no folder cannot be resolved: the plugin runs exactly as before.
-        #expect(XLSXPreservation.pluginOverwriteRefusal(
-            pluginId: "osaurus.xlsx", toolName: "save_xlsx",
-            argumentsJSON: #"{"workbook_id":"w1","path":"ops.xlsx","overwrite":true}"#, folderRoot: nil) == nil)
+        #expect(
+            XLSXPreservation.pluginOverwriteRefusal(
+                pluginId: "osaurus.xlsx",
+                toolName: "save_xlsx",
+                argumentsJSON: #"{"workbook_id":"w1","path":"ops.xlsx","overwrite":true}"#,
+                folderRoot: nil
+            ) == nil
+        )
     }
 
     @Test func namespacedWorkbookFormattingIsPreservedOnOverwrite() async throws {
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
-        #expect(ToolEnvelope.isSuccess(try await write(root, ["path": "prefixed.xlsx", "content": "Item,Amount\nRent,1200\n"])))
+        #expect(
+            ToolEnvelope.isSuccess(
+                try await write(root, ["path": "prefixed.xlsx", "content": "Item,Amount\nRent,1200\n"])
+            )
+        )
         let url = root.appendingPathComponent("prefixed.xlsx")
         let package = try OOXMLPackage(data: Data(contentsOf: url))
         let sheet = String(decoding: try package.data("xl/worksheets/sheet1.xml"), as: UTF8.self)
         let formatted = sheet.replacingOccurrences(
-            of: "<sheetData", with: #"<cols><col min="1" max="1" width="22" customWidth="1"/></cols><sheetData"#)
+            of: "<sheetData",
+            with: #"<cols><col min="1" max="1" width="22" customWidth="1"/></cols><sheetData"#
+        )
         let prefixed = formatted.replacingOccurrences(
-            of: #"<(\/?)([A-Za-z][\w.-]*)"#, with: "<$1s:$2", options: .regularExpression
+            of: #"<(\/?)([A-Za-z][\w.-]*)"#,
+            with: "<$1s:$2",
+            options: .regularExpression
         ).replacingOccurrences(of: "xmlns=", with: "xmlns:s=")
         package.setData("xl/worksheets/sheet1.xml", Data(prefixed.utf8))
         let before = try package.serialize()
@@ -292,20 +342,29 @@ struct FileWriteDocumentFormatsTests {
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
 
-        let content = "Atlas Brief\n\nGoal\n• Migrate the platform\n•\tKeep data intact\n\nRisks\n• Vendor delays\n\n```\n• not a bullet\n```"
+        let content =
+            "Atlas Brief\n\nGoal\n• Migrate the platform\n•\tKeep data intact\n\nRisks\n• Vendor delays\n\n```\n• not a bullet\n```"
         let result = try await write(root, ["path": "brief.docx", "content": content])
         #expect(ToolEnvelope.isSuccess(result), "\(result)")
-        let editor = try DOCXEditor(package: OOXMLPackage(data: Data(contentsOf: root.appendingPathComponent("brief.docx"))))
+        let editor = try DOCXEditor(
+            package: OOXMLPackage(data: Data(contentsOf: root.appendingPathComponent("brief.docx")))
+        )
         let texts = try editor.paragraphs().map { OOXMLText.text(of: $0) }
         // The OOXML writer renders each list item as its own paragraph
         // (bullet + tab, the same shape `file_read` reports back).
-        #expect(texts.contains("Goal") && texts.contains("•\tMigrate the platform") && texts.contains("•\tKeep data intact"), "\(texts)")
+        #expect(
+            texts.contains("Goal") && texts.contains("•\tMigrate the platform")
+                && texts.contains("•\tKeep data intact"),
+            "\(texts)"
+        )
         #expect(texts.contains("Risks") && texts.contains("•\tVendor delays"), "\(texts)")
         #expect(!texts.contains { $0.contains("Goal •") || $0.contains("• Migrate") }, "\(texts)")
         #expect(texts.contains { $0.contains("• not a bullet") }, "fenced code keeps its glyph: \(texts)")
 
         #expect(
-            MarkdownRichTextRenderer.normalizingBulletGlyphs("a\n• b\n\t◦ c\nplain • inline") == "a\n- b\n  - c\nplain • inline")
+            MarkdownRichTextRenderer.normalizingBulletGlyphs("a\n• b\n\t◦ c\nplain • inline")
+                == "a\n- b\n  - c\nplain • inline"
+        )
         #expect(MarkdownRichTextRenderer.normalizingBulletGlyphs("no glyphs") == "no glyphs")
     }
 
@@ -329,7 +388,10 @@ struct FileWriteDocumentFormatsTests {
         #expect(try Data(contentsOf: url) == before, "document bytes must be untouched")
 
         // Wrapped form is recognized too; a bare array of rows for .xlsx is not an operations payload.
-        #expect(FileWriteTool.fileEditOperationsPayload(#"{"operations": [{"op": "set_cells", "cells": {"B2": 1}}]}"#)?.count == 1)
+        #expect(
+            FileWriteTool.fileEditOperationsPayload(#"{"operations": [{"op": "set_cells", "cells": {"B2": 1}}]}"#)?
+                .count == 1
+        )
         #expect(FileWriteTool.fileEditOperationsPayload(#"[["Item", "Amount"], ["Rent", 1200]]"#) == nil)
         #expect(FileWriteTool.fileEditOperationsPayload(#"[{"op": "not_a_real_op"}]"#) == nil)
         #expect(FileWriteTool.fileEditOperationsPayload("# Heading\n\n- item") == nil)
@@ -572,7 +634,10 @@ struct FileWriteDocumentFormatsTests {
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         try "# Launch Plan\n\nShip the beta on Friday.\n".write(
-            to: root.appendingPathComponent("plan.md"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent("plan.md"),
+            atomically: true,
+            encoding: .utf8
+        )
 
         let result = try await write(root, ["path": "out/plan.pdf", "source_path": "plan.md"])
         #expect(ToolEnvelope.isSuccess(result), "pdf from source_path failed: \(result)")
@@ -658,7 +723,10 @@ struct FileWriteDocumentFormatsTests {
         let root = tmpRoot()
         defer { try? FileManager.default.removeItem(at: root) }
         try "API_KEY=sk-live-123\n".write(
-            to: root.appendingPathComponent(".env"), atomically: true, encoding: .utf8)
+            to: root.appendingPathComponent(".env"),
+            atomically: true,
+            encoding: .utf8
+        )
 
         let (writeResult, readResult) = try await ChatExecutionContext.$hostReadOnlyScope.withValue(root) {
             let w = try await write(root, ["path": "config.docx", "source_path": ".env"])
@@ -706,7 +774,9 @@ struct FileWriteDocumentFormatsTests {
         let result = try await env.run(
             FileWriteTool(rootPath: root),
             FileHistoryTestEnv.json(["path": "report.docx", "content": "# Replaced\n\nBody."]),
-            sessionId: sessionId, folder: root)
+            sessionId: sessionId,
+            folder: root
+        )
         #expect(ToolEnvelope.isSuccess(result), "overwrite failed: \(result)")
         let payload = try #require(EnvelopeAssertions.successPayload(result))
         #expect(payload["action"] as? String == "overwrite")

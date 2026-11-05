@@ -44,7 +44,9 @@ enum TemplateFileExport {
         panel.title = L("Export Template")
         panel.message =
             signing
-            ? L("Signed with your Osaurus ID. Saved answers, secret values, bindings, run history, and absolute paths are left out.")
+            ? L(
+                "Signed with your Osaurus ID. Saved answers, secret values, bindings, run history, and absolute paths are left out."
+            )
             : L("Saved answers, secret values, bindings, run history, and absolute paths are left out.")
         guard await panel.beginModal() == .OK else { return nil }
         return panel.url
@@ -97,10 +99,16 @@ enum TemplateFileExport {
                     return nil
                 }()
                 ToastManager.shared.action(
-                    L("Saved \"\(template.name)\""), message: message, action: .revealInFinder(url),
-                    buttonTitle: L("Show in Finder"))
+                    L("Saved \"\(template.name)\""),
+                    message: message,
+                    action: .revealInFinder(url),
+                    buttonTitle: L("Show in Finder")
+                )
             } catch {
-                ToastManager.shared.error(L("Could not export \"\(template.name)\""), message: error.localizedDescription)
+                ToastManager.shared.error(
+                    L("Could not export \"\(template.name)\""),
+                    message: error.localizedDescription
+                )
             }
         }
     }

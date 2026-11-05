@@ -25,7 +25,11 @@ struct ShowResponseCapabilitiesTests {
             ),
             capabilities: capabilities,
             parameters: .init(
-                temperature: nil, topP: nil, topK: nil, stop: nil, repeatPenalty: nil
+                temperature: nil,
+                topP: nil,
+                topK: nil,
+                stop: nil,
+                repeatPenalty: nil
             )
         )
     }

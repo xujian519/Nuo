@@ -50,7 +50,8 @@ struct CloudModelBrowserDialog: View {
         // Row hover is owned by the leaf row and never invalidates this work.
         let catalog = catalog
         let categories = CloudModelCategory.available(in: catalog)
-        let results = catalog
+        let results =
+            catalog
             .filter { $0.matches(searchQuery: searchText) }
             .filteredByContext(contextFilter)
             .filter(categoryFilter.includes)
@@ -251,12 +252,18 @@ struct CloudModelBrowserDialog: View {
                     .accessibilityLabel(Text("Loading Cloud models", bundle: .module))
                 statusText("Loading Cloud models…", detail: "The catalog will appear when the connection is ready.")
             } else if refreshFailed || providerState?.lastError != nil {
-                statusText("Couldn't load Cloud models", detail: "Try again, or open Credits to review your Cloud settings.")
+                statusText(
+                    "Couldn't load Cloud models",
+                    detail: "Try again, or open Credits to review your Cloud settings."
+                )
                 retryButton
             } else if !OsaurusIdentity.existsCached() {
                 statusText("Set up Osaurus Cloud", detail: "Open Credits to set up your Cloud account.")
             } else {
-                statusText("No Cloud models available", detail: "Refresh the catalog, or open Credits to review your Cloud settings.")
+                statusText(
+                    "No Cloud models available",
+                    detail: "Refresh the catalog, or open Credits to review your Cloud settings."
+                )
                 retryButton
             }
         }
