@@ -58,7 +58,11 @@
       "Packages/OsaurusCore/Resources/Localizable.xcstrings",
       "Makefile",
       ".github/workflows/**",
-      "scripts/**"
+      ".github/ISSUE_TEMPLATE/**",
+      "scripts/**",
+      "Packages/OsaurusRepository/**",
+      "Packages/OsaurusCore/Resources/Templates/**",
+      "helpers/**"
     ],
     "strict_pending": [
       "App/osaurus/AppIntents/**",
@@ -101,7 +105,16 @@
       "osaurus-evals",
       "osaurus-id",
       "osk-v1.",
-      "group.com.osaurus.shared"
+      "group.com.osaurus.shared",
+      ".osaurus-agent",
+      ".osaurustemplate",
+      "osaurus.template",
+      "osaurus.json",
+      "osaurus.config.toml",
+      "model_providers.osaurus",
+      "osaurus.messages",
+      "@osaurus/",
+      "OsaurusDeepLink"
     ],
     "contracts": [
       {

@@ -94,6 +94,8 @@ scripts/brand/
   rules/10-app-identity.json    Phase 1：产物名、bundle id、Info.plist 与它的 6 语言本地化
   rules/11-artifact-chain.json  Phase 1：签名 / 打包 / dSYM / Sentry / appcast 链路
   rules/12-cli-surface.json     Phase 1：CLI 命令名、help 文案、安装软链
+  rules/13-runtime-surfaces.json Phase 3：Info.plist 基础文案、内置 CLI 安装卡片、
+                                Claude Code helper、Release 脚本、模板/Issue/WhatsApp 设备名
   rules/20-runtime.json         Phase 2（待加）
   rules/30-ui-text.json         Phase 3：Localizable.xcstrings key/value（xcstrings op）+ Swift key 引用同步
   rules/40-docs.json            Phase 5（待加）
@@ -137,7 +139,7 @@ scripts/brand/
    还没改造的面放在 `paths.strict_pending`，只统计不拦截 —— 每个阶段落地时把对应 glob 从 pending 挪到 strict，闸门跟着阶段走，不会一上来就红。
 3. **契约存在**：`frozen.contracts` 里的字符串必须仍在（例如 `import OsaurusCore` ≥ 1200 次、`osaurus_plugin_entry_v2` 存在）。上游合进来把插件 ABI 弄丢会立刻被抓到。
 
-当前实测（Phase 2 源码落地、Phase 3 未开始时）：strict 34 个文件 / 278 处遗留，pending 55 个文件 / 2375 处，58 条规则全部 `enforced`，`verify.sh` 约 0.5s。
+当前实测（2026-11-04）：strict 51 个文件 / 864 处遗留，pending 50 个文件 / 285 处，79 条规则全部 `enforced`，`verify.sh` 约 3.6s。本轮把 `Packages/OsaurusRepository/**`、`helpers/**`、`Resources/Templates/**`、`.github/ISSUE_TEMPLATE/**` 纳入 strict，并给规则引擎加了文件读取与 Swift 字面量切片缓存（否则守卫约 8–9s）。
 
 > `scripts/live-proof/**`、`docs/evidence/**`、`results/**`、`reports/**` 是对历史证据的归档，不参与棘轮 —— 改写已归档的证明等于伪造证据。
 
@@ -169,7 +171,8 @@ scripts/brand/snapshot.sh --write                  # 阶段推进后重测基线
 范围（`rules/10-app-identity.json` + `11-artifact-chain.json` + `12-cli-surface.json` + 手写补丁）：
 
 - pbxproj：`PRODUCT_NAME = Nuo`、3 个 bundle id、`TEST_HOST`、`CFBundleDisplayName`、`SU_FEED_URL`、`SUEnableAutomaticChecks = NO`；删除 `INFOPLIST_KEY_NSMicrophoneUsageDescription`（见 7.1）。
-- `App/osaurus/InfoPlist.xcstrings`：13 个 key × 6 语言（`CFBundleDisplayName`、`CFBundleName`、11 条权限文案）。**这是最容易漏的一处**——Xcode 把它编译成 `<lang>.lproj/InfoPlist.strings`，运行时盖掉 Info.plist，所以 pbxproj 改名后 Dock / Cmd-Tab / Finder / TCC 弹窗仍然显示 Osaurus。规则 `info-plist-l10n.display-name` + `info-plist-l10n.bundle-name`，文件已从 `strict_pending` 挪进 `strict`，遗留计数棘轮在 0。
+- `App/osaurus/InfoPlist.xcstrings`：13 个产品相关的 key × 6 语言（`CFBundleDisplayName`、`CFBundleName`、11 条权限文案；`NSHumanReadableCopyright` 留空）。**这是最容易漏的一处**——Xcode 把它编译成 `<lang>.lproj/InfoPlist.strings`，运行时盖掉 Info.plist，所以 pbxproj 改名后 Dock / Cmd-Tab / Finder / TCC 弹窗仍然显示 Osaurus。规则 `info-plist-l10n.display-name` + `info-plist-l10n.bundle-name`，文件已从 `strict_pending` 挪进 `strict`，遗留计数棘轮在 0。
+- 基础 `App/osaurus/Info.plist` 的 11 条权限文案：规则 `13-runtime-surfaces.json → plist.base-permission-copy`。6 种语言之外的系统语言没有 `InfoPlist.strings`，会回退到基础文案；只改 xcstrings 会在这里漏名。同时补上 `NSRemindersFullAccessUsageDescription` 缺失的 5 个翻译（此前只有 `en`，其他语言也会回退）。
 - xcscheme：3 处 `BuildableName = "Nuo.app"`。
 - `Makefile`、`scripts/build/build_arm64.sh`：产物路径 `Nuo.app`，内嵌 helper 改名 `nuo` 并留 `osaurus` 相对软链。
 - `.github/workflows/build-and-release.yml`、`deploy-appcast.yml`：产物名与 artifact 名。
@@ -185,9 +188,11 @@ ls build/DerivedData/Build/Products/Debug/Nuo.app/Contents/Helpers   # nuo + osa
 xcodebuild -workspace osaurus.xcworkspace -scheme OsaurusCoreTests test  # 既有套件不回归
 ```
 
+> 本机构建前置：Xcode 27 需要单独下载 Metal 工具链（`xcodebuild -downloadComponent MetalToolchain`）；没有 Developer ID 证书时加 `CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO` 做未签名编译验收。`Nuo.app` 的沙箱内核来自 `scripts/build/fetch_sandbox_kernel.sh`，需下载约 696MB 的 Kata Release 资源。
+
 ### Phase 2 — 运行时身份与数据迁移
 
-**状态：源码层已落地（2026-11-01）**，等 Xcode 到位后跑 `make cli` / `make app` / `OsaurusCoreTests` 收尾。
+**状态：源码层已落地（2026-11-01）。2026-11-04 用 Xcode 27.2 验收：`make cli` 通过；`make app` 编译出 `Nuo.app`（`CFBundleIdentifier com.nuo.app`、`Contents/Helpers/nuo` + `osaurus` 软链、`osaurus-plugin-host` 齐全，`nuo version` 输出 `Nuo 1.0 (1)`），只差 Kata 沙箱内核（696MB GitHub Release 资源，代理下约 36KB/s）未下载；`OsaurusRepository` 111 个单测通过。`OsaurusCoreTests` 在本机卡在 `SecItemCopyMatching`（Keychain 读取，测试环境问题，不是品牌改动）。**
 
 **本机（无 Xcode，仅 CLT）已做的替代验证（2026-11-01）**：
 
@@ -236,7 +241,16 @@ public enum Brand {                      // 用户可见身份
 
 ### Phase 3 — 界面与文案
 
-**状态：Localizable.xcstrings A/C 类机械替换已落地（2026-11-01）**，B 类外部事实保留待人工定夺；Swift 硬编码字面量面（AppDelegate/AppIntents/CLI help/日志前缀）待下一批。
+**状态：Localizable.xcstrings A/C 类机械替换已落地（2026-11-01）；Swift 字面量与运行时可见面已落地（2026-11-04）**，B 类外部事实（Router / Cloud / ID / osaurus.ai）保留待 `HIDE-UPSTREAM-SERVICES` 一起处理。
+
+2026-11-04 补的这一批（规则 `13-runtime-surfaces.json` + 扩展后的 `30-ui-text.json`）：
+
+- 小写 `osaurus` 残留：HTTP 错误里的 CLI 指令（`osaurus status/import/CLI`）、安全模式通知、文件夹授权弹窗、主题导入提示、Workspace 邀请链接示例。
+- 运行时诊断：存储设置里的 “Service:” 从 `com.osaurus.storage` 改为实际使用的 `com.nuo.storage`。
+- 冠词：`an Nuo` → `a Nuo`（15 处，含 Swift 与 xcstrings）。
+- 发布链路：appcast / HF 上传脚本的 `Osaurus-<version>.dmg` 改为 `Nuo-`（原先会 404），Discord 公告改用 `PUBLIC_REPO`，release note 文案。
+- 其他：agent 模板作者名、GitHub Issue 模板、WhatsApp 已链接设备名。
+- `Packages/OsaurusRepository` 纳入 `ui-text.swift-literals` 与 strict：bundle 风险文案、校验错误、`[Osaurus]` 日志前缀。
 
 已落地（`rules/30-ui-text.json`，新增 `xcstrings` op，见 `brand.py`）：
 
@@ -245,13 +259,17 @@ public enum Brand {                      // 用户可见身份
 - C 类数据根：值与 key 中的 `~/.osaurus` → `~/.nuo`（57 处纯路径值 + Swift 硬编码路径文案）。
 - 排除组（key 命中即整组多语言跳过，R7 假承诺保护）：`Osaurus Cloud`、`Osaurus Router`、`Osaurus ID`、`OsaurusID`、`Osaurus Identity`、`Osaurus Secure`、`Osaurus Premium`、`Osaurus Connect`、`OsaurusAI`；小写 `osaurus`（插件/配置键/域名）与大写 `OSAURUS`（环境变量）经大小写敏感匹配自然保留。
 - `sync_refs_exclude`：`OsaurusCloudMediaClient.swift`（上游 Cloud 媒体 providerName）、`MCPOAuthClientMetadata.swift`（注册到上游的 OAuth clientName）、`OpenRouterOAuthService.swift`（OpenRouter HTTP-Referer/appTitle）。
-- 棘轮：`Localizable.xcstrings` 与 `App/osaurus/*.swift` 从 `strict_pending` 挪入 `strict`，基线重测（strict 36 文件 / 836 处，其中大部分是受保护的 B 类与 frozen 标识）。
+- 棘轮：`Localizable.xcstrings` 与 `App/osaurus/*.swift` 从 `strict_pending` 挪入 `strict`；2026-11-04 又并入 `Packages/OsaurusRepository/**`、`helpers/**`、`Resources/Templates/**`、`.github/ISSUE_TEMPLATE/**`，基线重测（strict 51 文件 / 864 处，其中大部分是受保护的 B 类与 frozen 标识）。
 - 验证：diff 纯洁性（删行全含 legacy、增行全含 Nuo，1364+1364 一一对应）、JSON 合法性（9995 keys 不变）、幂等（二次 apply 为 0）、排除项保留计数、5 语言语序抽查（德/俄/韩/简/繁无语病，"the Nuo agent"/"die Nuo-Sandbox"/"Nuo's" 均合法）。测试文件 hardcode 翻译断言风险已排查（仅 5 处上游 API mock/fixture，正确保留）。
 
 剩余（下一批/人工）：
 
-- **B 类人工清单**（见下）；Swift 硬编码 UI 文案（`FloatingInputCard`、`SlackSettingsView` manifest 模板、`ConfigurationTools` 工具描述等，日志 `[Osaurus]` 前缀需决策）。
-- `AppIntents`（22 处 Siri 快捷指令文案）、`AppDelegate`（NSLog/UI 混合）、`OsaurusCLI` help——仍在 `strict_pending`。
+- 内置指南 `Packages/OsaurusCore/Resources/Guide/**`（28 篇，约 217 处）——Phase 5；它已在 `strict_pending`，只统计不拦截。
+- 文档面：`README.md`、`COMMUNITY_EVALS.md`、`docs/plugins/**`、`docs/examples/**`——Phase 5。
+- 资产：App 图标、托盘图标、wordmark、DMG 背景——Phase 4。
+- B 类上游服务文案与入口——`HIDE-UPSTREAM-SERVICES`，与默认开关一起做。
+- Codex `profileName = "osaurus"`：UI 文案与 `~/.codex` 默认 profile 名要一起改，影响既有配置。
+- `NSRemindersFullAccessUsageDescription` 新补的 5 个翻译需要母语者过一遍（其他权限条目的既有翻译仍是旧句式，属于上游翻译滞后，不在本轮范围）。
 
 B 类人工清单（保留计数见 baseline）：
 
@@ -268,8 +286,8 @@ B 类人工清单（保留计数见 baseline）：
 | osaurus.config.toml（6 值） | Codex profile 文件名——改文案需同步决策 profileName 默认值 |
 | 3 个 sync_refs_exclude Swift 文件 | 上游 OAuth / OpenRouter / Cloud provider 外部契约 |
 
-- `App/osaurus/InfoPlist.xcstrings`：**已在 Phase 1 完成**（`info-plist-l10n.*`，13 个 key × 6 语言）。Phase 3 只做抽查：德/俄/韩/简繁里 `Nuo-Plugins`、`Плагины Nuo`、`Nuo 插件` 的语序是否仍然通顺。
-- Swift 字面量：`AppDelegate`（菜单栏标题、tooltip、分析同意弹窗）、`osaurusApp.swift`（关于面板、Help 菜单、外链）、`AppIntents`、CLI help。
+- `App/osaurus/InfoPlist.xcstrings`：**已在 Phase 1 完成**（`info-plist-l10n.*`）；`NSRemindersFullAccessUsageDescription` 的 5 个缺失翻译与 11 条基础 `Info.plist` 文案已在 2026-11-04 补齐。仍建议母语者抽查德/俄/韩/简繁的语序。
+- Swift 字面量与运行时可见面（`AppDelegate`、`osaurusApp.swift`、`AppIntents`、CLI help、HTTP 错误、通知、文件授权、主题导入、存储诊断）：**已完成（2026-11-04）**，全部在 enforced 规则里。
 - 5 种非英文语言需要抽查：机械替换后检查语序与冠词（德/俄/韩/简繁）——**A/C 类已抽查通过（2026-11-01）**。
 
 ### Phase 4 — 资产
@@ -289,6 +307,7 @@ B 类人工清单（保留计数见 baseline）：
 
 ### Phase 6 — 发布链路与证明
 
+- 2026-11-04 已修正脚本层的产物名不一致：appcast 与 HF 上传按 `Nuo-<version>.dmg` 取件（原先 404），Discord 公告改用 `PUBLIC_REPO` 而不是上游仓库，release note 文案改为 Nuo。剩余的是仓库外凭据与实机验证。
 - Developer ID 证书、nuo appcast feed、notarization profile（仓库外依赖）。
 - 实机 UI 走查 + eval 套件（`make ci-test`、`make evals-deterministic`、AgentLoop 相关 lane）。
 - PR 证据按 `AGENTS.md` 的 Release Proof 要求写：源 SHA、模型/套件、原始分数与分母、失败归因、本地证据路径。

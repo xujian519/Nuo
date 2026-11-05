@@ -722,7 +722,7 @@ public final class ToolRegistry: ObservableObject {
         let message: String
         if agentId == nil {
             message =
-                "'\(tool)' belongs to the built-in \(app.displayName) app and only runs inside an Nuo agent that has \(app.displayName) enabled."
+                "'\(tool)' belongs to the built-in \(app.displayName) app and only runs inside a Nuo agent that has \(app.displayName) enabled."
         } else if agentId == Agent.defaultId {
             message =
                 "'\(tool)' belongs to the built-in \(app.displayName) app. The Default agent never uses Apple app tools; enable \(app.displayName) on a custom agent (`osaurus_config` → capabilities.apple_apps) and delegate to it."

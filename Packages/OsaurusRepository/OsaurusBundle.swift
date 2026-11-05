@@ -430,7 +430,7 @@ extension OsaurusBundle {
         }
         if manifest.formatVersion > OsaurusBundleFormat.formatVersion {
             issues.append(
-                "format_version \(manifest.formatVersion) needs a newer Osaurus "
+                "format_version \(manifest.formatVersion) needs a newer Nuo "
                     + "(this one reads up to \(OsaurusBundleFormat.formatVersion)).")
         } else if manifest.formatVersion < 1 {
             issues.append("format_version must be 1.")
@@ -549,7 +549,7 @@ extension OsaurusBundle {
                 continue
             }
             if key == "builtin" {
-                issues.append("\(label): `builtin` is reserved for Osaurus's own loop.")
+                issues.append("\(label): `builtin` is reserved for Nuo's own loop.")
             }
             if !seenRuntimes.insert(key).inserted {
                 issues.append("\(label): listed twice.")
@@ -844,7 +844,7 @@ public struct BundleSecretRef: Sendable, Equatable, Hashable {
     static func problem(_ raw: String, label: String) -> String? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.hasPrefix("env:") {
-            return "\(label): env: references are not allowed in bundles. Osaurus applies the bundle "
+            return "\(label): env: references are not allowed in bundles. Nuo applies the bundle "
                 + "when it next opens, without the installer's environment. Store the secret in the "
                 + "Keychain and use keychain:SERVICE/ACCOUNT."
         }
@@ -1005,7 +1005,7 @@ extension OsaurusBundle {
                 }
                 if let runtime = a.harnessRuntime {
                     out.append(
-                        "Agent \"\(a.name)\" runs on harness runtime \"\(runtime)\", outside the Osaurus "
+                        "Agent \"\(a.name)\" runs on harness runtime \"\(runtime)\", outside the Nuo "
                             + "sandbox")
                 }
             case .setting:

@@ -46,7 +46,7 @@ public enum ThemeShareError: LocalizedError, Sendable {
         case .writeFailed:
             return "Failed to save the imported theme."
         case .invalidIdentifier:
-            return "Not a valid theme ID. Paste a 64-character hex hash or an osaurus://themes-install link."
+            return "Not a valid theme ID. Paste a 64-character hex hash or a nuo://themes-install link."
         case .identity(let err):
             return err.errorDescription
         case .api(let err):

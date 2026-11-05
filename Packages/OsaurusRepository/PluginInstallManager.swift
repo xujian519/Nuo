@@ -81,7 +81,7 @@ public final class PluginInstallManager: @unchecked Sendable {
             installedReceipt: Self.latestInstalledReceipt(pluginId: spec.plugin_id)
         ) {
             NSLog(
-                "[Osaurus] Signing key changed for %@ — refusing to install without explicit re-trust (uninstall + reinstall)",
+                "[Nuo] Signing key changed for %@ — refusing to install without explicit re-trust (uninstall + reinstall)",
                 spec.plugin_id
             )
             throw PluginInstallError.authorKeyMismatch
@@ -129,10 +129,10 @@ public final class PluginInstallManager: @unchecked Sendable {
             let bytes = try Self.mappedFileData(at: tmpZip)
             _ = try MinisignVerifier.verify(publicKey: pubKey, signature: ms.signature, data: bytes)
         } catch {
-            NSLog("[Osaurus] Minisign verification failed for \(pluginId): \(error)")
+            NSLog("[Nuo] Minisign verification failed for \(pluginId): \(error)")
             throw PluginInstallError.signatureInvalid
         }
-        NSLog("[Osaurus] Minisign signature verified for \(pluginId)")
+        NSLog("[Nuo] Minisign signature verified for \(pluginId)")
 
         let tmpDir = FileManager.default.temporaryDirectory.appendingPathComponent(
             "osaurus-plugin-\(UUID().uuidString)",
@@ -195,7 +195,7 @@ public final class PluginInstallManager: @unchecked Sendable {
                 try FileManager.default.removeItem(at: destWebDir)
             }
             try FileManager.default.copyItem(at: webDir, to: destWebDir)
-            NSLog("[Osaurus] Installed web assets for plugin \(pluginId)")
+            NSLog("[Nuo] Installed web assets for plugin \(pluginId)")
         }
 
         // Copy any SKILL.md files found in the artifact
@@ -219,7 +219,7 @@ public final class PluginInstallManager: @unchecked Sendable {
                 }
                 try FileManager.default.copyItem(at: skillURL, to: destURL)
                 installedSkillFiles.append(destURL)
-                NSLog("[Osaurus] Installed SKILL.md for plugin \(pluginId): \(destName)")
+                NSLog("[Nuo] Installed SKILL.md for plugin \(pluginId): \(destName)")
             }
         }
 
@@ -231,7 +231,7 @@ public final class PluginInstallManager: @unchecked Sendable {
                     try FileManager.default.removeItem(at: destURL)
                 }
                 try FileManager.default.copyItem(at: docURL, to: destURL)
-                NSLog("[Osaurus] Installed \(docName) for plugin \(pluginId)")
+                NSLog("[Nuo] Installed \(docName) for plugin \(pluginId)")
             }
         }
 
@@ -370,13 +370,13 @@ public final class PluginInstallManager: @unchecked Sendable {
                 do {
                     try updateCurrentSymlink(pluginId: pluginId, version: fallback)
                     NSLog(
-                        "[Osaurus] Repaired dangling 'current' for %@ → %@",
+                        "[Nuo] Repaired dangling 'current' for %@ → %@",
                         pluginId,
                         fallback.description
                     )
                 } catch {
                     NSLog(
-                        "[Osaurus] Failed to repair dangling 'current' for %@: %@",
+                        "[Nuo] Failed to repair dangling 'current' for %@: %@",
                         pluginId,
                         String(describing: error)
                     )
@@ -384,7 +384,7 @@ public final class PluginInstallManager: @unchecked Sendable {
             } else {
                 try? fm.removeItem(at: link)
                 NSLog(
-                    "[Osaurus] Removed dangling 'current' for %@ (no installed versions found)",
+                    "[Nuo] Removed dangling 'current' for %@ (no installed versions found)",
                     pluginId
                 )
             }

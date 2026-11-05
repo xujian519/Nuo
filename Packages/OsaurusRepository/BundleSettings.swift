@@ -113,7 +113,7 @@ public struct BundleSetting: Sendable, Equatable {
         case (.requireLocalAccessKey, .bool(false)):
             return ["Turns off \"\(title)\": apps on this Mac reach sessions, agents, MCP and config without a key"]
         case (.allowedOrigins, .strings(let list)):
-            return list.map { "Lets web pages from \($0) call Osaurus on this Mac from a browser" }
+            return list.map { "Lets web pages from \($0) call Nuo on this Mac from a browser" }
         default:
             return []
         }

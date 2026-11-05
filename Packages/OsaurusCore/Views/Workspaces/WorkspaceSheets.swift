@@ -642,7 +642,7 @@ struct JoinWorkspaceSheet: View {
             } else if codeLooksValid {
                 SheetHintRow(kind: .ok, message: L("You'll see the workspace's shared agents right away."))
             } else {
-                SheetHintRow(kind: .info, message: L("Invite links look like osaurus://workspaces/join?code=…"))
+                SheetHintRow(kind: .info, message: L("Invite links look like nuo://workspaces/join?code=…"))
             }
         }
         .onAppear {

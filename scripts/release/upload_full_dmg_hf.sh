@@ -6,7 +6,7 @@ set -euo pipefail
 # GitHub Releases reject assets over 2 GiB, so the ~4 GB full DMG is hosted
 # on the Hugging Face Hub under the OsaurusAI org instead:
 #
-#   datasets/OsaurusAI/osaurus-releases/<VERSION>/Osaurus-<VERSION>-full.dmg
+#   datasets/OsaurusAI/osaurus-releases/<VERSION>/Nuo-<VERSION>-full.dmg
 #   datasets/OsaurusAI/osaurus-releases/<VERSION>/SHA256SUMS
 #   datasets/OsaurusAI/osaurus-releases/latest.json      (non-beta only)
 #
@@ -28,7 +28,7 @@ set -euo pipefail
 IS_BETA="${IS_BETA:-false}"
 PUBLIC_REPO="${PUBLIC_REPO:-${GITHUB_REPOSITORY:-osaurus-ai/osaurus}}"
 HF_RELEASES_REPO="${HF_RELEASES_REPO:-OsaurusAI/osaurus-releases}"
-DMG_NAME="Osaurus-${VERSION}-full.dmg"
+DMG_NAME="Nuo-${VERSION}-full.dmg"
 DMG_PATH="build_output/${DMG_NAME}"
 
 if [[ ! -f "$DMG_PATH" ]]; then
@@ -90,7 +90,7 @@ api.upload_folder(
     repo_id=repo_id,
     repo_type="dataset",
     folder_path=stage,
-    commit_message=f"Osaurus {version} full DMG",
+    commit_message=f"Nuo {version} full DMG",
 )
 print(f"Uploaded {version} to {repo_id}")
 PY
@@ -137,7 +137,7 @@ cat >> "$BODY_FILE" <<EOF
 <!-- full-dmg -->
 ## Downloads
 
-- [Osaurus-${VERSION}.dmg](https://github.com/${PUBLIC_REPO}/releases/download/${VERSION}/Osaurus-${VERSION}.dmg) — standard build. Pick a model during onboarding.
+- [Nuo-${VERSION}.dmg](https://github.com/${PUBLIC_REPO}/releases/download/${VERSION}/Nuo-${VERSION}.dmg) — standard build. Pick a model during onboarding.
 - [${DMG_NAME}](${DOWNLOAD_URL}) — ${DMG_GB} GB, Raptor 0.6 bundled. Chat offline right after install; no model download. \`sha256 ${DMG_SHA256}\`
 <!-- /full-dmg -->
 EOF

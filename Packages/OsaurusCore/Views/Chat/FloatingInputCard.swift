@@ -2077,7 +2077,7 @@ extension FloatingInputCard {
             panel.allowsMultipleSelection = false
             panel.directoryURL = URL(fileURLWithPath: directory)
             panel.prompt = L("Grant Access")
-            panel.message = L("Grant osaurus access to this folder")
+            panel.message = L("Grant Nuo access to this folder")
             guard await panel.beginModal() == .OK else { return }
             isFocused = true
             refreshAtMenu()

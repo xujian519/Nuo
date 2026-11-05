@@ -1681,7 +1681,7 @@ final class NativeToolCallRowView: NSView {
 
     /// Render an `osaurus_config` plan or apply payload as a readable
     /// outcome list. Apply results become per-target status lines with a
-    /// `[Open … in Settings](osaurus://settings?tab=…)` link on rows the
+    /// `[Open … in Settings](nuo://settings?tab=…)` link on rows the
     /// user must finish; plan results reuse the plan's own summary text.
     /// Returns nil when the payload doesn't match either shape (schema /
     /// export / templates fall through to the generic rendering).
@@ -1707,7 +1707,7 @@ final class NativeToolCallRowView: NSView {
                 if status == "needs_user_action" || status == "cancelled",
                     let tab = configSettingsTab(forSection: section)
                 {
-                    line += " [Open \(tab.label) in Settings](osaurus://settings?tab=\(tab.rawValue))"
+                    line += " [Open \(tab.label) in Settings](nuo://settings?tab=\(tab.rawValue))"
                 }
                 lines.append(line)
             }

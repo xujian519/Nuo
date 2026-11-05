@@ -18,7 +18,7 @@ public enum SystemPromptTemplates {
     /// running so a custom persona doesn't accidentally erase that context.
     /// Names no tools (see `defaultPersona` for why).
     public static let platformIdentity =
-        "You are an Nuo chat agent running locally on the user's Mac."
+        "You are a Nuo chat agent running locally on the user's Mac."
 
     /// Default persona used when the user has not configured a custom one.
     /// Frames the agent as tool-driven so models don't reflexively say

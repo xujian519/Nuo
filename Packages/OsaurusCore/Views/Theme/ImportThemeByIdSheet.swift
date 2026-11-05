@@ -164,7 +164,7 @@ struct ImportThemeByIdSheet: View {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 11))
                     Text(
-                        "Doesn't look like a 64-character theme ID or osaurus://themes-install link.",
+                        "Doesn't look like a 64-character theme ID or nuo://themes-install link.",
                         bundle: .module
                     )
                     .font(.system(size: 11))
@@ -182,7 +182,7 @@ struct ImportThemeByIdSheet: View {
                     .font(.system(size: 10))
                 Text(
                     verbatim:
-                        "Accepts a 64-character ID, osaurus://themes-install?hash=… or https://themes.osaurus.ai/themes/…"
+                        "Accepts a 64-character ID, nuo://themes-install?hash=… or https://themes.osaurus.ai/themes/…"
                 )
                 .font(.system(size: 11))
                 .lineLimit(3)
@@ -246,7 +246,7 @@ struct ImportThemeByIdSheet: View {
 
             if !input.isEmpty && !isInputValid {
                 Text(
-                    "Doesn't look like a 64-character theme ID or osaurus://themes-install link.",
+                    "Doesn't look like a 64-character theme ID or nuo://themes-install link.",
                     bundle: .module
                 )
                 .font(.system(size: 11))

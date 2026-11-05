@@ -793,7 +793,7 @@ struct N8nSettingsView: View {
             AgentChannelSectionHeading(
                 L("Push replies to n8n (optional)"),
                 detail: L(
-                    "The only place an n8n URL belongs. Also POST the reply as a signed envelope to an Nuo Trigger or Webhook node. Needs a public https:// URL; loopback, private ranges and plain http are refused. Polling already returns every reply."
+                    "The only place an n8n URL belongs. Also POST the reply as a signed envelope to a Nuo Trigger or Webhook node. Needs a public https:// URL; loopback, private ranges and plain http are refused. Polling already returns every reply."
                 )
             )
 

@@ -89,7 +89,7 @@ func newBridge(storeDir string) (*bridge, error) {
 	// Web's platform (Chrome; the value it reports even from Electron) like
 	// other bridges do, and keep the product name in Os so the entry in the
 	// phone's Linked Devices list stays identifiable.
-	store.DeviceProps.Os = proto.String("Osaurus (Mac OS)")
+	store.DeviceProps.Os = proto.String("Nuo (Mac OS)")
 	store.DeviceProps.PlatformType = waCompanionReg.DeviceProps_CHROME.Enum()
 	debug := os.Getenv("OSAURUS_WA_DEBUG") != ""
 	dbPath := filepath.Join(storeDir, "whatsapp.db")

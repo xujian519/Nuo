@@ -437,10 +437,40 @@
       "comment" : "Privacy - Reminders Full Access Usage Description",
       "extractionState" : "extracted_with_value",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuo liest, erstellt und erledigt Erinnerungen nur für Agenten, denen du Zugriff auf Erinnerungen gewährt hast."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Nuo reads, creates, and completes reminders only for agents you have given Reminders access to."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuo는 미리 알림 접근 권한을 부여한 에이전트에 대해서만 미리 알림을 읽고, 생성하고, 완료합니다."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuo читает, создает и выполняет напоминания только для агентов, которым вы предоставили доступ к напоминаниям."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuo 仅为你已授予提醒事项访问权限的智能体读取、创建和完成提醒事项。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuo 僅為你已授予提醒事項存取權限的智能體讀取、建立和完成提醒事項。"
           }
         }
       }

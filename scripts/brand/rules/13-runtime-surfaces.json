@@ -1,0 +1,225 @@
+{
+  "phase": 3,
+  "title": "Runtime surfaces left outside the phase-1/phase-3 rule sets",
+  "rules": [
+    {
+      "id": "plist.base-permission-copy",
+      "op": "replace",
+      "files": [
+        "App/osaurus/Info.plist"
+      ],
+      "pattern": "\\bOsaurus\\b",
+      "replace": "{brand_display}",
+      "enforced": true,
+      "why": "Localized InfoPlist.strings only cover six languages; every other system language falls back to the base Info.plist. Keep the fallback on-brand."
+    },
+    {
+      "id": "helper.whatsapp-device-name",
+      "op": "replace",
+      "files": [
+        "helpers/osaurus-wa/bridge.go"
+      ],
+      "pattern": "Osaurus \\(Mac OS\\)",
+      "replace": "{brand_display} (Mac OS)",
+      "enforced": true,
+      "why": "This string is the entry shown in WhatsApp's Linked Devices list."
+    },
+    {
+      "id": "templates.agent-names",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCore/Resources/Templates/*.json"
+      ],
+      "pattern": "\"name\": \"Osaurus\"",
+      "replace": "\"name\": \"{brand_display}\"",
+      "enforced": true,
+      "why": "Template agent names are user-visible when a user creates an agent from a template."
+    },
+    {
+      "id": "github.issue-template-labels",
+      "op": "replace",
+      "files": [
+        ".github/ISSUE_TEMPLATE/*.yml"
+      ],
+      "pattern": "\\bOsaurus\\b",
+      "replace": "{brand_display}",
+      "enforced": true,
+      "why": "Issue-form labels and descriptions are shown to users filing bugs on GitHub."
+    },
+    {
+      "id": "release.appcast-dmg-name",
+      "op": "replace",
+      "raw": true,
+      "files": [
+        "scripts/release/generate_and_deploy_appcast.sh"
+      ],
+      "pattern": "Osaurus-\\$\\{VERSION\\}",
+      "replace": "Nuo-${VERSION}",
+      "enforced": true,
+      "why": "The release publishes Nuo-<version>.dmg; the appcast script still downloaded the old name and failed with 404."
+    },
+    {
+      "id": "release.appcast-channel-title",
+      "op": "replace",
+      "raw": true,
+      "files": [
+        "scripts/release/generate_and_deploy_appcast.sh"
+      ],
+      "pattern": "<title>Osaurus</title>",
+      "replace": "<title>Nuo</title>",
+      "enforced": true
+    },
+    {
+      "id": "release.hf-dmg-name",
+      "op": "replace",
+      "raw": true,
+      "files": [
+        "scripts/release/upload_full_dmg_hf.sh"
+      ],
+      "pattern": "Osaurus-(?=\\$\\{VERSION\\}|<VERSION>)",
+      "replace": "Nuo-",
+      "enforced": true,
+      "why": "The full DMG is built as Nuo-<version>-full.dmg; the upload script looked for the old name."
+    },
+    {
+      "id": "release.hf-commit-message",
+      "op": "replace",
+      "raw": true,
+      "files": [
+        "scripts/release/upload_full_dmg_hf.sh"
+      ],
+      "pattern": "Osaurus \\{version\\} full DMG",
+      "replace": "Nuo {version} full DMG",
+      "enforced": true
+    },
+    {
+      "id": "release.notes-copy",
+      "op": "replace",
+      "raw": true,
+      "files": [
+        "scripts/release/get_release_notes.sh"
+      ],
+      "pattern": "New release of Osaurus v",
+      "replace": "New release of Nuo v",
+      "enforced": true
+    },
+    {
+      "id": "release.discord-copy",
+      "op": "block",
+      "raw": true,
+      "path": "scripts/release/discord_notify.sh",
+      "find": "# Truncate to ~1900 chars for Discord embed description\nTRUNCATED=$(printf '%s' \"$RAW_CHANGELOG\" | head -c 1900)\n\njq -n \\\n  --arg content  \"🚀 **New Osaurus Release!**\" \\\n  --arg version  \"${VERSION}\" \\\n  --arg desc     \"$TRUNCATED\" \\\n  --arg download \"[Download Osaurus.dmg](https://github.com/osaurus-ai/osaurus/releases/latest/download/Osaurus.dmg)\" \\\n  --arg page     \"[View on GitHub](https://github.com/osaurus-ai/osaurus/releases/tag/${VERSION})\" \\\n  '{\n    content: $content,\n    embeds: [\n      {\n        title: (\"Osaurus \" + $version),",
+      "replace": "# Truncate to ~1900 chars for Discord embed description\nTRUNCATED=$(printf '%s' \"$RAW_CHANGELOG\" | head -c 1900)\n\n# The fork publishes its own releases; never link back to the upstream repo.\nPUBLIC_REPO=\"${PUBLIC_REPO:-${GITHUB_REPOSITORY:-}}\"\nif [ -z \"$PUBLIC_REPO\" ]; then\n  echo \"PUBLIC_REPO or GITHUB_REPOSITORY is required\" >&2\n  exit 1\nfi\n\njq -n \\\n  --arg content  \"🚀 **New Nuo Release!**\" \\\n  --arg version  \"${VERSION}\" \\\n  --arg desc     \"$TRUNCATED\" \\\n  --arg download \"[Download Nuo.dmg](https://github.com/${PUBLIC_REPO}/releases/latest/download/Nuo.dmg)\" \\\n  --arg page     \"[View on GitHub](https://github.com/${PUBLIC_REPO}/releases/tag/${VERSION})\" \\\n  '{\n    content: $content,\n    embeds: [\n      {\n        title: (\"Nuo \" + $version),",
+      "enforced": true,
+      "why": "Announcements linked the upstream repo and the old DMG name; derive both from PUBLIC_REPO instead."
+    },
+    {
+      "id": "cli.in-app-import",
+      "op": "block",
+      "path": "Packages/OsaurusCore/Views/Settings/CommandLineToolSection.swift",
+      "find": "import AppKit\nimport SwiftUI",
+      "replace": "import AppKit\nimport OsaurusRepository\nimport SwiftUI",
+      "enforced": true
+    },
+    {
+      "id": "cli.in-app-helper-lookup",
+      "op": "block",
+      "path": "Packages/OsaurusCore/Views/Settings/CommandLineToolSection.swift",
+      "find": "    private func resolveCLIExecutableURL() -> URL? {\n        let fm = FileManager.default\n        let appURL = Bundle.main.bundleURL\n\n        // 1. Prefer embedded CLI in Helpers (production build via 'make app')\n        let helpers = appURL.appendingPathComponent(\"Contents/Helpers/osaurus\", isDirectory: false)\n        if fm.fileExists(atPath: helpers.path), fm.isExecutableFile(atPath: helpers.path) {\n            return helpers\n        }\n\n        // 2. Try MacOS folder (legacy or alternative embedding)\n        let macOS = appURL.appendingPathComponent(\"Contents/MacOS/osaurus\", isDirectory: false)\n        if fm.fileExists(atPath: macOS.path), fm.isExecutableFile(atPath: macOS.path) {\n            return macOS\n        }\n\n        // 3. Development: try the build Products directory\n        let productsDir = appURL.deletingLastPathComponent()\n\n        let debugCLI = productsDir.appendingPathComponent(\"osaurus-cli\", isDirectory: false)\n        if fm.fileExists(atPath: debugCLI.path), fm.isExecutableFile(atPath: debugCLI.path) {\n            return debugCLI\n        }\n\n        let debugOsaurus = productsDir.appendingPathComponent(\"osaurus\", isDirectory: false)\n        if fm.fileExists(atPath: debugOsaurus.path), fm.isExecutableFile(atPath: debugOsaurus.path) {\n            return debugOsaurus\n        }\n\n        // Check Release folder\n        let releaseDir = productsDir.deletingLastPathComponent().appendingPathComponent(\"Release\")\n        let releaseCLI = releaseDir.appendingPathComponent(\"osaurus-cli\", isDirectory: false)\n        if fm.fileExists(atPath: releaseCLI.path), fm.isExecutableFile(atPath: releaseCLI.path) {\n            return releaseCLI\n        }\n\n        let releaseOsaurus = releaseDir.appendingPathComponent(\"osaurus\", isDirectory: false)\n        if fm.fileExists(atPath: releaseOsaurus.path), fm.isExecutableFile(atPath: releaseOsaurus.path) {\n            return releaseOsaurus\n        }\n\n        // 4. Check inside Release app bundle's Helpers folder\n        let releaseAppHelpers =\n            releaseDir\n            .appendingPathComponent(\"osaurus.app/Contents/Helpers/osaurus\", isDirectory: false)\n        if fm.fileExists(atPath: releaseAppHelpers.path), fm.isExecutableFile(atPath: releaseAppHelpers.path) {\n            return releaseAppHelpers\n        }\n\n        // 5. Check inside Release app bundle's MacOS folder\n        let releaseAppMacOS =\n            releaseDir\n            .appendingPathComponent(\"osaurus.app/Contents/MacOS/osaurus\", isDirectory: false)\n        if fm.fileExists(atPath: releaseAppMacOS.path), fm.isExecutableFile(atPath: releaseAppMacOS.path) {\n            return releaseAppMacOS\n        }\n\n        return nil\n    }",
+      "replace": "    private func resolveCLIExecutableURL() -> URL? {\n        let fm = FileManager.default\n        let appURL = Bundle.main.bundleURL\n\n        // 1. Prefer the embedded CLI in Helpers (production build via 'make app').\n        //    The pre-rename helper is a fallback for one release: older bundles\n        //    only carry `osaurus`, and it resolves to the same binary.\n        for name in [Brand.slug, Brand.Legacy.slug] {\n            let helpers = appURL.appendingPathComponent(\"Contents/Helpers/\\(name)\", isDirectory: false)\n            if fm.fileExists(atPath: helpers.path), fm.isExecutableFile(atPath: helpers.path) {\n                return helpers\n            }\n            let macOS = appURL.appendingPathComponent(\"Contents/MacOS/\\(name)\", isDirectory: false)\n            if fm.fileExists(atPath: macOS.path), fm.isExecutableFile(atPath: macOS.path) {\n                return macOS\n            }\n        }\n\n        // 2. Development: try the build Products directory. `osaurus-cli` is the\n        //    SwiftPM product name and stays internal.\n        let productsDir = appURL.deletingLastPathComponent()\n        for name in [\"osaurus-cli\", Brand.slug, Brand.Legacy.slug] {\n            let candidate = productsDir.appendingPathComponent(name, isDirectory: false)\n            if fm.fileExists(atPath: candidate.path), fm.isExecutableFile(atPath: candidate.path) {\n                return candidate\n            }\n        }\n\n        // 3. Check the Release products directory, including the app bundle.\n        let releaseDir = productsDir.deletingLastPathComponent().appendingPathComponent(\"Release\")\n        for name in [\"osaurus-cli\", Brand.slug, Brand.Legacy.slug] {\n            let candidate = releaseDir.appendingPathComponent(name, isDirectory: false)\n            if fm.fileExists(atPath: candidate.path), fm.isExecutableFile(atPath: candidate.path) {\n                return candidate\n            }\n        }\n        for appName in [\"Nuo.app\", \"Osaurus.app\"] {\n            for subdir in [\"Contents/Helpers\", \"Contents/MacOS\"] {\n                for name in [Brand.slug, Brand.Legacy.slug] {\n                    let candidate = releaseDir.appendingPathComponent(\n                        \"\\(appName)/\\(subdir)/\\(name)\",\n                        isDirectory: false\n                    )\n                    if fm.fileExists(atPath: candidate.path), fm.isExecutableFile(atPath: candidate.path) {\n                        return candidate\n                    }\n                }\n            }\n        }\n\n        return nil\n    }",
+      "enforced": true,
+      "why": "The in-app installer looked only for the pre-rename helper and installed an `osaurus` symlink. Prefer `nuo`, keep the legacy lookup for one release."
+    },
+    {
+      "id": "cli.in-app-link-name",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCore/Views/Settings/CommandLineToolSection.swift"
+      ],
+      "pattern": "appendingPathComponent\\(\"osaurus\"\\)",
+      "replace": "appendingPathComponent(\"{brand_slug}\")",
+      "enforced": true
+    },
+    {
+      "id": "cli.claude-code-import",
+      "op": "block",
+      "path": "Packages/OsaurusCore/Models/Configuration/ClaudeCodeConfiguration.swift",
+      "find": "import Foundation\nimport SwiftUI",
+      "replace": "import Foundation\nimport OsaurusRepository\nimport SwiftUI",
+      "enforced": true
+    },
+    {
+      "id": "cli.claude-code-helper-lookup",
+      "op": "block",
+      "path": "Packages/OsaurusCore/Models/Configuration/ClaudeCodeConfiguration.swift",
+      "find": "    public static func embeddedCLIPath(bundle: Bundle = .main) -> String? {\n        let fm = FileManager.default\n        for relative in [\"Contents/Helpers/osaurus\", \"Contents/MacOS/osaurus\"] {\n            let candidate = bundle.bundleURL.appendingPathComponent(relative, isDirectory: false)\n            if fm.isExecutableFile(atPath: candidate.path) { return candidate.path }\n        }\n        return nil\n    }",
+      "replace": "    public static func embeddedCLIPath(bundle: Bundle = .main) -> String? {\n        let fm = FileManager.default\n        // `nuo` first; the pre-rename helper stays as a fallback for one release.\n        for name in [Brand.slug, Brand.Legacy.slug] {\n            for directory in [\"Contents/Helpers\", \"Contents/MacOS\"] {\n                let candidate = bundle.bundleURL.appendingPathComponent(\n                    \"\\(directory)/\\(name)\",\n                    isDirectory: false\n                )\n                if fm.isExecutableFile(atPath: candidate.path) { return candidate.path }\n            }\n        }\n        return nil\n    }",
+      "enforced": true,
+      "why": "Claude Code's MCP bridge resolved only `Contents/Helpers/osaurus`; prefer `nuo` and keep the legacy fallback."
+    },
+    {
+      "id": "ui.http-cli-name",
+      "op": "replace",
+      "mode": "swift-literals",
+      "files": [
+        "Packages/OsaurusCore/Networking/HTTPHandler.swift"
+      ],
+      "pattern": "\\bosaurus(?= (?:CLI|status|import)\\b)",
+      "replace": "{brand_slug}",
+      "enforced": true,
+      "why": "HTTP error copy still told users to run the pre-rename command."
+    },
+    {
+      "id": "ui.theme-scheme-copy",
+      "op": "replace",
+      "mode": "swift-literals",
+      "files": [
+        "Packages/OsaurusCore/Views/**/*.swift",
+        "Packages/OsaurusCore/Services/**/*.swift"
+      ],
+      "pattern": "osaurus://themes-install",
+      "replace": "{brand_slug}://themes-install",
+      "enforced": true,
+      "why": "New theme links are minted as nuo://; the import copy must not show the retired scheme."
+    },
+    {
+      "id": "ui.article-an-brand",
+      "op": "replace",
+      "mode": "swift-literals",
+      "files": [
+        "App/osaurus/**/*.swift",
+        "Packages/OsaurusCore/**/*.swift",
+        "Packages/OsaurusCLI/Sources/**/*.swift",
+        "Packages/OsaurusRepository/**/*.swift"
+      ],
+      "pattern": "\\ban(?= (?:Nuo|nuo)\\b)",
+      "replace": "a",
+      "enforced": true,
+      "why": "The rename turned `an Osaurus ...` into `an Nuo ...`; the article has to follow the new pronunciation."
+    },
+    {
+      "id": "ui.deeplink-copy",
+      "op": "replace",
+      "mode": "swift-literals",
+      "files": [
+        "Packages/OsaurusCore/Views/**/*.swift",
+        "Packages/OsaurusCore/Tests/Chat/ConfigToolDisplayTests.swift"
+      ],
+      "pattern": "osaurus://settings",
+      "replace": "{brand_slug}://settings",
+      "enforced": true,
+      "why": "Tool-call cards emitted a Markdown link on the retired scheme; new links must use nuo://."
+    },
+    {
+      "id": "ui.tool-display-name",
+      "op": "replace",
+      "files": [
+        "Packages/OsaurusCore/Views/Chat/ToolDisplayName.swift"
+      ],
+      "pattern": "humanize\\(rawName\\)",
+      "replace": "humanize(rawName.hasPrefix(\"{legacy_slug}_\") ? \"{brand_slug}_\" + rawName.dropFirst(\"{legacy_slug}_\".count) : rawName)",
+      "enforced": true,
+      "why": "Failed/uncatalogued calls humanize the frozen tool id, so `osaurus_config` rendered as `Osaurus config` in the chip."
+    }
+  ]
+}

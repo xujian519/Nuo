@@ -464,7 +464,7 @@ struct ChatEmptyState: View {
         case .encrypted:
             return Text("End-to-end encrypted", bundle: .module)
         case .peerNeedsUpgrade:
-            return Text("Peer needs an Nuo upgrade for encrypted chat", bundle: .module)
+            return Text("Peer needs a Nuo upgrade for encrypted chat", bundle: .module)
         case .offline:
             return Text(verbatim: sharedAgentStatus?.shortLabel ?? L("Offline"))
         case .notConnected:

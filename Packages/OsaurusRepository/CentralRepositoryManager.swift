@@ -85,7 +85,7 @@ public struct CentralRepositoryRefreshFailure: Equatable, LocalizedError, Sendab
 
         switch kind {
         case .unsupportedRepository:
-            return "Plugin repository URL is unsupported. Osaurus can refresh GitHub repositories only.\(cacheSuffix)"
+            return "Plugin repository URL is unsupported. Nuo can refresh GitHub repositories only.\(cacheSuffix)"
         case .notFound:
             return "Plugin repository archive was not found for the configured branch.\(cacheSuffix)\(retrySuffix)"
         case .unauthorized:
@@ -165,7 +165,7 @@ public final class CentralRepositoryManager: @unchecked Sendable {
                 attemptedURLs: attemptError.attemptedURLs,
                 failedURL: attemptError.failedURL
             )
-            NSLog("[Osaurus] Registry refresh failed: %@", failure.message)
+            NSLog("[Nuo] Registry refresh failed: %@", failure.message)
             return CentralRepositoryRefreshResult(
                 succeeded: false,
                 repositoryURL: failure.repositoryURL,
@@ -177,7 +177,7 @@ public final class CentralRepositoryManager: @unchecked Sendable {
             )
         } catch {
             let failure = makeFailure(from: error, attemptedURLs: [], failedURL: nil)
-            NSLog("[Osaurus] Registry refresh failed: %@", failure.message)
+            NSLog("[Nuo] Registry refresh failed: %@", failure.message)
             return CentralRepositoryRefreshResult(
                 succeeded: false,
                 repositoryURL: failure.repositoryURL,

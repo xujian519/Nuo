@@ -63,8 +63,8 @@ public struct AgentQuickAction: Codable, Identifiable, Sendable, Equatable {
         [
             AgentQuickAction(
                 icon: "questionmark.circle",
-                text: L("What can Nuo do?"),
-                prompt: L("What can Nuo do? Give me a quick tour of its features.")
+                text: L("What ca Nuo do?"),
+                prompt: L("What ca Nuo do? Give me a quick tour of its features.")
             ),
             AgentQuickAction(
                 icon: "checklist",

@@ -35,6 +35,7 @@ import json
 import re
 import subprocess
 import sys
+from functools import lru_cache
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -164,33 +165,43 @@ def select(globs: list[str] | None) -> list[str]:
     return [p for p in repo_files() if matches_any(p, regexes) and not is_excluded(p)]
 
 
+_TEXT_CACHE: dict[str, str] = {}
+
+
 def read_text(rel: str) -> str:
-    return (ROOT / rel).read_text(encoding="utf-8")
+    """Read a repo file once per process.
+
+    `verify` evaluates ~80 rules over overlapping file sets and used to re-read
+    the same files dozens of times. Writes update the cache, so apply still sees
+    its own edits.
+    """
+    cached = _TEXT_CACHE.get(rel)
+    if cached is not None:
+        return cached
+    text = (ROOT / rel).read_text(encoding="utf-8")
+    _TEXT_CACHE[rel] = text
+    return text
 
 
 def write_text(rel: str, text: str) -> None:
     (ROOT / rel).write_text(text, encoding="utf-8")
+    _TEXT_CACHE[rel] = text
 
 
 # --------------------------------------------------------------- frozen protection
 
 
 PROTECTED = sorted(CONFIG["frozen"]["literals"], key=len, reverse=True)
+# One alternation beats ~60 sequential str.find passes per literal body; longest
+# literal first so the alternation matches the same span the old merge produced.
+PROTECTED_RE = re.compile("|".join(re.escape(x) for x in PROTECTED)) if PROTECTED else None
 
 
 def split_protected(text: str) -> list[tuple[bool, str]]:
     """Split into (protected?, chunk) so text rules can only touch unlocked spans."""
-    if not PROTECTED:
+    if not PROTECTED_RE:
         return [(False, text)]
-    spans: list[tuple[int, int]] = []
-    for literal in PROTECTED:
-        start = 0
-        while True:
-            hit = text.find(literal, start)
-            if hit < 0:
-                break
-            spans.append((hit, hit + len(literal)))
-            start = hit + 1
+    spans: list[tuple[int, int]] = [(m.start(), m.end()) for m in PROTECTED_RE.finditer(text)]
     if not spans:
         return [(False, text)]
     spans.sort()
@@ -230,12 +241,8 @@ def substitute(text: str, regex: re.Pattern, replacement: str) -> tuple[str, int
 # ------------------------------------------------------------- swift literal scan
 
 
-def swift_literal_spans(text: str) -> list[tuple[int, int]]:
-    """Byte offsets of string-literal *bodies* in a Swift source file.
-
-    Used by rules with mode=swift-literals so UI copy changes never touch code
-    identifiers, comments, or `import OsaurusCore`.
-    """
+@lru_cache(maxsize=None)
+def _swift_literal_spans(text: str) -> tuple[tuple[int, int], ...]:
     spans: list[tuple[int, int]] = []
     i, n = 0, len(text)
     while i < n:
@@ -269,7 +276,16 @@ def swift_literal_spans(text: str) -> list[tuple[int, int]]:
             i = j + delim_len
             continue
         i += 1
-    return spans
+    return tuple(spans)
+
+
+def swift_literal_spans(text: str) -> list[tuple[int, int]]:
+    """Byte offsets of string-literal *bodies* in a Swift source file.
+
+    Used by rules with mode=swift-literals so UI copy changes never touch code
+    identifiers, comments, or `import OsaurusCore`.
+    """
+    return list(_swift_literal_spans(text))
 
 
 def substitute_in_literals(
@@ -417,7 +433,12 @@ def _xcstrings(rule: dict, rel: str, dry: bool) -> tuple[int, list[str]]:
         localizations = entry.get("localizations")
         if not isinstance(localizations, dict):
             continue
-        for loc in localizations.values():
+        # Some copy fixes are language-specific (English article agreement, for
+        # example: German keeps "an Nuo" because "an" means "to").
+        allowed_languages = rule.get("languages")
+        for lang, loc in localizations.items():
+            if allowed_languages and lang not in allowed_languages:
+                continue
             for su in iter_string_units(loc):
                 value = su.get("value")
                 if (

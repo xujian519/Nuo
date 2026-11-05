@@ -85,7 +85,7 @@ enum ToolDisplayName {
         // when e.g. `file_write` returns `ok:false`. Name the tool and mark the
         // failure instead. Only applies once the call has completed.
         if failed, !running {
-            return String(format: L("Failed: %@"), humanize(rawName))
+            return String(format: L("Failed: %@"), humanize(rawName.hasPrefix("osaurus_") ? "nuo_" + rawName.dropFirst("osaurus_".count) : rawName))
         }
         if isSearchTool(rawName) {
             return searchLabel(rawName, running: running, arguments: arguments)
@@ -116,7 +116,7 @@ enum ToolDisplayName {
         if rawName.hasPrefix("sandbox_") {
             return humanize(String(rawName.dropFirst("sandbox_".count))) + L(" in sandbox")
         }
-        return humanize(rawName)
+        return humanize(rawName.hasPrefix("osaurus_") ? "nuo_" + rawName.dropFirst("osaurus_".count) : rawName)
     }
 
     /// Whether `rawName` is a search tool whose title should embed its query.
@@ -170,7 +170,7 @@ enum ToolDisplayName {
         case "list":
             return running ? L("Listing Nuo items") : L("Listed Nuo items")
         case "describe":
-            return running ? L("Inspecting an Nuo item") : L("Inspected an Nuo item")
+            return running ? L("Inspecting a Nuo item") : L("Inspected a Nuo item")
         default:
             return running ? L("Inspecting Nuo") : L("Inspected Nuo")
         }

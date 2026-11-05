@@ -20,17 +20,24 @@ fi
 # Truncate to ~1900 chars for Discord embed description
 TRUNCATED=$(printf '%s' "$RAW_CHANGELOG" | head -c 1900)
 
+# The fork publishes its own releases; never link back to the upstream repo.
+PUBLIC_REPO="${PUBLIC_REPO:-${GITHUB_REPOSITORY:-}}"
+if [ -z "$PUBLIC_REPO" ]; then
+  echo "PUBLIC_REPO or GITHUB_REPOSITORY is required" >&2
+  exit 1
+fi
+
 jq -n \
-  --arg content  "🚀 **New Osaurus Release!**" \
+  --arg content  "🚀 **New Nuo Release!**" \
   --arg version  "${VERSION}" \
   --arg desc     "$TRUNCATED" \
-  --arg download "[Download Osaurus.dmg](https://github.com/osaurus-ai/osaurus/releases/latest/download/Osaurus.dmg)" \
-  --arg page     "[View on GitHub](https://github.com/osaurus-ai/osaurus/releases/tag/${VERSION})" \
+  --arg download "[Download Nuo.dmg](https://github.com/${PUBLIC_REPO}/releases/latest/download/Nuo.dmg)" \
+  --arg page     "[View on GitHub](https://github.com/${PUBLIC_REPO}/releases/tag/${VERSION})" \
   '{
     content: $content,
     embeds: [
       {
-        title: ("Osaurus " + $version),
+        title: ("Nuo " + $version),
         description: $desc,
         color: 5814783,
         fields: [

@@ -2298,7 +2298,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 status: .forbidden,
                 message:
                     "/admin/config/* is restricted to local (loopback) callers. "
-                    + "Run the osaurus CLI on this machine or use the Nuo app."
+                    + "Run the nuo CLI on this machine or use the Nuo app."
             )
             return
         }
@@ -2551,7 +2551,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 }
                 if !started.isEmpty {
                     notes.append(
-                        "\(started.count) download(s) started — poll `osaurus status` "
+                        "\(started.count) download(s) started — poll `nuo status` "
                             + "or the app for completion.")
                 }
                 if !notes.isEmpty { payload["note"] = notes.joined(separator: " ") }
@@ -2613,7 +2613,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
         guard isLoopback else {
             respondError(
                 status: .forbidden,
-                message: "/admin/import/* is restricted to local (loopback) callers. Run `osaurus import` on this Mac.")
+                message: "/admin/import/* is restricted to local (loopback) callers. Run `nuo import` on this Mac.")
             return
         }
         guard !parsedBody.data.isEmpty, parsedBody.data.count <= 256 * 1024,
@@ -2652,7 +2652,7 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
             guard let result = await PendingImportProcessor.shared.process(requestId: id) else {
                 respondError(
                     status: .unprocessableEntity,
-                    message: "No queued import request \(id). It may have been cancelled with `osaurus import remove`.")
+                    message: "No queued import request \(id). It may have been cancelled with `nuo import remove`.")
                 return
             }
             guard let data = try? ImportQueue.encoder().encode(result) else {

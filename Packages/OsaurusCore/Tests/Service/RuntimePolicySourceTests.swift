@@ -3836,7 +3836,7 @@ struct RuntimePolicySourceTests {
                 && !tokenizerLoader.contains(
                     "Self.requiresToolChoice(adjustedContext),\n            (env[\"VMLX_CHAT_TEMPLATE_FALLBACK_DISABLE\"] ?? \"0\") != \"1\"\n        {\n            return try fallback(\n                label: \"Gemma4"
                 ),
-            "Gemma4 required/named tool turns must not bypass the model-bundled native template with an Nuo-forced Gemma4WithTools fallback."
+            "Gemma4 required/named tool turns must not bypass the model-bundled native template with a Nuo-forced Gemma4WithTools fallback."
         )
         #expect(
             reasoningCapability.contains("runtime code must not synthesize")

@@ -429,7 +429,7 @@ public enum TemplateError: Error, LocalizedError, Equatable {
         case .malformed(let detail):
             return L("Could not read the template: \(detail)")
         case .notATemplate(let detail):
-            return L("This is not an Nuo template. \(detail)")
+            return L("This is not a Nuo template. \(detail)")
         case .unsupportedVersion(let v):
             return L("Template format \(v) is newer than this Nuo understands. Update Nuo to import it.")
         case .invalidAgent(let issues):

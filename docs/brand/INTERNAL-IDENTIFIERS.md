@@ -88,6 +88,11 @@ rg -o --no-filename -F '<字面量>' | wc -l     # 单个字面量的出现次�
 | `osaurus-credits:` / `osaurus-owner:redeem:` / `osaurus-workspaces:redeem:` / `osaurus-teams:redeem:` | 钱包签名 payload | 服务端按旧串验签，改了兑换全部失败 |
 | `osaurus-tunnel:` | `RelayTunnelManager` | 中继隧道鉴权串 |
 | `osaurus-bundle.json` / `osaurus-manifest.json` / `osaurus-plugin.json` | 清单文件名 | 仓库外已有实例；改名读不到已发布插件/模型包 |
+| `osaurus.json` | 模型清单文件名 | 上游 HF 模型目录按此名发布；改名模型加载失败 |
+| `.osaurus-agent` / `.osaurustemplate` | agent 导出包 / 模板文件扩展名 | 用户已导出的备份与模板按此扩展名保存，改名后无法打开 |
+| `osaurus.config.toml` / `model_providers.osaurus` | Codex profile 文件名与 provider 键 | 用户 `~/.codex/config.toml` 已按此写入；改名要同步迁移 |
+| `osaurus.messages` / `@osaurus/` | 旧插件 bundle id / npm 包 scope | 仓库外已有实例，npm 包名不受本地品牌控制 |
+| `OsaurusDeepLink` | `Info.plist → CFBundleURLName` | 内部标识，只在系统日志/诊断里可见 |
 | `group.com.osaurus.shared` | App Group | 既有共享容器 |
 
 > 取证：`rg -n '"osaurus-[a-z0-9]+' -g '*.swift' Packages/OsaurusCore | grep -v /Tests/`

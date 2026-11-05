@@ -172,7 +172,7 @@ final class OsaurusBundleTests: XCTestCase {
         let found = issues { _ = try OsaurusBundle.load(from: root) }
         XCTAssertTrue(found.contains { $0.contains("reverse-DNS") }, "\(found)")
         XCTAssertTrue(found.contains { $0.contains("semantic version") }, "\(found)")
-        XCTAssertTrue(found.contains { $0.contains("needs a newer Osaurus") }, "\(found)")
+        XCTAssertTrue(found.contains { $0.contains("needs a newer Nuo") }, "\(found)")
     }
 
     func testWarnsAboutDependenciesOutsideTheBundle() throws {
@@ -338,7 +338,7 @@ final class OsaurusBundleTests: XCTestCase {
         XCTAssertTrue(bundle.risks(for: [on]).isEmpty)
         XCTAssertEqual(
             bundle.risks(for: [origins]),
-            ["Lets web pages from https://app.example.com call Osaurus on this Mac from a browser"])
+            ["Lets web pages from https://app.example.com call Nuo on this Mac from a browser"])
 
         try manifest(["settings": ["require_local_access_key": false]])
         bundle = try OsaurusBundle.load(from: root)

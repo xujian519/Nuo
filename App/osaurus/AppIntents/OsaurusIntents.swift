@@ -34,7 +34,7 @@ struct AskOsaurusIntent: AppIntent {
 /// and toasts.
 struct RunAgentIntent: AppIntent {
     static let title: LocalizedStringResource = "Run Nuo Agent"
-    static let description = IntentDescription("Start an Nuo agent in the background.")
+    static let description = IntentDescription("Start a Nuo agent in the background.")
 
     @Parameter(title: "Agent") var agent: AgentEntity
     @Parameter(title: "Input") var input: String?

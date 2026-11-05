@@ -3988,10 +3988,10 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
         // ("Model default not found ['fugu', ...]") this guard exists to stop.
         if request.runAsRemoteAgent && provider.providerType != .osaurus {
             RemoteAgentRunLog.clientError(
-                "agent run blocked: provider '\(provider.name)' type=\(provider.providerType.rawValue) is not an Nuo agent endpoint"
+                "agent run blocked: provider '\(provider.name)' type=\(provider.providerType.rawValue) is not a Nuo agent endpoint"
             )
             throw RemoteProviderServiceError.requestFailed(
-                "Remote agent run cannot use provider '\(provider.name)' — it is not an Nuo agent endpoint. "
+                "Remote agent run cannot use provider '\(provider.name)' — it is not a Nuo agent endpoint. "
                     + "Reconnect to the remote agent and try again."
             )
         }

@@ -60,7 +60,7 @@ struct ConfigToolDisplayTests {
         #expect(
             ToolDisplayName.friendly(
                 for: "osaurus_inspect", running: false, arguments: #"{"action": "describe"}"#)
-                == L("Inspected an Nuo item"))
+                == L("Inspected a Nuo item"))
         #expect(
             ToolDisplayName.friendly(for: "osaurus_inspect", running: true)
                 == L("Inspecting Nuo"))
@@ -100,7 +100,7 @@ struct ConfigToolDisplayTests {
         #expect(text.contains("✓ providers: **xai** — Configured"))
         #expect(text.contains("⚠ providers: **anthropic** — Enter the API key"))
         // The row the user must finish links straight into Settings.
-        #expect(text.contains("(osaurus://settings?tab=providers)"))
+        #expect(text.contains("(nuo://settings?tab=providers)"))
         #expect(text.contains("_1 item needs your attention._"))
         // The completed row must NOT get a settings link.
         #expect(!text.contains("xai** — Configured [Open"))
@@ -119,7 +119,7 @@ struct ConfigToolDisplayTests {
             ],
         ]
         let text = NativeToolCallRowView.markdownForConfigResult(payload) ?? ""
-        #expect(text.contains("(osaurus://settings?tab=tools)"))
+        #expect(text.contains("(nuo://settings?tab=tools)"))
     }
 
     @MainActor

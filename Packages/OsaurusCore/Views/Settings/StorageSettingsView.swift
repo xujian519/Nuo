@@ -422,7 +422,7 @@ public struct StorageSettingsView: View {
     private var technicalDetails: some View {
         DisclosureGroup(isExpanded: $showTechnicalDetails) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Service: com.osaurus.storage", bundle: .module)
+                Text("Service: com.nuo.storage", bundle: .module)
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(theme.tertiaryText)
                     .textSelection(.enabled)

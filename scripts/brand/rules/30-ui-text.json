@@ -20,7 +20,39 @@
       ],
       "replace": [
         ["~/{legacy_data_root}", "~/{brand_data_root}"],
-        ["{legacy_display}", "{brand_display}"]
+        ["{legacy_display}", "{brand_display}"],
+        ["Install the `osaurus` CLI", "Install the `{brand_slug}` CLI"],
+        ["osaurus tools reset", "{brand_slug} tools reset"],
+        ["Grant osaurus", "Grant {brand_display}"],
+        ["osaurus://themes-install", "{brand_slug}://themes-install"],
+        ["com.osaurus.storage", "com.{brand_slug}.storage"],
+        ["osaurus://workspaces/join", "{brand_slug}://workspaces/join"],
+        ["osaurus의", "{brand_display}의"],
+        ["osaurus доступ", "{brand_display} доступ"],
+        ["osaurus 访问", "{brand_display} 访问"],
+        ["osaurus 存取", "{brand_display} 存取"]
+      ],
+      "sync_refs": [
+        "App/osaurus/**/*.swift",
+        "Packages/OsaurusCore/**/*.swift",
+        "Packages/OsaurusCLI/Sources/**/*.swift"
+      ],
+      "sync_refs_exclude": [
+        "Packages/OsaurusCore/Services/MediaGeneration/OsaurusCloudMediaClient.swift",
+        "Packages/OsaurusCore/Services/MCP/OAuth/MCPOAuthClientMetadata.swift",
+        "Packages/OsaurusCore/Services/Provider/OpenRouterOAuthService.swift"
+      ]
+    },
+    {
+      "id": "ui-text.localizable-english-articles",
+      "op": "xcstrings",
+      "path": "Packages/OsaurusCore/Resources/Localizable.xcstrings",
+      "enforced": true,
+      "languages": ["en"],
+      "comment": "English-only: `an Osaurus ...` became `an Nuo ...` after the rename. Other languages keep their own article (German `an Nuo` means `to Nuo`).",
+      "replace": [
+        ["an Nuo", "a Nuo"],
+        ["an nuo", "a {brand_slug}"]
       ],
       "sync_refs": [
         "App/osaurus/**/*.swift",
@@ -40,9 +72,11 @@
       "files": [
         "App/osaurus/**/*.swift",
         "Packages/OsaurusCore/**/*.swift",
-        "Packages/OsaurusCLI/Sources/**/*.swift"
+        "Packages/OsaurusCLI/Sources/**/*.swift",
+        "Packages/OsaurusRepository/**/*.swift"
       ],
       "files_exclude": [
+        "Packages/OsaurusRepository/Brand.swift",
         "Packages/OsaurusCore/Tests/Utils/AppDefaultsMigrationTests.swift",
         "Packages/OsaurusCore/Services/MediaGeneration/OsaurusCloudMediaClient.swift",
         "Packages/OsaurusCore/Services/MCP/OAuth/MCPOAuthClientMetadata.swift",

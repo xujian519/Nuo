@@ -9,6 +9,7 @@
 //
 
 import AppKit
+import OsaurusRepository
 import SwiftUI
 
 struct CommandLineToolSection: View {
@@ -28,7 +29,7 @@ struct CommandLineToolSection: View {
             .foregroundColor(theme.primaryText)
 
             Text(
-                "Install the `osaurus` CLI into your PATH for terminal access. If installed to ~/.local/bin, make sure that folder is in your PATH.",
+                "Install the `nuo` CLI into your PATH for terminal access. If installed to ~/.local/bin, make sure that folder is in your PATH.",
                 bundle: .module
             )
             .font(.system(size: 12))
@@ -91,7 +92,7 @@ extension CommandLineToolSection {
 
         if tryInstall(cliURL: cliURL, into: usrLocalBin) {
             installSucceeded = true
-            installMessage = "Installed to \(usrLocalBin.appendingPathComponent("osaurus").path)"
+            installMessage = "Installed to \(usrLocalBin.appendingPathComponent(Brand.slug).path)"
             return
         }
 
@@ -105,7 +106,7 @@ extension CommandLineToolSection {
         }
 
         if tryInstall(cliURL: cliURL, into: userLocalBin) {
-            let linkPath = userLocalBin.appendingPathComponent("osaurus").path
+            let linkPath = userLocalBin.appendingPathComponent(Brand.slug).path
             let inPath = isDirInPATH(userLocalBin.path)
             installSucceeded = true
             installMessage =
@@ -123,57 +124,50 @@ extension CommandLineToolSection {
         let fm = FileManager.default
         let appURL = Bundle.main.bundleURL
 
-        // 1. Prefer embedded CLI in Helpers (production build via 'make app')
-        let helpers = appURL.appendingPathComponent("Contents/Helpers/osaurus", isDirectory: false)
-        if fm.fileExists(atPath: helpers.path), fm.isExecutableFile(atPath: helpers.path) {
-            return helpers
+        // 1. Prefer the embedded CLI in Helpers (production build via 'make app').
+        //    The pre-rename helper is a fallback for one release: older bundles
+        //    only carry `osaurus`, and it resolves to the same binary.
+        for name in [Brand.slug, Brand.Legacy.slug] {
+            let helpers = appURL.appendingPathComponent("Contents/Helpers/\(name)", isDirectory: false)
+            if fm.fileExists(atPath: helpers.path), fm.isExecutableFile(atPath: helpers.path) {
+                return helpers
+            }
+            let macOS = appURL.appendingPathComponent("Contents/MacOS/\(name)", isDirectory: false)
+            if fm.fileExists(atPath: macOS.path), fm.isExecutableFile(atPath: macOS.path) {
+                return macOS
+            }
         }
 
-        // 2. Try MacOS folder (legacy or alternative embedding)
-        let macOS = appURL.appendingPathComponent("Contents/MacOS/osaurus", isDirectory: false)
-        if fm.fileExists(atPath: macOS.path), fm.isExecutableFile(atPath: macOS.path) {
-            return macOS
-        }
-
-        // 3. Development: try the build Products directory
+        // 2. Development: try the build Products directory. `osaurus-cli` is the
+        //    SwiftPM product name and stays internal.
         let productsDir = appURL.deletingLastPathComponent()
-
-        let debugCLI = productsDir.appendingPathComponent("osaurus-cli", isDirectory: false)
-        if fm.fileExists(atPath: debugCLI.path), fm.isExecutableFile(atPath: debugCLI.path) {
-            return debugCLI
+        for name in ["osaurus-cli", Brand.slug, Brand.Legacy.slug] {
+            let candidate = productsDir.appendingPathComponent(name, isDirectory: false)
+            if fm.fileExists(atPath: candidate.path), fm.isExecutableFile(atPath: candidate.path) {
+                return candidate
+            }
         }
 
-        let debugOsaurus = productsDir.appendingPathComponent("osaurus", isDirectory: false)
-        if fm.fileExists(atPath: debugOsaurus.path), fm.isExecutableFile(atPath: debugOsaurus.path) {
-            return debugOsaurus
-        }
-
-        // Check Release folder
+        // 3. Check the Release products directory, including the app bundle.
         let releaseDir = productsDir.deletingLastPathComponent().appendingPathComponent("Release")
-        let releaseCLI = releaseDir.appendingPathComponent("osaurus-cli", isDirectory: false)
-        if fm.fileExists(atPath: releaseCLI.path), fm.isExecutableFile(atPath: releaseCLI.path) {
-            return releaseCLI
+        for name in ["osaurus-cli", Brand.slug, Brand.Legacy.slug] {
+            let candidate = releaseDir.appendingPathComponent(name, isDirectory: false)
+            if fm.fileExists(atPath: candidate.path), fm.isExecutableFile(atPath: candidate.path) {
+                return candidate
+            }
         }
-
-        let releaseOsaurus = releaseDir.appendingPathComponent("osaurus", isDirectory: false)
-        if fm.fileExists(atPath: releaseOsaurus.path), fm.isExecutableFile(atPath: releaseOsaurus.path) {
-            return releaseOsaurus
-        }
-
-        // 4. Check inside Release app bundle's Helpers folder
-        let releaseAppHelpers =
-            releaseDir
-            .appendingPathComponent("osaurus.app/Contents/Helpers/osaurus", isDirectory: false)
-        if fm.fileExists(atPath: releaseAppHelpers.path), fm.isExecutableFile(atPath: releaseAppHelpers.path) {
-            return releaseAppHelpers
-        }
-
-        // 5. Check inside Release app bundle's MacOS folder
-        let releaseAppMacOS =
-            releaseDir
-            .appendingPathComponent("osaurus.app/Contents/MacOS/osaurus", isDirectory: false)
-        if fm.fileExists(atPath: releaseAppMacOS.path), fm.isExecutableFile(atPath: releaseAppMacOS.path) {
-            return releaseAppMacOS
+        for appName in ["Nuo.app", "Osaurus.app"] {
+            for subdir in ["Contents/Helpers", "Contents/MacOS"] {
+                for name in [Brand.slug, Brand.Legacy.slug] {
+                    let candidate = releaseDir.appendingPathComponent(
+                        "\(appName)/\(subdir)/\(name)",
+                        isDirectory: false
+                    )
+                    if fm.fileExists(atPath: candidate.path), fm.isExecutableFile(atPath: candidate.path) {
+                        return candidate
+                    }
+                }
+            }
         }
 
         return nil
@@ -186,7 +180,7 @@ extension CommandLineToolSection {
             return false
         }
 
-        let linkURL = dir.appendingPathComponent("osaurus")
+        let linkURL = dir.appendingPathComponent(Brand.slug)
 
         // If an entry exists, replace only if it's a symlink
         if fm.fileExists(atPath: linkURL.path) {

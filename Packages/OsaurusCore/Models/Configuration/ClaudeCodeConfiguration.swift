@@ -13,6 +13,7 @@
 //
 
 import Foundation
+import OsaurusRepository
 import SwiftUI
 
 /// How much of Claude Code's own agent loop the caller wants.
@@ -268,19 +269,25 @@ public enum ClaudeCodeConfiguration {
         return note
     }
 
-    /// Absolute path to the `osaurus` CLI shipped inside this app bundle.
+    /// Absolute path to the `nuo` CLI shipped inside this app bundle.
     ///
     /// Mirrors `ConfigurationView.resolveCLIExecutableURL`'s order: the
     /// `Helpers` copy embedded by `make app` first, then the `MacOS` fallback.
     /// Returns nil in a bare source build with no embedded CLI, which callers
     /// treat as "no MCP bridge" rather than falling back to a PATH lookup — a
-    /// stray `osaurus` on PATH could belong to a different install talking to a
+    /// stray `nuo` on PATH could belong to a different install talking to a
     /// different data root.
     public static func embeddedCLIPath(bundle: Bundle = .main) -> String? {
         let fm = FileManager.default
-        for relative in ["Contents/Helpers/osaurus", "Contents/MacOS/osaurus"] {
-            let candidate = bundle.bundleURL.appendingPathComponent(relative, isDirectory: false)
-            if fm.isExecutableFile(atPath: candidate.path) { return candidate.path }
+        // `nuo` first; the pre-rename helper stays as a fallback for one release.
+        for name in [Brand.slug, Brand.Legacy.slug] {
+            for directory in ["Contents/Helpers", "Contents/MacOS"] {
+                let candidate = bundle.bundleURL.appendingPathComponent(
+                    "\(directory)/\(name)",
+                    isDirectory: false
+                )
+                if fm.isExecutableFile(atPath: candidate.path) { return candidate.path }
+            }
         }
         return nil
     }
