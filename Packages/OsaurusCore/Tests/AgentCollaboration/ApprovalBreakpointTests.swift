@@ -56,7 +56,7 @@ struct ApprovalBreakpointTests {
         let reordered = #"{"value":"ok","path":"notes/a.txt"}"#
         let hash = try ApprovalParameterHash.hex(argumentsJSON: reordered)
         #expect(hash == paused.parameterHash)
-        try await expectFailure(.mistakenApproval(runId)) {
+        try await expectFailure(.mistakenApproval(runId: runId)) {
             _ = try await service.approve(
                 runId: runId,
                 toolName: "file_write",
@@ -64,7 +64,7 @@ struct ApprovalBreakpointTests {
                 now: start
             )
         }
-        try await expectFailure(.mistakenApproval(runId)) {
+        try await expectFailure(.mistakenApproval(runId: runId)) {
             _ = try await service.approve(
                 runId: runId,
                 toolName: "file_delete",
@@ -136,7 +136,7 @@ struct ApprovalBreakpointTests {
         )
         var effects: [String] = []
         let tooLate = start.addingTimeInterval(30 * 60)
-        try await expectFailure(.approvalTimedOut("slow")) {
+        try await expectFailure(.approvalTimedOut(runId: "slow")) {
             _ = try await service.approve(
                 runId: "slow",
                 toolName: "file_write",

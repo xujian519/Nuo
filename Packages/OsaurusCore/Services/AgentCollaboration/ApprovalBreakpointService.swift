@@ -20,7 +20,7 @@ public actor ApprovalBreakpointService {
         self.backlogLimit = max(1, backlogLimit)
         self.runs = try Self.read(self.indexURL)
         if !FileManager.default.fileExists(atPath: self.indexURL.path) {
-            try self.persist()
+            try Self.write(self.runs, directory: self.directory, indexURL: self.indexURL)
         }
     }
 
@@ -123,10 +123,10 @@ public actor ApprovalBreakpointService {
             run.pending = pending
             runs[runId] = run
             try persist()
-            throw ApprovalBreakpointError.approvalTimedOut(runId)
+            throw ApprovalBreakpointError.approvalTimedOut(runId: runId)
         }
         guard pending.toolName == toolName, pending.parameterHash == parameterHash else {
-            throw ApprovalBreakpointError.mistakenApproval(runId)
+            throw ApprovalBreakpointError.mistakenApproval(runId: runId)
         }
         guard !pending.resumeAuthorized else {
             throw ApprovalBreakpointError.alreadyAuthorized(runId)
@@ -203,6 +203,14 @@ public actor ApprovalBreakpointService {
     }
 
     private func persist() throws {
+        try Self.write(runs, directory: directory, indexURL: indexURL)
+    }
+
+    private static func write(
+        _ runs: [String: ApprovalCheckpoint],
+        directory: URL,
+        indexURL: URL
+    ) throws {
         let ordered = runs.values.sorted { $0.runId < $1.runId }
         let snapshot = Snapshot(schema: ApprovalBreakpointSchema.current, runs: ordered)
         let encoder = JSONEncoder.osaurusCanonical()
