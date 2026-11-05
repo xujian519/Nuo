@@ -39,14 +39,19 @@ enum WorkspacesDeepLinkRouter {
             && hosts.contains(url.host?.lowercased() ?? "")
     }
 
-    /// Rewrites a pre-rename-scheme `...://teams/...` link to the current
-    /// scheme and host, so links the router still mints under the old names
-    /// are displayed and copied in the new form. Anything else is returned
-    /// untouched.
+    /// Rewrites any link the pre-rename brand minted -- old scheme with either
+    /// host -- to the current scheme and canonical host, so invite links the
+    /// web/router still mints under the old names are displayed and copied in
+    /// the new form. Current-scheme links and anything that is not ours are
+    /// returned untouched.
     nonisolated static func normalized(_ link: String) -> String {
-        let prefix = "\(Brand.Legacy.urlScheme)://\(legacyHost)/"
-        guard link.lowercased().hasPrefix(prefix) else { return link }
-        return "\(Brand.urlScheme)://\(host)/" + link.dropFirst(prefix.count)
+        guard let separator = link.range(of: "://"),
+            link[..<separator.lowerBound].lowercased() == Brand.Legacy.urlScheme
+        else { return link }
+        let remainder = link[separator.upperBound...]
+        let hostEnd = remainder.firstIndex(of: "/") ?? remainder.endIndex
+        guard hosts.contains(remainder[..<hostEnd].lowercased()) else { return link }
+        return "\(Brand.urlScheme)://\(host)\(remainder[hostEnd...])"
     }
 
     /// Pure parse so the shape can be unit-tested without the main-actor

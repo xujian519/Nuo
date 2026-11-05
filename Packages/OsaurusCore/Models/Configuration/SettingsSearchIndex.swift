@@ -2137,8 +2137,8 @@ public enum SettingsSearchIndex {
                 section: "Claude Code Options",
                 title: "Allow file changes",
                 keywords: [
-                    "execution mode", "text only", "allow shell commands", "bash", "allow osaurus read tools",
-                    "allow osaurus configuration changes", "claude code permissions", "claude code tools", "mcp bridge",
+                    "execution mode", "text only", "allow shell commands", "bash", "allow nuo read tools",
+                    "allow nuo configuration changes", "claude code permissions", "claude code tools", "mcp bridge",
                 ],
                 disambiguation:
                     "Claude Code permission switches on an agent whose runtime is Claude Code. File changes are scoped to the chat folder; shell commands can't be confined. Declarative block: `claude_code` on agents[] and default_agent.",

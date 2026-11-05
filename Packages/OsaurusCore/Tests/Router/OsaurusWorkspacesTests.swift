@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import OsaurusRepository
 import Testing
 
 @testable import OsaurusCore
@@ -385,7 +386,7 @@ struct WorkspacesWireTypeTests {
         #expect(invite.code?.hasPrefix("7a2b3c4d") == true)
         // A link the router still mints under the pre-rename host is rewritten
         // to the current host on decode; the code is preserved verbatim.
-        #expect(invite.url?.hasPrefix("osaurus://workspaces/join?code=") == true)
+        #expect(invite.url?.hasPrefix("\(Brand.urlScheme)://workspaces/join?code=") == true)
         #expect(invite.url?.hasSuffix(invite.code ?? "-") == true)
         #expect(invite.maxUses == 5)
         #expect(invite.uses == 2)
@@ -959,7 +960,7 @@ struct WorkspacesAPIClientTests {
         }
 
         let minted = try await client.createWorkspaceInvite(id: "team-1", role: .member)
-        #expect(minted.url?.hasPrefix("osaurus://workspaces/join?code=") == true)
+        #expect(minted.url?.hasPrefix("\(Brand.urlScheme)://workspaces/join?code=") == true)
         _ = try await client.createWorkspaceInvite(id: "team-1", role: .admin, maxUses: 5)
         try await client.revokeWorkspaceInvite(id: "team-1", inviteId: "inv-1")
         let joined = try await client.workspaceJoin(code: "7a2b3c4d.0123")
@@ -2323,7 +2324,7 @@ struct WorkspacesServiceTests {
             await service.selectWorkspace(id: "team-1")
             let invite = await service.mintInvite(workspaceId: "team-1", role: .viewer, maxUses: 3)
             #expect(invite?.id == "inv-9")
-            #expect(invite?.url?.hasPrefix("osaurus://workspaces/join?code=") == true)
+            #expect(invite?.url?.hasPrefix("\(Brand.urlScheme)://workspaces/join?code=") == true)
             #expect(service.workspaceInvites.map(\.id) == ["inv-9"])
             #expect(service.lastError == nil)
         }
@@ -3776,15 +3777,23 @@ struct WorkspacesDeepLinkTests {
         let code = "7a2b3c4d-0000-4000-8000-000000000001.0123456789abcdef0123456789abcdef"
         #expect(
             WorkspacesDeepLinkRouter.normalized("osaurus://teams/join?code=\(code)")
-                == "osaurus://workspaces/join?code=\(code)"
+                == "\(Brand.urlScheme)://workspaces/join?code=\(code)"
         )
         #expect(
             WorkspacesDeepLinkRouter.normalized("OSAURUS://Teams/activate?code=act_1")
-                == "osaurus://workspaces/activate?code=act_1"
+                == "\(Brand.urlScheme)://workspaces/activate?code=act_1"
         )
         // Current-host links and unrelated strings pass through untouched.
-        let current = "osaurus://workspaces/join?code=\(code)"
+        let current = "\(Brand.urlScheme)://workspaces/join?code=\(code)"
         #expect(WorkspacesDeepLinkRouter.normalized(current) == current)
+        // A legacy scheme on the current host is rewritten to the current
+        // scheme as well: the web mints `osaurus://workspaces/...` too, and a
+        // copied invite must not carry the retired scheme.
+        let legacySchemeOnly = "osaurus://workspaces/join?code=\(code)"
+        #expect(
+            WorkspacesDeepLinkRouter.normalized(legacySchemeOnly)
+                == "\(Brand.urlScheme)://workspaces/join?code=\(code)"
+        )
         #expect(WorkspacesDeepLinkRouter.normalized("https://osaurus.ai/teams") == "https://osaurus.ai/teams")
         #expect(WorkspacesDeepLinkRouter.normalized(code) == code)
     }

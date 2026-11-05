@@ -108,8 +108,14 @@ struct StorageLocationStandardsTests {
 
     @Test("Dot-directory below a subfolder of home is custom, not home dot-directory")
     func nestedDotDirectoryIsCustom() {
+        // Models root is placed off-home so the case stays about the storage
+        // root alone: the default `~/MLXModels` adds
+        // `models_root_home_visible_by_design` on top of the root finding.
         let report = StorageLocationStandards.audit(
-            makeInputs(activeRootPath: "/Users/sam/Documents/.nuo")
+            makeInputs(
+                activeRootPath: "/Users/sam/Documents/.nuo",
+                modelsRootPath: "/Volumes/External/MLXModels"
+            )
         )
 
         #expect(report.classification == .custom)
