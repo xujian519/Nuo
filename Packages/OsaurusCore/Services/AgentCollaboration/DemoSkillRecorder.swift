@@ -103,7 +103,12 @@ public actor DemoSkillRecorder {
         self.recordings = loaded.recordings
         self.attachments = loaded.attachments
         if !FileManager.default.fileExists(atPath: self.indexURL.path) {
-            try self.persist()
+            try Self.write(
+                recordings: self.recordings,
+                attachments: self.attachments,
+                root: self.root,
+                indexURL: self.indexURL
+            )
         }
     }
 
@@ -560,8 +565,8 @@ public actor DemoSkillRecorder {
         return Skill(
             name: recording.title,
             description: "Recorded routine \(recording.title)",
-            instructions: lines.joined(separator: "\n"),
-            author: "demo-review"
+            author: "demo-review",
+            instructions: lines.joined(separator: "\n")
         )
     }
 
@@ -578,6 +583,20 @@ public actor DemoSkillRecorder {
     }
 
     private func persist() throws {
+        try Self.write(
+            recordings: recordings,
+            attachments: attachments,
+            root: root,
+            indexURL: indexURL
+        )
+    }
+
+    private static func write(
+        recordings: [String: DemoRecording],
+        attachments: [UUID: DemoSkillAttachment],
+        root: URL,
+        indexURL: URL
+    ) throws {
         let snapshot = Snapshot(
             schema: "osaurus.demo-skill.v1",
             recordings: recordings.values.sorted { $0.id < $1.id },
