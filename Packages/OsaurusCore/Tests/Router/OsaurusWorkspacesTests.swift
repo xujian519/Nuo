@@ -3162,7 +3162,7 @@ struct WorkspacesServiceTests {
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
 
-        let service = WorkspacesService(client: client, defaults: defaults)
+        let service = WorkspacesService(client: client, defaults: defaults, routerEnabledOverride: true)
         try await body(service, defaults)
     }
 }
