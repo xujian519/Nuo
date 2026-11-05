@@ -30,7 +30,10 @@ final class CacheSectionWiringTests: XCTestCase {
         XCTAssertFalse(src.contains("DiskCacheQuotaNotices"))
         XCTAssertFalse(src.contains("DiskCacheQuotaNoticeSuppression"))
         // The popover's disk-cache row is still fed by the runtime's snapshots.
-        XCTAssertTrue(src.contains("matching: settings.cache, modelName: model, session: session"))
+        // Compare with whitespace collapsed: swift-format wraps the call, and a
+        // wiring assertion that only passes on one layout is not a wiring assertion.
+        let collapsed = src.components(separatedBy: .whitespacesAndNewlines).joined()
+        XCTAssertTrue(collapsed.contains("matching:settings.cache,modelName:model,session:session"))
         let cache = try source("Views/Settings/ServerSettings/CacheSection.swift")
         XCTAssertFalse(cache.contains("Show SSD Cache Capacity Notices"))
     }

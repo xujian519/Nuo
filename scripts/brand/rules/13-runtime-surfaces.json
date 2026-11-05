@@ -218,6 +218,15 @@
       "replace": "            // Failed calls humanise the frozen tool id (`osaurus_config`), which\n            // would otherwise render as \"Osaurus config\" in the chip.\n            let legacyPrefix = \"osaurus_\"\n            let displayName =\n                rawName.hasPrefix(legacyPrefix)\n                ? \"nuo_\" + rawName.dropFirst(legacyPrefix.count)\n                : rawName\n            return String(format: L(\"Failed: %@\"), humanize(displayName))\n",
       "enforced": true,
       "why": "Failed/uncatalogued calls humanise the frozen tool id, so `osaurus_config` rendered as `Osaurus config` in the chip. Block form because the replacement needs its own lines to stay under the 120-column limit."
+    },
+    {
+      "id": "api.openrouter-attribution-title",
+      "op": "block",
+      "path": "Packages/OsaurusCore/Services/Provider/OpenRouterOAuthService.swift",
+      "find": "        public static let appTitle = \"Osaurus\"",
+      "replace": "        public static let appTitle = \"Nuo\"",
+      "enforced": true,
+      "why": "X-OpenRouter-Title carries the app title to the provider, so it is an A-class product self-reference. The file sits in the swift-literals files_exclude because its B-class Osaurus Router/ID copy must stay frozen; this targeted block fixes the one A-class constant that miss left behind (tests already expect Nuo)."
     }
   ]
 }
