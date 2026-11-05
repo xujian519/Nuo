@@ -101,7 +101,7 @@ struct DirectedMailboxTests {
         )
         #expect(orchestratorGrant.inheritsCallerDispatchContext == false)
         #expect(orchestratorGrant.replacesSubagentDispatch == false)
-        #expect(await service.inbox(for: a.id, requestedBy: a.id).isEmpty)
+        #expect(try await service.inbox(for: a.id, requestedBy: a.id).isEmpty)
 
         try await service.replaceAllowlist([DirectedMailboxEdge(from: a.id, to: b.id)])
         let reloaded = try DirectedMailboxService(directory: fixture.directory)

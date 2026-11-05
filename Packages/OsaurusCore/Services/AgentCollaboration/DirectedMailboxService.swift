@@ -23,7 +23,6 @@ public actor DirectedMailboxService {
         self.fileURL = directory.appendingPathComponent(DirectedMailboxSchema.fileName, isDirectory: false)
         let loaded = try Self.read(self.fileURL)
         self.snapshot = loaded
-        // init 不在 actor 隔离域里，冷启动写盘只能走静态方法。
         if !FileManager.default.fileExists(atPath: self.fileURL.path) {
             try Self.write(loaded, to: self.fileURL)
         }
@@ -192,7 +191,7 @@ public actor DirectedMailboxService {
         let stored = DirectedMailboxRecord(envelope: envelope, runId: runId)
         var updated = snapshot
         updated.records.append(stored)
-        try write(updated)
+        try Self.write(updated, to: fileURL)
         snapshot = updated
         return DirectedMailboxDelivery(record: stored, run: run)
     }
@@ -264,7 +263,7 @@ public actor DirectedMailboxService {
         var updated = snapshot
         updated.runs[index] = updatedRun
         updated.records.append(stored)
-        try write(updated)
+        try Self.write(updated, to: fileURL)
         snapshot = updated
         return DirectedMailboxDelivery(record: stored, run: updatedRun)
     }
