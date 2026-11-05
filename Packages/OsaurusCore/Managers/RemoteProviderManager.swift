@@ -913,9 +913,6 @@ public final class RemoteProviderManager: ObservableObject {
     /// so providers (re)connect without waiting for a user-driven refresh.
     private func registerIdentityAndActivationObservers() {
         observeOnMain(.osaurusIdentityChanged) { await $0.handleIdentityChanged() }
-        observeOnMain(.routerCreditAcquisitionResolved) {
-            await $0.connectOsaurusRouterIfPossible()
-        }
         observeOnMain(NSApplication.didBecomeActiveNotification) { await $0.handleAppDidBecomeActive() }
         // Wake is a recovery opportunity: connects that failed as the machine
         // slept (or right before) are transient by nature. NSWorkspace posts
