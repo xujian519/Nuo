@@ -33,13 +33,19 @@ enum OnboardingPalette {
     static let fill3 = Color.white.opacity(0.03)
     static let fill2 = Color.white.opacity(0.02)
 
-    // Accents
-    /// Link / checkbox blue `#0091ff`.
-    static let accentBlue = Color(red: 0x00 / 255, green: 0x91 / 255, blue: 0xFF / 255)
-    /// "Picked for your Mac" badge cyan `#3cd3fe`.
-    static let accentCyan = Color(red: 0x3C / 255, green: 0xD3 / 255, blue: 0xFE / 255)
-    /// Selection green `#68d735` (specialty card border, verified check).
-    static let dinoGreen = Color(red: 0x68 / 255, green: 0xD7 / 255, blue: 0x35 / 255)
+    // Brand — Scheme A seal. Links, selection, and primary emphasis.
+    /// 朱文印红 `#F8141C`。
+    static let sealRed = Color(red: 0xF8 / 255, green: 0x14 / 255, blue: 0x1C / 255)
+    /// 按下态印红 `#C41018`。
+    static let sealRedPressed = Color(red: 0xC4 / 255, green: 0x10 / 255, blue: 0x18 / 255)
+    /// 印红 22%，徽章底和弱强调。
+    static let sealRedMuted = sealRed.opacity(0.22)
+    /// 印纸 `#FAF7F2`。
+    static let paper = Color(red: 0xFA / 255, green: 0xF7 / 255, blue: 0xF2 / 255)
+
+    // Success / status only. Not a brand accent.
+    /// 成功绿 `#68d735`（已验证、已就绪）。
+    static let successGreen = Color(red: 0x68 / 255, green: 0xD7 / 255, blue: 0x35 / 255)
 
     // Vibrant (primary) button
     /// Primary pill fill `#f5f5f5`.
@@ -47,10 +53,8 @@ enum OnboardingPalette {
     /// Label on the vibrant fill `#111111`.
     static let vibrantLabel = Color(red: 0x11 / 255, green: 0x11 / 255, blue: 0x11 / 255)
 
-    /// Screen 2's right-panel gradient tint start — `rgba(133,212,82,0.26)`,
-    /// fading to clear.
-    static let createGradientGreen = Color(red: 133 / 255, green: 212 / 255, blue: 82 / 255)
-        .opacity(0.26)
+    /// Screen 2's right-panel gradient tint — seal red at 26%, fading to clear.
+    static let createGradientSeal = sealRed.opacity(0.26)
 
     /// Dialog surface for the connect / model dialogs (`#262626` over the
     /// black scrim, slightly lighter than the window).

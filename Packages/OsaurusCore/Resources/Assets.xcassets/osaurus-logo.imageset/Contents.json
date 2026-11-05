@@ -1,15 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "osaurus-logo-black.svg",
+      "filename" : "osaurus-logo.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
+      "filename" : "osaurus-logo@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
+      "filename" : "osaurus-logo@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
@@ -19,7 +21,6 @@
     "version" : 1
   },
   "properties" : {
-    "preserves-vector-representation" : true,
     "template-rendering-intent" : "template"
   }
 }

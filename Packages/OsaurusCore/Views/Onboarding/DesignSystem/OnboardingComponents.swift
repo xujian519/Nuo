@@ -205,7 +205,7 @@ struct OnboardingCircleIconButton: View {
 
 // MARK: - Checkbox row
 
-/// 12pt blue checkbox + 10pt label — the usage-data opt-in on screen 1.
+/// 12pt seal-red checkbox + 10pt label — the usage-data opt-in on screen 1.
 struct OnboardingCheckboxRow: View {
     @Binding var isOn: Bool
     let label: LocalizedStringKey
@@ -217,10 +217,10 @@ struct OnboardingCheckboxRow: View {
             HStack(spacing: 6) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 3, style: .continuous)
-                        .fill(isOn ? OnboardingPalette.accentBlue : Color.clear)
+                        .fill(isOn ? OnboardingPalette.sealRed : Color.clear)
                     RoundedRectangle(cornerRadius: 3, style: .continuous)
                         .strokeBorder(
-                            isOn ? OnboardingPalette.accentBlue : OnboardingPalette.fill10,
+                            isOn ? OnboardingPalette.sealRed : OnboardingPalette.fill10,
                             lineWidth: 1
                         )
                     if isOn {
@@ -246,7 +246,7 @@ struct OnboardingCheckboxRow: View {
 // MARK: - Selectable card
 
 /// Specialty card on screen 2: icon + 17pt regular title row, 12pt caption,
-/// 8pt inner gap (Figma Config/Cards). The selected card gets a `dinoGreen`
+/// 8pt inner gap (Figma Config/Cards). The selected card gets a `sealRed`
 /// border, a bold accent icon, and a slightly stronger fill.
 struct OnboardingSelectableCard: View {
     /// SF Symbol shown before the title.
@@ -254,7 +254,7 @@ struct OnboardingSelectableCard: View {
     let title: LocalizedStringKey
     let caption: LocalizedStringKey
     let isSelected: Bool
-    var accent: Color = OnboardingPalette.dinoGreen
+    var accent: Color = OnboardingPalette.sealRed
     let action: () -> Void
 
     @State private var isHovered = false
@@ -314,19 +314,19 @@ struct OnboardingSelectableCard: View {
 
 // MARK: - Chips & badge
 
-/// Cyan-on-blue-tint "Picked for your Mac" badge.
+/// Seal-red "Picked for your Mac" badge on a muted seal tint.
 struct OnboardingPickedBadge: View {
     let text: LocalizedStringKey
 
     var body: some View {
         Text(text, bundle: .module)
             .font(OnboardingTypography.badge)
-            .foregroundColor(OnboardingPalette.accentCyan)
+            .foregroundColor(OnboardingPalette.sealRed)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
             .background(
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(OnboardingPalette.accentBlue.opacity(0.22))
+                    .fill(OnboardingPalette.sealRedMuted)
             )
     }
 }
@@ -410,7 +410,7 @@ struct OnboardingOptionRow: View {
                 if isVerified {
                     Image(systemName: "checkmark.circle")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(OnboardingPalette.dinoGreen)
+                        .foregroundColor(OnboardingPalette.successGreen)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -526,7 +526,7 @@ struct OnboardingLogoCard<Logo: View>: View {
 
 // MARK: - Progress bar
 
-/// Slim cyan progress bar on a faint track (the downloading state's bar).
+/// Slim seal-red progress bar on a faint track (the downloading state's bar).
 struct OnboardingProgressBar: View {
     /// 0...1
     let progress: Double
@@ -536,7 +536,7 @@ struct OnboardingProgressBar: View {
             ZStack(alignment: .leading) {
                 Capsule().fill(OnboardingPalette.fill10)
                 Capsule()
-                    .fill(OnboardingPalette.accentCyan)
+                    .fill(OnboardingPalette.sealRed)
                     .frame(width: max(6, proxy.size.width * min(max(progress, 0), 1)))
             }
         }

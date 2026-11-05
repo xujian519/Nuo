@@ -1496,7 +1496,7 @@ private struct RecommendedModelCard: View {
                 HStack(spacing: 6) {
                     Image(systemName: "checkmark.circle")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(OnboardingPalette.dinoGreen)
+                        .foregroundColor(OnboardingPalette.successGreen)
                     Text("Already on your Mac — ready to go", bundle: .module)
                         .font(OnboardingTypography.cardCaption)
                         .foregroundColor(OnboardingPalette.labelSecondary)
@@ -1929,7 +1929,7 @@ struct ProviderConnectDialog: View {
                 Text("Connected", bundle: .module)
                     .font(OnboardingTypography.chip)
             }
-            .foregroundColor(OnboardingPalette.dinoGreen)
+            .foregroundColor(OnboardingPalette.successGreen)
             .padding(.vertical, 8)
         } else {
             OnboardingPillButton(
@@ -2045,7 +2045,7 @@ struct ConfigureModelChooserModal: View {
                     if isSelected {
                         Image(systemName: "checkmark.circle")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(OnboardingPalette.dinoGreen)
+                            .foregroundColor(OnboardingPalette.sealRed)
                     }
                 }
                 if let subtitle = ConfigureAIState.chooserSubtitle(for: model) {
@@ -2069,7 +2069,7 @@ struct ConfigureModelChooserModal: View {
             .overlay(
                 RoundedRectangle(cornerRadius: OnboardingLayout.cardRadius, style: .continuous)
                     .strokeBorder(
-                        isSelected ? OnboardingPalette.dinoGreen : OnboardingPalette.fill8,
+                        isSelected ? OnboardingPalette.sealRed : OnboardingPalette.fill8,
                         lineWidth: 1
                     )
             )

@@ -4,8 +4,7 @@
 //
 //  Welcome step — Figma screen 1. Left column (bottom-aligned): 40pt hero
 //  title, 14pt subtitle, white "Get started →" pill, 10pt legal acceptance
-//  line, and the usage-data checkbox. Right: rounded panel with the
-//  dino-team hero image.
+//  line, and the usage-data checkbox. Right: rounded panel with the seal.
 //
 
 import SwiftUI
@@ -47,7 +46,7 @@ struct WelcomeStepView: View {
     /// Staggered cascade: title → subtitle → CTA → legal → checkbox.
     private var leftColumn: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("A Dino for every side of your work.", bundle: .module)
+            Text("Local agents that keep their word.", bundle: .module)
                 .font(OnboardingTypography.heroTitle)
                 .tracking(0.4)
                 .foregroundColor(OnboardingPalette.labelPrimary)
@@ -57,7 +56,7 @@ struct WelcomeStepView: View {
             Spacer().frame(height: 16)
 
             Text(
-                "Build your own team of Dinos for every side of your life. Your chats, files, and keys can stay private on your Mac. No account or cloud required.",
+                "Local agents on your Mac. Your chats, files, and keys can stay on this device. No account or cloud required.",
                 bundle: .module
             )
             .font(OnboardingTypography.subtitle)
@@ -100,7 +99,7 @@ struct WelcomeStepView: View {
             markdown: OsaurusWebLinks.acceptanceMarkdown,
             font: OnboardingTypography.footnote,
             textColor: OnboardingPalette.labelSecondary,
-            linkColor: OnboardingPalette.accentBlue,
+            linkColor: OnboardingPalette.sealRed,
             alignment: .leading
         )
         .fixedSize(horizontal: false, vertical: true)
@@ -108,16 +107,20 @@ struct WelcomeStepView: View {
 
     // MARK: Right panel
 
-    /// Hero panel fades in alongside the left cascade — no scale settle; on
-    /// a surface this large even a 2% zoom is perceptible and adds nothing.
+    /// 右栏铺满深底朱文印。印图自带暗底，圆角裁切后即是面板。
     private var heroPanel: some View {
         OnboardingRightPanel {
-            Image("osaurus-main", bundle: .module)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .padding(.horizontal, 16)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Color.clear
+                .overlay {
+                    Image("osaurus-main", bundle: .module)
+                        .resizable()
+                        .scaledToFill()
+                }
+                .clipped()
         }
+        .clipShape(
+            RoundedRectangle(cornerRadius: OnboardingLayout.panelRadius, style: .continuous)
+        )
         .onboardingEntrance(1)
     }
 }

@@ -6,7 +6,7 @@
       "op": "xcstrings",
       "path": "Packages/OsaurusCore/Resources/Localizable.xcstrings",
       "enforced": true,
-      "comment": "A/C-class product self-references and the legacy data-root path. B-class rows (Osaurus Cloud/Router/ID/Identity/Secure/Premium/Connect, OsaurusAI HF org, osaurus.ai domains, plugin/config identifiers, OSAURUS_* env vars) stay untouched by design — see docs/brand/NUO-REBRAND-PLAN.md R7.",
+      "comment": "A/C-class product self-references and the legacy data-root path. B-class rows (Osaurus Cloud/Router/ID/Identity/Secure/Premium/Connect, OsaurusAI HF org, osaurus.ai domains, plugin/config identifiers, OSAURUS_* env vars) stay untouched by design — see docs/brand/NUO-REBRAND-PLAN.md R7. Scheme A welcome copy (the two full-sentence Dino pairs) replays onto the catalog keys and their Swift literals.",
       "exclude_substrings": [
         "Osaurus Cloud",
         "Osaurus Router",
@@ -30,7 +30,15 @@
         ["osaurus의", "{brand_display}의"],
         ["osaurus доступ", "{brand_display} доступ"],
         ["osaurus 访问", "{brand_display} 访问"],
-        ["osaurus 存取", "{brand_display} 存取"]
+        ["osaurus 存取", "{brand_display} 存取"],
+        [
+          "A Dino for every side of your work.",
+          "Local agents that keep their word."
+        ],
+        [
+          "Build your own team of Dinos for every side of your life. Your chats, files, and keys can stay private on your Mac. No account or cloud required.",
+          "Local agents on your Mac. Your chats, files, and keys can stay on this device. No account or cloud required."
+        ]
       ],
       "sync_refs": [
         "App/osaurus/**/*.swift",
