@@ -632,7 +632,12 @@ extension OsaurusIDStoreAndServiceTests {
                 },
                 routerEnabled: { true }
             )
-            return OsaurusIDService(client: client, canReachOverride: true, observesNotifications: false)
+            return OsaurusIDService(
+                client: client,
+                canReachOverride: true,
+                routerEnabledOverride: true,
+                observesNotifications: false
+            )
         }
     }
 }

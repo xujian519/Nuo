@@ -83,9 +83,14 @@ public enum SettingsSearchIndex {
     /// `routerEnabled` hides Credits and Workspaces rows while the Router
     /// control plane is off. The catalog itself keeps those rows so an
     /// explicit opt-in can find them again.
+    /// Whether the Router control plane is enabled for this user (absent key = off).
+    /// Public indirection so `search`'s default argument never references the
+    /// internal `OsaurusRouter` from a public signature.
+    public static var routerControlPlaneEnabled: Bool { OsaurusRouter.isEnabled }
+
     public static func search(
         _ query: String,
-        routerEnabled: Bool = OsaurusRouter.isEnabled
+        routerEnabled: Bool = SettingsSearchIndex.routerControlPlaneEnabled
     ) -> [SettingsSearchEntry] {
         let prepared = SearchService.PreparedQuery(query)
         guard !prepared.tokens.isEmpty else { return [] }

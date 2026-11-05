@@ -77,6 +77,25 @@ struct ChatWindowStateWorkspaceAgentTests {
         try await body()
     }
 
+    /// Phase 1 gates workspace-agent status behind the router master switch
+    /// (absent key = off), but these composer-lock tests predate the gate and
+    /// pin its router-on behavior. Flip the process-wide switch for the
+    /// duration of one test, restoring the previous value afterwards.
+    private func withRouterEnabled(_ body: @MainActor () async throws -> Void) async rethrows {
+        let defaults = UserDefaults.standard
+        let key = OsaurusRouter.enabledDefaultsKey
+        let previous = defaults.object(forKey: key)
+        defaults.set(true, forKey: key)
+        defer {
+            if let previous {
+                defaults.set(previous, forKey: key)
+            } else {
+                defaults.removeObject(forKey: key)
+            }
+        }
+        try await body()
+    }
+
     private func lowered(_ address: String) -> String { address.lowercased() }
 
     // MARK: - Switching
@@ -312,6 +331,7 @@ struct ChatWindowStateWorkspaceAgentTests {
     }
 
     @Test func composerLock_offlineAgent_locksWithOwnerAndLastSeen() async throws {
+        try await withRouterEnabled {
         try await ChatHistoryTestStorage.run {
             try await withRoster(bOnline: "false", bLastSeen: "2026-03-01T12:00:00Z") {
                 let window = ChatWindowState(windowId: UUID(), agentId: Agent.defaultId)
@@ -331,9 +351,11 @@ struct ChatWindowStateWorkspaceAgentTests {
                 #expect(window.remoteAgentConnectionPhase == .idle)
             }
         }
+        }
     }
 
     @Test func composerLock_unpairedOnlineAgent_isNotConnected() async throws {
+        try await withRouterEnabled {
         try await ChatHistoryTestStorage.run {
             try await withRoster {
                 let window = ChatWindowState(windowId: UUID(), agentId: Agent.defaultId)
@@ -351,9 +373,11 @@ struct ChatWindowStateWorkspaceAgentTests {
                 #expect(window.selectedDiscoveredAgentProviderId == nil)
             }
         }
+        }
     }
 
     @Test func composerLock_unknownPresence_pausesWhileChecking() async throws {
+        try await withRouterEnabled {
         try await ChatHistoryTestStorage.run {
             try await withRoster(aOnline: "null") {
                 let window = ChatWindowState(windowId: UUID(), agentId: Agent.defaultId)
@@ -368,9 +392,11 @@ struct ChatWindowStateWorkspaceAgentTests {
                 }
             }
         }
+        }
     }
 
     @Test func composerLock_forcedOffline_overridesRouterOnline() async throws {
+        try await withRouterEnabled {
         try await ChatHistoryTestStorage.run {
             try await withRoster {
                 let window = ChatWindowState(windowId: UUID(), agentId: Agent.defaultId)
@@ -385,6 +411,7 @@ struct ChatWindowStateWorkspaceAgentTests {
                     return
                 }
             }
+        }
         }
     }
 
@@ -500,6 +527,7 @@ struct ChatWindowStateWorkspaceAgentTests {
     }
 
     @Test func composerLock_agentMissingBeforeAnyRosterLoad_doesNotReadAsUnavailable() async throws {
+        try await withRouterEnabled {
         try await ChatHistoryTestStorage.run {
             let window = ChatWindowState(windowId: UUID(), agentId: Agent.defaultId)
             defer { window.cleanup() }
@@ -515,6 +543,7 @@ struct ChatWindowStateWorkspaceAgentTests {
             if case .agentUnavailable = window.composerLock {
                 Issue.record("an unloaded roster is not evidence the agent was unshared")
             }
+        }
         }
     }
 
