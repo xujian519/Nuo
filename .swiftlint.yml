@@ -10,6 +10,10 @@ excluded:
   - Packages/OsaurusCLI/.build
   - Packages/OsaurusCLI/Tests
 
+# Size, complexity, and shape rules are review obligations, not CI gates. The
+# existing code base predates this config and enforcing them now would mix
+# unrelated churn into every PR; docs/DEVELOPMENT_STANDARDS.md marks them
+# REVIEW-ONLY. Add a one-line reason above any rule added to this list.
 disabled_rules:
   - line_length
   - type_body_length

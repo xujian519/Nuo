@@ -19,6 +19,55 @@ Never hand-edit a brand string and never run a repo-wide `sed`:
 - Plan, phases and risks: `docs/brand/NUO-REBRAND-PLAN.md`.
 - Upstream merge procedure: `docs/brand/UPSTREAM-SYNC.md`.
 
+## Development standards (read before changing code)
+
+`docs/DEVELOPMENT_STANDARDS.md` is the normative home for gates, evidence
+selection, Swift rules, decision notes, and agent boundaries. `AGENTS.md` holds
+standing orders; it does not redefine the standard.
+
+Meta-rules for every rule added or changed:
+
+- Statement + machine gate + rationale. A rule without a gate is labelled
+  `REVIEW-ONLY` in the standard; never imply enforcement that does not exist.
+- One home per fact: link, don't duplicate. Architecture and naming live in
+  `docs/CONTRIBUTING.md`; runtime proof in
+  `docs/RUNTIME_VALIDATION_STANDARD.md`; brand in `docs/brand/`; decisions in
+  `docs/notes/`.
+- Exceptions are inline with a reason. A global or file-level disable is a bug
+  unless a decision note records it.
+- Local narrow, CI full. Run the set that matches the change surface; CI owns
+  exhaustive coverage.
+- A gate is real only when a regression visibly fails it. New guards ship with a
+  self-test: `python3 scripts/ci/verify-standards-contracts.py --self-test`.
+- Non-trivial behavior, architecture, contract, or format changes carry a note
+  in `docs/notes/implemented/` with `## Alternatives considered`.
+
+Minimum local gates by change surface:
+
+| Change | Run |
+|---|---|
+| OsaurusCore Swift source | `make test` plus the focused suite |
+| CI or harness plumbing | `make ci-test` or the exact changed command |
+| User-visible strings | `bash scripts/i18n/check.sh` |
+| Brand-visible text | `bash scripts/brand/verify.sh` |
+| Setting added/renamed/moved | settings catalog steps below plus a live app pass |
+| Runtime, parser, tool, cache, delegation | `docs/RUNTIME_VALIDATION_STANDARD.md` rows and the applicable `make evals*` lanes |
+| Standards, config contracts, or doc links | `python3 scripts/ci/verify-standards-contracts.py --self-test` and `python3 scripts/ci/verify-doc-links.py --self-test` |
+
+## Agent boundaries
+
+Always: read the standard, run the narrow gates for the change surface, keep the
+settings catalog, i18n catalog, brand rules, and docs in sync with the code,
+record exact commands and SHAs, and leave changes uncommitted unless asked.
+
+Ask first: adding or bumping a dependency, changing CI runners or toolchain
+pins, renaming or deleting a public type, route, tool name, or persisted field,
+changing a default or RAM policy, force-pushing, or rewriting shared history.
+
+Never: hand-edit brand strings or generated artifacts, commit secrets, add fake
+guards or parser repairs to make a row look safe, bypass a failing gate, or
+spawn recursive agent workers for release work unless explicitly asked.
+
 ## Build & Test
 
 Running tests and builds is encouraged — they're how we keep quality high. The
@@ -60,6 +109,16 @@ sends fail fast with `modelUnavailable`, matching CI behavior. Keychain-gated
 suites (e.g. `PluginAgentScopingTests`) still fail by design under
 `OSAURUS_DISABLE_KEYCHAIN_FOR_TESTS=1`; run those without the flag when you
 need real Keychain proof.
+
+## Commits and PRs
+
+- Conventional Commits, one logical change per commit. Do not mix a refactor
+  with a behavior change.
+- Split changes above roughly 800 lines unless they are mechanical or generated.
+- A PR states the problem, decision, alternatives that lost, exact commands run,
+  and evidence paths. UI changes include before/after; runtime changes include
+  the fields required by `docs/RUNTIME_VALIDATION_STANDARD.md`.
+- No AI-generated walls of text and no images in the repository.
 
 ## Settings catalog (required with every setting change)
 

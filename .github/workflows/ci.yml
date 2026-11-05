@@ -819,6 +819,23 @@ jobs:
       - name: Run brand guard
         run: bash scripts/brand/verify.sh
 
+  standards-guard:
+    # Cheap (<5s) source-level guard for the contracts in
+    # docs/DEVELOPMENT_STANDARDS.md. `--self-test` first mutates a temporary
+    # copy (drops a required SwiftLint rule, then removes this job) and proves
+    # the guard rejects both, so a broken guard cannot pass silently.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Run standards guard
+        run: python3 scripts/ci/verify-standards-contracts.py --self-test
+
+      - name: Verify doc links
+        run: python3 scripts/ci/verify-doc-links.py --self-test
+
   swiftlint:
     # Pinned (was `macos-latest`).
     runs-on: macos-26

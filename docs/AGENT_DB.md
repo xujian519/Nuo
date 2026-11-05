@@ -66,7 +66,7 @@ Every table the agent creates via `db_create_table` is augmented with three rese
 
 `db_delete` is a **soft delete**: it stamps `_deleted_at` rather than removing the row. `db_restore` clears the stamp. Typed mutation tools (`db_update`, etc.) hide soft-deleted rows by default. **`db_query` runs your SQL as written** — add `_deleted_at IS NULL` to the WHERE when you want to exclude tombstones.
 
-The Data tab's `Active` / `Deleted` / `All` segmented control (in [`AgentDBTabViews.swift`](../Packages/OsaurusCore/Views/Agent/AgentDBTabViews.swift)) maps to that filter in the UI: `Active` hides tombstones, `Deleted` only shows tombstones, `All` shows both with the soft-deleted rows dimmed.
+The Data tab's `Active` / `Deleted` / `All` segmented control (in `AgentDBTabViews.swift`) maps to that filter in the UI: `Active` hides tombstones, `Deleted` only shows tombstones, `All` shows both with the soft-deleted rows dimmed.
 
 There is **no hard-delete tool**. If you need to actually purge a row, do it from the host (the migrator or a developer console) — the model can't.
 
@@ -125,7 +125,7 @@ The agent DB's first wall used to be data movement: a model that needed to load 
 
 ### Three ways to load data
 
-1. **`db_import(table, path, …)` — host-mediated file load.** When the data already lives in a file in the agent's sandbox workspace (`/workspace/...`) or host working folder, this is the right tool. The host resolves the path (sandbox agent dir or [`FolderToolManager`](../Packages/OsaurusCore/Services/Folder/FolderToolManager.swift) root), reads and parses it (CSV/TSV/JSON/JSONL, auto-detected), creates the table from the file's columns when needed, and bulk-loads every row — in **one** tool call, with **zero** row bytes in the model context. `mode` accepts exactly `insert` (the default; plain row appends) or `upsert` with `key_columns` (dedupes on the conflict columns) — there is no `append` mode. Parsing and schema resolution are shared with the UI importer through [`AgentImportRunner`](../Packages/OsaurusCore/Tools/Database/AgentImportRunner.swift).
+1. **`db_import(table, path, …)` — host-mediated file load.** When the data already lives in a file in the agent's sandbox workspace (`/workspace/...`) or host working folder, this is the right tool. The host resolves the path (sandbox agent dir or [`FolderToolManager`](../Packages/OsaurusCore/Tools/FolderToolManager.swift) root), reads and parses it (CSV/TSV/JSON/JSONL, auto-detected), creates the table from the file's columns when needed, and bulk-loads every row — in **one** tool call, with **zero** row bytes in the model context. `mode` accepts exactly `insert` (the default; plain row appends) or `upsert` with `key_columns` (dedupes on the conflict columns) — there is no `append` mode. Parsing and schema resolution are shared with the UI importer through [`AgentImportRunner`](../Packages/OsaurusCore/Tools/Database/AgentImportRunner.swift).
 2. **`db_insert` / `db_upsert` with `rows[]` — in-context bulk write.** When the rows are something the model *computed* (not a file), it can hand the whole batch over in a single call instead of looping. Backed by [`AgentDatabase.insertMany` / `upsertMany`](../Packages/OsaurusCore/Storage/AgentDatabase.swift), which chunk the write and run it inside one transaction.
 3. **`db_execute` multi-statement transforms — don't move the data at all.** For aggregation/derivation, the most efficient path is to compute *in SQL* (`INSERT INTO totals SELECT … GROUP BY …`) rather than pulling rows into context. The whole script runs in one transaction.
 
@@ -139,7 +139,7 @@ Bulk operations are also exempted from the agent's reasoning budget. [`AgentLoop
 
 ### Importing from the UI
 
-The **Data** tab has an **Import** button and accepts **drag-and-drop** of a file onto the table view ([`AgentDBTabViews.swift`](../Packages/OsaurusCore/Views/Agent/AgentDBTabViews.swift)). This runs the same `AgentImportRunner` path as the tool, but stamps the rows with `actor = user` in the `_changelog` (the parse happens off the main actor; the import itself runs back on the main actor inside the `currentRunActor = "user"` scope) so a human-initiated import is distinguishable from an agent one in the audit log.
+The **Data** tab has an **Import** button and accepts **drag-and-drop** of a file onto the table view (`AgentDBTabViews.swift`). This runs the same `AgentImportRunner` path as the tool, but stamps the rows with `actor = user` in the `_changelog` (the parse happens off the main actor; the import itself runs back on the main actor inside the `currentRunActor = "user"` scope) so a human-initiated import is distinguishable from an agent one in the audit log.
 
 ---
 
@@ -264,7 +264,7 @@ All five go through [`LocalAgentBridge.pauseAgent(_:until:reason:)`](../Packages
 
 ## Detail-View Tour
 
-All five DB tabs (and the scheduling chrome that sits above them) live in two files: [`AgentDBTabViews.swift`](../Packages/OsaurusCore/Views/Agent/AgentDBTabViews.swift) and [`NextRunPanelView.swift`](../Packages/OsaurusCore/Views/Agent/NextRunPanelView.swift).
+All five DB tabs (and the scheduling chrome that sits above them) live in two files: `AgentDBTabViews.swift` and [`NextRunPanelView.swift`](../Packages/OsaurusCore/Views/Agent/NextRunPanelView.swift).
 
 ### Next Run banner
 

@@ -108,8 +108,31 @@ The core library (`Packages/OsaurusCore/`) follows a layered architecture. Each 
 
 ## Development workflow
 
+This project follows [DEVELOPMENT_STANDARDS.md](DEVELOPMENT_STANDARDS.md). Every
+rule there has a home, a gate (or an explicit `REVIEW-ONLY` label), and a
+decision note where the choice is non-trivial.
+
+Before pushing, run the narrow set for your change surface:
+
+```bash
+make test                                                     # OsaurusCore behavior
+bash scripts/i18n/check.sh                                    # user-visible strings
+bash scripts/brand/verify.sh                                  # brand-visible text
+python3 scripts/ci/verify-standards-contracts.py --self-test  # config contracts
+python3 scripts/ci/verify-doc-links.py --self-test            # relative doc links
+```
+
+CI owns the full matrix: core, CLI, packages, plugin, evals, SwiftLint,
+ShellCheck, localization, brand, and the standards guard. Do not rehearse the
+full matrix locally unless the change is repository-wide or CI is being
+diagnosed.
+
+Non-trivial behavior, architecture, contract, or format changes carry a decision
+note in `docs/notes/` with a mandatory `## Alternatives considered` section.
+
 - Create a feature branch from `main` (e.g., `feat/...`, `fix/...`, `docs/...`)
-- Write clear, focused commits; prefer Conventional Commits where practical
+- Write clear, focused commits using Conventional Commits (`feat:`, `fix:`,
+  `refactor:`, `docs:`, `test:`, `chore:`); keep one logical change per commit
 - Open a pull request early for feedback if helpful
 - Keep PRs small and focused; describe user-facing changes and test steps
 
