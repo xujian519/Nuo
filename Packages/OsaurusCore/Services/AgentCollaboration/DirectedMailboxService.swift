@@ -23,8 +23,9 @@ public actor DirectedMailboxService {
         self.fileURL = directory.appendingPathComponent(DirectedMailboxSchema.fileName, isDirectory: false)
         let loaded = try Self.read(self.fileURL)
         self.snapshot = loaded
+        // init 不在 actor 隔离域里，冷启动写盘只能走静态方法。
         if !FileManager.default.fileExists(atPath: self.fileURL.path) {
-            try self.write(loaded)
+            try Self.write(loaded, to: self.fileURL)
         }
     }
 
@@ -341,10 +342,10 @@ public actor DirectedMailboxService {
     }
 
     private func persist() throws {
-        try write(snapshot)
+        try Self.write(snapshot, to: fileURL)
     }
 
-    private func write(_ snapshot: Snapshot) throws {
+    private static func write(_ snapshot: Snapshot, to fileURL: URL) throws {
         let encoder = JSONEncoder.osaurusCanonical()
         encoder.dateEncodingStrategy = .iso8601
         let data = try encoder.encode(snapshot)
