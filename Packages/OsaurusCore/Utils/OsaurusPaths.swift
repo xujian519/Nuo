@@ -509,6 +509,11 @@ public enum OsaurusPaths {
         directedMailboxDirectory().appendingPathComponent("workspace", isDirectory: true)
     }
 
+    /// 审批检查点：`collaboration/breakpoints/`。不是 Agent Loop 的替代品。
+    public static func approvalBreakpointDirectory() -> URL {
+        directedMailboxDirectory().appendingPathComponent("breakpoints", isDirectory: true)
+    }
+
     /// Plugin binaries directory (`~/.nuo/Tools/`)
     public static func tools() -> URL {
         root().appendingPathComponent("Tools", isDirectory: true)

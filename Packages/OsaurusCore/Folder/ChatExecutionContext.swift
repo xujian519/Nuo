@@ -217,6 +217,10 @@ public enum ChatExecutionContext {
     /// (e.g. direct UI edits via `RowEditorSheet`) — the bridge
     /// stamps `_changelog.run_id` as NULL in that case but actor
     /// resolution is independent (see `currentRunActor`).
+    /// 协作运行绑上之后，`.ask` 和 `clarify` 会先写入检查点再暂停。
+    /// 未绑定的请求仍走原来的审批卡片。
+    @TaskLocal static var approvalBreakpoint: ApprovalBreakpointContext?
+
     @TaskLocal public static var currentRunId: UUID?
 
     /// String tag identifying who's "driving" the current execution.
