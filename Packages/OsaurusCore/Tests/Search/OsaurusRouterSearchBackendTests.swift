@@ -488,7 +488,8 @@ struct OsaurusRouterSearchBackendTests {
             session: session,
             authOverride: { request, _ in
                 request.setValue("0xabc", forHTTPHeaderField: "x-wallet-address")
-            }
+            },
+            routerEnabled: { true }
         )
         return OsaurusRouterSearchBackend(client: client, availability: availability)
     }

@@ -695,12 +695,22 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
         ["length", "max_tokens", "incomplete"].contains(reason.lowercased())
     }
 
+    /// Phase 2: `.osaurusRouter` must not stream a completion while the
+    /// master switch is off.
+    private func refuseRouterCompletionsIfDisabled() throws {
+        guard provider.providerType == .osaurusRouter, !OsaurusRouter.isEnabled else { return }
+        throw RemoteProviderServiceError.requestFailed(
+            "The hosted router is off. Use a local model or your own provider."
+        )
+    }
+
     func streamDeltas(
         messages: [ChatMessage],
         parameters: GenerationParameters,
         requestedModel: String?,
         stopSequences: [String]
     ) async throws -> AsyncThrowingStream<String, Error> {
+        try refuseRouterCompletionsIfDisabled()
         guard let modelName = extractModelName(requestedModel) else {
             throw RemoteProviderServiceError.noModelsAvailable
         }
@@ -747,6 +757,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
         toolChoice: ToolChoiceOption?,
         requestedModel: String?
     ) async throws -> AsyncThrowingStream<ResponsesGenerationEvent, Error> {
+        try refuseRouterCompletionsIfDisabled()
         guard let modelName = extractModelName(requestedModel) else {
             throw RemoteProviderServiceError.noModelsAvailable
         }
@@ -909,6 +920,7 @@ public actor RemoteProviderService: ToolCapableService, ResponsesGenerationServi
         toolChoice: ToolChoiceOption?,
         requestedModel: String?
     ) async throws -> AsyncThrowingStream<String, Error> {
+        try refuseRouterCompletionsIfDisabled()
         // Mode 2 — native Osaurus agent run. The /agents/{id}/run endpoint
         // handles the full inference+tool loop server-side and streams back
         // only text deltas; no tool invocations are propagated to the client.

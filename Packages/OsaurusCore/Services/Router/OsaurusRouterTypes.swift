@@ -42,6 +42,24 @@ enum OsaurusRouter {
         defaults.object(forKey: enabledDefaultsKey) as? Bool ?? false
     }
 
+    /// Credits, hosted search, and Router cloud-media paths. Chat completions
+    /// use the `.osaurusRouter` provider, not these URLs. Identity (`/id`)
+    /// and workspace membership (`/workspaces` without `/credits`) stay out.
+    static func isControlPlanePath(_ path: String) -> Bool {
+        let bare = path.split(separator: "?", maxSplits: 1).first.map(String.init) ?? path
+        if bare == "/credits" || bare.hasPrefix("/credits/") { return true }
+        if bare.contains("/credits/") || bare.hasSuffix("/credits") { return true }
+        if bare == "/v1/search" || bare == "/v1/contents" { return true }
+        if bare == "/v1/media" || bare.hasPrefix("/v1/media/") { return true }
+        return false
+    }
+
+    /// Phase 2: while the Router switch is off, credit, hosted-search, and
+    /// cloud-media calls must not leave the device.
+    static func refusesControlPlaneRequest(path: String, enabled: Bool) -> Bool {
+        !enabled && isControlPlanePath(path)
+    }
+
     /// Persist the user's master on/off choice for the Osaurus Router.
     static func setEnabled(_ enabled: Bool) {
         UserDefaults.standard.set(enabled, forKey: enabledDefaultsKey)
@@ -261,6 +279,9 @@ enum OsaurusRouterAPIError: LocalizedError, Sendable {
     /// 409 `IDEMPOTENCY_CONFLICT`: same key reused with a different body or
     /// while the original is still in flight. Indicates a client bug.
     case idempotencyConflict
+    /// Phase 2: the Router switch is off, so this credits, search, or media
+    /// call was not sent.
+    case routerDisabled
 
     var errorDescription: String? {
         switch self {
@@ -290,6 +311,8 @@ enum OsaurusRouterAPIError: LocalizedError, Sendable {
             return "Paid web search is turned off. Remaining search credits still work."
         case .idempotencyConflict:
             return "Duplicate router request detected."
+        case .routerDisabled:
+            return "The hosted router is off. Use a local model or your own provider."
         }
     }
 

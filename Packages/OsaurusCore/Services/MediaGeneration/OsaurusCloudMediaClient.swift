@@ -169,6 +169,7 @@ actor OsaurusCloudMediaClient {
     }
 
     func catalog() async throws -> OsaurusCloudMediaAvailability {
+        try await refuseIfRouterDisabled()
         do {
             let response = try await router.cloudMediaCatalog()
             return .available(response.models.compactMap(\.modelInfo))
@@ -181,6 +182,7 @@ actor OsaurusCloudMediaClient {
     }
 
     func generateImage(_ request: MediaImageGenerationRequest) async throws -> [GeneratedMedia] {
+        try await refuseIfRouterDisabled()
         let idempotencyKey = UUID().uuidString.lowercased()
         let response: CloudImageGenerationResponse
         do {
@@ -328,6 +330,14 @@ actor OsaurusCloudMediaClient {
         }
     }
 
+    private func refuseIfRouterDisabled() async throws {
+        guard await router.controlPlaneEnabled() else {
+            throw MediaGenerationError.unsupported(
+                "Hosted cloud media is off. Use a local model or your own provider."
+            )
+        }
+    }
+
     private static func map(_ error: OsaurusRouterAPIError) -> MediaGenerationError {
         switch error {
         case .insufficientFunds: return .insufficientFunds
@@ -336,6 +346,8 @@ actor OsaurusCloudMediaClient {
         case .rateLimited: return .server(status: 429, message: error.localizedDescription)
         case .idempotencyConflict:
             return .invalidRequest("The Cloud idempotency key was reused with different media.")
+        case .routerDisabled:
+            return .unsupported("Hosted cloud media is off. Use a local model or your own provider.")
         case .transport(let message): return .transport(message)
         case .server(let code, let message, let status):
             switch code {

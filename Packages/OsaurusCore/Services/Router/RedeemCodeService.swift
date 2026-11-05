@@ -189,7 +189,7 @@ final class RedeemCodeService: ObservableObject {
         case .invalidResponse:
             state = .failure(L("The redeem service returned an invalid response. Please try again."))
         case .invalidURL, .server, .belowMinimumTopUp, .insufficientFunds,
-            .paidWebDisabled, .idempotencyConflict:
+            .paidWebDisabled, .idempotencyConflict, .routerDisabled:
             state = .failure(error.localizedDescription)
         }
     }

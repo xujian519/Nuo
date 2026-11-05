@@ -18,6 +18,9 @@ actor OsaurusRouterAPIClient {
     /// real keychain.
     private let idSessionToken: @Sendable () -> String?
     private let clearIDSession: @Sendable () -> Void
+    /// Phase 2 gate for `/credits/*`, hosted search, and cloud media.
+    /// Identity and other non-credit routes ignore it.
+    private let routerEnabled: @Sendable () -> Bool
 
     init(
         baseURL: URL = OsaurusRouter.defaultBaseURL,
@@ -26,13 +29,15 @@ actor OsaurusRouterAPIClient {
         signer: OsaurusRouterAuthSigner = OsaurusRouterAuthSigner(),
         authOverride: (@Sendable (inout URLRequest, Data?) async throws -> Void)? = nil,
         idSessionToken: @escaping @Sendable () -> String? = { OsaurusIDSessionStore.token() },
-        clearIDSession: @escaping @Sendable () -> Void = { OsaurusIDSessionStore.clear() }
+        clearIDSession: @escaping @Sendable () -> Void = { OsaurusIDSessionStore.clear() },
+        routerEnabled: @escaping @Sendable () -> Bool = { OsaurusRouter.isEnabled }
     ) {
         self.baseURL = baseURL
         self.signer = signer
         self.authOverride = authOverride
         self.idSessionToken = idSessionToken
         self.clearIDSession = clearIDSession
+        self.routerEnabled = routerEnabled
         self.session = session ?? Self.makeSession()
         // An injected plain `session` (tests) also serves search calls unless
         // a dedicated search session is provided.
@@ -54,6 +59,11 @@ actor OsaurusRouterAPIClient {
         config.timeoutIntervalForResource = 120
         config.waitsForConnectivity = false
         return GlobalProxySettings.makeSession(base: config)
+    }
+
+    /// Whether credits, hosted search, and cloud media may be signed.
+    func controlPlaneEnabled() -> Bool {
+        routerEnabled()
     }
 
     func health() async throws {
@@ -845,6 +855,11 @@ actor OsaurusRouterAPIClient {
     }
 
     private func sign(request: inout URLRequest, body: Data?) async throws {
+        if let path = request.url?.path,
+            OsaurusRouter.refusesControlPlaneRequest(path: path, enabled: routerEnabled())
+        {
+            throw OsaurusRouterAPIError.routerDisabled
+        }
         if let authOverride {
             try await authOverride(&request, body)
         } else {

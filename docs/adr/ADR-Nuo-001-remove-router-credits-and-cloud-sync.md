@@ -49,14 +49,33 @@ surfaces until Phase 2.
 - If an agent or the open chat is still aimed at the Router provider, show
   a short hint toward a local model or a bring-your-own-key provider.
 
-### Phase 2 — migrate stored pins, then stop re-entry
+### Phase 2 — break live use while the switch is off (landed)
 
-- Rewrite agent defaults and session selections that still name the managed
-  Router provider to a local model or a BYOK provider, with a note of what
-  was rewritten.
-- Remove UI and onboarding paths that can turn the Router back on, after
-  that migration exists.
-- Leave the service and view source in the tree so the app still builds.
+The original draft of this phase rewrote stored model pins and removed the
+opt-in. What landed is a hard stop instead of a silent rewrite. The source
+tree stays for Phase 3.
+
+While `OsaurusRouter.isEnabled` is false:
+
+- `.osaurusRouter` does not connect and does not serve chat completions,
+  even if a provider row is still marked enabled.
+- Hosted search (`/v1/search`, `/v1/contents`) and Router cloud media
+  (`/v1/media/…`) are not sent.
+- `/credits/*` client calls are not sent, and `RouterBillingLedger` does
+  not insert or finalize rows.
+
+An explicit `true` still reaches those paths until Phase 3. Identity,
+BYOK, local models, Aptabase, and Sentry are unchanged.
+
+#### Migration for a stored Router pin
+
+This phase does not rewrite saved agent defaults. If a pin still names the
+managed Router (`nuo/…`, `osaurus/…`, `osaurus-cloud/…`, or spawn id
+`2CFBD528-62FD-4EF0-A143-3FE532F03840`), completions do not run through it
+while the switch is off. Choose a local model under Settings → Local
+Models, or connect a key under Settings → Providers. The Phase 1 chat hint
+opens those two tabs. Do not treat flipping the defaults key back to `true`
+as the migration; Phase 3 removes the Router source.
 
 ### Phase 3 — hard-delete
 
@@ -74,8 +93,9 @@ surfaces until Phase 2.
   traffic.
 - Local Models, Providers, and Identity stay in Settings. Chat can still
   select a local model or a BYOK provider.
-- A user who already set the key to `true` keeps the previous Router
-  behavior until Phase 2.
+- A user who already set the key to `true` can still reach the Router
+  until Phase 3. While the key is absent or false, completions, hosted
+  search, cloud media, and credit ledger writes do not run.
 - A stored model id that still names the Router shows a migration hint. It
   does not silently rewrite the pin.
 

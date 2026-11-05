@@ -359,7 +359,7 @@ struct RouterCacheTelemetryDecodingTests {
     @Test func ledgerFacade_recordsCacheSplitFromSummary() throws {
         let db = RouterBillingDatabase()
         try db.openInMemory()
-        let ledger = RouterBillingLedger(database: db)
+        let ledger = RouterBillingLedger(database: db, writesEnabled: { true })
         let summary = RouterBillingSummary(
             requestId: "req-facade",
             costMicro: "42",

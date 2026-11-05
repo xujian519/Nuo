@@ -19,6 +19,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
     /// Host execution source controls residency as well as attribution. The
     /// evaluation override is scoped to this run, never sticky on a reused engine.
     private let baseInferenceSource: InferenceSource
+    private let routerEnabledProvider: @Sendable () -> Bool
     private var inferenceSource: InferenceSource {
         ChatExecutionContext.resolvedInferenceSource(baseInferenceSource)
     }
@@ -89,7 +90,8 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
             },
         source: InferenceSource = .httpAPI,
         activitySource: InferenceSource? = nil,
-        privacyReviewMode: PrivacyReviewMode = .interactive
+        privacyReviewMode: PrivacyReviewMode = .interactive,
+        routerEnabledProvider: @escaping @Sendable () -> Bool = { OsaurusRouter.isEnabled }
     ) {
         self.services = services
         self.installedModelsProvider = installedModelsProvider
@@ -97,6 +99,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
         self.reasoningCapabilityProvider = reasoningCapabilityProvider
         self.agentModelOptionsProvider = agentModelOptionsProvider
         self.agentReasoningChoicesProvider = agentReasoningChoicesProvider
+        self.routerEnabledProvider = routerEnabledProvider
         self.baseInferenceSource = source
         self.activitySource = activitySource
         self.privacyReviewMode = privacyReviewMode
@@ -129,6 +132,9 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
             /// loopback-trusted callers are refused unless the user opted in.
             /// Maps to 403.
             case routerSpendNotAuthorized
+            /// The resolved service is the Osaurus Router and the master
+            /// switch is off. Completions must not run. Maps to 403.
+            case routerDisabled
             case invalidStructuredOutput(String)
         }
 
@@ -146,6 +152,8 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
             case .routerSpendNotAuthorized:
                 return
                     "This model routes through the Osaurus Router and spends account credits. Include a valid Osaurus access key (Authorization: Bearer <key>), or enable 'Allow local API access without a key' for the Router in Osaurus Credits settings."
+            case .routerDisabled:
+                return "The hosted router is off. Use a local model or your own provider."
             }
         }
 
@@ -156,6 +164,7 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
             case .noServiceAvailable: return 503
             case .remoteAgentUnavailable: return 503
             case .routerSpendNotAuthorized: return 403
+            case .routerDisabled: return 403
             case .invalidStructuredOutput: return 400
             }
         }
@@ -480,6 +489,16 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
         return EngineError(kind: .routerSpendNotAuthorized)
     }
 
+    /// Phase 2: a disabled Router never serves a completion, even if a
+    /// provider row is still marked enabled.
+    static func routerDisabledError(
+        serviceIsOsaurusRouter: Bool,
+        routerEnabled: Bool
+    ) -> EngineError? {
+        guard serviceIsOsaurusRouter, !routerEnabled else { return nil }
+        return EngineError(kind: .routerDisabled)
+    }
+
     /// Enforce the Router spend gate for a resolved route. Must run in the
     /// caller's task (before any detached producer) so the
     /// `HTTPCallerContext` task-local bound by `HTTPHandler.runRequestTask`
@@ -487,6 +506,12 @@ actor ChatEngine: Sendable, ChatEngineProtocol, ResponsesEngineProtocol {
     private func checkRouterSpendAuthorization(service: ModelService) throws {
         let isRouter =
             (service as? RemoteProviderService)?.provider.providerType == .osaurusRouter
+        if let error = Self.routerDisabledError(
+            serviceIsOsaurusRouter: isRouter,
+            routerEnabled: routerEnabledProvider()
+        ) {
+            throw error
+        }
         if let error = Self.routerSpendAuthorizationError(
             serviceIsOsaurusRouter: isRouter,
             source: inferenceSource,

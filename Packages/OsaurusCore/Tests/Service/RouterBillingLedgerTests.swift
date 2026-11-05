@@ -24,7 +24,7 @@ struct RouterBillingLedgerTests {
     private func makeLedger() throws -> (RouterBillingLedger, RouterBillingDatabase) {
         let db = RouterBillingDatabase()
         try db.openInMemory()
-        return (RouterBillingLedger(database: db), db)
+        return (RouterBillingLedger(database: db, writesEnabled: { true }), db)
     }
 
     private func summary(

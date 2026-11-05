@@ -385,7 +385,8 @@ struct WorkspaceRosterStoreTests {
             session: URLSession(configuration: config),
             authOverride: { request, _ in
                 request.setValue("0xabc", forHTTPHeaderField: "x-wallet-address")
-            }
+            },
+            routerEnabled: { true }
         )
         let previous = UserDefaults.standard.object(forKey: OsaurusRouter.enabledDefaultsKey)
         OsaurusRouter.setEnabled(true)

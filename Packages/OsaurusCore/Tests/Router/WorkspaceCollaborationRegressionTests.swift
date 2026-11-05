@@ -286,7 +286,8 @@ extension WorkspaceCollaborationRegressionTests {
         let client = OsaurusRouterAPIClient(
             baseURL: URL(string: "https://router.test")!,
             session: session,
-            authOverride: { _, _ in }
+            authOverride: { _, _ in },
+            routerEnabled: { true }
         )
         let suite = "workspace-selection-\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!

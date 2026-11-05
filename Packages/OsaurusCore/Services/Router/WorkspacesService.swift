@@ -1619,7 +1619,7 @@ final class WorkspacesService: ObservableObject {
         case .server(_, let message, _):
             return message
         case .firstActionPending, .invalidURL, .belowMinimumTopUp, .insufficientFunds,
-            .paidWebDisabled, .idempotencyConflict:
+            .paidWebDisabled, .idempotencyConflict, .routerDisabled:
             return error.localizedDescription
         }
     }
