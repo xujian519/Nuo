@@ -336,8 +336,10 @@ struct SettingsSearchSelfFindProbe {
             ("File History Size Limit", "storage.fileHistory.sizeLimit"),
         ]
 
+        // Router-gated rows (Credits/Workspaces) only resolve when the control
+        // plane is on — the same opt-in the title/section sweeps above pass.
         let missed = labels.filter { label in
-            !SettingsSearchIndex.search(label.query).contains { $0.id == label.entryID }
+            !SettingsSearchIndex.search(label.query, routerEnabled: true).contains { $0.id == label.entryID }
         }
         .map { "\"\($0.query)\" -> \($0.entryID)" }
 
