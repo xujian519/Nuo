@@ -85,9 +85,23 @@ public enum ManagementTab: String, CaseIterable, Identifiable, Sendable {
 
     public var id: String { rawValue }
 
-    /// All tabs in sidebar display order (sections flattened).
+    /// Credits and Workspaces are the Router control plane. Hidden while the
+    /// Router is off (ADR-Nuo-001 Phase 1). The cases stay so an explicit
+    /// opt-in can show them again; a later phase deletes them.
+    public static let routerControlPlaneTabs: Set<ManagementTab> = [.credits, .workspaces]
+
+    /// Sidebar order for the current Router switch. `routerEnabled: true` is
+    /// the full structural order.
+    public static func sidebarCases(routerEnabled: Bool) -> [ManagementTab] {
+        ManagementSection.allCases.flatMap(\.tabs).filter { tab in
+            routerEnabled || !routerControlPlaneTabs.contains(tab)
+        }
+    }
+
+    /// All tabs in sidebar display order, with Credits and Workspaces removed
+    /// while `OsaurusRouter.isEnabled` is false.
     public static var visibleCases: [ManagementTab] {
-        ManagementSection.allCases.flatMap(\.tabs)
+        sidebarCases(routerEnabled: OsaurusRouter.isEnabled)
     }
 
     /// The sidebar section this tab belongs to.

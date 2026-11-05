@@ -1678,11 +1678,11 @@ final class ChatSession: ObservableObject {
     }
 
     /// Session-scoped switch to an Osaurus Router model while the agent's
-    /// pinned local default is still downloading. First-run invokes this
-    /// automatically; the recovery UI can invoke it again after a connection
-    /// failure. Connects the Router on demand when its catalog isn't populated
-    /// yet, then selects *only* a Router model —
-    /// never Foundation, another local model, or a BYOK provider.
+    /// pinned local default is still downloading. The empty state invokes this
+    /// only when the Router is already enabled; the recovery UI can invoke it
+    /// again after a connection failure. It connects when the catalog isn't
+    /// populated yet, then selects *only* a Router model — never Foundation,
+    /// another local model, or a BYOK provider. It does not turn the Router on.
     ///
     /// Deliberately not persisted as the agent default and not recorded as a
     /// manual pick: the moment the local download lands, the next picker
@@ -1701,10 +1701,10 @@ final class ChatSession: ObservableObject {
         if selectOsaurusRouterBridgeModel() { return true }
         guard connectIfNeeded else { return false }
 
-        // Router catalog not in the picker yet — (re-)enable and connect on
-        // demand. First-run setup explicitly includes temporary Cloud access.
+        // Router catalog not in the picker yet. Connect only when the user
+        // already enabled the Router. This bridge must not flip the master
+        // switch on (ADR-Nuo-001 Phase 1).
         let manager = RemoteProviderManager.shared
-        manager.setOsaurusRouterEnabled(true)
         // Bounded poll (~10s at the default attempts): identity setup / the
         // enable-task connect may still be in flight, and
         // `connectOsaurusRouterIfPossible()` is a cheap no-op while connected
@@ -9619,11 +9619,70 @@ struct ChatView: View {
     /// "Bill the workspace pool" preference is on. Nil for personally billed
     /// local agents and for read-only teammate conversations served here.
     private var workspacePoolLabel: String? {
+        // The pool chip is Router spend chrome. Hidden with the personal
+        // balance chip while the Router is off.
+        guard OsaurusRouter.isEnabled else { return nil }
         // Agents shared directly (invite link) carry no workspace id and
         // bill nothing to a pool.
         guard let workspaceId = poolBillingWorkspaceId else { return nil }
         return rosterStore.rosters.first(where: { $0.id == workspaceId })?.workspace.name
             ?? L("Workspace")
+    }
+
+    /// ADR-Nuo-001 Phase 1: the open selection or the stored agent model is
+    /// still the managed Router. A remote-agent tab and the temporary local
+    /// download bridge do not count — those are not a leftover provider pin.
+    private var showsRouterMigrationHint: Bool {
+        guard !isRemoteAgentChrome, !isReadOnlyConversation else { return false }
+        guard observedSession.pendingLocalSetupModelId == nil else { return false }
+        let pinned = AgentManager.shared.effectiveModel(for: windowState.agentId ?? Agent.defaultId)
+        return RouterPinnedModel.shouldShowMigrationHint(
+            selectedModelId: observedSession.selectedModel,
+            pinnedModelId: pinned,
+            route: { modelId in
+                guard let item = observedSession.pickerItems.first(where: { $0.id == modelId }) else {
+                    return .unresolved
+                }
+                if case .remote(_, let providerId) = item.source,
+                    providerId == RemoteProviderManager.osaurusRouterProviderId
+                {
+                    return .router
+                }
+                return .other
+            }
+        )
+    }
+
+    @ViewBuilder
+    private var routerMigrationNotice: some View {
+        if showsRouterMigrationHint {
+            remoteAgentNoticeRow(tint: theme.accentColor) {
+                Image(systemName: "arrow.triangle.branch")
+                    .font(.system(size: CGFloat(theme.captionSize), weight: .semibold))
+                    .foregroundColor(theme.accentColor)
+                Text(L("This chat still uses the hosted router. Use a local model or your own provider."))
+                    .font(theme.font(size: CGFloat(theme.captionSize), weight: .medium))
+                    .foregroundColor(theme.primaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button {
+                    AppDelegate.shared?.showManagementWindow(initialTab: .models)
+                } label: {
+                    Text(L("Run a local model"))
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                Button {
+                    AppDelegate.shared?.showManagementWindow(initialTab: .providers)
+                } label: {
+                    Text(L("Connect a provider"))
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+            .padding(.horizontal, Self.composerHorizontalInset)
+            .frame(maxWidth: 1100)
+            .frame(maxWidth: .infinity)
+        }
     }
 
     /// The workspace whose pool this tab's turns bill, for the composer chip.
@@ -10467,6 +10526,8 @@ struct ChatView: View {
                             // Follow-up suggestions render as a thread row
                             // beneath the assistant message (see
                             // `insertFollowUpSuggestionsIfNeeded`), not here.
+
+                            routerMigrationNotice
 
                             // Floating input card. Dimmed and
                             // hit-test-disabled while a prompt overlay
@@ -11316,6 +11377,13 @@ struct ChatView: View {
         return nil
     }
 
+    /// Temporary Cloud selection while a local model downloads. Absent while
+    /// the Router is off so onboarding's local path does not turn it on.
+    private var hostedBridgeWhileLocalPending: (() async -> Bool)? {
+        guard OsaurusRouter.isEnabled else { return nil }
+        return { await session.adoptOsaurusRouterModelWhileLocalSetupPending() }
+    }
+
     @ViewBuilder
     private var emptyStateView: some View {
         // Wrapped in an Equatable view so a `ChatSession` mutation that doesn't
@@ -11351,9 +11419,9 @@ struct ChatView: View {
             onQuickAction: { prompt in
                 session.input = prompt
             },
-            // Automatic while local setup is pending: connects the Router on
-            // demand, with recovery UI if it cannot be reached.
-            onUseHostedWhilePending: { await session.adoptOsaurusRouterModelWhileLocalSetupPending() }
+            // Nil while the Router is off, so this step does not start the
+            // temporary Cloud bridge (ADR-Nuo-001 Phase 1).
+            onUseHostedWhilePending: hostedBridgeWhileLocalPending
         )
         .equatable()
         .transition(.opacity.combined(with: .scale(scale: 0.98)))

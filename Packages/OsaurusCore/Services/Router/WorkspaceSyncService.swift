@@ -110,6 +110,12 @@ final class WorkspaceSyncService: ObservableObject {
     /// `noteMembership` start it if the list is non-empty. Idempotent.
     func start() {
         guard !RuntimeEnvironment.isUnderTests else { return }
+        // ADR-Nuo-001 Phase 1: a disabled Router must not open the sync
+        // stream or the one-shot membership probe. `streamDecision` also
+        // returns `.stop` when the switch is off; this returns before
+        // `wanted` is latched so a later enable does not inherit a launch
+        // request that was never supposed to run.
+        guard OsaurusRouter.isEnabled else { return }
         wanted = true
         reconcileStream()
     }

@@ -345,8 +345,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
         // Welcome-credit auto-claim: instantiating the singleton installs its
         // identity/app-activation observers, and the bootstrap retries a
         // claim a previous (e.g. offline) session couldn't finish. The claim
-        // is wallet-signed and idempotent server-side.
-        WelcomeCreditService.shared.bootstrapAtLaunch()
+        // is wallet-signed and idempotent server-side. ADR-Nuo-001 Phase 1
+        // skips the singleton entirely while the Router is off so a default
+        // launch does not arm those observers or the claim request.
+        if OsaurusRouter.isEnabled {
+            WelcomeCreditService.shared.bootstrapAtLaunch()
+        }
 
         // If PocketTTS models are already on disk, preload them so the first
         // speaker tap plays immediately without routing to settings.
@@ -700,7 +704,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
         // chat without visiting the tab. Deferred past the launch burst; the
         // sweep itself is a no-op without the Router or an identity, and
         // re-runs (throttled) on app activation.
-        if !keychainDisabledTestMode {
+        // ADR-Nuo-001 Phase 1: do not start the workspace sync stream or its
+        // membership probe while the Router is off. An explicit opt-in still
+        // starts it on the same deferred launch path.
+        if !keychainDisabledTestMode && OsaurusRouter.isEnabled {
             Task { @MainActor in
                 try? await Task.sleep(for: .seconds(8))
                 WorkspaceSyncService.shared.start()

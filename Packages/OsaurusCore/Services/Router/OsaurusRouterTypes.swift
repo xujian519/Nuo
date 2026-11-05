@@ -25,16 +25,21 @@ enum OsaurusRouter {
     }
 
     /// UserDefaults key backing the user's master on/off switch for the Osaurus
-    /// Router. Absent = enabled, so the router is on by default for everyone and
-    /// only an explicit opt-out turns it off.
+    /// Router. Absent = disabled (ADR-Nuo-001 Phase 1). An explicit `true` still
+    /// turns the control plane back on until a later phase removes it.
     static let enabledDefaultsKey = "ai.osaurus.router.enabled"
 
-    /// Whether the Osaurus Router is enabled for this user. Defaults to `true`
-    /// when the key was never written, so existing installs (and tests) stay on.
-    /// When `false`, the managed router provider is dropped from the model
-    /// picker and every router/credits server request is suppressed.
+    /// Whether the Osaurus Router is enabled for this user. Defaults to `false`
+    /// when the key was never written. When `false`, the managed router provider
+    /// is dropped from the model picker and router/credits requests stay suppressed.
     static var isEnabled: Bool {
-        UserDefaults.standard.object(forKey: enabledDefaultsKey) as? Bool ?? true
+        isEnabled(in: .standard)
+    }
+
+    /// Same rule as `isEnabled`, against an explicit defaults suite so tests
+    /// can prove the absent-key default without racing the process suite.
+    static func isEnabled(in defaults: UserDefaults) -> Bool {
+        defaults.object(forKey: enabledDefaultsKey) as? Bool ?? false
     }
 
     /// Persist the user's master on/off choice for the Osaurus Router.

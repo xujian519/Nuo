@@ -39,7 +39,7 @@ struct SettingsSearchSelfFindProbe {
     func everyEntryFindsItselfByTitle() {
         let unfindable = SettingsSearchIndex.entries
             .filter { entry in
-                !SettingsSearchIndex.search(entry.title).contains { $0.id == entry.id }
+                !SettingsSearchIndex.search(entry.title, routerEnabled: true).contains { $0.id == entry.id }
             }
             .map(\.id)
 
@@ -54,7 +54,7 @@ struct SettingsSearchSelfFindProbe {
         let unfindable = SettingsSearchIndex.entries
             .filter { !$0.section.trimmingCharacters(in: .whitespaces).isEmpty }
             .filter { entry in
-                !SettingsSearchIndex.search(entry.section).contains { $0.id == entry.id }
+                !SettingsSearchIndex.search(entry.section, routerEnabled: true).contains { $0.id == entry.id }
             }
             .map(\.id)
 

@@ -13,6 +13,10 @@ import Network
 extension Foundation.Notification.Name {
     static let remoteProviderStatusChanged = Foundation.Notification.Name("RemoteProviderStatusChanged")
     static let remoteProviderModelsChanged = Foundation.Notification.Name("RemoteProviderModelsChanged")
+    /// Posted when `setOsaurusRouterEnabled` flips the master switch. Settings
+    /// listens so it can hide Credits and Workspaces without observing every
+    /// provider status tick.
+    static let osaurusRouterEnabledChanged = Foundation.Notification.Name("OsaurusRouterEnabledChanged")
 }
 
 /// Errors for remote provider operations
@@ -677,6 +681,7 @@ public final class RemoteProviderManager: ObservableObject {
         // it disappears.
         notifyModelsChanged()
         notifyStatusChanged()
+        NotificationCenter.default.post(name: .osaurusRouterEnabledChanged, object: nil)
     }
 
     // MARK: - Osaurus Router connect retry & recovery

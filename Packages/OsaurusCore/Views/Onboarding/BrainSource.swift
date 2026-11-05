@@ -15,8 +15,8 @@ import Foundation
 /// funnel can join the path choice to the first message sent, and so the chosen
 /// path can pin its model after onboarding finishes.
 enum BrainSource: Equatable {
-    /// The managed Osaurus Router — hosted models that are ready with no
-    /// download or key. The onboarding default.
+    /// The managed Osaurus Router. "Set up later" still records this choice.
+    /// ADR-Nuo-001 Phase 1 does not enable the Router or pin one of its models.
     case osaurus
     /// A local MLX model running on this Mac.
     case local

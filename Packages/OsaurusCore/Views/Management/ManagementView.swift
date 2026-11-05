@@ -38,6 +38,9 @@ struct ManagementView: View {
 
     @State private var hasAppeared = false
     @State private var searchText = ""
+    /// Mirrors `OsaurusRouter.isEnabled` so Credits and Workspaces leave the
+    /// sidebar when the switch flips, without observing every provider tick.
+    @State private var routerControlPlaneVisible = OsaurusRouter.isEnabled
 
     /// Captured at sheet-presentation time so the sheet body keeps a stable
     /// reference even after the coordinator clears `pendingInvite` on dismiss.
@@ -87,6 +90,13 @@ struct ManagementView: View {
             .overlay(ThemedAlertHost(scope: .management))
             .onAppear(perform: handleAppear)
             .onChange(of: stateManager.selectedTab) { handleTabChange(to: $1) }
+            .onReceive(NotificationCenter.default.publisher(for: .osaurusRouterEnabledChanged)) { _ in
+                routerControlPlaneVisible = OsaurusRouter.isEnabled
+                let visible = ManagementTab.sidebarCases(routerEnabled: routerControlPlaneVisible)
+                if !visible.contains(stateManager.selectedTab) {
+                    stateManager.selectedTab = visible.first ?? .settings
+                }
+            }
             // The pairing deeplink router publishes an invite here when an
             // `osaurus://...?pair=...` URL is opened. Forwarding it through
             // a local @State (`presentingInvite`) gives the sheet a stable
@@ -170,7 +180,7 @@ private extension ManagementView {
             get: { stateManager.selectedTab.rawValue },
             set: { newValue in
                 if let tab = ManagementTab.resolved(from: newValue),
-                    ManagementTab.visibleCases.contains(tab)
+                    ManagementTab.sidebarCases(routerEnabled: routerControlPlaneVisible).contains(tab)
                 {
                     stateManager.selectedTab = tab
                 }
@@ -256,11 +266,12 @@ private extension ManagementView {
 private extension ManagementView {
 
     var sidebarSections: [SidebarSectionData] {
-        ManagementSection.allCases.map { section in
+        let visible = Set(ManagementTab.sidebarCases(routerEnabled: routerControlPlaneVisible))
+        return ManagementSection.allCases.map { section in
             SidebarSectionData(
                 id: section.rawValue,
                 title: section.title,
-                items: section.tabs.map { tab in
+                items: section.tabs.filter { visible.contains($0) }.map { tab in
                     tab.sidebarItem(
                         badge: badgeCount(for: tab),
                         badgeHighlight: badgeHighlight(for: tab)
@@ -288,8 +299,9 @@ private extension ManagementView {
 private extension ManagementView {
 
     func handleAppear() {
-        if !ManagementTab.visibleCases.contains(stateManager.selectedTab) {
-            stateManager.selectedTab = ManagementTab.visibleCases.first ?? .settings
+        let visible = ManagementTab.sidebarCases(routerEnabled: routerControlPlaneVisible)
+        if !visible.contains(stateManager.selectedTab) {
+            stateManager.selectedTab = visible.first ?? .settings
         }
 
         // Delay fade-in to prevent initial layout jank
@@ -301,8 +313,9 @@ private extension ManagementView {
     }
 
     func handleTabChange(to newTab: ManagementTab) {
-        guard ManagementTab.visibleCases.contains(newTab) else {
-            stateManager.selectedTab = ManagementTab.visibleCases.first ?? .settings
+        let visible = ManagementTab.sidebarCases(routerEnabled: routerControlPlaneVisible)
+        guard visible.contains(newTab) else {
+            stateManager.selectedTab = visible.first ?? .settings
             return
         }
 

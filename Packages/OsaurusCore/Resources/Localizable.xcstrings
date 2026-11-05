@@ -265292,6 +265292,40 @@
         }
       }
     },
+    "This chat still uses the hosted router. Use a local model or your own provider." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Chat nutzt noch den gehosteten Router. Nutze ein lokales Modell oder deinen eigenen Anbieter."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 채팅은 아직 호스팅 라우터를 사용합니다. 로컬 모델이나 자신의 제공자를 사용하세요."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот чат всё ещё использует размещённый роутер. Используйте локальную модель или своего провайдера."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此对话仍在使用托管路由。请改用本地模型或你自己的服务商。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此對話仍在使用託管路由。請改用本機模型或你自己的服務商。"
+          }
+        }
+      }
+    },
     "This chat's latest saved progress exceeds the %@ SSD cache limit. Replies may need to process more of the conversation again. Increase Disk Cache Size to retain more progress." : {
       "extractionState" : "manual",
       "localizations" : {

@@ -131,15 +131,20 @@ final class WelcomeCreditService {
     }
 
     /// Launch-time entry point: retry a claim a previous session couldn't
-    /// finish (e.g. the first launch was offline).
+    /// finish (e.g. the first launch was offline). No-ops while the Router
+    /// is off so a default launch does not start the claim task.
     func bootstrapAtLaunch() {
+        guard isRouterEnabled() else { return }
         Task { await claimIfNeeded() }
     }
 
     /// Select the no-code path before onboarding advances or closes. If an
     /// identity already exists, begin the claim immediately; otherwise the
     /// identity-change observer will run it as soon as setup completes.
+    /// No-ops while the Router is off: Phase 1 does not arm a welcome claim
+    /// the user cannot see.
     func selectForFirstLaunch() {
+        guard isRouterEnabled() else { return }
         RouterCreditAcquisitionCoordinator.shared.selectWelcomeCredit()
         Task { await claimIfNeeded() }
     }

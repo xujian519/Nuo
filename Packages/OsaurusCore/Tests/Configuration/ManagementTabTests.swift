@@ -42,9 +42,22 @@ struct ManagementTabTests {
             Set(flattened) == Set(ManagementTab.allCases),
             "flattened sections must cover every ManagementTab case"
         )
-        // `visibleCases` is the canonical sidebar order and must be that
-        // same flattening.
-        #expect(ManagementTab.visibleCases == flattened)
+        // The structural sidebar order (Router on) is that same flattening.
+        // `visibleCases` drops Credits and Workspaces while the Router is off.
+        #expect(ManagementTab.sidebarCases(routerEnabled: true) == flattened)
+    }
+
+    @Test func routerOffHidesCreditsAndWorkspaces() {
+        let off = ManagementTab.sidebarCases(routerEnabled: false)
+        #expect(!off.contains(.credits))
+        #expect(!off.contains(.workspaces))
+        #expect(off.contains(.providers))
+        #expect(off.contains(.models))
+        #expect(off.contains(.identity))
+        #expect(off.contains(.settings))
+        let on = ManagementTab.sidebarCases(routerEnabled: true)
+        #expect(on.contains(.credits))
+        #expect(on.contains(.workspaces))
     }
 
     @Test func generalSectionLeadsAndDevelopersTrails() {

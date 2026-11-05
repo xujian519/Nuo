@@ -589,7 +589,11 @@ struct ChatSessionSidebar: View {
                 // local agent so the team roster reads complete). Before the
                 // first roster lands / when the router can't be reached /
                 // when Router is off, a single explanatory section stands in.
-                workspaceSections
+                // ADR-Nuo-001 Phase 1 hides that section entirely while the
+                // Router is off, including the "turn it on" row.
+                if remoteProviderManager.isOsaurusRouterEnabled {
+                    workspaceSections
+                }
 
                 // Agents shared with the user directly (an invite link, not a
                 // workspace). They live in the same paired-agent store as

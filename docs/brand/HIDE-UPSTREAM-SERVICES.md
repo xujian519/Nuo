@@ -1,6 +1,6 @@
 # 隐藏上游服务入口（Osaurus Router / Osaurus Cloud / osaurus.ai）
 
-> 状态：**计划已确认，未实施**。依赖 Phase 2 编译验收之后动手。
+> 状态：**Router 主开关的 Phase 1 已由 [ADR-Nuo-001](../adr/ADR-Nuo-001-remove-router-credits-and-cloud-sync.md) 落地**（缺省关闭，隐藏 Credits / Workspaces / 余额芯片，onboarding 不再打开 Router，启动不再跑 WelcomeCredit / WorkspaceSync）。Relay 缺省、Identity 入口隐藏仍未实施，不在该 ADR 的 Phase 1。
 > 用户决策原文："Osaurus Router / Osaurus Cloud / 域名 osaurus.ai 这些我不需要"
 > → 进一步确认后的执行口径：**只隐藏入口，不删除连接代码**；验收判据 = **默认不连上游**。
 
@@ -24,7 +24,7 @@
 
 | # | 入口 / 连接 | 现状 | 证据 |
 |---|---|---|---|
-| 1 | **Router 主开关** | `ai.osaurus.router.enabled` **缺省 = 开启**，即默认连上游 Router | `Services/Router/OsaurusRouterTypes.swift:36-38`："Absent = enabled" |
+| 1 | **Router 主开关** | `ai.osaurus.router.enabled` **缺省 = 关闭**（ADR-Nuo-001 Phase 1）。显式 `true` 仍打开 | `Services/Router/OsaurusRouterTypes.swift` |
 | 2 | Router 设置 UI | Settings → Credits 页含 "Osaurus Router" toggle、credits 余额/充值、"router off" 说明卡 | `Views/Credits/CreditsView.swift:198-205` |
 | 3 | Router usage 中心 | `RouterAccountUsageCenterView`（ChatView 等处引用） | `Views/Router/RouterAccountUsageCenterView.swift` |
 | 4 | Cloud 模型浏览器 | `CloudModelBrowserDialog`，依赖 `isOsaurusRouterEnabled` | `Views/Model/CloudModelBrowserDialog.swift:57` |
@@ -35,7 +35,7 @@
 | 9 | Workspaces / Roster | `WorkspacesService`、`WorkspaceRosterStore` 订阅 Router enabled 状态 | `Services/Router/WorkspaceRosterStore.swift:125` |
 | 10 | osaurus.ai URL 引用 | 73 个文件（含 `Localizable.xcstrings`、CLI、App 文案） | `rg -l "osaurus\.ai"` |
 
-关键结论：**当前默认状态不满足「默认不连上游」判据** —— Router 默认开启、onboarding 主动预热、relay 默认开启（配对后）。
+关键结论：Router 缺省已关，onboarding 不再预热或钉住 Router。Relay 仍缺省开启（配对后），不在 ADR-Nuo-001 Phase 1。
 
 ## 3. 方案
 
