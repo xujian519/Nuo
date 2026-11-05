@@ -25,8 +25,9 @@ public actor SharedWorkspaceService {
         self.indexURL = directory.appendingPathComponent(SharedWorkspaceSchema.indexFileName)
         let loaded = try Self.read(self.indexURL)
         self.snapshot = loaded
+        // init 不在 actor 隔离域里，冷启动写盘只能走静态方法。
         if !FileManager.default.fileExists(atPath: self.indexURL.path) {
-            try self.writeIndex(loaded)
+            try Self.writeIndex(loaded, to: self.indexURL, root: self.root)
         }
     }
 
@@ -267,6 +268,10 @@ public actor SharedWorkspaceService {
     }
 
     private func writeIndex(_ snapshot: Snapshot) throws {
+        try Self.writeIndex(snapshot, to: indexURL, root: root)
+    }
+
+    private static func writeIndex(_ snapshot: Snapshot, to indexURL: URL, root: URL) throws {
         let encoder = JSONEncoder.osaurusCanonical()
         let data = try encoder.encode(snapshot)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
