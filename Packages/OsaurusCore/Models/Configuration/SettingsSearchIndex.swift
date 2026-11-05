@@ -80,9 +80,9 @@ public enum SettingsSearchIndex {
     /// Returns entries matching `query`, ranked so title hits come before
     /// section/keyword-only hits. Token/substring matching (no fuzzy
     /// subsequence) keeps results aligned with what the user typed.
-    /// `routerEnabled` hides Credits and Workspaces rows while the Router
-    /// control plane is off. The catalog itself keeps those rows so an
-    /// explicit opt-in can find them again.
+    /// Phase 3 removed the Credits and Workspaces screens, so those catalog
+    /// rows are skipped here unconditionally; `routerEnabled` is kept only
+    /// for call-site compatibility with pre-Phase-3 clients.
     /// Whether the Router control plane is enabled for this user (absent key = off).
     /// Public indirection so `search`'s default argument never references the
     /// internal `OsaurusRouter` from a public signature.
@@ -101,7 +101,9 @@ public enum SettingsSearchIndex {
 
         var ranked: [(entry: SettingsSearchEntry, rank: Int)] = []
         for entry in entries {
-            // Phase 3 removed the Credits and Workspaces screens.
+            // Phase 3 removed the Credits and Workspaces screens, so their
+            // catalog rows are never searchable — an opt-in would land on a
+            // screen that no longer exists.
             if ManagementTab.routerControlPlaneTabs.contains(entry.tab) {
                 continue
             }
