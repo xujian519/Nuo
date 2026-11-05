@@ -136,9 +136,8 @@ public struct OnboardingView: View {
         }
         .onChange(of: currentStep) { _, newStep in
             OnboardingTelemetry.stepViewed(newStep)
-            // Warm up identity + Router as soon as this step appears. Both the
-            // Cloud-only path and the temporary bridge used during a local
-            // download should be ready before the user reaches chat.
+            // Create the local identity as soon as this step appears. Phase 1
+            // does not warm the Router from onboarding.
             if newStep == .configureAI {
                 prepareManagedBrainReadiness()
             }
@@ -156,8 +155,11 @@ public struct OnboardingView: View {
                 onGetStarted: {
                     // The welcome claim owns the wallet's first signed Router
                     // action. Persist that choice before identity setup can
-                    // notify any Router observers.
-                    WelcomeCreditService.shared.selectForFirstLaunch()
+                    // notify any Router observers. Phase 1 does not arm the
+                    // claim while the Router is off.
+                    if OsaurusRouter.isEnabled {
+                        WelcomeCreditService.shared.selectForFirstLaunch()
+                    }
                     // Commit the usage opt-in here (not on toggle) so the whole
                     // funnel from this point on is captured even if the user
                     // bails before the final step. Granting flushes the events
@@ -213,13 +215,11 @@ public struct OnboardingView: View {
         .animation(OnboardingMotion.snappy, value: currentStep)
     }
 
-    /// One-shot background warm-up for the managed Osaurus brain: create the
-    /// identity master key when missing (fresh install — no biometric prompt),
-    /// then attempt the Router connect so its model catalog is populated by
-    /// the time `pinSelectedBrainModel` looks for it. Safe to run for users
-    /// who end up choosing local/BYOK: identity is created at finish anyway
-    /// (`configureImplicitDefaults`), and the connect only runs while the
-    /// router is enabled.
+    /// One-shot background warm-up for the local identity master key when it
+    /// is missing (fresh install — no biometric prompt). ADR-Nuo-001 Phase 1
+    /// does not connect or enable the Router from this step. Local and BYOK
+    /// choices never needed that connect; identity is still created at finish
+    /// when this warm-up did not run (`configureImplicitDefaults`).
     private func prepareManagedBrainReadiness() {
         guard !didPrepareManagedBrain else { return }
         didPrepareManagedBrain = true
@@ -230,7 +230,6 @@ public struct OnboardingView: View {
             if !OsaurusIdentity.exists() {
                 _ = try? await OsaurusIdentity.setup()
             }
-            await RemoteProviderManager.shared.connectOsaurusRouterIfPossible()
         }
     }
 
@@ -306,8 +305,11 @@ public struct OnboardingView: View {
         // ~0.3s, so a double-tap on Close/CTA must not re-run completion.
         guard !isFinishing else { return }
         // Closing on any step is an explicit welcome-claim continuation
-        // (idempotent when "Get started" already selected it).
-        WelcomeCreditService.shared.selectForFirstLaunch()
+        // (idempotent when "Get started" already selected it). Skipped while
+        // the Router is off so finish does not arm a credits claim.
+        if OsaurusRouter.isEnabled {
+            WelcomeCreditService.shared.selectForFirstLaunch()
+        }
 
         // Record where the user left and how: `finishButton` (the brain-setup
         // step's CTA) is a real completion, `closeButton` at an earlier step
@@ -348,9 +350,9 @@ public struct OnboardingView: View {
         )
         FeatureTelemetry.recordOnboardingBrainSourceAbsent()
 
-        // The managed Router stays at its persisted default unless the user
-        // explicitly chose the Cloud-only path. Local and BYOK choices never
-        // override a previous opt-out; routing follows the model pinned below.
+        // ADR-Nuo-001 Phase 1: onboarding never enables the Router and never
+        // pins a Router model. Local and BYOK choices pin their own models
+        // below. A hosted choice is recorded only.
 
         // Pin the new/active agent's default model to the brain the user chose
         // on the Configure AI step, so the first chat respects their selection.
@@ -384,19 +386,16 @@ public struct OnboardingView: View {
     }
 
     /// Pin the Orchestrator's (and the created Dino's) default model to the
-    /// brain source the user committed to on the Configure AI step (managed
-    /// Osaurus, local, or bring-your-own-key). Selecting local or a provider
-    /// never routes through the hosted router implicitly — only the explicit
-    /// `.osaurus` choice pins a router model.
+    /// brain source the user committed to on the Configure AI step (local or
+    /// bring-your-own-key). The hosted `.osaurus` choice is not applied:
+    /// onboarding does not enable or pin the Router.
     private func pinSelectedBrainModel() {
         switch configureAIState.selectedBrainSource {
         case .osaurus:
-            // Explicit "Set up later" / start-on-Cloud path: (re-)enable the
-            // managed router — a no-op unless a previous opt-out is being
-            // overridden by this explicit choice — then pin its first
-            // chat-capable model.
-            RemoteProviderManager.shared.setOsaurusRouterEnabled(true)
-            pinOsaurusRouterModel(forAgents: brainPinTargets)
+            // "Set up later" records a hosted choice for telemetry. Phase 1
+            // does not enable the Router or pin one of its models. The user
+            // continues on a local model or a bring-your-own-key provider.
+            break
         case .local:
             // The model may still be downloading; the id is durable and
             // `ChatView.refreshPickerItems` re-resolves it once the bundle lands.
@@ -423,27 +422,6 @@ public struct OnboardingView: View {
             }
         case nil:
             break
-        }
-    }
-
-    /// After onboarding finishes on the managed path, poll (bounded, ~20s) for
-    /// the router's first chat-capable model and pin it. The identity setup
-    /// kicked off on step entry may still be in flight, so each poll retries
-    /// the single-shot connect (a cheap no-op once connected / while
-    /// connecting) before looking the model up. Gives up quietly — the hosted
-    /// models still appear in the picker once the connect lands.
-    private func pinOsaurusRouterModel(forAgents agentIds: [UUID]) {
-        Task { @MainActor in
-            for _ in 0 ..< 40 {
-                if let model = RemoteProviderManager.shared.firstRunOsaurusRouterModelId() {
-                    for agentId in agentIds {
-                        AgentManager.shared.updateDefaultModel(for: agentId, model: model)
-                    }
-                    return
-                }
-                await RemoteProviderManager.shared.connectOsaurusRouterIfPossible()
-                try? await Task.sleep(nanoseconds: 500_000_000)
-            }
         }
     }
 

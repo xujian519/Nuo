@@ -80,7 +80,18 @@ public enum SettingsSearchIndex {
     /// Returns entries matching `query`, ranked so title hits come before
     /// section/keyword-only hits. Token/substring matching (no fuzzy
     /// subsequence) keeps results aligned with what the user typed.
-    public static func search(_ query: String) -> [SettingsSearchEntry] {
+    /// `routerEnabled` hides Credits and Workspaces rows while the Router
+    /// control plane is off. The catalog itself keeps those rows so an
+    /// explicit opt-in can find them again.
+    /// Whether the Router control plane is enabled for this user (absent key = off).
+    /// Public indirection so `search`'s default argument never references the
+    /// internal `OsaurusRouter` from a public signature.
+    public static var routerControlPlaneEnabled: Bool { OsaurusRouter.isEnabled }
+
+    public static func search(
+        _ query: String,
+        routerEnabled: Bool = SettingsSearchIndex.routerControlPlaneEnabled
+    ) -> [SettingsSearchEntry] {
         let prepared = SearchService.PreparedQuery(query)
         guard !prepared.tokens.isEmpty else { return [] }
 
@@ -90,6 +101,9 @@ public enum SettingsSearchIndex {
 
         var ranked: [(entry: SettingsSearchEntry, rank: Int)] = []
         for entry in entries {
+            if !routerEnabled, ManagementTab.routerControlPlaneTabs.contains(entry.tab) {
+                continue
+            }
             if matches(entry.title) {
                 ranked.append((entry, 0))
             } else if matches(entry.section) || entry.keywords.contains(where: matches) {

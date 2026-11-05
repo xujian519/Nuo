@@ -23,7 +23,7 @@ struct InstallationDiagnosticsTests {
             executablePath: app.appendingPathComponent("Contents/Helpers/osaurus").path
         )
 
-        #expect(output == "Osaurus 9.1.0 (42)")
+        #expect(output == "Nuo 9.1.0 (42)")
     }
 
     @Test
@@ -36,7 +36,7 @@ struct InstallationDiagnosticsTests {
             executablePath: app.appendingPathComponent("Contents/Helpers/osaurus").path
         )
 
-        #expect(output == "Osaurus 0.22.3 (223)")
+        #expect(output == "Nuo 0.22.3 (223)")
     }
 
     @Test
@@ -45,7 +45,7 @@ struct InstallationDiagnosticsTests {
             environment: [:],
             executablePath: "/tmp/osaurus"
         )
-        #expect(output == "Osaurus dev")
+        #expect(output == "Nuo dev")
     }
 
     @Test

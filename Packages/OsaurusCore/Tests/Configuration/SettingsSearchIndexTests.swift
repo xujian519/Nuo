@@ -17,7 +17,7 @@ import Testing
 struct SettingsSearchIndexTests {
 
     @Test func everyEntryTargetsAVisibleTab() {
-        let visible = Set(ManagementTab.visibleCases)
+        let visible = Set(ManagementTab.sidebarCases(routerEnabled: true))
         for entry in SettingsSearchIndex.entries {
             #expect(
                 visible.contains(entry.tab),
@@ -252,7 +252,7 @@ struct SettingsSearchIndexTests {
 
     @Test func everyVisibleTabHasAnIndexRow() {
         let indexed = Set(SettingsSearchIndex.entries.map(\.tab))
-        for tab in ManagementTab.visibleCases {
+        for tab in ManagementTab.sidebarCases(routerEnabled: true) {
             #expect(indexed.contains(tab), "\(tab.rawValue) has no SettingsSearchIndex row")
         }
     }

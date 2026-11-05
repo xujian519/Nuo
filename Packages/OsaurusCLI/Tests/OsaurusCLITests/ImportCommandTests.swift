@@ -206,7 +206,7 @@ final class ImportCommandTests: XCTestCase {
         XCTAssertTrue(
             failed.issues.contains {
                 $0.contains("no Keychain item keychain:com.example.cli/tickets")
-                    && $0.contains("-T /Applications/Osaurus.app")
+                    && $0.contains("-T /Applications/Nuo.app")
             },
             "\(failed.issues)"
         )
@@ -256,7 +256,7 @@ final class ImportCommandTests: XCTestCase {
         let inv = try ImportCommand.parse(["validate", "--from", bundleURL.path])
         let old = await ImportCommand.run(inv, environment: environment(appVersion: "0.30"))
         XCTAssertEqual(old.exitCode, 1)
-        XCTAssertTrue(old.issues.contains { $0.contains("needs Osaurus 0.31.0 or newer") })
+        XCTAssertTrue(old.issues.contains { $0.contains("needs Nuo 0.31.0 or newer") })
 
         let new = await ImportCommand.run(inv, environment: environment(appVersion: "0.31.2"))
         XCTAssertEqual(new.exitCode, 0, "\(new.issues)")

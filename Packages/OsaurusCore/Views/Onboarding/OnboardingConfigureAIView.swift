@@ -633,10 +633,10 @@ final class ConfigureAIState: ObservableObject {
         isChoosingModel = false
     }
 
-    /// "Set up later": start on Osaurus Cloud (with the free welcome credit)
-    /// instead of downloading anything. There is nothing to download or
-    /// connect here — identity + router connect are prepared in the
-    /// background by `OnboardingView` and finalized at finish.
+    /// "Set up later": record a hosted choice and leave onboarding without
+    /// downloading a local model. ADR-Nuo-001 Phase 1 does not enable the
+    /// Router or pin a Router model from this choice. Identity setup stays
+    /// local.
     func chooseOsaurusAndContinue(onComplete: () -> Void) {
         selectedBrainSource = .osaurus
         OnboardingTelemetry.brainSourceSelected(.osaurus)

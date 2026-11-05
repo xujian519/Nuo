@@ -13,6 +13,10 @@ import Network
 extension Foundation.Notification.Name {
     static let remoteProviderStatusChanged = Foundation.Notification.Name("RemoteProviderStatusChanged")
     static let remoteProviderModelsChanged = Foundation.Notification.Name("RemoteProviderModelsChanged")
+    /// Posted when `setOsaurusRouterEnabled` flips the master switch. Settings
+    /// listens so it can hide Credits and Workspaces without observing every
+    /// provider status tick.
+    static let osaurusRouterEnabledChanged = Foundation.Notification.Name("OsaurusRouterEnabledChanged")
 }
 
 /// Errors for remote provider operations
@@ -46,7 +50,10 @@ public enum RemoteProviderError: LocalizedError {
 @MainActor
 public final class RemoteProviderManager: ObservableObject {
     public static let shared = RemoteProviderManager()
-    public static let osaurusRouterProviderId = UUID(uuidString: "2CFBD528-62FD-4EF0-A143-3FE532F03840")!
+    /// The managed Router provider's stable id, embedded in spawn targets and
+    /// cloud model rows. A constant, so `nonisolated` lets pure helpers such as
+    /// `RouterPinnedModel` compare against it without a main-actor hop.
+    public nonisolated static let osaurusRouterProviderId = UUID(uuidString: "2CFBD528-62FD-4EF0-A143-3FE532F03840")!
     /// Product-selected temporary model for the first-run local-download
     /// experience: DeepSeek V4.1 Flash on Osaurus Cloud. Match by final path
     /// component because Router ids are provider-prefixed (for example
@@ -677,6 +684,7 @@ public final class RemoteProviderManager: ObservableObject {
         // it disappears.
         notifyModelsChanged()
         notifyStatusChanged()
+        NotificationCenter.default.post(name: .osaurusRouterEnabledChanged, object: nil)
     }
 
     // MARK: - Osaurus Router connect retry & recovery

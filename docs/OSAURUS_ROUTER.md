@@ -1,5 +1,11 @@
 # Osaurus Router
 
+Phase 1 of [ADR-Nuo-001](adr/ADR-Nuo-001-remove-router-credits-and-cloud-sync.md)
+turns the Router off when `ai.osaurus.router.enabled` was never written.
+Credits, Workspaces, and the balance chip stay hidden in that state, and
+launch does not start welcome-credit or workspace-sync requests. An explicit
+`true` still uses the behavior below until a later phase removes it.
+
 Osaurus Router is the hosted inference path used by Osaurus accounts. It is
 implemented as an OpenAI-compatible remote provider with a few Router-only
 contracts for billing, request deduplication, and upstream compatibility.

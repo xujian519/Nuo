@@ -8,6 +8,7 @@
 //  result navigates to its tab.
 //
 
+import Foundation
 import SwiftUI
 
 struct SettingsSearchResultsView: View {
@@ -15,9 +16,12 @@ struct SettingsSearchResultsView: View {
     let onSelect: (SettingsSearchEntry) -> Void
 
     @Environment(\.theme) private var theme
+    /// Re-read when the Router switch flips so Credits and Workspaces leave
+    /// the result list without waiting for the next keystroke.
+    @State private var routerEnabled = OsaurusRouter.isEnabled
 
     private var results: [SettingsSearchEntry] {
-        SettingsSearchIndex.search(query)
+        SettingsSearchIndex.search(query, routerEnabled: routerEnabled)
     }
 
     /// Results grouped by tab, tabs ordered by their first (best-ranked) hit.
@@ -41,6 +45,9 @@ struct SettingsSearchResultsView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .onReceive(NotificationCenter.default.publisher(for: .osaurusRouterEnabledChanged)) { _ in
+            routerEnabled = OsaurusRouter.isEnabled
+        }
     }
 
     private var header: some View {
