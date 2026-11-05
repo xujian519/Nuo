@@ -494,6 +494,16 @@ public enum OsaurusPaths {
         root().appendingPathComponent("scheduler.sqlite")
     }
 
+    /// Orchestrator 持有的定向邮箱目录。不放进某个 Agent 的 DB 或向量分区。
+    public static func directedMailboxDirectory() -> URL {
+        root().appendingPathComponent("collaboration", isDirectory: true)
+    }
+
+    /// `collaboration/mailbox.json`。见 ADR-Nuo-002。
+    public static func directedMailboxFile() -> URL {
+        directedMailboxDirectory().appendingPathComponent(DirectedMailboxSchema.fileName)
+    }
+
     /// Plugin binaries directory (`~/.nuo/Tools/`)
     public static func tools() -> URL {
         root().appendingPathComponent("Tools", isDirectory: true)
