@@ -641,31 +641,6 @@ actor WorkspaceAgentAccessHost {
         try await verifyCurrentAccess(record.workspaceId, record.agentAddressLower, record.attestationToken)
     }
 
-    func reconcile(snapshot: WorkspaceSyncSnapshot) async {
-        loadPersistedKeysIfNeeded()
-        let rejected = workspaceKeys.filter { _, record in
-            guard let entry = snapshot.workspaces.first(where: { $0.workspace.id == record.workspaceId }) else {
-                return true
-            }
-            return !entry.agents.contains(where: { $0.agentAddress.lowercased() == record.agentAddressLower })
-                || !entry.members.contains(where: {
-                    $0.accountId == record.accountId && $0.walletAddress?.lowercased() == record.wallet.lowercased()
-                })
-        }
-        for (nonce, record) in rejected {
-            workspaceKeys.removeValue(forKey: nonce)
-            APIKeyManager.shared.revoke(id: record.keyId)
-            await MainActor.run {
-                InboundSharedRunBridge.shared.stopWorkspaceRuns(
-                    workspaceId: record.workspaceId,
-                    agentAddress: record.agentAddressLower,
-                    callerWallet: record.wallet
-                )
-            }
-        }
-        if !rejected.isEmpty { persistKeys() }
-    }
-
     // MARK: - Persistence
 
     private func loadPersistedKeysIfNeeded() {

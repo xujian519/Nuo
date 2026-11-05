@@ -240,21 +240,6 @@ actor OsaurusRouterAPIClient {
 
     // MARK: - Workspaces (`/workspaces/*`)
 
-    func observeWorkspaceSync(_ receive: @Sendable (WorkspaceSyncFrame) async -> Void) async throws {
-        var request = try await signedJSONRequest(method: "GET", path: "/workspaces/sync")
-        request.setValue("application/x-ndjson", forHTTPHeaderField: "Accept")
-        let (bytes, response) = try await session.bytes(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200,
-            http.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("application/x-ndjson") == true
-        else { throw OsaurusRouterAPIError.invalidResponse }
-        for try await line in bytes.lines {
-            try Task.checkCancellation()
-            guard line.utf8.count <= 1_048_576 else { throw OsaurusRouterAPIError.invalidResponse }
-            let frame = try JSONDecoder().decode(WorkspaceSyncFrame.self, from: Data(line.utf8))
-            await receive(frame)
-        }
-    }
-
     func verifyWorkspaceAgentAccess(workspaceId: String, agentAddress: String, attestation: String) async throws {
         struct Body: Encodable { let attestation: String }
         struct Response: Decodable { let allowed: Bool }

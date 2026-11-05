@@ -4,10 +4,10 @@
 //
 //  Pure rules behind the shared-agent surfaces: the sidebar partitions
 //  pairings by their PERSISTED workspace attribution (never by live roster
-//  membership), a per-workspace roster fetch failure keeps the previous
-//  agent list, the connect service's unified failure map lifecycle, the
-//  Share sheet's already-shared / validation rules, and the Agents tab's
-//  workspace attribution for remote cards.
+//  membership), the connect service's unified failure map lifecycle, and the
+//  Agents tab's workspace attribution for remote cards. (The roster-fetch and
+//  Share-sheet rules left with the sync client and the Workspaces views in
+//  ADR-Nuo-001 Phase 3.)
 //
 
 import Foundation
@@ -140,44 +140,6 @@ struct SharedAgentSurfacesTests {
         #expect(all.isEmpty)
     }
 
-    // MARK: - Roster fetch failure preserves the previous list
-
-    @Test func buildRosters_keepsPreviousAgentsWhenOneWorkspaceFetchFails() async throws {
-        let ws1 = try Self.workspace(id: "ws-1", name: "One")
-        let ws2 = try Self.workspace(id: "ws-2", name: "Two")
-        let previousAgent = try Self.rosterAgent(address: Self.addressA, name: "Kept")
-        let previous: [WorkspaceRosterStore.WorkspaceRoster] = [
-            .init(workspace: ws1, agents: [previousAgent]),
-            .init(workspace: ws2, agents: [try Self.rosterAgent(address: Self.addressB, name: "Old")]),
-        ]
-        let fresh = try Self.rosterAgent(address: Self.addressB, name: "Fresh")
-
-        struct Boom: Error {}
-        let next = await WorkspaceRosterStore.buildRosters(workspaces: [ws1, ws2], previous: previous) { id in
-            if id == "ws-1" { throw Boom() }
-            return [fresh]
-        }
-
-        #expect(next.map(\.id) == ["ws-1", "ws-2"])
-        #expect(next[0].agents.map(\.displayName) == ["Kept"])
-        #expect(next[1].agents.map(\.displayName) == ["Fresh"])
-    }
-
-    @Test func buildRosters_neverHadAList_failureYieldsEmptyNotCrash() async throws {
-        let ws = try Self.workspace(id: "ws-new", name: "New")
-        struct Boom: Error {}
-        let next = await WorkspaceRosterStore.buildRosters(workspaces: [ws], previous: []) { _ in throw Boom() }
-        #expect(next.count == 1)
-        #expect(next[0].agents.isEmpty)
-    }
-
-    @Test func refreshFailureMessage_classifiesTransportVersusServer() {
-        let offline = WorkspaceRosterStore.refreshFailureMessage(for: URLError(.notConnectedToInternet))
-        #expect(offline == L("Couldn't reach Osaurus Router. Check your connection."))
-        let generic = WorkspaceRosterStore.refreshFailureMessage(for: URLError(.badServerResponse))
-        #expect(generic == L("Couldn't load your workspaces."))
-    }
-
     // MARK: - Connect-service failure map lifecycle
 
     @Test func connectFailures_recordSurfacesAsAttempted_clearedByOfflineAndPrune() throws {
@@ -264,35 +226,6 @@ struct SharedAgentSurfacesTests {
         #expect(store.agent(forAddress: Self.addressA.uppercased(), workspaceId: "ws-2")?.displayName == "As Two")
         #expect(store.agent(forAddress: Self.addressA, workspaceId: "ws-1")?.displayName == "As One")
         #expect(store.agent(forAddress: Self.addressA, workspaceId: "ws-9") == nil)
-    }
-
-    // MARK: - Share sheet rules
-
-    @Test func shareSheet_alreadySharedFilteringIsCaseInsensitive() throws {
-        let roster = [try Self.rosterAgent(address: Self.addressA.uppercased())]
-        let shared = WorkspaceShareAgentSheet.alreadySharedAddresses(roster: roster)
-        #expect(shared.contains(Self.addressA.lowercased()))
-        #expect(!shared.contains(Self.addressB.lowercased()))
-    }
-
-    @Test func shareSheet_displayNameValidation_isOneToOneTwenty() {
-        #expect(!WorkspaceShareAgentSheet.displayNameIsValid(""))
-        #expect(!WorkspaceShareAgentSheet.displayNameIsValid("   "))
-        #expect(WorkspaceShareAgentSheet.displayNameIsValid("Editorial Writer"))
-        #expect(WorkspaceShareAgentSheet.displayNameIsValid(String(repeating: "x", count: 120)))
-        #expect(!WorkspaceShareAgentSheet.displayNameIsValid(String(repeating: "x", count: 121)))
-    }
-
-    @Test func shareSheet_nextDisplayName_followsSelectionOnlyWhileUntouched() {
-        // Empty → prefill.
-        #expect(WorkspaceShareAgentSheet.nextDisplayName(current: "", prefilled: nil, selectedAgentName: "A") == "A")
-        // Still the previous prefill → follows the new selection.
-        #expect(WorkspaceShareAgentSheet.nextDisplayName(current: "A", prefilled: "A", selectedAgentName: "B") == "B")
-        // User typed something → preserved.
-        #expect(
-            WorkspaceShareAgentSheet.nextDisplayName(current: "My Name", prefilled: "A", selectedAgentName: "B")
-                == "My Name"
-        )
     }
 
     @Test func workspaceNameValidation_isOneToEighty() {

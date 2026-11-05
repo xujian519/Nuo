@@ -432,12 +432,12 @@ final class WorkspacesService: ObservableObject {
     // MARK: - Selection
 
     /// Detail tab a deep link asked for (chat sidebar gear → Shared Agents,
-    /// composer pool chip → Overview). `WorkspaceDetailView` consumes and
-    /// clears it, so the user's own tab clicks are never overridden later.
-    @Published var deepLinkTab: WorkspaceDetailView.Tab?
+    /// composer pool chip → Overview). Consumed and cleared by the workspace
+    /// detail surface, so the user's own tab clicks are never overridden later.
+    @Published var deepLinkTab: WorkspaceSettingsTab?
     /// Local agent a deep link wants the Share agent sheet opened for
     /// (chat sidebar → Share to Workspace → <name>). Consumed together with
-    /// `deepLinkTab` by `WorkspaceDetailView`.
+    /// `deepLinkTab`.
     @Published var deepLinkShareAgentId: UUID?
 
     /// Land on one workspace's detail in Settings ▸ Workspaces from anywhere
@@ -448,7 +448,7 @@ final class WorkspacesService: ObservableObject {
     /// additionally opens the Share agent sheet with that agent selected.
     func openInSettings(
         workspaceId: String,
-        tab: WorkspaceDetailView.Tab = .overview,
+        tab: WorkspaceSettingsTab = .overview,
         shareAgentId: UUID? = nil
     ) {
         // Set before the tab: the detail view's tab observer consumes both.
@@ -558,34 +558,6 @@ final class WorkspacesService: ObservableObject {
             guard generation == selectionGeneration else { return }
             noteError(error)
         }
-    }
-
-    /// Install a `/workspaces/sync` snapshot. Every reconnect (and any server
-    /// re-read that finds a difference) delivers a full snapshot, so each
-    /// `@Published` field is only reassigned when its value actually changed:
-    /// an identical snapshot must not re-render the Workspaces tab.
-    func applySyncSnapshot(_ snapshot: WorkspaceSyncSnapshot) {
-        rootGeneration = UUID()
-        let nextWorkspaces = snapshot.workspaces.map(\.workspace)
-        if workspaces != nextWorkspaces { workspaces = nextWorkspaces }
-        lastRootRefresh = Date()
-        reconcileBillingPreferences(validWorkspaceIds: Set(workspaces.map(\.id)))
-        guard let id = selectedWorkspaceId else { return }
-        // Supersede any poll already in flight before publishing this snapshot.
-        selectionGeneration = UUID()
-        if isLoadingDetail { isLoadingDetail = false }
-        guard let entry = snapshot.workspaces.first(where: { $0.workspace.id == id }) else {
-            clearSelection()
-            return
-        }
-        if detail != entry.detail { detail = entry.detail }
-        if members != entry.members { members = entry.members }
-        if workspaceAgents != entry.agents { workspaceAgents = entry.agents }
-        if workspaceInvites != entry.invites { workspaceInvites = entry.invites }
-        reconcileBillingPreferences(
-            workspaceId: id,
-            activeAgentAddresses: Set(entry.agents.map { $0.agentAddress.lowercased() })
-        )
     }
 
     // MARK: - Billing
@@ -1598,10 +1570,9 @@ final class WorkspacesService: ObservableObject {
             }
         }
 
-        // Membership changes reach this surface through the sync stream
-        // (`applySyncSnapshot`) and, when the stream is not verified, through
-        // the roster store's throttled activation refresh (`applyWorkspaceList`).
-        // No list fetch of our own here: that doubled every activation.
+        // Membership changes reach this surface through the roster store's
+        // throttled activation refresh (`applyWorkspaceList`). No list fetch
+        // of our own here: that doubled every activation.
     }
 
     /// One poll for a pending Stripe round-trip. Returns true when the

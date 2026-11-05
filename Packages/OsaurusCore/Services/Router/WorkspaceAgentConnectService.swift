@@ -124,19 +124,6 @@ final class WorkspaceAgentConnectService: ObservableObject {
         for key in stale { connectFailures[key] = nil }
     }
 
-    func reconcileMembership(_ snapshot: WorkspaceSyncSnapshot) {
-        let active = Set(
-            snapshot.workspaces.flatMap { entry in
-                entry.agents.map { scope($0.agentAddress, entry.workspace.id) }
-            }
-        )
-        authorizedScopes = active
-        for key in pairingGeneration.keys where !active.contains(key) { pairingGeneration[key] = UUID() }
-        for key in refreshTasks.keys where !active.contains(key) {
-            refreshTasks.removeValue(forKey: key)?.cancel()
-        }
-    }
-
     // MARK: - Auto-connect
 
     /// Shared agents that should be connected automatically right now: not
