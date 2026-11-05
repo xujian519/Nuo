@@ -1,0 +1,13 @@
+{
+  "id": "demo_skill.watcher-runs-chain",
+  "domain": "demo_skill",
+  "label": "demo skill \u2022 an accepted skill can hang off a watcher",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "The watcher replays the same successful tool chain. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "demoSkill": {
+      "scenario": "watcher_runs_chain"
+    }
+  }
+}

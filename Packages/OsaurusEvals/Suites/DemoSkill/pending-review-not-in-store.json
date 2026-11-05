@@ -1,0 +1,13 @@
+{
+  "id": "demo_skill.pending-review-not-in-store",
+  "domain": "demo_skill",
+  "label": "demo skill \u2022 a draft is not stored before review",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "Stop leaves the recording pending. SKILL.md does not exist yet. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "demoSkill": {
+      "scenario": "pending_review_not_in_store"
+    }
+  }
+}

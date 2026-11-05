@@ -1,0 +1,13 @@
+{
+  "id": "demo_skill.review-reject-does-not-store",
+  "domain": "demo_skill",
+  "label": "demo skill \u2022 human rejection writes no skill",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "A pending draft that the reviewer rejects stays out of the skill store. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "demoSkill": {
+      "scenario": "review_reject_does_not_store"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "demo_skill.success-to-schedule",
+  "domain": "demo_skill",
+  "label": "demo skill \u2022 successful chain becomes a scheduled skill",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "A finished demo stays a draft until review, then a Schedule replays only the successful tools. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "demoSkill": {
+      "scenario": "success_to_schedule"
+    }
+  }
+}

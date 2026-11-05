@@ -1,0 +1,13 @@
+{
+  "id": "demo_skill.mouse-trail-rejected",
+  "domain": "demo_skill",
+  "label": "demo skill \u2022 a pointer trail cannot solidify",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "mouse_move fails the demo and is not copied into a skill. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "demoSkill": {
+      "scenario": "mouse_trail_rejected"
+    }
+  }
+}

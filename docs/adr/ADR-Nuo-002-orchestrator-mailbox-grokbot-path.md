@@ -117,15 +117,17 @@ sampler defaults.
 
 ## Out of scope
 
-P0 did not include the items below. P1 is the appendix at the end of this
-file. P2–P4 are still not accepted.
+P0 did not include the items below. P1, P2, and P3 are the appendices.
+P4 is not triggered.
 
 - Shared workspace and a persistent browser. The workspace slice is the
   P1 appendix. A resident shared browser is still not accepted.
-- Turning a demo into a Skill.
+- Turning a demo into a Skill. P3 records that path. Raw pointer
+  trails are not skills.
 - Productizing multi-step checkpoints inside the agent loop. P2
   records the approval breakpoint; it does not rewrite the loop.
-- True Mesh or ROOM.
+- True Mesh or ROOM. The P4 gate is not triggered; see the appendix.
+  There is no mesh code.
 - Opening `host.dispatch` so one agent runs as another.
 - A Settings control or a model-visible mailbox tool.
 - Router credits, cloud sync, Identity, and BYOK (ADR-Nuo-001).
@@ -215,5 +217,33 @@ the tool body. With no binding, the existing approval card is unchanged.
 `Awaiting user response`, which is the pause the chat intercept already
 understands.
 
-A resident shared browser, demo→Skill, Mesh, and Router credits stay
-out of this phase.
+A resident shared browser, Mesh, and Router credits stay out of this
+phase. Demo → Skill is the P3 appendix.
+
+## Appendix: P3 demo to skill (authorized 2026-11-05)
+
+P3 records an explicit demonstration and turns only a fully successful
+tool chain into a Skill. `DemoSkillRecorder.start` / `stop` bracket the
+recording. A failed step, an empty recording, or a `mouse` / `pointer`
+tool rejects the demo. Rejection does not write `SKILL.md`.
+
+A successful stop is a draft (`pendingReview`). It is not in the skill
+store yet. A human `acceptReview` writes `skills/<slug>/SKILL.md` in the
+Agent Skills format. Mailbox envelope text cannot accept a draft.
+`rejectReview` leaves no file.
+
+After acceptance, `attachSchedule` or `attachWatcher` hangs the same
+instructions off a real `Schedule` or `Watcher` value. `run` replays the
+successful tool names only. This does not start the cloud computer, and
+it does not rewrite the agent loop.
+
+The golden set is `Packages/OsaurusEvals/Suites/DemoSkill/` (nine
+deterministic cases, domain `demo_skill`). `floors.json` pins the suite
+at 1.0.
+
+## Appendix: P4 mesh gate (not triggered, 2026-11-05)
+
+P4 would be a true Mesh or ROOM: at least three long-lived bots that
+need a two-hop collaboration the Orchestrator does not sit on. That
+evidence is not present. This appendix does not add mesh code, `bot_send`,
+or a ROOM. Directed mailbox rules from P0 still apply.

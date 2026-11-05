@@ -1,0 +1,13 @@
+{
+  "id": "demo_skill.stop-requires-start",
+  "domain": "demo_skill",
+  "label": "demo skill \u2022 steps require an explicit start",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "Recording a tool before start is rejected. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "demoSkill": {
+      "scenario": "stop_requires_start"
+    }
+  }
+}
