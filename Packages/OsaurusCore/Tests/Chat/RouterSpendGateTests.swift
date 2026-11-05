@@ -92,7 +92,7 @@ struct RouterSpendGateTests {
 
     private func makeRequest() -> ChatCompletionRequest {
         ChatCompletionRequest(
-            model: "osaurus/anthropic/claude-opus",
+            model: "nuo/anthropic/claude-opus",
             messages: [ChatMessage(role: "user", content: "hi")],
             temperature: nil,
             max_tokens: 8,
