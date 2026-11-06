@@ -25,9 +25,17 @@ struct OrchestratorSchemaBudgetTests {
 
     /// Upper bound for the whole turn-1 Orchestrator schema (composed
     /// tools + `spawn_agent`). Measured ≈ 1.5K after the 2026 description
-    /// trims (≈1.7K with `spawn_agent`); the bound leaves slack for legitimate schema additions while
-    /// still failing loudly on a runaway description.
-    static let orchestratorSchemaTokenBound = 1_900
+    /// trims (≈1.7K with `spawn_agent`); the bound leaves slack for legitimate
+    /// schema additions while still failing loudly on a runaway description.
+    ///
+    /// 2026-11-06: raised 1_900 → 2_050 for the directed mailbox. The
+    /// measured total is 1_997 with `osaurus_mailbox` at 122 tokens. That
+    /// cost is structural — seven properties and their names — so trimming
+    /// prose recovered only 8 tokens (130 → 122). The tool is a legitimate
+    /// contract addition on the Orchestrator's surface (ADR-Nuo-002), and
+    /// `perToolTokenBounds` below still fails loudly if its description or
+    /// parameter list grows.
+    static let orchestratorSchemaTokenBound = 2_050
 
     /// Per-tool bounds for the tools the Orchestrator carries every turn. A
     /// single tool past its bound is the usual culprit when the total drifts.
@@ -37,6 +45,7 @@ struct OrchestratorSchemaBudgetTests {
         "osaurus_help": 160,
         "spawn_agent": 360,
         "clarify": 220,
+        "osaurus_mailbox": 140,
         "complete": 160,
         "todo": 120,
         "web_search": 160,
