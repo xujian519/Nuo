@@ -1,0 +1,13 @@
+{
+  "id": "mailbox.cycle-rejected",
+  "domain": "mailbox",
+  "label": "mailbox \u2022 forwarding back onto the chain is a cycle",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "After Orchestrator -> A, a forward from A back to the Orchestrator is rejected as a cycle even with an allowlist edge. Only a reply returns to the previous sender. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "mailbox": {
+      "scenario": "cycle_rejected"
+    }
+  }
+}

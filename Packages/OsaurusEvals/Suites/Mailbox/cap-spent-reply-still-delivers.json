@@ -1,0 +1,13 @@
+{
+  "id": "mailbox.cap-spent-reply-still-delivers",
+  "domain": "mailbox",
+  "label": "mailbox \u2022 a spent subtask cap stops forwards but not the reply",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "With maxSubtasks 1, the opening mail spends the cap, the next forward is rejected with subtaskCapExceeded(used: 2, limit: 1), and the reply to the previous sender still delivers to the Orchestrator inbox. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "mailbox": {
+      "scenario": "cap_spent_reply_still_delivers"
+    }
+  }
+}

@@ -385,6 +385,17 @@
       "default_agent.settings-tool-policy-ask",
       "default_agent.watcher-create"
     ],
+    "DemoSkill": [
+      "demo_skill.empty-recording-rejected",
+      "demo_skill.envelope-cannot-accept",
+      "demo_skill.failed-demo-rejected",
+      "demo_skill.mouse-trail-rejected",
+      "demo_skill.pending-review-not-in-store",
+      "demo_skill.review-reject-does-not-store",
+      "demo_skill.stop-requires-start",
+      "demo_skill.success-to-schedule",
+      "demo_skill.watcher-runs-chain"
+    ],
     "HTTPAPI": [
       "http_api.cache-stats-contract",
       "http_api.cache-stats-prefix-probe",
@@ -422,6 +433,13 @@
     "LegacyCapabilities": [
       "legacy_capabilities.compact-loaded-results-compatible",
       "prompt_surface.manifest-replacement-saves"
+    ],
+    "Mailbox": [
+      "mailbox.cap-spent-reply-still-delivers",
+      "mailbox.cycle-rejected",
+      "mailbox.depth-ceiling-rejected",
+      "mailbox.unauthorized-edge-rejected",
+      "mailbox.untrusted-body-readback"
     ],
     "Memory": [
       "memory.distractor-not-surfaced",

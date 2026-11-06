@@ -1,0 +1,13 @@
+{
+  "id": "mailbox.unauthorized-edge-rejected",
+  "domain": "mailbox",
+  "label": "mailbox \u2022 an unlisted sender cannot mail a peer",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "A non-Orchestrator sender without a persisted allowlist edge is denied send and inbox read; granting exactly that edge lets the same send through. CI-safe: no model, no network, temp directory only.",
+  "fixtures": {},
+  "expect": {
+    "mailbox": {
+      "scenario": "unauthorized_edge_rejected"
+    }
+  }
+}

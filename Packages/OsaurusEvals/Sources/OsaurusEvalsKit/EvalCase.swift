@@ -757,6 +757,11 @@ public struct EvalCase: Sendable, Codable, Identifiable {
         /// Deterministic expectation for `domain == "demo_skill"`. Replays a
         /// recorded tool chain through `DemoSkillRecorder` with no model.
         public let demoSkill: DemoSkillExpectations?
+        /// Deterministic expectation for `domain == "mailbox"`. Drives a real
+        /// `DirectedMailboxService` rooted in a temp directory and pins the
+        /// ADR-Nuo-002 P0 admission rules (allowlist, depth, cycles, caps,
+        /// untrusted body). No model and no network.
+        public let mailbox: MailboxExpectations?
 
         public init(
             schema: SchemaExpectations? = nil,
@@ -782,7 +787,8 @@ public struct EvalCase: Sendable, Codable, Identifiable {
             memory: MemoryExpectations? = nil,
             agentChannels: AgentChannelsExpectations? = nil,
             promptSurface: PromptSurfaceExpectations? = nil,
-            demoSkill: DemoSkillExpectations? = nil
+            demoSkill: DemoSkillExpectations? = nil,
+            mailbox: MailboxExpectations? = nil
         ) {
             self.schema = schema
             self.toolEnvelope = toolEnvelope
@@ -808,12 +814,23 @@ public struct EvalCase: Sendable, Codable, Identifiable {
             self.agentChannels = agentChannels
             self.promptSurface = promptSurface
             self.demoSkill = demoSkill
+            self.mailbox = mailbox
         }
     }
 
     /// Expectation for `domain == "demo_skill"`. `scenario` names one golden
     /// path in `DemoSkillRecorder.runScenario`. No model and no network.
     public struct DemoSkillExpectations: Sendable, Codable {
+        public let scenario: String
+
+        public init(scenario: String) {
+            self.scenario = scenario
+        }
+    }
+
+    /// Expectation for `domain == "mailbox"`. `scenario` names one admission
+    /// path in `EvalRunnerMailbox`'s scenario table. No model and no network.
+    public struct MailboxExpectations: Sendable, Codable {
         public let scenario: String
 
         public init(scenario: String) {
