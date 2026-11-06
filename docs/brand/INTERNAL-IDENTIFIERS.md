@@ -38,7 +38,7 @@ rg -o --no-filename -F '<字面量>' | wc -l     # 单个字面量的出现次�
 
 | 标识符 | 为什么冻结 |
 |---|---|
-| `osaurus_help` / `osaurus_inspect` / `osaurus_config` | 模型侧工具名。改名 = 破坏已保存的 agent 配置、eval 用例、prompt 里的示例 |
+| `osaurus_help` / `osaurus_inspect` / `osaurus_config` / `osaurus_mailbox` | 模型侧工具名。改名 = 破坏已保存的 agent 配置、eval 用例、prompt 里的示例 |
 | `mcp__osaurus__*` | MCP 工具命名空间，客户端已按此匹配 |
 | `X-Osaurus-*`（13 个不同头） | HTTP 协议头，CLI / 浏览器扩展 / 中继端都按原样收发 |
 | `window.__osaurus`、`__osaurus_abi_probe__` | 注入到插件 WebView 的全局对象与 ABI 探测键 |
