@@ -40,6 +40,22 @@ public enum ServerRuntimeSettingsStore {
     private nonisolated(unsafe) static var storageRevision: UInt64 = 0
     private nonisolated(unsafe) static var directoryOverride: URL?
 
+    /// Test seam. The MTP provenance flags live in `UserDefaults.standard`,
+    /// which is process-global while test suites run in parallel: any suite
+    /// that saves settings can flip them between another suite's write and
+    /// assertion. A suite that asserts on those flags binds an isolated
+    /// instance for its own task here, so concurrent writers stay in their
+    /// own domain. Production leaves this unbound and uses `.standard`.
+    struct MTPDefaultsBox: @unchecked Sendable {
+        let defaults: UserDefaults
+    }
+
+    @TaskLocal static var mtpDefaultsOverrideForTests: MTPDefaultsBox?
+
+    nonisolated private static var mtpDefaults: UserDefaults {
+        mtpDefaultsOverrideForTests?.defaults ?? .standard
+    }
+
     /// Tests may select a fixture directory. Changing it also invalidates any
     /// in-flight cold read, so an outgoing fixture cannot write into the next.
     public nonisolated static var overrideDirectory: URL? {
@@ -280,7 +296,8 @@ public enum ServerRuntimeSettingsStore {
                     // so an unrelated edit does not become an explicit MTP choice.
                     previous: NativeMTPSelectionDefault.adaptiveSelection(previousMTP),
                     next: settings.mtp,
-                    isFamilyDefault: mtpSelectionIsFamilyDefault
+                    isFamilyDefault: mtpSelectionIsFamilyDefault,
+                    defaults: mtpDefaults
                 )
             }
             writeLegacyConcurrencyMigrationMarker()
@@ -498,7 +515,7 @@ public enum ServerRuntimeSettingsStore {
         // Retire only defaults whose provenance was recorded by the old family
         // selector, including API-only launches with no chat view present.
         normalized.mtp = NativeMTPSelectionDefault.adaptiveSelection(
-            NativeMTPSelectionDefault.retiringOwnedDefault(normalized.mtp)
+            NativeMTPSelectionDefault.retiringOwnedDefault(normalized.mtp, defaults: mtpDefaults)
         )
         // Osaurus product default for block-diffusion models: 16 denoising
         // steps (~74 tok/s on diffusiongemma-26B-A4B MXFP4, coherent) vs the
