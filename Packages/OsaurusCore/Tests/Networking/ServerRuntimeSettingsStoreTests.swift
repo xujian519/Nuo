@@ -17,123 +17,127 @@ import Testing
 @Suite(.serialized)
 struct ServerRuntimeSettingsStoreTests {
     @Test @MainActor func mtpChoiceTracksExplicitSaveButNotLegacyNormalization() async throws {
-        let defaults = UserDefaults.standard
-        let keys = [NativeMTPSelectionDefault.userChoseKey, NativeMTPSelectionDefault.familyDefaultKey]
-        let saved = keys.map { defaults.object(forKey: $0) }
-        defer {
-            for (key, value) in zip(keys, saved) { defaults.set(value, forKey: key) }
-        }
-        // No awaits inside each isolated store operation. Exercise both cold
-        // read routes that can normalize and write the legacy Off default.
-        for viaSnapshot in [false, true] {
-            let dir = try makeTempDirectory()
-            try await withOverriddenDirectory(dir) {
-                for key in keys { defaults.removeObject(forKey: key) }
-                var legacy = VMLXServerRuntimeSettings()
-                legacy.schemaVersion = nil
-                legacy.mtp = .init(mode: .off)
-                try JSONEncoder().encode(legacy).write(
-                    to: dir.appendingPathComponent("server-runtime.json"),
-                    options: .atomic
-                )
-                ServerRuntimeSettingsStore.invalidateSnapshot()
-                let automatic = try #require(
-                    viaSnapshot ? ServerRuntimeSettingsStore.snapshot() : ServerRuntimeSettingsStore.load()
-                )
-                #expect(automatic.mtp.mode == .off)
-                #expect(!defaults.bool(forKey: NativeMTPSelectionDefault.userChoseKey))
+        // Provenance keys live in a process-global defaults domain, so bind an
+        // isolated one: a concurrent suite's save must not flip them mid-test.
+        let suiteName = "MTPChoice-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        try await ServerRuntimeSettingsStore.$mtpDefaultsOverrideForTests.withValue(.init(defaults: defaults)) {
+            // No awaits inside each isolated store operation. Exercise both cold
+            // read routes that can normalize and write the legacy Off default.
+            for viaSnapshot in [false, true] {
+                let dir = try makeTempDirectory()
+                try await withOverriddenDirectory(dir) {
+                    for key in [NativeMTPSelectionDefault.userChoseKey, NativeMTPSelectionDefault.familyDefaultKey] {
+                        defaults.removeObject(forKey: key)
+                    }
+                    var legacy = VMLXServerRuntimeSettings()
+                    legacy.schemaVersion = nil
+                    legacy.mtp = .init(mode: .off)
+                    try JSONEncoder().encode(legacy).write(
+                        to: dir.appendingPathComponent("server-runtime.json"),
+                        options: .atomic
+                    )
+                    ServerRuntimeSettingsStore.invalidateSnapshot()
+                    let automatic = try #require(
+                        viaSnapshot ? ServerRuntimeSettingsStore.snapshot() : ServerRuntimeSettingsStore.load()
+                    )
+                    #expect(automatic.mtp.mode == .off)
+                    #expect(!defaults.bool(forKey: NativeMTPSelectionDefault.userChoseKey))
 
-                var selected = automatic
-                selected.mtp = .init(mode: .off)
-                ServerRuntimeSettingsStore.saveFamilyMTPDefault(selected)
-                #expect(defaults.bool(forKey: NativeMTPSelectionDefault.familyDefaultKey))
-                #expect(!defaults.bool(forKey: NativeMTPSelectionDefault.userChoseKey))
-                var explicitAuto = automatic
-                explicitAuto.mtp.mode = .auto
-                ServerRuntimeSettingsStore.save(explicitAuto)
-                #expect(defaults.bool(forKey: NativeMTPSelectionDefault.userChoseKey))
-                #expect(!defaults.bool(forKey: NativeMTPSelectionDefault.familyDefaultKey))
+                    var selected = automatic
+                    selected.mtp = .init(mode: .off)
+                    ServerRuntimeSettingsStore.saveFamilyMTPDefault(selected)
+                    #expect(defaults.bool(forKey: NativeMTPSelectionDefault.familyDefaultKey))
+                    #expect(!defaults.bool(forKey: NativeMTPSelectionDefault.userChoseKey))
+                    var explicitAuto = automatic
+                    explicitAuto.mtp.mode = .auto
+                    ServerRuntimeSettingsStore.save(explicitAuto)
+                    #expect(defaults.bool(forKey: NativeMTPSelectionDefault.userChoseKey))
+                    #expect(!defaults.bool(forKey: NativeMTPSelectionDefault.familyDefaultKey))
+                }
             }
         }
     }
 
     @Test @MainActor func legacyNativeDepthsMigrateThroughLoadSaveAndSnapshot() async throws {
-        let defaults = UserDefaults.standard
-        let keys = [NativeMTPSelectionDefault.userChoseKey, NativeMTPSelectionDefault.familyDefaultKey]
-        let saved = keys.map { defaults.object(forKey: $0) }
-        defer { for (key, value) in zip(keys, saved) { defaults.set(value, forKey: key) } }
-        let dir = try makeTempDirectory()
-        try await withOverriddenDirectory(dir) {
-            defaults.set(true, forKey: NativeMTPSelectionDefault.userChoseKey)
-            defaults.set(false, forKey: NativeMTPSelectionDefault.familyDefaultKey)
-            for mode in [VMLXMTPServerMode.off, .auto, .forceOn] {
-                for depth in 1 ... 3 {
-                    var original = VMLXServerRuntimeSettings()
-                    original.generation.diffusionMaxDenoisingSteps = 16
-                    original.mtp = .init(mode: mode, draftTokenLimit: depth, explicitDepth: depth)
-                    try writeSettings(original, to: dir)
-                    ServerRuntimeSettingsStore.invalidateSnapshot()
-                    let loaded = try #require(ServerRuntimeSettingsStore.load())
-                    #expect(loaded.mtp == NativeMTPSelectionDefault.adaptiveSelection(original.mtp))
-                    #expect(loaded.generation == original.generation)
-                    ServerRuntimeSettingsStore.save(original)
-                    ServerRuntimeSettingsStore.invalidateSnapshot()
-                    #expect(ServerRuntimeSettingsStore.snapshot().mtp == loaded.mtp)
-                    #expect(try #require(ServerRuntimeSettingsStore.load()).mtp == loaded.mtp)
+        let suiteName = "MTPLegacyDepths-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        try await ServerRuntimeSettingsStore.$mtpDefaultsOverrideForTests.withValue(.init(defaults: defaults)) {
+            let dir = try makeTempDirectory()
+            try await withOverriddenDirectory(dir) {
+                defaults.set(true, forKey: NativeMTPSelectionDefault.userChoseKey)
+                defaults.set(false, forKey: NativeMTPSelectionDefault.familyDefaultKey)
+                for mode in [VMLXMTPServerMode.off, .auto, .forceOn] {
+                    for depth in 1 ... 3 {
+                        var original = VMLXServerRuntimeSettings()
+                        original.generation.diffusionMaxDenoisingSteps = 16
+                        original.mtp = .init(mode: mode, draftTokenLimit: depth, explicitDepth: depth)
+                        try writeSettings(original, to: dir)
+                        ServerRuntimeSettingsStore.invalidateSnapshot()
+                        let loaded = try #require(ServerRuntimeSettingsStore.load())
+                        #expect(loaded.mtp == NativeMTPSelectionDefault.adaptiveSelection(original.mtp))
+                        #expect(loaded.generation == original.generation)
+                        ServerRuntimeSettingsStore.save(original)
+                        ServerRuntimeSettingsStore.invalidateSnapshot()
+                        #expect(ServerRuntimeSettingsStore.snapshot().mtp == loaded.mtp)
+                        #expect(try #require(ServerRuntimeSettingsStore.load()).mtp == loaded.mtp)
+                    }
                 }
             }
         }
     }
 
     @Test @MainActor func coldUnrelatedSaveDoesNotClaimLegacyMTPChoice() async throws {
-        let defaults = UserDefaults.standard
-        let keys = [NativeMTPSelectionDefault.userChoseKey, NativeMTPSelectionDefault.familyDefaultKey]
-        let saved = keys.map { defaults.object(forKey: $0) }
-        defer { for (key, value) in zip(keys, saved) { defaults.set(value, forKey: key) } }
-        for mode in [VMLXMTPServerMode.forceOn, .off] {
-            let dir = try makeTempDirectory()
-            try await withOverriddenDirectory(dir) {
-                defaults.set(false, forKey: NativeMTPSelectionDefault.userChoseKey)
-                defaults.set(true, forKey: NativeMTPSelectionDefault.familyDefaultKey)
-                var settings = VMLXServerRuntimeSettings()
-                settings.mtp = .init(mode: mode, explicitDepth: 3)
-                try writeSettings(settings, to: dir)
-                ServerRuntimeSettingsStore.invalidateSnapshot()
-                settings.network.port = (settings.network.port ?? ServerConfiguration.default.port) + 1
-                ServerRuntimeSettingsStore.save(settings)
-                #expect(!defaults.bool(forKey: NativeMTPSelectionDefault.userChoseKey))
-                #expect(defaults.bool(forKey: NativeMTPSelectionDefault.familyDefaultKey))
-                ServerRuntimeSettingsStore.invalidateSnapshot()
-                let loaded = try #require(ServerRuntimeSettingsStore.load())
-                #expect(loaded.network.port == settings.network.port)
-                #expect(loaded.mtp.mode == .familyDefault)
-                #expect(loaded.mtp.explicitDepth == nil)
-                #expect(loaded.mtp.draftTokenLimit == nil)
+        let suiteName = "MTPColdSave-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        try await ServerRuntimeSettingsStore.$mtpDefaultsOverrideForTests.withValue(.init(defaults: defaults)) {
+            for mode in [VMLXMTPServerMode.forceOn, .off] {
+                let dir = try makeTempDirectory()
+                try await withOverriddenDirectory(dir) {
+                    defaults.set(false, forKey: NativeMTPSelectionDefault.userChoseKey)
+                    defaults.set(true, forKey: NativeMTPSelectionDefault.familyDefaultKey)
+                    var settings = VMLXServerRuntimeSettings()
+                    settings.mtp = .init(mode: mode, explicitDepth: 3)
+                    try writeSettings(settings, to: dir)
+                    ServerRuntimeSettingsStore.invalidateSnapshot()
+                    settings.network.port = (settings.network.port ?? ServerConfiguration.default.port) + 1
+                    ServerRuntimeSettingsStore.save(settings)
+                    #expect(!defaults.bool(forKey: NativeMTPSelectionDefault.userChoseKey))
+                    #expect(defaults.bool(forKey: NativeMTPSelectionDefault.familyDefaultKey))
+                    ServerRuntimeSettingsStore.invalidateSnapshot()
+                    let loaded = try #require(ServerRuntimeSettingsStore.load())
+                    #expect(loaded.network.port == settings.network.port)
+                    #expect(loaded.mtp.mode == .familyDefault)
+                    #expect(loaded.mtp.explicitDepth == nil)
+                    #expect(loaded.mtp.draftTokenLimit == nil)
+                }
             }
         }
     }
 
     @Test @MainActor func apiOnlyColdLoadRetiresOwnedD3WithoutChatSelection() async throws {
-        let defaults = UserDefaults.standard
-        let keys = [NativeMTPSelectionDefault.userChoseKey, NativeMTPSelectionDefault.familyDefaultKey]
-        let saved = keys.map { defaults.object(forKey: $0) }
-        defer {
-            for (key, value) in zip(keys, saved) { defaults.set(value, forKey: key) }
-        }
-        let dir = try makeTempDirectory()
-        try await withOverriddenDirectory(dir) {
-            defaults.set(false, forKey: NativeMTPSelectionDefault.userChoseKey)
-            defaults.set(true, forKey: NativeMTPSelectionDefault.familyDefaultKey)
-            var settings = VMLXServerRuntimeSettings()
-            settings.mtp = .init(mode: .forceOn, explicitDepth: 3)
-            try writeSettings(settings, to: dir)
-            ServerRuntimeSettingsStore.invalidateSnapshot()
-            #expect(ServerRuntimeSettingsStore.snapshot().mtp.mode == .familyDefault)
-            #expect(try #require(ServerRuntimeSettingsStore.load()).mtp.mode == .familyDefault)
-            settings.mtp = .init(mode: .auto)
-            ServerRuntimeSettingsStore.save(settings)
-            ServerRuntimeSettingsStore.invalidateSnapshot()
-            #expect(ServerRuntimeSettingsStore.snapshot().mtp.mode == .auto)
+        let suiteName = "MTPAPIColdLoad-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        try await ServerRuntimeSettingsStore.$mtpDefaultsOverrideForTests.withValue(.init(defaults: defaults)) {
+            let dir = try makeTempDirectory()
+            try await withOverriddenDirectory(dir) {
+                defaults.set(false, forKey: NativeMTPSelectionDefault.userChoseKey)
+                defaults.set(true, forKey: NativeMTPSelectionDefault.familyDefaultKey)
+                var settings = VMLXServerRuntimeSettings()
+                settings.mtp = .init(mode: .forceOn, explicitDepth: 3)
+                try writeSettings(settings, to: dir)
+                ServerRuntimeSettingsStore.invalidateSnapshot()
+                #expect(ServerRuntimeSettingsStore.snapshot().mtp.mode == .familyDefault)
+                #expect(try #require(ServerRuntimeSettingsStore.load()).mtp.mode == .familyDefault)
+                settings.mtp = .init(mode: .auto)
+                ServerRuntimeSettingsStore.save(settings)
+                ServerRuntimeSettingsStore.invalidateSnapshot()
+                #expect(ServerRuntimeSettingsStore.snapshot().mtp.mode == .auto)
+            }
         }
     }
 
