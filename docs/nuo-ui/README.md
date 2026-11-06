@@ -9,7 +9,7 @@
 
 阶段一落地了什么、怎么回滚，见 [`../NUO_UI_PHASE1.md`](../NUO_UI_PHASE1.md)。
 
-## 快照的三点须知
+## 快照的四点须知
 
 1. **`DESIGN_SPEC.md` §9.1 里写着「已落地（未提交）」——那是快照当时（2026-11-04）的状态。**
    实际已在 `28aeedc4e` 提交。快照保持原样不改，是为了让它和交付包对得上；
@@ -19,3 +19,6 @@
    `~/Pictures/Nuo-UI/research/ui-inventory.md` 查。
 3. **交付包整包（原型 HTML、截图、可编译令牌包）只存在于 `~/Pictures/Nuo-UI/`。**
    本仓只收了设计规范与决策，因为它们是后续阶段的依据；原型的权威副本不在仓内。
+4. **`DESIGN_SPEC.md:482` 提到的 `PHASE1_LANDED.md` 不在仓内。** 它是交付包
+   （`~/Pictures/Nuo-UI/`）里的副本；仓内读同一份内容的对应文档是
+   [`../NUO_UI_PHASE1.md`](../NUO_UI_PHASE1.md)。快照逐字保留，不改链接。

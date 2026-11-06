@@ -4,7 +4,11 @@ Status: implemented
 
 The accepted decision is
 [ADR-Nuo-002](../../adr/ADR-Nuo-002-orchestrator-mailbox-grokbot-path.md).
-P0 is the mailbox. This note records P1 only. P2–P4 are not implemented.
+P0 is the mailbox. This note records P1 only. At the time of this note P2–P4
+were not implemented. P2 (approval breakpoints) and P3 (demo to skill) have
+since landed — see [P2](2026-11-05-approval-breakpoints-p2.md) and
+[P3](2026-11-05-demo-skill-p3.md). P4 (mesh gate) is still untriggered: there
+is no mesh code.
 
 ## Problem
 
@@ -48,4 +52,6 @@ false. Selecting the shared strategy throws. No shared
 Agent A can write an agreed path and a new service instance lets Agent B
 read those bytes. An outsider write or an unlisted path stays pending.
 A mismatched approval, a self-approval, and an envelope do not publish.
-P2–P4 and the Router credits decision are unchanged.
+At the time of this note P2–P4 and the Router credits decision were
+unchanged. P2 and P3 have since landed (see the phase notes above); P4 is
+still untriggered.

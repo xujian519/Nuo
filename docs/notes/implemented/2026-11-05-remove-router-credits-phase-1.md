@@ -4,7 +4,10 @@ Status: implemented
 
 The accepted decision is
 [ADR-Nuo-001](../../adr/ADR-Nuo-001-remove-router-credits-and-cloud-sync.md).
-This note records Phase 1 and Phase 2. Phase 3 is not implemented.
+This note records Phase 1 and Phase 2. At the time of this note Phase 3 was
+not implemented; it landed later in `b9414a8e3` (see the Phase 3 section
+below and "Phase 3 — hard removal of the credits client (landed)" in the
+ADR).
 
 ## Problem
 
@@ -88,5 +91,6 @@ choose a replacement.
 
 New and upgraded installs that never wrote the key keep local Identity, local
 models, and BYOK. They do not start credits or workspace sync traffic, and
-they do not complete, search, or generate media through the Router. Phase 3
-still has to delete the source.
+they do not complete, search, or generate media through the Router. At the
+time of this note Phase 3 still had to delete the source; that deletion has
+since landed in `b9414a8e3`.

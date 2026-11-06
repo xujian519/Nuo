@@ -61,6 +61,8 @@ The on-disk file is `OsaurusPaths.directedMailboxFile()`
 (`collaboration/mailbox.json`). It is not a row in an agent's database.
 
 P0 has no Settings row and no chat tool. The contract is the service.
+Superseded by the 2026-11-06 appendix below: a Settings row and a
+model-visible tool now exist.
 
 ## P0 scope
 
@@ -129,7 +131,8 @@ P4 is not triggered.
 - True Mesh or ROOM. The P4 gate is not triggered; see the appendix.
   There is no mesh code.
 - Opening `host.dispatch` so one agent runs as another.
-- A Settings control or a model-visible mailbox tool.
+- A Settings control or a model-visible mailbox tool. Superseded by the
+  2026-11-06 appendix below.
 - Router credits, cloud sync, Identity, and BYOK (ADR-Nuo-001).
 
 ## Leftover risks
@@ -138,12 +141,14 @@ These stay future work. This ADR does not expand into them.
 
 - Without a UI, operators cannot edit the allowlist except through the
   service. Adding a setting later has to update the settings catalog.
+  Superseded by the 2026-11-06 appendix below.
 - The depth ceiling is hard-clamped at 2. Raising it needs its own
   decision; a hand-edited `maxDepth` does not.
 - Project memory namespaces are unchanged and are not granted by the
   mailbox. A later design has to say whether a bot may read a project.
 - Envelope text is marked untrusted, but no model runner consumes the
   mailbox yet. The runner must keep treating the body as data.
+  Superseded by the 2026-11-06 appendix below.
 - Live app proof of the mailbox is not part of P0.
 
 ## Appendix: P1 shared workspace (authorized 2026-11-05)
@@ -247,3 +252,100 @@ P4 would be a true Mesh or ROOM: at least three long-lived bots that
 need a two-hop collaboration the Orchestrator does not sit on. That
 evidence is not present. This appendix does not add mesh code, `bot_send`,
 or a ROOM. Directed mailbox rules from P0 still apply.
+
+## Appendix: mailbox Settings row and model-visible tool (authorized 2026-11-06)
+
+P0 shipped the service and stopped there. The allowlist could be changed
+only by hand-editing `collaboration/mailbox.json` or by calling the
+service, and no model could call `send`, `reply`, or `inbox`. The contract
+existed; no agent could use it, and no operator could administer it. This
+slice closes both gaps. It adds no admission rule and removes none:
+`DirectedMailboxService` is still the only write path and the only gate.
+
+### Settings row
+
+`MailboxSettingsSection` is the last section of Settings → Orchestrator,
+titled `Directed Mailbox`, anchored `settings.orchestrator.mailbox`. It
+lists the persisted edges and adds or removes them. Both actions call
+`DirectedMailboxCoordinator.addEdge` / `removeEdge`, which forward to
+`DirectedMailboxService.replaceAllowlist`. The view never writes the file.
+The section also prints the per-run caps as read-only text.
+
+The From picker excludes the Orchestrator. An edge with the Orchestrator as
+sender is dead weight, because it reaches any target without one. Both
+pickers list every agent, and Add stays disabled while the two ends match
+or one is empty. A service that failed to load shows its error string in
+the section instead of crashing.
+
+Catalog sync, all four in the same change:
+
+- `SettingsSearchIndex` row `settings.orchestrator.mailbox`, tab
+  `orchestrator`, section and title `Directed Mailbox`, plus aliases and a
+  disambiguation against delegation targets.
+- the same id as the section anchor.
+- a `guide-settings.md` row naming the same path.
+- the on-screen title in `SettingsSearchSelfFindProbe`.
+
+A row without the anchor does not scroll, and a guide path that disagrees
+with the catalog is a bug.
+
+### Model-visible tool
+
+`osaurus_mailbox` is a built-in with three actions: `send`, `reply`,
+`inbox`. The caller is `ChatExecutionContext.currentAgentId`, resolved
+through `AgentManager` to `local:<uuid>`. No chat context means
+`unavailable`. The tool parses arguments and forwards to the coordinator;
+it decides no admission rule itself.
+
+- `send` opens a run, or continues the run of the parent envelope.
+- `reply` returns to that envelope's sender only. The service checks the
+  hop again.
+- `inbox` defaults to the caller. `agent_id` names another owner, and only
+  the Orchestrator may pass it.
+
+Visibility:
+
+- The Orchestrator always sees the tool; it sits on the baseline schema.
+- A custom agent sees it only when its participant id is on either end of
+  the cached allowlist.
+- A bounded subagent child never sees it, the same structural exclusion as
+  `spawn_agent`.
+
+The composer strip exempts an explicit `capabilities_load` pick, so a
+schema can appear ahead of an edge. The service still rejects that send.
+
+Caps, depth ceiling, cycles, and the allowlist are unchanged. `send` and
+`reply` cost one tool call each. Tokens stay with the turn loop, so the
+tool records zero. Every inbox entry carries `untrusted: true` and the
+result carries a standing warning; the body stays data. Service failures
+map to typed envelopes with a stable `error_code`, including
+`unauthorized_edge`, `unknown_envelope`, `depth_exceeded`, `cycle`, and
+each cap.
+
+### Still not done
+
+- P4 mesh or ROOM. No `bot_send`, no room, and no three-bot evidence.
+- A depth ceiling above 2.
+- Cross-agent memory partition grants.
+- The `host.dispatch` contract. Identity, local models, and BYOK stay
+  outside this path.
+
+### New leftover
+
+The coordinator caches the allowlist at init and refreshes it only after a
+UI add or remove (`DirectedMailboxCoordinator.swift:20,37-40,59`). The
+service reads the file at init as well and rewrites the whole snapshot on
+every save. A hand edit or a second writer is therefore invisible to the
+gate, and the next in-app save overwrites it. The prompt gate can lag the
+file in both directions: a tool that stays visible after an external
+removal, or a tool that stays hidden after an external addition. The
+service still rejects the first case at call time.
+
+This record claims no live app proof. The eval row now exists:
+`Packages/OsaurusEvals/Suites/Mailbox/` holds five deterministic cases in
+domain `mailbox`. They cover an unauthorized edge, the depth ceiling, a
+cycle, a spent subtask cap whose reply still delivers, and a tampered
+trust bit that reads back untrusted. `floors.json` pins `"Mailbox"` at
+1.0. The unit regression set is
+`Packages/OsaurusCore/Tests/AgentCollaboration/OsaurusMailboxToolTests.swift`
+(eleven cases, temp-directory mailbox).

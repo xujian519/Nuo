@@ -1,6 +1,6 @@
 # Nuo 品牌改造方案
 
-> 状态：已确认，Phase 0 已落地
+> 状态（2026-11-06 核对）：已确认。Phase 0–1 已落地（Phase 1 于 2026-11-04 完成编译验收）；Phase 2 源码完成、缺实机证明；Phase 3 除 B 类外部事实外已落地；Phase 4/5 部分落地；Phase 6 受仓库外凭据阻塞。
 > 仓库：`/Users/xujian/projects/Nuo`（Osaurus 的 fork）
 > 基线提交：`c0da268a`
 > 相关文件：`scripts/brand/`（可执行层）、`docs/brand/INTERNAL-IDENTIFIERS.md`（冻结契约）、`docs/brand/UPSTREAM-SYNC.md`（上游同步 Runbook）
@@ -166,7 +166,7 @@ scripts/brand/snapshot.sh --write                  # 阶段推进后重测基线
 - `AGENTS.md` 增加一条硬规则引用。
 - 验收：`apply.sh` 对当前树实际产生 65 处变更、再跑一次 0 处（幂等）、`verify.sh` 退出 0 且 <1s；人为往 `Makefile` 写一行 `Osaurus` 后 `verify.sh` 退出 1；把任一规则翻成 `enforced: true` 后 `verify.sh` 退出 1。三条均已实测。
 
-### Phase 1 — 身份与产物（已落地，待编译验收）
+### Phase 1 — 身份与产物（已落地，2026-11-04 完成编译验收；记录见下方 Phase 2 状态行）
 
 范围（`rules/10-app-identity.json` + `11-artifact-chain.json` + `12-cli-surface.json` + 手写补丁）：
 

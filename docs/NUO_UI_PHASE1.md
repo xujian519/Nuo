@@ -21,8 +21,9 @@
 | `Tests/Theme/ThemeSystemAccentTests.swift` | 改 | 跟随行为从"默认开启"改为"需要显式开启"；identity 测试改用主题自身的 accent |
 | `Models/Theme/NuoThemeSkin.swift`（阶段 1.5） | 改 | 新增 `paperGlass` / `nightGlass`：玻璃全关 |
 | `Views/Management/SharedSidebarComponents.swift`（阶段 1.5） | 改 | 侧栏底面 `cardBackground` → `sidebarBackground`（1 行） |
+| `Views/Theme/ThemesView.swift`（阶段 1.5） | 改 | 只有当前生效的主题卡保留朱红「应用」按钮，其余卡片改为中性描边按钮（44 增 / 4 删，`28aeedc4e`） |
 
-**没有动的**：`ThemeProtocol`、`LightTheme`/`DarkTheme`（仍供引导窗使用）、`CustomizableTheme`、任何视图文件、任何 `theme.*Color` 调用点。
+**没有动的**：`ThemeProtocol`、`LightTheme`/`DarkTheme`（仍供引导窗使用）、`CustomizableTheme`、除上述 `SharedSidebarComponents.swift` 与 `ThemesView.swift` 之外的任何视图文件、任何 `theme.*Color` 调用点。
 
 ---
 
@@ -114,11 +115,11 @@ swift test --package-path Packages/OsaurusCore --filter Theme
 
 → 两个预设都设置为三个全 `false`，其余参数（material / blur / opacity / tint / edgeLight / backing）**刻意保留旧值**：用户在主题编辑器里重新打开玻璃时拿到的是可用的一组值，而不是一堆 0。
 
-### 5.3 一处视图改动：侧栏底色
+### 5.3 两处视图改动：侧栏底色
 
 `SidebarBackground` 的第 1 层此前用 `theme.cardBackground`。关掉玻璃后这一层变成不透明，于是**侧栏比画布还亮**（`#FCFAF6` vs `#F7F4ED`）——视觉上反客为主：侧栏是"被推远"的一层，卡片才该比画布亮。
 
-改为 `theme.sidebarBackground`（`#EFEAE0`，比画布沉一档）。这是阶段一唯一的视图改动，1 行 + 3 行注释。
+改为 `theme.sidebarBackground`（`#EFEAE0`，比画布沉一档）。阶段一的视图改动共两处：这一行的侧栏底色（1 行 + 3 行注释），以及主题卡的「应用」按钮去红（`Views/Theme/ThemesView.swift`，44 增 / 4 删，`28aeedc4e`）。
 
 **影响面要讲清楚**：这个组件被聊天侧栏、检查器、设置侧栏共用，所以 **8 个内建主题 + 所有用户主题的侧栏底色都会随之改变**（从"卡片色"变成各自主题里既有的 `sidebarBackground`）。多数主题里这两者只差几个百分点且方向正确，但这是一个**跨主题**的视觉变化，如果不想牵连旧主题，可以改成"仅玻璃关闭时用 `sidebarBackground`"的条件式——我选择了统一，因为两套底色逻辑本身就是这个组件的历史债务。
 
