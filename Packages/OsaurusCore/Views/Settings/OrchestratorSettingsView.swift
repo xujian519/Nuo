@@ -68,6 +68,8 @@ struct OrchestratorSettingsView: View {
                                 .settingsLandingAnchor("settings.orchestrator.delegation")
 
                             OrchestratorDelegationsSection()
+
+                            MailboxSettingsSection()
                         }
                         .padding(.horizontal, 24)
                         .padding(.vertical, 24)

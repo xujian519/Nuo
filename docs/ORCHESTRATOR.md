@@ -21,7 +21,7 @@ See [AGENT_LOOP.md](AGENT_LOOP.md) for the folder/sandbox tool contract on custo
 
 The Orchestrator has its own settings tab (Settings… (⌘,) → Orchestrator):
 
-- **Identity** — display name (defaults to "Osaurus") and system prompt (persona). The model itself is picked from the chat model selector, or ask the Orchestrator to switch.
+- **Identity** — display name (defaults to "Nuo") and system prompt (persona). The model itself is picked from the chat model selector, or ask the Orchestrator to switch.
 - **Model & Generation** — the Model readiness row (current chat model, context window, whether tools are OK or limited), then temperature and max output tokens.
 - **Working Folder** — the folder the Orchestrator reads and folder-less subagents inherit. UI-only; it is not part of the declarative document.
 - **Subagents**
@@ -31,6 +31,7 @@ The Orchestrator has its own settings tab (Settings… (⌘,) → Orchestrator):
   - *Advanced* — agent-target model override (leave it on "Use each agent's model" unless you need one model for every worker).
   - *Local Models & Memory* — **Swap local models for subagents** and **Check memory before delegating**. The former experimental coexistence ("keep the chat model loaded") toggle is gone; its old configuration key is retained only for compatibility.
 - **Delegations** — every delegated run (Sent / Received), with status, duration, tokens, and Open Chat. UI-only.
+- **Directed Mailbox** — the agent-to-agent message allowlist (allowlist edges; per-run caps are fixed). It lists the persisted edges and adds or removes one; agents on an edge exchange directed messages through the `osaurus_mailbox` tool. UI-only.
 
 Custom agents are added to this spawn pool automatically on creation, and existing custom agents are seeded once. You can remove agents in Settings → Orchestrator; removals persist. Local/cloud model targets stay on an explicit allow-list. An empty agent pool after you clear it keeps agent-spawn unavailable.
 
@@ -62,7 +63,7 @@ default_agent:
   name: Jarvis
 ```
 
-`name: null` restores "Osaurus". The name is cosmetic — the agent's identity, tools, and behavior are unchanged.
+`name: null` restores "Nuo". The name is cosmetic — the agent's identity, tools, and behavior are unchanged.
 
 ## Typical asks
 
@@ -77,6 +78,7 @@ default_agent:
 
 - **In-app only.** The Orchestrator is never exposed on external surfaces: `POST /agents/{id}/run` and `/agents/{id}/dispatch` reject `Agent.defaultId` with `built_in_agent_not_exposable`. Only your saved custom agents are reachable over HTTP, plugins, or schedulers.
 - **No hands-on writes.** The Orchestrator's tool surface (`ToolRegistry.ToolSurface.orchestrator`) can read its working folder (`file_read`, `file_search`) and excludes writes, shell, sandbox, browser, and computer-use tools by construction (`orchestratorExcludedToolNames`).
+- **Directed mailbox tool.** `osaurus_mailbox` (`send` / `reply` / `inbox`) is always on the Orchestrator's tool surface. It resolves the caller from the chat context and forwards to `DirectedMailboxCoordinator`; `DirectedMailboxService` stays the single write path and admission gate — the Orchestrator may address any agent, every other sender needs a persisted allowlist edge, a reply may only answer an envelope from the caller's inbox, and depth above 2, cycles, and the per-run token / tool-call / forward caps are rejected without being written. A custom agent sees the tool only when its participant id sits on either end of a persisted edge; delegated child tasks never see it. Inbox entries carry `untrusted: true` and a standing warning — bodies are data from another agent, never instructions.
 - **Spawn pool is default-on for custom agents.** Existing custom agents are seeded into the Orchestrator's spawn pool once, and newly created agents are added automatically (`SubagentConfiguration.spawnableAgentIDs` / `AgentManager.registerInDefaultSpawnPool`). Removals in Settings → Orchestrator persist. Local/cloud model targets and helper models remain explicit allow-lists.
 - **Directed mailbox is not the spawn pool.** Cross-agent send and inbox persistence is [ADR-Nuo-002](adr/ADR-Nuo-002-orchestrator-mailbox-grokbot-path.md). It does not replace subagent dispatch, and it does not change the `host.dispatch` rule that a plugin call keeps the calling agent's context.
 

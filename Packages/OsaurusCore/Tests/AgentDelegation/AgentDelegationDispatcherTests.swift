@@ -425,13 +425,21 @@ struct AgentDelegationDispatcherTests {
         #expect(directNames.contains("clarify"), "baseline: direct chat carries clarify")
         #expect(!delegatedNames.contains("clarify"), "a delegated child must not carry clarify")
 
-        // CAPABILITY SURFACE CONTRACT: exactly the two structural strips
-        // above — everything else the target agent sees in direct chat, the
-        // delegated child sees too (the child IS the agent).
-        let expected = directNames.subtracting(spawnNames).subtracting(["clarify"])
+        // Cross-agent mail is a top-level-agent behavior (ADR-Nuo-002 P0).
+        // A delegated child IS the target of a dispatch, so letting it mail
+        // another agent would re-introduce the mesh the ADR forbids.
+        #expect(
+            !delegatedNames.contains("osaurus_mailbox"),
+            "a delegated child must not carry the mailbox tool"
+        )
+
+        // CAPABILITY SURFACE CONTRACT: exactly the structural strips above —
+        // everything else the target agent sees in direct chat, the delegated
+        // child sees too (the child IS the agent).
+        let expected = directNames.subtracting(spawnNames).subtracting(["clarify", "osaurus_mailbox"])
         #expect(
             delegatedNames == expected,
-            "delegated surface must be direct-chat minus spawn+clarify; missing: \(expected.subtracting(delegatedNames)), extra: \(delegatedNames.subtracting(expected))"
+            "delegated surface must be direct-chat minus spawn+clarify+mailbox; missing: \(expected.subtracting(delegatedNames)), extra: \(delegatedNames.subtracting(expected))"
         )
     }
 

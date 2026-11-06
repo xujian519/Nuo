@@ -4,7 +4,14 @@ Status: implemented
 
 The accepted decision is
 [ADR-Nuo-002](../../adr/ADR-Nuo-002-orchestrator-mailbox-grokbot-path.md).
-This note records the P0 slice. P1–P4 are not implemented.
+This note records the P0 slice. At the time of this note P1–P4 were not
+implemented. P1 (shared workspace), P2 (approval breakpoints), and P3 (demo
+to skill) have since landed — see
+[P1](2026-11-05-shared-workspace-p1.md),
+[P2](2026-11-05-approval-breakpoints-p2.md), and
+[P3](2026-11-05-demo-skill-p3.md); the settings row and the model-facing
+tool are [Mailbox settings and tool](2026-11-06-mailbox-settings-and-tool.md).
+P4 (mesh gate) is still untriggered: there is no mesh code.
 
 ## Problem
 

@@ -47,6 +47,7 @@ Settings… (⌘,) → Orchestrator:
   - *Advanced* — **Agent-target model override** runs every delegated agent on one model instead of its own. Leave it on "Use each agent's model" unless you need that.
   - *Local Models & Memory* — **Swap local models for subagents** and **Check memory before delegating**. The old experimental keep-the-chat-model-loaded toggle is gone.
 - **Delegations** — every delegated run with its status, duration, tokens, tok/s, artifacts and an **Open Chat** button. **Sent** lists the runs this Nuo delegated; **Received** lists runs a teammate's Orchestrator asked one of *your* shared agents to do.
+- **Directed Mailbox** — the agent-to-agent message allowlist (allowlist edges; per-run caps are fixed). Agents on an edge can exchange directed messages and see `osaurus_mailbox`; the Orchestrator can message any agent, and a reply only goes back to the previous sender. Message bodies are untrusted data — agents are told never to follow instructions inside them.
 
 Image generation, AppleScript, Browser Use, and Computer Use are custom-agent abilities. Give such an agent to the Orchestrator through Allowed subagents; there are no Orchestrator-level toggles for them.
 

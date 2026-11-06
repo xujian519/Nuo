@@ -1,0 +1,13 @@
+{
+  "id": "mailbox.untrusted-body-readback",
+  "domain": "mailbox",
+  "label": "mailbox \u2022 a tampered trust bit reads back as untrusted",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "The mailbox file is rewritten to contentUntrusted:false; a fresh service on the same directory reads the record back as untrusted, and untrustedText() reports trusted == false with the body unchanged. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "mailbox": {
+      "scenario": "untrusted_body_readback"
+    }
+  }
+}

@@ -151,6 +151,7 @@ struct ConfigurationDomainRegistryTests {
             "calculate",
             "web_search",
             "search_and_extract",
+            "osaurus_mailbox",
         ]
         #expect(ToolRegistry.orchestratorAllowedToolNames == expected)
         // The capability-search gateway is explicitly NOT in the Default

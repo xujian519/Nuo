@@ -77,6 +77,7 @@ separate from updating the Nuo application.
 | Subagent limits / "agents end too fast" | Limits (Max output tokens per subagent, Max turns per subagent, Time limit per subagent) | Settings… (⌘,) → Orchestrator → Subagents → Limits |
 | Orchestrator folder / file access | Working Folder | Settings… (⌘,) → Orchestrator → Working Folder (or the chat Folder chip) |
 | Ask before delegating | Permission / Permission for shared (workspace) agents | Settings… (⌘,) → Orchestrator → Subagents → Permission |
+| Agent-to-agent messages / mailbox allowlist | Directed Mailbox (allowlist edges; per-run caps are fixed) | Settings… (⌘,) → Orchestrator → Directed Mailbox |
 | Max tokens (API defaults) | Generation Defaults → Max Tokens | Settings… (⌘,) → Server → Settings → Sampling Defaults |
 | KV / cache window | KV Retention Override | Same Cache panel as the context cap |
 | Audit log / activity history / "what was sent to the cloud" | Insights (dashboard) and Keep Activity History / Store Prompts and Responses (policy) | Settings… (⌘,) → Insights; Settings… (⌘,) → Privacy → Activity Log |

@@ -4,7 +4,10 @@ Status: implemented
 
 The accepted decision is
 [ADR-Nuo-002](../../adr/ADR-Nuo-002-orchestrator-mailbox-grokbot-path.md).
-This note records P2 only. P3 and P4 are not implemented.
+This note records P2 only. At the time of this note P3 and P4 were not
+implemented. P3 (demo to skill) has since landed — see
+[P3](2026-11-05-demo-skill-p3.md). P4 (mesh gate) is still untriggered: there
+is no mesh code.
 
 ## Problem
 

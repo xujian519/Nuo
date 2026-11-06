@@ -1,0 +1,13 @@
+{
+  "id": "mailbox.depth-ceiling-rejected",
+  "domain": "mailbox",
+  "label": "mailbox \u2022 depth above 2 is rejected, not clamped into delivery",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "A run opened with maxDepth 9 stores the ceiling 2; Orchestrator -> A -> B is depth 2 and B -> C is rejected with depth 3. The rejected hop is not delivered and spends no subtask. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "mailbox": {
+      "scenario": "depth_ceiling_rejected"
+    }
+  }
+}

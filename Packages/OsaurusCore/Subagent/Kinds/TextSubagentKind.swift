@@ -1481,7 +1481,10 @@ final class TextSubagentKind:
         // `prompt_working_folder` is excluded for the same reason: it opens a
         // picker on the LAUNCHING chat's window and re-roots that chat, which
         // a bounded worker must never do on its own.
-        return name == "clarify" || name == PromptWorkingFolderTool.toolName
+        // `osaurus_mailbox` stays out of bounded children for the same
+        // recursion-guard reason as spawn: cross-agent mail is a top-level
+        // agent behavior (ADR-Nuo-002 P0 — no mesh).
+        return name == "clarify" || name == PromptWorkingFolderTool.toolName || name == "osaurus_mailbox"
     }
 
     /// The target agent's cancellation-safe enabled tools, as the child's

@@ -289,6 +289,11 @@ public actor DirectedMailboxService {
         snapshot.records.first { $0.envelope.id == id }
     }
 
+    /// 按信封 id 查记录。工具与 coordinator 用它推导 runId；只读，不绕过任何准入。
+    public func record(for envelopeId: UUID) -> DirectedMailboxRecord? {
+        record(id: envelopeId)
+    }
+
     private struct Frontier {
         var visited: [String]
         var holder: String?
