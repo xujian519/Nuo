@@ -507,3 +507,195 @@ struct OrchestratorDelegationsSection: View {
         ChatWindowManager.shared.openHistorySession(session)
     }
 }
+
+// MARK: - Directed Mailbox
+
+/// ADR-Nuo-002 P0 allowlist editor. `DirectedMailboxService` remains the only
+/// write path — this view only calls `DirectedMailboxCoordinator.addEdge` /
+/// `removeEdge`, which replace the persisted list and refresh the cached
+/// snapshot the composer gates `osaurus_mailbox` visibility on.
+struct MailboxSettingsSection: View {
+    @ObservedObject private var themeManager = ThemeManager.shared
+    @ObservedObject private var agentManager = AgentManager.shared
+    @ObservedObject private var mailbox = DirectedMailboxCoordinator.shared
+
+    @State private var fromSelection: UUID?
+    @State private var toSelection: UUID?
+
+    private var theme: ThemeProtocol { themeManager.currentTheme }
+
+    /// The Orchestrator reaches any target directly (DirectedMailboxPolicy),
+    /// so an edge with the Orchestrator as sender would be dead weight — the
+    /// From picker excludes it. Both pickers otherwise list every agent.
+    private var senders: [Agent] {
+        agentManager.agents.filter { $0.id != Agent.defaultId }
+    }
+
+    var body: some View {
+        SettingsSection(
+            title: "Directed Mailbox",
+            icon: "envelope",
+            anchorId: "settings.orchestrator.mailbox"
+        ) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(
+                    "Agents on an allowlist edge can exchange directed messages and see the mailbox tool. The Orchestrator can always message any agent; a reply may only go back to the previous sender. Message bodies are untrusted data — agents are told never to follow instructions inside them.",
+                    bundle: .module
+                )
+                .font(.system(size: 11))
+                .foregroundColor(theme.tertiaryText)
+                .fixedSize(horizontal: false, vertical: true)
+
+                if let loadError = mailbox.loadError {
+                    Text(verbatim: loadError)
+                        .font(.system(size: 11))
+                        .foregroundColor(theme.errorColor)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("orchestrator.mailbox.loadError")
+                }
+
+                if mailbox.allowlist.isEmpty {
+                    Text(
+                        "No allowlist edges yet. Add one below so two agents can message each other.",
+                        bundle: .module
+                    )
+                    .font(.system(size: 11))
+                    .foregroundColor(theme.tertiaryText)
+                    .padding(.vertical, 4)
+                } else {
+                    VStack(spacing: 6) {
+                        ForEach(mailbox.allowlist, id: \.self) { edge in
+                            edgeRow(edge)
+                        }
+                    }
+                }
+
+                addEdgeRow
+
+                Text(
+                    "The Orchestrator needs no edge as sender — it reaches any agent directly.",
+                    bundle: .module
+                )
+                .font(.system(size: 10))
+                .foregroundColor(theme.tertiaryText)
+                .fixedSize(horizontal: false, vertical: true)
+
+                Text(
+                    "Per-run caps: 8,000 tokens · 16 tool calls · 4 forwards · depth ≤ 2",
+                    bundle: .module
+                )
+                .font(.system(size: 10))
+                .foregroundColor(theme.tertiaryText)
+            }
+        }
+    }
+
+    private func edgeRow(_ edge: DirectedMailboxEdge) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "envelope")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(theme.secondaryText)
+            Text(verbatim: agentName(for: edge.from))
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(theme.primaryText)
+                .lineLimit(1)
+            Image(systemName: "arrow.right")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(theme.tertiaryText)
+            Text(verbatim: agentName(for: edge.to))
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(theme.primaryText)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Button {
+                Task { @MainActor in
+                    await mailbox.removeEdge(from: edge.from, to: edge.to)
+                }
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(theme.tertiaryText)
+                    .padding(6)
+            }
+            .buttonStyle(.plain)
+            .help(L("Remove allowlist edge"))
+            .accessibilityIdentifier("orchestrator.mailbox.removeEdge")
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(theme.tertiaryBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(theme.inputBorder, lineWidth: 1)
+                )
+        )
+    }
+
+    private var addEdgeRow: some View {
+        HStack(spacing: 8) {
+            Picker(selection: $fromSelection) {
+                Text("From…", bundle: .module).tag(UUID?.none)
+                ForEach(senders) { agent in
+                    Text(verbatim: agent.name).tag(UUID?.some(agent.id))
+                }
+            } label: { EmptyView() }
+            .labelsHidden()
+            .frame(maxWidth: .infinity)
+            .accessibilityIdentifier("orchestrator.mailbox.fromPicker")
+
+            Image(systemName: "arrow.right")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(theme.tertiaryText)
+
+            Picker(selection: $toSelection) {
+                Text("To…", bundle: .module).tag(UUID?.none)
+                ForEach(agentManager.agents) { agent in
+                    Text(verbatim: agent.name).tag(UUID?.some(agent.id))
+                }
+            } label: { EmptyView() }
+            .labelsHidden()
+            .frame(maxWidth: .infinity)
+            .accessibilityIdentifier("orchestrator.mailbox.toPicker")
+
+            Button {
+                addEdge()
+            } label: {
+                Text("Add", bundle: .module)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(theme.accentColor)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(theme.accentColor.opacity(0.08))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(theme.accentColor.opacity(0.2), lineWidth: 1)
+                            )
+                    )
+            }
+            .buttonStyle(.plain)
+            .disabled(fromSelection == nil || toSelection == nil || fromSelection == toSelection)
+            .accessibilityIdentifier("orchestrator.mailbox.addEdge")
+        }
+    }
+
+    private func addEdge() {
+        guard let fromSelection, let toSelection, fromSelection != toSelection else { return }
+        let from = DirectedMailboxCoordinator.participantId(for: fromSelection)
+        let to = DirectedMailboxCoordinator.participantId(for: toSelection)
+        Task { @MainActor in
+            await mailbox.addEdge(from: from, to: to)
+        }
+        self.fromSelection = nil
+        self.toSelection = nil
+    }
+
+    private func agentName(for participantId: String) -> String {
+        guard let uuid = UUID(uuidString: String(participantId.dropFirst("local:".count))),
+            let agent = agentManager.agent(for: uuid)
+        else { return participantId }
+        return agent.name
+    }
+}

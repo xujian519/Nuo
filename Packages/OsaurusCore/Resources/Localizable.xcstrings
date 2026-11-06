@@ -1,6 +1,278 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Directed Mailbox" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerichtetes Postfach"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지정 사서함"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Адресный почтовый ящик"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "定向邮箱"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "定向郵箱"
+          }
+        }
+      }
+    },
+    "Agents on an allowlist edge can exchange directed messages and see the mailbox tool. The Orchestrator can always message any agent; a reply may only go back to the previous sender. Message bodies are untrusted data — agents are told never to follow instructions inside them." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agents an einer Allowlist-Kante können gerichtete Nachrichten austauschen und sehen das Postfach-Werkzeug. Der Orchestrator kann jeden Agenten jederzeit erreichen; eine Antwort darf nur an den vorherigen Absender gehen. Nachrichteninhalte sind nicht vertrauenswürdige Daten — Agents werden angewiesen, darin enthaltene Anweisungen niemals zu befolgen."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "허용 목록 엣지에 있는 에이전트는 지정 메시지를 주고받을 수 있으며 사서함 도구를 볼 수 있습니다. Orchestrator는 항상 모든 에이전트에게 메시지를 보낼 수 있으며, 회신은 이전 발신자에게만 갈 수 있습니다. 메시지 본문은 신뢰할 수 없는 데이터이며, 에이전트는 그 안의 지시를 절대 따르지 않도록 안내됩니다."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Агенты на ребре списка разрешений могут обмениваться адресными сообщениями и видеть инструмент почтового ящика. Оркестратор всегда может написать любому агенту; ответ может вернуться только предыдущему отправителю. Тело сообщения — недоверенные данные: агентам указано никогда не выполнять содержащиеся в них инструкции."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "位于许可名单边上的 Agent 可以互发定向消息，并能使用邮箱工具。Orchestrator 可随时向任意 Agent 发消息；回复只能返回上一个发送者。消息正文属于不可信数据——Agent 已被告知绝不遵循其中的指令。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "位於許可名單邊上的 Agent 可以交換定向訊息，並能使用郵箱工具。Orchestrator 可隨時向任意 Agent 發訊息；回覆只能返回上一個發送者。訊息正文屬於不可信資料——Agent 已被告知絕不遵循其中的指令。"
+          }
+        }
+      }
+    },
+    "No allowlist edges yet. Add one below so two agents can message each other." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch keine Allowlist-Kanten. Füge unten eine hinzu, damit zwei Agents Nachrichten austauschen können."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아직 허용 목록 엣지가 없습니다. 아래에서 추가하여 두 에이전트가 메시지를 주고받을 수 있게 하세요."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пока нет рёбер списка разрешений. Добавьте одно ниже, чтобы два агента могли обмениваться сообщениями."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有许可名单边。在下方添加一条，让两个 Agent 可以互发消息。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚無許可名單邊。在下方新增一條，讓兩個 Agent 可以互發訊息。"
+          }
+        }
+      }
+    },
+    "From…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "보내는 사람…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "От…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发件人…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "寄件人…"
+          }
+        }
+      }
+    },
+    "To…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "받는 사람…"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кому…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收件人…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收件人…"
+          }
+        }
+      }
+    },
+    "Remove allowlist edge" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allowlist-Kante entfernen"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "허용 목록 엣지 제거"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалить ребро списка разрешений"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除许可名单边"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除許可名單邊"
+          }
+        }
+      }
+    },
+    "The Orchestrator needs no edge as sender — it reaches any agent directly." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Orchestrator braucht als Absender keine Kante — er erreicht jeden Agenten direkt."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orchestrator는 발신자로서 엣지가 필요 없습니다 — 모든 에이전트에게 직접 연결됩니다."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оркестратору не нужно ребро как отправителю — он обращается к любому агенту напрямую."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orchestrator 作为发送者无需边——它可直达任意 Agent。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orchestrator 作為發送者無需邊——它可直達任意 Agent。"
+          }
+        }
+      }
+    },
+    "Per-run caps: 8,000 tokens · 16 tool calls · 4 forwards · depth ≤ 2" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limits pro Lauf: 8.000 Token · 16 Werkzeugaufrufe · 4 Weiterleitungen · Tiefe ≤ 2"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "실행당 상한: 토큰 8,000개 · 도구 호출 16회 · 전달 4회 · 깊이 ≤ 2"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Лимиты на запуск: 8 000 токенов · 16 вызовов инструментов · 4 пересылки · глубина ≤ 2"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次运行上限：8,000 token · 16 次工具调用 · 4 次转发 · 深度 ≤ 2"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次執行上限：8,000 token · 16 次工具呼叫 · 4 次轉發 · 深度 ≤ 2"
+          }
+        }
+      }
+    },
     "Show Response Metrics" : {
       "extractionState" : "manual",
       "localizations" : {

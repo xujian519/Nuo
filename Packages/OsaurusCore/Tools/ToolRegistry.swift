@@ -378,6 +378,12 @@ public final class ToolRegistry: ObservableObject {
                 // `capabilities_discover` / `capabilities_load`.
                 OsaurusInspectTool(),
                 OsaurusHelpTool(),
+                // ADR-Nuo-002 P0 directed mailbox. Always loaded so the
+                // runtime can execute it; the composer strips it for custom
+                // agents whose participantId is absent from the persisted
+                // allowlist (and for delegated children), while the Default
+                // agent reaches it via `orchestratorAllowedToolNames`.
+                OsaurusMailboxTool(),
                 // Computer Use (macOS automation harness). Registered as a
                 // built-in so the runtime can execute it and ChatView can
                 // intercept its live activity feed, but the system prompt
@@ -3492,6 +3498,9 @@ extension ToolRegistry {
         configureToolNames.union([
             "todo", "complete", "clarify", "get_current_time", "calculate",
             "web_search", "search_and_extract",
+            // ADR-Nuo-002 P0: the Orchestrator can address any mailbox
+            // recipient directly, so the tool stays on its baseline schema.
+            "osaurus_mailbox",
         ])
     }
 }

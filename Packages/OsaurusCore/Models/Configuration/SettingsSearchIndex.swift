@@ -1519,6 +1519,19 @@ public enum SettingsSearchIndex {
                 ]
             ),
             .init(
+                id: "settings.orchestrator.mailbox",
+                tab: .orchestrator,
+                section: "Directed Mailbox",
+                title: "Directed Mailbox",
+                keywords: [
+                    "mailbox", "allowlist", "collaboration", "agent message",
+                    "agent to agent", "directed message", "handoff", "osaurus_mailbox",
+                    "message edge", "cross agent",
+                ],
+                disambiguation:
+                    "Agent-to-agent message allowlist — not subagent delegation targets."
+            ),
+            .init(
                 id: "privacy.tab",
                 tab: .privacy,
                 title: "Privacy Filter",

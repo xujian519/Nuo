@@ -2895,6 +2895,19 @@ public struct SystemPromptComposer: Sendable {
                     byName.removeValue(forKey: name)
                 }
             }
+            // ADR-Nuo-002 P0: directed-mailbox visibility. The Default agent
+            // (Orchestrator) is handled by `orchestratorAllowedToolNames`
+            // below; a custom agent sees the tool only when its participantId
+            // sits on either end of the persisted allowlist. Explicit picks
+            // (session load / manual tick) stay exempt — same carve-out as
+            // the other gated built-ins. `resolveTools` is @MainActor, so the
+            // coordinator's cached allowlist read is synchronous-safe.
+            if snapshot.agentId != Agent.defaultId,
+                !keep.contains("osaurus_mailbox"),
+                !DirectedMailboxCoordinator.shared.mailboxVisible(agentId: snapshot.agentId)
+            {
+                byName.removeValue(forKey: "osaurus_mailbox")
+            }
         }
 
         // Built-in Apple apps: authoritative per-agent gate. Every tool of an
@@ -2959,6 +2972,11 @@ public struct SystemPromptComposer: Sendable {
             // (`TextSubagentKind.isExcludedChildTool`). The child should
             // answer from its instructions or state assumptions instead.
             byName.removeValue(forKey: "clarify")
+            // Cross-agent mail is a top-level-agent behavior: a delegated
+            // child already IS the target of a dispatch, so letting it fan
+            // mail out further would re-introduce the mesh the ADR forbids
+            // (same recursion guard as the spawn strip above).
+            byName.removeValue(forKey: "osaurus_mailbox")
         }
         // `prompt_working_folder` opens a folder picker on the chat window:
         // only an attended chat with NO execution root can act on it (see
