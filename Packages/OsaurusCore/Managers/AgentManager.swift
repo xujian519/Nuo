@@ -579,6 +579,12 @@ public final class AgentManager: ObservableObject {
     /// Save a pre-built agent, refresh the list, and assign a cryptographic address.
     public func add(_ agent: Agent) {
         AgentStore.save(agent)
+        // A custom agent gets its private workspace at creation and copy time.
+        // Best effort: the agent record is the source of truth, and a failed
+        // mkdir must not block it.
+        if !agent.isBuiltIn {
+            AgentWorkspace.ensure(for: agent.id)
+        }
         refresh()
         registerInDefaultSpawnPool(agent)
         // KPI: a user-created agent, plus how many agents the install now

@@ -259,31 +259,36 @@ struct AgentWorkingFolderTests {
         }
     }
 
-    @Test("agent without a working folder → dispatch stays folder-less")
-    func dispatch_noFolderAnywhere_isNil() async throws {
+    @Test("agent without a working folder falls back to its private workspace")
+    func dispatch_noFolderAnywhere_usesWorkspace() async throws {
         try await ChatHistoryTestStorage.run {
             let agent = makeAgent()
             AgentManager.shared.add(agent)
             defer { Task { _ = await AgentManager.shared.delete(id: agent.id) } }
             let request = DispatchRequest(prompt: "go", agentId: agent.id, source: .schedule)
-            #expect(BackgroundTaskManager.resolveDispatchFolder(for: request) == nil)
+            let resolved = try #require(BackgroundTaskManager.resolveDispatchFolder(for: request))
+            #expect(resolved.bookmark == nil)
+            #expect(resolved.path == AgentWorkspace.directory(for: agent.id).path)
             let context = BackgroundTaskManager.shared.makeContextForTesting(request)
             #expect(context.folderBookmark == nil)
-            #expect(context.folderPath == nil)
+            #expect(context.folderPath == AgentWorkspace.directory(for: agent.id).path)
         }
     }
 
-    @Test("clearing the working folder stops seeding dispatches")
-    func dispatch_afterClear_isNil() async throws {
+    @Test("clearing the working folder falls back to the private workspace")
+    func dispatch_afterClear_usesWorkspace() async throws {
         try await ChatHistoryTestStorage.run {
             let agent = makeAgent()
             AgentManager.shared.add(agent)
             defer { Task { _ = await AgentManager.shared.delete(id: agent.id) } }
             AgentManager.shared.updateWorkingFolder(for: agent.id, bookmark: Data([1]), path: "/tmp/a")
             let request = DispatchRequest(prompt: "go", agentId: agent.id, source: .selfSchedule)
-            #expect(BackgroundTaskManager.resolveDispatchFolder(for: request) != nil)
+            #expect(BackgroundTaskManager.resolveDispatchFolder(for: request)?.path == "/tmp/a")
             AgentManager.shared.clearWorkingFolder(for: agent.id)
-            #expect(BackgroundTaskManager.resolveDispatchFolder(for: request) == nil)
+            #expect(
+                BackgroundTaskManager.resolveDispatchFolder(for: request)?.path
+                    == AgentWorkspace.directory(for: agent.id).path
+            )
         }
     }
 

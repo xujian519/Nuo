@@ -444,6 +444,14 @@ public enum OsaurusPaths {
         agents().appendingPathComponent(id.uuidString, isDirectory: true)
     }
 
+    /// Per-agent private workspace: `~/.nuo/agents/<uuid>/workspace/`.
+    /// A host-folder run with no explicit folder uses it, and a harness's
+    /// default working directory resolves here. Sandboxed runs keep the VM
+    /// home (`/workspace/agents/<name>`), which is already private per agent.
+    public static func agentWorkspaceDirectory(for id: UUID) -> URL {
+        agentDirectory(for: id).appendingPathComponent("workspace", isDirectory: true)
+    }
+
     /// Per-agent SQLite database file: `~/.nuo/agents/<uuid>/db.sqlite`.
     /// Encrypted via `EncryptedSQLiteOpener` with the shared storage key.
     public static func agentDatabaseFile(for id: UUID) -> URL {
@@ -492,6 +500,12 @@ public enum OsaurusPaths {
     /// Owns `agent_next_run`, `agent_runs`, `agent_pause`. Encrypted.
     public static func schedulerDatabaseFile() -> URL {
         root().appendingPathComponent("scheduler.sqlite")
+    }
+
+    /// Durable background delivery queue: `~/.nuo/queue/`.
+    /// See slice 2 of ADR-Nuo-002 and `DeliveryQueueStore`.
+    public static func deliveryQueueDirectory() -> URL {
+        root().appendingPathComponent("queue", isDirectory: true)
     }
 
     /// Orchestrator 持有的定向邮箱目录。不放进某个 Agent 的 DB 或向量分区。

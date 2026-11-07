@@ -1187,7 +1187,8 @@ final class ChatWindowState: ObservableObject {
         let target = target ?? session
         let agentId = target.agentId ?? Agent.defaultId
         guard target.workspaceContext == nil,
-            let folder = AgentManager.shared.workingFolder(for: agentId),
+            let folder = AgentManager.shared.workingFolder(for: agentId)
+                ?? AgentWorkspace.defaultFolder(for: agentId),
             !target.folderState.hasActiveFolder,
             target.folderState.pendingRestore == nil,
             target.folderState.persistedBookmark == nil,

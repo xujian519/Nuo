@@ -154,47 +154,55 @@ struct DelegatedWorkingFolderTests {
         }
     }
 
-    @Test("a delegated child of an agent without a Working Folder has no host file tools")
-    func delegatedChildWithoutAgentFolderCannotWrite() async throws {
+    @Test("a delegated child of an agent without a Working Folder writes in its private workspace")
+    func delegatedChildWithoutAgentFolderUsesWorkspace() async throws {
         try await withAgents(1) { agents in
             let agent = agents[0]
             let request = DispatchRequest(prompt: "save the report", agentId: agent.id, source: .delegation)
-            #expect(BackgroundTaskManager.resolveDispatchFolder(for: request) == nil)
+            let resolved = try #require(BackgroundTaskManager.resolveDispatchFolder(for: request))
+            #expect(resolved.path == AgentWorkspace.directory(for: agent.id).path)
 
             let context = BackgroundTaskManager.shared.makeContextForTesting(request)
             let failure = await context.activateFolderContextIfNeeded()
             #expect(failure == nil)
             let session = context.chatSession
-            #expect(!session.folderState.hasActiveFolder)
-            #expect(!session.folderContextFromDispatchBookmark)
+            #expect(session.folderState.hasActiveFolder)
+            #expect(session.folderContextFromDispatchBookmark)
 
             let mode = session.resolveExecutionModeForSend(agentId: agent.id, autonomousEnabled: false)
-            #expect(!mode.usesHostFolderTools)
+            #expect(mode.usesHostFolderTools)
 
             let tools = await ChatExecutionContext.$currentSessionSource.withValue(.delegation) {
                 SystemPromptComposer.resolveTools(agentId: agent.id, executionMode: mode)
             }
             let names = Set(tools.map { $0.function.name })
-            #expect(names.isDisjoint(with: Self.hostWriteTools), "no folder → no host write tools: \(names)")
-            #expect(names.contains("share_artifact"), "artifacts remain the folder-less delivery path")
+            #expect(names.isSuperset(of: Self.hostWriteTools), "workspace → host write tools: \(names)")
+            #expect(names.contains("share_artifact"), "artifacts remain available")
         }
     }
 
-    @Test("clearing the agent's Working Folder takes the write tools away from the next delegation")
-    func clearingAgentFolderRemovesWriteAccess() async throws {
+    @Test("clearing the agent's Working Folder falls back to the private workspace")
+    func clearingAgentFolderFallsBackToWorkspace() async throws {
         let dir = try makeFolder("cleared")
         defer { try? FileManager.default.removeItem(at: dir) }
         try await withAgents(1) { agents in
             let agent = agents[0]
             AgentManager.shared.updateWorkingFolder(for: agent.id, bookmark: nil, path: dir.path)
             let request = DispatchRequest(prompt: "go", agentId: agent.id, source: .delegation)
-            #expect(BackgroundTaskManager.resolveDispatchFolder(for: request) != nil)
+            #expect(BackgroundTaskManager.resolveDispatchFolder(for: request)?.path == dir.path)
 
             AgentManager.shared.clearWorkingFolder(for: agent.id)
-            #expect(BackgroundTaskManager.resolveDispatchFolder(for: request) == nil)
+            #expect(
+                BackgroundTaskManager.resolveDispatchFolder(for: request)?.path
+                    == AgentWorkspace.directory(for: agent.id).path
+            )
             let context = BackgroundTaskManager.shared.makeContextForTesting(request)
             _ = await context.activateFolderContextIfNeeded()
-            #expect(!context.chatSession.folderState.hasActiveFolder)
+            #expect(context.chatSession.folderState.hasActiveFolder)
+            #expect(
+                context.chatSession.folderState.rootPath?.standardizedFileURL.path
+                    == AgentWorkspace.directory(for: agent.id).standardizedFileURL.path
+            )
         }
     }
 

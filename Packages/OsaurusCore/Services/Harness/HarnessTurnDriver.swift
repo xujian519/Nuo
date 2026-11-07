@@ -28,6 +28,11 @@ enum HarnessTurnDriver {
                 throw HarnessError.workingFolderUnavailable(path: folderRoot.path)
             }
             workingDirectory = folderRoot
+        } else if let workspace = AgentWorkspace.ensure(for: agentId) {
+            // A harness runs on the host, so the agent's private workspace is
+            // its durable default; per-chat scratch would lose every artifact
+            // when the chat closes.
+            workingDirectory = workspace
         } else {
             workingDirectory = HarnessScratch.directory(chatId: chatId)
         }
