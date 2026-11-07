@@ -1,0 +1,13 @@
+{
+  "id": "mailbox.reply-never-wakes",
+  "domain": "mailbox",
+  "label": "mailbox \u2022 replies are delivered without waking",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "A reply lands in the original sender's inbox and starts zero turns. This is the cycle break for A -> B -> A. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "mailbox": {
+      "scenario": "reply_never_wakes"
+    }
+  }
+}

@@ -24,6 +24,17 @@ public final class DirectedMailboxCoordinator: ObservableObject {
 
     private var service: DirectedMailboxService?
 
+    /// Set by `MailboxWakeService.install`. The coordinator stays the single
+    /// write path; the wake runs behind a landed envelope and never blocks the
+    /// sending tool.
+    public typealias WakeHandler = @MainActor (
+        _ delivery: DirectedMailboxDelivery,
+        _ sender: AgentCollaborationParticipant,
+        _ recipient: AgentCollaborationParticipant
+    ) async -> Void
+
+    private var wakeHandler: WakeHandler?
+
     private init() {
         do {
             let service = try DirectedMailboxService(
@@ -64,6 +75,12 @@ public final class DirectedMailboxCoordinator: ObservableObject {
     /// Pure formatting — safe to call from any isolation domain.
     public nonisolated static func participantId(for agentId: UUID) -> String {
         "local:\(agentId.uuidString.lowercased())"
+    }
+
+    /// Installs the automatic recipient wake. nil restores delivery-only
+    /// behavior, which is the shape every pre-wake build had.
+    public func setWakeHandler(_ handler: WakeHandler?) {
+        wakeHandler = handler
     }
 
     // MARK: - UI 编辑
@@ -128,6 +145,15 @@ public final class DirectedMailboxCoordinator: ObservableObject {
             parentEnvelopeId: parentEnvelopeId
         )
         _ = try await service.recordUsage(runId: runId, tokens: 0, toolCalls: 1)
+        // Fire-and-forget: a turn can take minutes, and the sending tool must
+        // return as soon as the envelope is durable. A wake that cannot run
+        // (quota, busy recipient) leaves the message in the inbox, so the pull
+        // path still works.
+        if let wakeHandler {
+            Task { @MainActor in
+                await wakeHandler(delivery, sender, recipient)
+            }
+        }
         return delivery
     }
 

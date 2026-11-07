@@ -1,0 +1,13 @@
+{
+  "id": "mailbox.wake-runs-and-replies",
+  "domain": "mailbox",
+  "label": "mailbox \u2022 a request wakes one turn and replies",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "A request delivery starts exactly one mailbox turn; its final assistant text is written back as a reply on the same envelope. The prompt keeps the body inside the untrusted fence. CI-safe: fake dispatcher, no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "mailbox": {
+      "scenario": "wake_runs_and_replies"
+    }
+  }
+}

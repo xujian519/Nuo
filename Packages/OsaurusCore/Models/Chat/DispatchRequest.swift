@@ -102,6 +102,16 @@ public struct DispatchRequest: Sendable {
     /// hand-pressed button and every waiting API client keeps the default.
     public let loadIntent: ModelLoadIntent
 
+    /// Present when a directed-mailbox `send` started this run. Recovery work
+    /// and UI attribution read it; every other source leaves it nil.
+    public let mailboxWake: MailboxWakeContext?
+
+    /// Caller-supplied de-duplication key. When the recovery ledger already
+    /// holds a row for this key, the dispatcher returns that row instead of
+    /// starting a second turn. Used by mailbox wakes and HTTP callers that
+    /// retry a dispatch.
+    public let idempotencyKey: String?
+
     /// True when this dispatch is a TRUE agent delegation (an orchestrating
     /// agent's `spawn_agent` call). Derived from `source` —
     /// delegation always dispatches with `source: .delegation` — so there is
@@ -166,7 +176,9 @@ public struct DispatchRequest: Sendable {
         delegationAssistantTurnCap: Int? = nil,
         delegationModel: String? = nil,
         taskIntent: ChatTaskIntent? = nil,
-        generationOverrides: ChatTurnOverrides? = nil
+        generationOverrides: ChatTurnOverrides? = nil,
+        mailboxWake: MailboxWakeContext? = nil,
+        idempotencyKey: String? = nil
     ) {
         self.id = id
         self.prompt = prompt
@@ -189,6 +201,8 @@ public struct DispatchRequest: Sendable {
         self.delegationContextPositionCap = delegationContextPositionCap
         self.delegationAssistantTurnCap = delegationAssistantTurnCap
         self.delegationModel = source == .delegation ? delegationModel : nil
+        self.mailboxWake = mailboxWake
+        self.idempotencyKey = idempotencyKey
     }
 }
 
@@ -198,6 +212,11 @@ public struct DispatchRequest: Sendable {
 public struct DispatchHandle: Sendable {
     public let id: UUID
     public let request: DispatchRequest
+
+    public init(id: UUID, request: DispatchRequest) {
+        self.id = id
+        self.request = request
+    }
 }
 
 // MARK: - Result

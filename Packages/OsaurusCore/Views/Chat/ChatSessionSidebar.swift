@@ -2857,6 +2857,7 @@ private struct SessionRow: View {
         case .imported: return theme.accentColorLight.opacity(0.7)
         case .delegation: return theme.accentColor.opacity(0.8)
         case .workspace: return theme.accentColor
+        case .mailbox: return theme.accentColorLight
         }
     }
 
@@ -2894,6 +2895,8 @@ private struct SessionRow: View {
                 return Text(verbatim: "Workspace · \(caller)")
             }
             return Text("Workspace", bundle: .module)
+        case .mailbox:
+            return Text("Mailbox", bundle: .module)
         }
     }
 

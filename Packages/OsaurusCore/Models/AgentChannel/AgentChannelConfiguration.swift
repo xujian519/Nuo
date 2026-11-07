@@ -761,7 +761,7 @@ enum AgentChannelBindingRunSource: String, Codable, CaseIterable, Sendable {
         case .schedule: self = .schedule
         case .watcher: self = .watcher
         case .selfSchedule: self = .selfSchedule
-        case .plugin, .http, .channel, .imported, .delegation, .workspace: return nil
+        case .plugin, .http, .channel, .imported, .delegation, .workspace, .mailbox: return nil
         }
     }
 }

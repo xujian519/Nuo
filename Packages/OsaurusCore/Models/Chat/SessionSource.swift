@@ -43,6 +43,10 @@ public enum SessionSource: String, Codable, CaseIterable, Sendable {
     /// conversation is the teammate's; the host keeps a local, read-only
     /// copy under the shared agent tagged with the caller.
     case workspace
+    /// A directed-mailbox `send` woke this agent and ran one headless turn
+    /// (ADR-Nuo-002 follow-up). Distinct from `.channel` so the audit trail
+    /// can tell a peer agent's message from an external chat provider.
+    case mailbox
 }
 
 // MARK: - UI Helpers
@@ -84,6 +88,8 @@ extension SessionSource {
             return "delegated"
         case .workspace:
             return "via workspace"
+        case .mailbox:
+            return "via mailbox"
         }
     }
 
@@ -111,6 +117,7 @@ extension SessionSource {
         case .imported: return "square.and.arrow.down.fill"
         case .delegation: return "arrow.triangle.branch"
         case .workspace: return "rectangle.3.group.fill"
+        case .mailbox: return "envelope.fill"
         }
     }
 
@@ -127,6 +134,7 @@ extension SessionSource {
         case .imported: return "Imported"
         case .delegation: return "Orchestrator"
         case .workspace: return "Workspace"
+        case .mailbox: return "Mailbox"
         }
     }
 }
@@ -189,6 +197,7 @@ extension SessionSource {
         case .schedule: return .schedule
         case .watcher: return .watcher
         case .selfSchedule: return .selfSchedule
+        case .mailbox: return .schedule
         }
     }
 }

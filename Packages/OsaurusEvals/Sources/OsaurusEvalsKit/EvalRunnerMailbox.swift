@@ -83,6 +83,12 @@ private enum MailboxScenario {
             return try await capSpentReplyStillDelivers(root: root)
         case "untrusted_body_readback":
             return try await untrustedBodyReadback(root: root)
+        case "wake_runs_and_replies":
+            return await wakeRunsAndReplies(root: root)
+        case "wake_quota_denied":
+            return await wakeQuotaDenied(root: root)
+        case "reply_never_wakes":
+            return await replyNeverWakes(root: root)
         default:
             return MailboxScenarioReport(passed: false, note: "unknown scenario '\(scenario)'")
         }
@@ -391,6 +397,180 @@ private enum MailboxScenario {
         return report(problems, pass: "a tampered trust bit reads back as untrusted")
     }
 
+    // MARK: - Wake
+
+    /// A request delivery wakes exactly one headless turn and its final text
+    /// comes back as a reply on the same envelope. The prompt keeps the body
+    /// inside the untrusted fence.
+    @MainActor
+    private static func wakeRunsAndReplies(root: URL) async -> MailboxScenarioReport {
+        do {
+            let service = try DirectedMailboxService(directory: root)
+            let a = participant(agentA, name: "A")
+            let b = participant(agentB, name: "B")
+            try await service.replaceAllowlist([DirectedMailboxEdge(from: a.id, to: b.id)])
+            let run = try await service.openRun(id: "wake")
+            let body = "Summarize the release notes."
+            let delivery = try await service.send(request(body), from: a, to: b, runId: run.id)
+
+            let recorder = MailboxEvalRecorder(answer: "Release notes summarized.")
+            let wake = MailboxWakeService(
+                dispatcher: MailboxEvalDispatcher(recorder: recorder),
+                reply: { _, envelopeId, text in
+                    recorder.replies.append((envelopeId, text))
+                },
+                resolveParticipant: { _ in b }
+            )
+            let outcome = await wake.handle(delivery: delivery, sender: a, recipient: b)
+            var problems: [String] = []
+            if outcome != .delivered {
+                problems.append("wake outcome was \(outcome), expected delivered")
+            }
+            if recorder.requests.count != 1 {
+                problems.append("wake dispatched \(recorder.requests.count) turns, expected 1")
+            }
+            if let dispatched = recorder.requests.first {
+                if dispatched.source != .mailbox {
+                    problems.append("wake source was \(dispatched.source), expected mailbox")
+                }
+                if dispatched.mailboxWake?.envelopeId != delivery.record.id {
+                    problems.append("wake did not carry the envelope id")
+                }
+                if !dispatched.prompt.contains("--- BEGIN UNTRUSTED MESSAGE ---")
+                    || !dispatched.prompt.contains(body)
+                {
+                    problems.append("wake prompt did not quote the body inside the untrusted fence")
+                }
+                if dispatched.showToast {
+                    problems.append("a background mailbox turn asked for a toast")
+                }
+            }
+            if recorder.replies.count != 1 {
+                problems.append("wake wrote \(recorder.replies.count) replies, expected 1")
+            } else {
+                let reply = recorder.replies[0]
+                if reply.envelopeId != delivery.record.id {
+                    problems.append("reply targeted \(reply.envelopeId), expected the request envelope")
+                }
+                if reply.text != recorder.answer {
+                    problems.append("reply text was '\(reply.text)', expected the assistant answer")
+                }
+            }
+            return report(
+                problems,
+                pass: "a request wakes one mailbox turn and replies with its final answer"
+            )
+        } catch {
+            return MailboxScenarioReport(passed: false, note: "wake scenario threw: \(error)")
+        }
+    }
+
+    /// The seventh wake for one agent inside the rolling hour is refused; the
+    /// message stays in the inbox for the pull path.
+    @MainActor
+    private static func wakeQuotaDenied(root: URL) async -> MailboxScenarioReport {
+        do {
+            let service = try DirectedMailboxService(directory: root)
+            let a = participant(agentA, name: "A")
+            let b = participant(agentB, name: "B")
+            try await service.replaceAllowlist([DirectedMailboxEdge(from: a.id, to: b.id)])
+            let run = try await service.openRun(id: "quota")
+            let delivery = try await service.send(
+                request("one envelope, repeated wakes"),
+                from: a,
+                to: b,
+                runId: run.id
+            )
+            let recorder = MailboxEvalRecorder(answer: "ok")
+            let wake = MailboxWakeService(
+                dispatcher: MailboxEvalDispatcher(recorder: recorder),
+                reply: { _, envelopeId, text in
+                    recorder.replies.append((envelopeId, text))
+                },
+                resolveParticipant: { _ in b }
+            )
+            var outcomes: [MailboxWakeOutcome] = []
+            for _ in 0 ..< MailboxWakePolicy.maxPerAgentPerHour {
+                outcomes.append(await wake.handle(delivery: delivery, sender: a, recipient: b))
+            }
+            let refused = await wake.handle(delivery: delivery, sender: a, recipient: b)
+            var problems: [String] = []
+            if outcomes.contains(where: { !$0.delivered }) {
+                problems.append("a wake inside the quota was refused: \(outcomes)")
+            }
+            if refused != .skipped(.quotaExceeded) {
+                problems.append("the wake past the quota returned \(refused), expected quotaExceeded")
+            }
+            if recorder.requests.count != MailboxWakePolicy.maxPerAgentPerHour {
+                problems.append(
+                    "dispatched \(recorder.requests.count) turns, expected the quota "
+                        + "\(MailboxWakePolicy.maxPerAgentPerHour)"
+                )
+            }
+            return report(
+                problems,
+                pass: "the per-agent hourly quota refuses the wake past its limit"
+            )
+        } catch {
+            return MailboxScenarioReport(passed: false, note: "quota scenario threw: \(error)")
+        }
+    }
+
+    /// A reply lands in the sender's inbox and never starts a turn. This is
+    /// the cycle break: A → B wakes B, B's reply waits for A's next turn.
+    @MainActor
+    private static func replyNeverWakes(root: URL) async -> MailboxScenarioReport {
+        do {
+            let service = try DirectedMailboxService(directory: root)
+            let a = participant(agentA, name: "A")
+            let b = participant(agentB, name: "B")
+            try await service.replaceAllowlist([DirectedMailboxEdge(from: a.id, to: b.id)])
+            let run = try await service.openRun(id: "reply")
+            let requestDelivery = try await service.send(
+                request("do the work"),
+                from: a,
+                to: b,
+                runId: run.id
+            )
+            let replyDelivery = try await service.send(
+                .reply(
+                    AgentCollaborationReply(
+                        inReplyToEnvelopeId: requestDelivery.record.id,
+                        status: .completed,
+                        message: "work done"
+                    )
+                ),
+                from: b,
+                to: a,
+                runId: run.id,
+                parentEnvelopeId: requestDelivery.record.id
+            )
+            let recorder = MailboxEvalRecorder(answer: "should not run")
+            let wake = MailboxWakeService(
+                dispatcher: MailboxEvalDispatcher(recorder: recorder),
+                reply: { _, envelopeId, text in
+                    recorder.replies.append((envelopeId, text))
+                },
+                resolveParticipant: { _ in a }
+            )
+            let outcome = await wake.handle(delivery: replyDelivery, sender: b, recipient: a)
+            var problems: [String] = []
+            if outcome != .skipped(.notARequest) {
+                problems.append("reply wake returned \(outcome), expected notARequest")
+            }
+            if !recorder.requests.isEmpty {
+                problems.append("a reply started \(recorder.requests.count) turns, expected 0")
+            }
+            let inbox = try await service.inbox(for: a.id, requestedBy: a.id)
+            if inbox.count != 1 {
+                problems.append("A's inbox holds \(inbox.count) records, expected the reply")
+            }
+            return report(problems, pass: "a reply is delivered and never wakes its recipient")
+        } catch {
+            return MailboxScenarioReport(passed: false, note: "reply scenario threw: \(error)")
+        }
+    }
+
     // MARK: - Helpers
 
     private static var orchestrator: AgentCollaborationParticipant {
@@ -434,5 +614,40 @@ private enum MailboxScenario {
             passed: problems.isEmpty,
             note: problems.isEmpty ? note : problems.joined(separator: "; ")
         )
+    }
+}
+
+/// Records what the wake path asked the runtime to do. The answer is fixed so
+/// the scenario measures the mailbox contract, not model quality.
+@MainActor
+private final class MailboxEvalRecorder {
+    let answer: String
+    var requests: [DispatchRequest] = []
+    var replies: [(envelopeId: UUID, text: String)] = []
+
+    init(answer: String) {
+        self.answer = answer
+    }
+}
+
+@MainActor
+private final class MailboxEvalDispatcher: MailboxDispatching {
+    private let recorder: MailboxEvalRecorder
+
+    init(recorder: MailboxEvalRecorder) {
+        self.recorder = recorder
+    }
+
+    func dispatch(_ request: DispatchRequest) async -> DispatchHandle? {
+        recorder.requests.append(request)
+        return DispatchHandle(id: UUID(), request: request)
+    }
+
+    func awaitCompletion(_ id: UUID) async -> DispatchResult {
+        .completed(sessionId: UUID())
+    }
+
+    func assistantText(sessionId: UUID) -> String? {
+        recorder.answer
     }
 }

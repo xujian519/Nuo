@@ -1,0 +1,13 @@
+{
+  "id": "mailbox.wake-quota-denied",
+  "domain": "mailbox",
+  "label": "mailbox \u2022 wake quota refuses the seventh turn",
+  "query": "deterministic policy pin \u2014 no model involved",
+  "notes": "One agent may be woken six times per rolling hour. The seventh wake is refused with quotaExceeded and dispatches no turn; the envelope stays in the inbox for the pull path. CI-safe: no model, no network.",
+  "fixtures": {},
+  "expect": {
+    "mailbox": {
+      "scenario": "wake_quota_denied"
+    }
+  }
+}
