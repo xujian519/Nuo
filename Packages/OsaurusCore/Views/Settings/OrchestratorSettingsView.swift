@@ -69,6 +69,8 @@ struct OrchestratorSettingsView: View {
 
                             OrchestratorDelegationsSection()
 
+                            DeliveryQueueSection()
+
                             MailboxSettingsSection()
                         }
                         .padding(.horizontal, 24)

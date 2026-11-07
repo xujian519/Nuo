@@ -12322,6 +12322,49 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
 
             let title = json["title"] as? String
             let requestId = UUID()
+            let idempotencyKey = (json["idempotency_key"] as? String)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            // A retry that names a delivery the ledger already saw answers
+            // with that row instead of running the prompt again. The row must
+            // belong to the same agent so a key cannot probe another agent's
+            // task id.
+            if let idempotencyKey, !idempotencyKey.isEmpty,
+                let existing = await BackgroundTaskManager.shared.existingDelivery(
+                    idempotencyKey: idempotencyKey
+                ),
+                existing.agentId == agentId
+            {
+                let resp: [String: Any] = [
+                    "id": existing.id.uuidString,
+                    "status": existing.status.rawValue,
+                    "duplicate": true,
+                ]
+                let responseBody =
+                    (try? JSONSerialization.data(withJSONObject: resp, options: .osaurusCanonical))
+                    .flatMap { String(decoding: $0, as: UTF8.self) }
+                    ?? "{}"
+                hop {
+                    var headers = [("Content-Type", "application/json; charset=utf-8")]
+                    headers.append(contentsOf: cors)
+                    self.sendResponse(
+                        context: ctx.value,
+                        version: head.version,
+                        status: .ok,
+                        headers: headers,
+                        body: responseBody
+                    )
+                }
+                logSelf.logRequest(
+                    method: "POST",
+                    path: path,
+                    userAgent: logUserAgent,
+                    requestBody: requestBodyString,
+                    responseStatus: 200,
+                    startTime: logStartTime
+                )
+                return
+            }
             let suppliedSessionKey =
                 json["external_session_key"] as? String
                 ?? json["session_id"] as? String
@@ -12341,7 +12384,8 @@ final class HTTPHandler: ChannelInboundHandler, Sendable {
                 showToast: true,
                 source: .http,
                 externalSessionKey: externalSessionKey,
-                externalSurface: Self.shouldBindExternalSurfaceForDispatch(isLoopback: isLoopback)
+                externalSurface: Self.shouldBindExternalSurfaceForDispatch(isLoopback: isLoopback),
+                idempotencyKey: idempotencyKey
             )
 
             let handle: DispatchHandle?

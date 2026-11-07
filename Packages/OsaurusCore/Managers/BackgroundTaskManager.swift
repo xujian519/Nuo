@@ -85,6 +85,20 @@ public final class BackgroundTaskManager: ObservableObject {
     /// All background tasks keyed by task ID
     @Published public private(set) var backgroundTasks: [UUID: BackgroundTaskState] = [:]
 
+    /// Deliveries the previous process left active, newest first. Launch
+    /// reconciliation fills this; Settings → Orchestrator shows it and lets
+    /// the user resume or discard each row.
+    @Published public private(set) var interruptedDeliveries: [DeliveryRecord] = []
+
+    /// Deliveries still waiting for a free slot, in the order `pumpQueue`
+    /// will promote them. Drawn from the durable ledger; the user can edit,
+    /// reorder, or cancel each one.
+    @Published public private(set) var queuedDeliveries: [DeliveryRecord] = []
+
+    /// Live FIFO order for queued deliveries. Published so the queue list can
+    /// show promotion order before the next ledger read.
+    @Published public private(set) var queuedDeliveryIDs: [UUID] = []
+
     /// Why the most recent `dispatchChat` for a workspace target returned
     /// nil, per agent. `dispatchChat`'s nil is otherwise silent (the local
     /// guards log and drop); the spawn tools, schedule and watcher managers
@@ -143,6 +157,10 @@ public final class BackgroundTaskManager: ObservableObject {
     /// never alter the host machine's power state.
     private let powerManager: AgentRunPowerManager?
 
+    /// Durable recovery ledger for dispatches. nil in isolated test managers,
+    /// so suites never read or mutate the user's queue file.
+    private let deliveryQueue: DeliveryQueueStore?
+
     /// Tasks whose dispatch() hasn't returned to the plugin yet; events are
     /// buffered in `heldTaskEvents` until `releaseEventsForDispatch` flushes them.
     private var dispatchHoldTasks: Set<UUID> = []
@@ -167,10 +185,20 @@ public final class BackgroundTaskManager: ObservableObject {
     /// concurrency limits were saturated, in submission order. Each id has a
     /// matching deferred start closure in `pendingStarts`. Promoted by
     /// `pumpQueue()` whenever a running task stops consuming its slot.
-    private var queuedOrder: [UUID] = []
+    private var queuedOrder: [UUID] = [] {
+        didSet { publishQueuedOrder() }
+    }
 
     /// Deferred start work for queued tasks, keyed by task id.
     private var pendingStarts: [UUID: @MainActor () async -> Void] = [:]
+
+    /// Edited prompts for queued tasks. Applied when the deferred start runs,
+    /// then removed, so a stale edit can never rewrite a later attempt.
+    private var queuedPromptOverrides: [UUID: String] = [:]
+
+    /// Rows whose Resume is in flight. Two presses must not each dispatch the
+    /// same interrupted delivery.
+    private var resumingDeliveryIDs: Set<UUID> = []
 
     /// Subject for batching view updates with throttling
     private let viewUpdateSubject = PassthroughSubject<Void, Never>()
@@ -181,11 +209,13 @@ public final class BackgroundTaskManager: ObservableObject {
     private init(
         persistsRetainedTabs: Bool = true,
         retainedTabsDefaults: UserDefaults = .standard,
-        powerManager: AgentRunPowerManager? = .shared
+        powerManager: AgentRunPowerManager? = .shared,
+        deliveryQueue: DeliveryQueueStore? = DeliveryQueueStore.production()
     ) {
         self.persistsRetainedTabs = persistsRetainedTabs
         self.retainedTabsDefaults = retainedTabsDefaults
         self.powerManager = powerManager
+        self.deliveryQueue = deliveryQueue
         viewUpdateCancellable =
             viewUpdateSubject
             .throttle(for: .milliseconds(50), scheduler: DispatchQueue.main, latest: true)
@@ -508,6 +538,18 @@ public final class BackgroundTaskManager: ObservableObject {
     public func finalizeTask(_ backgroundId: UUID) {
         guard let state = backgroundTasks[backgroundId] else { return }
 
+        // A finalize that overtakes the normal terminal path must not leave a
+        // live row in the recovery ledger.
+        if state.status.isActive, let deliveryQueue {
+            Task {
+                do {
+                    try await deliveryQueue.markFinished(id: backgroundId, status: .cancelled)
+                } catch {
+                    print("[BackgroundTaskManager] delivery queue finalize failed for \(backgroundId): \(error)")
+                }
+            }
+        }
+
         // Ensure plugins always receive a terminal event before cleanup.
         if state.status.isActive, state.sourcePluginId != nil {
             state.status = .cancelled
@@ -546,6 +588,7 @@ public final class BackgroundTaskManager: ObservableObject {
         // Drop any deferred start so a finalized queued task can't launch.
         queuedOrder.removeAll { $0 == backgroundId }
         pendingStarts.removeValue(forKey: backgroundId)
+        queuedPromptOverrides.removeValue(forKey: backgroundId)
 
         state.releaseReferences()
 
@@ -566,6 +609,225 @@ public final class BackgroundTaskManager: ObservableObject {
         for (id, state) in backgroundTasks where state.status.isActive {
             cancelTask(id)
         }
+    }
+
+    /// Marks every row left active by the previous process as interrupted.
+    /// This launch does not restart work on its own; the row is a ledger the
+    /// user (or a later resume policy) can act on.
+    public func reconcileDeliveryQueue() async {
+        guard let deliveryQueue else { return }
+        do {
+            let recovered = try await deliveryQueue.markInterruptedOnLaunch()
+            if !recovered.isEmpty {
+                print(
+                    "[BackgroundTaskManager] marked \(recovered.count) interrupted delivery row(s) from the previous launch"
+                )
+            }
+        } catch {
+            print("[BackgroundTaskManager] delivery queue reconcile failed: \(error)")
+        }
+        await refreshDeliveries()
+    }
+
+    private func publishQueuedOrder() {
+        guard queuedDeliveryIDs != queuedOrder else { return }
+        queuedDeliveryIDs = queuedOrder
+    }
+
+    /// Re-reads the ledger's queued and interrupted rows. The only source for
+    /// both lists — the view never reads the file itself.
+    public func refreshDeliveries() async {
+        guard let deliveryQueue else {
+            if !queuedDeliveries.isEmpty { queuedDeliveries = [] }
+            if !interruptedDeliveries.isEmpty { interruptedDeliveries = [] }
+            return
+        }
+        let rows = await deliveryQueue.all()
+        let positions = Dictionary(
+            uniqueKeysWithValues: queuedDeliveryIDs.enumerated().map { ($1, $0) }
+        )
+        let queued =
+            rows
+            .filter { $0.status == .queued }
+            .sorted {
+                let left = (positions[$0.id] ?? Int.max, $0.createdAt)
+                let right = (positions[$1.id] ?? Int.max, $1.createdAt)
+                return left < right
+            }
+        let interrupted =
+            rows
+            .filter { $0.status == .interrupted }
+            .sorted { $0.createdAt > $1.createdAt }
+        // Assign only on change: the section refreshes on `objectWillChange`,
+        // and an unconditional write here would restart that refresh forever.
+        if queuedDeliveries != queued { queuedDeliveries = queued }
+        if interruptedDeliveries != interrupted { interruptedDeliveries = interrupted }
+    }
+
+    /// Rewrites a queued delivery before it starts. The live FIFO keeps its
+    /// place and the ledger keeps the text that will actually run.
+    @discardableResult
+    public func editQueuedDelivery(id: UUID, prompt: String) async -> Bool {
+        let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty,
+            let state = backgroundTasks[id],
+            state.status == .queued,
+            pendingStarts[id] != nil,
+            let deliveryQueue
+        else { return false }
+        // Set the override before the actor hop: a promotion that starts the
+        // task during the hop must still run the edited text.
+        queuedPromptOverrides[id] = text
+        do {
+            let stored = try await deliveryQueue.updatePrompt(id: id, prompt: text)
+            if !stored {
+                // The row started while the write was in flight. It already
+                // saw the override, so the run used the edit; the ledger keeps
+                // the text it recorded at start time.
+                print("[BackgroundTaskManager] row \(id) started during edit; ledger prompt left as started")
+            }
+        } catch {
+            queuedPromptOverrides.removeValue(forKey: id)
+            print("[BackgroundTaskManager] delivery queue prompt update failed for \(id): \(error)")
+            return false
+        }
+        await refreshDeliveries()
+        return true
+    }
+
+    /// Moves a queued delivery one step up or down among the queued deliveries
+    /// of the same agent. Returns false when no such neighbour exists.
+    @discardableResult
+    public func moveQueuedDelivery(id: UUID, up: Bool) async -> Bool {
+        guard let state = backgroundTasks[id],
+            state.status == .queued,
+            let index = queuedOrder.firstIndex(of: id)
+        else { return false }
+        let step = up ? -1 : 1
+        var cursor = index + step
+        while queuedOrder.indices.contains(cursor) {
+            let neighbourId = queuedOrder[cursor]
+            if let neighbour = backgroundTasks[neighbourId],
+                neighbour.status == .queued,
+                neighbour.agentId == state.agentId
+            {
+                queuedOrder.swapAt(index, cursor)
+                await refreshDeliveries()
+                return true
+            }
+            cursor += step
+        }
+        return false
+    }
+
+    /// Cancels a queued or running delivery and refreshes the queue list. The
+    /// ledger write is repeated here so the row leaves the list in this turn
+    /// rather than after the cancellation observer settles.
+    public func cancelDelivery(_ id: UUID) async {
+        cancelTask(id)
+        if let deliveryQueue {
+            do {
+                try await deliveryQueue.markFinished(id: id, status: .cancelled)
+            } catch {
+                print("[BackgroundTaskManager] delivery queue cancel write failed for \(id): \(error)")
+            }
+        }
+        await refreshDeliveries()
+    }
+
+    /// Re-runs an interrupted delivery as a fresh task and closes the old row
+    /// as `cancelled` with `error: "resumed"` so it leaves the list while the
+    /// ledger keeps the evidence. Returns false when admission refuses the
+    /// run; the row then stays interrupted.
+    @discardableResult
+    /// The ledger row that already owns this request's idempotency key.
+    /// Internal so focused tests can pin the lookup without starting a turn.
+    func existingDelivery(for request: DispatchRequest) async -> DeliveryRecord? {
+        guard let key = DeliveryQueueStore.normalizedKey(request.idempotencyKey) else { return nil }
+        return await existingDelivery(idempotencyKey: key)
+    }
+
+    /// Public read for surfaces that answer a retried dispatch (HTTP) before
+    /// building a request. Nil means the key is free.
+    public func existingDelivery(idempotencyKey: String) async -> DeliveryRecord? {
+        guard let key = DeliveryQueueStore.normalizedKey(idempotencyKey),
+            let deliveryQueue
+        else { return nil }
+        return await deliveryQueue.delivery(idempotencyKey: key)
+    }
+
+    public func resumeDelivery(_ record: DeliveryRecord) async -> Bool {
+        guard record.isResumable, !resumingDeliveryIDs.contains(record.id) else { return false }
+        resumingDeliveryIDs.insert(record.id)
+        defer { resumingDeliveryIDs.remove(record.id) }
+
+        // Close the row before admission. Preparing a run (model picker, tool
+        // grants, agent DB) can take a while, and the list should answer the
+        // press immediately. A refused dispatch puts the row back exactly as
+        // it was, so the ledger never claims work that did not start.
+        if let deliveryQueue {
+            do {
+                try await deliveryQueue.markFinished(id: record.id, status: .cancelled, error: "resumed")
+            } catch {
+                print("[BackgroundTaskManager] delivery queue resume marker failed for \(record.id): \(error)")
+            }
+        }
+        await refreshDeliveries()
+
+        let admitted: Bool
+        if record.mailboxWake != nil {
+            // The wake owns the reply: a resumed mailbox turn must answer the
+            // envelope it was started for.
+            let wake = MailboxWakeService.shared
+            if let handleId = await wake.resumeRun(record) {
+                Task { @MainActor in
+                    await wake.finishResumedRun(record, handleId: handleId)
+                }
+                admitted = true
+            } else {
+                admitted = false
+            }
+        } else {
+            let request = DispatchRequest(
+                // Reuse the row id so the ledger entry is replaced instead of
+                // duplicated, and a double press cannot start two turns.
+                id: record.id,
+                prompt: record.prompt,
+                agentId: record.agentId,
+                title: record.title,
+                showToast: false,
+                sourcePluginId: record.sourcePluginId,
+                source: record.source,
+                externalSessionKey: record.externalSessionKey,
+                // Continue the interrupted chat when its key still resolves;
+                // otherwise this is a fresh row with the same prompt.
+                reattachSession: record.externalSessionKey != nil,
+                loadIntent: .background,
+                idempotencyKey: record.idempotencyKey
+            )
+            admitted = await dispatchChat(request) != nil
+        }
+
+        if !admitted, let deliveryQueue {
+            do {
+                try await deliveryQueue.enqueue(record)
+            } catch {
+                print("[BackgroundTaskManager] delivery queue resume restore failed for \(record.id): \(error)")
+            }
+            await refreshDeliveries()
+        }
+        return admitted
+    }
+
+    /// Drops an interrupted row from the ledger.
+    public func discardDelivery(_ id: UUID) async {
+        guard let deliveryQueue else { return }
+        do {
+            try await deliveryQueue.remove(id: id)
+        } catch {
+            print("[BackgroundTaskManager] delivery queue discard failed for \(id): \(error)")
+        }
+        await refreshDeliveries()
     }
 
     /// Update a task's running token / cost counters and cancel the
@@ -645,11 +907,22 @@ public final class BackgroundTaskManager: ObservableObject {
         // pump can't resurrect it.
         queuedOrder.removeAll { $0 == backgroundId }
         pendingStarts.removeValue(forKey: backgroundId)
+        queuedPromptOverrides.removeValue(forKey: backgroundId)
 
         // stop() synchronously publishes isStreaming=false. Mark cancellation
         // first so the streaming observer cannot resume a delegation waiter
         // with .completed and promote its buffered partial answer to success.
         state.status = .cancelled
+        if let deliveryQueue {
+            let id = backgroundId
+            Task {
+                do {
+                    try await deliveryQueue.markFinished(id: id, status: .cancelled)
+                } catch {
+                    print("[BackgroundTaskManager] delivery queue cancel failed for \(id): \(error)")
+                }
+            }
+        }
         if stopSession { state.chatSession?.stop() }
         state.captureContextPreview()
         // Mirror the markCompleted finalisation for the agent_runs row
@@ -707,6 +980,7 @@ public final class BackgroundTaskManager: ObservableObject {
         for id in ids {
             queuedOrder.removeAll { $0 == id }
             pendingStarts.removeValue(forKey: id)
+            queuedPromptOverrides.removeValue(forKey: id)
         }
         for id in ids where backgroundTasks[id]?.status.isActive == true {
             cancelTask(id)
@@ -1004,6 +1278,23 @@ public final class BackgroundTaskManager: ObservableObject {
             return nil
         }
 
+        // Idempotency: a retry that carries a key already present in the
+        // ledger joins that row instead of starting a second turn. A live row
+        // returns its handle; a finished or interrupted row returns nil. The
+        // same id is excluded because a resume deliberately re-dispatches the
+        // row it is replacing.
+        if let existing = await existingDelivery(for: request), existing.id != request.id {
+            if existing.status.isActive, backgroundTasks[existing.id] != nil {
+                return DispatchHandle(id: existing.id, request: request)
+            }
+            print(
+                "[BackgroundTaskManager] duplicate dispatch key "
+                    + "\(request.idempotencyKey ?? "") refused; row \(existing.id) "
+                    + "is \(existing.status.rawValue)"
+            )
+            return nil
+        }
+
         // A teammate's shared workspace agent runs on THEIR Mac: the local
         // built-in-agent guard, per-agent tool grants and DB run logging
         // don't apply, and the run must be refused up front (offline host,
@@ -1127,6 +1418,40 @@ public final class BackgroundTaskManager: ObservableObject {
             }
         }
 
+        // Recovery ledger: write the row before it is registered, so a crash
+        // between admission and the first token still leaves a durable record.
+        // A failure here never blocks the dispatch; the in-memory queue is the
+        // executor's source of truth for this process.
+        if let deliveryQueue {
+            let record = DeliveryRecord(
+                id: context.id,
+                agentId: context.agentId,
+                taskId: context.id,
+                source: request.source,
+                sourcePluginId: request.sourcePluginId,
+                title: request.title,
+                prompt: request.prompt,
+                externalSessionKey: request.externalSessionKey,
+                mailboxWake: request.mailboxWake,
+                idempotencyKey: request.idempotencyKey,
+                status: .queued,
+                createdAt: Date()
+            )
+            do {
+                if case .duplicate(let existing) = try await deliveryQueue.enqueue(record) {
+                    print(
+                        "[BackgroundTaskManager] delivery queue refused duplicate key "
+                            + "\(request.idempotencyKey ?? ""); row \(existing.id) already owns it"
+                    )
+                    return existing.status.isActive && backgroundTasks[existing.id] != nil
+                        ? DispatchHandle(id: existing.id, request: request)
+                        : nil
+                }
+            } catch {
+                print("[BackgroundTaskManager] delivery queue enqueue failed for \(context.id): \(error)")
+            }
+        }
+
         // Plugin-originated dispatches buffer their `.started` event until
         // the trampoline returns, so the plugin's `on_task_event` callback
         // doesn't fire before its `dispatch()` C call has unwound. Hold here
@@ -1160,6 +1485,17 @@ public final class BackgroundTaskManager: ObservableObject {
         let residencyContext = DelegationResidencyContext.capture(source: request.source)
         let startWork: @MainActor () async -> Void = { [weak state] in
             guard let state, state.status.isActive else { return }
+            // A queued message the user edited before promotion runs the
+            // edited text. Consume the override once so it cannot leak into a
+            // later attempt on the same task id.
+            let prompt = self.queuedPromptOverrides.removeValue(forKey: context.id) ?? request.prompt
+            if let deliveryQueue = self.deliveryQueue {
+                do {
+                    try await deliveryQueue.markStarting(id: context.id)
+                } catch {
+                    print("[BackgroundTaskManager] delivery queue start failed for \(context.id): \(error)")
+                }
+            }
             // Register the single conversation owner BEFORE the first await.
             // Reopening a tab during picker preparation must attach to it,
             // and another grouped dispatch must see an active reservation.
@@ -1212,7 +1548,7 @@ public final class BackgroundTaskManager: ObservableObject {
                         agentId: context.agentId,
                         triggerKind: triggerKind,
                         triggerPayload: triggerPayload,
-                        instructions: request.prompt
+                        instructions: prompt
                     )
                     boundRunId = runId
                     state.agentRunId = runId
@@ -1263,7 +1599,7 @@ public final class BackgroundTaskManager: ObservableObject {
                                             request.inferenceSourceOverride
                                         ) {
                                             if let startFailure = await context.start(
-                                                prompt: request.prompt,
+                                                prompt: prompt,
                                                 taskIntent: request.taskIntent,
                                                 generationOverrides: request.generationOverrides
                                             ) {
@@ -1551,14 +1887,16 @@ public final class BackgroundTaskManager: ObservableObject {
         static func makeForTesting() -> BackgroundTaskManager {
             BackgroundTaskManager(
                 persistsRetainedTabs: false,
-                powerManager: nil
+                powerManager: nil,
+                deliveryQueue: nil
             )
         }
 
         static func makeForTesting(powerManager: AgentRunPowerManager) -> BackgroundTaskManager {
             BackgroundTaskManager(
                 persistsRetainedTabs: false,
-                powerManager: powerManager
+                powerManager: powerManager,
+                deliveryQueue: nil
             )
         }
 
@@ -1566,7 +1904,18 @@ public final class BackgroundTaskManager: ObservableObject {
             BackgroundTaskManager(
                 persistsRetainedTabs: true,
                 retainedTabsDefaults: defaults,
-                powerManager: nil
+                powerManager: nil,
+                deliveryQueue: nil
+            )
+        }
+
+        /// Test-only: a manager wired to an isolated delivery ledger, so queue
+        /// controls can assert the durable row without touching the user's.
+        static func makeForTesting(deliveryQueue: DeliveryQueueStore) -> BackgroundTaskManager {
+            BackgroundTaskManager(
+                persistsRetainedTabs: false,
+                powerManager: nil,
+                deliveryQueue: deliveryQueue
             )
         }
 
@@ -1613,6 +1962,11 @@ public final class BackgroundTaskManager: ObservableObject {
         /// Test-only: run a queue promotion pass.
         func pumpQueueForTesting() {
             pumpQueue()
+        }
+
+        /// Test-only: the edited prompt waiting for this queued task's start.
+        func queuedPromptOverrideForTesting(_ id: UUID) -> String? {
+            queuedPromptOverrides[id]
         }
 
         /// Test-only: whether a dispatch for `agentId` would be admitted
@@ -1678,11 +2032,10 @@ public final class BackgroundTaskManager: ObservableObject {
     /// The folder a local dispatch runs in: the request's own folder when it
     /// names one (a Watcher's watched folder, a Schedule's folder, a plugin's
     /// `folder_bookmark`), otherwise the target agent's sticky working folder
-    /// (`Agent.workingFolderBookmark`) so schedules and watchers created
-    /// without a folder, self-schedules, delegation, channel relays, and
-    /// `/agents/{id}/dispatch` all work where the agent's chats do. Nil when
-    /// neither is set — the run then uses the agent's sandbox/none mode as
-    /// before. Internal so the fallback contract is unit-testable.
+    /// (`Agent.workingFolderBookmark`), otherwise the agent's private
+    /// workspace for a host-folder run. Sandboxed agents keep their VM home,
+    /// so the fallback is nil for them and execution mode is unchanged.
+    /// Internal so the fallback contract is unit-testable.
     static func resolveDispatchFolder(
         for request: DispatchRequest
     ) -> (bookmark: Data?, path: String?)? {
@@ -1690,7 +2043,10 @@ public final class BackgroundTaskManager: ObservableObject {
             return (request.folderBookmark, request.folderPath)
         }
         guard let agentId = request.agentId else { return nil }
-        return AgentManager.shared.workingFolder(for: agentId)
+        if let sticky = AgentManager.shared.workingFolder(for: agentId) {
+            return sticky
+        }
+        return AgentWorkspace.defaultFolder(for: agentId)
     }
 
     // MARK: - Private: Completion Helpers
@@ -1733,6 +2089,10 @@ public final class BackgroundTaskManager: ObservableObject {
         case .schedule: return .recurringSchedule
         case .watcher: return .watcher
         case .selfSchedule: return .schedule
+        // Mailbox wakes are headless peer-triggered runs; the persisted
+        // `source=mailbox` payload keeps them distinguishable from a real
+        // self-schedule. Slice 2 owns a dedicated trigger kind if needed.
+        case .mailbox: return .schedule
         }
     }
 
@@ -1758,6 +2118,18 @@ public final class BackgroundTaskManager: ObservableObject {
     /// The toast persists until the user views it or dismisses manually.
     private func markCompleted(_ state: BackgroundTaskState, success: Bool, summary: String) {
         state.status = success ? .completed(summary: summary) : .failed(summary: summary)
+        if let deliveryQueue {
+            let id = state.id
+            let status: DeliveryStatus = success ? .completed : .failed
+            let error = success ? nil : summary
+            Task {
+                do {
+                    try await deliveryQueue.markFinished(id: id, status: status, error: error)
+                } catch {
+                    print("[BackgroundTaskManager] delivery queue finish failed for \(id): \(error)")
+                }
+            }
+        }
         state.currentStep = nil
         state.captureContextPreview()
         state.executionContext?.chatSession.save()
@@ -2171,6 +2543,18 @@ public final class BackgroundTaskManager: ObservableObject {
             streamingObserved.insert(taskId)
             state.status = .running
             state.currentStep = "Running..."
+            // The ledger distinguishes "admitted but not yet streaming" from
+            // "the turn is live"; a repeated streaming tick is a no-op.
+            if let deliveryQueue {
+                let id = taskId
+                Task {
+                    do {
+                        try await deliveryQueue.markRunning(id: id)
+                    } catch {
+                        print("[BackgroundTaskManager] delivery queue running write failed for \(id): \(error)")
+                    }
+                }
+            }
         } else if state.status == .running, streamingObserved.contains(taskId) {
             defer { pumpQueue() }
             if state.chatSession?.stopRequested == true {

@@ -237,6 +237,13 @@ public final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelega
         // service does both in its init, which otherwise waited for Settings
         // → Mobile or the first pairing request to touch it.
         _ = MobilePairingService.shared
+        // ADR-Nuo-002 follow-up: a mailbox `send` wakes its recipient once.
+        // Installed here so unit tests that replay mailbox fixtures never
+        // start a headless turn.
+        MailboxWakeService.shared.install()
+        // Slice 2 recovery ledger: rows left active by the previous process
+        // become `interrupted`. Nothing is restarted automatically.
+        Task { await BackgroundTaskManager.shared.reconcileDeliveryQueue() }
         // Phone chats from before they were titled by content, once.
         ChatSessionsManager.shared.retitleLegacyPhoneChats()
 

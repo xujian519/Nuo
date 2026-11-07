@@ -15,6 +15,9 @@
 //   • `OrchestratorDelegationsSection` — Sent / Received delegation rows
 //     (agent, task, duration, tok/s, artifacts, Open Chat) backed by the
 //     persisted child sessions and live background tasks.
+//   • `DeliveryQueueSection` — rows the previous process left running, with
+//     Resume / Discard. Reads the durable ledger through
+//     `BackgroundTaskManager`; nothing here writes the queue file directly.
 //
 
 import AppKit
@@ -505,6 +508,421 @@ struct OrchestratorDelegationsSection: View {
             return
         }
         ChatWindowManager.shared.openHistorySession(session)
+    }
+}
+
+// MARK: - Delivery Queue
+
+/// Queue and recovery surface for the durable delivery ledger.
+///
+/// A queued row has not started: the user can edit its prompt, move it within
+/// its agent's lane, or cancel it. A row the previous process left active
+/// arrives as `interrupted`: the user can re-run it or drop it. Both lists
+/// read the ledger through `BackgroundTaskManager`; nothing here opens the
+/// queue file.
+struct DeliveryQueueSection: View {
+    @ObservedObject private var themeManager = ThemeManager.shared
+    @ObservedObject private var agentManager = AgentManager.shared
+    @ObservedObject private var backgroundTasks = BackgroundTaskManager.shared
+
+    @State private var busy: Set<UUID> = []
+    @State private var editingId: UUID?
+    @State private var draft: String = ""
+    @State private var refreshTick = 0
+
+    private var theme: ThemeProtocol { themeManager.currentTheme }
+
+    /// Ledger rows that still hold a live queue slot. A cancelled or promoted
+    /// task drops out of `queuedDeliveryIDs` immediately, so the list does not
+    /// wait for the next ledger write to hide it.
+    private var queuedRows: [DeliveryRecord] {
+        let live = Set(backgroundTasks.queuedDeliveryIDs)
+        return backgroundTasks.queuedDeliveries.filter { live.contains($0.id) }
+    }
+
+    var body: some View {
+        SettingsSection(
+            title: "Delivery Queue",
+            icon: "tray.full",
+            anchorId: "settings.orchestrator.deliveryQueue"
+        ) {
+            VStack(alignment: .leading, spacing: 10) {
+                if !queuedRows.isEmpty {
+                    Text(
+                        "Waiting for a free slot. Edit the prompt, move it within the same agent's lane, or cancel it.",
+                        bundle: .module
+                    )
+                    .font(.system(size: 11))
+                    .foregroundColor(theme.tertiaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                    VStack(spacing: 6) {
+                        ForEach(queuedRows) { record in
+                            queuedRow(record)
+                        }
+                    }
+                }
+
+                if queuedRows.isEmpty && backgroundTasks.interruptedDeliveries.isEmpty {
+                    Text("No queued or interrupted deliveries.", bundle: .module)
+                        .font(.system(size: 11))
+                        .foregroundColor(theme.tertiaryText)
+                        .padding(.vertical, 4)
+                } else if !backgroundTasks.interruptedDeliveries.isEmpty {
+                    Text(
+                        "Background runs that were still active when Nuo last stopped. Resume re-runs the stored prompt as a new task; Discard drops the row.",
+                        bundle: .module
+                    )
+                    .font(.system(size: 11))
+                    .foregroundColor(theme.tertiaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                    VStack(spacing: 6) {
+                        ForEach(backgroundTasks.interruptedDeliveries) { record in
+                            deliveryRow(record)
+                        }
+                    }
+                }
+            }
+        }
+        .onReceive(backgroundTasks.objectWillChange) { _ in
+            refreshTick += 1
+        }
+        .task(id: refreshTick) {
+            try? await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled else { return }
+            await backgroundTasks.refreshDeliveries()
+        }
+    }
+
+    private func queuedRow(_ record: DeliveryRecord) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "clock")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(theme.accentColor)
+                    .frame(width: 14)
+                    .padding(.top, 2)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text(verbatim: agentName(for: record.agentId))
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(theme.primaryText)
+                            .lineLimit(1)
+                        Text(verbatim: record.source.shortLabel)
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundColor(theme.secondaryText)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(Capsule().fill(theme.tertiaryBackground))
+                        Text("Queued", bundle: .module)
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundColor(theme.accentColor)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(Capsule().fill(theme.accentColor.opacity(0.12)))
+                        Text(verbatim: record.createdAt.formatted(date: .abbreviated, time: .shortened))
+                            .font(.system(size: 10))
+                            .foregroundColor(theme.tertiaryText)
+                    }
+                    Text(verbatim: preview(record))
+                        .font(.system(size: 11))
+                        .foregroundColor(theme.secondaryText)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+
+                Spacer(minLength: 8)
+
+                if busy.contains(record.id) {
+                    ProgressView()
+                        .controlSize(.mini)
+                        .scaleEffect(0.7)
+                        .frame(width: 14)
+                } else if editingId != record.id {
+                    HStack(spacing: 6) {
+                        moveButton(
+                            "arrow.up",
+                            help: L("Move up"),
+                            id: "orchestrator.deliveryQueue.moveUp",
+                            enabled: canMove(record, up: true)
+                        ) { move(record, up: true) }
+                        moveButton(
+                            "arrow.down",
+                            help: L("Move down"),
+                            id: "orchestrator.deliveryQueue.moveDown",
+                            enabled: canMove(record, up: false)
+                        ) { move(record, up: false) }
+                        Button {
+                            beginEdit(record)
+                        } label: {
+                            Text("Edit", bundle: .module)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(theme.accentColor)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("orchestrator.deliveryQueue.edit")
+                        Button {
+                            cancelQueued(record)
+                        } label: {
+                            Text("Cancel", bundle: .module)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(theme.secondaryText)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("orchestrator.deliveryQueue.cancel")
+                    }
+                }
+            }
+
+            if editingId == record.id {
+                TextEditor(text: $draft)
+                    .font(.system(size: 11))
+                    .scrollContentBackground(.hidden)
+                    .frame(minHeight: 64, maxHeight: 96)
+                    .padding(6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(theme.primaryBackground)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(theme.inputBorder, lineWidth: 1)
+                            )
+                    )
+                    .accessibilityIdentifier("orchestrator.deliveryQueue.editField")
+
+                HStack(spacing: 8) {
+                    Spacer()
+                    Button {
+                        editingId = nil
+                    } label: {
+                        Text("Cancel", bundle: .module)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(theme.secondaryText)
+                    }
+                    .buttonStyle(.plain)
+                    Button {
+                        saveEdit(record)
+                    } label: {
+                        Text("Save", bundle: .module)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(theme.accentColor)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(theme.accentColor.opacity(0.08))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .stroke(theme.accentColor.opacity(0.2), lineWidth: 1)
+                                    )
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .accessibilityIdentifier("orchestrator.deliveryQueue.save")
+                }
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(theme.tertiaryBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(theme.inputBorder, lineWidth: 1)
+                )
+        )
+    }
+
+    private func moveButton(
+        _ symbol: String,
+        help: String,
+        id: String,
+        enabled: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(enabled ? theme.secondaryText : theme.tertiaryText.opacity(0.35))
+                .padding(5)
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .help(help)
+        .accessibilityIdentifier(id)
+    }
+
+    private func canMove(_ record: DeliveryRecord, up: Bool) -> Bool {
+        let lane = queuedRows.filter { $0.agentId == record.agentId }
+        guard let index = lane.firstIndex(where: { $0.id == record.id }) else { return false }
+        return up ? index > 0 : index < lane.count - 1
+    }
+
+    private func move(_ record: DeliveryRecord, up: Bool) {
+        Task { @MainActor in
+            _ = await backgroundTasks.moveQueuedDelivery(id: record.id, up: up)
+        }
+    }
+
+    private func beginEdit(_ record: DeliveryRecord) {
+        draft = record.prompt
+        editingId = record.id
+    }
+
+    private func saveEdit(_ record: DeliveryRecord) {
+        let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        busy.insert(record.id)
+        Task { @MainActor in
+            let saved = await backgroundTasks.editQueuedDelivery(id: record.id, prompt: text)
+            busy.remove(record.id)
+            if saved {
+                editingId = nil
+                ToastManager.shared.success(L("Delivery updated"))
+            } else {
+                ToastManager.shared.error(L("Could not update delivery"))
+            }
+        }
+    }
+
+    private func cancelQueued(_ record: DeliveryRecord) {
+        busy.insert(record.id)
+        Task { @MainActor in
+            await backgroundTasks.cancelDelivery(record.id)
+            busy.remove(record.id)
+            ToastManager.shared.success(L("Delivery cancelled"))
+        }
+    }
+
+    private func deliveryRow(_ record: DeliveryRecord) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(theme.warningColor)
+                .frame(width: 14)
+                .padding(.top, 2)
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text(verbatim: agentName(for: record.agentId))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(theme.primaryText)
+                        .lineLimit(1)
+                    Text(verbatim: record.source.shortLabel)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(theme.secondaryText)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 1)
+                        .background(Capsule().fill(theme.tertiaryBackground))
+                    Text("Interrupted", bundle: .module)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(theme.warningColor)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 1)
+                        .background(Capsule().fill(theme.warningColor.opacity(0.12)))
+                    Text(verbatim: record.createdAt.formatted(date: .abbreviated, time: .shortened))
+                        .font(.system(size: 10))
+                        .foregroundColor(theme.tertiaryText)
+                }
+                Text(verbatim: preview(record))
+                    .font(.system(size: 11))
+                    .foregroundColor(theme.secondaryText)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+
+            Spacer(minLength: 8)
+
+            if busy.contains(record.id) {
+                ProgressView()
+                    .controlSize(.mini)
+                    .scaleEffect(0.7)
+                    .frame(width: 14)
+            } else {
+                VStack(alignment: .trailing, spacing: 6) {
+                    if record.isResumable {
+                        Button {
+                            resume(record)
+                        } label: {
+                            Text("Resume run", bundle: .module)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(theme.accentColor)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(theme.accentColor.opacity(0.08))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .stroke(theme.accentColor.opacity(0.2), lineWidth: 1)
+                                        )
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("orchestrator.deliveryQueue.resume")
+                    }
+
+                    Button {
+                        discard(record)
+                    } label: {
+                        Text("Discard", bundle: .module)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(theme.secondaryText)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("orchestrator.deliveryQueue.discard")
+                }
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(theme.tertiaryBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(theme.inputBorder, lineWidth: 1)
+                )
+        )
+    }
+
+    private func agentName(for agentId: UUID?) -> String {
+        guard let agentId, let agent = agentManager.agent(for: agentId) else {
+            return L("Unknown agent")
+        }
+        return agent.name
+    }
+
+    private func preview(_ record: DeliveryRecord) -> String {
+        if let title = record.title, !title.isEmpty { return title }
+        return record.prompt
+            .split(separator: "\n", omittingEmptySubsequences: true)
+            .first
+            .map(String.init) ?? record.prompt
+    }
+
+    private func resume(_ record: DeliveryRecord) {
+        busy.insert(record.id)
+        Task { @MainActor in
+            let resumed = await backgroundTasks.resumeDelivery(record)
+            busy.remove(record.id)
+            if resumed {
+                ToastManager.shared.success(L("Delivery resumed"))
+            } else {
+                ToastManager.shared.error(L("Could not resume delivery"))
+            }
+        }
+    }
+
+    private func discard(_ record: DeliveryRecord) {
+        busy.insert(record.id)
+        Task { @MainActor in
+            await backgroundTasks.discardDelivery(record.id)
+            busy.remove(record.id)
+            ToastManager.shared.success(L("Delivery discarded"))
+        }
     }
 }
 
