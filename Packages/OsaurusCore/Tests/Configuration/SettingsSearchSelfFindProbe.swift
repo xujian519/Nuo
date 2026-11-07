@@ -295,6 +295,7 @@ struct SettingsSearchSelfFindProbe {
             ("stable_memory_refusal", "settings.orchestrator.delegation.ramSafety"),
             ("delegations", "settings.orchestrator.delegations"),
             ("Directed Mailbox", "settings.orchestrator.mailbox"),
+            ("Delivery Queue", "settings.orchestrator.deliveryQueue"),
             // Phase 3 removed the Workspaces screens; workspaces.* rows stay in
             // the catalog but are never searchable, so they have no on-screen
             // labels to pin here.

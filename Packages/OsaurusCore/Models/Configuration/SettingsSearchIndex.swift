@@ -1519,6 +1519,16 @@ public enum SettingsSearchIndex {
                 ]
             ),
             .init(
+                id: "settings.orchestrator.deliveryQueue",
+                tab: .orchestrator,
+                section: "Delivery Queue",
+                title: "Delivery Queue",
+                keywords: [
+                    "delivery queue", "interrupted", "resume", "discard", "crash recovery",
+                    "background retry", "recovery ledger", "quit during run", "stuck run",
+                ]
+            ),
+            .init(
                 id: "settings.orchestrator.mailbox",
                 tab: .orchestrator,
                 section: "Directed Mailbox",
@@ -2182,6 +2192,7 @@ public enum SettingsSearchIndex {
                 title: "Agent Runtimes",
                 keywords: [
                     "runtimes", "harness", "harnesses", "external agent", "claude code", "pi", "pi rpc", "rpc mode",
+                    "acp", "agent client protocol", "grok cli", "grok",
                     "spotlight", "splash", "agent backend", "pluggable", "harness_runtimes",
                 ],
                 declarativeSection: "harness_runtimes"
@@ -2192,7 +2203,8 @@ public enum SettingsSearchIndex {
                 title: "Add Runtime",
                 keywords: [
                     "new runtime", "register harness", "executable", "arguments", "environment", "protocol",
-                    "session id", "chat id placeholder", "system prompt file",
+                    "session id", "chat id placeholder", "system prompt file", "acp", "agent client protocol",
+                    "grok cli", "grok agent stdio",
                 ],
                 declarativeSection: "harness_runtimes"
             ),

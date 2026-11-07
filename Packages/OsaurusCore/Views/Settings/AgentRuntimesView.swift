@@ -193,9 +193,11 @@ struct AgentRuntimesView: View {
                         Text(usageLabel(runtime))
                             .font(.system(size: 11))
                             .foregroundColor(theme.secondaryText)
-                        if runtime.kind == .piRPC, !runtime.resumesSessions {
+                        if !runtime.resumesSessions {
                             Text(
-                                "Chats start over when the process restarts. Add --session-id {chat_id} to the arguments to resume them.",
+                                runtime.kind == .piRPC
+                                    ? "Chats start over when the process restarts. Add --session-id {chat_id} to the arguments to resume them."
+                                    : "Chats start over when the process restarts. ACP sessions are not resumed yet.",
                                 bundle: .module
                             )
                             .font(.system(size: 11))
@@ -412,11 +414,7 @@ struct HarnessRuntimeEditorSheet: View {
                         .labelsHidden()
                         .disabled(isEditing)
                         .onChange(of: kind) { old, new in applyKindDefaults(from: old, to: new) }
-                        hint(
-                            kind == .piRPC
-                                ? L("Pi, or any harness built on Pi, driven over its RPC mode.")
-                                : L("Your signed-in Claude Code CLI, driven over stream-json.")
-                        )
+                        hint(protocolHint)
                     }
 
                     field(L("Name")) {
@@ -432,16 +430,11 @@ struct HarnessRuntimeEditorSheet: View {
                     }
 
                     field(L("Arguments")) {
-                        textEditor(text: $argumentsText, placeholder: kind == .piRPC ? "--mode\nrpc" : "")
-                        hint(
-                            kind == .piRPC
-                                ? L(
-                                    "One argument per line. Keep --mode rpc. Add --session-id {chat_id} so chats resume after a restart, and --append-system-prompt {system_prompt_file} to pass the agent's system prompt. Narrow its tools with --tools."
-                                )
-                                : L(
-                                    "One argument per line, added after the flags Nuo sets (model, session, permissions). Usually empty."
-                                )
+                        textEditor(
+                            text: $argumentsText,
+                            placeholder: kind == .piRPC ? "--mode\nrpc" : (kind == .grokCLI ? "agent\nstdio" : "")
                         )
+                        hint(argumentsHint)
                         hint(L("Placeholders: {chat_id}, {agent_id}, {cwd}, {system_prompt_file}."))
                     }
 
@@ -558,6 +551,40 @@ struct HarnessRuntimeEditorSheet: View {
             .split(whereSeparator: \.isNewline)
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
+    }
+
+    private var protocolHint: String {
+        switch kind {
+        case .piRPC:
+            return L("Pi, or any harness built on Pi, driven over its RPC mode.")
+        case .claudeCode:
+            return L("Your signed-in Claude Code CLI, driven over stream-json.")
+        case .acp:
+            return L("Any Agent Client Protocol agent. Point it at the command that starts its stdio server.")
+        case .grokCLI:
+            return L("Grok CLI in its ACP mode (grok agent stdio).")
+        }
+    }
+
+    private var argumentsHint: String {
+        switch kind {
+        case .piRPC:
+            return L(
+                "One argument per line. Keep --mode rpc. Add --session-id {chat_id} so chats resume after a restart, and --append-system-prompt {system_prompt_file} to pass the agent's system prompt. Narrow its tools with --tools."
+            )
+        case .acp:
+            return L(
+                "One argument per line, passed before the ACP handshake. Usually empty; the agent's own defaults apply."
+            )
+        case .grokCLI:
+            return L(
+                "One argument per line. Keep agent stdio; add --model or --always-approve there when you want them."
+            )
+        case .claudeCode:
+            return L(
+                "One argument per line, added after the flags Nuo sets (model, session, permissions). Usually empty."
+            )
+        }
     }
 
     private var argumentWarning: String? {

@@ -16,6 +16,11 @@ public enum HarnessKind: String, Codable, Sendable, CaseIterable, Identifiable {
     case claudeCode
     /// Pi's `--mode rpc` JSONL protocol (Pi itself, or a Pi-based wrapper).
     case piRPC
+    /// Agent Client Protocol (JSON-RPC over stdio). Any ACP agent works; the
+    /// user supplies the launch command.
+    case acp
+    /// Grok CLI in its ACP mode (`grok agent stdio`).
+    case grokCLI
 
     public var id: String { rawValue }
 
@@ -23,24 +28,32 @@ public enum HarnessKind: String, Codable, Sendable, CaseIterable, Identifiable {
         switch self {
         case .claudeCode: return L("Claude Code")
         case .piRPC: return L("Pi (RPC)")
+        case .acp: return L("ACP")
+        case .grokCLI: return L("Grok CLI")
         }
     }
 
     /// Command looked up on PATH when a new runtime of this kind is created.
+    /// ACP is a protocol, not a program: the user names the agent binary.
     public var defaultExecutable: String {
         switch self {
         case .claudeCode: return "claude"
         case .piRPC: return "pi"
+        case .acp: return ""
+        case .grokCLI: return "grok"
         }
     }
 
     /// Arguments a new runtime of this kind starts with. Claude Code's are
     /// built by its adapter from the agent's settings, so the user list stays
-    /// empty; Pi needs RPC mode selected explicitly.
+    /// empty; Pi needs RPC mode selected explicitly; Grok needs its stdio
+    /// agent subcommand.
     public var defaultArguments: [String] {
         switch self {
         case .claudeCode: return []
         case .piRPC: return ["--mode", "rpc"]
+        case .acp: return []
+        case .grokCLI: return ["agent", "stdio"]
         }
     }
 }
@@ -108,6 +121,11 @@ public struct HarnessRuntime: Codable, Sendable, Equatable, Identifiable, Hashab
             return true
         case .piRPC:
             return arguments.contains { $0.contains(HarnessArgumentPlaceholder.chatId) }
+        case .acp, .grokCLI:
+            // ACP can load a session, but the id belongs to the agent and is
+            // issued after this process starts. Until Osaurus persists it per
+            // chat, every relaunch starts a new agent session.
+            return false
         }
     }
 

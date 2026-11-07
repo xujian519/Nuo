@@ -181,7 +181,7 @@ actor HarnessSession {
         let processGeneration = generation
         self.adapter = adapter
         self.process = process
-        self.codec = adapter.makeCodec()
+        self.codec = adapter.makeCodec(context: context)
         self.plan = plan
         self.token = token
         self.launchedFingerprint = context.fingerprint

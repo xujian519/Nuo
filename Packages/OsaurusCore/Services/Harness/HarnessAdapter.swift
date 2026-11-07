@@ -165,7 +165,10 @@ protocol HarnessAdapter: Sendable {
     func tokenAllowsConfigWrites(context: HarnessLaunchContext) -> Bool
 
     func launchPlan(context: HarnessLaunchContext, token: String?) throws -> HarnessLaunchPlan
+    /// Runtime-only codec. A protocol requirement (not just a default) so the
+    /// context-taking overload dispatches to the adapter's implementation.
     func makeCodec() -> HarnessCodec
+    func makeCodec(context: HarnessLaunchContext) -> HarnessCodec
 
     /// After a fresh process fails its first turn: the session mode to retry
     /// with once, or nil to surface the failure.
@@ -173,6 +176,12 @@ protocol HarnessAdapter: Sendable {
 }
 
 extension HarnessAdapter {
+    /// Codecs that need launch context (ACP's `session/new` cwd) override
+    /// this; the JSONL protocols build their codec from the runtime alone.
+    func makeCodec(context: HarnessLaunchContext) -> HarnessCodec {
+        makeCodec()
+    }
+
     func retryMode(after error: HarnessError, context: HarnessLaunchContext) -> HarnessLaunchContext.SessionMode? {
         nil
     }
@@ -197,6 +206,7 @@ enum HarnessAdapters {
         switch runtime.kind {
         case .claudeCode: return ClaudeCodeHarnessAdapter(runtime: runtime)
         case .piRPC: return PiRPCAdapter(runtime: runtime)
+        case .acp, .grokCLI: return ACPHarnessAdapter(runtime: runtime)
         }
     }
 }

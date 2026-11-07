@@ -70,7 +70,7 @@ struct ConfigHarnessRuntimeTests {
             var reserved = HarnessRuntimeEntry(name: "builtin")
             reserved.kind = "pi_rpc"
             var badKind = HarnessRuntimeEntry(name: "Weird")
-            badKind.kind = "acp"
+            badKind.kind = "carrier-pigeon"
             let noKind = HarnessRuntimeEntry(name: "Kindless")
             var emptyExecutable = HarnessRuntimeEntry(name: "Blank")
             emptyExecutable.kind = "pi_rpc"

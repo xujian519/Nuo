@@ -299432,7 +299432,1163 @@
     },
     "this chat's scratch folder" : {
 
-    }
+    },
+      "ACP" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP"
+            }
+          }
+        }
+      },
+      "ACP agent ready (version %@)." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP-Agent bereit (Version %@)."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP 에이전트 준비됨(버전 %@)."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP-агент готов (версия %@)."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP 智能体已就绪（版本 %@）。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP 智慧體已就緒（版本 %@）。"
+            }
+          }
+        }
+      },
+      "ACP agent ready." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP-Agent bereit."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP 에이전트 준비됨."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP-агент готов."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP 智能体已就绪。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP 智慧體已就緒。"
+            }
+          }
+        }
+      },
+      "ACP session/new returned no session id." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP session/new hat keine Sitzungs-ID zurückgegeben."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP session/new가 세션 ID를 반환하지 않았습니다."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP session/new не вернул идентификатор сеанса."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP session/new 未返回会话 ID。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP session/new 未傳回工作階段 ID。"
+            }
+          }
+        }
+      },
+      "Allow this tool?" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Dieses Tool erlauben?"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "이 도구를 허용할까요?"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Разрешить этот инструмент?"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "允许此工具？"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "允許此工具？"
+            }
+          }
+        }
+      },
+      "Any Agent Client Protocol agent. Point it at the command that starts its stdio server." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Jeder Agent-Client-Protocol-Agent. Richte ihn auf den Befehl aus, der seinen stdio-Server startet."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "모든 Agent Client Protocol 에이전트. stdio 서버를 시작하는 명령을 지정하세요."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Любой агент Agent Client Protocol. Укажите команду, запускающую его stdio-сервер."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "任意 Agent Client Protocol 智能体。填写启动其 stdio 服务的命令。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "任意 Agent Client Protocol 智慧體。填寫啟動其 stdio 服務的指令。"
+            }
+          }
+        }
+      },
+      "Background runs that were still active when Nuo last stopped. Resume re-runs the stored prompt as a new task; Discard drops the row." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Hintergrundläufe, die beim letzten Beenden von Nuo noch aktiv waren. Fortsetzen startet den gespeicherten Prompt als neuen Task; Verwerfen entfernt die Zeile."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Nuo가 마지막으로 종료될 때 아직 실행 중이던 백그라운드 작업입니다. 재개하면 저장된 프롬프트로 새 작업을 실행하고, 버리면 해당 행을 삭제합니다."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Фоновые запуски, которые ещё выполнялись при последнем завершении Nuo. «Продолжить» заново запускает сохранённый запрос как новую задачу, «Отказаться» удаляет строку."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Nuo 上次退出时仍在运行的后台任务。继续会把保存的提示词作为新任务重新运行；放弃会删除该行。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Nuo 上次結束時仍在執行的背景工作。繼續會把儲存的提示詞當作新工作重新執行；放棄會刪除該列。"
+            }
+          }
+        }
+      },
+      "Chats start over when the process restarts. ACP sessions are not resumed yet." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Chats beginnen nach einem Neustart von vorn. ACP-Sitzungen werden noch nicht fortgesetzt."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "프로세스가 재시작되면 채팅이 처음부터 시작됩니다. ACP 세션은 아직 이어지지 않습니다."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "После перезапуска процесса чаты начинаются заново. Сеансы ACP пока не возобновляются."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "进程重启后聊天会重新开始，ACP 会话暂不支持续接。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "程序重啟後聊天會重新開始，ACP 工作階段暫不支援續接。"
+            }
+          }
+        }
+      },
+      "Choose the ACP agent's executable." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Wähle die ausführbare Datei des ACP-Agenten."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP 에이전트 실행 파일을 선택하세요."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Выберите исполняемый файл ACP-агента."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "请选择 ACP 智能体的可执行文件。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "請選擇 ACP 智慧體的可執行檔。"
+            }
+          }
+        }
+      },
+      "Could not encode the prompt." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Der Prompt konnte nicht codiert werden."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "프롬프트를 인코딩할 수 없습니다."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Не удалось закодировать запрос."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "无法编码提示词。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "無法編碼提示詞。"
+            }
+          }
+        }
+      },
+      "Could not resume delivery" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Zustellung konnte nicht fortgesetzt werden"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "전달을 재개할 수 없습니다"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Не удалось продолжить доставку"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "无法继续投递"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "無法繼續投遞"
+            }
+          }
+        }
+      },
+      "Could not update delivery" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Zustellung konnte nicht aktualisiert werden"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "전달을 업데이트할 수 없습니다"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Не удалось обновить доставку"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "无法更新投递"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "無法更新投遞"
+            }
+          }
+        }
+      },
+      "Delivery Queue" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Zustellungs-Warteschlange"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "전달 대기열"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Очередь доставки"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "投递队列"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "投遞佇列"
+            }
+          }
+        }
+      },
+      "Delivery cancelled" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Zustellung abgebrochen"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "전달을 취소했습니다"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Доставка отменена"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "投递已取消"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "投遞已取消"
+            }
+          }
+        }
+      },
+      "Delivery discarded" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Zustellung verworfen"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "전달을 버렸습니다"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Доставка отменена"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "投递已放弃"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "投遞已放棄"
+            }
+          }
+        }
+      },
+      "Delivery resumed" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Zustellung fortgesetzt"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "전달을 재개했습니다"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Доставка продолжена"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "投递已继续"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "投遞已繼續"
+            }
+          }
+        }
+      },
+      "Delivery updated" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Zustellung aktualisiert"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "전달을 업데이트했습니다"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Доставка обновлена"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "投递已更新"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "投遞已更新"
+            }
+          }
+        }
+      },
+      "Grok CLI" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Grok CLI"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Grok CLI"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Grok CLI"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Grok CLI"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Grok CLI"
+            }
+          }
+        }
+      },
+      "Grok CLI in its ACP mode (grok agent stdio)." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Grok CLI im ACP-Modus (grok agent stdio)."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Grok CLI의 ACP 모드(grok agent stdio)."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Grok CLI в режиме ACP (grok agent stdio)."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Grok CLI 的 ACP 模式（grok agent stdio）。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Grok CLI 的 ACP 模式（grok agent stdio）。"
+            }
+          }
+        }
+      },
+      "Interrupted" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Unterbrochen"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "중단됨"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Прервано"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "已中断"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "已中斷"
+            }
+          }
+        }
+      },
+      "It started but didn't answer the ACP initialize handshake within %d seconds." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Es startete, beantwortete die ACP-Initialisierung aber nicht innerhalb von %d Sekunden."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "시작되었지만 %d초 안에 ACP 초기화 핸드셰이크에 응답하지 않았습니다."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Он запустился, но не ответил на рукопожатие ACP initialize за %d секунд."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "进程已启动，但未在 %d 秒内响应 ACP 初始化握手。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "程序已啟動，但未在 %d 秒內回應 ACP 初始化握手。"
+            }
+          }
+        }
+      },
+      "Method not supported by Nuo: %@" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Methode von Nuo nicht unterstützt: %@"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Nuo에서 지원하지 않는 메서드: %@"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Метод не поддерживается Nuo: %@"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Nuo 不支持该方法：%@"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Nuo 不支援該方法：%@"
+            }
+          }
+        }
+      },
+      "Move down" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Nach unten"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "아래로 이동"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Переместить вниз"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "下移"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "下移"
+            }
+          }
+        }
+      },
+      "Move up" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Nach oben"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "위로 이동"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Переместить вверх"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "上移"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "上移"
+            }
+          }
+        }
+      },
+      "No interrupted deliveries." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Keine unterbrochenen Zustellungen."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "중단된 전달이 없습니다."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Нет прерванных доставок."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "没有中断的投递。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "沒有中斷的投遞。"
+            }
+          }
+        }
+      },
+      "No queued or interrupted deliveries." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Keine wartenden oder unterbrochenen Zustellungen."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "대기 중이거나 중단된 전달이 없습니다."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Нет ожидающих или прерванных доставок."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "没有排队或中断的投递。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "沒有排隊或中斷的投遞。"
+            }
+          }
+        }
+      },
+      "One argument per line, passed before the ACP handshake. Usually empty; the agent's own defaults apply." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Ein Argument pro Zeile, vor dem ACP-Handshake übergeben. Meist leer; die Standardwerte des Agenten gelten."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "줄마다 인자 하나. ACP 핸드셰이크 전에 전달됩니다. 보통 비워 두며 에이전트 기본값이 적용됩니다."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "По одному аргументу в строке, передаются перед рукопожатием ACP. Обычно пусто; действуют настройки агента по умолчанию."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "每行一个参数，在 ACP 握手前传入。通常留空，使用智能体自身的默认值。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "每行一個參數，在 ACP 握手前傳入。通常留空，使用智慧體自身的預設值。"
+            }
+          }
+        }
+      },
+      "One argument per line. Keep agent stdio; add --model or --always-approve there when you want them." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Ein Argument pro Zeile. Behalte agent stdio; ergänze --model oder --always-approve nach Bedarf."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "줄마다 인자 하나. agent stdio를 유지하고 필요하면 --model 또는 --always-approve를 추가하세요."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "По одному аргументу в строке. Оставьте agent stdio; при необходимости добавьте --model или --always-approve."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "每行一个参数。保留 agent stdio；需要时再添加 --model 或 --always-approve。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "每行一個參數。保留 agent stdio；需要時再加入 --model 或 --always-approve。"
+            }
+          }
+        }
+      },
+      "Resume run" : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Lauf fortsetzen"
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "실행 재개"
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Продолжить запуск"
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "继续运行"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "繼續執行"
+            }
+          }
+        }
+      },
+      "The ACP agent created no session." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Der ACP-Agent hat keine Sitzung erstellt."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP 에이전트가 세션을 만들지 않았습니다."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP-агент не создал сеанс."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP 智能体没有创建会话。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP 智慧體沒有建立工作階段。"
+            }
+          }
+        }
+      },
+      "The agent is still starting its ACP session." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Der Agent startet seine ACP-Sitzung noch."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "에이전트가 아직 ACP 세션을 시작하는 중입니다."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Агент всё ещё запускает сеанс ACP."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "智能体仍在启动 ACP 会话。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "智慧體仍在啟動 ACP 工作階段。"
+            }
+          }
+        }
+      },
+      "The agent reported an unknown error." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Der Agent hat einen unbekannten Fehler gemeldet."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "에이전트가 알 수 없는 오류를 보고했습니다."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Агент сообщил о неизвестной ошибке."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "智能体报告了未知错误。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "智慧體回報了未知錯誤。"
+            }
+          }
+        }
+      },
+      "Waiting for a free slot. Edit the prompt, move it within the same agent's lane, or cancel it." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Wartet auf einen freien Slot. Prompt bearbeiten, innerhalb der Spur desselben Agenten verschieben oder abbrechen."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "빈 슬롯을 기다리는 중입니다. 프롬프트를 편집하거나 같은 에이전트의 대기열 안에서 순서를 바꾸거나 취소할 수 있습니다."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Ожидает свободного слота. Измените запрос, переместите его в пределах очереди того же агента или отмените."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "正在等待空闲槽位。可以编辑提示词、在同一智能体的队列内调整顺序，或取消。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "正在等待空閒槽位。可以編輯提示詞、在同一智慧體的佇列內調整順序，或取消。"
+            }
+          }
+        }
+      },
+      "The ACP request was rejected." : {
+        "localizations" : {
+          "de" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Die ACP-Anfrage wurde abgelehnt."
+            }
+          },
+          "ko" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP 요청이 거부되었습니다."
+            }
+          },
+          "ru" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "Запрос ACP был отклонён."
+            }
+          },
+          "zh-Hans" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP 请求被拒绝。"
+            }
+          },
+          "zh-Hant" : {
+            "stringUnit" : {
+              "state" : "translated",
+              "value" : "ACP 請求被拒絕。"
+            }
+          }
+        }
+      }
   },
   "version" : "1.1"
 }

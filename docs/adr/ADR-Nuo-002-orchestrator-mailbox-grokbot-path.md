@@ -349,3 +349,59 @@ trust bit that reads back untrusted. `floors.json` pins `"Mailbox"` at
 1.0. The unit regression set is
 `Packages/OsaurusCore/Tests/AgentCollaboration/OsaurusMailboxToolTests.swift`
 (eleven cases, temp-directory mailbox).
+
+## Appendix: mailbox wake (authorized 2026-11-07)
+
+Slice 1 of the Grok Bot parity plan closes the "no model runner consumes the
+mailbox" gap without changing any admission rule. `send` still lands through
+`DirectedMailboxService`; after it lands, `MailboxWakeService` starts one
+headless turn of the recipient. A `reply` never wakes, which is the cycle
+break. The wake admits one turn at a time and six wakes per agent per hour;
+a refused wake leaves the envelope in the inbox, so the pull path remains.
+
+The decision note is
+[2026-11-07-mailbox-wake.md](../notes/implemented/2026-11-07-mailbox-wake.md).
+It records the alternatives that lost and the per-process quota. Slice 2
+(issue #16) later added the durable delivery ledger behind the same wake, so a
+wake that was running when the process stopped is now recoverable. The depth
+ceiling, cycle rejection, caps, and `host.dispatch` rule are unchanged.
+
+## Appendix: durable delivery queue (authorized 2026-11-07)
+
+Slice 2 records every background dispatch in
+`~/.nuo/queue/deliveries.json` before it is registered, updates it on start
+and on every terminal path, and marks rows left active by the previous process
+as `interrupted` at launch. `DeliveryQueueStore` is the write path;
+`BackgroundTaskManager` remains the executor. Nothing auto-resumes.
+
+Settings → Orchestrator → **Delivery Queue** lists the interrupted rows and
+offers **Resume run** / **Discard**. A resumed mailbox row answers its envelope
+through `MailboxWakeService` after the new turn completes.
+
+The decision note is
+[2026-11-07-durable-delivery-queue.md](../notes/implemented/2026-11-07-durable-delivery-queue.md).
+Message-level controls (edit / reorder / steer) are not in this slice.
+
+## Appendix: workspace, room ownership, ACP (2026-11-07)
+
+The remaining parity slices landed without relaxing an admission rule:
+
+- **Slice 3 — per-agent workspace.** Every custom agent owns
+  `~/.nuo/agents/<uuid>/workspace/`. Folder priority is explicit request/chat
+  folder → sticky working folder → workspace. A sandboxed agent keeps its VM
+  home, so the isolation boundary is unchanged. Notes:
+  [agent-workspace](../notes/implemented/2026-11-07-agent-workspace.md).
+- **Slice 4 — room task ownership.** A channel room has one owner and one live
+  task, persisted in `agent-channels/rooms.json`. Stop / Resume / Reassign /
+  Archive / Restore run through one service; the inbound relay claims the room
+  and reports turn lifecycle. Notes:
+  [channel-room-ownership](../notes/implemented/2026-11-07-channel-room-ownership.md).
+- **Slice 5 — ACP and Grok CLI.** `HarnessKind.acp` and `.grokCLI` share an ACP
+  codec (`initialize → authenticate → session/new → session/prompt`) with
+  permission dialogs and `session/cancel`. Grok CLI runs through
+  `grok agent stdio`. Notes:
+  [acp-grok-harness](../notes/implemented/2026-11-07-acp-grok-harness.md).
+
+Still open: `steer` into a running turn (slice 2), ACP session resume across a
+process restart, and a live click-through of the queued-row buttons and room
+controls on a machine where the UI automation can drive those small controls.

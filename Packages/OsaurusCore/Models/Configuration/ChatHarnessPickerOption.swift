@@ -33,6 +33,8 @@ struct ChatHarnessPickerOption: Identifiable, Equatable, Hashable, Sendable {
             return id(runtimeId: runtime.id, claudeModel: claudeConfig.resolvedModel)
         case .piRPC:
             return id(runtimeId: runtime.id, claudeModel: nil)
+        case .acp, .grokCLI:
+            return id(runtimeId: runtime.id, claudeModel: nil)
         }
     }
 
@@ -56,6 +58,8 @@ struct ChatHarnessPickerOption: Identifiable, Equatable, Hashable, Sendable {
             }
             return options
         case .piRPC:
+            return [ChatHarnessPickerOption(runtimeId: runtime.id, claudeModel: nil, title: L("Default model"))]
+        case .acp, .grokCLI:
             return [ChatHarnessPickerOption(runtimeId: runtime.id, claudeModel: nil, title: L("Default model"))]
         }
     }

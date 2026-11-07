@@ -76,6 +76,8 @@ enum ConfigHarness {
         switch raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
         case "claude_code": return .claudeCode
         case "pi_rpc": return .piRPC
+        case "acp": return .acp
+        case "grok_cli": return .grokCLI
         default: return nil
         }
     }
@@ -84,6 +86,8 @@ enum ConfigHarness {
         switch kind {
         case .claudeCode: return "claude_code"
         case .piRPC: return "pi_rpc"
+        case .acp: return "acp"
+        case .grokCLI: return "grok_cli"
         }
     }
 

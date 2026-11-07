@@ -355,4 +355,77 @@ struct HarnessRuntimeProbeTests {
         #expect(result.status == .needsSetup)
         #expect(result.resolvedExecutable == script.path)
     }
+
+    @Test func anACPHandshakeWithoutAuthIsReady() async throws {
+        let directory = try HarnessFixtures.temporaryDirectory("probe-acp")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let script = try HarnessFixtures.writeExecutable(
+            """
+            #!/bin/sh
+            while IFS= read -r line; do
+              case "$line" in
+                *'"initialize"'*) printf '%s\\n' '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":1,"_meta":{"agentVersion":"1.2.3"}}}' ;;
+                *'"session/new"'*) printf '%s\\n' '{"jsonrpc":"2.0","id":3,"result":{"sessionId":"s-1"}}' ;;
+              esac
+            done
+            """,
+            named: "acp-agent",
+            in: directory
+        )
+        let result = await HarnessRuntimeProbe.run(
+            HarnessRuntime(name: "ACP Agent", kind: .acp, executable: script.path, arguments: []),
+            timeout: 10
+        )
+        #expect(result.status == .ready)
+        #expect(result.message.contains("1.2.3"))
+        #expect(result.resolvedExecutable == script.path)
+    }
+
+    @Test func anACPHandshakeWithAuthAuthenticatesFirst() async throws {
+        let directory = try HarnessFixtures.temporaryDirectory("probe-acp-auth")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let script = try HarnessFixtures.writeExecutable(
+            """
+            #!/bin/sh
+            while IFS= read -r line; do
+              case "$line" in
+                *'"initialize"'*) printf '%s\\n' '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":1,"_meta":{"defaultAuthMethodId":"cached_token"}}}' ;;
+                *'"authenticate"'*) printf '%s\\n' '{"jsonrpc":"2.0","id":2,"result":{}}' ;;
+                *'"session/new"'*) printf '%s\\n' '{"jsonrpc":"2.0","id":3,"result":{"sessionId":"s-2"}}' ;;
+              esac
+            done
+            """,
+            named: "acp-auth-agent",
+            in: directory
+        )
+        let result = await HarnessRuntimeProbe.run(
+            HarnessRuntime(name: "ACP Auth Agent", kind: .acp, executable: script.path, arguments: []),
+            timeout: 10
+        )
+        #expect(result.status == .ready)
+        #expect(result.message.contains("ACP agent ready"))
+    }
+
+    @Test func aSignedOutACPNeedsSetup() async throws {
+        let directory = try HarnessFixtures.temporaryDirectory("probe-acp-signedout")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let script = try HarnessFixtures.writeExecutable(
+            """
+            #!/bin/sh
+            while IFS= read -r line; do
+              case "$line" in
+                *'"initialize"'*) printf '%s\\n' '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":1}}' ;;
+                *'"session/new"'*) printf '%s\\n' '{"jsonrpc":"2.0","id":3,"error":{"code":-32000,"message":"Authentication required"}}' ;;
+              esac
+            done
+            """,
+            named: "acp-signed-out",
+            in: directory
+        )
+        let result = await HarnessRuntimeProbe.run(
+            HarnessRuntime(name: "ACP Signed Out", kind: .acp, executable: script.path, arguments: []),
+            timeout: 10
+        )
+        #expect(result.status == .needsSetup)
+    }
 }
