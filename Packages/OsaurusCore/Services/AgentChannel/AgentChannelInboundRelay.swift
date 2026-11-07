@@ -86,6 +86,7 @@ final class AgentChannelInboundRelay {
     private let taskManager: BackgroundTaskManager
     private let activityCenter: AgentChannelInboundActivityCenter
     private let focusPreference: AgentChannelInboundFocusPreference
+    private let roomService: AgentChannelRoomService
     private let revealTask: @MainActor (UUID) -> Void
     /// A message that arrived while its conversation already had a turn in
     /// flight, held until that turn ends.
@@ -111,6 +112,7 @@ final class AgentChannelInboundRelay {
         taskManager: BackgroundTaskManager = .shared,
         activityCenter: AgentChannelInboundActivityCenter = .shared,
         focusPreference: AgentChannelInboundFocusPreference = .shared,
+        roomService: AgentChannelRoomService = .shared,
         revealTask: @escaping @MainActor (UUID) -> Void = { ChatWindowManager.shared.revealTask($0) }
     ) {
         self.substrate = substrate
@@ -119,6 +121,7 @@ final class AgentChannelInboundRelay {
         self.taskManager = taskManager
         self.activityCenter = activityCenter
         self.focusPreference = focusPreference
+        self.roomService = roomService
         self.revealTask = revealTask
     }
 
@@ -145,7 +148,7 @@ final class AgentChannelInboundRelay {
         else {
             return .suppressed("no_route_matched")
         }
-        let target = resolution.target
+        var target = resolution.target
         // A local route must name a real custom agent; a workspace route
         // must still be a shared agent in one of our rosters (the owner may
         // have unshared it or we may have left the workspace). Liveness is
@@ -162,6 +165,55 @@ final class AgentChannelInboundRelay {
                 !roster.isHostedHere(address: ref.agentAddress)
             else {
                 return .suppressed("inbound_workspace_agent_unavailable")
+            }
+        }
+
+        // One room, one task owner. The first routed message assigns the
+        // resolved agent; later messages keep that owner until a manual
+        // reassign, so two aliases in the same room cannot ping-pong turns.
+        // A stopped or archived room refuses the message here.
+        if let resolvedLocalId = target.localId {
+            do {
+                let room = try await roomService.claim(
+                    connectionId: request.connectionId,
+                    roomId: request.providerRoute.conversationId,
+                    proposedAgentId: resolvedLocalId
+                )
+                if let owner = room.ownerAgentId, owner != resolvedLocalId {
+                    if AgentManager.shared.agent(for: owner) != nil, !(AgentManager.shared.agent(for: owner)?.isBuiltIn ?? true) {
+                        target = .local(owner)
+                    } else {
+                        // The owner was deleted (or became built-in). Give the
+                        // room to the agent the route resolves today.
+                        _ = try? await roomService.reassign(
+                            connectionId: request.connectionId,
+                            roomId: request.providerRoute.conversationId,
+                            agentId: resolvedLocalId
+                        )
+                    }
+                }
+            } catch let error as AgentChannelRoomError {
+                await auditLog.record(
+                    AgentChannelAuditEvent(
+                        kind: .taskFailed,
+                        status: .rejected,
+                        connectionId: request.connectionId,
+                        agentId: resolvedLocalId,
+                        auditKey: request.providerEventId,
+                        failure: AgentChannelFailure(
+                            code: .dispatchUnavailable,
+                            message: error.localizedDescription,
+                            retryable: false
+                        ),
+                        metadata: ["reason": "room_unavailable"]
+                    )
+                )
+                if case .unavailable(let status) = error {
+                    return .suppressed(status == .archived ? "room_archived" : "room_stopped")
+                }
+                return .suppressed("room_unavailable")
+            } catch {
+                return .suppressed("room_unavailable")
             }
         }
         let agentId = target.localId
@@ -290,7 +342,11 @@ final class AgentChannelInboundRelay {
             if notifyOnDenial {
                 await sendDenialNotice(request, agentId: agentId, partition: partition, safety: safety)
             }
-            await finishTurn(target: target, partition: partition)
+            await finishTurn(
+                target: target,
+                partition: partition,
+                roomId: request.providerRoute.conversationId
+            )
             return .suppressed(safety.reason.rawValue)
         }
 
@@ -330,17 +386,31 @@ final class AgentChannelInboundRelay {
                 identity: request.identity,
                 taskId: request.providerEventId
             )
-            await self?.finishTurn(target: target, partition: partition)
+            await self?.finishTurn(
+                target: target,
+                partition: partition,
+                roomId: request.providerRoute.conversationId
+            )
         }
         return .dispatched(target: target, rule: rule)
     }
 
     /// Ends the conversation's current turn. Messages that queued up behind
     /// it start the next turn, otherwise the conversation goes idle.
-    private func finishTurn(target: AgentDispatchTarget, partition: AgentChannelSessionPartition) async {
+    private func finishTurn(
+        target: AgentDispatchTarget,
+        partition: AgentChannelSessionPartition,
+        roomId: String
+    ) async {
         let key = partition.externalSessionKey
         guard let queued = activePartitions[key], let first = queued.first else {
             activePartitions.removeValue(forKey: key)
+            // No follow-up is waiting: the room is idle but keeps its owner
+            // and task id, so the next message continues this conversation.
+            await roomService.finishTurn(
+                connectionId: partition.connectionId,
+                roomId: roomId
+            )
             return
         }
         // Batch only one sender's consecutive messages, so the safety gate
@@ -566,9 +636,22 @@ final class AgentChannelInboundRelay {
                         )
                     }
                 }
+                await roomService.finishTurn(
+                    connectionId: request.connectionId,
+                    roomId: request.providerRoute.conversationId
+                )
                 return
             }
             taskId = handle.id
+        }
+
+        if agentId != nil {
+            await roomService.markRunning(
+                connectionId: request.connectionId,
+                roomId: request.providerRoute.conversationId,
+                taskId: taskId,
+                externalSessionKey: partition.externalSessionKey
+            )
         }
 
         revealConversationIfPreferred(taskId: taskId)
@@ -592,6 +675,11 @@ final class AgentChannelInboundRelay {
                 )
                 break
             }
+            await roomService.markRunning(
+                connectionId: request.connectionId,
+                roomId: request.providerRoute.conversationId,
+                taskId: taskId
+            )
             try? await Task.sleep(for: .milliseconds(100))
         }
     }
@@ -605,6 +693,13 @@ final class AgentChannelInboundRelay {
         let terminal = await waitForReply(taskId: taskId, runStartedAt: runStartedAt)
         switch terminal {
         case .reply(let text, let awaitingClarification, let artifacts):
+            if awaitingClarification, agentId != nil {
+                await roomService.markWaiting(
+                    connectionId: request.connectionId,
+                    roomId: request.providerRoute.conversationId,
+                    taskId: taskId
+                )
+            }
             guard request.settings.autoReplyEnabled, let responder = request.reply else {
                 await auditLog.record(
                     AgentChannelAuditEvent(

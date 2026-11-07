@@ -231,6 +231,7 @@ struct AgentChannelDestinationModeBadge: View {
 struct AgentChannelDestinationRowCard: View {
     @ObservedObject private var themeManager = ThemeManager.shared
     @ObservedObject private var roomDirectory = AgentChannelRoomDirectory.shared
+    @ObservedObject private var roomService = AgentChannelRoomService.shared
 
     let binding: AgentChannelBinding
     /// Derived from the channel setup rather than stored configuration.
@@ -323,6 +324,12 @@ struct AgentChannelDestinationRowCard: View {
                     .foregroundColor(
                         effectiveMode == .autonomous ? theme.warningColor : theme.tertiaryText
                     )
+                if let room = roomService.task(
+                    connectionId: binding.connectionId,
+                    roomId: binding.roomId
+                ), room.ownerAgentId != nil || room.status != .idle {
+                    roomTaskRow(room)
+                }
             }
 
             Spacer()
@@ -359,6 +366,85 @@ struct AgentChannelDestinationRowCard: View {
             secondaryButton: .cancel(L("Cancel")),
             presentationStyle: .window
         )
+        .task { await roomService.load() }
+    }
+
+    /// One line for the room's task owner and lifecycle. Stop cancels the
+    /// live turn; Resume re-opens the room without dropping its conversation;
+    /// Archive refuses new messages and keeps the history for Restore.
+    @ViewBuilder
+    private func roomTaskRow(_ room: AgentChannelRoomRecord) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: room.status == .archived ? "archivebox" : "person.crop.circle")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(theme.tertiaryText)
+            Text(room.status.displayName)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(room.status.isLive ? theme.accentColor : theme.tertiaryText)
+            if let owner = room.ownerAgentId,
+                let agent = AgentManager.shared.agent(for: owner)
+            {
+                Text(agent.name)
+                    .font(.system(size: 10))
+                    .foregroundColor(theme.tertiaryText)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 4)
+            if room.status.isLive {
+                roomActionButton(L("Stop"), id: "channel.room.stop") {
+                    try await roomService.stop(
+                        connectionId: room.connectionId,
+                        roomId: room.roomId
+                    )
+                }
+            } else if room.status == .stopped {
+                roomActionButton(L("Resume"), id: "channel.room.resume") {
+                    try await roomService.resume(
+                        connectionId: room.connectionId,
+                        roomId: room.roomId
+                    )
+                }
+            }
+            if room.status == .archived {
+                roomActionButton(L("Restore"), id: "channel.room.restore") {
+                    try await roomService.restore(
+                        connectionId: room.connectionId,
+                        roomId: room.roomId
+                    )
+                }
+            } else {
+                roomActionButton(L("Archive"), id: "channel.room.archive") {
+                    try await roomService.archive(
+                        connectionId: room.connectionId,
+                        roomId: room.roomId
+                    )
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("channel.room.row")
+    }
+
+    private func roomActionButton(
+        _ title: String,
+        id: String,
+        action: @escaping @MainActor () async throws -> Void
+    ) -> some View {
+        Button {
+            Task { @MainActor in
+                do {
+                    try await action()
+                } catch {
+                    _ = ToastManager.shared.error(error.localizedDescription)
+                }
+            }
+        } label: {
+            Text(title)
+        }
+        .buttonStyle(.plain)
+        .font(.system(size: 10, weight: .medium))
+        .foregroundColor(theme.accentColor)
+        .accessibilityIdentifier(id)
     }
 
     private var modeMenu: some View {

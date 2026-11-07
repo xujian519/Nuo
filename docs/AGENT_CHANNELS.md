@@ -874,3 +874,49 @@ and the ingress can prove ownership per connection. Poll output passes through
 `n8n` is the only kind that accepts the route today; other kinds return
 `400 unsupported_kind`. Provider adapters that want pull-based replies should
 add themselves to the ingress rather than open new bearer-exempt paths.
+
+## Room Task Ownership
+
+A channel room has one answering agent and at most one live task. The state
+lives in `~/.nuo/agent-channels/rooms.json`
+(`osaurus.agent-channel-rooms.v1`), owned by `AgentChannelRoomStore` and
+mutated only through `AgentChannelRoomService`. It is deliberately separate
+from the message database so a message-store failure cannot erase ownership.
+
+| Field | Meaning |
+|---|---|
+| `connectionId` / `roomId` | The route this record belongs to. |
+| `ownerAgentId` | The local agent that answers. Set on the first routed message. |
+| `taskId` / `externalSessionKey` | The conversation lane, kept across Stop/Resume. |
+| `status` | `idle`, `assigned`, `running`, `waiting`, `stopped`, `archived`. |
+| `statusBeforeArchive` | Restored by Restore. |
+
+Lifecycle:
+
+```
+idle → assigned → running → waiting → idle
+assigned/running/waiting → stopped → assigned (Resume)
+any → archived → previous (Restore)
+```
+
+Inbound behavior: the first routed message claims the room for the resolved
+agent; later messages keep that owner even if an alias would resolve another
+agent. A manual Reassign is the only way to move it. `assign` is race-safe —
+two simultaneous calls produce one winner and one `conflict`. A stopped or
+archived room refuses the message (`room_stopped` / `room_archived`) instead
+of starting a turn.
+
+Actions:
+
+- **Stop** cancels the live background task and refuses new messages.
+- **Resume** re-opens the room and keeps the task id, so the next message
+  continues the same conversation.
+- **Reassign** cancels the old task, changes the owner, and starts a fresh lane.
+- **Archive** cancels the live task and refuses new messages. Message history
+  is untouched.
+- **Restore** returns the room to its pre-archive state with history intact.
+
+The local user and the Orchestrator may act on any room; another local agent
+may act only on a room it owns. Every action writes a `room.*` audit row
+through `AgentChannelMessageStore.recordAuditEvent`. The destination card shows
+the owner, status, and the Stop/Resume/Archive/Restore controls.
