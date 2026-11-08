@@ -3567,7 +3567,7 @@ struct RuntimePolicySourceTests {
                 )
                 && Self.sourceContains(
                     background,
-                    "await context.start(prompt: request.prompt, taskIntent: request.taskIntent, generationOverrides: request.generationOverrides)"
+                    "await context.start(prompt: prompt, taskIntent: request.taskIntent, generationOverrides: request.generationOverrides)"
                 )
                 && Self.sourceContains(
                     execution,
