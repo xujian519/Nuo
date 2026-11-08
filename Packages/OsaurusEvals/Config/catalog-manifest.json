@@ -438,8 +438,11 @@
       "mailbox.cap-spent-reply-still-delivers",
       "mailbox.cycle-rejected",
       "mailbox.depth-ceiling-rejected",
+      "mailbox.reply-never-wakes",
       "mailbox.unauthorized-edge-rejected",
-      "mailbox.untrusted-body-readback"
+      "mailbox.untrusted-body-readback",
+      "mailbox.wake-quota-denied",
+      "mailbox.wake-runs-and-replies"
     ],
     "Memory": [
       "memory.distractor-not-surfaced",
