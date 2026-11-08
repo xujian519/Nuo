@@ -84,27 +84,41 @@
 
 所有色值成对定义（light/dark），通过 `NSColor(name:dynamicProvider:)` 在运行时解析。**组件里不写 `if colorScheme == .dark`**——SwiftUI 的 `@Environment(\.colorScheme)` 在 Sheet/Popover/独立 NSWindow 里可能落后一帧，会出现顶栏与内容错色的闪动。
 
-| 令牌 | light | dark | 用途 | 对比度（light / dark） |
-|---|---|---|---|---|
-| `paperSunken` | `#EFEAE0` | `#100F0C` | 窗底、侧栏 | — |
-| `paper` | `#F7F4ED` | `#161512` | 画布 | — |
-| `paperRaised` | `#FCFAF6` | `#1E1C18` | 卡片、dock | — |
-| `paperFloat` | `#FFFFFF` | `#26231E` | 菜单、Popover | — |
-| `ink` | `#1C1A17` | `#F2EEE4` | 一级文字 | **15.8:1 / 15.8:1** |
-| `inkSecondary` | `#565149` | `#ADA69A` | 二级文字 | 7.2:1 / 7.6:1 |
-| `inkTertiary` | `#6F6959` | `#8C8679` | 时间戳、占位符 | **4.98:1 / 5.04:1** |
-| `inkGhost` | `#98907F` | `#5F5A53` | **仅装饰**，不承载文字 | 2.88:1 / 2.67:1 |
-| `hairline` | `#E2DCD0` | `#2C2925` | 所有 1px 线 | — |
-| `hairlineStrong` | `#CFC7B8` | `#3A362F` | 浮层边界 | — |
-| `cinnabar` | `#C93A2B` | `#EB5B45` | 存在 + 承诺 | **4.64:1 / 5.32:1** |
-| `cinnabarDeep` | `#A32C20` | `#C9472F` | 按下态 | 6.5:1 / 3.9:1（非文字） |
-| `cinnabarWash` | `#F3E2DE` | `#3A211C` | 10% 底、选中 | — |
-| `amber` | `#C97B24` | `#F0A94A` | 说话态光球 | 3.01:1 / 9.1:1（**仅图形**） |
-| `success` | `#3F7A42` | `#6FAE72` | 成 | 4.69 / 6.93 |
-| `warning` | `#9A6414` | `#D9A24B` | 警 | 4.54 / 8.02 |
-| `danger` | `#8E2F22` | `#F0715C` | 危 | 7.41 / 6.28 |
+| 令牌 | Radix 色阶 | light | dark | 用途 | 对比度（light / dark，画布底） |
+|---|---|---|---|---|---|
+| `paperSunken` | sand-3 / sand-1 | `#F1F0EF` | `#111110` | 窗底、侧栏 | — |
+| `paper` | sand-2 / sand-2 | `#F9F9F8` | `#191918` | 画布 | — |
+| `paperRaised` | sand-1 / sand-3 | `#FDFDFC` | `#222221` | 卡片、dock | — |
+| `paperFloat` | 白 / sand-4 | `#FFFFFF` | `#2A2A28` | 菜单、Popover | — |
+| `ink` | sand-12 | `#21201C` | `#EEEEEC` | 一级文字 | **15.48:1 / 15.14:1** |
+| `inkSecondary` | sand-11 | `#63635E` | `#B5B3AD` | 二级文字 | 5.73:1 / 8.39:1 |
+| `inkTertiary` | sand-12 @ 65% | `#21201CA6` | `#EEEEECA6` | 时间戳、占位符 | **5.00:1 / 7.05:1** |
+| `inkGhost` | sand-9 / sand-8 | `#8D8D86` | `#62605B` | **仅装饰**，不承载文字 | 3.17:1 / 2.80:1 |
+| `hairline` | sand-6 | `#DAD9D6` | `#3B3A37` | 所有 1px 线 | 1.34:1 / 1.55:1 |
+| `hairlineStrong` | sand-10 | `#82827C` | `#7C7B74` | 浮层边界、组件边框 | 3.67:1 / 4.14:1 |
+| `cinnabar` | tomato-11 / tomato-10 | `#D13415` | `#EC6142` | 存在 + 承诺 | **4.73:1 / 5.32:1** |
+| `cinnabarDeep` | tomato-12 / tomato-9 | `#5C271F` | `#E54D2E` | 按下态 | 11.29:1 / 4.55:1（非文字） |
+| `cinnabarLight` | tomato-10 / tomato-11 | `#DD4425` | `#FF977D` | 徽标着色 | 4.04:1 / 8.36:1（**仅图形**） |
+| `cinnabarWash` | tomato-3 / tomato-5 | `#FEEBE7` | `#5E1C16` | 10% 底、选中 | — |
+| `cinnabarBloom` | tomato-2 / tomato-3 | `#FFF8F7` | `#391714` | 强调晕染 | — |
+| `amber` | orange-11 / orange-10 | `#CC4E00` | `#FF801F` | 说话态光球 | 4.28:1 / 7.00:1（**仅图形**） |
+| `success` | green-12 / green-11 | `#193B2D` | `#3DD68C` | 成 | 11.69:1 / 9.38:1 |
+| `warning` | amber-12 / amber-11 | `#4F3422` | `#FFCA16` | 警 | 10.79:1 / 11.49:1 |
+| `danger` | red-12 / red-11 | `#641723` | `#FF9592` | 危 | 11.80:1 / 8.35:1 |
+| `info` | sand-11 | `#63635E` | `#B5B3AD` | 信息态（不引蓝） | 5.73:1 / 8.39:1 |
 
-**灰阶只有一套。** 现有仓库里 `LightTheme/DarkTheme`（暖黑暖白）与 `CustomTheme.lightDefault/darkDefault`（macOS 冷灰蓝）两套调色板并存，是本轮第一个要收敛的对象——见 §9.1。
+**色值全部取自 Radix Colors（MIT）的 12 级色阶**，不自造。表中「Radix 色阶」一列写明每个令牌取自哪条色阶的第几级。
+
+- **中性层用 `sand`（暖灰）而不是 `gray`（纯中性）**：纯中性会把「纸」的暖调洗掉，sand 保留宣纸的温。
+- **强调层用 `tomato`**：与既有朱红 `#C93A2B` 同色相家族，「朱红 = 存在 / 承诺」的品牌纪律不变，§2.2 的「红 = 重要」双重编码仍然成立。
+- **错误色用 `red` 而不是 `tomato`**：危险色与强调色在色相上仍可分辨。
+- **状态色用 `green` / `amber` / `red`**：与 Radix 的语义一一对应，不自造。
+
+**浅色底的 12 级色阶只有第 11、12 两级过 AA 正文线**，所以浅色模式的状态文字一律取第 12 级、深色模式取第 11 级——这是刻意的深浅反转：浅底上的状态色要沉下去，深底上的要亮起来。三级文字用 sand-12 按 alpha 派生（与 Radix 同名 `*-a` 透明度色阶同构），既比二级淡、又仍然过 AA 正文线。
+
+**内建主题只有 Light 与 Dark 两个**，两者是同一条色阶的两个方向；其它配色走导入主题或「复制后自改」。改动内建预设必须同时递增 `ThemeConfigurationStore.currentBuiltInThemeSchema`（当前 8），否则存量安装收不到新色板，已下线的预设还会以旧配色残留在主题库里。
+
+对比度数字由 `Tests/Theme/ThemePaletteContrastTests.swift` 门禁：正文级文字对它可能落到的**每一个**表面 ≥4.5:1，组件边框 ≥3:1。改动 `NuoHex` 而不重算，这条测试会失败。
 
 ### 3.2 字阶
 

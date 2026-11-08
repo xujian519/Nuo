@@ -22,7 +22,31 @@ public enum ThemeConfigurationStore {
     /// replaced by the user's macOS accent. The pre-2102 Osaurus palettes stay
     /// selectable as the Nuo Dark/Light presets; the macOS-native pair that
     /// schema 6 introduced is superseded (recreatable through a theme JSON).
-    private static let currentBuiltInThemeSchema = 7
+    /// Schema 8: the built-in list is cut down to Light + Dark only. The six
+    /// extra presets (Neon / Nord / Paper / Terminal / Nuo Dark / Nuo Light) are
+    /// removed from the catalog and their installed JSON files are deleted —
+    /// see `retiredBuiltInThemeIDs`. Both remaining presets were repainted from
+    /// Radix Colors 12-step ramps (`NuoThemeSkin`), so existing installations
+    /// also receive the new palette here.
+    private static let currentBuiltInThemeSchema = 8
+
+    /// Built-in themes that were removed from the catalog.
+    ///
+    /// Their installed files must be deleted, not just ignored: a stale file
+    /// still decodes as a theme and would keep showing up in the theme library
+    /// as a stale "local" theme with the old palette.
+    ///
+    /// These are the historical Neon / Nord / Paper / Terminal / Nuo Dark /
+    /// Nuo Light ids. The two canonical ids (`…0001` Dark, `…0002` Light) are
+    /// **not** here — they are still shipped.
+    private static let retiredBuiltInThemeIDs: [UUID] = [
+        UUID(uuidString: "00000000-0000-0000-0000-000000000003")!,  // Neon
+        UUID(uuidString: "00000000-0000-0000-0000-000000000004")!,  // Nord
+        UUID(uuidString: "00000000-0000-0000-0000-000000000005")!,  // Paper
+        UUID(uuidString: "00000000-0000-0000-0000-000000000006")!,  // Terminal
+        UUID(uuidString: "00000000-0000-0000-0000-000000000007")!,  // Nuo Dark
+        UUID(uuidString: "00000000-0000-0000-0000-000000000008")!,  // Nuo Light
+    ]
     private static var builtInThemesInstalled = false
 
     // MARK: - Active Theme
@@ -207,6 +231,9 @@ public enum ThemeConfigurationStore {
             for theme in CustomTheme.allBuiltInPresets {
                 saveTheme(theme)
             }
+            // Presets that are no longer part of the catalog must leave the disk
+            // too, otherwise they linger in the library as stale local themes.
+            removeRetiredBuiltInThemes()
             UserDefaults.standard.set(currentBuiltInThemeSchema, forKey: builtInThemeSchemaKey)
         } else {
             for theme in CustomTheme.allBuiltInPresets {
@@ -225,6 +252,9 @@ public enum ThemeConfigurationStore {
         for theme in CustomTheme.allBuiltInPresets {
             saveTheme(theme)
         }
+        // "Restore built-in themes" means exactly that: the catalog is the
+        // built-in list, not the built-in list plus whatever used to exist.
+        removeRetiredBuiltInThemes()
         builtInThemesInstalled = true
     }
 
@@ -233,6 +263,22 @@ public enum ThemeConfigurationStore {
     private static func ensureThemesDirectoryAndBuiltIns() {
         if !builtInThemesInstalled {
             installBuiltInThemesIfNeeded()
+        }
+    }
+
+    /// Delete the installed files of built-in themes that left the catalog.
+    ///
+    /// If the user was actively using one of them, the active reference is
+    /// cleared so the app falls back to the appearance-driven built-in instead
+    /// of pointing at a theme that no longer exists.
+    private static func removeRetiredBuiltInThemes() {
+        for id in retiredBuiltInThemeIDs {
+            let url = themeFileURL(for: id)
+            guard FileManager.default.fileExists(atPath: url.path) else { continue }
+            if loadActiveThemeId() == id {
+                saveActiveThemeId(nil)
+            }
+            try? FileManager.default.removeItem(at: url)
         }
     }
 

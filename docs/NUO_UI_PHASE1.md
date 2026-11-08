@@ -2,6 +2,9 @@
 
 > 状态：**已落地（已提交）**
 > 日期：2026-11-04
+> 后续：内建主题在 schema 8 收敛为 Light / Dark 两个，配色改由 Radix Colors 12 级色阶推导。
+> 本文件记录的是阶段一当时的状态，其中的色值字面量已不是当前值——现行值见
+> `docs/nuo-ui/DESIGN_SPEC.md` §3.1 与 `docs/notes/implemented/2026-11-08-theme-palette-radix.md`。
 > 设计文档：`docs/nuo-ui/DESIGN_SPEC.md` §9.1 + `docs/nuo-ui/DECISIONS.md`（逐字快照，
 > 源交付包仍在 `~/Pictures/Nuo-UI/`；快照说明见 `docs/nuo-ui/README.md`）
 > 目标：只改主题数据层，不动 5,770 处 `theme.*Color` 调用点，让整个 App 一次性换到「纸与印」。
@@ -121,7 +124,7 @@ swift test --package-path Packages/OsaurusCore --filter Theme
 
 改为 `theme.sidebarBackground`（`#EFEAE0`，比画布沉一档）。阶段一的视图改动共两处：这一行的侧栏底色（1 行 + 3 行注释），以及主题卡的「应用」按钮去红（`Views/Theme/ThemesView.swift`，44 增 / 4 删，`28aeedc4e`）。
 
-**影响面要讲清楚**：这个组件被聊天侧栏、检查器、设置侧栏共用，所以 **8 个内建主题 + 所有用户主题的侧栏底色都会随之改变**（从"卡片色"变成各自主题里既有的 `sidebarBackground`）。多数主题里这两者只差几个百分点且方向正确，但这是一个**跨主题**的视觉变化，如果不想牵连旧主题，可以改成"仅玻璃关闭时用 `sidebarBackground`"的条件式——我选择了统一，因为两套底色逻辑本身就是这个组件的历史债务。
+**影响面要讲清楚**：这个组件被聊天侧栏、检查器、设置侧栏共用，所以 **2 个内建主题（Light/Dark）+ 所有用户主题的侧栏底色都会随之改变**（从"卡片色"变成各自主题里既有的 `sidebarBackground`）。多数主题里这两者只差几个百分点且方向正确，但这是一个**跨主题**的视觉变化，如果不想牵连旧主题，可以改成"仅玻璃关闭时用 `sidebarBackground`"的条件式——我选择了统一，因为两套底色逻辑本身就是这个组件的历史债务。
 
 ### 5.4 验证与回滚
 

@@ -6,15 +6,15 @@ order: 140
 
 # Themes and Appearance
 
-Nuo's look is fully customizable: appearance mode, built-in and custom themes, and per-agent themes.
+Nuo's look is fully customizable: appearance mode, the built-in Light and Dark themes, your own custom themes, and per-agent themes.
 
 ## Appearance mode
 
-System / Light / Dark. Pick it in the Themes tab (applying the built-in Light or Dark theme sets the mode) — or just ask the assistant to "turn on dark mode".
+System / Light / Dark. Pick it in the Themes tab (applying the built-in Light or Dark theme sets the mode) — or just ask the assistant to "turn on dark mode". System follows your macOS appearance and switches live.
 
 ## Theme gallery
 
-- Settings… (⌘,) → Themes: browse built-in and installed themes, Apply Theme, Import, Export, Share, Delete.
+- Settings… (⌘,) → Themes: browse the built-in Light and Dark themes plus everything you imported or built, Apply Theme, Import, Export, Share, Delete.
 - Themes customize chat colors, glass effects, fonts, animations, and message bubbles; backgrounds can be solid, gradient, or image.
 - Create custom themes in the editor with live preview. Colors are `#RRGGBB` or `#AARRGGBB`; `followsSystemAccent` re-derives accent colors from the macOS accent.
 

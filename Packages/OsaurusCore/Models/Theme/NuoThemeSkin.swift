@@ -14,6 +14,12 @@
 //  唯一的例外是 alpha 后缀（selectionColor / glassTintOverlay），因为令牌层
 //  只描述纯色。
 //
+//  纸与夜纸不是两套配色，是**同一条 Radix 色阶的两个方向**：
+//  中性层走 sand（暖灰）色阶，强调层走 tomato（朱红）色阶。
+//  语义顺序在两套里一致（凹陷 → 画布 → 抬升 → 浮起），但台阶号方向相反：
+//  浅色从 sand-3 收到 sand-1 再到纯白，深色从 sand-1 抬到 sand-4。
+//  色值本身全部住在 `NuoHex`（设计令牌包），这里只做"语义 → 台阶"的映射。
+//
 //  三条映射纪律（与 DESIGN_SPEC.md §3.1 对应）：
 //  1. 朱红只映射到 accent / focus / cursor / selection / sidebarSelected 这五个
 //     "承诺与存在"面，不映射到 info / success / warning / error。
@@ -43,8 +49,9 @@ enum NuoThemeSkin {
     static let paper = ThemeColors(
         primaryText: hex(NuoHex.ink.light),
         secondaryText: hex(NuoHex.inkSecondary.light),
-        // 三级文字用 #6F6959（4.98:1）而不是更淡的墨——
-        // 原 `LightTheme` 的三级色只有 2.8:1，时间戳在纸上几乎看不见。
+        // 三级文字取 sand-12 @ 65%（令牌层已带 alpha）。
+        // Radix 12 级色阶在浅色底上只有 11、12 两级过 AA 正文线，
+        // 所以三级文字靠透明度取中间值：合成后 5.0:1，仍是正文级对比度。
         tertiaryText: hex(NuoHex.inkTertiary.light),
 
         primaryBackground: hex(NuoHex.paper.light),
@@ -88,7 +95,7 @@ enum NuoThemeSkin {
     // MARK: - 夜纸（深色）
 
     /// 夜纸。用于 `CustomTheme.darkDefault`。
-    /// 不是"黑夜"，是把纸压到最暗还留着一点暖——所以底色是 #161512 而不是 #000。
+    /// 不是"黑夜"，是把纸压到最暗还留着一点暖——所以底色是 sand-2 #191918 而不是 #000。
     static let night = ThemeColors(
         primaryText: hex(NuoHex.ink.dark),
         secondaryText: hex(NuoHex.inkSecondary.dark),

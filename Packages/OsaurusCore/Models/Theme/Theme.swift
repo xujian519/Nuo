@@ -781,6 +781,20 @@ public class ThemeManager: ObservableObject {
             )
         }
         guard let builtInMode = appearanceMode(forBuiltInTheme: savedActiveTheme) else {
+            // A built-in theme that is neither canonical Dark nor canonical
+            // Light is a **retired** preset: its file is deleted from disk when
+            // the built-in schema is bumped. Honor it here and the app would
+            // boot on a palette that no longer exists in the catalog — and the
+            // file is only removed later, by the deferred install step. Treat
+            // it as absent so the app falls back to the appearance-driven
+            // built-in immediately.
+            if savedActiveTheme.isBuiltIn {
+                return StartupThemeSelection(
+                    appearanceMode: configuredAppearanceMode,
+                    activeTheme: nil,
+                    shouldClearActiveTheme: true
+                )
+            }
             return StartupThemeSelection(
                 appearanceMode: configuredAppearanceMode,
                 activeTheme: savedActiveTheme,

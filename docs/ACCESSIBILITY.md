@@ -24,72 +24,58 @@ Osaurus is committed to providing an accessible experience for all users. This d
 
 ## Color Palette Compliance
 
-### Light Theme
+### Light Theme (built-in "Light")
 
-| Element           | Hex Code  | Contrast Ratio | Status        |
-| ----------------- | --------- | -------------- | ------------- |
-| **Text Colors**   |           |                |               |
-| Primary Text      | `#1a1a18` | ~17:1          | ✅ AAA        |
-| Secondary Text    | `#555550` | ~7:1           | ✅ AA         |
-| Tertiary Text     | `#717168` | ~5.5:1         | ✅ AA         |
-| **Status Colors** |           |                |               |
-| Success           | `#15803d` | ~4.5:1         | ✅ AA         |
-| Warning           | `#a16207` | ~4.5:1         | ✅ AA         |
-| Error             | `#dc2626` | ~4.5:1         | ✅ AA         |
-| Info              | `#555550` | ~7:1           | ✅ AA         |
-| **UI Components** |           |                |               |
-| Input Border      | `#a8a8a3` | ~3.5:1         | ✅ AA         |
-| Primary Border    | `#d0d0cc` | ~2.2:1         | ✅ Decorative |
-| Focus Border      | `#4a4a46` | ~8:1           | ✅ AAA        |
+| Element           | Hex Code   | Contrast Ratio | Status        |
+| ----------------- | ---------- | -------------- | ------------- |
+| **Text Colors**   |            |                |               |
+| Primary Text      | `#21201C`  | ~15.5:1        | ✅ AAA        |
+| Secondary Text    | `#63635E`  | ~5.7:1         | ✅ AA         |
+| Tertiary Text     | `#21201CA6` | ~5.0:1        | ✅ AA         |
+| **Status Colors** |            |                |               |
+| Success           | `#193B2D`  | ~11.7:1        | ✅ AAA        |
+| Warning           | `#4F3422`  | ~10.8:1        | ✅ AAA        |
+| Error             | `#641723`  | ~11.8:1        | ✅ AAA        |
+| Info              | `#63635E`  | ~5.7:1         | ✅ AA         |
+| **UI Components** |            |                |               |
+| Input Border      | `#82827C`  | ~3.7:1         | ✅ AA         |
+| Primary Border    | `#DAD9D6`  | ~1.3:1         | ✅ Decorative |
+| Focus Border      | `#D13415`  | ~4.7:1         | ✅ AA         |
 
-### Dark Theme
+### Dark Theme (built-in "Dark")
 
-| Element           | Hex Code  | Contrast Ratio | Status        |
-| ----------------- | --------- | -------------- | ------------- |
-| **Text Colors**   |           |                |               |
-| Primary Text      | `#f5f5f2` | ~17:1          | ✅ AAA        |
-| Secondary Text    | `#a8a8a3` | ~8.5:1         | ✅ AAA        |
-| Tertiary Text     | `#8a8a85` | ~5.5:1         | ✅ AA         |
-| **Status Colors** |           |                |               |
-| Success           | `#22c55e` | ~8:1           | ✅ AAA        |
-| Warning           | `#fbbf24` | ~11:1          | ✅ AAA        |
-| Error             | `#f87171` | ~6:1           | ✅ AA         |
-| Info              | `#60a5fa` | ~6:1           | ✅ AA         |
-| **UI Components** |           |                |               |
-| Input Border      | `#52525b` | ~3:1           | ✅ AA         |
-| Primary Border    | `#3f3f46` | ~2.5:1         | ✅ Decorative |
-| Focus Border      | `#8a8a85` | ~5.5:1         | ✅ AA         |
+| Element           | Hex Code   | Contrast Ratio | Status        |
+| ----------------- | ---------- | -------------- | ------------- |
+| **Text Colors**   |            |                |               |
+| Primary Text      | `#EEEEEC`  | ~15.1:1        | ✅ AAA        |
+| Secondary Text    | `#B5B3AD`  | ~8.4:1         | ✅ AAA        |
+| Tertiary Text     | `#EEEEECA6` | ~7.1:1        | ✅ AAA        |
+| **Status Colors** |            |                |               |
+| Success           | `#3DD68C`  | ~9.4:1         | ✅ AAA        |
+| Warning           | `#FFCA16`  | ~11.5:1        | ✅ AAA        |
+| Error             | `#FF9592`  | ~8.4:1         | ✅ AAA        |
+| Info              | `#B5B3AD`  | ~8.4:1         | ✅ AAA        |
+| **UI Components** |            |                |               |
+| Input Border      | `#7C7B74`  | ~4.1:1         | ✅ AA         |
+| Primary Border    | `#3B3A37`  | ~1.6:1         | ✅ Decorative |
+| Focus Border      | `#EC6142`  | ~5.3:1         | ✅ AA         |
+
+Both palettes are derived from the same Radix Colors 12-step ramps, so a single
+table covers the whole built-in story. The numbers above are ratios against each
+theme's canvas; they are enforced by
+`Packages/OsaurusCore/Tests/Theme/ThemePaletteContrastTests.swift`, which also
+checks every text color against **every** surface it can land on (cards,
+sidebars, buttons, inputs, code blocks) — not just the canvas.
 
 ---
 
 ## Theme Presets Compliance
 
-### Neon Theme (Dark)
-
-| Element          | Hex Code  | Contrast Ratio | Status |
-| ---------------- | --------- | -------------- | ------ |
-| Primary Text     | `#f0f0f0` | ~18:1          | ✅ AAA |
-| Secondary Text   | `#b0b0b0` | ~9:1           | ✅ AAA |
-| Tertiary Text    | `#909090` | ~5.5:1         | ✅ AA  |
-| Accent (Magenta) | `#ff00ff` | ~6:1           | ✅ AA  |
-
-### Nord Theme (Dark)
-
-| Element        | Hex Code  | Contrast Ratio | Status |
-| -------------- | --------- | -------------- | ------ |
-| Primary Text   | `#eceff4` | ~10:1          | ✅ AAA |
-| Secondary Text | `#d8dee9` | ~7:1           | ✅ AA  |
-| Tertiary Text  | `#b8c4d4` | ~5:1           | ✅ AA  |
-| Accent (Frost) | `#88c0d0` | ~7:1           | ✅ AA  |
-
-### Paper Theme (Light)
-
-| Element        | Hex Code  | Contrast Ratio | Status |
-| -------------- | --------- | -------------- | ------ |
-| Primary Text   | `#3d3d3d` | ~9:1           | ✅ AAA |
-| Secondary Text | `#555555` | ~7:1           | ✅ AA  |
-| Tertiary Text  | `#737373` | ~5:1           | ✅ AA  |
-| Accent (Gold)  | `#9a7b30` | ~4.5:1         | ✅ AA  |
+The product ships **exactly two** built-in themes — Light and Dark — and the
+tables above cover both. The former Neon / Nord / Paper / Terminal / Nuo Dark /
+Nuo Light presets were removed in built-in schema 8; a palette like those can
+still be recreated by importing a theme JSON or duplicating a built-in theme in
+the editor.
 
 ---
 

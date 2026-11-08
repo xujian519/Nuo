@@ -288,9 +288,9 @@ public struct NuoChatScreen: View {
 
                     NuoCodeBlock(
                         """
-                        NuoPalette.cinnabar    // #C93A2B  只有 presence 与 commit
-                        NuoPalette.paper       // #F7F4ED  画布
-                        NuoPalette.ink         // #1C1A17  正文
+                        NuoPalette.cinnabar    // #D13415  只有 presence 与 commit
+                        NuoPalette.paper       // #F9F9F8  画布
+                        NuoPalette.ink         // #21201C  正文
                         """,
                         language: "swift"
                     )
