@@ -51,6 +51,13 @@ public final class ChatFolderState: ObservableObject {
     /// and is lost on a crash or force-quit.
     public var onFolderMutated: (() -> Void)?
 
+    /// Fired after an explicit `restoreAndWait` resolves a folder. That folder
+    /// is this chat's own (a dispatch target or a persisted bookmark supplied
+    /// by the caller), so the owning session can stop treating it as an
+    /// agent-supplied default. Unlike `onFolderMutated`, this is not a user
+    /// edit and must not dirty the session.
+    public var onExplicitFolderRestored: (() -> Void)?
+
     public init() {}
 
     deinit {
@@ -211,7 +218,11 @@ public final class ChatFolderState: ObservableObject {
             await self.performRestore(bookmark: bookmarkData, path: path, generation: myGeneration)
         }
         pendingRestore = task
-        return await task.value
+        let restored = await task.value
+        if restored != nil {
+            onExplicitFolderRestored?()
+        }
+        return restored
     }
 
     /// The folder context this chat should compose with, waiting for an

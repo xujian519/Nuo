@@ -979,6 +979,13 @@ final class ChatSession: ObservableObject {
     #endif
 
     init() {
+        // An explicit restore (dispatch bookmark or persistence round-trip)
+        // makes the folder this chat's own; only an agent-seeded default may
+        // be replaced by a project folder afterwards.
+        folderState.onExplicitFolderRestored = { [weak self] in
+            self?.folderFromAgentDefault = false
+        }
+
         // Warm the agent-secret account memo off the main thread before the
         // first preview compose reads it synchronously — the Keychain
         // enumeration it performs has otherwise hung the UI on chat open.
