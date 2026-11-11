@@ -119,8 +119,13 @@ public final class OnboardingService: ObservableObject {
         // wipe all Osaurus items from the Keychain
         setStep(.keychain, .inProgress)
         await journeyBeat()
-        wipeKeychain()
-        setStep(.keychain, .completed)
+        // SecItemDelete performs synchronous securityd IPC (legacy file-keychain
+        // ACL / code-signing checks) that can take seconds; never run it on the
+        // main actor or the UI hangs.
+        let keychainFailures = await Task.detached(priority: .userInitiated) {
+            Self.wipeKeychain()
+        }.value
+        setStep(.keychain, keychainFailures.isEmpty ? .completed : .failed)
 
         // clear all UserDefaults keys
         setStep(.preferences, .inProgress)
@@ -290,9 +295,11 @@ public final class OnboardingService: ObservableObject {
     /// `OsaurusKeychainServices` next to the wrappers so a newly added
     /// secret store can't be silently missed by factory reset.
     ///
-    /// Pre-rename services are wiped too: a reset that left the old copies
-    /// behind would hand the next install the secrets the user just destroyed.
-    private func wipeKeychain() {
+    /// `nonisolated` + `static` so it can run off the main actor: each
+    /// `SecItemDelete` blocks on synchronous securityd IPC.
+    /// Returns the services that failed to delete, keyed to their status.
+    nonisolated private static func wipeKeychain() -> [String: OSStatus] {
+        var failures: [String: OSStatus] = [:]
         for service in OsaurusKeychainServices.all + OsaurusKeychainServices.allLegacy {
             let query: [String: Any] = [
                 kSecClass as String: kSecClassGenericPassword,
@@ -305,7 +312,9 @@ public final class OnboardingService: ObservableObject {
                 print("[OnboardingService] Wiped Keychain service: \(service)")
             } else if status != errSecItemNotFound {
                 print("[OnboardingService] Failed to wipe Keychain service \(service): \(status)")
+                failures[service] = status
             }
         }
+        return failures
     }
 }
