@@ -376,6 +376,26 @@ struct SettingsSearchSelfFindProbe {
         }
     }
 
+    /// Issue #13: the screen title comes from the string catalog. Searching the
+    /// English catalog key still works; searching the translation must too.
+    /// The map is injected so this does not depend on the process locale.
+    @Test("a translated settings title finds the same row")
+    func localizedTitleFindsDirectedMailbox() throws {
+        let translated = try #require(
+            SettingsSearchIndex.compiledCatalogString(language: "zh-Hans", key: "Directed Mailbox")
+        )
+        #expect(translated == "定向邮箱")
+
+        let localize: (String) -> String = { key in
+            key == "Directed Mailbox" ? translated : key
+        }
+        let chinese = SettingsSearchIndex.search("定向邮箱", localize: localize)
+        #expect(chinese.contains { $0.id == "settings.orchestrator.mailbox" })
+
+        let english = SettingsSearchIndex.search("mailbox", localize: localize)
+        #expect(english.contains { $0.id == "settings.orchestrator.mailbox" })
+    }
+
     /// Guards the probe itself: an index that shrank to nothing, or a matcher
     /// that started returning everything, would pass both sweeps vacuously.
     @Test("the sweep runs against a real index and a discriminating matcher")

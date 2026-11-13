@@ -88,9 +88,15 @@ public enum SettingsSearchIndex {
     /// internal `OsaurusRouter` from a public signature.
     public static var routerControlPlaneEnabled: Bool { OsaurusRouter.isEnabled }
 
+    /// `localize` resolves a catalog key the way the settings screen does.
+    /// The default is `LCached` so a Chinese UI title matches without a second
+    /// keyword list. Tests pass an identity or a fixture map; the process
+    /// locale stays untouched. Source strings are always matched too, so an
+    /// English query still hits after the title has been translated.
     public static func search(
         _ query: String,
-        routerEnabled: Bool = SettingsSearchIndex.routerControlPlaneEnabled
+        routerEnabled: Bool = SettingsSearchIndex.routerControlPlaneEnabled,
+        localize: (String) -> String = { LCached($0) }
     ) -> [SettingsSearchEntry] {
         let prepared = SearchService.PreparedQuery(query)
         guard !prepared.tokens.isEmpty else { return [] }
@@ -108,9 +114,15 @@ public enum SettingsSearchIndex {
                 continue
             }
             _ = routerEnabled
-            if matches(entry.title) {
+            let localizedTitle = localize(entry.title)
+            let localizedSection = entry.section.isEmpty ? "" : localize(entry.section)
+            // A translated title is what the user reads, so it ranks with the
+            // source title. `tab.label` is already localized by `ManagementTab`.
+            if matches(entry.title) || matches(localizedTitle) {
                 ranked.append((entry, 0))
-            } else if matches(entry.section) || entry.keywords.contains(where: matches) {
+            } else if matches(entry.section) || matches(localizedSection)
+                || entry.keywords.contains(where: matches)
+            {
                 ranked.append((entry, 1))
             } else if matches(entry.tab.label) {
                 ranked.append((entry, 2))
@@ -122,6 +134,18 @@ public enum SettingsSearchIndex {
             .enumerated()
             .sorted { ($0.element.rank, $0.offset) < ($1.element.rank, $1.offset) }
             .map { $0.element.entry }
+    }
+
+    /// One string from a compiled `lproj`, not from the process locale.
+    /// The self-find probe uses this to pin a real translation (issue #13)
+    /// without calling `search` under a forced language.
+    static func compiledCatalogString(language: String, key: String) -> String? {
+        guard
+            let path = Bundle.module.path(forResource: language, ofType: "lproj"),
+            let bundle = Bundle(path: path)
+        else { return nil }
+        let value = bundle.localizedString(forKey: key, value: "", table: "Localizable")
+        return value.isEmpty ? nil : value
     }
 
     /// Index rows that land on a tab (or section) rather than a single control.
