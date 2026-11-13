@@ -47,6 +47,35 @@ every macOS lane onto it.
   anyway: `build-core-tests` → `test-core`, and `swiftlint` → `test-cli` →
   `test-packages` → `test-evals` → `test-statspack`.
 
+## First real test run on the machine: two environment assumptions
+
+Run [43498206739](https://github.com/xujian519/Nuo/actions/runs/43498206739)
+attempt 2 got every macOS lane onto `m4pro`; `swiftlint`, `build-core-tests`,
+`test-cli` and `test-packages` passed. `test-core` reported 118 failed out of
+12,204 (`xcrun xcresulttool get test-results summary`), in two groups that are
+both about the machine rather than the code:
+
+- **107 locale failures.** The suite asserts English copy; this Mac runs
+  Simplified Chinese. Examples: `paragraphTexts(blocks)` returned
+  "已中断 — 在生成回复之前已停止。" where the test expects "Interrupted — stopped
+  before a response was produced.", and a breadcrumb came back as
+  ["通用", "General", "Global Hotkey"]. A hosted image is English, so the suite
+  never had to say which language it means. The job now passes
+  `-testLanguage en -testRegion US`, which pins the test session instead of the
+  suite.
+- **11 keychain failures with `-25308` (`errSecInteractionNotAllowed`).** The
+  login keychain already holds this operator's app secrets, and a freshly built
+  test binary is a different signer, so reading one requires approval. A launchd
+  job cannot answer, so the read fails; running the same suite from a terminal
+  instead pops a SecurityAgent dialog and hangs. A hosted runner starts with an
+  empty keychain, so the suite had never met a pre-existing item. `test-core`
+  now creates an empty unlocked keychain in `/tmp/nuo-ci`, makes it the only
+  entry in the user search list and the default for the duration of the suite,
+  and restores the login keychain in an `if: always()` step.
+
+Both fixes move the machine toward hosted-runner conditions rather than
+loosening the tests.
+
 ## Evidence
 
 - Registration: `gh api repos/xujian519/Nuo/actions/runners` lists `m4pro`,

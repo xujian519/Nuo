@@ -292,6 +292,22 @@ jobs:
           rm -rf "$OSAURUS_TEST_ROOT" "$OSU_MODELS_DIR"
           mkdir -p "$OSAURUS_TEST_ROOT" "$OSU_MODELS_DIR"
 
+      - name: Use an empty keychain, like a hosted runner
+        # This machine's login keychain already holds the operator's app
+        # secrets. A test binary is a different signer, so reading one asks for
+        # approval, which a launchd job cannot answer (-25308) — on a screen it
+        # would instead pop a dialog and hang the run. A hosted runner starts
+        # with an empty keychain; recreate that here and restore afterwards.
+        run: |
+          KEYCHAIN=/tmp/nuo-ci/ci.keychain-db
+          security delete-keychain "$KEYCHAIN" 2>/dev/null || true
+          security create-keychain -p "" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN"
+          security default-keychain -s "$KEYCHAIN"
+          security list-keychains -d user
+
       - name: Test OsaurusCore
         id: test
         run: |
@@ -304,9 +320,14 @@ jobs:
           run_tests() {
             # xcodebuild refuses to overwrite an existing result bundle.
             rm -rf "$XCRESULT_PATH"
+            # The suite asserts English copy. A hosted runner is English and
+            # this machine is not, so pin the test process rather than the
+            # suite: -testLanguage/-testRegion apply to the test session only.
             xcodebuild test-without-building \
               -xctestrun "$XCTESTRUN" \
               -destination 'platform=macOS' \
+              -testLanguage en \
+              -testRegion US \
               -resultBundlePath "$XCRESULT_PATH" \
               -skipPackagePluginValidation \
               -skipMacroValidation \
@@ -684,6 +705,17 @@ jobs:
           name: test-core-xcbeautify-log-${{ github.run_attempt }}
           path: ${{ env.XCBEAUTIFY_LOG }}
           retention-days: 7
+
+      - name: Restore the login keychain
+        # Runs even when the suite failed so the operator's keychain search
+        # list and default keychain are never left pointing at the temporary
+        # one.
+        if: always()
+        run: |
+          security default-keychain -s "$HOME/Library/Keychains/login.keychain-db" || true
+          security list-keychains -d user -s "$HOME/Library/Keychains/login.keychain-db" || true
+          security delete-keychain /tmp/nuo-ci/ci.keychain-db 2>/dev/null || true
+          security list-keychains -d user
           if-no-files-found: ignore
 
   test-cli:
