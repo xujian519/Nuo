@@ -94,7 +94,10 @@ macOS arm64 runner at that moment. On attempt 2 of run `43476983762`,
 `test-cli` and `test-statspack` did get runners and passed, so this is
 intermittent capacity rather than a broken workflow or a bad label. The chains
 stay — six lanes would have starved harder — and the remaining options are a
-retry when capacity returns, or a runner this repository controls.
+retry when capacity returns, or a runner this repository controls. The second
+option landed the same day: see
+`2026-11-14-ci-self-hosted-macos-runner.md`, which moves the macOS lanes to the
+self-hosted `nuo-macos` runner and keeps these chains as their ordering.
 
 `macos-15` is not a drop-in swap: that image tops out at Xcode 26.3, while
 `macos-26` carries the pinned 26.4.1, so changing the label also changes the

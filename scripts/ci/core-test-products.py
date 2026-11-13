@@ -69,8 +69,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("operation", choices=["pack", "unpack"])
     parser.add_argument("archive", type=Path)
+    parser.add_argument(
+        "--derived-data",
+        type=Path,
+        default=Path.home() / "Library/Developer/Xcode/DerivedData",
+        help=(
+            "DerivedData root the CI build used. The default is Xcode's own "
+            "location; CI passes its isolated path so a self-hosted runner "
+            "never reads or writes the operator's DerivedData."
+        ),
+    )
     args = parser.parse_args()
-    derived_data = Path.home() / "Library/Developer/Xcode/DerivedData"
+    derived_data = args.derived_data
     identity = build_identity()
     if args.operation == "pack":
         pack(args.archive, derived_data, identity)

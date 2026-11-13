@@ -27,13 +27,27 @@ env:
   # Bump to invalidate every cache entry without source surgery (e.g., after a
   # known-bad cache or an Xcode toolchain upgrade we want to flush manually).
   CACHE_SALT: v2-vmlx-5b84387
-  # Pin Xcode so cache keys are stable across runner image bumps. When you
-  # need to upgrade, change here AND in setup-xcode below.
-  XCODE_VERSION: "26.4.1"
+  # Pin Xcode so cache keys are stable across runner image bumps. The macOS
+  # jobs run on the self-hosted `nuo-macos` runner (see
+  # docs/notes/implemented/2026-11-14-ci-self-hosted-macos-runner.md), which
+  # carries one Xcode: 27.2 at /Applications/Xcode.app.
+  XCODE_VERSION: "27.2"
+  # Exported instead of `xcode-select -s`: the runner is a launchd agent
+  # without passwordless sudo, so anything that shells out to sudo fails.
+  # DEVELOPER_DIR picks the toolchain for every step in every job.
+  DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+  # The runner's Homebrew is the operator's; skip the tap refresh on every
+  # install step so the lint lanes stay inside their 10-minute budget.
+  HOMEBREW_NO_AUTO_UPDATE: 1
 
 jobs:
   build-core-tests:
-    runs-on: macos-26
+    runs-on: [self-hosted, macOS, ARM64, nuo-macos]
+    # A self-hosted runner must never see a pull request opened from a fork:
+    # this repository is public, so anyone can push a branch that runs
+    # arbitrary code, and the runner is a personal machine. Every macOS job
+    # carries this same guard; fork PRs get the ubuntu guards only.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     # Cold builds measured35–38 minutes in run36031218815. Keep the45-minute
     # limit, but give the full test suite its own job instead of its leftovers.
     timeout-minutes: 45
@@ -43,6 +57,9 @@ jobs:
     env:
       WORKSPACE: osaurus.xcworkspace
       SPM_CACHE: .spm-cache
+      # A self-hosted runner is a real machine: Xcode's default DerivedData is
+      # the operator's own, so cache restore and pruning must stay here.
+      DERIVED_DATA: ${{ runner.temp }}/DerivedData
       XCRESULT_PATH: build/BuildTests.xcresult
       XCBEAUTIFY_LOG: build/build-core-tests.log
     steps:
@@ -57,10 +74,14 @@ jobs:
       - name: Check localizations
         run: bash scripts/i18n/check.sh
 
-      - name: Set up Xcode ${{ env.XCODE_VERSION }}
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: ${{ env.XCODE_VERSION }}
+      - name: Verify Xcode ${{ env.XCODE_VERSION }}
+        run: |
+          # DEVELOPER_DIR (workflow env) selects the toolchain; assert it is the
+          # pinned one so a machine with a different Xcode fails loudly instead
+          # of testing an unknown compiler.
+          got="$(xcodebuild -version | head -1)"
+          echo "xcodebuild reports: $got"
+          test "$got" = "Xcode $XCODE_VERSION"
 
       - name: Install xcbeautify
         run: brew install xcbeautify
@@ -100,7 +121,7 @@ jobs:
         if: ${{ github.run_attempt == '1' && !(github.event_name == 'workflow_dispatch' && inputs.clear_cache) }}
         uses: actions/cache/restore@v5
         with:
-          path: ~/Library/Developer/Xcode/DerivedData
+          path: ${{ env.DERIVED_DATA }}
           key: dd-deps-${{ runner.os }}-${{ env.CACHE_SALT }}-xcode${{ env.XCODE_VERSION }}-${{ hashFiles('osaurus.xcworkspace/xcshareddata/swiftpm/Package.resolved', 'Packages/**/Package.swift', 'Packages/**/*.c', 'Packages/**/*.h') }}
 
       - name: Note forced cold build
@@ -129,6 +150,7 @@ jobs:
             -workspace "$WORKSPACE" \
             -scheme OsaurusCoreTests \
             -destination 'platform=macOS' \
+            -derivedDataPath "$DERIVED_DATA" \
             -disableAutomaticPackageResolution \
             -clonedSourcePackagesDirPath "$SPM_CACHE" \
             -resultBundlePath "$XCRESULT_PATH" \
@@ -143,7 +165,7 @@ jobs:
       - name: Bundle exact-run test products
         id: bundle
         run: |
-          python3 scripts/ci/core-test-products.py pack build/core-test-products.tar.gz
+          python3 scripts/ci/core-test-products.py pack build/core-test-products.tar.gz --derived-data "$DERIVED_DATA"
           echo "artifact-name=core-test-products-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
 
       - name: Upload test products
@@ -185,7 +207,7 @@ jobs:
         id: dd-deps-prune
         if: ${{ github.ref == 'refs/heads/main' && success() && steps.dd-deps-cache.outputs.cache-hit != 'true' && steps.dd-deps-cache.outputs.cache-primary-key != '' }}
         run: |
-          DD="$HOME/Library/Developer/Xcode/DerivedData"
+          DD="$DERIVED_DATA"
           for root in "$DD"/*/; do
             find "$root" -mindepth 1 -iname 'osaurus*' -prune -print -exec rm -rf {} + | sed 's|^|pruned: |'
             rm -rf "${root}Logs" "${root}Index.noindex"
@@ -200,19 +222,27 @@ jobs:
         if: ${{ steps.dd-deps-prune.outcome == 'success' }}
         uses: actions/cache/save@v5
         with:
-          path: ~/Library/Developer/Xcode/DerivedData
+          path: ${{ env.DERIVED_DATA }}
           key: ${{ steps.dd-deps-cache.outputs.cache-primary-key }}
 
   test-core:
     needs: build-core-tests
     # A failed/cancelled build must fail this required check, not skip it.
-    if: ${{ always() }}
-    runs-on: macos-26
+    # The fork guard is the same one build-core-tests carries.
+    if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: [self-hosted, macOS, ARM64, nuo-macos]
     # 60 min (not 45): the conditional teardown-crash retry below can run the
     # full suite twice (~23 min each). A real failure still fails on the first
     # attempt, so the extra headroom only helps flaky teardown crashes.
     timeout-minutes: 60
     env:
+      # The runner is a real machine, not a fresh VM: keep the suite away from
+      # the user's models and app data so it sees what a hosted runner sees.
+      OSAURUS_TEST_ROOT: /tmp/nuo-ci/test-root
+      OSU_MODELS_DIR: /tmp/nuo-ci/models-empty
+      # Same isolated root build-core-tests used; runner.temp is stable across
+      # the two jobs on a self-hosted runner.
+      DERIVED_DATA: ${{ runner.temp }}/DerivedData
       XCRESULT_PATH: build/Tests.xcresult
       XCBEAUTIFY_LOG: build/test-core.log
     steps:
@@ -226,10 +256,14 @@ jobs:
         with:
           lfs: true
 
-      - name: Set up Xcode ${{ env.XCODE_VERSION }}
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: ${{ env.XCODE_VERSION }}
+      - name: Verify Xcode ${{ env.XCODE_VERSION }}
+        run: |
+          # DEVELOPER_DIR (workflow env) selects the toolchain; assert it is the
+          # pinned one so a machine with a different Xcode fails loudly instead
+          # of testing an unknown compiler.
+          got="$(xcodebuild -version | head -1)"
+          echo "xcodebuild reports: $got"
+          test "$got" = "Xcode $XCODE_VERSION"
 
       - name: Install xcbeautify
         run: brew install xcbeautify
@@ -241,7 +275,12 @@ jobs:
           path: build
 
       - name: Verify and restore test products
-        run: python3 scripts/ci/core-test-products.py unpack build/core-test-products.tar.gz
+        run: python3 scripts/ci/core-test-products.py unpack build/core-test-products.tar.gz --derived-data "$DERIVED_DATA"
+
+      - name: Prepare isolated test roots
+        run: |
+          rm -rf "$OSAURUS_TEST_ROOT" "$OSU_MODELS_DIR"
+          mkdir -p "$OSAURUS_TEST_ROOT" "$OSU_MODELS_DIR"
 
       - name: Test OsaurusCore
         id: test
@@ -383,10 +422,11 @@ jobs:
           #          ruled out). Ordinary test failures; render the
           #          failures table.
 
-          # Resolve the xctest binary path. Xcode hashes the DerivedData
-          # subdirectory off the workspace path, so glob rather than
-          # hardcode. We only care about existence, not the actual binary.
-          XCTEST_BINARY="$(find "$HOME/Library/Developer/Xcode/DerivedData" \
+          # Resolve the xctest binary path. The unpacked products live in
+          # `build`; fall back to the isolated DerivedData root in case a
+          # future step compiles here. We only care about existence, not the
+          # binary itself.
+          XCTEST_BINARY="$(find build "$DERIVED_DATA" \
             -maxdepth 6 -name 'OsaurusCoreTests.xctest' -type d 2>/dev/null \
             | head -1)"
 
@@ -614,7 +654,10 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: test-core-diagnostic-reports-${{ github.run_attempt }}
-          path: ~/Library/Logs/DiagnosticReports/
+          # Only the crashing test process: on the self-hosted runner this
+          # directory also holds the operator's own crash reports, and these
+          # artifacts are published with the repository.
+          path: ~/Library/Logs/DiagnosticReports/xctest-*.ips
           retention-days: 7
           if-no-files-found: ignore
 
@@ -637,9 +680,9 @@ jobs:
     needs: swiftlint
     # A failed predecessor must not hide this lane's result, but a workflow
     # cancel (concurrency, manual) still stops the chain here.
-    if: ${{ !cancelled() }}
-    # Pinned (was `macos-latest`).
-    runs-on: macos-26
+    # Fork guard: same one build-core-tests carries.
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: [self-hosted, macOS, ARM64, nuo-macos]
     timeout-minutes: 10
     steps:
       - name: Checkout code
@@ -647,19 +690,12 @@ jobs:
         with:
           lfs: true
 
-      # OsaurusCLI's Package.swift requires `swift-tools-version: 6.2`, which
-      # ships with the pinned Xcode. The runner's default `swift` may be older
-      # (currently 6.1), so point xcrun at the pinned Xcode for these steps.
-      # GitHub Actions doesn't let job-level `env:` reference workflow-level
-      # `env:`, so keep XCODE_VERSION in sync here if it ever changes.
+      # DEVELOPER_DIR comes from the workflow env and points at the pinned
+      # Xcode, so these steps see its Swift rather than the runner's default.
       - name: Verify Swift toolchain
-        env:
-          DEVELOPER_DIR: /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
         run: swift --version
 
       - name: Run CLI tests
-        env:
-          DEVELOPER_DIR: /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
         run: swift test --package-path Packages/OsaurusCLI --parallel
 
       - name: Annotate timing
@@ -678,8 +714,9 @@ jobs:
     #
     # Pinned (was `macos-latest`) for the same reason as test-core.
     needs: test-cli
-    if: ${{ !cancelled() }}
-    runs-on: macos-26
+    # Fork guard: same one build-core-tests carries.
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: [self-hosted, macOS, ARM64, nuo-macos]
     timeout-minutes: 15
     steps:
       - name: Checkout code
@@ -690,13 +727,10 @@ jobs:
       # Same toolchain pinning rationale as test-cli: the packages require
       # `swift-tools-version: 6.2`, which ships with the pinned Xcode.
       - name: Verify Swift toolchain
-        env:
-          DEVELOPER_DIR: /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
         run: swift --version
 
       - name: Run OsaurusRepository tests
         env:
-          DEVELOPER_DIR: /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
           # Keychain wrappers no-op so hosted runners never hit the
           # "wants to use your confidential information" prompt.
           OSAURUS_DISABLE_KEYCHAIN_FOR_TESTS: "1"
@@ -704,7 +738,6 @@ jobs:
 
       - name: Run OsaurusPluginTestKit tests
         env:
-          DEVELOPER_DIR: /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
           OSAURUS_DISABLE_KEYCHAIN_FOR_TESTS: "1"
         run: swift test --package-path Packages/OsaurusPluginTestKit --parallel
 
@@ -721,8 +754,9 @@ jobs:
     # below returns warm runs to single-digit minutes; the cache-key shape
     # deliberately mirrors test-evals'.
     needs: test-evals
-    if: ${{ !cancelled() }}
-    runs-on: macos-26
+    # Fork guard: same one build-core-tests carries.
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: [self-hosted, macOS, ARM64, nuo-macos]
     timeout-minutes: 45
     env:
       SPM_BUILD: Packages/OsaurusPlugins/StatsPack/.build
@@ -732,10 +766,14 @@ jobs:
         with:
           lfs: true
 
-      - name: Set up Xcode ${{ env.XCODE_VERSION }}
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: ${{ env.XCODE_VERSION }}
+      - name: Verify Xcode ${{ env.XCODE_VERSION }}
+        run: |
+          # DEVELOPER_DIR (workflow env) selects the toolchain; assert it is the
+          # pinned one so a machine with a different Xcode fails loudly instead
+          # of testing an unknown compiler.
+          got="$(xcodebuild -version | head -1)"
+          echo "xcodebuild reports: $got"
+          test "$got" = "Xcode $XCODE_VERSION"
 
       # Keyed on the dependency graph and saved only from main (see
       # the cache note in build-core-tests). First-party sources come from a
@@ -753,7 +791,6 @@ jobs:
 
       - name: Run StatsPack tests
         env:
-          DEVELOPER_DIR: /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
           OSAURUS_DISABLE_KEYCHAIN_FOR_TESTS: "1"
         run: swift test --package-path Packages/OsaurusPlugins/StatsPack
 
@@ -778,8 +815,9 @@ jobs:
     #
     # Pinned (was `macos-latest`) for the same reason as test-core.
     needs: test-packages
-    if: ${{ !cancelled() }}
-    runs-on: macos-26
+    # Fork guard: same one build-core-tests carries.
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: [self-hosted, macOS, ARM64, nuo-macos]
     # Cold build compiles the whole OsaurusCore graph (mlx-swift Cmlx C++ +
     # SQLCipher amalgamation) under SwiftPM — same ~25-30 min floor as
     # test-core's cold xcodebuild. The .build cache below returns warm runs
@@ -793,10 +831,14 @@ jobs:
         with:
           lfs: true
 
-      - name: Set up Xcode ${{ env.XCODE_VERSION }}
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: ${{ env.XCODE_VERSION }}
+      - name: Verify Xcode ${{ env.XCODE_VERSION }}
+        run: |
+          # DEVELOPER_DIR (workflow env) selects the toolchain; assert it is the
+          # pinned one so a machine with a different Xcode fails loudly instead
+          # of testing an unknown compiler.
+          got="$(xcodebuild -version | head -1)"
+          echo "xcodebuild reports: $got"
+          test "$got" = "Xcode $XCODE_VERSION"
 
       # Same dependency-keyed, main-only-save policy as test-statspack.
       - name: Restore SwiftPM build
@@ -811,7 +853,6 @@ jobs:
 
       - name: Run evals harness tests
         env:
-          DEVELOPER_DIR: /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
           # Keychain wrappers no-op so hosted runners never hit the
           # "wants to use your confidential information" prompt.
           OSAURUS_DISABLE_KEYCHAIN_FOR_TESTS: "1"
@@ -828,7 +869,6 @@ jobs:
         # regression that fails the job. The build is warm from the test
         # step above, so this adds only the suite runtime.
         env:
-          DEVELOPER_DIR: /Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer
           OSAURUS_DISABLE_KEYCHAIN_FOR_TESTS: "1"
           OSAURUS_TEST_ROOT: /tmp/osaurus-evals-test
         run: make evals-deterministic
@@ -879,16 +919,14 @@ jobs:
         run: python3 scripts/ci/verify-doc-links.py --self-test
 
   swiftlint:
-    # Head of the second macOS chain. The hosted macOS arm64 pool gives this
-    # repo roughly two concurrent runners, so six macOS lanes dispatched at
-    # once left four of them waiting past the platform's 15-minute
-    # runner-acquisition limit, where they were cancelled without ever
-    # starting a step. `test-cli` → `test-packages` → `test-evals` →
-    # `test-statspack` name their predecessor below, so at most two macOS jobs
-    # ever queue: one per chain. See
-    # docs/notes/implemented/2026-11-14-ci-macos-runner-chains.md.
-    # Pinned (was `macos-latest`).
-    runs-on: macos-26
+    # Head of the second macOS chain. The lanes run on the self-hosted
+    # `nuo-macos` runner, which executes one job at a time, so the chains stay
+    # as ordering rather than fan-out: `test-cli` → `test-packages` →
+    # `test-evals` → `test-statspack` name their predecessor below. See
+    # docs/notes/implemented/2026-11-14-ci-self-hosted-macos-runner.md.
+    # Fork guard: same one build-core-tests carries.
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: [self-hosted, macOS, ARM64, nuo-macos]
     timeout-minutes: 10
     steps:
       - name: Checkout code
