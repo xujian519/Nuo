@@ -21,11 +21,25 @@ def build_identity():
     }
 
 
-def pack(archive, derived_data, identity):
-    runs = list(derived_data.glob("*/Build/Products/OsaurusCoreTests*.xctestrun"))
+def find_test_run(derived_data: Path) -> Path:
+    """Locate the single OsaurusCoreTests xctestrun under a DerivedData root.
+
+    Xcode puts it under `<root>/<project-hash>/Build/Products` when it owns the
+    root, and directly under `<root>/Build/Products` when `-derivedDataPath`
+    pins it — which is what CI does, so both shapes are real.
+    """
+    patterns = (
+        "*/Build/Products/OsaurusCoreTests*.xctestrun",
+        "Build/Products/OsaurusCoreTests*.xctestrun",
+    )
+    runs = sorted({path for pattern in patterns for path in derived_data.glob(pattern)})
     if len(runs) != 1:
         raise ValueError(f"Expected one OsaurusCoreTests xctestrun, found {len(runs)}")
-    run = runs[0]
+    return runs[0]
+
+
+def pack(archive, derived_data, identity):
+    run = find_test_run(derived_data)
     products = run.parent.relative_to(derived_data)
     manifest = dict(identity, products=str(products), xctestrun=str(run.relative_to(derived_data)))
     data = json.dumps(manifest, sort_keys=True).encode()

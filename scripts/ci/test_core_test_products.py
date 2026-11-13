@@ -37,6 +37,22 @@ class CoreTestProductsTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "existing build"):
                 products.unpack(archive, root / "restored", identity)
 
+    def test_finds_the_xctestrun_when_derived_data_is_pinned(self):
+        # CI passes -derivedDataPath, so Xcode drops the project-hash directory
+        # and writes Build/Products straight into the root.
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "source"
+            directory = source / "Build/Products"
+            directory.mkdir(parents=True)
+            (directory / "OsaurusCoreTests_OsaurusCoreTests_macosx27.2.xctestrun").write_bytes(b"test-run")
+            archive = root / "products.tar.gz"
+            identity = {"commit": "exact-head", "tree": "exact-tree", "xcode": "same-toolchain"}
+            products.pack(archive, source, identity)
+            run = products.unpack(archive, root / "restored", identity)
+            self.assertEqual(run.read_bytes(), b"test-run")
+            self.assertEqual(run.parent.relative_to(root / "restored"), Path("Build/Products"))
+
     def test_rejects_different_source_before_extracting(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
