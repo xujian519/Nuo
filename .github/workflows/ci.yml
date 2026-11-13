@@ -634,6 +634,10 @@ jobs:
           if-no-files-found: ignore
 
   test-cli:
+    needs: swiftlint
+    # A failed predecessor must not hide this lane's result, but a workflow
+    # cancel (concurrency, manual) still stops the chain here.
+    if: ${{ !cancelled() }}
     # Pinned (was `macos-latest`).
     runs-on: macos-26
     timeout-minutes: 10
@@ -673,6 +677,8 @@ jobs:
     # is a couple of minutes — no build cache needed.
     #
     # Pinned (was `macos-latest`) for the same reason as test-core.
+    needs: test-cli
+    if: ${{ !cancelled() }}
     runs-on: macos-26
     timeout-minutes: 15
     steps:
@@ -714,6 +720,8 @@ jobs:
     # SwiftPM — the same ~25-30 min floor as test-evals. The .build cache
     # below returns warm runs to single-digit minutes; the cache-key shape
     # deliberately mirrors test-evals'.
+    needs: test-evals
+    if: ${{ !cancelled() }}
     runs-on: macos-26
     timeout-minutes: 45
     env:
@@ -769,6 +777,8 @@ jobs:
     # suite-count assertions sat red for weeks unnoticed).
     #
     # Pinned (was `macos-latest`) for the same reason as test-core.
+    needs: test-packages
+    if: ${{ !cancelled() }}
     runs-on: macos-26
     # Cold build compiles the whole OsaurusCore graph (mlx-swift Cmlx C++ +
     # SQLCipher amalgamation) under SwiftPM — same ~25-30 min floor as
@@ -869,6 +879,14 @@ jobs:
         run: python3 scripts/ci/verify-doc-links.py --self-test
 
   swiftlint:
+    # Head of the second macOS chain. The hosted macOS arm64 pool gives this
+    # repo roughly two concurrent runners, so six macOS lanes dispatched at
+    # once left four of them waiting past the platform's 15-minute
+    # runner-acquisition limit, where they were cancelled without ever
+    # starting a step. `test-cli` → `test-packages` → `test-evals` →
+    # `test-statspack` name their predecessor below, so at most two macOS jobs
+    # ever queue: one per chain. See
+    # docs/notes/implemented/2026-11-14-ci-macos-runner-chains.md.
     # Pinned (was `macos-latest`).
     runs-on: macos-26
     timeout-minutes: 10
