@@ -78,6 +78,28 @@ Nothing else moves: job names, artifact upload, cache keys, per-lane
   `test-cli`, `test-packages`, `test-statspack`, `test-evals`, and `swiftlint`
   instead of cancelling them.
 
+## First chained run: the chains held, no runner arrived
+
+Run [43487742129](https://github.com/xujian519/Nuo/actions/runs/43487742129)
+(head `9f2aeef7f`) dispatched exactly the two chain heads it should have —
+`build-core-tests` and `swiftlint` — and nothing else until they settled. Both
+were still cancelled with `runner_id = 0` and zero steps, carrying the same
+"not acquired by Runner of type hosted" and "capacity constraints, macOS arm64"
+annotations, while the three ubuntu jobs on the same run started in seconds.
+`test-core` and `test-cli` then became the next dispatched pair and queued
+behind them.
+
+So the queue shape is now what the pool can serve; the pool itself offered no
+macOS arm64 runner at that moment. On attempt 2 of run `43476983762`,
+`test-cli` and `test-statspack` did get runners and passed, so this is
+intermittent capacity rather than a broken workflow or a bad label. The chains
+stay — six lanes would have starved harder — and the remaining options are a
+retry when capacity returns, or a runner this repository controls.
+
+`macos-15` is not a drop-in swap: that image tops out at Xcode 26.3, while
+`macos-26` carries the pinned 26.4.1, so changing the label also changes the
+toolchain pin.
+
 ## Alternatives considered
 
 - **Raise `build-core-tests` from 45 to 60 minutes and merge
