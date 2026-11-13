@@ -300589,36 +300589,36 @@
           }
         }
       },
-    "%@ came with Osaurus. Run it once here to see what it gives you. If you like it, it can run on its own later." : {
+    "%@ came with Nuo. Run it once here to see what it gives you. If you like it, it can run on its own later." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ ist bei Osaurus dabei. Führe es hier einmal aus, um zu sehen, was es dir liefert. Wenn es dir gefällt, kann es später von selbst laufen."
+            "value" : "%@ ist bei Nuo dabei. Führe es hier einmal aus, um zu sehen, was es dir liefert. Wenn es dir gefällt, kann es später von selbst laufen."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@은(는) Osaurus에 기본으로 들어 있습니다. 여기서 한 번 실행해 어떤 결과를 주는지 확인해 보세요. 마음에 들면 나중에 자동으로 실행되게 할 수 있습니다."
+            "value" : "%@은(는) Nuo에 기본으로 들어 있습니다. 여기서 한 번 실행해 어떤 결과를 주는지 확인해 보세요. 마음에 들면 나중에 자동으로 실행되게 할 수 있습니다."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ входит в Osaurus. Запустите его здесь один раз и посмотрите, что он дает. Если понравится, позже он сможет запускаться сам."
+            "value" : "%@ входит в Nuo. Запустите его здесь один раз и посмотрите, что он дает. Если понравится, позже он сможет запускаться сам."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 是 Osaurus 自带的。在这里运行一次，看看它能给你什么。如果喜欢，之后可以让它自动运行。"
+            "value" : "%@ 是 Nuo 自带的。在这里运行一次，看看它能给你什么。如果喜欢，之后可以让它自动运行。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 是 Osaurus 內建的。在這裡執行一次，看看它能給你什麼。如果喜歡，之後可以讓它自動執行。"
+            "value" : "%@ 是 Nuo 內建的。在這裡執行一次，看看它能給你什麼。如果喜歡，之後可以讓它自動執行。"
           }
         }
       }
@@ -301627,43 +301627,43 @@
         }
       }
     },
-    "Okay. It is in Set Up Osaurus whenever you want it." : {
+    "Okay. It is in Set Up Nuo whenever you want it." : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Okay. Es ist unter „Osaurus einrichten“, wann immer du es willst."
+            "value" : "Okay. Es ist unter „Nuo einrichten“, wann immer du es willst."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Okay. It is in Set Up Osaurus whenever you want it."
+            "value" : "Okay. It is in Set Up Nuo whenever you want it."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "알겠습니다. 원할 때 언제든 ‘Osaurus 설정’에서 찾을 수 있습니다."
+            "value" : "알겠습니다. 원할 때 언제든 ‘Nuo 설정’에서 찾을 수 있습니다."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Хорошо. Это будет в «Настроить Osaurus», когда понадобится."
+            "value" : "Хорошо. Это будет в «Настроить Nuo», когда понадобится."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "好的。需要时可以在“设置 Osaurus”中找到它。"
+            "value" : "好的。需要时可以在“设置 Nuo”中找到它。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "好的。需要時可以在「設定 Osaurus」中找到它。"
+            "value" : "好的。需要時可以在「設定 Nuo」中找到它。"
           }
         }
       }
@@ -302365,43 +302365,43 @@
         }
       }
     },
-    "Turn on Osaurus under Full Disk Access, then come back here." : {
+    "Turn on Nuo under Full Disk Access, then come back here." : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Schalte Osaurus unter „Vollständiger Festplattenzugriff“ ein und komm dann hierher zurück."
+            "value" : "Schalte Nuo unter „Vollständiger Festplattenzugriff“ ein und komm dann hierher zurück."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Turn on Osaurus under Full Disk Access, then come back here."
+            "value" : "Turn on Nuo under Full Disk Access, then come back here."
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "‘전체 디스크 접근 권한’에서 Osaurus를 켠 다음 여기로 돌아오세요."
+            "value" : "‘전체 디스크 접근 권한’에서 Nuo를 켠 다음 여기로 돌아오세요."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Включите Osaurus в разделе «Полный доступ к диску», затем вернитесь сюда."
+            "value" : "Включите Nuo в разделе «Полный доступ к диску», затем вернитесь сюда."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在“完全磁盘访问权限”中开启 Osaurus，然后回到这里。"
+            "value" : "在“完全磁盘访问权限”中开启 Nuo，然后回到这里。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在「完全磁盤訪問權限」中開啟 Osaurus，然後回到這裡。"
+            "value" : "在「完全磁盤訪問權限」中開啟 Nuo，然後回到這裡。"
           }
         }
       }

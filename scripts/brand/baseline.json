@@ -1,11 +1,11 @@
 {
-  "commit": "7bc87fc45",
+  "commit": "a1e3a0e4f",
   "contracts": {
-    "OSAURUS_TEST_ROOT": 115,
-    "OsaurusAI": 768,
+    "OSAURUS_TEST_ROOT": 125,
+    "OsaurusAI": 771,
     "_osaurus._tcp": 12,
-    "ai.osaurus.": 210,
-    "import OsaurusCore": 1230,
+    "ai.osaurus.": 211,
+    "import OsaurusCore": 1228,
     "osaurus_plugin_entry_v2": 43
   },
   "strict": {
@@ -31,7 +31,7 @@
     "Packages/OsaurusCore/Resources/Guide/guide-settings.md": 1,
     "Packages/OsaurusCore/Resources/Guide/guide-troubleshooting.md": 1,
     "Packages/OsaurusCore/Resources/Guide/guide-workspaces.md": 1,
-    "Packages/OsaurusCore/Resources/Localizable.xcstrings": 480,
+    "Packages/OsaurusCore/Resources/Localizable.xcstrings": 493,
     "Packages/OsaurusRepository/Brand.swift": 24,
     "Packages/OsaurusRepository/CentralRepositoryManager.swift": 3,
     "Packages/OsaurusRepository/OsaurusBundle.swift": 15,

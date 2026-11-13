@@ -248,7 +248,7 @@ final class DiscoveryCenter {
         }
         if item == .tryWorkflow, let trial = trialOffer(snapshot()) {
             return String(
-                format: L("%@ came with Osaurus. Run it once here to see what it gives you. If you like it, it can run on its own later."),
+                format: L("%@ came with Nuo. Run it once here to see what it gives you. If you like it, it can run on its own later."),
                 trial.name
             )
         }
@@ -324,7 +324,7 @@ final class DiscoveryCenter {
             if !s.fullDiskAccess {
                 return (
                     L("Open System Settings"),
-                    L("Turn on Osaurus under Full Disk Access, then come back here.")
+                    L("Turn on Nuo under Full Disk Access, then come back here.")
                 )
             }
             return (L("Connect Messages"), L("You approve the change first."))
@@ -356,7 +356,7 @@ final class DiscoveryCenter {
         case (.skip, .item(let item)):
             overlays[sessionId] = nil
             OnboardingTelemetry.discoveryDeclined(item, via: "not_now")
-            appendAuthored(L("Okay. It is in Set Up Osaurus whenever you want it."), to: session)
+            appendAuthored(L("Okay. It is in Set Up Nuo whenever you want it."), to: session)
         case (.discover, .item(let item)):
             guard !inFlight else { return }
             inFlight = true
