@@ -126,6 +126,26 @@ struct DeliveryQueueControlsTests {
         #expect(await fixture.manager.existingDelivery(for: fresh) == nil)
     }
 
+    @Test("a delivery that never streams is interrupted by the start watchdog")
+    func stalledStartIsInterrupted() async throws {
+        let fixture = try QueueFixture(agentId: agent)
+        defer {
+            BackgroundTaskManager.startWatchdogLimitForTesting = nil
+            fixture.cleanup()
+        }
+        BackgroundTaskManager.startWatchdogLimitForTesting = .milliseconds(50)
+
+        let state = try await fixture.stageStartingDelivery(title: "stalled")
+        #expect(await fixture.store.record(id: state.id)?.status == .starting)
+
+        fixture.manager.armStartWatchdogForTesting(taskId: state.id, queue: fixture.store)
+        try await Task.sleep(for: .milliseconds(400))
+
+        // The row must be resumable, not stuck active: `interrupted` is the
+        // same terminal state a crash leaves behind.
+        #expect(await fixture.store.record(id: state.id)?.status == .interrupted)
+    }
+
     private func waitUntil(
         timeout: Duration = .seconds(3),
         _ predicate: @MainActor @escaping () -> Bool
@@ -182,6 +202,27 @@ private final class QueueFixture {
         let state = makeState(title: title, status: .queued)
         manager.admitTaskForTesting(state, start: start)
         queuedStates.append(state)
+        return state
+    }
+
+    /// Register a live state plus a `starting` ledger row: the shape a wake
+    /// leaves behind when the turn never begins.
+    func stageStartingDelivery(title: String) async throws -> BackgroundTaskState {
+        let state = makeState(title: title, status: .running)
+        manager.registerTaskForTesting(state)
+        try await store.enqueue(
+            DeliveryRecord(
+                id: state.id,
+                agentId: agentId,
+                taskId: state.id,
+                source: .mailbox,
+                title: title,
+                prompt: "never starts",
+                status: .queued,
+                createdAt: Date()
+            )
+        )
+        try await store.markStarting(id: state.id)
         return state
     }
 

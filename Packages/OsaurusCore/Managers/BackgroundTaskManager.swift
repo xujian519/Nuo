@@ -1492,6 +1492,7 @@ public final class BackgroundTaskManager: ObservableObject {
             if let deliveryQueue = self.deliveryQueue {
                 do {
                     try await deliveryQueue.markStarting(id: context.id)
+                    self.armStartWatchdog(taskId: context.id, queue: deliveryQueue)
                 } catch {
                     print("[BackgroundTaskManager] delivery queue start failed for \(context.id): \(error)")
                 }
@@ -1792,6 +1793,57 @@ public final class BackgroundTaskManager: ObservableObject {
         return true
     }
 
+    /// A start that never reaches the first stream tick used to leave its
+    /// delivery row in `starting` forever. The row still looked active, so
+    /// launch reconciliation skipped it and the operator had no Resume or
+    /// Discard to act on. Bound the start: a wedged model-picker scan or a
+    /// refused load ends as `interrupted` — the same state a crash produces,
+    /// which is what Resume exists for.
+    #if DEBUG
+        /// Test seam: shorten the start watchdog so the timeout path is
+        /// reachable without waiting two minutes.
+        static var startWatchdogLimitForTesting: Duration?
+    #endif
+
+    private func armStartWatchdog(taskId: UUID, queue: DeliveryQueueStore) {
+        #if DEBUG
+            let limit = Self.startWatchdogLimitForTesting ?? .seconds(120)
+        #else
+            let limit: Duration = .seconds(120)
+        #endif
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: limit)
+            guard let self else { return }
+            guard let record = await queue.record(id: taskId), record.status == .starting else {
+                return
+            }
+            guard let state = self.backgroundTasks[taskId], state.status.isActive else { return }
+            print(
+                "[BackgroundTaskManager] delivery \(taskId) never reached streaming; marking interrupted"
+            )
+            do {
+                try await queue.markFinished(
+                    id: taskId,
+                    status: .interrupted,
+                    error: "The run never reached the model. Resume it to retry."
+                )
+            } catch {
+                print(
+                    "[BackgroundTaskManager] delivery queue watchdog finish failed for \(taskId): \(error)"
+                )
+            }
+            state.status = .cancelled
+            state.currentStep = nil
+            self.completionContinuations.removeValue(forKey: taskId)?.resume(
+                returning: CompletionWithToolFailure(
+                    result: .failed("The run never reached the model."),
+                    terminalToolFailure: nil
+                )
+            )
+            self.recomputeSortedToastTasks()
+        }
+    }
+
     /// Promote queued tasks into free execution slots, oldest first. A task
     /// whose agent is still at its per-agent cap is skipped so it doesn't
     /// head-of-line block work for other agents; it stays queued in place.
@@ -1962,6 +2014,11 @@ public final class BackgroundTaskManager: ObservableObject {
         /// Test-only: run a queue promotion pass.
         func pumpQueueForTesting() {
             pumpQueue()
+        }
+
+        /// Test-only: arm the start watchdog for a row already `starting`.
+        func armStartWatchdogForTesting(taskId: UUID, queue: DeliveryQueueStore) {
+            armStartWatchdog(taskId: taskId, queue: queue)
         }
 
         /// Test-only: the edited prompt waiting for this queued task's start.
