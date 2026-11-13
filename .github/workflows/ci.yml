@@ -58,8 +58,10 @@ jobs:
       WORKSPACE: osaurus.xcworkspace
       SPM_CACHE: .spm-cache
       # A self-hosted runner is a real machine: Xcode's default DerivedData is
-      # the operator's own, so cache restore and pruning must stay here.
-      DERIVED_DATA: ${{ runner.temp }}/DerivedData
+      # the operator's own, so cache restore and pruning must stay here. A
+      # fixed path, because `runner` is not one of the contexts a job-level
+      # `env` may read.
+      DERIVED_DATA: /tmp/nuo-ci/DerivedData
       XCRESULT_PATH: build/BuildTests.xcresult
       XCBEAUTIFY_LOG: build/build-core-tests.log
     steps:
@@ -116,6 +118,11 @@ jobs:
       # `workflow_dispatch` with `clear_cache` skips this restore. The SPM
       # cache stays: it is source pinned by Package.resolved checksums and
       # cannot poison a build, and re-downloading it cost ~2 min (PR #951).
+      - name: Reset DerivedData
+        # A previous run's products must not survive into this one: the build
+        # is incremental, so stale modules would be reused.
+        run: rm -rf "$DERIVED_DATA"
+
       - name: Restore dependency DerivedData cache
         id: dd-deps-cache
         if: ${{ github.run_attempt == '1' && !(github.event_name == 'workflow_dispatch' && inputs.clear_cache) }}
@@ -240,9 +247,9 @@ jobs:
       # the user's models and app data so it sees what a hosted runner sees.
       OSAURUS_TEST_ROOT: /tmp/nuo-ci/test-root
       OSU_MODELS_DIR: /tmp/nuo-ci/models-empty
-      # Same isolated root build-core-tests used; runner.temp is stable across
-      # the two jobs on a self-hosted runner.
-      DERIVED_DATA: ${{ runner.temp }}/DerivedData
+      # Same isolated root build-core-tests used, and cleared before the test
+      # products are unpacked (the transfer refuses to mix with a build).
+      DERIVED_DATA: /tmp/nuo-ci/DerivedData
       XCRESULT_PATH: build/Tests.xcresult
       XCBEAUTIFY_LOG: build/test-core.log
     steps:
@@ -273,6 +280,9 @@ jobs:
         with:
           name: ${{ needs.build-core-tests.outputs.artifact-name }}
           path: build
+
+      - name: Reset DerivedData
+        run: rm -rf "$DERIVED_DATA"
 
       - name: Verify and restore test products
         run: python3 scripts/ci/core-test-products.py unpack build/core-test-products.tar.gz --derived-data "$DERIVED_DATA"
