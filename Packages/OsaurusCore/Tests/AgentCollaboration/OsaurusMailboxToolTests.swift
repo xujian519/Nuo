@@ -4,9 +4,10 @@
 //
 //  ADR-Nuo-002 mailbox 工具层：`osaurus_mailbox` 的参数校验、错误映射、
 //  准入转发与 untrusted 契约。服务语义本身由 DirectedMailboxTests 覆盖，
-//  这里只证明工具把它无损地暴露给模型：入参失败走 invalid_args，服务错误
-//  映射成带 error_code 的分类失败，成功路径真实落盘且 inbox 条目永远
-//  携带 untrusted 标记。
+//  这里只证明工具把它无损地暴露给模型：入参失败走 invalid_args，未知或
+//  重名的显示名走 unknown_agent / ambiguous_agent，服务错误映射成带
+//  error_code 的分类失败，成功路径真实落盘且 inbox 条目永远携带
+//  untrusted 标记。
 //
 //  隔离方案：fixture 把 `OsaurusPaths.overrideRoot` 指到临时目录（agent 注册
 //  不碰用户真实 store），`DirectedMailboxCoordinator(service:)` 测试缝把邮箱
@@ -58,7 +59,9 @@ struct OsaurusMailboxToolTests {
                 fixture, caller: fixture.agentA.id,
                 arguments: ["action": "send", "to": "not-a-uuid", "text": "hi"]
             )
-            expectFailure(badTo, kind: "invalid_args", field: "to")
+            expectFailure(
+                badTo, kind: "not_found", errorCode: "unknown_agent", field: "to", retryable: false
+            )
 
             let missing = try await run(
                 fixture, caller: fixture.agentA.id,
@@ -135,6 +138,103 @@ struct OsaurusMailboxToolTests {
                 for: pid(fixture.agentB.id), requestedBy: pid(fixture.agentB.id))
             #expect(inbox.count == 1)
             #expect(inbox[0].untrustedText().text == "ping")
+        }
+    }
+
+    @Test("a display name sends, and inbox accepts that name")
+    func sendAndInboxByDisplayName() async throws {
+        try await withFixture { fixture in
+            let writer = Agent(name: "作家")
+            await MainActor.run { AgentManager.shared.add(writer) }
+            await fixture.coordinator.addEdge(
+                from: pid(writer.id), to: pid(fixture.agentB.id))
+
+            let sent = try await run(
+                fixture, caller: writer.id,
+                arguments: ["action": "send", "to": "mailbox b", "text": "by name"]
+            )
+            #expect(sent["ok"] as? Bool == true)
+
+            let inbox = try await run(
+                fixture, caller: Agent.defaultId,
+                arguments: ["action": "inbox", "agent_id": "Mailbox B"]
+            )
+            #expect(inbox["ok"] as? Bool == true)
+            let result = try #require(inbox["result"] as? [String: Any])
+            #expect(result["count"] as? Int == 1)
+            let entries = try #require(result["entries"] as? [[String: Any]])
+            #expect(entries.first?["text"] as? String == "by name")
+        }
+    }
+
+    @Test("an unknown display name does not deliver")
+    func unknownDisplayName() async throws {
+        try await withFixture { fixture in
+            let dict = try await run(
+                fixture, caller: Agent.defaultId,
+                arguments: ["action": "send", "to": "没有这个人", "text": "hi"]
+            )
+            expectFailure(
+                dict, kind: "not_found", errorCode: "unknown_agent", field: "to", retryable: false
+            )
+            #expect((dict["message"] as? String)?.contains("Mailbox A") == true)
+            let inbox = try await fixture.service.inbox(
+                for: pid(fixture.agentA.id), requestedBy: pid(fixture.agentA.id))
+            #expect(inbox.isEmpty)
+        }
+    }
+
+    @Test("a duplicated display name is refused without guessing")
+    func ambiguousDisplayName() async throws {
+        try await withFixture { fixture in
+            let first = Agent(name: "作家")
+            let second = Agent(name: "作家")
+            await MainActor.run {
+                AgentManager.shared.add(first)
+                AgentManager.shared.add(second)
+            }
+
+            let dict = try await run(
+                fixture, caller: Agent.defaultId,
+                arguments: ["action": "send", "to": "作家", "text": "which one"]
+            )
+            expectFailure(
+                dict, kind: "invalid_args", errorCode: "ambiguous_agent", field: "to"
+            )
+            let message = try #require(dict["message"] as? String)
+            #expect(message.contains(first.id.uuidString))
+            #expect(message.contains(second.id.uuidString))
+            let inbox = try await fixture.service.inbox(
+                for: pid(first.id), requestedBy: pid(Agent.defaultId))
+            #expect(inbox.isEmpty)
+        }
+    }
+
+    @Test("the orchestrator can send by name without an allowlist edge")
+    func orchestratorSendsByName() async throws {
+        try await withFixture { fixture in
+            let dict = try await run(
+                fixture, caller: Agent.defaultId,
+                arguments: ["action": "send", "to": "Mailbox A", "text": "direct"]
+            )
+            #expect(dict["ok"] as? Bool == true)
+            let inbox = try await fixture.service.inbox(
+                for: pid(fixture.agentA.id), requestedBy: pid(fixture.agentA.id))
+            #expect(inbox.count == 1)
+            #expect(inbox[0].untrustedText().text == "direct")
+        }
+    }
+
+    @Test("a resolved name still needs an allowlist edge")
+    func nameWithoutEdgeIsUnauthorized() async throws {
+        try await withFixture { fixture in
+            let dict = try await run(
+                fixture, caller: fixture.agentA.id,
+                arguments: ["action": "send", "to": "Mailbox C", "text": "side channel"]
+            )
+            expectFailure(
+                dict, kind: "rejected", errorCode: "unauthorized_edge", retryable: false)
+            #expect(dict["to"] as? String == pid(fixture.agentC.id))
         }
     }
 
@@ -262,7 +362,10 @@ struct OsaurusMailboxToolTests {
                 fixture, caller: fixture.agentB.id,
                 arguments: ["action": "inbox", "agent_id": "nope"]
             )
-            expectFailure(badOwner, kind: "invalid_args", field: "agent_id")
+            expectFailure(
+                badOwner, kind: "not_found", errorCode: "unknown_agent", field: "agent_id",
+                retryable: false
+            )
         }
     }
 

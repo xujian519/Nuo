@@ -89,6 +89,8 @@ private enum MailboxScenario {
             return await wakeQuotaDenied(root: root)
         case "reply_never_wakes":
             return await replyNeverWakes(root: root)
+        case "send_by_name":
+            return await sendByName(root: root)
         default:
             return MailboxScenarioReport(passed: false, note: "unknown scenario '\(scenario)'")
         }
@@ -569,6 +571,106 @@ private enum MailboxScenario {
         } catch {
             return MailboxScenarioReport(passed: false, note: "reply scenario threw: \(error)")
         }
+    }
+
+    /// `osaurus_mailbox` accepts a display name. The service still only stores
+    /// participant ids, so this row drives the tool, not `DirectedMailboxService`.
+    /// Unknown and duplicate names fail before a write. The temp app root is
+    /// restored before return so later cases see the previous agent store.
+    private static func sendByName(root: URL) async -> MailboxScenarioReport {
+        let previousRoot = OsaurusPaths.overrideRoot
+        OsaurusPaths.overrideRoot = root.appendingPathComponent("app-root", isDirectory: true)
+        let writer = Agent(name: "作家")
+        let reader = Agent(name: "Mailbox Reader")
+        let twinA = Agent(name: "同名")
+        let twinB = Agent(name: "同名")
+        let created = [writer, reader, twinA, twinB]
+        var problems: [String] = []
+        do {
+            await MainActor.run {
+                AgentManager.shared.refresh()
+                for agent in created {
+                    AgentManager.shared.add(agent)
+                }
+            }
+            let service = try DirectedMailboxService(
+                directory: root.appendingPathComponent("mailbox", isDirectory: true)
+            )
+            let coordinator = await MainActor.run {
+                DirectedMailboxCoordinator(service: service)
+            }
+            await coordinator.addEdge(
+                from: DirectedMailboxCoordinator.participantId(for: writer.id),
+                to: DirectedMailboxCoordinator.participantId(for: reader.id)
+            )
+            let tool = OsaurusMailboxTool()
+
+            let sent = try await invoke(
+                tool, coordinator: coordinator, caller: writer.id,
+                arguments: ["action": "send", "to": "mailbox reader", "text": "by name"]
+            )
+            if sent["ok"] as? Bool != true {
+                problems.append("name send failed: \(sent)")
+            }
+
+            let inbox = try await invoke(
+                tool, coordinator: coordinator, caller: reader.id,
+                arguments: ["action": "inbox"]
+            )
+            let entries = (inbox["result"] as? [String: Any])?["entries"] as? [[String: Any]]
+            if entries?.first?["text"] as? String != "by name" {
+                problems.append("inbox did not read back the named send: \(inbox)")
+            }
+
+            let unknown = try await invoke(
+                tool, coordinator: coordinator, caller: writer.id,
+                arguments: ["action": "send", "to": "没有这个人", "text": "nope"]
+            )
+            if unknown["error_code"] as? String != "unknown_agent" {
+                problems.append("unknown name returned \(unknown)")
+            }
+
+            let ambiguous = try await invoke(
+                tool, coordinator: coordinator, caller: writer.id,
+                arguments: ["action": "send", "to": "同名", "text": "which"]
+            )
+            if ambiguous["error_code"] as? String != "ambiguous_agent" {
+                problems.append("duplicate name returned \(ambiguous)")
+            }
+
+            let readerInbox = try await service.inbox(
+                for: DirectedMailboxCoordinator.participantId(for: reader.id),
+                requestedBy: DirectedMailboxCoordinator.participantId(for: reader.id)
+            )
+            if readerInbox.count != 1 {
+                problems.append("named send should be the only delivery, found \(readerInbox.count)")
+            }
+        } catch {
+            problems.append("send-by-name threw: \(error)")
+        }
+
+        for agent in created {
+            _ = await AgentManager.shared.delete(id: agent.id)
+        }
+        OsaurusPaths.overrideRoot = previousRoot
+        await MainActor.run { AgentManager.shared.refresh() }
+        return report(problems, pass: "a display name sends; unknown and duplicate names do not")
+    }
+
+    private static func invoke(
+        _ tool: OsaurusMailboxTool,
+        coordinator: DirectedMailboxCoordinator,
+        caller: UUID,
+        arguments: [String: Any]
+    ) async throws -> [String: Any] {
+        let json = String(decoding: try JSONSerialization.data(withJSONObject: arguments), as: UTF8.self)
+        let raw = try await ChatExecutionContext.$currentAgentId.withValue(caller) {
+            try await OsaurusMailboxTool.$coordinatorOverrideForTests.withValue(coordinator) {
+                try await tool.execute(argumentsJSON: json)
+            }
+        }
+        let object = try JSONSerialization.jsonObject(with: Data(raw.utf8))
+        return (object as? [String: Any]) ?? ["ok": false, "message": raw]
     }
 
     // MARK: - Helpers

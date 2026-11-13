@@ -1,0 +1,13 @@
+{
+  "id": "mailbox.send-by-name",
+  "domain": "mailbox",
+  "label": "mailbox • send accepts an agent display name",
+  "query": "deterministic policy pin — no model involved",
+  "notes": "osaurus_mailbox send and the name resolver accept a display name. An unknown name and a duplicated name fail before a delivery. CI-safe: no model, no network, temp directory only.",
+  "fixtures": {},
+  "expect": {
+    "mailbox": {
+      "scenario": "send_by_name"
+    }
+  }
+}

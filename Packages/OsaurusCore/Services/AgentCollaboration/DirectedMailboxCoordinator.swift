@@ -53,9 +53,9 @@ public final class DirectedMailboxCoordinator: ObservableObject {
         }
     }
 
-    /// Test seam: suites bind a coordinator to a service rooted in a temp
-    /// directory so they never touch the user-level mailbox file.
-    init(service: DirectedMailboxService) {
+    /// Test and eval seam. The Mailbox eval suite lives in another package and
+    /// binds a coordinator rooted in a temp directory. Production uses `.shared`.
+    public init(service: DirectedMailboxService) {
         self.service = service
         Task { @MainActor [weak self] in
             guard let self else { return }

@@ -31,7 +31,7 @@ public final class OsaurusMailboxTool: OsaurusTool, @unchecked Sendable {
             ]),
             "to": .object([
                 "type": .string("string"),
-                "description": .string("Target agent UUID (send)."),
+                "description": .string("Target agent name or UUID (send)."),
             ]),
             "text": .object([
                 "type": .string("string"),
@@ -51,7 +51,7 @@ public final class OsaurusMailboxTool: OsaurusTool, @unchecked Sendable {
             ]),
             "agent_id": .object([
                 "type": .string("string"),
-                "description": .string("Inbox owner UUID (inbox; Orchestrator only)."),
+                "description": .string("Inbox owner name or UUID (inbox; Orchestrator only)."),
             ]),
         ]),
         "required": .array([.string("action")]),
@@ -59,10 +59,9 @@ public final class OsaurusMailboxTool: OsaurusTool, @unchecked Sendable {
 
     public init() {}
 
-    /// Test seam — mirrors `PromptWorkingFolderTool.$pickerOverrideForTests`:
-    /// suites bind an isolated coordinator (temp-directory mailbox) instead of
-    /// touching the user-level file behind `.shared`.
-    @TaskLocal static var coordinatorOverrideForTests: DirectedMailboxCoordinator?
+    /// Test and eval seam. The Mailbox eval suite lives in another package, so
+    /// this has to be public; production callers leave it unset and hit `.shared`.
+    @TaskLocal public static var coordinatorOverrideForTests: DirectedMailboxCoordinator?
 
     @MainActor
     private func resolveCoordinator() -> DirectedMailboxCoordinator {
@@ -109,26 +108,15 @@ public final class OsaurusMailboxTool: OsaurusTool, @unchecked Sendable {
         _ args: [String: Any],
         sender: AgentCollaborationParticipant
     ) async -> String {
-        let toReq = requireString(args, "to", expected: "the target agent's UUID", tool: name)
+        let toReq = requireString(args, "to", expected: "the target agent's name or UUID", tool: name)
         guard case .value(let toRaw) = toReq else { return toReq.failureEnvelope ?? "" }
-        guard let toId = UUID(uuidString: toRaw) else {
-            return ToolEnvelope.failure(
-                kind: .invalidArgs,
-                message: "`to` must be an agent UUID, e.g. \"\(UUID().uuidString)\".",
-                field: "to",
-                expected: "an installed agent's UUID",
-                tool: name
-            )
-        }
-        guard let target = await AgentManager.shared.agent(for: toId) else {
-            return ToolEnvelope.failure(
-                kind: .notFound,
-                message: "No agent with id \(toRaw).",
-                field: "to",
-                expected: "an installed agent's UUID",
-                tool: name,
-                retryable: false
-            )
+        let installed = await MainActor.run { AgentManager.shared.agents }
+        let target: Agent
+        switch resolveAgent(toRaw, field: "to", installed: installed) {
+        case .found(let agent):
+            target = agent
+        case .rejected(let envelope):
+            return envelope
         }
         let textReq = requireString(args, "text", expected: "the message body", tool: name)
         guard case .value(let text) = textReq else { return textReq.failureEnvelope ?? "" }
@@ -201,21 +189,18 @@ public final class OsaurusMailboxTool: OsaurusTool, @unchecked Sendable {
         caller: AgentCollaborationParticipant
     ) async -> String {
         let agentReq = optionalString(
-            args, "agent_id", expected: "an agent UUID (Orchestrator only)", tool: name
+            args, "agent_id", expected: "an agent name or UUID (Orchestrator only)", tool: name
         )
         guard case .value(let agentRaw) = agentReq else { return agentReq.failureEnvelope ?? "" }
         var targetId = caller.id
         if let agentRaw {
-            guard let uuid = UUID(uuidString: agentRaw) else {
-                return ToolEnvelope.failure(
-                    kind: .invalidArgs,
-                    message: "`agent_id` must be an agent UUID.",
-                    field: "agent_id",
-                    expected: "an agent UUID",
-                    tool: name
-                )
+            let installed = await MainActor.run { AgentManager.shared.agents }
+            switch resolveAgent(agentRaw, field: "agent_id", installed: installed) {
+            case .found(let owner):
+                targetId = owner.agentCollaborationParticipant.id
+            case .rejected(let envelope):
+                return envelope
             }
-            targetId = DirectedMailboxCoordinator.participantId(for: uuid)
         }
         do {
             let records = try await resolveCoordinator().inbox(
@@ -271,6 +256,95 @@ public final class OsaurusMailboxTool: OsaurusTool, @unchecked Sendable {
         case .reply: return "reply"
         case .failure: return "failure"
         }
+    }
+
+    // MARK: - Name or UUID
+
+    /// A `to` / `agent_id` value is either one installed agent or a typed
+    /// refusal. UUID wins over a display name. Names match `name` and
+    /// `displayName` exactly, case-insensitive, with no prefix guessing.
+    /// Authorization stays in the mailbox service.
+    private enum MailboxAgentResolution {
+        case found(Agent)
+        case rejected(String)
+    }
+
+    private func resolveAgent(
+        _ raw: String,
+        field: String,
+        installed: [Agent]
+    ) -> MailboxAgentResolution {
+        let needle = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if needle.isEmpty {
+            return .rejected(
+                ToolEnvelope.failure(
+                    kind: .invalidArgs,
+                    message: "`\(field)` is empty.",
+                    field: field,
+                    expected: "an installed agent's name or UUID",
+                    tool: name
+                )
+            )
+        }
+        if let uuid = UUID(uuidString: needle) {
+            if let agent = installed.first(where: { $0.id == uuid }) {
+                return .found(agent)
+            }
+            return .rejected(
+                ToolEnvelope.failure(
+                    kind: .notFound,
+                    message: "No agent with id \(needle).",
+                    field: field,
+                    expected: "an installed agent's name or UUID",
+                    tool: name,
+                    retryable: false
+                )
+            )
+        }
+
+        var matches: [Agent] = []
+        var seen = Set<UUID>()
+        for agent in installed {
+            let nameHit = agent.name.caseInsensitiveCompare(needle) == .orderedSame
+            let displayHit = agent.displayName.caseInsensitiveCompare(needle) == .orderedSame
+            guard nameHit || displayHit, seen.insert(agent.id).inserted else { continue }
+            matches.append(agent)
+        }
+        switch matches.count {
+        case 1:
+            return .found(matches[0])
+        case 0:
+            let listed = installedNameList(installed)
+            return .rejected(
+                ToolEnvelope.failure(
+                    kind: .notFound,
+                    message: "No installed agent is named \"\(needle)\". Installed: \(listed).",
+                    field: field,
+                    expected: "an installed agent's name or UUID",
+                    tool: name,
+                    retryable: false,
+                    metadata: ["error_code": "unknown_agent"]
+                )
+            )
+        default:
+            let listed = installedNameList(matches)
+            return .rejected(
+                ToolEnvelope.failure(
+                    kind: .invalidArgs,
+                    message:
+                        "\"\(needle)\" matches more than one agent. Use a UUID. Candidates: \(listed).",
+                    field: field,
+                    expected: "one agent's UUID",
+                    tool: name,
+                    metadata: ["error_code": "ambiguous_agent"]
+                )
+            )
+        }
+    }
+
+    private func installedNameList(_ agents: [Agent]) -> String {
+        let listed = agents.map { "\($0.displayName) (\($0.id.uuidString))" }.sorted()
+        return listed.isEmpty ? "(none)" : listed.joined(separator: ", ")
     }
 
     // MARK: - Error mapping
