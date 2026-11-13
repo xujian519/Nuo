@@ -1502,6 +1502,23 @@ public final class BackgroundTaskManager: ObservableObject {
             // and another grouped dispatch must see an active reservation.
             await context.prepare()
             guard state.status.isActive else { return }
+            // A headless run and a chat window share one local generation
+            // slot. `ChatSession.send` drops a send while another window holds
+            // it, which left a wake parked at `starting` with no model load and
+            // no way forward until the row was interrupted. Wait here — before
+            // the task can look like it is talking to a model — so the wake
+            // runs the moment the blocking turn ends.
+            if let laneFailure = await self.awaitLocalModelLane(context: context, state: state) {
+                self.markCompleted(state, success: false, summary: laneFailure)
+                self.pumpQueue()
+                return
+            }
+            guard state.status.isActive else { return }
+            // A park outlasts the start watchdog's window by design; restart
+            // the clock so the run gets its full start budget from here.
+            if let deliveryQueue = self.deliveryQueue {
+                self.armStartWatchdog(taskId: context.id, queue: deliveryQueue)
+            }
 
             // Reconcile revoked plugin grants before appending the current
             // host-validated whitelist. Workspace runs expose no local tools.
@@ -1805,7 +1822,57 @@ public final class BackgroundTaskManager: ObservableObject {
         static var startWatchdogLimitForTesting: Duration?
     #endif
 
+    /// Task ids parked on the shared local generation slot. The start watchdog
+    /// re-arms for them instead of interrupting: a user turn that runs for
+    /// minutes is not a stuck start, and the lane wait owns its own bound.
+    private var localLaneWaiters: Set<UUID> = []
+
+    /// How long a headless start waits for the local slot before it reports
+    /// `ExecutionContext.localModelBusyMessage`. Bounded so an operator gets a
+    /// Resume affordance instead of a row that looks active forever.
+    private static let localLaneWaitLimit: Duration = .seconds(600)
+
+    #if DEBUG
+        /// Test seam: shorten the lane wait so the timeout path is reachable
+        /// without waiting ten minutes.
+        static var localLaneWaitLimitForTesting: Duration?
+    #endif
+
+    /// Parks a headless start until no other window is generating on the local
+    /// runtime. Returns nil once the slot is free, or the failure text when the
+    /// wait ran out.
+    @discardableResult
+    private func awaitLocalModelLane(
+        context: ExecutionContext,
+        state: BackgroundTaskState
+    ) async -> String? {
+        guard context.isLocalGenerationSlotBusy else { return nil }
+        #if DEBUG
+            let limit = Self.localLaneWaitLimitForTesting ?? Self.localLaneWaitLimit
+        #else
+            let limit: Duration = Self.localLaneWaitLimit
+        #endif
+        localLaneWaiters.insert(state.id)
+        defer { localLaneWaiters.remove(state.id) }
+        let deadline = ContinuousClock.now.advanced(by: limit)
+        while context.isLocalGenerationSlotBusy {
+            guard state.status.isActive else { return nil }
+            guard ContinuousClock.now < deadline else {
+                return ExecutionContext.localModelBusyMessage
+            }
+            try? await Task.sleep(for: .milliseconds(250))
+        }
+        return nil
+    }
+
+    /// One pending start watchdog per task. Re-arming replaces the token, so a
+    /// watchdog armed for an earlier window cannot interrupt the run the
+    /// current window is watching.
+    private var startWatchdogTokens: [UUID: UUID] = [:]
+
     private func armStartWatchdog(taskId: UUID, queue: DeliveryQueueStore) {
+        let token = UUID()
+        startWatchdogTokens[taskId] = token
         #if DEBUG
             let limit = Self.startWatchdogLimitForTesting ?? .seconds(120)
         #else
@@ -1813,7 +1880,14 @@ public final class BackgroundTaskManager: ObservableObject {
         #endif
         Task { @MainActor [weak self] in
             try? await Task.sleep(for: limit)
-            guard let self else { return }
+            guard let self, self.startWatchdogTokens[taskId] == token else { return }
+            // A start parked on the local generation slot is waiting out
+            // another window's turn, not wedged; the lane wait bounds itself.
+            if self.localLaneWaiters.contains(taskId) {
+                self.armStartWatchdog(taskId: taskId, queue: queue)
+                return
+            }
+            self.startWatchdogTokens.removeValue(forKey: taskId)
             guard let record = await queue.record(id: taskId), record.status == .starting else {
                 return
             }
@@ -2019,6 +2093,19 @@ public final class BackgroundTaskManager: ObservableObject {
         /// Test-only: arm the start watchdog for a row already `starting`.
         func armStartWatchdogForTesting(taskId: UUID, queue: DeliveryQueueStore) {
             armStartWatchdog(taskId: taskId, queue: queue)
+        }
+
+        /// Test-only: drive the local-generation lane wait directly.
+        func awaitLocalModelLaneForTesting(
+            context: ExecutionContext,
+            state: BackgroundTaskState
+        ) async -> String? {
+            await awaitLocalModelLane(context: context, state: state)
+        }
+
+        /// Test-only: whether a task is currently parked on the local slot.
+        func isWaitingOnLocalLaneForTesting(_ id: UUID) -> Bool {
+            localLaneWaiters.contains(id)
         }
 
         /// Test-only: the edited prompt waiting for this queued task's start.

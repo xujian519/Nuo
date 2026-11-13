@@ -229,6 +229,30 @@ public final class ExecutionContext: ObservableObject {
         }
     }
 
+    /// Failure text for a headless start that lost the single local generation
+    /// slot to another window. `ChatSession.send` refuses such a send silently
+    /// on purpose — the interactive caller shows a busy alert instead — but a
+    /// dispatched run has no window to alert, so a silent drop left its task
+    /// registered and its delivery row at `starting` with no model load. The
+    /// dispatcher waits for the slot first; this text is the bounded fallback
+    /// it reports when the slot never frees.
+    public static let localModelBusyMessage =
+        "The local model is busy with another window's turn. Resume this run when that turn finishes."
+
+    /// Test seam: `ChatSession` decides this from live window state, which a
+    /// unit test cannot stage without a real streaming window.
+    var localModelBusyProbe: (() -> Bool)?
+
+    /// Whether a send from this context would be dropped by `ChatSession`
+    /// because another window holds the single local generation slot. The
+    /// dispatcher parks a headless start on this after preparation and before
+    /// the prompt is handed over; `start` refuses with
+    /// `localModelBusyMessage` rather than passing a prompt to a send that
+    /// no-ops.
+    var isLocalGenerationSlotBusy: Bool {
+        localModelBusyProbe?() ?? chatSession.refusesLocalBusySend
+    }
+
     /// Begin execution with the given prompt.
     @discardableResult
     public func start(prompt: String, taskIntent: ChatTaskIntent? = nil, generationOverrides: ChatTurnOverrides? = nil)
@@ -248,12 +272,22 @@ public final class ExecutionContext: ObservableObject {
             // of files. The run still executes (the result must reach the
             // watcher log/UI), but the model is told the truth up front so it
             // reports the real problem instead of inventing one.
+            // Checked immediately before each send: the dispatcher's lane wait
+            // only narrows this window, it cannot close it.
+            if isLocalGenerationSlotBusy {
+                chatSession.lastStreamError = Self.localModelBusyMessage
+                return Self.localModelBusyMessage
+            }
             chatSession.send(
                 folderFailure + "\n\n" + prompt,
                 taskIntent: taskIntent,
                 turnOverrides: generationOverrides
             )
             return nil
+        }
+        if isLocalGenerationSlotBusy {
+            chatSession.lastStreamError = Self.localModelBusyMessage
+            return Self.localModelBusyMessage
         }
         chatSession.send(prompt, taskIntent: taskIntent, turnOverrides: generationOverrides)
         return nil
