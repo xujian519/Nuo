@@ -2123,6 +2123,12 @@ public final class ToolRegistry: ObservableObject {
         context: DynamicGrantContext,
         capabilityGranted: Bool = false
     ) -> Bool {
+        // Built-in and runtime-managed tools are authorized by the composer's
+        // per-capability gates (allowlist edge, per-agent flag, execution
+        // mode) and, at call time, by `ToolExecutionScope`. This grant exists
+        // for plugin / MCP / dynamic-native names; applying it to a built-in
+        // rejected a tool its own gate had already approved.
+        guard isDynamicRegisteredTool(named: name) else { return true }
         guard isGlobalEnabled(name), context.capabilities?.toolsEnabled != false else { return false }
         if capabilityGranted || context.nativeGrantedNames.contains(name) { return true }
         // Native dynamic capabilities can also be explicit user picks.

@@ -131,6 +131,72 @@ struct SystemPromptComposerToolResolutionTests {
         )
     }
 
+    /// ADR-Nuo-002: a custom agent sees `osaurus_mailbox` exactly when its
+    /// participant id sits on either end of the persisted allowlist. This is
+    /// the schema half of the tool contract; the execution scope is seeded
+    /// from the same resolved specs, so a spec here that the composer would
+    /// otherwise strip must also survive the scope gate.
+    @Test("allowlisted custom agent keeps osaurus_mailbox in its tool schema")
+    func allowlistedCustomAgentSeesMailbox() async {
+        await SandboxTestLock.runWithStoragePaths {
+            let manager = AgentManager.shared
+            let agent = Agent(
+                name: "MailboxResolution-\(UUID().uuidString.prefix(6))",
+                agentAddress: "test-mailbox-resolution-\(UUID().uuidString)"
+            )
+            manager.add(agent)
+
+            let visibleWithoutEdge = SystemPromptComposer.resolveTools(
+                agentId: agent.id,
+                executionMode: .none
+            ).map(\.function.name)
+            #expect(
+                !visibleWithoutEdge.contains("osaurus_mailbox"),
+                "an agent with no allowlist edge must not see the mailbox tool"
+            )
+
+            await DirectedMailboxCoordinator.shared.addEdge(
+                from: DirectedMailboxCoordinator.participantId(for: agent.id),
+                to: DirectedMailboxCoordinator.participantId(for: Agent.defaultId)
+            )
+            defer {
+                Task { @MainActor in
+                    await DirectedMailboxCoordinator.shared.removeEdge(
+                        from: DirectedMailboxCoordinator.participantId(for: agent.id),
+                        to: DirectedMailboxCoordinator.participantId(for: Agent.defaultId)
+                    )
+                }
+            }
+
+            #expect(
+                ToolRegistry.shared.isDynamicToolGranted("osaurus_mailbox", agentId: agent.id),
+                "the dynamic grant check must not filter a built-in"
+            )
+            let visibleWithEdge = SystemPromptComposer.resolveTools(
+                agentId: agent.id,
+                executionMode: .none
+            ).map(\.function.name)
+            #expect(
+                visibleWithEdge.contains("osaurus_mailbox"),
+                "an allowlisted custom agent must see osaurus_mailbox; got \(visibleWithEdge.sorted())"
+            )
+
+            // The execution scope is seeded from this schema, so the same
+            // name must be permissive at call time. A built-in the dynamic
+            // grant re-checked against the agent's plugin list used to fail
+            // here with tool_not_found even though the model was shown it.
+            let scopeAllowsMailbox = ToolExecutionScope(
+                exposed: SystemPromptComposer.resolveTools(
+                    agentId: agent.id,
+                    executionMode: .none
+                )
+            ).permits("osaurus_mailbox")
+            #expect(scopeAllowsMailbox, "execution scope must permit the exposed mailbox tool")
+
+            _ = await manager.delete(id: agent.id)
+        }
+    }
+
     /// Minimal snapshot for the gate tests that exercise `resolveTools`
     /// directly (no `AgentManager` round-trip). A fresh random `agentId`
     /// keeps it off the Default-agent allowlist path so the only thing

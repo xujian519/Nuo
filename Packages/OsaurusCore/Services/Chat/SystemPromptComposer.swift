@@ -3275,6 +3275,17 @@ public struct SystemPromptComposer: Sendable {
             allowed.formUnion(visibleDelegation)
             if snapshot.computerUseEnabled { allowed.insert(ComputerUseTool.toolName) }
             if snapshot.browserUseEnabled { allowed.insert(BrowserUseTool.toolName) }
+            // ADR-Nuo-002: the mailbox gate above already decided visibility
+            // for a custom agent (allowlist edge, or an explicit pick). This
+            // allowlist re-decides every other built-in, so it must not drop
+            // the tool the gate just approved.
+            if snapshot.agentId == Agent.defaultId
+                || additionalToolNames.contains("osaurus_mailbox")
+                || (isManual && (snapshot.manualToolNames?.contains("osaurus_mailbox") ?? false))
+                || DirectedMailboxCoordinator.shared.mailboxVisible(agentId: snapshot.agentId)
+            {
+                allowed.insert("osaurus_mailbox")
+            }
             allowed.formUnion(AppleApp.toolNames(for: snapshot.enabledAppleApps))
             if byName["capabilities"] != nil { allowed.insert("capabilities") }
             if snapshot.hasChannelPublishDestinations {
