@@ -361,8 +361,6 @@ let package = Package(
         ),
         .package(url: "https://github.com/21-DOT-DEV/swift-secp256k1", exact: "0.23.2"),
         .package(path: "../OsaurusNetworking"),
-        // osaurus-sync's Swift package, vendored by scripts/update-osaurus-sync.sh.
-        .package(path: "../Vendor/OsaurusSync"),
         .package(path: "../OsaurusRepository"),
         // Nuo UI 设计令牌层（颜色 / 字阶 / 间距 / 圆角 / 动效 + 组件）。
         // 本地包，不发布；与 OsaurusCore 一起演进。见 docs/NUO_UI_PHASE1.md。
@@ -510,7 +508,6 @@ let package = Package(
                 .product(name: "VecturaKit", package: "VecturaKit"),
                 .product(name: "OsaurusNetworking", package: "OsaurusNetworking"),
                 .product(name: "OsaurusRepository", package: "OsaurusRepository"),
-                .product(name: "OsaurusSync", package: "OsaurusSync"),
                 .product(name: "P256K", package: "swift-secp256k1"),
                 .product(name: "libsecp256k1", package: "swift-secp256k1"),
                 .product(name: "SwiftMath", package: "SwiftMath"),
