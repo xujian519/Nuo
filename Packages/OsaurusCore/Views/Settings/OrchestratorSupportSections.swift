@@ -645,13 +645,13 @@ struct DeliveryQueueSection: View {
                         moveButton(
                             "arrow.up",
                             help: L("Move up"),
-                            id: "orchestrator.deliveryQueue.moveUp",
+                            id: "orchestrator.deliveryQueue.moveUp.\(record.id.uuidString)",
                             enabled: canMove(record, up: true)
                         ) { move(record, up: true) }
                         moveButton(
                             "arrow.down",
                             help: L("Move down"),
-                            id: "orchestrator.deliveryQueue.moveDown",
+                            id: "orchestrator.deliveryQueue.moveDown.\(record.id.uuidString)",
                             enabled: canMove(record, up: false)
                         ) { move(record, up: false) }
                         Button {
@@ -662,7 +662,8 @@ struct DeliveryQueueSection: View {
                                 .foregroundColor(theme.accentColor)
                         }
                         .buttonStyle(.plain)
-                        .accessibilityIdentifier("orchestrator.deliveryQueue.edit")
+                        .accessibilityIdentifier(
+                            "orchestrator.deliveryQueue.edit.\(record.id.uuidString)")
                         Button {
                             cancelQueued(record)
                         } label: {
@@ -671,7 +672,8 @@ struct DeliveryQueueSection: View {
                                 .foregroundColor(theme.secondaryText)
                         }
                         .buttonStyle(.plain)
-                        .accessibilityIdentifier("orchestrator.deliveryQueue.cancel")
+                        .accessibilityIdentifier(
+                            "orchestrator.deliveryQueue.cancel.\(record.id.uuidString)")
                     }
                 }
             }
@@ -690,7 +692,8 @@ struct DeliveryQueueSection: View {
                                     .stroke(theme.inputBorder, lineWidth: 1)
                             )
                     )
-                    .accessibilityIdentifier("orchestrator.deliveryQueue.editField")
+                    .accessibilityIdentifier(
+                        "orchestrator.deliveryQueue.editField.\(record.id.uuidString)")
 
                 HStack(spacing: 8) {
                     Spacer()
@@ -721,7 +724,8 @@ struct DeliveryQueueSection: View {
                     }
                     .buttonStyle(.plain)
                     .disabled(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    .accessibilityIdentifier("orchestrator.deliveryQueue.save")
+                    .accessibilityIdentifier(
+                        "orchestrator.deliveryQueue.save.\(record.id.uuidString)")
                 }
             }
         }
@@ -862,7 +866,8 @@ struct DeliveryQueueSection: View {
                                 )
                         }
                         .buttonStyle(.plain)
-                        .accessibilityIdentifier("orchestrator.deliveryQueue.resume")
+                        .accessibilityIdentifier(
+                            "orchestrator.deliveryQueue.resume.\(record.id.uuidString)")
                     }
 
                     Button {
@@ -873,7 +878,8 @@ struct DeliveryQueueSection: View {
                             .foregroundColor(theme.secondaryText)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityIdentifier("orchestrator.deliveryQueue.discard")
+                    .accessibilityIdentifier(
+                        "orchestrator.deliveryQueue.discard.\(record.id.uuidString)")
                 }
             }
         }

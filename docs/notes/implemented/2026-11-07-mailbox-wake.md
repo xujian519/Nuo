@@ -86,7 +86,10 @@ in-flight marker, which slice 2 replaces with persisted delivery rows. The
 `agent_runs` trigger kind reads as `schedule`; a dedicated kind is a later
 schema change.
 
-Live UI proof for the two-agent send → run → reply flow is not claimed here.
-The deterministic coverage is `MailboxWakeServiceTests` (six cases) plus the
-existing `DirectedMailboxTests` and `OsaurusMailboxToolTests`; the model
-runtime is faked, so this is a contract proof, not runtime evidence.
+Live UI proof for the two-agent send → run → reply flow is still PARTIAL.
+On 2026-11-13 the isolated proof app was launched with an empty models
+directory so it would not scan or write `~/MLXModels`. No model turn ran, so
+delivery → auto-run → reply was not observed. The deterministic coverage is
+`MailboxWakeServiceTests` (six cases) plus the existing `DirectedMailboxTests`
+and `OsaurusMailboxToolTests`; the model runtime is faked, so this is a
+contract proof, not runtime evidence.

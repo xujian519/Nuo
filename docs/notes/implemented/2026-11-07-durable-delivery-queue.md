@@ -4,8 +4,9 @@ Status: implemented
 
 This is slice 2 of the Grok Bot parity plan (issue #16). It records the
 background chat queue on disk so a relaunch can tell what was waiting, what
-was running, and what never started. It does not add the message-level
-controls (edit / reorder / steer) yet.
+was running, and what never started. Edit, reorder, cancel, the `running`
+write-through, and `idempotency_key` landed in the same issue. `steer` into a
+running turn is still open: a headless run has no interactive input owner.
 
 ## Problem
 

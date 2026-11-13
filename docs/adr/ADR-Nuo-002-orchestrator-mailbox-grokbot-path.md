@@ -380,7 +380,8 @@ through `MailboxWakeService` after the new turn completes.
 
 The decision note is
 [2026-11-07-durable-delivery-queue.md](../notes/implemented/2026-11-07-durable-delivery-queue.md).
-Message-level controls (edit / reorder / steer) are not in this slice.
+Edit, reorder, cancel, the `running` write-through, and `idempotency_key`
+landed with this slice. `steer` into a running turn is still open.
 
 ## Appendix: workspace, room ownership, ACP (2026-11-07)
 
@@ -405,3 +406,5 @@ The remaining parity slices landed without relaxing an admission rule:
 Still open: `steer` into a running turn (slice 2), ACP session resume across a
 process restart, and a live click-through of the queued-row buttons and room
 controls on a machine where the UI automation can drive those small controls.
+Queued-row controls now carry a per-delivery accessibility identifier
+(`orchestrator.deliveryQueue.<action>.<uuid>`).
