@@ -60,9 +60,7 @@ both about the machine rather than the code:
   "已中断 — 在生成回复之前已停止。" where the test expects "Interrupted — stopped
   before a response was produced.", and a breadcrumb came back as
   ["通用", "General", "Global Hotkey"]. A hosted image is English, so the suite
-  never had to say which language it means. The job now passes
-  `-testLanguage en -testRegion US`, which pins the test session instead of the
-  suite.
+  never had to say which language it means.
 - **11 keychain failures with `-25308` (`errSecInteractionNotAllowed`).** The
   login keychain already holds this operator's app secrets, and a freshly built
   test binary is a different signer, so reading one requires approval. A launchd
@@ -73,8 +71,35 @@ both about the machine rather than the code:
   entry in the user search list and the default for the duration of the suite,
   and restores the login keychain in an `if: always()` step.
 
-Both fixes move the machine toward hosted-runner conditions rather than
-loosening the tests.
+The keychain fix holds: the next run reported 116 failures with **zero**
+keychain ones.
+
+### Locale: accepted as a known failure (decided 2026-11-14)
+
+`test-core` still fails on the self-hosted runner, and this is the accepted
+state. The suite asserts English copy, this machine's system language is
+Simplified Chinese, and `L()` resolves `String(localized:bundle:.module)`
+through the process's `AppleLanguages` default. Four ways to override it were
+tried against a real xctestrun on the machine, and none of them moved the
+strings:
+
+| Attempt | Result |
+|---|---|
+| `xcodebuild test-without-building -testLanguage en -testRegion US` | ignored for this action |
+| `TestLanguage`/`TestRegion` written into the xctestrun | strings stay Chinese |
+| `EnvironmentVariables: { AppleLanguages: (en) }` in the xctestrun | strings stay Chinese; a standalone probe confirmed `Locale.preferredLanguages` ignores the variable |
+| `CommandLineArguments: [-AppleLanguages, (en)]` | the harness reads them as test selectors and executes 0 tests |
+
+The chosen option is to leave the failure visible: 116 of 12,204 cases fail,
+`test-core` is red, and the workflow comment plus this note say why. The two
+alternatives considered were flipping the machine's global `AppleLanguages`
+for the length of the job (every app launched in that window would come up in
+English) and registering the runner under a separate English-locale macOS
+account. Either is a one-line decision away if a green `test-core` becomes a
+requirement.
+
+Losing the `-testLanguage`/`-testRegion` flags is deliberate: they do nothing
+here, and leaving them would imply the lane is locale-pinned.
 
 ## Evidence
 

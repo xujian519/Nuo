@@ -236,6 +236,15 @@ jobs:
     needs: build-core-tests
     # A failed/cancelled build must fail this required check, not skip it.
     # The fork guard is the same one build-core-tests carries.
+    #
+    # Known, accepted failure on the self-hosted runner: ~116 English-copy
+    # assertions read Chinese strings because this machine's system language is
+    # Simplified Chinese, and `L()` resolves through the process's
+    # AppleLanguages default, which no test-session flag moves. The count and
+    # the four attempts that failed are recorded in
+    # docs/notes/implemented/2026-11-14-ci-self-hosted-macos-runner.md. This is
+    # a visible failure on purpose: do not skip these suites or soften the
+    # assertions to make the lane green.
     if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     runs-on: [self-hosted, macOS, ARM64, nuo-macos]
     # 60 min (not 45): the conditional teardown-crash retry below can run the
@@ -320,14 +329,9 @@ jobs:
           run_tests() {
             # xcodebuild refuses to overwrite an existing result bundle.
             rm -rf "$XCRESULT_PATH"
-            # The suite asserts English copy. A hosted runner is English and
-            # this machine is not, so pin the test process rather than the
-            # suite: -testLanguage/-testRegion apply to the test session only.
             xcodebuild test-without-building \
               -xctestrun "$XCTESTRUN" \
               -destination 'platform=macOS' \
-              -testLanguage en \
-              -testRegion US \
               -resultBundlePath "$XCRESULT_PATH" \
               -skipPackagePluginValidation \
               -skipMacroValidation \
@@ -705,6 +709,7 @@ jobs:
           name: test-core-xcbeautify-log-${{ github.run_attempt }}
           path: ${{ env.XCBEAUTIFY_LOG }}
           retention-days: 7
+          if-no-files-found: ignore
 
       - name: Restore the login keychain
         # Runs even when the suite failed so the operator's keychain search
@@ -716,7 +721,6 @@ jobs:
           security list-keychains -d user -s "$HOME/Library/Keychains/login.keychain-db" || true
           security delete-keychain /tmp/nuo-ci/ci.keychain-db 2>/dev/null || true
           security list-keychains -d user
-          if-no-files-found: ignore
 
   test-cli:
     needs: swiftlint
